@@ -1,0 +1,14 @@
+# standard ignores
+
+node_modules/
+
+# ignore everything
+
+*
+*/**
+
+# override above and  files
+
+!module_dist/*
+!module_dist/**/*
+!package.json

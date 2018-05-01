@@ -1,0 +1,21 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Layout Service</title>
+</head>
+<body>
+    this is the layout service
+    <script src="Layouts/Service/index.js"></script>
+    <script>
+        const launchDir = location.href.slice(0, location.href.lastIndexOf('/'));
+        const deploymentLoc = location.host === "cdn.openfin.co" ? '-cdn' : '';
+        const manifestUrl = `${launchDir}/layouts-client${deploymentLoc}.json`;
+        const callback = app => app.run();
+        const errorCallback = err => console.log(err);
+
+        fin.desktop.Application.createFromManifest(manifestUrl, callback, errorCallback);
+    </script>
+</body>
+</html>

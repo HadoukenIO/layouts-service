@@ -1,0 +1,25 @@
+{
+    "devtools_port": 9090,
+    "startup_app": {
+        "name": "Snap-Dock-Demo",
+        "description": "OpenFin POC",
+        "url": "https://cdn.openfin.co/demos/layouts/index.html",
+        "uuid": "Snap-Dock-Demo",
+        "autoShow": true,
+        "defaultHeight": 400,
+        "defaultWidth": 500
+    },
+    "services": [{
+        "name": "layouts",
+        "apiVersion": "0.0.1"
+    }],
+    "shortcut": {
+        "company": "HadoukenIO",
+        "description": "Layouts Demo",
+        "name": "Layouts Demo"
+    },
+    "runtime": {
+        "arguments": "--v=1 --enable-crash-reporting",
+        "version": "8.56.30.42"
+    }
+}

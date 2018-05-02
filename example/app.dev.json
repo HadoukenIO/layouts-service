@@ -2,17 +2,18 @@
     "devtools_port": 9090,
     "startup_app": {
         "name": "Snap-Dock-Demo",
-        "description": "OpenFin POC",
-        "url": "https://cdn.openfin.co/demos/layouts/index.html",
+        "description": "OpenFin Layouts Demo",
+        "url": "http://localhost:1337/index.html",
         "uuid": "Snap-Dock-Demo",
-        "autoShow": true,
-        "defaultHeight": 400,
-        "defaultWidth": 500
+        "autoShow": false,
+        "defaultHeight": 300,
+        "defaultWidth": 300
     },
-    "services": [{
-        "name": "layouts",
-        "apiVersion": "0.0.1"
-    }],
+    "services": [
+        {
+            "name": "layouts"
+        }
+    ],
     "shortcut": {
         "company": "HadoukenIO",
         "description": "Layouts Demo",

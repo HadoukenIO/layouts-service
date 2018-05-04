@@ -30,7 +30,7 @@ const clientP = createClientPromise(
 
 
 clientP.then(client => {
-  Mousetrap.bind('command+shift+u', () => {
+  Mousetrap.bind('mod+shift+u', () => {
     client.dispatch('undock', getId());
     console.log('Window un-docked via keyboard shortcut');
   });

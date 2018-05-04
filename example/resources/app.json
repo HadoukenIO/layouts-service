@@ -5,15 +5,13 @@
         "description": "OpenFin Layouts Demo",
         "url": "http://localhost:1337/index.html",
         "uuid": "Snap-Dock-Demo",
-        "autoShow": false,
+        "autoShow": true,
         "defaultHeight": 300,
         "defaultWidth": 300
     },
-    "services": [
-        {
-            "name": "layouts"
-        }
-    ],
+    "services": [{
+        "name": "layouts"
+    }],
     "shortcut": {
         "company": "HadoukenIO",
         "description": "Layouts Demo",

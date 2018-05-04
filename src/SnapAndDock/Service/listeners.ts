@@ -1,4 +1,4 @@
-import {Fin, MonitorState} from '../fin';
+import {Fin, MonitorState, OfWindow} from '../fin';
 
 import {initWindow} from '.';
 import {handleBoundsChanging} from './actions/boundsChanging';
@@ -74,9 +74,16 @@ export async function registerWindowListeners(
 export async function registerInitListeners() {
   // Whenever a new app is created, initialize main window and listen for new
   // window creation
-  const listener = (payload: WindowIdentity) => {
+  const listener = async (payload: WindowIdentity) => {
     const {uuid} = payload;
-    registerAppListeners(uuid);
+    await registerAppListeners(uuid);
+    const app = fin.desktop.Application.wrap(uuid);
+    const main = app.getWindow();
+    const children = await p<OfWindow[]>(app.getChildWindows)();
+    await Promise.all([...children, main].map(async win => {
+      const bounds = await p<Bounds>(win.getBounds.bind(win))();
+      initWindow(win, bounds);
+    }));
   };
   await p<string, (info: MonitorState) => void, void>(
       fin.desktop.System.addEventListener)(

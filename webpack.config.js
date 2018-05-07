@@ -26,7 +26,7 @@ module.exports = (env, argv) => (argv.mode === 'production' ? {
                 const config = JSON.parse(content.toString())
                 const runtime = {
                     ...config.runtime,
-                    version: '8.56.30.42',
+                    version: '8.56.30.55',
                 }
                 const startup_app = {
                     ...config.startup_app,

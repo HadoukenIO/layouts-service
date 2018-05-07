@@ -11,7 +11,7 @@ This project consist of 2 parts:
 2. The Layouts Client, which exposes calls to undock and opt-out of snapping behavior.
 
 ### Dependencies
-- OpenFin version >= 8.56.30.42
+- OpenFin version >= 8.56.30.55
 - RVM >= 4.2.0.33.
 
 ### Features

@@ -1,3 +1,5 @@
+import {deregister} from 'openfin-layouts';
+
 const launchDir = location.href.slice(0, location.href.lastIndexOf('/'));
 const url = `${launchDir}/frameless-window.html`;
 
@@ -17,14 +19,18 @@ fin.desktop.main(() => {
         },
         console.log, console.error);
   }
-  const x = new fin.desktop.Window(
-      {
-        url: `${launchDir}/deregistered.html`,
-        autoShow: true,
-        defaultHeight: 300,
-        defaultWidth: 300,
-        saveWindowState: false,
-        name: 'deregistered-win'
-      },
-      console.log, console.error);
+
+  const btn = document.createElement('button');
+  btn.id = 'button';
+  btn.innerText = 'Deregister Me';
+  btn.onclick = async () => {
+    btn.disabled = true;
+    await deregister();
+    btn.remove();
+    const p = document.createElement('p');
+    p.innerText = `I don't snap any more`;
+    p.style.color = '#ffffff';
+    document.body.appendChild(p);
+  };
+  document.body.appendChild(btn);
 });

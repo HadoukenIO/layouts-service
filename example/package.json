@@ -18,7 +18,7 @@
   "license": "ISC",
   "dependencies": {
     "copy-webpack-plugin": "^4.5.1",
-    "openfin-layouts": "0.0.1"
+    "openfin-layouts": "^0.0.2"
   },
   "devDependencies": {
     "@types/openfin": "^29.0.0",

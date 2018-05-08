@@ -21,8 +21,8 @@
     },
     "shortcut": {
         "company": "HadoukenIO",
-        "description": "Layouts Demo",
+        "description": "",
         "icon": "http://localhost:1337/favicon.ico",
-        "name": "Layouts Demo"
+        "name": "Layouts"
     }
 }

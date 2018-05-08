@@ -15,13 +15,14 @@
     "services": [{
         "name": "layouts"
     }],
-    "shortcut": {
-        "company": "HadoukenIO",
-        "description": "Layouts Demo",
-        "name": "Layouts Demo"
-    },
     "runtime": {
         "arguments": "--v=1 --enable-crash-reporting",
         "version": "8.56.30.55"
+    },
+    "shortcut": {
+        "company": "HadoukenIO",
+        "description": "Layouts Demo",
+        "icon": "http://localhost:1337/favicon.ico",
+        "name": "Layouts Demo"
     }
 }

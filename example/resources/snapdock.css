@@ -35,7 +35,13 @@ body {
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
-    height: 80vw;
+    height: 80vh;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+h1 {
+  color: #ffffff;
 }
 
 button {

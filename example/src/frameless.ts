@@ -5,6 +5,9 @@ const colors =
 // tslint:disable-next-line
 const n = parseInt(fin.desktop.Window.getCurrent().name.slice(-1), 10);
 document.body.style.backgroundColor = colors[n];
+const h1 = document.createElement('h1');
+h1.innerHTML = `Window ${n + 1}`;
+document.body.appendChild(h1);
 const btn = document.createElement('button');
 btn.innerText = 'Undock';
 btn.onclick = () => undock();

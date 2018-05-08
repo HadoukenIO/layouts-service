@@ -9,12 +9,12 @@ fin.desktop.main(() => {
         {
           url,
           autoShow: true,
-          defaultHeight: 300,
-          defaultWidth: 300,
-          defaultLeft: 320 * (i % 3),
-          defaultTop: i > 2 ? 400 : 50,
+          defaultHeight: i > 2 ? 275 : 200,
+          defaultWidth: i > 4 ? 400 : 300,
+          defaultLeft: 350 * (i % 3) + 25,
+          defaultTop: i > 2 ? 300 : 50,
           saveWindowState: false,
-          frame: i % 2 === 0,
+          frame: false,
           name: 'win' + i
         },
         console.log, console.error);

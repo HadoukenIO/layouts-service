@@ -6,8 +6,11 @@
         "url": "http://localhost:1337/index.html",
         "uuid": "Layouts-Demo",
         "autoShow": true,
-        "defaultHeight": 300,
-        "defaultWidth": 300
+        "defaultHeight": 250,
+        "defaultWidth": 250,
+        "defaultTop": 25,
+        "defaultLeft": 1075,
+        "applicationIcon": "http://localhost:1337/favicon.ico"
     },
     "services": [{
         "name": "layouts"

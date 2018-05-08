@@ -11,7 +11,8 @@
     "build": "npm run compile && webpack --mode production",
     "build:dev": "npm run fix && npm run compile && webpack --mode development",
     "prepare": "npm run compile",
-    "serve": "serve -p 1337 dist"
+    "serve": "serve -p 1337 dist",
+    "webinar": "concurrently \"npm run serve\"  \"sleep 2 && openfin -l -c http://localhost:1337/app.json\""
   },
   "keywords": [],
   "author": "",

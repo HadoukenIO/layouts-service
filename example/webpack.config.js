@@ -1,6 +1,6 @@
 const path = require('path')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
-const { remoteOrigin } = require('../deploy.config')
+const { cdnPath, demoPath } = require('../deploy.config')
 
 module.exports = (env, argv) => (argv.mode === 'production' ? {
     devtool: 'inline-source-map',
@@ -22,7 +22,7 @@ module.exports = (env, argv) => (argv.mode === 'production' ? {
                 const config = JSON.parse(content.toString())
                 const startup_app = {
                     ...config.startup_app,
-                    url: remoteOrigin + '/index.html'
+                    url: cdnPath + demoPath + '/index.html'
                 }
                 return JSON.stringify({ ...config, startup_app }, null, 2)
             }

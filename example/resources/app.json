@@ -1,10 +1,10 @@
 {
     "devtools_port": 9090,
     "startup_app": {
-        "name": "Snap-Dock-Demo",
+        "name": "Layouts-Demo",
         "description": "OpenFin Layouts Demo",
         "url": "http://localhost:1337/index.html",
-        "uuid": "Snap-Dock-Demo",
+        "uuid": "Layouts-Demo",
         "autoShow": true,
         "defaultHeight": 300,
         "defaultWidth": 300

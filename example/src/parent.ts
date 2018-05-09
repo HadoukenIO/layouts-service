@@ -25,7 +25,11 @@ fin.desktop.main(() => {
   btn.innerText = 'Deregister Me';
   btn.onclick = async () => {
     btn.disabled = true;
-    await deregister();
+    try {
+      await deregister();
+    } catch (error) {
+      console.log(error);
+    }
     btn.remove();
     const p = document.createElement('p');
     p.innerText = `I don't snap any more`;

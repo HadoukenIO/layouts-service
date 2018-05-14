@@ -2,21 +2,21 @@
     font-family: AkkuratPro;
 		font-weight: normal;
 		font-style: normal;
-    src: url("/AkkuratPro/AkkRg_Pro_1.otf") format("opentype");
+    src: url("/fonts/AkkuratPro/AkkRg_Pro_1.otf") format("opentype");
 }
 
 @font-face {
     font-family: AkkuratProBold;
 		font-weight: bold;
 		font-style: normal;
-    src: url("/AkkuratPro/AkkBd_Pro_1.otf") format("opentype");
+    src: url("/fonts/AkkuratPro/AkkBd_Pro_1.otf") format("opentype");
 }
 
 @font-face {
     font-family: AkkuratProLight;
 		font-weight: lighter;
 		font-style: normal;
-    src: url("/AkkuratPro/AkkLg_Pro_1.otf") format("opentype");
+    src: url("/fonts/AkkuratPro/AkkLg_Pro_1.otf") format("opentype");
 }
 
 :root {
@@ -30,7 +30,7 @@
 }
 
 body {
-    font-family: 'AkkuratPro', arial, sans-serif;
+    font-family: 'AkkuratPro', 'Roboto', arial, sans-serif;
     display: flex;
     flex-direction: column;
     justify-content: space-between;

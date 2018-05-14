@@ -6,5 +6,5 @@ const remoteOrigin = cdnRoot + cdnPath
 const demoPath = 'demos/layouts'
 
 module.exports = {
-    cdnPath, s3Loc, remoteOrigin, demoPath, s3Root
+    cdnPath, s3Loc, remoteOrigin, demoPath, s3Root, cdnRoot
 }

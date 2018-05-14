@@ -3,3 +3,4 @@ build
 dist
 .DS_STORE
 module_dist
+example/resources/fonts

@@ -25,21 +25,4 @@ fin.desktop.main(async () => {
   p.style.color = '#ffffff';
   document.body.appendChild(p);
   await deregister();
-  // const btn = document.createElement('button');
-  // btn.id = 'button';
-  // btn.innerText = 'Deregister Me';
-  // btn.onclick = async () => {
-  //   btn.disabled = true;
-  //   try {
-  //     await deregister();
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  //   btn.remove();
-  //   const p = document.createElement('p');
-  //   p.innerText = `I don't snap any more`;
-  //   p.style.color = '#ffffff';
-  //   document.body.appendChild(p);
-  // };
-  // document.body.appendChild(btn);
 });

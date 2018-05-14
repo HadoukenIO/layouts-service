@@ -79,7 +79,7 @@ export async function registerInitListeners() {
     await registerAppListeners(uuid);
     const app = fin.desktop.Application.wrap(uuid);
     const main = app.getWindow();
-    const children = await p<OfWindow[]>(app.getChildWindows)();
+    const children = await p<OfWindow[]>(app.getChildWindows.bind(app))();
     await Promise.all([...children, main].map(async win => {
       const bounds = await p<Bounds>(win.getBounds.bind(win))();
       initWindow(win, bounds);

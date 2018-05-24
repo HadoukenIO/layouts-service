@@ -5,10 +5,13 @@
         "description": "OpenFin Layouts Managing Service",
         "url": "http://localhost:1337/SnapDockService/index.html",
         "uuid": "Layouts-Manager",
-        "autoShow": true,
+        "autoShow": false,
         "showTaskbarIcon": false,
         "defaultHeight": 400,
-        "defaultWidth": 500
+        "defaultWidth": 500,
+        "_experimental": {
+            "v2Api": true
+        }
     },
     "exports": {
         "name": "layouts",
@@ -18,6 +21,6 @@
     },
     "runtime": {
         "arguments": "--v=1 --enable-crash-reporting",
-        "version": "alpha"
+        "version": "8.56.30.55"
     }
 }

@@ -5,7 +5,6 @@
 const webpack = require('webpack')
 var path = require('path')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
-const WebpackMessages = require('webpack-messages');
 const { remoteOrigin } = require('../../deploy.config')
 
 module.exports = (mode, onComplete = () => undefined) => webpack(mode === 'production' ? {

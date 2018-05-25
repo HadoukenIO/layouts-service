@@ -42,7 +42,7 @@ module.exports = (mode, onComplete = () => undefined) => webpack(mode === 'produ
 } : {
         devtool: 'inline-source-map',
         entry: {
-            'SnapDockService/main': './build/src/SnapAndDock/dev.js',
+            'SnapDockService/main': './build/src/SnapAndDock/main.js',
             'SnapDockService/client/main': './build/src/SnapAndDock/Client/main.js',
             'SnapDockService/client/global': './build/src/SnapAndDock/Client/global.js',
             'SnapDockService/client/withLaunch': './src/SnapAndDock/Client/withLaunch.js',

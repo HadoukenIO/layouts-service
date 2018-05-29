@@ -2,12 +2,7 @@
     "devtools_port": 9090,
     "runtime": {
         "arguments": "--v=1 --enable-crash-reporting",
-        "version": "8.56.30.55"
-    },
-    "shortcut": {
-        "company": "OpenFin",
-        "description": "Snap-Dock-Demo",
-        "name": "Snap-Dock-Demo"
+        "version": "canary"
     },
     "services":[{"name": "layouts", "manifestUrl": "http://localhost:1337/SnapDockService/app.json"}],
     "startup_app": null

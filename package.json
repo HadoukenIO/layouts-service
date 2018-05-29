@@ -35,7 +35,7 @@
     "hadouken-js-adapter": "^0.31.1",
     "mocha": "^5.0.4",
     "robotjs": "^0.5.1",
-    "serve": "^6.5.6",
+    "serve-handler": "^2.3.12",
     "typescript": "~2.6.1",
     "webpack": "^4.3.0"
   },

@@ -73,6 +73,18 @@ undock({uuid: 'otherWindow', name: 'otherWindow'}).then(() => console.log('succe
 deregister().then(() => console.log('successfully deregistered myself'));
 deregister({uuid: 'otherWindow', name: 'otherWindow'}).then(() => console.log('successfully deregistered otherWindow'));
 ```
+## Testing
+
+```bash
+npm install
+npm test
+```
+
+### Notes
+- Testing runtime version must be >= 9.*
+- alpha RVM
+- If using Parallels Desktop, you have to be in a mode where Parallels can control the mouse. Set `Settings>Hardware>Mouse&Keyboard>Mouse` to `Optimize for Games`
+- Other setups haven't been tested
 
 ## Roadmap
 This is a WIP. Items on our immediate roadmap include:

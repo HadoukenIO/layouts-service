@@ -32,7 +32,7 @@
     "execa": "^0.10.0",
     "expose-loader": "^0.7.5",
     "gts": "^0.5.4",
-    "hadouken-js-adapter": "^0.31.1",
+    "hadouken-js-adapter": "^0.32.1-alpha.3",
     "mocha": "^5.0.4",
     "robotjs": "^0.5.1",
     "serve-handler": "^2.3.12",

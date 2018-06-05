@@ -32,7 +32,7 @@ module.exports = (mode, onComplete = () => undefined) => webpack(mode === 'produ
                 const startup_app = {
                     ...config.startup_app,
                     autoShow: false,
-                    url: remoteOrigin + '/index.html'
+                    url: remoteOrigin + '/provider.html'
                 }
                 return JSON.stringify({ ...config, runtime, startup_app }, null, 2)
             }

@@ -2,18 +2,19 @@
 'use strict';
 
 // webpack.config.js
+const webpack = require('webpack')
 var path = require('path')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
-const {remoteOrigin} = require('./deploy.config')
+const { remoteOrigin } = require('../../deploy.config')
 
-module.exports = (env, argv) => (argv.mode === 'production' ? {
+module.exports = (mode, onComplete = () => undefined) => webpack(mode === 'production' ? {
     devtool: 'inline-source-map',
     entry: {
         'main': './build/src/SnapAndDock/main.js',
         'client/main': './build/src/SnapAndDock/Client/global.js'
     }, // file extension after index is optional for .js files
     output: {
-        path: path.join(__dirname, 'dist'),
+        path: path.resolve('dist'),
         filename: '[name].js'
     },
     plugins: [
@@ -31,12 +32,13 @@ module.exports = (env, argv) => (argv.mode === 'production' ? {
                 const startup_app = {
                     ...config.startup_app,
                     autoShow: false,
-                    url: remoteOrigin+'/index.html'
+                    url: remoteOrigin + '/provider.html'
                 }
-                return JSON.stringify({...config, runtime, startup_app},null, 2)
+                return JSON.stringify({ ...config, runtime, startup_app }, null, 2)
             }
-        }])
-    ]
+        }]),
+    ],
+    mode
 } : {
         devtool: 'inline-source-map',
         entry: {
@@ -48,10 +50,11 @@ module.exports = (env, argv) => (argv.mode === 'production' ? {
             'Layouts/Client/index': './build/src/Layouts/Client/index.js'
         }, // file extension after index is optional for .js files
         output: {
-            path: path.join(__dirname, 'dist'),
+            path: path.resolve('dist'),
             filename: '[name].js'
         },
         plugins: [
-            new CopyWebpackPlugin([{ from: './resources' }])
-        ]
+            new CopyWebpackPlugin([{ from: './resources' }]),
+        ],
+        mode
     });

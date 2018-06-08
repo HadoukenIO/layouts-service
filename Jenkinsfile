@@ -21,10 +21,7 @@ pipeline {
             agent { label 'windows' }
             when { not { branch "develop" } }
             steps {
-                bat "echo 'here'"
-                bat "dir"
-                bat "where node"
-                bat "where npm"
+                bat "npm -v"
                 bat "npm i"
                 bat "npm test"
             }

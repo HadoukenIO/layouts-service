@@ -21,12 +21,12 @@ pipeline {
             agent { label 'windows' }
             when { not { branch "develop" } }
             steps {
-                sh "echo 'here'"
-                sh "dir"
-                sh "where node"
-                sh "where npm"
-                sh "npm i"
-                sh "npm test"
+                bat "echo 'here'"
+                bat "dir"
+                bat "where node"
+                bat "where npm"
+                bat "npm i"
+                bat "npm test"
             }
         }
     }

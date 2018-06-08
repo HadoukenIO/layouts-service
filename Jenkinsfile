@@ -21,6 +21,8 @@ pipeline {
             agent { label 'windows' }
             when { not { branch "develop" } }
             steps {
+                sh "where node"
+                sh "where npm"
                 sh "npm i"
                 sh "npm test"
             }

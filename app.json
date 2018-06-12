@@ -1,0 +1,17 @@
+{ 
+    "startup_app": {
+        "name": "Tabbing",
+        "description": "Openfin Tabbing",
+        "url": "http://localhost:9001/index.html",
+        "defaultWidth": 408,
+        "defaultHeight": 400,
+        "defaultCentered":true,
+        "autoShow": true,
+        "uuid": "Tabbing_Main",
+        "saveWindowState": false,
+    },
+    "runtime": {
+        "arguments": "--winhttp-proxy-resolver --remote-debugging-port=9090 --noerrdialogs --v=1 --disable-web-security",
+        "version": "8.56.30.55"
+    }
+}

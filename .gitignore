@@ -1,0 +1,9 @@
+node_modules/*
+!/node_modules/@types/
+node_modules/@types/*
+!/node_modules/@types/tooltip.js/
+
+src/dist
+dist
+.tmp
+npm-debug.log

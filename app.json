@@ -3,7 +3,7 @@
 		"name": "Tabbing",
 		"description": "Openfin Tabbing",
 		"url": "http://localhost:9001/tab-ui/index.html",
-		"defaultWidth": 408,
+		"defaultWidth": 600,
 		"defaultHeight": 73,
 		"smallWindow": true,
 		"defaultCentered": true,

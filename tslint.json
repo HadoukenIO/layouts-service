@@ -50,5 +50,9 @@
       "allow-leading-underscore",
       "allow-trailing-underscore"
     ]
-  }
+  },
+  "extends": [
+    "tslint:latest",
+    "tslint-config-prettier"
+  ]
 }

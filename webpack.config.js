@@ -51,9 +51,6 @@ function createWebpackConfigForProject(projectName, entryPoint) {
     };
 }
 
-/**
- * Modules to be exported
- */
 module.exports = [
-    createWebpackConfigForProject('src/', {'launcher': './src/index.ts'})
+    createWebpackConfigForProject('src/tab-ui', {'tab-ui': './src/tab-ui/ts/index.ts'})
 ];

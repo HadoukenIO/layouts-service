@@ -1,4 +1,6 @@
+import { ExternalApplication } from "./ExternalApplication";
 import { TabManager } from "./TabManager";
+import { WindowManager } from "./WindowManager";
 
 export interface TabIndentifier {
 	name: string;
@@ -6,15 +8,7 @@ export interface TabIndentifier {
 }
 
 export class Tab {
-	/**
-	 * @member window Contains the window object for this applicaiton tab.
-	 */
-	private window: fin.OpenFinWindow;
-
-	/**
-	 * @member app Contains the application object for this application tab.
-	 */
-	private app: fin.OpenFinApplication;
+	private externalApplication: ExternalApplication;
 
 	/**
 	 * @member domNode Contains the HTML Element for the tab.
@@ -36,8 +30,7 @@ export class Tab {
 	 * @param {TabIndentifier} tabID An object containing the uuid, name for the external application/window.
 	 */
 	constructor(tabID: TabIndentifier) {
-		this.window = this._wrapWindow(tabID);
-		this.app = this._wrapApplication(tabID);
+		this.externalApplication = new ExternalApplication(tabID, this);
 
 		this._render();
 	}
@@ -45,15 +38,22 @@ export class Tab {
 	/**
 	 * @method remove Removes the Tab from DOM.
 	 */
-	public remove(): void {
+	public remove(removeApp: boolean): void {
 		this.domNode.remove();
+		this.externalApplication.getWindow.leaveGroup();
+
+		if (removeApp) {
+			this.externalApplication.getWindow.close(true);
+		}
 	}
+
 
 	/**
 	 * @method setActive Sets the Active class on the Tab DOM.
 	 */
 	public setActive(): void {
 		this.domNode.classList.add("active");
+		this.externalApplication.show();
 	}
 
 	/**
@@ -61,6 +61,29 @@ export class Tab {
 	 */
 	public unsetActive(): void {
 		this.domNode.classList.remove("active");
+		this.externalApplication.hide();
+	}
+
+	private _onDragStart(e: DragEvent): void {
+		// tslint:disable-next-line:no-console
+		const tabID: TabIndentifier = this.getTabId;
+		e.dataTransfer.effectAllowed = "all";
+		e.dataTransfer.setData("tab", JSON.stringify(tabID));
+
+		this.externalApplication.getWindow.leaveGroup();
+	}
+
+	private _onDragEnd(e: DragEvent): void {
+		const tabID: TabIndentifier = this.getTabId;
+
+		if (!WindowManager.instance.didGetDrop) {
+			this.tabManager.removeTab(tabID);
+		} else {
+			this.externalApplication.alignAppWindow();
+			WindowManager.instance.didGetDrop = false;
+		}
+
+		WindowManager.instance.setDragBlock();
 	}
 
 	/**
@@ -73,22 +96,6 @@ export class Tab {
 	}
 
 	/**
-	 * @method _wrapWindow Wraps the openfin Window object for this application tab.
-	 * @param {TabIndentifier} tabID An object containing the uuid, name for the external application/window.
-	 */
-	private _wrapWindow(tabID: TabIndentifier): fin.OpenFinWindow {
-		return fin.desktop.Window.wrap(tabID.uuid, tabID.name);
-	}
-
-	/**
-	 * @method _wrapApplication Wraps the openfin Application object for this application tab.
-	 * @param {TabIndentifier} tabID An object containing the uuid, name for the external application/window.
-	 */
-	private _wrapApplication(tabID: TabIndentifier): fin.OpenFinApplication {
-		return fin.desktop.Application.wrap(tabID.uuid);
-	}
-
-	/**
 	 * @method _onClickHandler Handles all click events from this Tab DOM.
 	 * @param e MouseEvent
 	 */
@@ -96,16 +103,16 @@ export class Tab {
 		switch ((e.target as Element).className) {
 			case "tab-exit": {
 				this.tabManager.removeTab({
-					name: this.getWindowName,
-					uuid: this.getAppUuid
-				});
+					name: this.externalApplication.getWindow.name,
+					uuid: this.externalApplication.getApplication.uuid
+				}, true);
 
 				break;
 			}
 			default: {
 				this.tabManager.setActiveTab({
-					name: this.getWindowName,
-					uuid: this.getAppUuid
+					name: this.externalApplication.getWindow.name,
+					uuid: this.externalApplication.getApplication.uuid
 				});
 			}
 		}
@@ -118,7 +125,14 @@ export class Tab {
 	private _generateDOM(): HTMLElement {
 		const tabWrapper: HTMLElement = document.createElement("div");
 		tabWrapper.className = "tab";
+		tabWrapper.setAttribute("draggable", "true");
 		tabWrapper.onclick = this._onClickHandler.bind(this);
+		tabWrapper.addEventListener(
+			"dragstart",
+			this._onDragStart.bind(this),
+			false
+		);
+		tabWrapper.addEventListener("dragend", this._onDragEnd.bind(this), false);
 
 		const tabLeft: HTMLElement = document.createElement("div");
 		tabLeft.className = "tab-left";
@@ -134,7 +148,7 @@ export class Tab {
 
 		const tabContent: HTMLElement = document.createElement("div");
 		tabContent.className = "tab-content";
-		tabContent.textContent = this.window.name;
+		tabContent.textContent = this.externalApplication.getWindow.name;
 
 		const tabExit: HTMLElement = document.createElement("div");
 		tabExit.className = "tab-exit";
@@ -159,21 +173,14 @@ export class Tab {
 		return tabWrapper;
 	}
 
-	/**
-	 * @method getAppUuid Returns the App UUID for this tab.
-	 * @returns {string}
-	 */
-	public get getAppUuid(): string {
-		return this.app.uuid;
+	public get getTabId(): TabIndentifier {
+		return { uuid: this.externalApplication.getApplication.uuid, name: this.externalApplication.getWindow.name };
 	}
 
-	/**
-	 * @method getWindowName Returns the Window name for this tab.
-	 * @returns {string}
-	 */
-	public get getWindowName(): string {
-		return this.window.name;
+	public get getExternalApplication(): ExternalApplication {
+		return this.externalApplication;
 	}
+
 
 	/**
 	 * @method DOM

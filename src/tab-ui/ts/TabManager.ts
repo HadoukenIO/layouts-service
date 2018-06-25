@@ -1,4 +1,5 @@
 import { Tab, TabIndentifier } from "./Tab";
+import { WindowManager } from "./WindowManager";
 
 /**
  * @class TabManager Handles the management of individual tabs and some of their functionality.
@@ -41,7 +42,10 @@ export class TabManager {
 	 */
 	public addTab(tabID: TabIndentifier): void {
 		if (this._getTabIndex(tabID) === -1) {
-			this.tabs.push(new Tab(tabID));
+			const tab = new Tab(tabID);
+			this.tabs.push(tab);
+			
+			this.setActiveTab(tab.getTabId);
 		}
 	}
 
@@ -49,17 +53,24 @@ export class TabManager {
 	 * @method removeTab Removes a Tab.
 	 * @param {TabIndentifier} tabID An object containing the uuid, name for the external application/window.
 	 */
-	public removeTab(tabID: TabIndentifier): void {
+	public removeTab(tabID: TabIndentifier, closeApp: boolean = false): void {
 		const index: number = this._getTabIndex(tabID);
 		const tab: Tab | undefined = this.getTab(tabID);
 
+		// if tab was found
 		if (tab && index !== -1) {
-			tab.remove();
+			tab.remove(closeApp);
 			this.tabs.splice(index, 1);
 
+			// is the tab being removed the active tab?
 			if (this.activeTab === tab) {
 				this.unsetActiveTab();
 				this.setActiveTab();
+			}
+
+			// if there are no more tabs then close the window.
+			if(this.tabs.length === 0) {
+				WindowManager.instance.exit();
 			}
 		}
 	}
@@ -85,9 +96,10 @@ export class TabManager {
 
 			if (tab) {
 				this.unsetActiveTab();
-
 				tab.setActive();
 				this.activeTab = tab;
+
+
 			} else {
 				tabID = null;
 			}
@@ -96,12 +108,13 @@ export class TabManager {
 		if (!tabID) {
 			if (this.tabs.length > 0) {
 				this.setActiveTab({
-					name: this.tabs[0].getWindowName,
-					uuid: this.tabs[0].getAppUuid
+					name: this.tabs[0].getExternalApplication.getWindow.name,
+					uuid: this.tabs[0].getExternalApplication.getApplication.uuid
 				});
 			}
 		}
 	}
+
 
 	/**
 	 * @method getTab Finds and gets the Tab object.
@@ -109,7 +122,7 @@ export class TabManager {
 	 */
 	public getTab(tabID: TabIndentifier): Tab | undefined {
 		return this.tabs.find((tab: Tab) => {
-			return tab.getWindowName === tabID.name && tab.getAppUuid === tabID.uuid;
+			return tab.getExternalApplication.getWindow.name === tabID.name && tab.getExternalApplication.getApplication.uuid === tabID.uuid;
 		});
 	}
 
@@ -119,7 +132,7 @@ export class TabManager {
 	 */
 	private _getTabIndex(tabID: TabIndentifier): number {
 		return this.tabs.findIndex((tab: Tab) => {
-			return tab.getWindowName === tabID.name && tab.getAppUuid === tabID.uuid;
+			return tab.getExternalApplication.getWindow.name === tabID.name && tab.getExternalApplication.getApplication.uuid === tabID.uuid;
 		});
 	}
 
@@ -129,6 +142,10 @@ export class TabManager {
 	 */
 	public get getTabs(): Tab[] {
 		return this.tabs;
+	}
+
+	public get getActiveTab(): Tab | null {
+		return this.activeTab;
 	}
 
 	/**

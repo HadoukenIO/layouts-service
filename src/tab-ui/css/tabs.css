@@ -19,7 +19,6 @@ body {
 	width: 100%;
 	margin: 0px;
 	padding: 0px;
-	-webkit-app-region: drag;
 	overflow: hidden;
 }
 
@@ -44,6 +43,7 @@ body {
 	width: 100%;
 	margin-right: 15px;
 	overflow: scroll;
+	z-index: 15;
 }
 
 .tab {
@@ -209,4 +209,28 @@ body {
 
 #window-button-wrap div:active:hover {
 	background-color: rgba(0, 0, 0, 0.3);
+}
+
+.drag {
+	-webkit-app-region: drag;
+}
+
+#drag-region {
+	position: absolute;
+	top:2px;
+	left:2px;
+	height:calc(100% - 8px);
+	width:calc(100% - 8px);
+	z-index: 1;
+}
+
+#drag-shield {
+	position: absolute;
+	top:2px;
+	left:2px;
+	height:calc(100% - 8px);
+	width:calc(100% - 8px);
+	display: none;
+	z-index:5;
+	-webkit-app-region: no-drag;
 }

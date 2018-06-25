@@ -21,6 +21,7 @@
     "label-position": true,
     "member-access": [false, "no-public"],
     "new-parens": true,
+    "object-literal-sort-keys": false,
     "no-angle-bracket-type-assertion": true,
     "no-any": true,
     "no-arg": true,

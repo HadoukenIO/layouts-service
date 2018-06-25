@@ -1,0 +1,33 @@
+<html>
+
+<head>
+
+</head>
+
+<body>
+    <button onclick="newApplication()">New Application</button>
+    <button onclick="newWindow()">New Window</button>
+    <script src="dist/service-bundle.js"></script>
+
+    <script>
+        function newApplication() {
+            const uuid = `App${Math.random() * 1000}`
+            const app = new fin.desktop.Application({
+                url: "https://google.com", 
+                uuid: uuid, 
+                name: uuid,
+                mainWindowOptions: {
+                    saveWindowState: false,
+                    autoShow: true,
+                    defaultCentered: true
+                }
+            },
+                () => {
+                    app.run();
+                }
+            );
+        }
+    </script>
+</body>
+
+</html>

@@ -11,8 +11,9 @@
     },
     "runtime": {
         "arguments": "--v=1 --enable-crash-reporting",
-        "version": "alpha"
+        "version": "8.56.30.55"
     },
+    "services": [{"name": "layouts", "manifestUrl": "http://localhost:1337/SnapDockService/app.json"}],
     "shortcut": {
         "company": "OpenFin",
         "description": "Snap-Dock-Demo",

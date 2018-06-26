@@ -24,7 +24,7 @@ const fail = err => {
     process.exit(1);
 }
 
-require('./build')
+require('./utils/build')('test')
     .then(() => require('./serve'))
     .then(async () => {
         port = await launch({manifestUrl: 'http://localhost:1337/test-app.json'})

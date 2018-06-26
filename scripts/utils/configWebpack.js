@@ -9,7 +9,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin')
 module.exports = (mode, onComplete = () => undefined) => webpack(mode === 'production' ? {
     devtool: 'inline-source-map',
     entry: {
-        'provider': './build/src/SnapAndDock/main.js',
+        'provider': './build/src/SnapAndDock/Service/main.js',
         'client': './build/src/SnapAndDock/Client/global.js'
     }, // file extension after index is optional for .js files
     output: {
@@ -26,7 +26,7 @@ module.exports = (mode, onComplete = () => undefined) => webpack(mode === 'produ
 } : {
     devtool: 'inline-source-map',
     entry: {
-        'SnapDockService/main': './build/src/SnapAndDock/main.js',
+        'SnapDockService/main': './build/src/SnapAndDock/Service/main.js',
         'SnapDockService/client/main': './build/src/SnapAndDock/Client/main.js',
         'SnapDockService/client/global': './build/src/SnapAndDock/Client/global.js',
         'SnapDockService/client/withLaunch': './src/SnapAndDock/Client/withLaunch.js',

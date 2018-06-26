@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "module_dist",
+    "declaration": true
+  },
+  "include": [
+    "src/SnapAndDock/fin.d.ts",
+    "src/SnapAndDock/Client/main.ts"
+  ]
+}

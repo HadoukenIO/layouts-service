@@ -7,11 +7,11 @@
         "uuid": "Layouts-Manager",
         "autoShow": false,
         "showTaskbarIcon": false,
-        "defaultHeight": 400,
-        "defaultWidth": 500,
-        "_experimental": {
-            "v2Api": true
-        }
+        "defaultHeight": 250,
+        "defaultWidth": 250,
+        "defaultTop": 25,
+        "defaultLeft": 1325,
+        "saveWindowState": false
     },
     "exports": {
         "name": "layouts",

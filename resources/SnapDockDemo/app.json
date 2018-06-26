@@ -6,8 +6,12 @@
         "url": "http://localhost:1337/SnapDockDemo/dev.html",
         "uuid": "Snap-Dock-Demo",
         "autoShow": true,
-        "defaultHeight": 400,
-        "defaultWidth": 500
+        "defaultHeight": 250,
+        "defaultWidth": 250,
+        "defaultTop": 25,
+        "defaultLeft": 1075,
+        "saveWindowState": false,
+        "applicationIcon": "http://localhost:1337/favicon.ico"
     },
     "runtime": {
         "arguments": "--v=1 --enable-crash-reporting",

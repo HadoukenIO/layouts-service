@@ -3,7 +3,7 @@ import {SnapGroup} from './SnapGroup';
 import {Point, PointUtils} from './utils/PointUtils';
 
 const PREVIEW_SUCCESS = '#3D4059';
-const PREVIEW_SUCCESS_RESIZE = '#3D5940';
+const PREVIEW_SUCCESS_RESIZE = PREVIEW_SUCCESS;
 const PREVIEW_FAILURE = `repeating-linear-gradient(45deg, #3D4059, #3D4059 .25em, #C24629 0, #C24629 .5em)`;
 
 interface PreviewWindow {

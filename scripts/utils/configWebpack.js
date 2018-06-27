@@ -5,6 +5,7 @@
 const webpack = require('webpack')
 var path = require('path')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
+const transform = require('./templateBuilder')
 
 module.exports = (mode, onComplete = () => undefined) => webpack(mode === 'production' ? {
     devtool: 'inline-source-map',
@@ -18,8 +19,13 @@ module.exports = (mode, onComplete = () => undefined) => webpack(mode === 'produ
     },
     plugins: [
         new CopyWebpackPlugin([{
-            from: './resources/SnapDockService/app-cdn.json',
-            to: 'app.json'
+            from: './resources/SnapDockService/',
+            ignore: '*.template.json'
+        }]),
+        new CopyWebpackPlugin([{
+            from: './resources/SnapDockService/app.template.json',
+            to: 'app.json',
+            transform
         }]),
     ],
     mode
@@ -38,7 +44,9 @@ module.exports = (mode, onComplete = () => undefined) => webpack(mode === 'produ
         filename: '[name].js'
     },
     plugins: [
-        new CopyWebpackPlugin([{ from: './resources' }]),
+        new CopyWebpackPlugin([{ from: './resources', ignore: '*.template.json' }]),
+        new CopyWebpackPlugin([{ from: './resources/**/*.template.json', test: /(^.+)\.template\.json$/, to: '[1].json', transform}]),
+
     ],
     mode
 });

@@ -20,15 +20,14 @@ This project consist of 2 parts:
 - On inclusion of plugin script undocking with `CTRL+SHIFT+U` or `CMD+SHIFT+U`.
 - A window will not snap if it detects a collision. It will not try to find a more suitable point.
 
-### Demo Installer
-This [windows installer](https://install.openfin.co/download/?config=https%3A%2F%2Fcdn.openfin.co%2Fdemos%2Flayouts%2Fapp.json&fileName=layouts-demo) will launch a demo for OpenFin Layouts.
-
 ### Run Locally
 - To run the project locally the npm scripts require git bash.
 - Windows support only. 
 - Node 8.11 LTS.
+- RVM >=[4.4.0.8](https://cdn.openfin.co/release/rvm/4.4.0.8)
+- Testing requires [robotjs](http://robotjs.io/docs/) and you may need to build it. See their docs for info on building if you are testing. `npm install--ignore-scripts` is fine if you are not running the tests.
 ```bash
-npm install
+npm install --ignore-scripts
 npm run dev
 ```
 ## Getting Started
@@ -88,8 +87,6 @@ npm test
 
 ## Roadmap
 This is a WIP. Items on our immediate roadmap include:
-- Resizing windows within a group
-- Snapping window groups to other window groups
 - Support for saving and recreating layouts
 - Cross-runtime support
 - Z-index management of windows

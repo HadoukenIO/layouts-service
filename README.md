@@ -27,8 +27,10 @@ This [windows installer](https://install.openfin.co/download/?config=https%3A%2F
 - To run the project locally the npm scripts require git bash.
 - Windows support only. 
 - Node 8.11 LTS.
+- RVM <=[4.4.0.8](https://cdn.openfin.co/release/rvm/4.4.0.8)
+- Testing requires [robotjs](http://robotjs.io/docs/) and you may need to build it. See their docs for info on building if you are testing.
 ```bash
-npm install
+npm install --ignore-scripts
 npm run dev
 ```
 ## Getting Started
@@ -88,8 +90,6 @@ npm test
 
 ## Roadmap
 This is a WIP. Items on our immediate roadmap include:
-- Resizing windows within a group
-- Snapping window groups to other window groups
 - Support for saving and recreating layouts
 - Cross-runtime support
 - Z-index management of windows

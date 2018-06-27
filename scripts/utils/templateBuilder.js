@@ -1,8 +1,4 @@
-const RUNTIME_VERSION = 'stable';
-const URL = 'google.com';
-const autoShow = false;
-
-module.exports = (content, path) => {
+module.exports = (RUNTIME_VERSION, URL, autoShow) => (content) => {
     const config = JSON.parse(content.toString());
     console.log(config)
     config.runtime.version = RUNTIME_VERSION;

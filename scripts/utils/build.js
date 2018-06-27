@@ -14,7 +14,7 @@ const main = async (mode = 'development') => {
     console.log('Transpilation complete, bundling...')
     await new Promise((resolve, reject) => {
         const webpackMode = mode === 'test' ? 'development' : mode
-        const compiler = webpack(webpackMode, resolve)
+        const compiler = webpack(webpackMode)
         compiler.run((err, stats) => {
             if (err) {
                 console.error(err);

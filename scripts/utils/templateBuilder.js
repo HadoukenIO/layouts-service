@@ -1,6 +1,5 @@
 module.exports = (RUNTIME_VERSION, URL, autoShow) => (content) => {
     const config = JSON.parse(content.toString());
-    console.log(config)
     config.runtime.version = RUNTIME_VERSION;
     config.startup_app.url = URL;
     config.startup_app.autoShow = autoShow;

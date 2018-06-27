@@ -31,6 +31,6 @@ require('./utils/build')('test')
         return port
     })
     .catch(fail)
-    .then(OF_PORT => run('ava', [], { env: { OF_PORT } }))
+    .then(OF_PORT => run('ava', ['build/test/*.test.js'], { env: { OF_PORT } }))
     .then(cleanup)
     .catch(cleanup)

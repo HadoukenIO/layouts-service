@@ -27,8 +27,8 @@ This [windows installer](https://install.openfin.co/download/?config=https%3A%2F
 - To run the project locally the npm scripts require git bash.
 - Windows support only. 
 - Node 8.11 LTS.
-- RVM <=[4.4.0.8](https://cdn.openfin.co/release/rvm/4.4.0.8)
-- Testing requires [robotjs](http://robotjs.io/docs/) and you may need to build it. See their docs for info on building if you are testing.
+- RVM >=[4.4.0.8](https://cdn.openfin.co/release/rvm/4.4.0.8)
+- Testing requires [robotjs](http://robotjs.io/docs/) and you may need to build it. See their docs for info on building if you are testing. --ignore-scripts is fine if you are not running the tests.
 ```bash
 npm install --ignore-scripts
 npm run dev

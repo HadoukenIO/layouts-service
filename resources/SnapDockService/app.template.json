@@ -3,7 +3,7 @@
     "startup_app": {
         "name": "Layouts-Manager",
         "description": "OpenFin Layouts Managing Service",
-        "url": "https://cdn.openfin.co/services/openfin/layouts/provider.html",
+        "url": "$PLACEHOLDER",
         "uuid": "Layouts-Manager",
         "autoShow": false,
         "showTaskbarIcon": false,
@@ -21,6 +21,6 @@
     },
     "runtime": {
         "arguments": "--v=1 --enable-crash-reporting",
-        "version": "8.56.30.55"
+        "version": "$PLACEHOLDER"
     }
 }

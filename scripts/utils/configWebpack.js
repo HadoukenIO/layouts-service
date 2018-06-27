@@ -5,8 +5,11 @@
 const webpack = require('webpack')
 var path = require('path')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
+const transform = require('./templateBuilder')
 
-module.exports = (mode, onComplete = () => undefined) => webpack(mode === 'production' ? {
+const PROD_RUNTIME_VERSION = '8.56.30.55'
+
+module.exports = (mode) => webpack(mode === 'production' ? {
     devtool: 'inline-source-map',
     entry: {
         'provider': './build/src/SnapAndDock/Service/main.js',
@@ -18,8 +21,13 @@ module.exports = (mode, onComplete = () => undefined) => webpack(mode === 'produ
     },
     plugins: [
         new CopyWebpackPlugin([{
-            from: './resources/SnapDockService/app-cdn.json',
-            to: 'app.json'
+            from: './resources/SnapDockService/',
+            ignore: '*.template.json'
+        }]),
+        new CopyWebpackPlugin([{
+            from: './resources/SnapDockService/app.template.json',
+            to: 'app.json',
+            transform: transform(PROD_RUNTIME_VERSION, `https://cdn.openfin.co/services/openfin/layouts/${process.env.GIT_SHORT_SHA}/provider.html`, false)
         }]),
     ],
     mode
@@ -38,7 +46,12 @@ module.exports = (mode, onComplete = () => undefined) => webpack(mode === 'produ
         filename: '[name].js'
     },
     plugins: [
-        new CopyWebpackPlugin([{ from: './resources' }]),
+        new CopyWebpackPlugin([{ from: './resources', ignore: '*.template.json' }]),
+        new CopyWebpackPlugin([{
+            from: './resources/SnapDockService/app.template.json',
+            to: 'SnapDockService/app.json',
+            transform: transform(process.env.OF_RUNTIME_VERSION || 'canary', 'https://localhost:1337/SnapDockService/provider.html', mode === 'development')
+        }]),
     ],
-    mode
+    mode: 'development'
 });

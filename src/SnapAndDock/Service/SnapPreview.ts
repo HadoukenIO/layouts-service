@@ -99,7 +99,7 @@ export class SnapPreview {
         const defaultHalfSize = {x: 160, y: 160};
         const options: fin.WindowOptions = {
             name: 'previewWindow-',  // + Math.floor(Math.random() * 1000),
-            url: 'http://' + location.host + '/SnapDockService/feedback-window.html',
+            url: 'about:blank',
             defaultWidth: defaultHalfSize.x * 2,
             defaultHeight: defaultHalfSize.y * 2,
             opacity: 0.8,

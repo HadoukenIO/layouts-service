@@ -34,7 +34,7 @@ module.exports = (mode) => webpack(mode === 'production' ? {
 } : {
     devtool: 'inline-source-map',
     entry: {
-        'SnapDockService/main': './build/src/SnapAndDock/Service/main.js',
+        'SnapDockService/provider': './build/src/SnapAndDock/Service/main.js',
         'SnapDockService/client/main': './build/src/SnapAndDock/Client/main.js',
         'SnapDockService/client/global': './build/src/SnapAndDock/Client/global.js',
         'SnapDockService/client/withLaunch': './src/SnapAndDock/Client/withLaunch.js',
@@ -50,7 +50,7 @@ module.exports = (mode) => webpack(mode === 'production' ? {
         new CopyWebpackPlugin([{
             from: './resources/SnapDockService/app.template.json',
             to: 'SnapDockService/app.json',
-            transform: transform(process.env.OF_RUNTIME_VERSION || 'canary', 'https://localhost:1337/SnapDockService/provider.html', mode === 'development')
+            transform: transform(process.env.OF_RUNTIME_VERSION || 'canary', 'http://localhost:1337/SnapDockService/provider.html', mode === 'development')
         }]),
     ],
     mode: 'development'

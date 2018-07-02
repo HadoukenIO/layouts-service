@@ -57,6 +57,7 @@ body {
 	-webkit-app-region: no-drag;
 }
 
+
 .tab * {
 	user-select: none;
 	cursor: pointer;
@@ -132,6 +133,7 @@ body {
 	width: 18px;
 	margin-left: 3px;
 	background-image: url("http://img.techwallacdn.com/640/photos.demandstudios.com/80/149/fotolia_2762506_XS.jpg");
+	background-repeat: no-repeat;
 	background-size: 100% 100%;
 	flex-shrink: 0;
 }
@@ -168,6 +170,7 @@ body {
 	top: 2px;
 	display: flex;
 	align-items: center;
+	z-index: 15;
 	-webkit-app-region: no-drag;
 }
 
@@ -178,20 +181,24 @@ body {
 	align-items: center;
 	justify-content: center;
 	background-repeat: no-repeat;
-	background-position: center;
-	background-size: 40% 50%;
-}
-
-#window-button-wrap #window-button-exit {
-	background-image: url("https://ciaobikeitaly.com/wp-content/uploads/2018/01/x-close-chiud-cbi-icon-black.png");
-}
-
-#window-button-wrap #window-button-minimize {
-	background-image: url("http://icons-for-free.com/free-icons/png/512/1303882.png");
+	background-size: 100% 107%;
 }
 
 #window-button-wrap #window-button-maximize {
-	background-image: url("https://cdn.iconscout.com/public/images/icon/premium/png-512/minimize-window-39cf4f15e6e1694e-512x512.png");
+	background-size: 100% 60%;
+	background-position: center;
+}
+
+#window-button-wrap #window-button-exit {
+	background-image: url("./image/exit.svg");
+}
+
+#window-button-wrap #window-button-minimize {
+	background-image: url("./image/minimize.svg");
+}
+
+#window-button-wrap #window-button-maximize {
+	background-image: url("./image/maximize.svg");
 }
 
 #window-button-wrap #window-button-popout {

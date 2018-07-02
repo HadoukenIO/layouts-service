@@ -1,0 +1,31 @@
+<html>
+    <head>
+        <title></title>
+
+        <style>
+            body {
+                height: 100%;
+                width: 100%;
+                padding: 0;
+                margin: 0;
+            }
+        </style>
+    </head>
+    <body>
+        <script>
+            fin.desktop.main(()=>{
+
+                document.body.addEventListener("dragover", (ev)=>{
+                    ev.preventDefault();
+                    ev.dataTransfer.dropEffect = "move";
+                    return false;
+                });
+
+                document.body.addEventListener("drop", (ev)=>{
+                    ev.stopPropagation();
+                    return false;
+                });
+            });
+        </script>
+    </body>
+</html>

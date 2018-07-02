@@ -1,4 +1,4 @@
-import { Tab, TabIndentifier } from "./Tab";
+import { Tab, TabIndentifier, TabOptions } from "./Tab";
 import { WindowManager } from "./WindowManager";
 
 /**
@@ -6,24 +6,24 @@ import { WindowManager } from "./WindowManager";
  */
 export class TabManager {
 	/**
+	 * @method tabContainer The HTML Element container for the tabs.
+	 */
+	public static tabContainer: HTMLElement = document.getElementById("tabs")!;
+
+	/**
 	 * @member INSTANCE Holds the instance for the class.
 	 */
 	private static INSTANCE: TabManager;
 
 	/**
-	 * @method tabs An array of the tabs present in the window.
+	 * @member tabs An array of the tabs present in the window.
 	 */
 	private tabs: Tab[] = [];
 
 	/**
-	 * @method activeTab The currently active tab (highlighted).
+	 * @member activeTab The currently active tab (highlighted).
 	 */
-	private activeTab: Tab | null = null;
-
-	/**
-	 * @method tabContainer The HTML Element container for the tabs.
-	 */
-	private tabContainer: HTMLElement = document.getElementById("tabs")!;
+	private activeTab!: Tab;
 
 	/**
 	 * @constructor Constructs the TabManager class.
@@ -40,12 +40,12 @@ export class TabManager {
 	 * @method addTab Creates a new Tab and renders.
 	 * @param {TabIndentifier} tabID An object containing the uuid, name for the external application/window.
 	 */
-	public addTab(tabID: TabIndentifier): void {
+	public addTab(tabID: TabIndentifier & TabOptions): void {
 		if (this._getTabIndex(tabID) === -1) {
 			const tab = new Tab(tabID);
 			this.tabs.push(tab);
-			
-			this.setActiveTab(tab.getTabId);
+
+			this.setActiveTab(tabID);
 		}
 	}
 
@@ -69,10 +69,16 @@ export class TabManager {
 			}
 
 			// if there are no more tabs then close the window.
-			if(this.tabs.length === 0) {
+			if (this.tabs.length === 0) {
 				WindowManager.instance.exit();
 			}
 		}
+	}
+
+	public removeAllTabs(): void {
+		this.tabs.slice().forEach(tab => {
+			this.removeTab(tab.getTabId, true);
+		});
 	}
 
 	/**
@@ -95,11 +101,11 @@ export class TabManager {
 			const tab: Tab | undefined = this.getTab(tabID);
 
 			if (tab) {
-				this.unsetActiveTab();
-				tab.setActive();
-				this.activeTab = tab;
-
-
+				if (tab !== this.activeTab) {
+					this.unsetActiveTab();
+					tab.setActive();
+					this.activeTab = tab;
+				}
 			} else {
 				tabID = null;
 			}
@@ -115,7 +121,6 @@ export class TabManager {
 		}
 	}
 
-
 	/**
 	 * @method getTab Finds and gets the Tab object.
 	 * @param {TabIndentifier} tabID An object containing the uuid, name for the external application/window.
@@ -123,6 +128,12 @@ export class TabManager {
 	public getTab(tabID: TabIndentifier): Tab | undefined {
 		return this.tabs.find((tab: Tab) => {
 			return tab.getExternalApplication.getWindow.name === tabID.name && tab.getExternalApplication.getApplication.uuid === tabID.uuid;
+		});
+	}
+
+	public realignApps(): void {
+		this.tabs.forEach(tab => {
+			tab.getExternalApplication.alignAppWindow();
 		});
 	}
 
@@ -144,7 +155,7 @@ export class TabManager {
 		return this.tabs;
 	}
 
-	public get getActiveTab(): Tab | null {
+	public get getActiveTab(): Tab {
 		return this.activeTab;
 	}
 

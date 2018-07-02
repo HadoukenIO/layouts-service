@@ -16,15 +16,33 @@
     <div id="window-button-wrap">
         <div id="window-button-minimize" onclick="WindowManager.minimize()">
         </div>
-        <div id="window-button-maximize">
-        </div>
-        <div id="window-button-popout">
+        <div id="window-button-maximize" onclick="WindowManager.toggleMaximize()">
         </div>
         <div id="window-button-exit" onclick="WindowManager.exit()">
         </div>
     </div>
     <script src="dist/tab-ui-bundle.js"></script>
+
+    <template id="tab-template">
+        <!-- Edit Below Here -->
+
+        <div class="tab" draggable="true">
+            <div class="tab-left">
+                <div class="tab-left-overlay"></div>
+            </div>
+            <div class="tab-content-wrap">
+                <div class="tab-favicon"></div>
+                <div class="tab-content" draggable="false"></div>
+                <div class="tab-exit"></div>
+            </div>
+            <div class="tab-right">
+                <div class="tab-right-overlay"></div>
+            </div>
+        </div>
+        
+        <!-- End Edits -->
+    </template>
 </body>
-</body>
+
 
 </html>

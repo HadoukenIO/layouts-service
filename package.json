@@ -24,7 +24,9 @@
 		"webpack": "^4.4.1",
 		"webpack-cli": "^2.0.13"
 	},
-	"dependencies": {},
+	"dependencies": {
+		"electron-drag": "^1.2.0"
+	},
 	"scripts": {
 		"build": "webpack && node build.js",
 		"webpack": "webpack --watch",

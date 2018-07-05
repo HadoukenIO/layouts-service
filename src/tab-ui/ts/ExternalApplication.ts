@@ -66,7 +66,9 @@ export class ExternalApplication {
 		} else {
 			this.alignAppWindow();
 		}
-
+		this.window.getSnapshot(snapshot => {
+			this.snapshot = `data:image/png;base64,${snapshot}`;
+		});
 		setInterval(() => {
 			this.window.getSnapshot(snapshot => {
 				this.snapshot = `data:image/png;base64,${snapshot}`;
@@ -108,7 +110,14 @@ export class ExternalApplication {
 
 			this.window.getBounds((extBounds: fin.WindowBounds) => {
 				// Set to tab window width & keep application height.
-				this.window.resizeTo(bounds.width!, extBounds.height!, "top-left");
+
+				if (TabManager.instance.getLastActiveTab) {
+					TabManager.instance.getLastActiveTab.getExternalApplication.getWindow.getBounds(activeTabBounds => {
+						this.window.resizeTo(bounds.width!, activeTabBounds.height!, "top-left");
+					});
+				} else {
+					this.window.resizeTo(bounds.width!, extBounds.height!, "top-left");
+				}
 
 				// Join the tab window group for easy movement correlation.
 				this.window.joinGroup(WindowManager.instance.getWindow);
@@ -173,9 +182,6 @@ export class ExternalApplication {
 	private _onWindowFocus(): void {
 		// Bring the tab window into view to avoid missing tabs.
 		WindowManager.instance.getWindow.bringToFront();
-
-		// Bring the application window to front + focus.  Fixes z-indexing issues.
-		this.window.setAsForeground();
 	}
 
 	/**

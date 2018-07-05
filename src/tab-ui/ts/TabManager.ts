@@ -26,6 +26,8 @@ export class TabManager {
 	 */
 	private activeTab!: Tab;
 
+	private lastActiveTab!: Tab | null;
+
 	/**
 	 * @constructor Constructs the TabManager class.
 	 */
@@ -46,6 +48,9 @@ export class TabManager {
 	public addTab(tabID: TabIndentifier & TabOptions): void {
 		if (this._getTabIndex(tabID) === -1) {
 			const tab = new Tab(tabID);
+
+			fin.desktop.InterApplicationBus.send(tabID.uuid, tabID.name, "TABBED", {});
+
 			this.tabs.push(tab);
 
 			this.setActiveTab(tabID);
@@ -63,6 +68,7 @@ export class TabManager {
 		// if tab was found
 		if (tab && index !== -1) {
 			tab.remove(closeApp);
+			fin.desktop.InterApplicationBus.send(tabID.uuid, tabID.name, "UNTABBED", {});
 			this.tabs.splice(index, 1);
 
 			// is the tab being removed the active tab?
@@ -105,6 +111,7 @@ export class TabManager {
 
 			if (tab) {
 				if (tab !== this.activeTab) {
+					this.lastActiveTab = this.activeTab;
 					this.unsetActiveTab();
 					tab.setActive();
 					this.activeTab = tab;
@@ -140,8 +147,8 @@ export class TabManager {
 		});
 	}
 
-	public ejectTab(tabID: TabIndentifier, trigger: EjectTriggers, screenX: number = 100, screenY: number = 100) {
-		fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, "tab-ejected", { ...tabID, screenX, screenY, trigger });
+	public ejectTab(tabID: TabIndentifier, trigger: EjectTriggers, screenX: number = 100, screenY: number = 100, width: number | null = null, height: number | null = null) {
+		fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, "tab-ejected", { ...tabID, screenX, screenY, trigger, width, height });
 		TabManager.instance.removeTab(tabID, false);
 	}
 
@@ -195,6 +202,10 @@ export class TabManager {
 	 */
 	public get getTabs(): Tab[] {
 		return this.tabs;
+	}
+
+	public get getLastActiveTab(): Tab | null {
+		return this.lastActiveTab;
 	}
 
 	public get getActiveTab(): Tab {

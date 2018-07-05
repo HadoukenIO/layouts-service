@@ -171,7 +171,6 @@ export class WindowManager {
 
 		// If the window is trying to close, call exit route to close all tabs.
 		fin.desktop.Window.getCurrent().addEventListener("close-requested", () => {
-			alert();
 			this.exit();
 		});
 	}

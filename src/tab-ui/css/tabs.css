@@ -241,3 +241,9 @@ body {
 	z-index:5;
 	-webkit-app-region: no-drag;
 }
+
+.preview {
+	position: absolute;
+	top: -10000;
+	left: -10000;
+}

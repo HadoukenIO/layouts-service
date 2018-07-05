@@ -61,10 +61,9 @@ export class Tab {
 		(iconNode as HTMLElement).style.backgroundImage = `url("${icon}")`;
 	}
 
-	private _onDragStart(e: DragEvent): void {
+	private async _onDragStart(e: DragEvent): Promise<void> {
 		const tabID: TabIndentifier = this.getTabId;
 		e.dataTransfer.effectAllowed = "move";
-		e.dataTransfer.setData("text/plain", JSON.stringify(tabID));
 
 		DragWindowManager.show();
 		this.externalApplication.getWindow.leaveGroup();
@@ -73,10 +72,11 @@ export class Tab {
 
 	private _onDragEnd(e: DragEvent): void {
 		const tabID: TabIndentifier = this.getTabId;
-
+		this.getExternalApplication.getWindow.getBounds(bounds => {
+			TabManager.instance.ejectTab(this.getTabId, EjectTriggers.DRAG, e.screenX, e.screenY, bounds.width, bounds.height);
+		});
 		DragWindowManager.hide();
 		// WindowManager.instance.unsetDragBlock();
-		TabManager.instance.ejectTab(this.getTabId, EjectTriggers.DRAG, e.screenX, e.screenY);
 	}
 
 	/**

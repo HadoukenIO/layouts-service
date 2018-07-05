@@ -35,7 +35,7 @@ export class Service {
 				if (res.result && res.window && message.trigger === EjectTriggers.DRAG) {
 					fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, res.window.name, "add-tab", message);
 				} else {
-					this._createTabWindow(message.uuid, message.name, { alignTabWindow: true }, message.screenX, message.screenY);
+					this._createTabWindow(message.uuid, message.name, { alignTabWindow: true }, message.screenX, message.screenY, message.width, message.height);
 				}
 			}
 		});
@@ -134,7 +134,7 @@ export class Service {
 		this._addTabsToApplication(app);
 	}
 
-	private _createTabWindow(uuid: string, name: string, options: TabOptions = {}, screenX: number | null = null, screenY: number | null = null) {
+	private _createTabWindow(uuid: string, name: string, options: TabOptions = {}, screenX: number | null = null, screenY: number | null = null, width: number | null = null, height: number | null = null) {
 		const tabWindow: fin.OpenFinWindow = new fin.desktop.Window({
 			name: `${Math.random() * 10000}`,
 			url: "http://localhost:9001/tab-ui/",
@@ -144,6 +144,7 @@ export class Service {
 			maximizable: false,
 			resizable: false,
 			defaultHeight: 62,
+			defaultWidth: width ? width : undefined,
 			defaultLeft: screenX ? screenX : 100,
 			defaultTop: screenY ? screenY : 100,
 			saveWindowState: false

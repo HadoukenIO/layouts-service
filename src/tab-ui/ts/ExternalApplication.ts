@@ -1,7 +1,7 @@
-import { Tab, TabIndentifier, TabOptions } from "./Tab";
+import { TabIndentifier } from "../../shared/types";
+import { Tab, TabOptions } from "./Tab";
 import { TabManager } from "./TabManager";
 import { WindowManager } from "./WindowManager";
-
 /**
  * ExternalApplication contains methods for handling the actual application operations of the tab.
  */
@@ -24,6 +24,8 @@ export class ExternalApplication {
 	private snapshot: string = "";
 
 	private windowOptions!: fin.WindowOptions;
+
+	private initialBounds!: fin.WindowBounds;
 	/**
 	 * @constructor
 	 * @param tabID {Object} UUID, Name of the Application, Window, + Tab Options.
@@ -36,6 +38,10 @@ export class ExternalApplication {
 
 		this.setWindowOptions().then(opts => {
 			tab.updateIcon(opts.icon && opts.icon!.length > 0 ? opts.icon! : `https://www.google.com/s2/favicons?domain=${opts.url}`);
+		});
+
+		this.window.getBounds(bounds => {
+			this.initialBounds = bounds;
 		});
 
 		this.window.getState(state => {
@@ -182,6 +188,10 @@ export class ExternalApplication {
 
 	public get getWindowOptions(): fin.WindowOptions {
 		return this.windowOptions;
+	}
+
+	public get getInitialBounds(): fin.WindowBounds {
+		return this.initialBounds;
 	}
 
 	/**

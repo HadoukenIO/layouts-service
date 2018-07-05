@@ -20,7 +20,26 @@
                     saveWindowState: false,
                     autoShow: true,
                     defaultCentered: true,
-                    state: "maximized"
+                    preloadScripts: [{url: "http://localhost:9001/client/dist/client-bundle.js"}]
+                }
+            },
+                () => {
+                    app.run();
+                }
+            );
+        }
+
+        function newApplication2() {
+            const uuid = `App${Math.random() * 1000}`
+            const app = new fin.desktop.Application({
+                url: "http://localhost:9001/demo/App2.html", 
+                uuid: uuid, 
+                name: uuid,
+                mainWindowOptions: {
+                    saveWindowState: false,
+                    autoShow: true,
+                    defaultCentered: true,
+                    preloadScripts: [{url: "http://localhost:9001/client/dist/client-bundle.js"}]
                 }
             },
                 () => {

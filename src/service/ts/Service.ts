@@ -1,3 +1,4 @@
+import { EjectTriggers } from "../../shared/types";
 import { TabOptions } from "../../tab-ui/ts/Tab";
 import { DragWindowManager } from "./DragWindowManager";
 
@@ -20,22 +21,48 @@ export class Service {
 
 		fin.desktop.InterApplicationBus.subscribe(fin.desktop.Application.getCurrent().uuid, "tab-ping", async (message, uuid, name) => {
 			const res: IsOverWindowResult = await this._isOverTabWindow(message.screenX, message.screenY);
-			// tslint:disable-next-line:no-console
-			console.log(message);
+
 			if (res.result && res.window) {
 				fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, res.window.name, "tab-ping-over", {});
 			}
 		});
 
 		fin.desktop.InterApplicationBus.subscribe(fin.desktop.Application.getCurrent().uuid, "tab-ejected", async (message, uuid, name) => {
-			if (message.uuid && message.name && message.screenX && message.screenY) {
+			console.log(message);
+			if (message.uuid && message.name && message.screenX && message.screenY && message.trigger) {
 				const res: IsOverWindowResult = await this._isOverTabWindow(message.screenX, message.screenY);
-				if (res.result && res.window) {
+
+				if (res.result && res.window && message.trigger === EjectTriggers.DRAG) {
 					fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, res.window.name, "add-tab", message);
 				} else {
 					this._createTabWindow(message.uuid, message.name, { alignTabWindow: true }, message.screenX, message.screenY);
 				}
 			}
+		});
+
+		fin.desktop.Window.getCurrent().addEventListener("close-requested", () => {
+			const app = fin.desktop.Application.getCurrent();
+
+			const closeFn = (window: fin.OpenFinWindow) => {
+				return new Promise<void>((res, rej) => {
+					window.close(false, () => {
+						res();
+					});
+				});
+			};
+
+			let actions = [];
+
+			app.getChildWindows(
+				(children: fin.OpenFinWindow[]): void => {
+					actions = children.map(closeFn);
+					const results = Promise.all(actions);
+
+					results.then(() => {
+						fin.desktop.Window.getCurrent().close(true);
+					});
+				}
+			);
 		});
 	}
 
@@ -115,7 +142,6 @@ export class Service {
 			autoShow: true,
 			frame: false,
 			maximizable: false,
-			minimizable: false,
 			resizable: false,
 			defaultHeight: 62,
 			defaultLeft: screenX ? screenX : 100,

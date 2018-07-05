@@ -44,6 +44,7 @@
     "switch-default": true,
     "triple-equals": [true, "allow-null-check"],
     "use-isnan": true,
+    "no-console": false,
     "variable-name": [
       true,
       "check-format",

@@ -1,6 +1,5 @@
-import { TabIndentifier } from "./Tab";
+import { TabIndentifier } from "../../shared/types";
 import { TabManager } from "./TabManager";
-
 /**
  * WindowManager contains methods for handling the Tab Window.
  */
@@ -153,6 +152,7 @@ export class WindowManager {
 		fin.desktop.System.addEventListener("monitor-info-changed", TabManager.instance.realignApps.bind(TabManager.instance));
 
 		fin.desktop.InterApplicationBus.subscribe(fin.desktop.Application.getCurrent().uuid, "add-tab", (message: TabIndentifier) => {
+			console.log("In Add Tab", message);
 			TabManager.instance.addTab(message);
 		});
 
@@ -171,6 +171,7 @@ export class WindowManager {
 
 		// If the window is trying to close, call exit route to close all tabs.
 		fin.desktop.Window.getCurrent().addEventListener("close-requested", () => {
+			alert();
 			this.exit();
 		});
 	}

@@ -1,12 +1,8 @@
 import { DragWindowManager } from "../../service/ts/DragWindowManager";
+import { EjectTriggers, TabIndentifier } from "../../shared/types";
 import { ExternalApplication } from "./ExternalApplication";
 import { TabManager } from "./TabManager";
 import { WindowManager } from "./WindowManager";
-
-export interface TabIndentifier {
-	name: string;
-	uuid: string;
-}
 
 export interface TabOptions {
 	alignTabWindow?: boolean;
@@ -80,8 +76,7 @@ export class Tab {
 
 		DragWindowManager.hide();
 		// WindowManager.instance.unsetDragBlock();
-		fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, "tab-ejected", { ...this.getTabId, screenX: e.screenX, screenY: e.screenY });
-		TabManager.instance.removeTab(tabID, false);
+		TabManager.instance.ejectTab(this.getTabId, EjectTriggers.DRAG, e.screenX, e.screenY);
 	}
 
 	/**

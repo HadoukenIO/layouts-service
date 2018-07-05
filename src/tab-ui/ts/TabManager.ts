@@ -1,6 +1,7 @@
-import { Tab, TabIndentifier, TabOptions } from "./Tab";
+import { ClientIABTopics, EjectTriggers, TabIndentifier } from "../../shared/types";
+import * as Utils from "../../shared/utils";
+import { Tab, TabOptions } from "./Tab";
 import { WindowManager } from "./WindowManager";
-
 /**
  * @class TabManager Handles the management of individual tabs and some of their functionality.
  */
@@ -32,6 +33,8 @@ export class TabManager {
 		if (TabManager.INSTANCE) {
 			return TabManager.INSTANCE;
 		}
+
+		this._setupListeners();
 
 		TabManager.INSTANCE = this;
 	}
@@ -134,6 +137,45 @@ export class TabManager {
 	public realignApps(): void {
 		this.tabs.forEach(tab => {
 			tab.getExternalApplication.alignAppWindow();
+		});
+	}
+
+	public ejectTab(tabID: TabIndentifier, trigger: EjectTriggers, screenX: number = 100, screenY: number = 100) {
+		fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, "tab-ejected", { ...tabID, screenX, screenY, trigger });
+		TabManager.instance.removeTab(tabID, false);
+	}
+
+	private _setupListeners(): void {
+		fin.desktop.InterApplicationBus.subscribe("*", ClientIABTopics.DISCOVER, (message: TabIndentifier, uuid, name) => {
+			const tab = this.getTab(message);
+
+			if (tab) {
+				fin.desktop.InterApplicationBus.send(uuid, name, ClientIABTopics.DISCOVERRETURN, { uuid: fin.desktop.Application.getCurrent().uuid, name: fin.desktop.Window.getCurrent().name });
+			}
+		});
+
+		fin.desktop.InterApplicationBus.subscribe("*", ClientIABTopics.EJECTREQUEST, (message: TabIndentifier, uuid, name) => {
+			const tab = this.getTab(message);
+
+			if (tab) {
+				this.ejectTab(message, EjectTriggers.API, tab.getExternalApplication.getInitialBounds.left, tab.getExternalApplication.getInitialBounds.top);
+			}
+		});
+
+		fin.desktop.InterApplicationBus.subscribe("*", ClientIABTopics.CHANGEICON, (message: TabIndentifier & { icon: string }, uuid, name) => {
+			const tab = this.getTab(message);
+
+			if (tab) {
+				tab.updateIcon(message.icon);
+			}
+		});
+
+		fin.desktop.InterApplicationBus.subscribe("*", ClientIABTopics.JOINREQUEST, async (message: TabIndentifier & { extUuid: string; extName: string }) => {
+			console.log(message);
+			const requestingWindowTabs = await Utils.getTabWindow({ uuid: message.uuid, name: message.name });
+			console.log("Requesting Window Tab Window", requestingWindowTabs, message);
+			fin.desktop.InterApplicationBus.send(requestingWindowTabs.uuid, requestingWindowTabs.name, "add-tab", { uuid: message.extUuid, name: message.extName });
+			this.removeTab({ uuid: message.extUuid, name: message.extName }, false);
 		});
 	}
 

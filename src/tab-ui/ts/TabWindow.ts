@@ -1,4 +1,5 @@
-import { TabIndentifier, TabOptions } from "./Tab";
+import { TabIndentifier } from "../../shared/types";
+import { TabOptions } from "./Tab";
 import { TabManager } from "./TabManager";
 import { WindowManager } from "./WindowManager";
 
@@ -7,6 +8,7 @@ export class TabWindow {
 	private tabManager: TabManager = new TabManager();
 
 	constructor() {
+		console.log("Tab Window Info: ", fin.desktop.Application.getCurrent().uuid, fin.desktop.Window.getCurrent().name);
 		this._getCustomData().then((customData: TabIndentifier & TabOptions) => {
 			const alignTabWindow: boolean = customData.alignTabWindow || false;
 

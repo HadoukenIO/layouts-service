@@ -46,10 +46,7 @@ function createWebpackConfigForProject(projectName, entryPoint) {
 				}
 			]
 		},
-		plugins: [
-			new ExtractTextPlugin({ filename: "bundle.css" }),
-			new CleanWebpackPlugin(outputPath, {})
-		]
+		plugins: [new ExtractTextPlugin({ filename: "bundle.css" }), new CleanWebpackPlugin(outputPath, {})]
 	};
 }
 
@@ -59,5 +56,8 @@ module.exports = [
 	}),
 	createWebpackConfigForProject("src/service", {
 		service: "./src/service/ts/index.ts"
+	}),
+	createWebpackConfigForProject("src/client", {
+		client: "./src/client/ts/client.ts"
 	})
 ];

@@ -8,13 +8,19 @@ import { Application, Fin } from 'hadouken-js-adapter';
 import * as robot from 'robotjs';
 import { resizeWindowToSize } from './utils/resizeWindowToSize';
 import { createChildWindow } from './utils/createChildWindow';
+import { _Window } from 'hadouken-js-adapter/out/types/src/api/window/window';
+
+let previewWin: _Window;
+
+test.beforeEach(async () => {
+    const fin = await getConnection();
+    previewWin = await fin.Window.wrap({ name: 'previewWindow-', uuid: 'Layouts-Manager' });
+});
 
 test('preview on right side', async t => {
     let win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200 });
     let win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200 });
 
-    const fin = await getConnection();
-    let previewWin = await fin.Window.wrap({ name: 'previewWindow-', uuid: 'Layouts-Manager' });
     let win1Bounds = await getBounds(win1);
     let win2Bounds = await getBounds(win2);
     await dragWindowAndHover(win2, win1Bounds.right + 2, win1Bounds.top + 5);
@@ -33,8 +39,6 @@ test('preview on left side', async t => {
     let win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 500, defaultHeight: 200, defaultWidth: 200 });
     let win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200 });
 
-    const fin = await getConnection();
-    let previewWin = await fin.Window.wrap({ name: 'previewWindow-', uuid: 'Layouts-Manager' });
     let win1Bounds = await getBounds(win1);
     let win2Bounds = await getBounds(win2);
     await dragWindowAndHover(win2, win1Bounds.left - win2Bounds.width - 2, win1Bounds.top + 5);
@@ -53,9 +57,7 @@ test('preview on left side', async t => {
 test('preview on top', async t => {
     let win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 400, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200 });
     let win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200 });
-
-    const fin = await getConnection();
-    let previewWin = await fin.Window.wrap({ name: 'previewWindow-', uuid: 'Layouts-Manager' });
+    
     let win1Bounds = await getBounds(win1);
     let win2Bounds = await getBounds(win2);
     await dragWindowAndHover(win2, win1Bounds.left + 5, win1Bounds.top - win2Bounds.height - 10);
@@ -75,8 +77,6 @@ test('preview on bottom', async t => {
     let win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200 });
     let win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 400, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200 });
 
-    const fin = await getConnection();
-    let previewWin = await fin.Window.wrap({ name: 'previewWindow-', uuid: 'Layouts-Manager' });
     let win1Bounds = await getBounds(win1);
     let win2Bounds = await getBounds(win2);
     await dragWindowAndHover(win2, win1Bounds.left + 5, win1Bounds.bottom - 2);
@@ -97,8 +97,6 @@ test('preview resize width on snap - smaller to bigger', async t => {
     let win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 300, defaultWidth: 300 });
     let win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 400, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200 });
 
-    const fin = await getConnection();
-    let previewWin = await fin.Window.wrap({ name: 'previewWindow-', uuid: 'Layouts-Manager' });
     let win1Bounds = await getBounds(win1);
     let win2Bounds = await getBounds(win2);
     await dragWindowAndHover(win2, win1Bounds.left + 5, win1Bounds.bottom - 2);
@@ -118,8 +116,6 @@ test('preview resize height on snap - smaller to bigger', async t => {
     let win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 300, defaultWidth: 300 });
     let win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 220, defaultWidth: 220 });
 
-    const fin = await getConnection();
-    let previewWin = await fin.Window.wrap({ name: 'previewWindow-', uuid: 'Layouts-Manager' });
     let win1Bounds = await getBounds(win1);
     let win2Bounds = await getBounds(win2);
     await dragWindowAndHover(win2, win1Bounds.right + 2, win1Bounds.top + ((win2Bounds.bottom - win2Bounds.top) / 2));
@@ -139,8 +135,6 @@ test('preview resize width on snap - bigger to smaller', async t => {
     let win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 225 });
     let win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 400, defaultLeft: 400, defaultHeight: 300, defaultWidth: 300 });
 
-    const fin = await getConnection();
-    let previewWin = await fin.Window.wrap({ name: 'previewWindow-', uuid: 'Layouts-Manager' });
     let win1Bounds = await getBounds(win1);
     let win2Bounds = await getBounds(win2);
     await dragWindowAndHover(win2, win1Bounds.left + 5, win1Bounds.bottom - 2);
@@ -160,8 +154,6 @@ test('preview resize height on snap - bigger to smaller', async t => {
     let win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 220, defaultWidth: 220 });
     let win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 300, defaultWidth: 300 });
 
-    const fin = await getConnection();
-    let previewWin = await fin.Window.wrap({ name: 'previewWindow-', uuid: 'Layouts-Manager' });
     let win1Bounds = await getBounds(win1);
     let win2Bounds = await getBounds(win2);
     await dragWindowAndHover(win2, win1Bounds.right + 2, win1Bounds.top + 2);

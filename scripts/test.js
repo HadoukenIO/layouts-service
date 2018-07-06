@@ -27,11 +27,11 @@ const fail = err => {
 require('./utils/build')('test')
     .then(() => require('./serve'))
     .then(async () => {
-        port = await launch({manifestUrl: 'http://localhost:1337/test-app.json'});
+        port = await launch({manifestUrl: 'http://localhost:1337/test/app.json'});
 	console.log('Openfin running on port ' + port);
         return port
     })
     .catch(fail)
-    .then(OF_PORT => run('ava --serial', ['build/test/*.test.js'], { env: { OF_PORT } }))
+    .then(OF_PORT => run('ava --serial', ['build/test/main.test.js'], { env: { OF_PORT } }))
     .then(cleanup)
     .catch(cleanup)

@@ -15,7 +15,7 @@ test.before(async () => {
     fin = await getConnection();
 });
 test.beforeEach(async () => {
-    const getAppName = () => 'a' + appIdCount++;
+    const getAppName = () => 'test-app-' + appIdCount++;
     let app1Name = getAppName();
     let app2Name = getAppName();
     app1 = await fin.Application.create({
@@ -175,23 +175,23 @@ test.failing('should allow reregistration of a previously used identity', async 
     const fin = await getConnection();
     // intentionally hardcoding previosuly used uuid
     const app1 = await fin.Application.create({
-        uuid: 'a0',
-        name: 'a0',
+        uuid: 'test-app-0',
+        name: 'test-app-0',
         mainWindowOptions: {autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200}
     });
     await app1.run();
 
     // intentionally hardcoding previosuly used uuid
     const app2 = await fin.Application.create({
-        uuid: 'a1',
-        name: 'a1',
+        uuid: 'test-app-1',
+        name: 'test-app-1',
         mainWindowOptions: {autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200}
     });
     await app2.run();
 
 
-    const win1 = await fin.Window.wrap({uuid: 'a0', name: 'a0'});
-    const win2 = await fin.Window.wrap({uuid: 'a1', name: 'a1'});
+    const win1 = await fin.Window.wrap({uuid: 'test-app-0', name: 'test-app-0'});
+    const win2 = await fin.Window.wrap({uuid: 'test-app-1', name: 'test-app-1'});
     const win2Bounds = await getBounds(win2);
 
     await dragWindowTo(win1, win2Bounds.left + 50, win2Bounds.bottom + 2);

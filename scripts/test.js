@@ -28,7 +28,7 @@ require('./utils/build')('test')
     .then(() => require('./serve'))
     .then(async () => {
         port = await launch({manifestUrl: 'http://localhost:1337/test/app.json'});
-	    console.log('Openfin running on port ' + port);
+        console.log('Openfin running on port ' + port);
         return port
     })
     .catch(fail)

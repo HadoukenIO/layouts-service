@@ -79,22 +79,34 @@ export class WindowManager {
 
 	/**
 	 * Maximize the tab window and active tab.
-	 * TODO
 	 */
 	public maximize(): void {
+		// Note that when we "maximze" we are not in a true maximized state, because we are working with 2 windows.
+
+		// Get bounds of the current window.
 		TabManager.instance.getActiveTab!.getExternalApplication.getWindow.getBounds(bounds => {
+			// Store current bounds before maximization, for restore.
 			this.beforeMaximizedBounds = bounds;
 
+			// Move the tab strip to 0,0
 			this.window.moveTo(0, 0);
+
+			// Resize to width of full screen.
 			this.window.resizeTo(screen.availWidth, WindowManager.designatedHeightWithTabs, "top-left");
+
+			// Resize app to full screen height - tab window height.
 			TabManager.instance.getActiveTab!.getExternalApplication.getWindow.resizeTo(screen.availWidth, screen.availHeight - WindowManager.designatedHeightWithTabs, "top-left");
 
+			// Flag tracking for is we are maximized.
 			this.setIsMaximized = true;
 		});
 	}
 
+	/**
+	 * Restores the window from a "maximized" state.
+	 */
 	public restore(): void {
-		if (this.beforeMaximizedBounds) {
+		if (this.beforeMaximizedBounds && this.isMaximized) {
 			const tabWindow = TabManager.instance.getActiveTab.getExternalApplication.getWindow;
 			tabWindow.resizeTo(this.beforeMaximizedBounds.width!, this.beforeMaximizedBounds.height!, "top-left");
 			tabWindow.moveTo(this.beforeMaximizedBounds.left!, this.beforeMaximizedBounds.top!);
@@ -102,6 +114,9 @@ export class WindowManager {
 		}
 	}
 
+	/**
+	 * Maximizes if not maximized.  Restores if maximized.
+	 */
 	public toggleMaximize(): void {
 		if (this.isMaximized) {
 			this.restore();
@@ -145,26 +160,25 @@ export class WindowManager {
 	 * Creates various event listeners for drag and drop, window close events.
 	 */
 	private _setupListeners(): void {
-		// document.addEventListener("dragover", this._onDragOver.bind(this), false);
-		// document.addEventListener("dragleave", this._onDragLeave.bind(this), false);
-		// document.addEventListener("drop", this._onDragDrop.bind(this), false);
-
+		// If the monitor changes size we need to realign the apps otherwise the are misaligned.
 		fin.desktop.System.addEventListener("monitor-info-changed", TabManager.instance.realignApps.bind(TabManager.instance));
 
+		// Responds to the add-tab IAB message.  Adds a tab.
 		fin.desktop.InterApplicationBus.subscribe(fin.desktop.Application.getCurrent().uuid, "add-tab", (message: TabIndentifier) => {
-			console.log("In Add Tab", message);
 			TabManager.instance.addTab(message);
 		});
 
+		// Fires when a tab is being dragged and is over our window.
 		fin.desktop.InterApplicationBus.subscribe(fin.desktop.Application.getCurrent().uuid, "tab-ping-over", this._onDragOver.bind(this));
 
+		// Fires when our tab window is minimized.
 		this.window.addEventListener("minimized", () => {
 			// Minimize active tab.
 			TabManager.instance.getActiveTab!.getExternalApplication.getWindow.minimize();
 		});
 
+		// Fires when our tab window is restored.
 		this.window.addEventListener("restored", () => {
-			// Minimize active tab.
 			TabManager.instance.getActiveTab!.getExternalApplication.getWindow.restore();
 			TabManager.instance.getActiveTab!.getExternalApplication.getWindow.focus();
 		});
@@ -175,77 +189,12 @@ export class WindowManager {
 		});
 	}
 
-	// /**
-	//  * Handles when the drag event has left the window.
-	//  * @param e {DragEvent} HTML5 Drag Event
-	//  */
-	// private _onDragLeave(e: DragEvent) {
-	// 	// Clear any existing dragover timeouts.
-	// 	// @ts-ignore Timeout type confusion.
-	// 	clearTimeout(this.dragOverChecker);
-
-	// 	// If we don't receive a dragOver event in 200ms then assume we are not dragging over our window anymore,
-	// 	// reenable normal window movement dragging.
-	// 	// @ts-ignore Timeout type confusion.
-	// 	this.dragOverChecker = setTimeout(() => {
-	// 		this.unsetDragBlock();
-	// 		this.dragOverChecker = null;
-	// 	}, 200);
-	// }
-
+	/**
+	 * Fires when a tab is being dragged and is over our window.
+	 */
 	private _onDragOver(): void {
-		// @ts-ignore
-		// clearTimeout(this.dragOverChecker);
-		// this.dragOverChecker = setTimeout(() => {
-		// 	//
-		// }, 100);
+		// Currently does nothng.
 	}
-	// /**
-	//  * Handles when a drag event is over the window.
-	//  * @param e {DragEvent} HTML5 DragEvent
-	//  */
-	// private _onDragOver(e: DragEvent) {
-	// 	if (e.preventDefault) {
-	// 		e.preventDefault(); // Necessary. Allows us to drop.
-	// 	}
-
-	// 	// If we have triggered a drag leave event at any time already, clear it.
-	// 	if (this.dragOverChecker) {
-	// 		clearTimeout(this.dragOverChecker);
-	// 		this.dragOverChecker = null;
-	// 	}
-
-	// 	// // How do we handle the drop effect type?
-	// 	// e.dataTransfer.dropEffect = "move";
-
-	// 	// // Enable window drag movement blocks.
-	// 	// this.setDragBlock();
-
-	// 	// return false;
-	// }
-
-	// /**
-	//  * Handles when drag drop event has occurred on the window.
-	//  * @param e {DragEvent} HTML5 DragEvent
-	//  */
-	// private _onDragDrop(e: DragEvent) {
-	// 	if (e.stopPropagation) {
-	// 		e.stopPropagation(); // stops the browser from redirecting.
-	// 	}
-
-	// 	// There is nothing being dragged, so disable drag block to restore window movement.
-	// 	this.unsetDragBlock();
-
-	// 	// We did get a drop event.  Required check for tab manipulation.
-	// 	this.setDidGetDrop = true;
-
-	// 	// Add the tab we received via drop.
-	// 	if (e.dataTransfer.getData("text/plain")) {
-	// 		TabManager.instance.addTab(JSON.parse(e.dataTransfer.getData("text/plain")));
-	// 	}
-
-	// 	return false;
-	// }
 
 	/**
 	 * Returns the tab openfin window.

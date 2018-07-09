@@ -1,14 +1,8 @@
 import { DragWindowManager } from "../../service/ts/DragWindowManager";
-import { EjectTriggers, TabIndentifier } from "../../shared/types";
+import { EjectTriggers, TabIndentifier, TabOptions } from "../../shared/types";
 import { ExternalApplication } from "./ExternalApplication";
 import { TabManager } from "./TabManager";
 import { WindowManager } from "./WindowManager";
-
-export interface TabOptions {
-	alignTabWindow?: boolean;
-	screenX?: number;
-	screenY?: number;
-}
 
 export class Tab {
 	private externalApplication: ExternalApplication;
@@ -56,13 +50,19 @@ export class Tab {
 		this.externalApplication.hide();
 	}
 
+	/**
+	 * @method updateIcon Updates the icon of this tab.
+	 * @param icon The URL to the icon image.
+	 */
 	public updateIcon(icon: string = ""): void {
 		const iconNode = this.domNode.querySelectorAll(".tab-favicon")[0];
 		(iconNode as HTMLElement).style.backgroundImage = `url("${icon}")`;
 	}
-
-	private async _onDragStart(e: DragEvent): Promise<void> {
-		const tabID: TabIndentifier = this.getTabId;
+	/**
+	 * Handles the HTML5 DragEvent onStart
+	 * @param e {DragEvent} DragEvent
+	 */
+	private _onDragStart(e: DragEvent): void {
 		e.dataTransfer.effectAllowed = "move";
 
 		DragWindowManager.show();
@@ -70,13 +70,16 @@ export class Tab {
 		WindowManager.instance.setDidGetDrop = false;
 	}
 
+	/**
+	 * Handles the HTML5 DragEvent onDragEnd
+	 * @param e {DragEvent} DragEvent
+	 */
 	private _onDragEnd(e: DragEvent): void {
-		const tabID: TabIndentifier = this.getTabId;
 		this.getExternalApplication.getWindow.getBounds(bounds => {
 			TabManager.instance.ejectTab(this.getTabId, EjectTriggers.DRAG, e.screenX, e.screenY, bounds.width, bounds.height);
 		});
+
 		DragWindowManager.hide();
-		// WindowManager.instance.unsetDragBlock();
 	}
 
 	/**
@@ -118,22 +121,27 @@ export class Tab {
 	 * @returns {HTMLElement}
 	 */
 	private _generateDOM(): HTMLElement {
-		const tabTemplate: HTMLTemplateElement = (document.getElementById("tab-template") as HTMLTemplateElement)!; // .firstElementChild!.cloneNode(true) as HTMLElement;
+		// Get tab template from HTML (index.html)
+		const tabTemplate: HTMLTemplateElement = (document.getElementById("tab-template") as HTMLTemplateElement)!;
 		const tabTemplateDocFrag: DocumentFragment = document.importNode(tabTemplate.content, true);
 		const tab: HTMLElement = tabTemplateDocFrag.firstElementChild as HTMLElement;
 
+		// Set the onclick, drag events to top tab DOM.
 		tab.onclick = this._onClickHandler.bind(this);
 		tab.addEventListener("dragstart", this._onDragStart.bind(this), false);
 		tab.addEventListener("dragend", this._onDragEnd.bind(this), false);
 
+		// Sets Tab Text
 		const tabText = tab.querySelectorAll(".tab-content")[0];
 		tabText.textContent = this.externalApplication.getWindow.name;
-
-		const tabFavicon: HTMLElement = tab.querySelectorAll(".tab-favicon")[0] as HTMLElement;
 
 		return tab;
 	}
 
+	/**
+	 * @method getTabID Creates a tab identifier object consisting of UUID, Name
+	 * @returns {TabIndentifier} {uuid, name}
+	 */
 	public get getTabId(): TabIndentifier {
 		return {
 			uuid: this.externalApplication.getApplication.uuid,
@@ -141,6 +149,10 @@ export class Tab {
 		};
 	}
 
+	/**
+	 * Gets the Tabs External Application (the application window to which it is attached).
+	 * @returns {ExternalApplication} ExternalApplication
+	 */
 	public get getExternalApplication(): ExternalApplication {
 		return this.externalApplication;
 	}

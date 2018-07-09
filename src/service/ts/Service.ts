@@ -1,5 +1,4 @@
-import { EjectTriggers } from "../../shared/types";
-import { TabOptions } from "../../tab-ui/ts/Tab";
+import { EjectTriggers, TabEjectEvent, TabOptions } from "../../shared/types";
 import { DragWindowManager } from "./DragWindowManager";
 
 export interface IsOverWindowResult {
@@ -7,6 +6,9 @@ export interface IsOverWindowResult {
 	window?: fin.OpenFinWindow | null;
 }
 
+/**
+ * The base service class.
+ */
 export class Service {
 	private dragWindowManager: DragWindowManager = new DragWindowManager();
 
@@ -14,58 +16,83 @@ export class Service {
 		this._setupListeners();
 	}
 
+	/**
+	 * Creates listeners for IAB events.
+	 */
 	private _setupListeners(): void {
 		this._discoverRunningApplications();
 
+		// Fired when any application is started: We add a tab window to it.
 		fin.desktop.System.addEventListener("application-started", this._onApplicationCreated.bind(this));
 
-		fin.desktop.InterApplicationBus.subscribe(fin.desktop.Application.getCurrent().uuid, "tab-ping", async (message, uuid, name) => {
-			const res: IsOverWindowResult = await this._isOverTabWindow(message.screenX, message.screenY);
+		fin.desktop.InterApplicationBus.subscribe(fin.desktop.Application.getCurrent().uuid, "tab-ping", this._onTabPing.bind(this));
 
-			if (res.result && res.window) {
-				fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, res.window.name, "tab-ping-over", {});
-			}
-		});
+		fin.desktop.InterApplicationBus.subscribe(fin.desktop.Application.getCurrent().uuid, "tab-ejected", this._onTabEjected.bind(this));
 
-		fin.desktop.InterApplicationBus.subscribe(fin.desktop.Application.getCurrent().uuid, "tab-ejected", async (message, uuid, name) => {
-			console.log(message);
-			if (message.uuid && message.name && message.screenX && message.screenY && message.trigger) {
-				const res: IsOverWindowResult = await this._isOverTabWindow(message.screenX, message.screenY);
-
-				if (res.result && res.window && message.trigger === EjectTriggers.DRAG) {
-					fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, res.window.name, "add-tab", message);
-				} else {
-					this._createTabWindow(message.uuid, message.name, { alignTabWindow: true }, message.screenX, message.screenY, message.width, message.height);
-				}
-			}
-		});
-
-		fin.desktop.Window.getCurrent().addEventListener("close-requested", () => {
-			const app = fin.desktop.Application.getCurrent();
-
-			const closeFn = (window: fin.OpenFinWindow) => {
-				return new Promise<void>((res, rej) => {
-					window.close(false, () => {
-						res();
-					});
-				});
-			};
-
-			let actions = [];
-
-			app.getChildWindows(
-				(children: fin.OpenFinWindow[]): void => {
-					actions = children.map(closeFn);
-					const results = Promise.all(actions);
-
-					results.then(() => {
-						fin.desktop.Window.getCurrent().close(true);
-					});
-				}
-			);
-		});
+		fin.desktop.Window.getCurrent().addEventListener("close-requested", this._onCloseRequested.bind(this));
 	}
 
+	/**
+	 * Handles when the service is attempting to close.
+	 */
+	private _onCloseRequested() {
+		const app = fin.desktop.Application.getCurrent();
+
+		const closeFn = (window: fin.OpenFinWindow) => {
+			return new Promise<void>((res, rej) => {
+				window.close(false, () => {
+					res();
+				});
+			});
+		};
+
+		let actions = [];
+
+		app.getChildWindows(
+			(children: fin.OpenFinWindow[]): void => {
+				actions = children.map(closeFn);
+				const results = Promise.all(actions);
+
+				results.then(() => {
+					fin.desktop.Window.getCurrent().close(true);
+				});
+			}
+		);
+	}
+
+	/**
+	 * Handles TabPings from when a tab is being hovered around.
+	 * @param message {screenX, screenY}
+	 */
+	private async _onTabPing(message: { screenX: number; screenY: number }) {
+		const res: IsOverWindowResult = await this._isOverTabWindow(message.screenX, message.screenY);
+
+		if (res.result && res.window) {
+			fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, res.window.name, "tab-ping-over", {});
+		}
+	}
+
+	/**
+	 * Handles when a tab has been ejected from a tab window.
+	 * @param message TabEjectedEvent
+	 */
+	private async _onTabEjected(message: TabEjectEvent) {
+		if (message.uuid && message.name && message.screenX && message.screenY && message.trigger) {
+			const res: IsOverWindowResult = await this._isOverTabWindow(message.screenX, message.screenY);
+
+			if (res.result && res.window && message.trigger === EjectTriggers.DRAG) {
+				fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, res.window.name, "add-tab", message);
+			} else {
+				this._createTabWindow(message.uuid, message.name, { alignTabWindow: true }, message.screenX, message.screenY, message.width);
+			}
+		}
+	}
+
+	/**
+	 * Checks if a tab is over any of our windows when it is being hovered.
+	 * @param x X Coordinate of the hover on screen.
+	 * @param y Y Coordinate of the hover on screen.
+	 */
 	private async _isOverTabWindow(x: number, y: number): Promise<IsOverWindowResult> {
 		return new Promise<IsOverWindowResult>((res, rej) => {
 			fin.desktop.Application.getCurrent().getChildWindows(children => {
@@ -92,6 +119,10 @@ export class Service {
 		});
 	}
 
+	/**
+	 * Discovers any running applications prior to the service being launched.
+	 * And adds a tab UI to them.
+	 */
 	private _discoverRunningApplications(): void {
 		fin.desktop.System.getAllApplications(
 			(applicationInfoList: fin.ApplicationInfo[]): void => {
@@ -107,6 +138,10 @@ export class Service {
 		);
 	}
 
+	/**
+	 * Adds a tab UI to applicaiton and all of its child windows.
+	 * @param app Openfin Applicaiton
+	 */
 	private _addTabsToApplication(app: fin.OpenFinApplication): void {
 		const appMainWindow = app.getWindow();
 
@@ -129,12 +164,25 @@ export class Service {
 		});
 	}
 
+	/**
+	 * Handles when a new applicaiton is created.  Adds a tab UI to it.
+	 * @param event
+	 */
 	private _onApplicationCreated(event: fin.SystemBaseEvent): void {
 		const app = fin.desktop.Application.wrap(event.uuid);
 		this._addTabsToApplication(app);
 	}
 
-	private _createTabWindow(uuid: string, name: string, options: TabOptions = {}, screenX: number | null = null, screenY: number | null = null, width: number | null = null, height: number | null = null) {
+	/**
+	 * Adds a tab UI to any window.
+	 * @param uuid UUID of the Window
+	 * @param name Name of the Window.
+	 * @param options Optional. Any special options needed for creation. Default none.
+	 * @param screenX Optional. The screen X coord to create the tab window at.
+	 * @param screenY Optional. The screen Y coord to create the tab window at.
+	 * @param width Optional.  The width of the window once it is created.
+	 */
+	private _createTabWindow(uuid: string, name: string, options: TabOptions = {}, screenX: number | null = null, screenY: number = 100, width: number | null = null) {
 		const tabWindow: fin.OpenFinWindow = new fin.desktop.Window({
 			name: `${Math.random() * 10000}`,
 			url: "http://localhost:9001/tab-ui/",

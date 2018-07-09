@@ -1,6 +1,6 @@
-import { ClientIABTopics, EjectTriggers, TabIndentifier } from "../../shared/types";
+import { ClientIABTopics, EjectTriggers, TabIndentifier, TabOptions } from "../../shared/types";
 import * as Utils from "../../shared/utils";
-import { Tab, TabOptions } from "./Tab";
+import { Tab } from "./Tab";
 import { WindowManager } from "./WindowManager";
 /**
  * @class TabManager Handles the management of individual tabs and some of their functionality.
@@ -84,6 +84,9 @@ export class TabManager {
 		}
 	}
 
+	/**
+	 * Removes all tabs from the tab group.
+	 */
 	public removeAllTabs(): void {
 		this.tabs.slice().forEach(tab => {
 			this.removeTab(tab.getTabId, true);
@@ -112,6 +115,7 @@ export class TabManager {
 			if (tab) {
 				if (tab !== this.activeTab) {
 					this.lastActiveTab = this.activeTab;
+					tab.getExternalApplication.show();
 					this.unsetActiveTab();
 					tab.setActive();
 					this.activeTab = tab;
@@ -141,26 +145,42 @@ export class TabManager {
 		});
 	}
 
+	/**
+	 * Realigns all the Tabs External Applications to this window.  Useful if the tab window and apps are not lined up.
+	 */
 	public realignApps(): void {
 		this.tabs.forEach(tab => {
 			tab.getExternalApplication.alignAppWindow();
 		});
 	}
 
+	/**
+	 * Ejects a tab from the tab window.
+	 * @param tabID {TabIdentifier} The TabIndentifier of the tab to be ejected.
+	 * @param trigger The trigger type of the eject event.
+	 * @param screenX Optional.  The screen X coord to eject the tab to. Default 100.
+	 * @param screenY Optional.  The screen Y coord to eject the tab to. Default 100.
+	 * @param width Optional.  The width of the window once ejected.  Default current width.
+	 * @param height Optional.  The height of the new window once ejected.  Default current height.
+	 */
 	public ejectTab(tabID: TabIndentifier, trigger: EjectTriggers, screenX: number = 100, screenY: number = 100, width: number | null = null, height: number | null = null) {
 		fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, "tab-ejected", { ...tabID, screenX, screenY, trigger, width, height });
 		TabManager.instance.removeTab(tabID, false);
 	}
 
+	/**
+	 * Creates listeners for various IAB + Window Events.
+	 */
 	private _setupListeners(): void {
+		// Responds to tab window discovery events.  Used when we need to find what tab window contains an application.
 		fin.desktop.InterApplicationBus.subscribe("*", ClientIABTopics.DISCOVER, (message: TabIndentifier, uuid, name) => {
-			const tab = this.getTab(message);
-
-			if (tab) {
+			if (this.getTab(message)) {
+				// If we have the searched for application then we reply back to the sending tab window with our info.
 				fin.desktop.InterApplicationBus.send(uuid, name, ClientIABTopics.DISCOVERRETURN, { uuid: fin.desktop.Application.getCurrent().uuid, name: fin.desktop.Window.getCurrent().name });
 			}
 		});
 
+		// Listens for a tab eject API request.
 		fin.desktop.InterApplicationBus.subscribe("*", ClientIABTopics.EJECTREQUEST, (message: TabIndentifier, uuid, name) => {
 			const tab = this.getTab(message);
 
@@ -169,6 +189,7 @@ export class TabManager {
 			}
 		});
 
+		// Listens for update Icon API request.
 		fin.desktop.InterApplicationBus.subscribe("*", ClientIABTopics.CHANGEICON, (message: TabIndentifier & { icon: string }, uuid, name) => {
 			const tab = this.getTab(message);
 
@@ -177,10 +198,9 @@ export class TabManager {
 			}
 		});
 
+		// Listens + Responds for a join request.  This can be a tab joining our tab group, or a request for one of our tabs to join another.
 		fin.desktop.InterApplicationBus.subscribe("*", ClientIABTopics.JOINREQUEST, async (message: TabIndentifier & { extUuid: string; extName: string }) => {
-			console.log(message);
 			const requestingWindowTabs = await Utils.getTabWindow({ uuid: message.uuid, name: message.name });
-			console.log("Requesting Window Tab Window", requestingWindowTabs, message);
 			fin.desktop.InterApplicationBus.send(requestingWindowTabs.uuid, requestingWindowTabs.name, "add-tab", { uuid: message.extUuid, name: message.extName });
 			this.removeTab({ uuid: message.extUuid, name: message.extName }, false);
 		});

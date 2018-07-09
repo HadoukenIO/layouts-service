@@ -1,5 +1,5 @@
-import { TabIndentifier } from "../../shared/types";
-import { Tab, TabOptions } from "./Tab";
+import { TabIndentifier, TabOptions } from "../../shared/types";
+import { Tab } from "./Tab";
 import { TabManager } from "./TabManager";
 import { WindowManager } from "./WindowManager";
 /**
@@ -21,8 +21,6 @@ export class ExternalApplication {
 	 */
 	private tab: Tab;
 
-	private snapshot: string = "";
-
 	private windowOptions!: fin.WindowOptions;
 
 	private initialBounds!: fin.WindowBounds;
@@ -36,14 +34,18 @@ export class ExternalApplication {
 		this.window = fin.desktop.Window.wrap(tabID.uuid, tabID.name);
 		this.tab = tab;
 
+		// Sets the tab icon with one from the manifest.  If none then we use Googles Favicon service.
+		// TODO: Googles Favicon service may not be reliable in cases of restricted access apps.
 		this.setWindowOptions().then(opts => {
 			tab.updateIcon(opts.icon && opts.icon!.length > 0 ? opts.icon! : `https://www.google.com/s2/favicons?domain=${opts.url}`);
 		});
 
+		// Set the initial bounds of the window.
 		this.window.getBounds(bounds => {
 			this.initialBounds = bounds;
 		});
 
+		// Checks if the window is maximized.  If so then we use our maximize route.
 		this.window.getState(state => {
 			if (state === "maximized") {
 				WindowManager.instance.maximize();
@@ -66,14 +68,6 @@ export class ExternalApplication {
 		} else {
 			this.alignAppWindow();
 		}
-		this.window.getSnapshot(snapshot => {
-			this.snapshot = `data:image/png;base64,${snapshot}`;
-		});
-		setInterval(() => {
-			this.window.getSnapshot(snapshot => {
-				this.snapshot = `data:image/png;base64,${snapshot}`;
-			});
-		}, 5000);
 	}
 
 	/**
@@ -125,6 +119,9 @@ export class ExternalApplication {
 		});
 	}
 
+	/**
+	 * Gets/Sets the window options.
+	 */
 	public async setWindowOptions(): Promise<fin.WindowOptions> {
 		return new Promise<fin.WindowOptions>((res, rej) => {
 			this.window.getOptions(options => {
@@ -206,9 +203,5 @@ export class ExternalApplication {
 	 */
 	public get getWindow(): fin.OpenFinWindow {
 		return this.window;
-	}
-
-	public get getSnapshot(): string {
-		return this.snapshot;
 	}
 }

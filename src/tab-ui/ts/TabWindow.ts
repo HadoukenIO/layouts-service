@@ -1,8 +1,10 @@
-import { TabIndentifier } from "../../shared/types";
-import { TabOptions } from "./Tab";
+import { TabIndentifier, TabOptions } from "../../shared/types";
 import { TabManager } from "./TabManager";
 import { WindowManager } from "./WindowManager";
 
+/**
+ * Entry point to the tab window itself.  Only gathers any custom data for the window and then signals to create tabs.
+ */
 export class TabWindow {
 	private windowManager: WindowManager = new WindowManager();
 	private tabManager: TabManager = new TabManager();

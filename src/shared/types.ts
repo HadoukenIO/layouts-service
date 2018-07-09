@@ -15,3 +15,19 @@ export enum ClientIABTopics {
 	DISCOVERRETURN = "DISCOVERRETURN",
 	JOINREQUEST = "JOINREQUEST"
 }
+
+export interface TabOptions {
+	alignTabWindow?: boolean;
+	screenX?: number;
+	screenY?: number;
+}
+
+export interface TabEjectEvent {
+	name: string;
+	uuid: string;
+	trigger: EjectTriggers;
+	screenX?: number;
+	screenY?: number;
+	width?: number;
+	height?: number;
+}

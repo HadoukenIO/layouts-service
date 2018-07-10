@@ -7,15 +7,14 @@
     "module": "commonjs",
     "lib": [
       "dom",
-      "es6"
+      "es2017"
     ],
     "declaration": false
   },
   "include": [
+    "src/SnapAndDock/fin.d.ts",
     "src/*.ts",
-    "src/**/*.ts",
-    "test/*.ts",
-    "test/**/*.ts"
+    "src/**/*.ts"
   ],
   "exclude": [
     "node_modules"

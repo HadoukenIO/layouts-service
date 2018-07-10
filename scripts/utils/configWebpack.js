@@ -5,13 +5,15 @@
 const webpack = require('webpack')
 var path = require('path')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
-const { remoteOrigin } = require('../../deploy.config')
+const transform = require('./templateBuilder')
 
-module.exports = (mode, onComplete = () => undefined) => webpack(mode === 'production' ? {
+const PROD_RUNTIME_VERSION = '8.56.30.55'
+
+module.exports = (mode) => webpack(mode === 'production' ? {
     devtool: 'inline-source-map',
     entry: {
-        'main': './build/src/SnapAndDock/main.js',
-        'client/main': './build/src/SnapAndDock/Client/global.js'
+        'provider': './build/src/SnapAndDock/Service/main.js',
+        'client': './build/src/SnapAndDock/Client/global.js'
     }, // file extension after index is optional for .js files
     output: {
         path: path.resolve('dist'),
@@ -19,42 +21,37 @@ module.exports = (mode, onComplete = () => undefined) => webpack(mode === 'produ
     },
     plugins: [
         new CopyWebpackPlugin([{
-            from: './resources/SnapDockService',
-            transform(content, path) {
-                if (path.slice(-5) !== '.json') {
-                    return content;
-                }
-                const config = JSON.parse(content.toString())
-                const runtime = {
-                    ...config.runtime,
-                    version: '8.56.30.55',
-                }
-                const startup_app = {
-                    ...config.startup_app,
-                    autoShow: false,
-                    url: remoteOrigin + '/provider.html'
-                }
-                return JSON.stringify({ ...config, runtime, startup_app }, null, 2)
-            }
+            from: './resources/SnapDockService/',
+            ignore: '*.template.json'
+        }]),
+        new CopyWebpackPlugin([{
+            from: './resources/SnapDockService/app.template.json',
+            to: 'app.json',
+            transform: transform(PROD_RUNTIME_VERSION, `https://cdn.openfin.co/services/openfin/layouts/${process.env.GIT_SHORT_SHA}/provider.html`, false)
         }]),
     ],
     mode
 } : {
-        devtool: 'inline-source-map',
-        entry: {
-            'SnapDockService/main': './build/src/SnapAndDock/main.js',
-            'SnapDockService/client/main': './build/src/SnapAndDock/Client/main.js',
-            'SnapDockService/client/global': './build/src/SnapAndDock/Client/global.js',
-            'SnapDockService/client/withLaunch': './src/SnapAndDock/Client/withLaunch.js',
-            'LayoutsService/main': './build/src/Layouts/Service/index.js',
-            'LayoutsService/client/global': './build/src/Layouts/Client/global.js'
-        }, // file extension after index is optional for .js files
-        output: {
-            path: path.resolve('dist'),
-            filename: '[name].js'
-        },
-        plugins: [
-            new CopyWebpackPlugin([{ from: './resources' }]),
-        ],
-        mode
-    });
+    devtool: 'inline-source-map',
+    entry: {
+        'SnapDockService/provider': './build/src/SnapAndDock/Service/main.js',
+        'SnapDockService/client/main': './build/src/SnapAndDock/Client/main.js',
+        'SnapDockService/client/global': './build/src/SnapAndDock/Client/global.js',
+        'SnapDockService/client/withLaunch': './src/SnapAndDock/Client/withLaunch.js',
+        'LayoutsService/main': './build/src/Layouts/Service/index.js',
+        'LayoutsService/client/global': './build/src/Layouts/Client/global.js'
+    }, // file extension after index is optional for .js files
+    output: {
+        path: path.resolve('dist'),
+        filename: '[name].js'
+    },
+    plugins: [
+        new CopyWebpackPlugin([{ from: './resources', ignore: '*.template.json' }]),
+        new CopyWebpackPlugin([{
+            from: './resources/SnapDockService/app.template.json',
+            to: 'SnapDockService/app.json',
+            transform: transform(process.env.OF_RUNTIME_VERSION || 'canary', 'http://localhost:1337/SnapDockService/provider.html', mode === 'development')
+        }]),
+    ],
+    mode: 'development'
+});

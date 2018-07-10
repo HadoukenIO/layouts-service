@@ -27,7 +27,27 @@ export type Fin = {
       register: () => any
       connect: (connectionObj: {uuid: string, name:string, payload?: any}) => ServiceClient
     }
-  }
+  },
+  main: (fn: Function) => void
+    System: {
+      getHostSpecs: (s: FinCb<{name: string}>, f: FinErrCb) => void
+      getAllWindows: (s: FinCb<any[]>, f: FinErrCb) => void
+      getMonitorInfo: (s: FinCb<MonitorInfo>, f: FinErrCb) => void
+      getAllApplications: (s: FinCb<any[]>) => void
+      addEventListener: (event: string, listener: (payload: any) => void) => any
+    },
+    Window: {
+      wrap: (uuid: string, name: string) => OfWindow
+      getCurrent: () => OfWindow
+    },
+    Application: {
+      wrap: (uuid: string) => any
+      getCurrent: () => any
+    }
+    Service: {
+      register: () => any
+      connect: (connectionObj: {uuid: string, name:string, payload?: any}) => ServiceClient
+    }
 };
 
 export interface OfWindow extends WindowIdentity {

@@ -1,7 +1,21 @@
-import * as snapAndDock from '../../SnapAndDock/Service/index';
+/*tslint:disable:no-any*/
+import { Provider } from 'hadouken-js-adapter/out/types/src/api/services/provider';
+import { registerService } from './provider';
 
-console.log('hello from the layout service');
-(async () => {
-  const providerChannel = await snapAndDock.main();
-  providerChannel.register('foo', (asdf: string) => 'thanks for ' + asdf);
-})();
+declare var fin: any;
+declare var window: {
+  localStorage: any;
+  providerChannel: Provider;
+};
+
+export let providerChannel: Provider;
+
+export function main() {
+  return registerService().then(channel => {
+    window.providerChannel = providerChannel = channel;
+  });
+}
+
+main();
+
+

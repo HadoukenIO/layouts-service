@@ -46,8 +46,8 @@ module.exports = (mode, onComplete = () => undefined) => webpack(mode === 'produ
             'SnapDockService/client/main': './build/src/SnapAndDock/Client/main.js',
             'SnapDockService/client/global': './build/src/SnapAndDock/Client/global.js',
             'SnapDockService/client/withLaunch': './src/SnapAndDock/Client/withLaunch.js',
-            'Layouts/Service/index': './build/src/Layouts/Service/index.js',
-            'Layouts/Client/index': './build/src/Layouts/Client/index.js'
+            'LayoutsService/main': './build/src/Layouts/Service/index.js',
+            'LayoutsService/client/global': './build/src/Layouts/Client/global.js'
         }, // file extension after index is optional for .js files
         output: {
             path: path.resolve('dist'),

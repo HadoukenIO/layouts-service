@@ -1,0 +1,26 @@
+
+<body style="-webkit-app-region:drag">
+        <h1 id='winName'></h1>
+</body>
+<script>
+
+        const btn = document.createElement('button')
+        btn.innerText = 'Forget Me'
+        btn.style = '-webkit-app-region: no-drag'
+        document.body.appendChild(btn)
+        const me = fin.desktop.Window.getCurrent();
+        btn.onclick = () => window.opener.forgetMe(me);
+
+        document.getElementById('winName').innerText = window.name;
+        document.onload = () => {
+            fin.desktop.main(() => {
+                const me = fin.desktop.Window.getCurrent();
+                if(me.uuid === 'App-2') {
+
+                    document.body.style.backgroundColor = 'red';
+                }
+            })
+        }
+        
+</script>
+</html>

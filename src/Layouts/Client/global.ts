@@ -1,0 +1,1 @@
+import 'expose-loader?Layouts!./version1';

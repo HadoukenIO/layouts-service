@@ -6,7 +6,7 @@ const run = require('./runLog')
 const main = async (mode = 'development') => {
     console.log('build ' + mode)
     console.log('Linting...')
-    await run('gts', ['fix'])
+    // await run('gts', ['fix'])
     
     console.log('Code linted, Transpiling Typescript...')
     await run('tsc', ['-p', mode === 'test' ? 'tsconfig.test.json' : 'tsconfig.json', '--skipLibCheck'])

@@ -161,6 +161,7 @@ interface SnapCandidate {
  * that we know was actually initialised.
  */
 type ValidCandidate = {
+    // @ts-ignore
     [P in keyof SnapCandidate]: NonNullable<SnapCandidate[P]>
 };
 

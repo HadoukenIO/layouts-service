@@ -1,3 +1,4 @@
+/*tslint:disable:no-any*/
 import { Identity } from "hadouken-js-adapter/out/types/src/identity";
 
 export interface Url {

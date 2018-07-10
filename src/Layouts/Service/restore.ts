@@ -23,7 +23,7 @@ const setAppToRestore = (layoutApp: LayoutApp, resolve: Function): void => {
 
 export const getAppToRestore = (uuid: string): AppToRestore => {
     return appsToRestore.get(uuid);
-}
+};
 
 export const restoreApplication = async (layoutApp: LayoutApp, resolve: Function): Promise<void> => {
     const { uuid } = layoutApp;
@@ -55,9 +55,9 @@ export const restoreLayout = async (payload: LayoutName | Layout, identity: Iden
             if (isClientConnection(app)) {
                 await positionWindow(app.mainWindow);
                 // LATER SET CONTEXT HERE
-                console.log('in isrunning', app)
+                console.log('in isrunning', app);
                 const response: LayoutApp | false = await providerChannel.dispatch({ uuid, name: uuid }, 'restoreApp', app);
-                console.log('response', response)
+                console.log('response', response);
                 return response ? response : defaultResponse;
             } else {
                 await positionWindow(app.mainWindow);
@@ -70,18 +70,18 @@ export const restoreLayout = async (payload: LayoutName | Layout, identity: Iden
 
             // not running - setup comm once started
             if (app.confirmed) {
-                console.log('out of isrunning', app)
+                console.log('out of isrunning', app);
                 startupApps.push(new Promise((resolve: (layoutApp: LayoutApp) => void) => {
                     setAppToRestore(app, resolve);
                     console.log('after set app to restore');
                 }));
             }
             // start app
-            const { manifest, manifestUrl } = app
+            const { manifest, manifestUrl } = app;
             if (typeof manifest === 'object' && manifest.startup_app && manifest.startup_app.uuid === uuid) {
                 // started from manifest
                 if (manifestUrl) {
-                    console.log('in the manifest url...')
+                    console.log('in the manifest url...');
                     // v2 api broken
                     // ofApp = await fin.Application.createFromManifest(manifestUrl);
                     fin.desktop.Application.createFromManifest(manifestUrl, (v1App: any) => {
@@ -105,15 +105,15 @@ export const restoreLayout = async (payload: LayoutName | Layout, identity: Iden
     });
     const startupResponses = await Promise.all(startupApps);
     const allAppResponses = apps.map(app => {
-        console.log('in allappres, before')
+        console.log('in allappres, before');
         const appResponse = startupResponses.find(appRes => appRes.uuid === app.uuid);
-        console.log('in allappres, after')
+        console.log('in allappres, after');
         return appResponse ? appResponse : app;
     });
     layout.apps = allAppResponses;
     console.log('before group');
     await regroupLayout(apps).catch(console.log);
-    console.log('AFTER regroup')
+    console.log('AFTER regroup');
     return layout;
 };
 

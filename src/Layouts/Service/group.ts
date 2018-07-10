@@ -5,24 +5,24 @@ import { promiseMap } from '../../SnapAndDock/Service/utils/async';
 declare var fin: any;
 
 // UTILS
-export const getGroup = (identity: Identity): Promise<Array<Identity>> => {
+export const getGroup = (identity: Identity): Promise<Identity[]> => {
     const { uuid, name } = identity;
     const ofWin = fin.desktop.Window.wrap(uuid, name);
     // v2api getgroup broken
     return new Promise((res, rej) => {
-        ofWin.getGroup((group: { identity: Identity }[]) => {
+        ofWin.getGroup((group: Array<{ identity: Identity }>) => {
             console.log('group v1', group);
             const groupIds = group.map((win: any) => {
-                console.log('in group, see uuid?', win)
+                console.log('in group, see uuid?', win);
                 return { uuid: win.uuid, name: win.name };
             }).filter((id: Identity) => {
-                console.log('in group, see uuid?', id)
+                console.log('in group, see uuid?', id);
                 return id.uuid !== uuid || id.name !== name;
-            })
+            });
             res(groupIds);
             return;
         }, () => res([]));
-    })
+    });
     // return promiseMap(group, async (wrappedWindow: any) => {
     //   // only identities, not wrapped windows
     //   const info = await wrappedWindow.getInfo();
@@ -36,9 +36,9 @@ export const regroupLayout = async (apps: LayoutApp[]) => {
         await groupWindow(app.mainWindow);
         await promiseMap(app.childWindows, async (child: WindowState) => {
             await groupWindow(child);
-        })
-    })
-}
+        });
+    });
+};
 
 export const groupWindow = async (win: WindowState) => {
     const { uuid, name } = win;
@@ -47,5 +47,5 @@ export const groupWindow = async (win: WindowState) => {
         const toGroup = await fin.Window.wrap({ uuid: w.uuid, name: w.name });
         console.log('about to merge', toGroup, ofWin);
         await ofWin.mergeGroups(toGroup);
-    })
-}
+    });
+};

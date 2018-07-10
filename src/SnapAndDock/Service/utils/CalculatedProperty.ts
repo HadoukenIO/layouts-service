@@ -9,7 +9,7 @@ export class CalculatedProperty<T> {
         this.refreshFunc = refreshFunc;
     }
 
-    public get value(): T {
+    get value(): T {
         if (this.requiresRefresh) {
             const value: T = this.refreshFunc(this);
 
@@ -26,11 +26,11 @@ export class CalculatedProperty<T> {
         return this.lastValue!;
     }
 
-    public markStale(): void {
+    markStale(): void {
         this.requiresRefresh = true;
     }
 
-    public updateValue(value: T): void {
+    updateValue(value: T): void {
         this.lastValue = value;
         this.requiresRefresh = false;
     }

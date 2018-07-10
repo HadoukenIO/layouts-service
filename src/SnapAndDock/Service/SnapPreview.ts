@@ -43,7 +43,7 @@ export class SnapPreview {
      * The 'isValid' parameter determines the color of the rectangles. The class also caches the group
      * argument to avoid having to re-create the rectangle objects on every call if the group hasn't changed.
      */
-    public show(target: SnapTarget): void {
+    show(target: SnapTarget): void {
         const activeGroup = target.activeWindow.getGroup();
         const groupHalfSize = activeGroup.halfSize;  // TODO: Will need to change once 'activeGroup' can have multiple windows (SERVICE-128)
 
@@ -87,7 +87,7 @@ export class SnapPreview {
     /**
      * Hides any visible preview windows. The window objects are hidden, but kept in a pool.
      */
-    public hide(): void {
+    hide(): void {
         if (this.tempWindowIsActive) {
             this.tempWindowIsActive = false;
             this.tempWindow.window.hide();

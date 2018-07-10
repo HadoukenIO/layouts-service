@@ -11,15 +11,15 @@ export interface Range {
 }
 
 export class RangeUtils {
-    public static size(range: Range): number {
+    static size(range: Range): number {
         return range.max - range.min;
     }
 
-    public static equal(range1: Range, range2: Range): boolean {
+    static equal(range1: Range, range2: Range): boolean {
         return range1.min === range2.min && range1.max === range2.max;
     }
 
-    public static createFromRect(rect: Rectangle, orientation: Orientation): Range {
+    static createFromRect(rect: Rectangle, orientation: Orientation): Range {
         const min = rect.center[orientation] - (rect.halfSize[orientation]);
         const max = rect.center[orientation] + (rect.halfSize[orientation]);
 
@@ -36,7 +36,7 @@ export class RangeUtils {
      * @param align A range that we are trying to line-up against target
      * @param maxSnapDist The maximum distance by which points in 'align' can be moved
      */
-    public static snap(target: Range, align: Range, maxSnapDist: number, canResize: boolean): Range {
+    static snap(target: Range, align: Range, maxSnapDist: number, canResize: boolean): Range {
         const minInRange: boolean = Math.abs(target.min - align.min) < maxSnapDist;
         const maxInRange: boolean = Math.abs(target.max - align.max) < maxSnapDist;
 

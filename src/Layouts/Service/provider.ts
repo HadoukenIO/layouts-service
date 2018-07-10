@@ -4,7 +4,7 @@ import { getLayout } from "./storage";
 import { restoreLayout, getAppToRestore, restoreApplication } from "./restore";
 import { Identity } from "hadouken-js-adapter/out/types/src/identity";
 
-declare var fin: any
+declare var fin: any;
 
 // ENTRY POINT
 export async function registerService(): Promise<Provider> {
@@ -17,7 +17,7 @@ export async function registerService(): Promise<Provider> {
         const appToRestore = getAppToRestore(uuid);
         if (appToRestore) {
             const { layoutApp, resolve } = appToRestore;
-            console.log('in on connn')
+            console.log('in on connn');
             restoreApplication(layoutApp, resolve);
         }
     });

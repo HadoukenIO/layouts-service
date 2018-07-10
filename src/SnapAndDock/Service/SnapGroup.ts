@@ -38,14 +38,14 @@ export class SnapGroup {
      *
      * Arguments: (group: SnapGroup, modifiedWindow: SnapWindow)
      */
-    public readonly onModified: Signal2<SnapGroup, SnapWindow> = new Signal2();
+    readonly onModified: Signal2<SnapGroup, SnapWindow> = new Signal2();
 
     /**
      * Window is being moved/resized, need to check for any snap targets.
      *
      * Arguments: (group: SnapGroup, type: Mask<eTransformType>)
      */
-    public readonly onTransform: Signal2<SnapGroup, Mask<eTransformType>> = new Signal2();
+    readonly onTransform: Signal2<SnapGroup, Mask<eTransformType>> = new Signal2();
 
     /**
      * The move/resize operation (that was signalled through onTransform) has been completed.
@@ -54,7 +54,7 @@ export class SnapGroup {
      *
      * Arguments: (group: SnapGroup)
      */
-    public readonly onCommit: Signal1<SnapGroup> = new Signal1();
+    readonly onCommit: Signal1<SnapGroup> = new Signal1();
 
     /**
      * A window has been added to this group.
@@ -63,7 +63,7 @@ export class SnapGroup {
      *
      * Arguments: (group: SnapGroup, window: SnapWindow)
      */
-    public readonly onWindowAdded: Signal2<SnapGroup, SnapWindow> = new Signal2();
+    readonly onWindowAdded: Signal2<SnapGroup, SnapWindow> = new Signal2();
 
     /**
      * A window has been removed from this group.
@@ -72,7 +72,7 @@ export class SnapGroup {
      *
      * Arguments: (group: SnapGroup, window: SnapWindow)
      */
-    public readonly onWindowRemoved: Signal2<SnapGroup, SnapWindow> = new Signal2();
+    readonly onWindowRemoved: Signal2<SnapGroup, SnapWindow> = new Signal2();
 
 
     // NOTE: The co-ordinates used by _origin and _halfSize use the center of the root window as the origin.
@@ -104,19 +104,19 @@ export class SnapGroup {
         this._halfSize = new CalculatedProperty(refreshFunc);
     }
 
-    public get id(): number {
+    get id(): number {
         return this._id;
     }
 
-    public get origin(): Readonly<Point> {
+    get origin(): Readonly<Point> {
         return this._origin.value;
     }
 
-    public get halfSize(): Readonly<Point> {
+    get halfSize(): Readonly<Point> {
         return this._halfSize.value;
     }
 
-    public get center(): Point {
+    get center(): Point {
         if (this.rootWindow) {
             const origin: Point = this._origin.value;
             const rootCenter: Point = this.rootWindow!.getState().center;
@@ -127,19 +127,19 @@ export class SnapGroup {
         }
     }
 
-    public get length(): number {
+    get length(): number {
         return this._windows.length;
     }
 
-    public get isTabGroup(): boolean {
+    get isTabGroup(): boolean {
         return this.tabData !== null;
     }
 
-    public get windows(): SnapWindow[] {
+    get windows(): SnapWindow[] {
         return this._windows.slice();
     }
 
-    public addWindow(window: SnapWindow): void {
+    addWindow(window: SnapWindow): void {
         if (!this._windows.includes(window)) {
             // Remove window from it's previous group
             const prevGroup = window.getGroup();

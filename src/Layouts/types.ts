@@ -23,7 +23,7 @@ export interface WindowState extends Bounds {
     isShowing: boolean;
     state: string;
     info: any; // getinfo call...
-    windowGroup: Array<Identity>;
+    windowGroup: Identity[];
     contextGroups: string[];
     customData: any; // applications can add any necessary data here
     image: any;

@@ -26,8 +26,8 @@ export const createAppPlaceholders = (app: LayoutApp) => {
     createPlaceholder(app.mainWindow);
     app.childWindows.forEach((win: WindowState) => {
         createPlaceholder(win);
-    })
-}
+    });
+};
 
 const createPlaceholder = async (win: WindowState) => {
     const image = new Image();
@@ -44,13 +44,13 @@ const createPlaceholder = async (win: WindowState) => {
         defaultTop: top,
         saveWindowState: false,
         opacity: 0.6
-    }, () => {;
+    }, () => {
         placeholder.nativeWindow.document.body.appendChild(image);
         placeholder.nativeWindow.document.body.style.overflow = 'hidden';
         placeholder.blur();
     });
     const actualWindow = await fin.Window.wrap({uuid, name});
     actualWindow.on('shown', () => {
-        placeholder.close()
+        placeholder.close();
     });
-}
+};

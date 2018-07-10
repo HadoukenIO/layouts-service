@@ -25,7 +25,7 @@ export class SnapView {
      * SnapView also stores these parameters as members. This allows it to revert the active/target windows to their
      * original opacities once the active/target group(s) change or get reset.
      */
-    public update(activeGroup: SnapGroup|null, target: SnapTarget|null): void {
+    update(activeGroup: SnapGroup|null, target: SnapTarget|null): void {
         if (activeGroup && target) {
             if (!this.target || this.target.group !== target.group) {
                 this.setTargetOpacity(this.target, 1.0);

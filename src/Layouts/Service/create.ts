@@ -8,7 +8,7 @@ import { saveLayout } from './storage';
 import { isClientConnection } from './utils';
 import { providerChannel } from './index';
 
-declare var fin: any
+declare var fin: any;
 let layoutId = 1;
 
 export const getCurrentLayout = async (): Promise<Layout> => {
@@ -19,13 +19,13 @@ export const getCurrentLayout = async (): Promise<Layout> => {
     const monitorInfo = {};
 
     let apps = await fin.System.getAllWindows();
-    apps = apps.filter((a: any) => a.uuid !== 'Layout-Manager')
+    apps = apps.filter((a: any) => a.uuid !== 'Layout-Manager');
     console.log('apps', apps);
     const layoutApps = await promiseMap(apps, async (app: LayoutApp) => {
         const { uuid } = app;
         // let parentUuid;
         const ofApp = await fin.Application.wrap({ uuid });
-        console.log('before main win info')
+        console.log('before main win info');
         const mainWindowInfo = await ofApp.getWindow().then((win: Window) => win.getInfo());
         console.log('after main win info');
         // eventually use manifestUrl instead once API call exists
@@ -36,7 +36,7 @@ export const getCurrentLayout = async (): Promise<Layout> => {
         // });
 
         const appInfo = await ofApp.getInfo().catch((e: any) => {
-            console.log('appinfo error!!!', e)
+            console.log('appinfo error!!!', e);
             return {};
         });
         console.log('after appinfo', appInfo);
@@ -47,7 +47,7 @@ export const getCurrentLayout = async (): Promise<Layout> => {
         const image = await ofApp.getWindow().then((win: Window) => win.getSnapshot());
 
         app.mainWindow = { ...app.mainWindow, windowGroup: mainWindowGroup, info: mainWindowInfo, uuid, contextGroups: [], image };
-        console.log('before child win')
+        console.log('before child win');
         app.childWindows = await promiseMap(app.childWindows, async (win: WindowState) => {
             const { name } = win;
             const windowGroup = await getGroup({ uuid, name });
@@ -59,7 +59,7 @@ export const getCurrentLayout = async (): Promise<Layout> => {
 
             return { ...win, windowGroup, info, uuid, contextGroups: [], image };
         });
-        console.log('after child win')
+        console.log('after child win');
         return { ...app, ...appInfo, uuid, confirmed: false };
     });
     console.log('about to return...');
@@ -86,7 +86,7 @@ export const setLayout = async (payload: LayoutName, identity: Identity): Promis
     console.log('plo', preLayout);
 
     const apps = await promiseMap(preLayout.apps, async (app: any) => {
-        console.log('app', app)
+        console.log('app', app);
         const defaultResponse = { ...app, childWindows: [] };
         if (isClientConnection(app)) {
             console.log('matching app', app.uuid);

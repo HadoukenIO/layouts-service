@@ -17,16 +17,14 @@ let layoutId = 1;
 export const getCurrentLayout = async(): Promise<Layout> => {
     console.log('get cur layout....');
 
-    // taking off monitorinfo for now for dbugging purposes...
-    // const monitorInfo = fin.System.getMonitorInfo();
-    const monitorInfo = {};
+    // Not yet using monitor info
+    const monitorInfo = await fin.System.getMonitorInfo() || {};
 
     let apps = await fin.System.getAllWindows();
     apps = apps.filter((a: LayoutApp) => a.uuid !== fin.desktop.Application.getCurrent().uuid);
     console.log('apps', apps);
     const layoutApps = await promiseMap(apps, async (app: LayoutApp) => {
         const {uuid} = app;
-        // let parentUuid;
         const ofApp = await fin.Application.wrap({uuid});
         const mainWindowInfo = await ofApp.getWindow().then((win: Window) => win.getInfo());
 
@@ -59,7 +57,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
 
 // tslint:disable-next-line:no-any
 export const createLayout = async(layoutName: LayoutName, opts?: any): Promise<Layout> => {
-    // TODO: figure out how to actually make options work.... optoins not being used right now
+    // TODO: figure out how to actually make options work.... options not being used right now
     const currentLayout = await getCurrentLayout();
     const options = opts || {};
     const layout = {...currentLayout, ...options, name: layoutName};
@@ -69,7 +67,7 @@ export const createLayout = async(layoutName: LayoutName, opts?: any): Promise<L
 
 // payload eventually could be a layout... for now just a name to set current layout
 export const setLayout = async(payload: LayoutName, identity: Identity): Promise<Layout> => {
-    // FIX THIS SHAPE - only a string for now....
+    // Only a string for now.... do we also want to take LayoutApp object
     const preLayout = await createLayout(payload);
 
     const apps = await promiseMap(preLayout.apps, async (app: LayoutApp) => {

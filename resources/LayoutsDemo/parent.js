@@ -33,16 +33,14 @@ const removeForgetWins = (window) => {
 window.forgetMe = forgetMe;
 
 const onAppRes = async (layoutApp) => {
-    console.log('apprestore', layoutApp)
+    console.log('Apprestore called:', layoutApp)
     const ofApp = await fin.Application.getCurrent();
     const openWindows = await ofApp.getChildWindows();
-    console.log('ow', openWindows);
     const filteredLayout = layoutApp.childWindows.filter(removeForgetWins);
     const openAndPosition = filteredLayout.map(async win => {
-        console.log('got here');
         if(!openWindows.some(w => w.identity.name === win.name)) {
             const ofWin = await openChild(win.name);
-            await ofWin.setBounds(win).catch(e => console.log('setbounds catch!!!', e));
+            await ofWin.setBounds(win).catch(e => console.log('Setbounds error:', e));
         } else {
             const ofWin = await fin.Window.wrap(win);
             await ofWin.leaveGroup();
@@ -50,13 +48,11 @@ const onAppRes = async (layoutApp) => {
         }
     });
     await Promise.all(openAndPosition);
-    // MAKE THIS BASED ON ACTUALS.....
-    return layoutApp;
+    return filteredLayout;
 }
 
 window.LayoutsManager.serviceReady().then(() => {
     window.LayoutsManager.onWillSaveLayout(layoutApp => {
-        console.log('wsl');
         layoutApp.childWindows = layoutApp.childWindows.filter(removeForgetWins);
         return layoutApp
     });

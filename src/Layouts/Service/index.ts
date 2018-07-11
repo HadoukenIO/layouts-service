@@ -2,7 +2,6 @@
 import { Provider } from 'hadouken-js-adapter/out/types/src/api/services/provider';
 import { registerService } from './provider';
 
-declare var fin: any;
 declare var window: {
   localStorage: any;
   providerChannel: Provider;

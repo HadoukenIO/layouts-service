@@ -5,8 +5,9 @@ import { promiseMap } from "../../SnapAndDock/Service/utils/async";
 import { providerChannel } from "./index";
 import { isClientConnection, positionWindow, createAppPlaceholders } from "./utils";
 import { regroupLayout } from "./group";
+import { Application } from "hadouken-js-adapter/out/types/src/api/application/application";
 
-
+/*tslint:disable-next-line:no-any*/
 declare var fin: any;
 const appsToRestore = new Map();
 
@@ -29,7 +30,6 @@ export const restoreApplication = async (layoutApp: LayoutApp, resolve: Function
     const { uuid } = layoutApp;
     const defaultResponse: LayoutApp = { ...layoutApp, childWindows: [] };
     const identity = { uuid, name: uuid };
-    console.log('in restoreapplication fn');
     const responseAppLayout: LayoutApp | false = await providerChannel.dispatch(identity, 'restoreApp', layoutApp);
     if (responseAppLayout) {
         resolve(responseAppLayout);
@@ -41,59 +41,73 @@ export const restoreApplication = async (layoutApp: LayoutApp, resolve: Function
 
 export const restoreLayout = async (payload: LayoutName | Layout, identity: Identity): Promise<Layout> => {
     const layout = await flexibleGetLayout(payload);
-    const startupApps: Array<Promise<LayoutApp>> = [];
-    // cannot use async/await here because we may need to return a promise that later resolves
-    console.log('restore layout', layout);
-    const apps = await promiseMap(layout.apps, async (app: any): Promise<LayoutApp> => {
+    const startupApps: Promise<LayoutApp>[] = [];
+    console.log('Restoring layout:', layout);
+    const apps = await promiseMap(layout.apps, async (app: LayoutApp): Promise<LayoutApp> => {
         // get rid of childWindows (anything else?)
         const defaultResponse = { ...app, childWindows: [] };
         const { uuid } = app;
-        console.log('app', app);
+        console.log('Restoring App:', app);
         const ofApp = await fin.Application.wrap({ uuid });
         const isRunning = await ofApp.isRunning();
         if (isRunning) {
             if (isClientConnection(app)) {
                 await positionWindow(app.mainWindow);
-                // LATER SET CONTEXT HERE
-                console.log('in isrunning', app);
+                // Check for child windows and create placeholders????????????
+                console.log('App is running:', app);
+                // Send LayoutApp to connected application so it can handle child WIndows
                 const response: LayoutApp | false = await providerChannel.dispatch({ uuid, name: uuid }, 'restoreApp', app);
-                console.log('response', response);
+                console.log('Response from restore:', response);
                 return response ? response : defaultResponse;
             } else {
+                // Not connected to service
                 await positionWindow(app.mainWindow);
-                // not connected, return default response
                 return defaultResponse;
             }
         } else {
-            let ofApp: any;
+            let ofApp: undefined|Application;
             createAppPlaceholders(app);
 
-            // not running - setup comm once started
+            // App is not running - setup communication to fire once app is started
             if (app.confirmed) {
-                console.log('out of isrunning', app);
+                console.log('App is not running:', app);
                 startupApps.push(new Promise((resolve: (layoutApp: LayoutApp) => void) => {
                     setAppToRestore(app, resolve);
-                    console.log('after set app to restore');
                 }));
             }
-            // start app
+            // Start App
             const { manifest, manifestUrl } = app;
             if (typeof manifest === 'object' && manifest.startup_app && manifest.startup_app.uuid === uuid) {
-                // started from manifest
+                // Started from manifest
                 if (manifestUrl) {
-                    console.log('in the manifest url...');
-                    // v2 api broken
+                    console.log('App has manifestUrl:', app);
+                    // v2 api broken - below is messy but should be replaced with v2 (can just await create and run below w/ v2)
                     // ofApp = await fin.Application.createFromManifest(manifestUrl);
-                    fin.desktop.Application.createFromManifest(manifestUrl, (v1App: any) => {
+                    const v1App = fin.desktop.Application.wrap(app.uuid);
+                    const runV1 = (v1App: fin.OpenFinApplication, errCb?: Function) => {
+                        const defaultErrCb = () => console.error('App Run error');
+                        const errorCallback = errCb || defaultErrCb;
                         v1App.run(() => {
+                            console.log('Running App created from manifest:', app);
                             positionWindow(app.mainWindow);
-                        }, (e:any) => console.log('app run error', e));
-                    }, (e:any) => console.log('create from mann error', e));
+                        }, () => errorCallback(app));
+                    };
+
+                    const notInCoreState = (app: LayoutApp) => {
+                        fin.desktop.Application.createFromManifest(app.manifestUrl, (v1App: fin.OpenFinApplication) => {
+                            console.log('Created from manifest:', v1App);
+                            runV1(v1App);
+                        }, (e?: Error) => console.error('Create from manifest error:', e));
+                    };
+
+                    runV1(v1App, notInCoreState);
+                    
                 } else {
-                    console.warn(`NO manifest Url, creating ${app.uuid} from saved manifest, cannot restore if saved again`);
+                    // Have app manifest but not a mannifest Url (Is this possible???)
                     ofApp = await fin.Application.create(app.manifest.startup_app);
                 }
             } else {
+                // Application created programatically 
                 ofApp = await fin.Application.create(app.initialOptions);
             }
             if (ofApp) {
@@ -103,17 +117,17 @@ export const restoreLayout = async (payload: LayoutName | Layout, identity: Iden
             return defaultResponse;
         }
     });
+    // Wait for all apps to startup
     const startupResponses = await Promise.all(startupApps);
+    // Consolidate application responses
     const allAppResponses = apps.map(app => {
-        console.log('in allappres, before');
         const appResponse = startupResponses.find(appRes => appRes.uuid === app.uuid);
-        console.log('in allappres, after');
         return appResponse ? appResponse : app;
     });
     layout.apps = allAppResponses;
-    console.log('before group');
+    // Regroup the windows
     await regroupLayout(apps).catch(console.log);
-    console.log('AFTER regroup');
+    // send the layout back to the requester of the restore
     return layout;
 };
 

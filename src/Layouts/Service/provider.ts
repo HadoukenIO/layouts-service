@@ -4,6 +4,7 @@ import { getLayout } from "./storage";
 import { restoreLayout, getAppToRestore, restoreApplication } from "./restore";
 import { Identity } from "hadouken-js-adapter/out/types/src/identity";
 
+// tslint:disable-next-line:no-any
 declare var fin: any;
 
 // ENTRY POINT
@@ -12,12 +13,11 @@ export async function registerService(): Promise<Provider> {
     providerChannel.register('setLayout', setLayout);
     providerChannel.register('getLayout', getLayout);
     providerChannel.register('restoreLayout', restoreLayout);
-    providerChannel.register('appReady', (payload: any, identity: Identity) => {
+    providerChannel.register('appReady', (payload: void, identity: Identity) => {
         const { uuid } = identity;
         const appToRestore = getAppToRestore(uuid);
         if (appToRestore) {
             const { layoutApp, resolve } = appToRestore;
-            console.log('in on connn');
             restoreApplication(layoutApp, resolve);
         }
     });

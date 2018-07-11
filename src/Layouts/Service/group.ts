@@ -2,6 +2,8 @@
 import { Identity } from 'hadouken-js-adapter/out/types/src/identity';
 import { LayoutApp, WindowState } from '../types';
 import { promiseMap } from '../../SnapAndDock/Service/utils/async';
+
+// tslint:disable-next-line:no-any
 declare var fin: any;
 
 // UTILS
@@ -10,25 +12,16 @@ export const getGroup = (identity: Identity): Promise<Identity[]> => {
     const ofWin = fin.desktop.Window.wrap(uuid, name);
     // v2api getgroup broken
     return new Promise((res, rej) => {
-        ofWin.getGroup((group: Array<{ identity: Identity }>) => {
-            console.log('group v1', group);
-            const groupIds = group.map((win: any) => {
-                console.log('in group, see uuid?', win);
+        ofWin.getGroup((group: fin.OpenFinWindow[]) => {
+            const groupIds = group.map((win: fin.OpenFinWindow) => {
                 return { uuid: win.uuid, name: win.name };
             }).filter((id: Identity) => {
-                console.log('in group, see uuid?', id);
                 return id.uuid !== uuid || id.name !== name;
             });
             res(groupIds);
             return;
         }, () => res([]));
     });
-    // return promiseMap(group, async (wrappedWindow: any) => {
-    //   // only identities, not wrapped windows
-    //   const info = await wrappedWindow.getInfo();
-    //   const { uuid, name } = wrappedWindow.identity;
-    //   return { uuid, name, url: info.url };
-    // });
 };
 
 export const regroupLayout = async (apps: LayoutApp[]) => {
@@ -45,7 +38,6 @@ export const groupWindow = async (win: WindowState) => {
     const ofWin = await fin.Window.wrap({ uuid, name });
     await promiseMap(win.windowGroup, async (w: Identity) => {
         const toGroup = await fin.Window.wrap({ uuid: w.uuid, name: w.name });
-        console.log('about to merge', toGroup, ofWin);
         await ofWin.mergeGroups(toGroup);
     });
 };

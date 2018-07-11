@@ -1,8 +1,10 @@
 import { providerChannel } from "./index";
 import { Layout, LayoutName } from "../types";
+/*tslint:disable:no-any*/
 
 // STORAGE - TODO: use indexedDB?
 class Storage {
+    
     protected storage: any;
     constructor(externalStorage?: any) {
         if (externalStorage) {
@@ -12,11 +14,11 @@ class Storage {
         }
     }
 
-    get(key: string) {
+    public get(key: string) {
         return JSON.parse(this.storage.getItem(key));
     }
 
-    set(key: string, value: any) {
+    public set(key: string, value: any) {
         this.storage.setItem(key, JSON.stringify(value));
     }
 }

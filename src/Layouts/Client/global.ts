@@ -1,1 +1,1 @@
-import 'expose-loader?Layouts!./version1';
+import 'expose-loader?LayoutsManager!./main';

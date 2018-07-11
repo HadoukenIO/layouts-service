@@ -24,7 +24,7 @@
         setButton.innerText = 'Set Layout'
         setButton.onclick = async () => {
             const name = document.getElementById('layoutName').value;
-            const layout = await window.Layouts.default.setLayout(name);
+            const layout = await window.LayoutsManager.setLayout(name);
             document.getElementById('showLayout').innerHTML = JSON.stringify(layout, null, 2);
         }
         document.body.appendChild(setButton);
@@ -34,7 +34,7 @@
         getButton.innerText = 'Get Layout'
         getButton.onclick = async () => {
             const name = document.getElementById('layoutName').value;
-            const layout = await window.Layouts.default.getLayout(name);
+            const layout = await window.LayoutsManager.getLayout(name);
             document.getElementById('showLayout').innerHTML = JSON.stringify(layout, null, 2);
         }
         document.body.appendChild(getButton);
@@ -44,7 +44,7 @@
         restoreButton.innerText = 'Restore Layout'
         restoreButton.onclick = async () => {
             const name = document.getElementById('layoutName').value;
-            const layout = await window.Layouts.default.restoreLayout(name);
+            const layout = await window.LayoutsManager.restoreLayout(name);
             console.log('after layout,', layout)
         }
         document.body.appendChild(restoreButton);

@@ -1,18 +1,20 @@
 import { LayoutApp, WindowState } from "../types";
 import { Identity } from "hadouken-js-adapter/out/types/src/identity";
+import Fin from "hadouken-js-adapter/out/types/src/api/fin";
+
+  // tslint:disable-next-line:no-any
 declare var fin: any;
 
 export const isClientConnection = (identity: LayoutApp | Identity) => {
     // i want to access connections....
     const { uuid } = identity;
     //@ts-ignore
-    return providerChannel.connections.some((conn: any) => {
+    return providerChannel.connections.some((conn: Identity) => {
         return identity.uuid === conn.uuid;
     });
 };
 
-
-export const positionWindow = async (win: WindowState | Identity) => {
+export const positionWindow = async (win: WindowState) => {
     try {
         const ofWin = await fin.Window.wrap(win);
         await ofWin.leaveGroup();

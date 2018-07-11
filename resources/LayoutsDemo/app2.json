@@ -15,5 +15,5 @@
         "arguments": "--v=1 --enable-crash-reporting",
         "version": "9.61.33.2"
     },
-    "services": [{"name": "layouts", "manifestUrl": "http://localhost:1337/LayoutsService/app.json"}]
+    "services": [{"name": "layoutsManager", "manifestUrl": "http://localhost:1337/LayoutsService/app.json"}]
 }

@@ -1,4 +1,4 @@
-const url = `${launchDir}/frameless-window.html`;
+const url = `${launchDir}/demo-window.html`;
 const openChild = (name) => {
     const win = fin.Window.create({
         url,
@@ -54,12 +54,12 @@ const onAppRes = async (layoutApp) => {
     return layoutApp;
 }
 
-setTimeout(() => {
-    window.Layouts.default.onWillSaveLayout(layoutApp => {
+window.LayoutsManager.serviceReady().then(() => {
+    window.LayoutsManager.onWillSaveLayout(layoutApp => {
         console.log('wsl');
         layoutApp.childWindows = layoutApp.childWindows.filter(removeForgetWins);
         return layoutApp
     });
-    window.Layouts.default.onAppRestore(onAppRes);
-    window.Layouts.default.ready();
-}, 2500);
+    window.LayoutsManager.onAppRestore(onAppRes);
+    window.LayoutsManager.ready();
+});

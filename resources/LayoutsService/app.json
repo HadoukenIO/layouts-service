@@ -14,7 +14,7 @@
         }
     },
     "exports": {
-        "name": "layouts",
+        "name": "layoutsManager",
         "supportedVersions": [
             "0.0.1"
         ]

@@ -7,7 +7,6 @@ import {LayoutApp, WindowState} from '../types';
 // tslint:disable-next-line:no-any
 declare var fin: any;
 
-// UTILS
 export const getGroup = (identity: Identity): Promise<Identity[]> => {
     const {uuid, name} = identity;
     const ofWin = fin.desktop.Window.wrap(uuid, name);

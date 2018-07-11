@@ -128,7 +128,7 @@ export const restoreLayout = async(payload: LayoutName|Layout, identity: Identit
     });
     layout.apps = allAppResponses;
     // Regroup the windows
-    await regroupLayout(apps).catch(console.log);
+    await regroupLayout(allAppResponses).catch(console.log);
     // send the layout back to the requester of the restore
     return layout;
 };

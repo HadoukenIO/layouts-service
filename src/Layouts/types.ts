@@ -14,10 +14,6 @@ export interface Bounds {
     bottom?: number;
 }
 
-export interface Context {
-    fdc3: any;
-}
-
 export interface WindowState extends Bounds {
     uuid: string;
     name: string;
@@ -26,13 +22,13 @@ export interface WindowState extends Bounds {
     info: any;  // getinfo call...
     windowGroup: Identity[];
     contextGroups: string[];
-    customData: any;  // applications can add any necessary data here
+    customData: any;  // applications can add any context or other necessary data here
     image: any;
 }
 
 export interface LayoutApp {
     manifestUrl?: string;
-    manifest?: any;  // FILL ME IN! Does this exist somewhere???
+    manifest?: any;
     parentUuid?: string;
     initialOptions?: any;
     launchMode?: string;
@@ -40,7 +36,7 @@ export interface LayoutApp {
     mainWindow: WindowState;
     childWindows: WindowState[];
     confirmed?: boolean;
-    customData?: any;
+    customData?: any;  // applications can add any context or other necessary data here
 }
 
 export type LayoutName = string;

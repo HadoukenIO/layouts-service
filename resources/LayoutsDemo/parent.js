@@ -36,8 +36,7 @@ const onAppRes = async (layoutApp) => {
     console.log('Apprestore called:', layoutApp)
     const ofApp = await fin.Application.getCurrent();
     const openWindows = await ofApp.getChildWindows();
-    const filteredLayout = layoutApp.childWindows.filter(removeForgetWins);
-    const openAndPosition = filteredLayout.map(async win => {
+    const openAndPosition = layoutApp.childWindows.map(async win => {
         if(!openWindows.some(w => w.identity.name === win.name)) {
             const ofWin = await openChild(win.name);
             await ofWin.setBounds(win).catch(e => console.log('Setbounds error:', e));
@@ -48,7 +47,7 @@ const onAppRes = async (layoutApp) => {
         }
     });
     await Promise.all(openAndPosition);
-    return filteredLayout;
+    return layoutApp;
 }
 
 window.LayoutsManager.serviceReady().then(() => {

@@ -1,11 +1,13 @@
-import { LayoutApp, LayoutName, Layout, WindowState } from "../types";
-import { Identity } from "hadouken-js-adapter/out/types/src/identity";
-import { flexibleGetLayout } from "./storage";
-import { promiseMap } from "../../SnapAndDock/Service/utils/async";
-import { providerChannel } from "./index";
-import { isClientConnection, positionWindow, createAppPlaceholders } from "./utils";
-import { regroupLayout } from "./group";
-import { Application } from "hadouken-js-adapter/out/types/src/api/application/application";
+import {Application} from 'hadouken-js-adapter/out/types/src/api/application/application';
+import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
+
+import {promiseMap} from '../../SnapAndDock/Service/utils/async';
+import {Layout, LayoutApp, LayoutName, WindowState} from '../types';
+
+import {regroupLayout} from './group';
+import {providerChannel} from './index';
+import {flexibleGetLayout} from './storage';
+import {createAppPlaceholders, isClientConnection, positionWindow} from './utils';
 
 /*tslint:disable-next-line:no-any*/
 declare var fin: any;
@@ -17,8 +19,8 @@ interface AppToRestore {
 }
 
 const setAppToRestore = (layoutApp: LayoutApp, resolve: Function): void => {
-    const { uuid } = layoutApp;
-    const save = { layoutApp, resolve };
+    const {uuid} = layoutApp;
+    const save = {layoutApp, resolve};
     appsToRestore.set(uuid, save);
 };
 
@@ -26,11 +28,11 @@ export const getAppToRestore = (uuid: string): AppToRestore => {
     return appsToRestore.get(uuid);
 };
 
-export const restoreApplication = async (layoutApp: LayoutApp, resolve: Function): Promise<void> => {
-    const { uuid } = layoutApp;
-    const defaultResponse: LayoutApp = { ...layoutApp, childWindows: [] };
-    const identity = { uuid, name: uuid };
-    const responseAppLayout: LayoutApp | false = await providerChannel.dispatch(identity, 'restoreApp', layoutApp);
+export const restoreApplication = async(layoutApp: LayoutApp, resolve: Function): Promise<void> => {
+    const {uuid} = layoutApp;
+    const defaultResponse: LayoutApp = {...layoutApp, childWindows: []};
+    const identity = {uuid, name: uuid};
+    const responseAppLayout: LayoutApp|false = await providerChannel.dispatch(identity, 'restoreApp', layoutApp);
     if (responseAppLayout) {
         resolve(responseAppLayout);
     } else {
@@ -39,16 +41,16 @@ export const restoreApplication = async (layoutApp: LayoutApp, resolve: Function
     appsToRestore.delete(uuid);
 };
 
-export const restoreLayout = async (payload: LayoutName | Layout, identity: Identity): Promise<Layout> => {
+export const restoreLayout = async(payload: LayoutName|Layout, identity: Identity): Promise<Layout> => {
     const layout = await flexibleGetLayout(payload);
     const startupApps: Promise<LayoutApp>[] = [];
     console.log('Restoring layout:', layout);
-    const apps = await promiseMap(layout.apps, async (app: LayoutApp): Promise<LayoutApp> => {
+    const apps = await promiseMap(layout.apps, async(app: LayoutApp): Promise<LayoutApp> => {
         // get rid of childWindows (anything else?)
-        const defaultResponse = { ...app, childWindows: [] };
-        const { uuid } = app;
+        const defaultResponse = {...app, childWindows: []};
+        const {uuid} = app;
         console.log('Restoring App:', app);
-        const ofApp = await fin.Application.wrap({ uuid });
+        const ofApp = await fin.Application.wrap({uuid});
         const isRunning = await ofApp.isRunning();
         if (isRunning) {
             if (isClientConnection(app)) {
@@ -56,7 +58,7 @@ export const restoreLayout = async (payload: LayoutName | Layout, identity: Iden
                 // Check for child windows and create placeholders????????????
                 console.log('App is running:', app);
                 // Send LayoutApp to connected application so it can handle child WIndows
-                const response: LayoutApp | false = await providerChannel.dispatch({ uuid, name: uuid }, 'restoreApp', app);
+                const response: LayoutApp|false = await providerChannel.dispatch({uuid, name: uuid}, 'restoreApp', app);
                 console.log('Response from restore:', response);
                 return response ? response : defaultResponse;
             } else {
@@ -76,7 +78,7 @@ export const restoreLayout = async (payload: LayoutName | Layout, identity: Iden
                 }));
             }
             // Start App
-            const { manifest, manifestUrl } = app;
+            const {manifest, manifestUrl} = app;
             if (typeof manifest === 'object' && manifest.startup_app && manifest.startup_app.uuid === uuid) {
                 // Started from manifest
                 if (manifestUrl) {
@@ -101,13 +103,13 @@ export const restoreLayout = async (payload: LayoutName | Layout, identity: Iden
                     };
 
                     runV1(v1App, notInCoreState);
-                    
+
                 } else {
                     // Have app manifest but not a mannifest Url (Is this possible???)
                     ofApp = await fin.Application.create(app.manifest.startup_app);
                 }
             } else {
-                // Application created programatically 
+                // Application created programatically
                 ofApp = await fin.Application.create(app.initialOptions);
             }
             if (ofApp) {
@@ -130,4 +132,3 @@ export const restoreLayout = async (payload: LayoutName | Layout, identity: Iden
     // send the layout back to the requester of the restore
     return layout;
 };
-

@@ -1,10 +1,10 @@
-import { providerChannel } from "./index";
-import { Layout, LayoutName } from "../types";
+import {Layout, LayoutName} from '../types';
+
+import {providerChannel} from './index';
 /*tslint:disable:no-any*/
 
 // STORAGE - TODO: use indexedDB?
 class Storage {
-    
     protected storage: any;
     constructor(externalStorage?: any) {
         if (externalStorage) {
@@ -23,7 +23,7 @@ class Storage {
     }
 }
 
-export const getLayout = (layoutName: LayoutName): string/* Layout */ => {
+export const getLayout = (layoutName: LayoutName): string /* Layout */ => {
     return layouts.get(layoutName);
 };
 
@@ -32,7 +32,7 @@ export const saveLayout = (layout: Layout) => {
     layouts.set(layout.name, layout);
 };
 
-export const flexibleGetLayout = async (input: Layout | LayoutName): Promise<Layout> => {
+export const flexibleGetLayout = async(input: Layout|LayoutName): Promise<Layout> => {
     if (typeof input === 'string') {
         const layout = getLayout(input);
         if (layout && typeof layout === 'object') {

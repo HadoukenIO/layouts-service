@@ -41,7 +41,7 @@ export enum eTransformType {
 }
 
 export class SnapWindow {
-    static async getWindowState(window: fin.OpenFinWindow): Promise<WindowState> {
+    public static async getWindowState(window: fin.OpenFinWindow): Promise<WindowState> {
         return Promise
             .all([
                 p<fin.WindowOptions>(window.getOptions.bind(window))(),
@@ -83,14 +83,14 @@ export class SnapWindow {
      *
      * Arguments: (window: SnapWindow)
      */
-    readonly onModified: Signal1<SnapWindow> = new Signal1();
+    public readonly onModified: Signal1<SnapWindow> = new Signal1();
 
     /**
      * Window is being moved/resized, need to check for any snap targets.
      *
      * Arguments: (window: SnapWindow, type: Mask<eTransformType>)
      */
-    readonly onTransform: Signal2<SnapWindow, Mask<eTransformType>> = new Signal2();
+    public readonly onTransform: Signal2<SnapWindow, Mask<eTransformType>> = new Signal2();
 
     /**
      * The move/resize operation (that was signalled through onTransform) has been completed.
@@ -99,14 +99,14 @@ export class SnapWindow {
      *
      * Arguments: (window: SnapWindow)
      */
-    readonly onCommit: Signal1<SnapWindow> = new Signal1();
+    public readonly onCommit: Signal1<SnapWindow> = new Signal1();
 
     /**
      * Window was closed. Need to remove this window from any groups, and the service as a whole.
      *
      * Arguments: (window: SnapWindow)
      */
-    readonly onClose: Signal1<SnapWindow> = new Signal1();
+    public readonly onClose: Signal1<SnapWindow> = new Signal1();
 
     private window: fin.OpenFinWindow;
     private state: WindowState;
@@ -195,11 +195,11 @@ export class SnapWindow {
         });
     }
 
-    getId(): string {
+    public getId(): string {
         return this.id;
     }
 
-    getWindow(): fin.OpenFinWindow {
+    public getWindow(): fin.OpenFinWindow {
         return this.window;
     }
 
@@ -209,7 +209,7 @@ export class SnapWindow {
      * Windows and groups have a bi-directional relationship. You will also find this window within the group's list
      * of windows.
      */
-    getGroup(): SnapGroup {
+    public getGroup(): SnapGroup {
         return this.group;
     }
 
@@ -227,7 +227,7 @@ export class SnapWindow {
      * @param offset An offset to apply to this windows position (use this to enusre window is in correct position)
      * @param newHalfSize Can also simultaneously change the size of the window
      */
-    setGroup(group: SnapGroup, offset?: Point, newHalfSize?: Point): void {
+    public setGroup(group: SnapGroup, offset?: Point, newHalfSize?: Point): void {
         if (group !== this.group) {
             group.addWindow(this);
             this.group = group;
@@ -254,15 +254,15 @@ export class SnapWindow {
         }
     }
 
-    getState(): WindowState {
+    public getState(): WindowState {
         return this.state;
     }
 
-    getIdentity(): WindowIdentity {
+    public getIdentity(): WindowIdentity {
         return this.identity;
     }
 
-    offsetBy(offset: Point): void {
+    public offsetBy(offset: Point): void {
         this.window.moveBy(offset.x, offset.y);
     }
 

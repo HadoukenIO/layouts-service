@@ -26,11 +26,11 @@ export class CalculatedProperty<T> {
         return this.lastValue!;
     }
 
-    markStale(): void {
+    public markStale(): void {
         this.requiresRefresh = true;
     }
 
-    updateValue(value: T): void {
+    public updateValue(value: T): void {
         this.lastValue = value;
         this.requiresRefresh = false;
     }

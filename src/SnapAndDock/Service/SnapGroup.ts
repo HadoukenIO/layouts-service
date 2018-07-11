@@ -38,14 +38,14 @@ export class SnapGroup {
      *
      * Arguments: (group: SnapGroup, modifiedWindow: SnapWindow)
      */
-    readonly onModified: Signal2<SnapGroup, SnapWindow> = new Signal2();
+    public readonly onModified: Signal2<SnapGroup, SnapWindow> = new Signal2();
 
     /**
      * Window is being moved/resized, need to check for any snap targets.
      *
      * Arguments: (group: SnapGroup, type: Mask<eTransformType>)
      */
-    readonly onTransform: Signal2<SnapGroup, Mask<eTransformType>> = new Signal2();
+    public readonly onTransform: Signal2<SnapGroup, Mask<eTransformType>> = new Signal2();
 
     /**
      * The move/resize operation (that was signalled through onTransform) has been completed.
@@ -54,7 +54,7 @@ export class SnapGroup {
      *
      * Arguments: (group: SnapGroup)
      */
-    readonly onCommit: Signal1<SnapGroup> = new Signal1();
+    public readonly onCommit: Signal1<SnapGroup> = new Signal1();
 
     /**
      * A window has been added to this group.
@@ -63,7 +63,7 @@ export class SnapGroup {
      *
      * Arguments: (group: SnapGroup, window: SnapWindow)
      */
-    readonly onWindowAdded: Signal2<SnapGroup, SnapWindow> = new Signal2();
+    public readonly onWindowAdded: Signal2<SnapGroup, SnapWindow> = new Signal2();
 
     /**
      * A window has been removed from this group.
@@ -72,7 +72,7 @@ export class SnapGroup {
      *
      * Arguments: (group: SnapGroup, window: SnapWindow)
      */
-    readonly onWindowRemoved: Signal2<SnapGroup, SnapWindow> = new Signal2();
+    public readonly onWindowRemoved: Signal2<SnapGroup, SnapWindow> = new Signal2();
 
 
     // NOTE: The co-ordinates used by _origin and _halfSize use the center of the root window as the origin.
@@ -139,7 +139,7 @@ export class SnapGroup {
         return this._windows.slice();
     }
 
-    addWindow(window: SnapWindow): void {
+    public addWindow(window: SnapWindow): void {
         if (!this._windows.includes(window)) {
             // Remove window from it's previous group
             const prevGroup = window.getGroup();

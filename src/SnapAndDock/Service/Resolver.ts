@@ -179,7 +179,7 @@ export class Resolver {
      * @param groups A list of all groups within the system
      * @param activeGroup The group that is currently being moved
      */
-    getSnapTarget(groups: SnapGroup[], activeGroup: SnapGroup): SnapTarget|null {
+    public getSnapTarget(groups: SnapGroup[], activeGroup: SnapGroup): SnapTarget|null {
         const candidate: SnapCandidate = this.findSnapCandidates(groups, activeGroup);
 
         if (this.isValidCandidate(candidate)) {

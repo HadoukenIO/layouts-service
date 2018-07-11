@@ -1,8 +1,8 @@
 import {Point} from './PointUtils';
 
 export class MeasureResult implements Point {
-    x: number;
-    y: number;
+    public x: number;
+    public y: number;
 
     constructor(x: number, y: number) {
         this.x = x;
@@ -33,11 +33,11 @@ export class MeasureResult implements Point {
         return Math.abs(this.x) >= Math.abs(this.y) ? this.x : this.y;
     }
 
-    within(distance: number): boolean {
+    public within(distance: number): boolean {
         return this.x < distance && this.y < distance;
     }
 
-    border(distance: number): boolean {
+    public border(distance: number): boolean {
         return (Math.abs(this.x) <= distance && this.y <= distance) || (Math.abs(this.y) <= distance && this.x <= distance);
     }
 }
@@ -67,7 +67,7 @@ export class RectUtils {
      *
      * Negative values mean the rectangles are overlapping in that dimention, and 0 means they are touching edge-to-edge.
      */
-    static distance(rect1: Rectangle, rect2: Rectangle): MeasureResult {
+    public static distance(rect1: Rectangle, rect2: Rectangle): MeasureResult {
         // Pull center/halfSize into variables, as they may be getters rather than variables
         const rect1Center = rect1.center, rect1HalfSize = rect1.halfSize;
         const rect2Center = rect2.center, rect2HalfSize = rect2.halfSize;
@@ -85,7 +85,7 @@ export class RectUtils {
      *
      * Negative values mean the rectangles are overlapping in that dimention, and 0 means they are touching edge-to-edge.
      */
-    static distanceFromParts(rect1Center: Point, rect1HalfSize: Point, rect2Center: Point, rect2HalfSize: Point): MeasureResult {
+    public static distanceFromParts(rect1Center: Point, rect1HalfSize: Point, rect2Center: Point, rect2HalfSize: Point): MeasureResult {
         // Distance between rectangles is the absolute difference between the rectangle centers and sum of half-sizes
         const distanceX = Math.abs(rect2Center.x - rect1Center.x) - (rect1HalfSize.x + rect2HalfSize.x);
         const distanceY = Math.abs(rect2Center.y - rect1Center.y) - (rect1HalfSize.y + rect2HalfSize.y);

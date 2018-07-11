@@ -56,7 +56,7 @@ export class SnapService {
         });
     }
 
-    undock(target: {uuid: string; name: string}): void {
+    public undock(target: {uuid: string; name: string}): void {
         const window: SnapWindow|undefined = this.windows.find((w) => {
             const identity = w.getIdentity();
             return target.uuid === identity.uuid && target.name === identity.name;
@@ -67,7 +67,7 @@ export class SnapService {
         }
     }
 
-    deregister(target: {uuid: string; name: string}): void {
+    public deregister(target: {uuid: string; name: string}): void {
         // TODO (SERVICE-132)
     }
 

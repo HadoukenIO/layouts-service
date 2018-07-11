@@ -1,5 +1,5 @@
 /*tslint:disable:no-any*/
-import { Identity } from "hadouken-js-adapter/out/types/src/identity";
+import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 export interface Url {
     url: string;
@@ -23,16 +23,16 @@ export interface WindowState extends Bounds {
     name: string;
     isShowing: boolean;
     state: string;
-    info: any; // getinfo call...
+    info: any;  // getinfo call...
     windowGroup: Identity[];
     contextGroups: string[];
-    customData: any; // applications can add any necessary data here
+    customData: any;  // applications can add any necessary data here
     image: any;
 }
 
 export interface LayoutApp {
     manifestUrl?: string;
-    manifest?: any; // FILL ME IN! Does this exist somewhere???
+    manifest?: any;  // FILL ME IN! Does this exist somewhere???
     parentUuid?: string;
     initialOptions?: any;
     launchMode?: string;

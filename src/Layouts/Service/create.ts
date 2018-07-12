@@ -6,7 +6,7 @@ import {promiseMap} from '../../SnapAndDock/Service/utils/async';
 import {Layout, LayoutApp, LayoutName, WindowState} from '../types';
 
 import {getGroup} from './group';
-import {providerChannel} from './index';
+import {providerChannel} from './main';
 import {saveLayout} from './storage';
 import {isClientConnection} from './utils';
 

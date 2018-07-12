@@ -3,7 +3,7 @@
     "startup_app": {
         "name": "Layout-Manager",
         "description": "OpenFin Layouts Managing Service",
-        "url": "http://localhost:1337/LayoutsService/provider.html",
+        "url": "$PLACEHOLDER",
         "uuid": "Layout-Manager",
         "autoShow": true,
         "showTaskbarIcon": true,
@@ -21,6 +21,6 @@
     },
     "runtime": {
         "arguments": "--v=1 --enable-crash-reporting",
-        "version": "9.61.33.2"
+        "version": "$PLACEHOLDER"
     }
 }

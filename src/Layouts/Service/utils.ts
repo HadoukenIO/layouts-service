@@ -20,8 +20,20 @@ export const positionWindow = async (win: WindowState) => {
         const ofWin = await fin.Window.wrap(win);
         await ofWin.leaveGroup();
         await ofWin.setBounds(win);
+        if (win.state === 'normal') {
+            await ofWin.restore();
+        } else if (win.state === 'minimized') {
+            await ofWin.minimize();
+        } else if (win.state === 'maximized') {
+            await ofWin.maximize();
+        }
+        if (win.isShowing) {
+            await ofWin.show();
+        } else {
+            await ofWin.hide();
+        }
     } catch (e) {
-        console.error('set bounds error', e);
+        console.error('position window error', e);
     }
 };
 
@@ -33,6 +45,9 @@ export const createAppPlaceholders = (app: LayoutApp) => {
 };
 
 const createPlaceholder = async (win: WindowState) => {
+    if (!win.isShowing || win.state === 'minimized') {
+        return;
+    }
     const image = new Image();
     image.src = `data:image/png;base64, ${win.image}`;
     image.style.filter = 'blur(2px)';

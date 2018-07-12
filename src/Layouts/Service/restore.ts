@@ -5,7 +5,7 @@ import {promiseMap} from '../../SnapAndDock/Service/utils/async';
 import {Layout, LayoutApp, LayoutName, WindowState} from '../types';
 
 import {regroupLayout} from './group';
-import {providerChannel} from './index';
+import {providerChannel} from './main';
 import {flexibleGetLayout} from './storage';
 import {createAppPlaceholders, isClientConnection, positionWindow} from './utils';
 

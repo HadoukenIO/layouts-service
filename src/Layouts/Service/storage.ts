@@ -1,6 +1,6 @@
 import {Layout, LayoutName} from '../types';
 
-import {providerChannel} from './index';
+import {providerChannel} from './main';
 /*tslint:disable:no-any*/
 
 // STORAGE - TODO: use indexedDB?

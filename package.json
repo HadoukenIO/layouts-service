@@ -15,6 +15,7 @@
 		"npm": "^5.7.1",
 		"openfin-config-builder": "^1.0.9",
 		"openfin-launcher": "^1.4.2",
+		"openfin-layouts": "0.0.2",
 		"style-loader": "^0.20.2",
 		"ts-loader": "^4.3.1",
 		"tslint": "^5.10.0",
@@ -25,7 +26,6 @@
 		"webpack-cli": "^2.0.13"
 	},
 	"dependencies": {
-		"electron-drag": "^1.2.0"
 	},
 	"scripts": {
 		"build": "webpack && node build.js",

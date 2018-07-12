@@ -12,7 +12,6 @@ export async function getTabWindow(externalWindow: TabIndentifier | null = null)
 		const publishMessage =
 			externalWindow && externalWindow.uuid && externalWindow.name ? { uuid: externalWindow.uuid, name: externalWindow.name } : { uuid: fin.desktop.Application.getCurrent().uuid, name: fin.desktop.Window.getCurrent().name };
 
-		console.log("Publish Message: ", publishMessage);
 		fin.desktop.InterApplicationBus.publish(ClientIABTopics.DISCOVER, publishMessage);
 		fin.desktop.InterApplicationBus.subscribe("*", ClientIABTopics.DISCOVERRETURN, listener);
 	});

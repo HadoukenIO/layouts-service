@@ -129,7 +129,7 @@ export class WindowManager {
 	 * Align the tab window to an application windows position.
 	 * @param extWindow {fin.OpenFinWindow} Window to align tab window to.
 	 */
-	public centerTabWindow(extWindow: fin.OpenFinWindow): void {
+	public async centerTabWindow(extWindow: fin.OpenFinWindow) {
 		extWindow.getBounds((bounds: fin.WindowBounds) => {
 			// Move tab window to application window.
 			this.window.moveTo(bounds.left!, bounds.top! - WindowManager.designatedHeightWithTabs);

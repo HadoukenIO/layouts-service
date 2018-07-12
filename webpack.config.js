@@ -58,6 +58,6 @@ module.exports = [
 		service: "./src/service/ts/index.ts"
 	}),
 	createWebpackConfigForProject("src/client", {
-		client: "./src/client/ts/client.ts"
+		client: "./src/client/ts/client2.ts"
 	})
 ];

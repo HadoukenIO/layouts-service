@@ -32,22 +32,26 @@ export class TabManager {
 	 * @constructor Constructs the TabManager class.
 	 */
 	constructor() {
+		console.log("in tab manager");
 		if (TabManager.INSTANCE) {
+			console.log("in tab manager", TabManager.INSTANCE);
 			return TabManager.INSTANCE;
 		}
-
+		TabManager.tabContainer = document.getElementById("tabs")!;
 		this._setupListeners();
 
 		TabManager.INSTANCE = this;
+		console.log("end tab manager", this);
 	}
 
 	/**
 	 * @method addTab Creates a new Tab and renders.
 	 * @param {TabIndentifier} tabID An object containing the uuid, name for the external application/window.
 	 */
-	public addTab(tabID: TabIndentifier & TabOptions): void {
+	public async addTab(tabID: TabIndentifier & TabOptions) {
 		if (this._getTabIndex(tabID) === -1) {
 			const tab = new Tab(tabID);
+			await tab.init();
 
 			fin.desktop.InterApplicationBus.send(tabID.uuid, tabID.name, "TABBED", {});
 
@@ -201,7 +205,9 @@ export class TabManager {
 		// Listens + Responds for a join request.  This can be a tab joining our tab group, or a request for one of our tabs to join another.
 		fin.desktop.InterApplicationBus.subscribe("*", ClientIABTopics.JOINREQUEST, async (message: TabIndentifier & { extUuid: string; extName: string }) => {
 			const requestingWindowTabs = await Utils.getTabWindow({ uuid: message.uuid, name: message.name });
-			fin.desktop.InterApplicationBus.send(requestingWindowTabs.uuid, requestingWindowTabs.name, "add-tab", { uuid: message.extUuid, name: message.extName });
+			if (requestingWindowTabs) {
+				fin.desktop.InterApplicationBus.send(requestingWindowTabs.uuid, requestingWindowTabs.name, "add-tab", { uuid: message.extUuid, name: message.extName });
+			}
 			this.removeTab({ uuid: message.extUuid, name: message.extName }, false);
 		});
 	}

@@ -16,6 +16,8 @@ export class ExternalApplication {
 	 */
 	private window: fin.OpenFinWindow;
 
+	private tabID: TabIndentifier & TabOptions;
+
 	/**
 	 * Instance of the corresponding Tab UI.
 	 */
@@ -32,6 +34,7 @@ export class ExternalApplication {
 	constructor(tabID: TabIndentifier & TabOptions, tab: Tab) {
 		this.application = fin.desktop.Application.wrap(tabID.uuid);
 		this.window = fin.desktop.Window.wrap(tabID.uuid, tabID.name);
+		this.tabID = tabID;
 		this.tab = tab;
 
 		// Sets the tab icon with one from the manifest.  If none then we use Googles Favicon service.
@@ -45,6 +48,10 @@ export class ExternalApplication {
 			this.initialBounds = bounds;
 		});
 
+		this._setupListeners();
+	}
+
+	public async init() {
 		// Checks if the window is maximized.  If so then we use our maximize route.
 		this.window.getState(state => {
 			if (state === "maximized") {
@@ -59,11 +66,9 @@ export class ExternalApplication {
 			resizeRegion: { sides: { top: false } }
 		});
 
-		this._setupListeners();
-
 		// If this is the first tab, we center the tab window to the application location.
 		// Otherwise we move the app window to the tab window.
-		if (TabManager.instance.getTabs.length === 0 && !tabID.alignTabWindow) {
+		if (TabManager.instance.getTabs.length === 0 && !this.tabID.alignTabWindow) {
 			WindowManager.instance.centerTabWindow(this.window);
 		} else {
 			this.alignAppWindow();
@@ -94,7 +99,7 @@ export class ExternalApplication {
 	/**
 	 * Aligns the application window to the current position of the tab window.
 	 */
-	public alignAppWindow(): void {
+	public async alignAppWindow() {
 		// Leaves group if in one to allow free window movement.
 		this.window.leaveGroup();
 

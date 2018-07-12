@@ -1,4 +1,4 @@
-import { EjectTriggers, TabEjectEvent, TabOptions } from "../../shared/types";
+import { EjectTriggers, TabEjectEvent, TabIndentifier, TabOptions } from "../../shared/types";
 import { DragWindowManager } from "./DragWindowManager";
 
 export interface IsOverWindowResult {
@@ -20,16 +20,22 @@ export class Service {
 	 * Creates listeners for IAB events.
 	 */
 	private _setupListeners(): void {
-		this._discoverRunningApplications();
+		// this._discoverRunningApplications();
 
 		// Fired when any application is started: We add a tab window to it.
-		fin.desktop.System.addEventListener("application-started", this._onApplicationCreated.bind(this));
+		// fin.desktop.System.addEventListener("application-started", this._onApplicationCreated.bind(this));
 
 		fin.desktop.InterApplicationBus.subscribe(fin.desktop.Application.getCurrent().uuid, "tab-ping", this._onTabPing.bind(this));
 
 		fin.desktop.InterApplicationBus.subscribe(fin.desktop.Application.getCurrent().uuid, "tab-ejected", this._onTabEjected.bind(this));
 
+		fin.desktop.InterApplicationBus.subscribe("*", "TABINIT", this._onTabInit.bind(this));
+
 		fin.desktop.Window.getCurrent().addEventListener("close-requested", this._onCloseRequested.bind(this));
+	}
+
+	private _onTabInit(message: { UI: string; additionalWindows: TabIndentifier[] }, uuid: string, name: string) {
+		this._createTabWindow([{ uuid, name }, ...message.additionalWindows], {}, message.UI);
 	}
 
 	/**
@@ -83,7 +89,7 @@ export class Service {
 			if (res.result && res.window && message.trigger === EjectTriggers.DRAG) {
 				fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, res.window.name, "add-tab", message);
 			} else {
-				this._createTabWindow(message.uuid, message.name, { alignTabWindow: true }, message.screenX, message.screenY, message.width);
+				this._createTabWindow([{ uuid: message.uuid, name: message.name }], { alignTabWindow: true }, null, message.screenX, message.screenY, message.width);
 			}
 		}
 	}
@@ -152,7 +158,7 @@ export class Service {
 			(children: fin.OpenFinWindow[]): void => {
 				children.forEach(
 					(childWindow: fin.OpenFinWindow): void => {
-						this._createTabWindow(app.uuid!, childWindow.name);
+						this._createTabWindow([{ uuid: app.uuid!, name: childWindow.name }]);
 					}
 				);
 			}
@@ -160,7 +166,7 @@ export class Service {
 
 		// @ts-ignore TS complains about the event type for the following.
 		app.addEventListener("window-created", (event: fin.WindowEvent) => {
-			this._createTabWindow(event.uuid, event.name);
+			this._createTabWindow([{ uuid: event.uuid, name: event.name }]);
 		});
 	}
 
@@ -182,11 +188,11 @@ export class Service {
 	 * @param screenY Optional. The screen Y coord to create the tab window at.
 	 * @param width Optional.  The width of the window once it is created.
 	 */
-	private _createTabWindow(uuid: string, name: string, options: TabOptions = {}, screenX: number | null = null, screenY: number = 100, width: number | null = null) {
+	private _createTabWindow(tabIds: TabIndentifier[], options: TabOptions = {}, URL: string | null = null, screenX: number | null = null, screenY: number = 100, width: number | null = null) {
 		const tabWindow: fin.OpenFinWindow = new fin.desktop.Window({
 			name: `${Math.random() * 10000}`,
-			url: "http://localhost:9001/tab-ui/",
-			customData: JSON.stringify({ name, uuid, ...options }),
+			url: URL || "http://localhost:9001/tab-ui/",
+			customData: JSON.stringify({ ...options, tabs: tabIds }),
 			autoShow: true,
 			frame: false,
 			maximizable: false,
@@ -196,6 +202,10 @@ export class Service {
 			defaultLeft: screenX ? screenX : 100,
 			defaultTop: screenY ? screenY : 100,
 			saveWindowState: false
+			// @ts-ignore
+			// experimental: { v2Api: true }
+			// @ts-ignore
+			// preloadScripts: [{ url: "http://localhost:9001/tab-ui/dist/tab-ui-bundle.js" }]
 		});
 	}
 }

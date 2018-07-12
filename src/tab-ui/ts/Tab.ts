@@ -16,9 +16,12 @@ export class Tab {
 	 * @constructor Constructor for the Tab class.
 	 * @param {TabIndentifier} tabID An object containing the uuid, name for the external application/window.
 	 */
-	constructor(tabID: TabIndentifier & TabOptions, alignTabWindow: boolean = false) {
+	constructor(tabID: TabIndentifier & TabOptions) {
 		this.externalApplication = new ExternalApplication(tabID, this);
+	}
 
+	public async init() {
+		await this.externalApplication.init();
 		this._render();
 	}
 

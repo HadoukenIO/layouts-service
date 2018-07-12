@@ -104,19 +104,19 @@ export class SnapGroup {
         this._halfSize = new CalculatedProperty(refreshFunc);
     }
 
-    get id(): number {
+    public get id(): number {
         return this._id;
     }
 
-    get origin(): Readonly<Point> {
+    public get origin(): Readonly<Point> {
         return this._origin.value;
     }
 
-    get halfSize(): Readonly<Point> {
+    public get halfSize(): Readonly<Point> {
         return this._halfSize.value;
     }
 
-    get center(): Point {
+    public get center(): Point {
         if (this.rootWindow) {
             const origin: Point = this._origin.value;
             const rootCenter: Point = this.rootWindow!.getState().center;
@@ -127,15 +127,15 @@ export class SnapGroup {
         }
     }
 
-    get length(): number {
+    public get length(): number {
         return this._windows.length;
     }
 
-    get isTabGroup(): boolean {
+    public get isTabGroup(): boolean {
         return this.tabData !== null;
     }
 
-    get windows(): SnapWindow[] {
+    public get windows(): SnapWindow[] {
         return this._windows.slice();
     }
 

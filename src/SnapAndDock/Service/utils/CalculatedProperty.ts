@@ -9,7 +9,7 @@ export class CalculatedProperty<T> {
         this.refreshFunc = refreshFunc;
     }
 
-    get value(): T {
+    public get value(): T {
         if (this.requiresRefresh) {
             const value: T = this.refreshFunc(this);
 

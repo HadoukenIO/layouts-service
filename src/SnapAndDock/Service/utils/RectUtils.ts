@@ -9,27 +9,27 @@ export class MeasureResult implements Point {
         this.y = y;
     }
 
-    get length() {
+    public get length() {
         return Math.sqrt((this.x * this.x) + (this.y * this.y));
     }
 
-    get lengthSquared() {
+    public get lengthSquared() {
         return (this.x * this.x) + (this.y * this.y);
     }
 
-    get min() {
+    public get min() {
         return Math.min(this.x, this.y);
     }
 
-    get max() {
+    public get max() {
         return Math.max(this.x, this.y);
     }
 
-    get minAbs() {
+    public get minAbs() {
         return Math.abs(this.x) <= Math.abs(this.y) ? this.x : this.y;
     }
 
-    get maxAbs() {
+    public get maxAbs() {
         return Math.abs(this.x) >= Math.abs(this.y) ? this.x : this.y;
     }
 

@@ -68,7 +68,7 @@ export const restoreLayout = async(payload: LayoutName|Layout, identity: Identit
             }
         } else {
             let ofApp: undefined|Application;
-            createAppPlaceholders(app);
+            // createAppPlaceholders(app);
 
             // App is not running - setup communication to fire once app is started
             if (app.confirmed) {
@@ -106,6 +106,7 @@ export const restoreLayout = async(payload: LayoutName|Layout, identity: Identit
 
                 } else {
                     // Have app manifest but not a mannifest Url (Is this possible???)
+                    console.warn('No manifest URL, app may not restart again:', app);
                     ofApp = await fin.Application.create(app.manifest.startup_app);
                 }
             } else {

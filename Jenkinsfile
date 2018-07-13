@@ -13,7 +13,7 @@ pipeline {
                     GIT_SHORT_SHA = sh ( script: "git rev-parse --short HEAD", returnStdout: true ).trim()
                     S3_LOC = env.DSERVICE_S3_ROOT + "layouts/" + GIT_SHORT_SHA
                     STAGING_JSON = env.DSERVICE_S3_ROOT + "layouts/" + "app.staging.json"
-                    LAYOUTSMANAGER_STAGING_JSON = env.DSERVICE_S3_ROOT + "layouts/layoutsManager/" + "app.staging.json"
+                    LAYOUTSMANAGER_STAGING_JSON = env.DSERVICE_S3_ROOT + "layoutsManager/" + "app.staging.json"
                 }
                 sh "GIT_SHORT_SHA=${GIT_SHORT_SHA} node scripts/build prod"
                 sh "echo ${GIT_SHORT_SHA} > ./dist/SHA.txt"

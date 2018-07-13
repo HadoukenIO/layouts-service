@@ -53,7 +53,7 @@ const onAppRes = async (layoutApp) => {
 window.LayoutsManager.serviceReady().then(() => {
     window.LayoutsManager.onWillSaveLayout(layoutApp => {
         layoutApp.childWindows = layoutApp.childWindows.filter(removeForgetWins);
-        return layoutApp
+        return layoutApp;
     });
     window.LayoutsManager.onAppRestore(onAppRes);
     window.LayoutsManager.ready();

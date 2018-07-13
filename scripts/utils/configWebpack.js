@@ -15,7 +15,7 @@ module.exports = (mode) => webpack(mode === 'production' ? {
     entry: {
         'provider': './build/src/SnapAndDock/Service/main.js',
         'client': './build/src/SnapAndDock/Client/global.js',
-        'layoutsManager/provider': './build/src/Layouts/Service/index.js',
+        'layoutsManager/provider': './build/src/Layouts/Service/main.js',
         'layoutsManager/client': './build/src/Layouts/Client/global.js'
     }, // file extension after index is optional for .js files
     output: {
@@ -37,7 +37,7 @@ module.exports = (mode) => webpack(mode === 'production' ? {
         }, {
             from: './resources/LayoutsService/app.template.json',
             to: 'layoutsManager/app.json',
-            transform: transform(PROD_LAYOUTSMANAGER_RUNTIME_VERSION, `https://cdn.openfin.co/services/openfin/layouts/layoutsManager/${process.env.GIT_SHORT_SHA}/provider.html`, false)
+            transform: transform(PROD_LAYOUTSMANAGER_RUNTIME_VERSION, `https://cdn.openfin.co/services/openfin/layouts/${process.env.GIT_SHORT_SHA}/layoutsManager/provider.html`, false)
         }]),
     ],
     mode

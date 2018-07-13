@@ -15,7 +15,7 @@ module.exports = (mode) => webpack(mode === 'production' ? {
     entry: {
         'provider': './build/src/SnapAndDock/Service/main.js',
         'client': './build/src/SnapAndDock/Client/global.js',
-        'layoutsManager/provider': './build/src/Layouts/Service/index.js',
+        'layoutsManager/provider': './build/src/Layouts/Service/main.js',
         'layoutsManager/client': './build/src/Layouts/Client/global.js'
     }, // file extension after index is optional for .js files
     output: {

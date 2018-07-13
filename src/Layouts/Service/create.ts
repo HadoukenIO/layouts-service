@@ -37,12 +37,14 @@ export const getCurrentLayout = async(): Promise<Layout> => {
         const mainOfWin = await ofApp.getWindow();
         // DEMO - later remove/improve this isShowing
         const isShowing = await mainOfWin.isShowing();
-        if (!isShowing) {
+        const mainWindowState = await mainOfWin.getState();
+        const isMinimized = mainWindowState === 'minimized';
+        if (!isShowing || isMinimized) {
             return null;
         }
         // DEMO - later remove/improve this isShowing
 
-        const mainWindowInfo = mainOfWin.getInfo();
+        const mainWindowInfo = await mainOfWin.getInfo();
         const appInfo = await ofApp.getInfo().catch((e: Error) => {
             console.log('Appinfo Error', e);
             return {};

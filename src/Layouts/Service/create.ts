@@ -23,7 +23,6 @@ export const getCurrentLayout = async(): Promise<Layout> => {
     const apps = await fin.System.getAllWindows();
     console.log('Apps:', apps);
     let layoutApps = await promiseMap(apps, async (app: LayoutApp) => {
-
         const {uuid} = app;
         const ofApp = await fin.Application.wrap({uuid});
         const mainOfWin = await ofApp.getWindow();
@@ -36,7 +35,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
         // DEMO - later remove/improve this isShowing
         const isRunning = await ofApp.isRunning();
         const isService = app.uuid !== fin.desktop.Application.getCurrent().uuid;
-        if (isService || !isShowing || !isRunning ||!hasMainWindow) {
+        if (isService || !isShowing || !isRunning || !hasMainWindow) {
             return null;
         }
 
@@ -55,7 +54,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
 
         // const image = await ofApp.getWindow().then((win: Window) => win.getSnapshot());
         const image = '';
-        
+
         app.mainWindow = {...app.mainWindow, windowGroup: mainWindowGroup, info: mainWindowInfo, uuid, contextGroups: [], image};
         app.childWindows = await promiseMap(app.childWindows, async (win: WindowState) => {
             const {name} = win;

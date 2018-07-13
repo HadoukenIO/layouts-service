@@ -37,7 +37,7 @@ module.exports = (mode) => webpack(mode === 'production' ? {
         }, {
             from: './resources/LayoutsService/app.template.json',
             to: 'layoutsManager/app.json',
-            transform: transform(PROD_LAYOUTSMANAGER_RUNTIME_VERSION, `https://cdn.openfin.co/services/openfin/layouts/layoutsManager/${process.env.GIT_SHORT_SHA}/provider.html`, false)
+            transform: transform(PROD_LAYOUTSMANAGER_RUNTIME_VERSION, `https://cdn.openfin.co/services/openfin/layouts/${process.env.GIT_SHORT_SHA}/layoutsManager/provider.html`, false)
         }]),
     ],
     mode

@@ -29,7 +29,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
         // If not running or showing, not part of layout
         const isRunning = await ofApp.isRunning();
         const hasMainWindow = !!app.mainWindow.name;
-        const isService = app.uuid !== fin.desktop.Application.getCurrent().uuid;
+        const isService = app.uuid === fin.desktop.Application.getCurrent().uuid;
         if (!hasMainWindow || !isRunning || isService) {
             return null;
         }

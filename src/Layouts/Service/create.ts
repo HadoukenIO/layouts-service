@@ -20,22 +20,38 @@ export const getCurrentLayout = async(): Promise<Layout> => {
     // Not yet using monitor info
     const monitorInfo = await fin.System.getMonitorInfo() || {};
 
-    let apps = await fin.System.getAllWindows();
-    apps = apps.filter((a: LayoutApp) => a.uuid !== fin.desktop.Application.getCurrent().uuid);
-    console.log('apps', apps);
-    const layoutApps = await promiseMap(apps, async (app: LayoutApp) => {
+    const apps = await fin.System.getAllWindows();
+    console.log('Apps:', apps);
+    let layoutApps = await promiseMap(apps, async (app: LayoutApp) => {
+
         const {uuid} = app;
         const ofApp = await fin.Application.wrap({uuid});
-        const mainWindowInfo = await ofApp.getWindow().then((win: Window) => win.getInfo());
+        const mainOfWin = await ofApp.getWindow();
 
+        // If not running or showing, not part of layout
+        const isShowing = await mainOfWin.isShowing();
+        const isRunning = await ofApp.isRunning();
+        const isService = app.uuid !== fin.desktop.Application.getCurrent().uuid;
+        const hasMainWindow = !!app.mainWindow.name;
+        if (isService || !isShowing || !isRunning ||!hasMainWindow) {
+            return null;
+        }
+
+        const mainWindowInfo = mainOfWin.getInfo();
         const appInfo = await ofApp.getInfo().catch((e: Error) => {
             console.log('Appinfo Error', e);
             return {};
         });
 
+        // FOR PRE 9.61.33.15
+        if (!appInfo.manifest) {
+            appInfo.manifest = await ofApp.getManifest();
+        }
+
         const mainWindowGroup = await getGroup({uuid, name: uuid});
 
-        const image = await ofApp.getWindow().then((win: Window) => win.getSnapshot());
+        // const image = await ofApp.getWindow().then((win: Window) => win.getSnapshot());
+        const image = '';
 
         app.mainWindow = {...app.mainWindow, windowGroup: mainWindowGroup, info: mainWindowInfo, uuid, contextGroups: [], image};
         app.childWindows = await promiseMap(app.childWindows, async (win: WindowState) => {
@@ -50,6 +66,9 @@ export const getCurrentLayout = async(): Promise<Layout> => {
         });
         return {...app, ...appInfo, uuid, confirmed: false};
     });
+    layoutApps = layoutApps.filter(a => !!a);
+    console.log('Pre-Layout Save Apps:', apps);
+
     const layoutName = 'layout' + layoutId++;
     const layoutObject = {type: 'layout', name: layoutName, apps: layoutApps, monitorInfo};
     return layoutObject;

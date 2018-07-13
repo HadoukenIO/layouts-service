@@ -25,19 +25,22 @@ export const getCurrentLayout = async(): Promise<Layout> => {
     let layoutApps = await promiseMap(apps, async (app: LayoutApp) => {
         const {uuid} = app;
         const ofApp = await fin.Application.wrap({uuid});
-        const mainOfWin = await ofApp.getWindow();
 
         // If not running or showing, not part of layout
-
-        // DEMO - later remove/improve this isShowing
-        const isShowing = await mainOfWin.isShowing();
-        const hasMainWindow = !!app.mainWindow.name;
-        // DEMO - later remove/improve this isShowing
         const isRunning = await ofApp.isRunning();
+        const hasMainWindow = !!app.mainWindow.name;
         const isService = app.uuid !== fin.desktop.Application.getCurrent().uuid;
-        if (isService || !isShowing || !isRunning || !hasMainWindow) {
+        if (!hasMainWindow || !isRunning || isService) {
             return null;
         }
+
+        const mainOfWin = await ofApp.getWindow();
+        // DEMO - later remove/improve this isShowing
+        const isShowing = await mainOfWin.isShowing();
+        if (!isShowing) {
+            return null;
+        }
+        // DEMO - later remove/improve this isShowing
 
         const mainWindowInfo = mainOfWin.getInfo();
         const appInfo = await ofApp.getInfo().catch((e: Error) => {

@@ -52,7 +52,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
 
         // const image = await ofApp.getWindow().then((win: Window) => win.getSnapshot());
         const image = '';
-
+        
         app.mainWindow = {...app.mainWindow, windowGroup: mainWindowGroup, info: mainWindowInfo, uuid, contextGroups: [], image};
         app.childWindows = await promiseMap(app.childWindows, async (win: WindowState) => {
             const {name} = win;

@@ -68,11 +68,11 @@ export const restoreLayout = async(payload: LayoutName|Layout, identity: Identit
             }
         } else {
             let ofApp: undefined|Application;
+            console.log('App is not running:', app);
             // createAppPlaceholders(app);
 
             // App is not running - setup communication to fire once app is started
             if (app.confirmed) {
-                console.log('App is not running:', app);
                 startupApps.push(new Promise((resolve: (layoutApp: LayoutApp) => void) => {
                     setAppToRestore(app, resolve);
                 }));
@@ -106,12 +106,17 @@ export const restoreLayout = async(payload: LayoutName|Layout, identity: Identit
 
                 } else {
                     // Have app manifest but not a mannifest Url (Is this possible???)
-                    console.warn('No manifest URL, app may not restart again:', app);
+                    console.log('No manifest URL creating from manifest startup app options:', app);
                     ofApp = await fin.Application.create(app.manifest.startup_app);
                 }
             } else {
                 // Application created programatically
-                ofApp = await fin.Application.create(app.initialOptions);
+                if(app && app.initialOptions && app.initialOptions.uuid && app.initialOptions.url) {
+                    console.warn('App created programmatically, app may not restart again:', app);
+                    ofApp = await fin.Application.create(app.initialOptions);
+                } else {
+                    console.error('Unable to restart programmatically launched app:', app);
+                }
             }
             if (ofApp) {
                 await ofApp.run().catch(console.log);

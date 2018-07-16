@@ -1,0 +1,21 @@
+
+<body style="-webkit-app-region:drag">
+        <h1 id='winName'></h1>
+</body>
+<script>
+
+
+    const btn = document.createElement('button')
+    btn.innerText = 'Forget Me'
+    document.body.appendChild(btn);
+    btn.onclick = () => window.opener.forgetMe(me);
+
+    // const undockBtn = document.createElement('button')
+    // undockBtn.innerText = 'Undock'
+    // document.body.appendChild(undockBtn)
+    // undockBtn.onclick = () => window.Layouts.undock()
+
+    document.getElementById('winName').innerText = window.name;
+        
+</script>
+</html>

@@ -43,7 +43,7 @@ const onAppRes = async (layoutApp) => {
         } else {
             const ofWin = await fin.Window.wrap(win);
             await ofWin.leaveGroup();
-            await ofWin.setBounds(win);
+            await ofWin.setBounds(win).catch(e => console.log('Setbounds error:', e));
         }
     });
     await Promise.all(openAndPosition);

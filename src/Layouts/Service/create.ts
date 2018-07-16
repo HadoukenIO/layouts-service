@@ -52,7 +52,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
 
         // FOR PRE 9.61.33.15
         if (!appInfo.manifest) {
-            appInfo.manifest = await ofApp.getManifest();
+            appInfo.manifest = await ofApp.getManifest().catch(() => undefined);
         }
 
         const mainWindowGroup = await getGroup({uuid, name: uuid});

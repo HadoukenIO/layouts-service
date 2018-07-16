@@ -17,7 +17,7 @@ const layoutsUuid = 'Layout-Manager';
 
 // connect to the service
 export const serviceReady = async () => {
-    await fin.desktop.Service.connect({uuid: layoutsUuid}).then((channel: ServiceClient) => {
+    await fin.desktop.Service.connect({uuid: layoutsUuid, name: layoutsUuid}).then((channel: ServiceClient) => {
         window.layoutsChannel = layoutsChannel = channel;
         // Any unregistered action will simply return false
         channel.setDefaultAction(() => false);

@@ -22,5 +22,5 @@ export const getBounds = async(identityOrWindow: Win): Promise<NormalizedBounds>
     if (!options.frame) {
         return bounds as NormalizedBounds;
     }
-    return Object.assign(bounds, {left: bounds.left + 7, right: bounds.right - 7, bottom: bounds.bottom - 7});
+    return Object.assign(bounds, {left: bounds.left + 7, right: bounds.right - 7, bottom: bounds.bottom - 7, height: bounds.height - 7, width: bounds.width - 14});
 };

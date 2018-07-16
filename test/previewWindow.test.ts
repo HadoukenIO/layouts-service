@@ -1,0 +1,169 @@
+import { test } from 'ava';
+import { getConnection } from './utils/connect';
+import { dragWindowTo } from './utils/dragWindowTo';
+import { dragWindowAndHover } from './utils/dragWindowAndHover';
+import { getBounds, NormalizedBounds } from './utils/getBounds';
+import { Win } from './utils/getWindow';
+import { Application, Fin } from 'hadouken-js-adapter';
+import * as robot from 'robotjs';
+import { resizeWindowToSize } from './utils/resizeWindowToSize';
+import { createChildWindow } from './utils/createChildWindow';
+import { _Window } from 'hadouken-js-adapter/out/types/src/api/window/window';
+let previewWin: _Window;
+
+test.beforeEach(async () => {
+    const fin = await getConnection();
+    previewWin = await fin.Window.wrap({ name: 'previewWindow-', uuid: 'Layouts-Manager' });
+});
+
+test('preview on right side', async t => {
+    let win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200 });
+    let win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200 });
+
+    let win1Bounds = await getBounds(win1);
+    let win2Bounds = await getBounds(win2);
+    await dragWindowAndHover(win2, win1Bounds.right + 2, win1Bounds.top + 5);
+    let previewBounds = await getBounds(previewWin);
+    robot.mouseToggle('up');
+
+    t.is(previewBounds.height, win2Bounds.height);
+    t.is(previewBounds.width, win2Bounds.width);
+    t.is(previewBounds.top, win1Bounds.top);
+    t.is(previewBounds.left, win1Bounds.right);
+
+    await win1.close();
+    await win2.close();
+});
+test('preview on left side', async t => {
+    let win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 500, defaultHeight: 200, defaultWidth: 200 });
+    let win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200 });
+
+    let win1Bounds = await getBounds(win1);
+    let win2Bounds = await getBounds(win2);
+    await dragWindowAndHover(win2, win1Bounds.left - win2Bounds.width - 2, win1Bounds.top + 5);
+    let previewBounds = await previewWin.getBounds();
+    robot.mouseToggle('up');
+
+    t.is(previewBounds.height, win2Bounds.height);
+    t.is(previewBounds.width, win2Bounds.width);
+    t.is(previewBounds.top, win1Bounds.top);
+    t.is(previewBounds.right, win1Bounds.left);
+
+    await win1.close();
+    await win2.close();
+});
+
+test('preview on top', async t => {
+    let win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 400, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200 });
+    let win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200 });
+    
+    let win1Bounds = await getBounds(win1);
+    let win2Bounds = await getBounds(win2);
+    await dragWindowAndHover(win2, win1Bounds.left + 5, win1Bounds.top - win2Bounds.height - 10);
+    let previewBounds = await previewWin.getBounds();
+    robot.mouseToggle('up');
+
+    t.is(previewBounds.height, win2Bounds.height);
+    t.is(previewBounds.width, win2Bounds.width);
+    t.is(previewBounds.bottom, win1Bounds.top);
+    t.is(previewBounds.left, win1Bounds.left);
+
+    await win1.close();
+    await win2.close();
+});
+
+test('preview on bottom', async t => {
+    let win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200 });
+    let win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 400, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200 });
+
+    let win1Bounds = await getBounds(win1);
+    let win2Bounds = await getBounds(win2);
+    await dragWindowAndHover(win2, win1Bounds.left + 5, win1Bounds.bottom - 2);
+    let previewBounds = await previewWin.getBounds();
+    robot.mouseToggle('up');
+
+    t.is(previewBounds.height, win2Bounds.height);
+    t.is(previewBounds.width, win2Bounds.width);
+    t.is(previewBounds.top, win1Bounds.bottom);
+    t.is(previewBounds.left, win1Bounds.left);
+
+    await win1.close();
+    await win2.close();
+});
+
+
+test('preview resize width on snap - smaller to bigger', async t => {
+    let win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 300, defaultWidth: 300 });
+    let win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 400, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200 });
+
+    let win1Bounds = await getBounds(win1);
+    let win2Bounds = await getBounds(win2);
+    await dragWindowAndHover(win2, win1Bounds.left + 5, win1Bounds.bottom - 2);
+    let previewBounds = await previewWin.getBounds();
+    robot.mouseToggle('up');
+
+    t.is(previewBounds.height, win2Bounds.height);
+    t.is(previewBounds.width, win1Bounds.width);
+    t.is(previewBounds.top, win1Bounds.bottom);
+    t.is(previewBounds.left, win1Bounds.left);
+
+    await win1.close();
+    await win2.close();
+});
+
+test('preview resize height on snap - smaller to bigger', async t => {
+    let win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 300, defaultWidth: 300 });
+    let win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 220, defaultWidth: 220 });
+
+    let win1Bounds = await getBounds(win1);
+    let win2Bounds = await getBounds(win2);
+    await dragWindowAndHover(win2, win1Bounds.right + 2, win1Bounds.top + ((win2Bounds.bottom - win2Bounds.top) / 2));
+    let previewBounds = await previewWin.getBounds();
+    robot.mouseToggle('up');
+
+    t.is(previewBounds.height, win1Bounds.height);
+    t.is(previewBounds.width, win2Bounds.width);
+    t.is(previewBounds.top, win1Bounds.top);
+    t.is(previewBounds.left, win1Bounds.right);
+
+    await win1.close();
+    await win2.close();
+});
+
+test('preview resize width on snap - bigger to smaller', async t => {
+    let win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 225 });
+    let win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 400, defaultLeft: 400, defaultHeight: 300, defaultWidth: 300 });
+
+    let win1Bounds = await getBounds(win1);
+    let win2Bounds = await getBounds(win2);
+    await dragWindowAndHover(win2, win1Bounds.left + 5, win1Bounds.bottom - 2);
+    let previewBounds = await previewWin.getBounds();
+    robot.mouseToggle('up');
+
+    t.is(previewBounds.height, win2Bounds.height);
+    t.is(previewBounds.width, win1Bounds.width);
+    t.is(previewBounds.top, win1Bounds.bottom);
+    t.is(previewBounds.left, win1Bounds.left);
+
+    await win1.close();
+    await win2.close();
+});
+
+test('preview resize height on snap - bigger to smaller', async t => {
+    let win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 220, defaultWidth: 220 });
+    let win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 300, defaultWidth: 300 });
+
+    let win1Bounds = await getBounds(win1);
+    let win2Bounds = await getBounds(win2);
+    await dragWindowAndHover(win2, win1Bounds.right + 2, win1Bounds.top + 2);
+    let previewBounds = await previewWin.getBounds();
+    robot.mouseToggle('up');
+
+    t.is(previewBounds.height, win1Bounds.height);
+    t.is(previewBounds.width, win2Bounds.width);
+    t.is(previewBounds.top, win1Bounds.top);
+    t.is(previewBounds.left, win1Bounds.right);
+
+    await win1.close();
+    await win2.close();
+});

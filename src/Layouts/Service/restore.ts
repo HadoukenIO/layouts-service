@@ -106,7 +106,7 @@ export const restoreLayout = async(payload: LayoutName|Layout, identity: Identit
 
                 } else {
                     // Have app manifest but not a mannifest Url (Is this possible???)
-                    console.warn('No manifest URL creating from manifest options:', app);
+                    console.log('No manifest URL creating from manifest startup app options:', app);
                     ofApp = await fin.Application.create(app.manifest.startup_app);
                 }
             } else {

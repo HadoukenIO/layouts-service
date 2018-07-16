@@ -48,7 +48,7 @@ module.exports = (mode) => webpack(mode === 'production' ? {
         'SnapDockService/client/main': './build/src/SnapAndDock/Client/main.js',
         'SnapDockService/client/global': './build/src/SnapAndDock/Client/global.js',
         'SnapDockService/client/withLaunch': './src/SnapAndDock/Client/withLaunch.js',
-        'LayoutsService/main': './build/src/Layouts/Service/main.js',
+        'LayoutsService/provider': './build/src/Layouts/Service/main.js',
         'LayoutsService/client/global': './build/src/Layouts/Client/global.js'
     }, // file extension after index is optional for .js files
     output: {
@@ -64,7 +64,7 @@ module.exports = (mode) => webpack(mode === 'production' ? {
         },{
             from: './resources/LayoutsService/app.template.json',
             to: 'LayoutsService/app.json',
-            transform: transform(process.env.OF_RUNTIME_VERSION || 'canary', 'http://localhost:1337/LayoutsService/provider.html', mode === 'development')
+            transform: transform(process.env.PROD_LAYOUTSMANAGER_RUNTIME_VERSION || 'canary', 'http://localhost:1337/LayoutsService/provider.html', mode === 'development')
         }]),
     ],
     mode: 'development'

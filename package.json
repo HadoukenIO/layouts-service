@@ -39,6 +39,7 @@
     "webpack": "^4.3.0"
   },
   "dependencies": {
+    "meow": "^5.0.0",
     "mousetrap": "^1.6.1"
   },
   "optionalDependencies": {

@@ -9,7 +9,6 @@ import * as robot from 'robotjs';
 import { resizeWindowToSize } from './utils/resizeWindowToSize';
 import { createChildWindow } from './utils/createChildWindow';
 import { _Window } from 'hadouken-js-adapter/out/types/src/api/window/window';
-
 let previewWin: _Window;
 
 test.beforeEach(async () => {
@@ -24,7 +23,7 @@ test('preview on right side', async t => {
     let win1Bounds = await getBounds(win1);
     let win2Bounds = await getBounds(win2);
     await dragWindowAndHover(win2, win1Bounds.right + 2, win1Bounds.top + 5);
-    let previewBounds = await previewWin.getBounds();
+    let previewBounds = await getBounds(previewWin);
     robot.mouseToggle('up');
 
     t.is(previewBounds.height, win2Bounds.height);

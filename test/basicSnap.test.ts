@@ -4,10 +4,10 @@ import {getConnection} from './utils/connect';
 import {dragWindowTo} from './utils/dragWindowTo';
 import {getBounds} from './utils/getBounds';
 import { Win } from './utils/getWindow';
-import { Application, Fin } from 'hadouken-js-adapter';
+import { Application, Fin, Window } from 'hadouken-js-adapter';
 import * as robot from 'robotjs';
 import {resizeWindowToSize} from './utils/resizeWindowToSize';
-let win1:Win, win2:Win, fin:Fin, app1: Application, app2: Application;
+let win1:Window, win2:Window, fin:Fin, app1: Application, app2: Application;
 
 let appIdCount = 0;
 
@@ -44,7 +44,7 @@ test.afterEach.always(async () => {
 test('bottom', async t => {
     const win2Bounds = await getBounds(win2);
 
-    await dragWindowTo(win1, win2Bounds.left + 50, win2Bounds.bottom + 2);
+    await dragWindowTo(win1, win2Bounds.left + 5, win2Bounds.bottom + 2);
     await dragWindowTo(win2, 500, 500);
 
     const bounds1 = await getBounds(win1);
@@ -70,7 +70,8 @@ test('top', async t => {
 test('left', async t => {
     const win2Bounds = await getBounds(win2);
 
-    await dragWindowTo(win1, win2Bounds.left - (win2Bounds.right - win2Bounds.left - 2) , win2Bounds.top + 40);
+    await dragWindowTo(win1, win2Bounds.left - (win2Bounds.right - win2Bounds.left) - 2, win2Bounds.top + 40);
+    await new Promise(r => setTimeout(r, 4000));
     await dragWindowTo(win2, 500, 500);
 
     const bounds1 = await getBounds(win1);
@@ -145,13 +146,14 @@ test('resize on snap, small to big', async t => {
     let bounds1 = await getBounds(win1);
     let bounds2 = await getBounds(win2);
     await dragWindowTo(win1, bounds2.right+1, bounds2.top+5);
+    await new Promise(r => setTimeout(r, 2000));
 
     // update bounds
     bounds1 = await getBounds(win1);
     bounds2 = await getBounds(win2);
     
     let newHeight = bounds1.bottom - bounds1.top;
-    t.is(newHeight, bigHeight);
+    t.is(newHeight, bounds2.bottom - bounds2.top);
 });
 
 test('resize on snap, big to small', async t => {
@@ -167,7 +169,7 @@ test('resize on snap, big to small', async t => {
     bounds2 = await getBounds(win2);
     
     let newHeight = bounds1.bottom - bounds1.top;
-    t.is(newHeight, smallHeight);
+    t.is(newHeight, bounds2.bottom - bounds2.top);
 });
 
 // throws 'Error: Application with specified UUID already exists: a0' rejection

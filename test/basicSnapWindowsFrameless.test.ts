@@ -9,8 +9,8 @@ import { setTimeout } from 'timers';
 
 let win1: Window, win2: Window;
 test.beforeEach(async () => {
-    win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200});
-    win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200});
+    win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/SnapDockDemo/frameless-window.html', frame: false });
+    win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/SnapDockDemo/frameless-window.html', frame: false });
 });
 test.afterEach.always(async () => {
     await win1.close();
@@ -69,7 +69,7 @@ test('right', async t => {
     t.is(bounds1.left, bounds2.right);
 });
 
-test.failing('resizing group horizontally', async t => {
+test('resizing group horizontally', async t => {
     let bounds1 = await getBounds(win1);
     let bounds2 = await getBounds(win2);
 
@@ -90,12 +90,10 @@ test.failing('resizing group horizontally', async t => {
     let win1Width = bounds1.right - bounds1.left;
     let win2Width = bounds2.right - bounds2.left;
     let newCombinedWidth = win1Width + win2Width;
-    console.log(newCombinedWidth, combinedWidth);
-
     t.is(combinedWidth, newCombinedWidth);
 });
 
-test.failing('resizing group vertically', async t => {
+test('resizing group vertically', async t => {
     let bounds1 = await getBounds(win1);
     let bounds2 = await getBounds(win2);
 

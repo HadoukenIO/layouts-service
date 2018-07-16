@@ -1,7 +1,7 @@
 import * as robot from 'robotjs';
 import { getBounds } from './getBounds';
 import { Win } from './getWindow';
-const xOffset = 5;
+const xOffset = 30;
 const yOffset = 10;
 
 export const dragWindowAndHover = async (identityOrWindow: Win, x: number, y: number) => {

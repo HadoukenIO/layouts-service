@@ -71,7 +71,12 @@ export const getCurrentLayout = async(): Promise<Layout> => {
 
             return {...win, windowGroup, info, uuid, contextGroups: [], image};
         });
-        return {...app, ...appInfo, uuid, confirmed: false};
+        if (appInfo.manifest || appInfo.manifestUrl || (appInfo.initialOptions && appInfo.initialOptions.uuid)) {
+            return {...app, ...appInfo, uuid, confirmed: false};
+        } else {
+            console.error('Not saving app, cannot restore:', app);
+            return null;
+        }
     });
     layoutApps = layoutApps.filter(a => !!a);
     console.log('Pre-Layout Save Apps:', apps);

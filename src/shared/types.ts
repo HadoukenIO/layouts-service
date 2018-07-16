@@ -31,3 +31,8 @@ export interface TabEjectEvent {
 	width?: number;
 	height?: number;
 }
+
+export enum IABTopics {
+	CLIENTINIT = "CLIENTINIT",
+	TABADDED = "TABADDED"
+}

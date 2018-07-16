@@ -8,6 +8,9 @@
 		"smallWindow": true,
 		"defaultCentered": true,
 		"autoShow": true,
+		"experimental": {
+			"v2Api": true
+		},
 		"uuid": "Tabbing_Main",
 		"saveWindowState": false
 	},

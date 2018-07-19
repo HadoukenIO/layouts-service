@@ -58,7 +58,7 @@ export interface AppToRestore {
 /* Workflows
 
 Setting A Layout
-1.) setLayout - user-generated (global hotkey?) or app-generated (from client Service message)
+1.) saveCurrentLayout - user-generated (global hotkey?) or app-generated (from client Service message)
 2.) willSaveLayout - sent to each connected application > response includes child windows that will be handled / context per window
 3.) layoutSaved - final Layout sent with this event, layout saved in Layouts app to indexedDB
 

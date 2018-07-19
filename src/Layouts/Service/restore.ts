@@ -111,7 +111,7 @@ export const restoreLayout = async(payload: LayoutName|Layout, identity: Identit
                 }
             } else {
                 // Application created programatically
-                if(app && app.initialOptions && app.initialOptions.uuid && app.initialOptions.url) {
+                if (app && app.initialOptions && app.initialOptions.uuid && app.initialOptions.url) {
                     console.warn('App created programmatically, app may not restart again:', app);
                     ofApp = await fin.Application.create(app.initialOptions);
                 } else {

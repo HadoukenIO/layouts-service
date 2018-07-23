@@ -68,7 +68,7 @@
 </script>
 <script src="../SnapDockService/client/global.js"></script>
 <script>
-        Layouts.registerGroupEventListener('joingroup', () => { console.log('Joined group') });
-        Layouts.registerGroupEventListener('leavegroup', () => { console.log('Left group') });
+        Layouts.addEventListener('joingroup', () => { console.log('Joined group') });
+        Layouts.addEventListener('leavegroup', () => { console.log('Left group') });
 </script>
 </html>

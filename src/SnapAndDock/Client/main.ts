@@ -43,12 +43,20 @@ export const deregister = exportClientFunction(clientP, (client: ServiceClient) 
                           }) as (identity?: ServiceIdentity) => Promise<void>;
 
 
-type GroupEventType = 'joingroup'|'leavegroup';
+enum GroupEventType {
+    'joingroup' = 'joingroup',
+    'leavegroup' = 'leavegroup'
+}
 
-export async function registerGroupEventListener(eventType: GroupEventType, fn: (params: any) => void): Promise<void> {
+/**
+ * Registers an event listener for grouping events
+ * @param {GroupEventType} eventType Event to be subscribed to. Valid options are 'joingroup' and 'leavegroup'
+ * @param {() => void} callback Function to be executed on event firing. Takes no arguments and returns void.
+ */
+export async function addEventListener(eventType: GroupEventType, callback: () => void): Promise<void> {
     const client = await clientP;
 
     client.register(eventType, (payload) => {
-        fn(payload);
+        callback();
     });
 }

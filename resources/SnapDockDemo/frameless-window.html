@@ -1,4 +1,3 @@
-
 <body style="-webkit-app-region:drag">
 </body>
 <script src="../SnapDockService/client/global.js"></script>
@@ -10,8 +9,8 @@
                 --highlight-color: #0E00A0;
         }
 
-        ::-webkit-scrollbar { 
-                display: none; 
+        ::-webkit-scrollbar {
+                display: none;
         }
 
         body {
@@ -66,5 +65,10 @@
         btn.onclick = () => window.Layouts.undock()
         btn.style = '-webkit-app-region: no-drag'
         document.body.appendChild(btn)
+</script>
+<script src="../SnapDockService/client/global.js"></script>
+<script>
+        Layouts.registerGroupEventListener('joingroup', () => { console.log('Joined group') });
+        Layouts.registerGroupEventListener('leavegroup', () => { console.log('Left group') });
 </script>
 </html>

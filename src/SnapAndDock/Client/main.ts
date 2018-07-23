@@ -41,3 +41,14 @@ export const undock = exportClientFunction(clientP, (client: ServiceClient) => a
 export const deregister = exportClientFunction(clientP, (client: ServiceClient) => async (identity: ServiceIdentity = getId()) => {
                               await client.dispatch('deregister', identity);
                           }) as (identity?: ServiceIdentity) => Promise<void>;
+
+
+type GroupEventType = 'joingroup'|'leavegroup';
+
+export async function registerGroupEventListener(eventType: GroupEventType, fn: (params: any) => void): Promise<void> {
+    const client = await clientP;
+
+    client.register(eventType, (payload) => {
+        fn(payload);
+    });
+}

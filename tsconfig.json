@@ -4,5 +4,5 @@
 		"rootDir": ".",
 		"lib": ["dom", "es2018"]
 	},
-	"include": ["src/**/*.ts"]
+	"include": ["src/service/**/*.ts", "src/client/**/*.ts"]
 }

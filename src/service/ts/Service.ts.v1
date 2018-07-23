@@ -1,4 +1,4 @@
-import { EjectTriggers, TabEjectEvent, TabIndentifier, TabOptions } from "../../shared/types";
+import { EjectTriggers, TabIndentifier, TabOptions } from "../../shared/types";
 import { DragWindowManager } from "./DragWindowManager";
 
 export interface IsOverWindowResult {

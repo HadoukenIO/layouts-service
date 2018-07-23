@@ -51,13 +51,14 @@ function createWebpackConfigForProject(projectName, entryPoint) {
 }
 
 module.exports = [
-	createWebpackConfigForProject("src/tab-ui", {
-		"tab-ui": "./src/tab-ui/ts/index.ts"
-	}),
+	// createWebpackConfigForProject("src/tab-ui", {
+	// 	"tab-ui": "./src/tab-ui/ts/index.ts"
+	// }),
 	createWebpackConfigForProject("src/service", {
 		service: "./src/service/ts/index.ts"
 	}),
 	createWebpackConfigForProject("src/client", {
-		client: "./src/client/ts/client2.ts"
+		client: "./src/client/ts/client.ts",
+		clientUI: "./src/client/ts/clientui.ts"
 	})
 ];

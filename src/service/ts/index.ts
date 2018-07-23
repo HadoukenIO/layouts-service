@@ -1,4 +1,4 @@
-import { TabManager } from "./TabManager";
+import { TabService } from "./TabService";
 
 // tslint:disable-next-line:no-any
-(window as any).TabManager = new TabManager();
+(window as any).TabService = new TabService();

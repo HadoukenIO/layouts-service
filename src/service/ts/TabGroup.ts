@@ -1,35 +1,98 @@
-import { IABTopics, TabIndentifier } from "../../shared/types";
-import { TabManager } from "./TabManager";
+import { isNumber } from "util";
+import { v4 as uuidv4 } from "uuid";
+import { ClientUIIABTopics, ServiceIABTopics, TabIndentifier, TabPackage, TabProperties, TabWindowOptions } from "../../shared/types";
+import { GroupWindow } from "./GroupWindow";
+import { Tab } from "./Tab";
 
 export class TabGroup {
-	private _tabManager: TabManager = TabManager.getInstance();
-	private _window!: fin.OpenFinWindow;
+	public readonly ID: string;
 
-	constructor() {
-		//
+	private _window: GroupWindow;
+	private _windowOptions!: TabWindowOptions;
+	private _tabs: Tab[];
+	private _activeTab!: Tab;
+
+	constructor(windowOptions: TabWindowOptions) {
+		this.ID = uuidv4();
+		this._tabs = [];
+		this._window = new GroupWindow(windowOptions, this);
+
+		const windowOptionsSanitized: TabWindowOptions = {
+			url: windowOptions.url || "http://localhost:9001/tab-ui/",
+			width: windowOptions.width && isNumber(windowOptions.width) ? windowOptions.width : undefined,
+			height: windowOptions.height && isNumber(windowOptions.height) ? windowOptions.height : 62,
+			screenX: windowOptions.screenX && isNumber(windowOptions.screenX) ? windowOptions.screenX : undefined,
+			screenY: windowOptions.screenY && isNumber(windowOptions.screenY) ? windowOptions.screenY : undefined
+		};
+
+		this._windowOptions = windowOptionsSanitized;
 	}
 
-	public async init(tabID: TabIndentifier) {
-		this._window = await this._createTabWindow();
-
-		await fin.desktop.InterApplicationBus.send(tabID.uuid, tabID.name, IABTopics.TABADDED, tabID);
+	public async init() {
+		await this._window.init();
 	}
 
-	private async _createTabWindow() {
-		const win = await new fin.Window({
-			name: `${Math.random() * 10000}`,
-			url: "http://localhost:9001/tab-ui/",
-			autoShow: false,
-			frame: false,
-			maximizable: false,
-			resizable: false,
-			defaultHeight: 62,
-			defaultWidth: 100,
-			defaultLeft: 100,
-			defaultTop: 100,
-			saveWindowState: false
+	public async addTab(tabPackage: TabPackage) {
+		const tab = new Tab(tabPackage, this);
+		await tab.init();
+		this._tabs.push(tab);
+
+		return tab;
+	}
+
+	public async realignApps(): Promise<void> {
+		await Promise.all(
+			this._tabs.map(tab => {
+				tab.window.alignPositionToTabGroup();
+			})
+		);
+	}
+
+	public async removeTab(tabID: TabIndentifier, closeApp: boolean) {
+		const index: number = this._getTabIndex(tabID);
+
+		if (index !== -1) {
+			await this._tabs[index].remove(closeApp);
+			this._tabs.splice(index, 1);
+		}
+	}
+
+	public removeAllTabs(closeApp: boolean) {
+		this._tabs.slice().forEach(async tab => {
+			await this.removeTab(tab.ID, closeApp);
 		});
+	}
 
-		return win;
+	public getTab(tabID: TabIndentifier) {
+		return this._tabs.find((tab: Tab) => {
+			return tabID === tab.ID;
+		});
+	}
+
+	public async setActiveTab(tab: Tab) {
+		this._activeTab = tab;
+		fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, this.ID, ClientUIIABTopics.TABACTIVATED, tab.ID);
+	}
+
+	private _getTabIndex(tabID: TabIndentifier): number {
+		return this.tabs.findIndex((tab: Tab) => {
+			return tabID === tab.ID;
+		});
+	}
+
+	public get initialWindowOptions() {
+		return this._windowOptions;
+	}
+
+	public get activeTab() {
+		return this._activeTab;
+	}
+
+	public get window() {
+		return this._window;
+	}
+
+	public get tabs() {
+		return this._tabs;
 	}
 }

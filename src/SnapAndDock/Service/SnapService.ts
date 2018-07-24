@@ -90,6 +90,35 @@ export class SnapService {
         // TODO (SERVICE-132)
     }
 
+    /**
+     * Explodes a group. All windows in the group are unlocked.
+     * @param groupMember A window which is a member of the group to be exploded.
+     */
+    public explodeGroup(targetWindow: {uuid: string; name: string}): void {
+        // NOTE: Since there is currently not a schema to identify a group, this method
+        // accepts a window that is a member of the group. Once there is a way of uniquely
+        // identifying groups, this can be changed
+
+        // Get the group containing the targetWindow
+        const group: SnapGroup|undefined = this.groups.find((g) => {
+            const windows = g.windows;
+            return windows
+                       .filter((w) => {
+                           const identity = w.getIdentity();
+                           return targetWindow.uuid === identity.uuid && targetWindow.name === identity.name;
+                       })
+                       .length > 0;
+        });
+
+        // Exploding only makes sense if there is more than one window in the group.
+        if (group && group.length > 1) {
+            const windows = group.windows;
+            windows.forEach((window) => {
+                this.undock(window.getIdentity());
+            });
+        }
+    }
+
     private registerApplication(uuid: string): void {
         const app: fin.OpenFinApplication = fin.desktop.Application.wrap(uuid);
 

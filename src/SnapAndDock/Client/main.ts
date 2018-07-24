@@ -42,10 +42,14 @@ export const deregister = exportClientFunction(clientP, (client: ServiceClient) 
                               await client.dispatch('deregister', identity);
                           }) as (identity?: ServiceIdentity) => Promise<void>;
 
+export const explodeGroup = exportClientFunction(clientP, (client: ServiceClient) => async (identity: ServiceIdentity = getId()) => {
+                                await client.dispatch('explode', identity);
+                            }) as (identity?: ServiceIdentity) => Promise<void>;
 
-enum GroupEventType {
-    'joingroup' = 'joingroup',
-    'leavegroup' = 'leavegroup'
+
+export enum GroupEventType {
+    joingroup,
+    leavegroup
 }
 
 /**
@@ -56,7 +60,7 @@ enum GroupEventType {
 export async function addEventListener(eventType: GroupEventType, callback: () => void): Promise<void> {
     const client = await clientP;
 
-    client.register(eventType, (payload) => {
+    client.register(eventType.toString(), () => {
         callback();
     });
 }

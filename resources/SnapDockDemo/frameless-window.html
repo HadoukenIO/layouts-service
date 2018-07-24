@@ -60,11 +60,16 @@
         const h1 = document.createElement('h1');
         h1.innerHTML = `Window ${n}`;
         document.body.appendChild(h1);
-        const btn = document.createElement('button')
-        btn.innerText = 'Undock'
-        btn.onclick = () => window.Layouts.undock()
-        btn.style = '-webkit-app-region: no-drag'
-        document.body.appendChild(btn)
+        const undockBtn = document.createElement('button')
+        undockBtn.innerText = 'Undock'
+        undockBtn.onclick = () => window.Layouts.undock()
+        undockBtn.style = '-webkit-app-region: no-drag'
+        document.body.appendChild(undockBtn)
+        const explodeBtn = document.createElement('button')
+        explodeBtn.innerText = 'Explode'
+        explodeBtn.onclick = () => window.Layouts.explodeGroup()
+        explodeBtn.style = '-webkit-app-region: no-drag'
+        document.body.appendChild(explodeBtn)
 </script>
 <script src="../SnapDockService/client/global.js"></script>
 <script>

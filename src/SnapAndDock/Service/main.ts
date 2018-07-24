@@ -7,6 +7,10 @@ interface ServiceWindow extends Window {
     service: SnapService;
 }
 
+interface WindowIdentity extends fin.OpenFinIdentity {
+    name: string;
+}
+
 fin.desktop.main(main);
 
 async function init() {
@@ -16,11 +20,14 @@ async function init() {
 
 async function registerService() {
     const providerChannel = await fin.desktop.Service.register();
-    providerChannel.register('undock', (identity) => {
+    providerChannel.register('undock', (identity: WindowIdentity) => {
         (window as ServiceWindow).service.undock(identity);
     });
-    providerChannel.register('deregister', (identity) => {
+    providerChannel.register('deregister', (identity: WindowIdentity) => {
         (window as ServiceWindow).service.deregister(identity);
+    });
+    providerChannel.register('explode', (identity: WindowIdentity) => {
+        (window as ServiceWindow).service.explodeGroup(identity);
     });
 
     // Register listeners for window added/removed signals

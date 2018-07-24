@@ -25,12 +25,19 @@ const getId = (() => {
 
 const clientP = createClientPromise({uuid: 'Layouts-Manager', name: 'Layouts-Manager'}, VERSION);
 
-
-
 clientP.then(client => {
+    // Map undocking keybind
     Mousetrap.bind('mod+shift+u', () => {
         client.dispatch('undock', getId());
         console.log('Window un-docked via keyboard shortcut');
+    });
+
+    // Register servive listener for callbacks
+    client.register('joingroup', () => {
+        window.dispatchEvent(new Event('joingroup'));
+    });
+    client.register('leavegroup', () => {
+        window.dispatchEvent(new Event('leavegroup'));
     });
 });
 
@@ -54,9 +61,7 @@ enum GroupEventType {
  * @param {() => void} callback Function to be executed on event firing. Takes no arguments and returns void.
  */
 export async function addEventListener(eventType: GroupEventType, callback: () => void): Promise<void> {
-    const client = await clientP;
-
-    client.register(eventType, (payload) => {
-        callback();
-    });
+    // Use native js event system to pass internal events around. 
+    // Without this we would need to handle multiple registration ourselves.
+    window.addEventListener(eventType, callback);
 }

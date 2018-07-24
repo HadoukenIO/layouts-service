@@ -16,7 +16,7 @@
     "build:dev": "node scripts/build",
     "prepare": "tsc -p tsconfig.npm.json",
     "dev": "node scripts/dev",
-    "layouts": "concurrently \"node scripts/serve\" \"sleep 3 && openfin -l -c http://localhost:1337/layouts.json\"",
+    "layouts": "node scripts/dev Layouts",
     "devl": "npm run build && openfin -l -c http://localhost:1337/layouts.json"
   },
   "keywords": [],

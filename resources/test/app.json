@@ -5,5 +5,10 @@
         "version": "canary"
     },
     "services":[{"name": "layouts", "manifestUrl": "http://localhost:1337/SnapDockService/app.json"}],
-    "startup_app": null
+    "startup_app": {
+        "name": "testApp",
+        "uuid": "testApp",
+        "url": "http://localhost:1337/test/test.html",
+        "autoShow": false
+    }
 }

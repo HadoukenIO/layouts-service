@@ -14,7 +14,7 @@ export class TabWindow extends AsyncWindow {
 		this._window = fin.desktop.Window.wrap(tabID.uuid, tabID.name);
 	}
 
-	public async init() {
+	async init() {
 		this._initialWindowOptions = await this.getWindowOptions();
 		this._initialWindowBounds = await this.getWindowBounds();
 
@@ -22,7 +22,7 @@ export class TabWindow extends AsyncWindow {
 		await this.updateWindowOptions({ frame: false, resizeRegion: { sides: { top: false } } });
 	}
 
-	public async alignPositionToTabGroup() {
+	async alignPositionToTabGroup() {
 		const groupWindow = this._tab.tabGroup.window;
 		const groupActiveTab = this._tab.tabGroup.activeTab;
 
@@ -46,7 +46,7 @@ export class TabWindow extends AsyncWindow {
 		// TODO: Add Window Close/minimize/maximize etc events.
 	}
 
-	public get windowOptions() {
+	get windowOptions() {
 		return this._initialWindowOptions;
 	}
 }

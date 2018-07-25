@@ -1,15 +1,20 @@
 import { TabIndentifier, TabPackage, TabWindowOptions } from "../../shared/types";
+
 import { EventHandler } from "./EventHandler";
 import { Tab } from "./Tab";
+import { TabAPIActionProcessor } from "./TabAPIActionProcessor";
 import { TabGroup } from "./TabGroup";
 
 export class TabService {
 	private _tabGroups: TabGroup[];
 	private _eventHandler: EventHandler;
+	private mTabApiEventHandler: TabAPIActionProcessor;
 
 	constructor() {
 		this._tabGroups = [];
 		this._eventHandler = new EventHandler(this);
+		this.mTabApiEventHandler = new TabAPIActionProcessor(this);
+		this.mTabApiEventHandler.init();
 	}
 
 	public async addTabGroup(windowOptions: TabWindowOptions) {
@@ -29,13 +34,13 @@ export class TabService {
 		}
 	}
 
-	public getTabGroup(ID: string) {
+	getTabGroup(ID: string): TabGroup | undefined {
 		return this._tabGroups.find((group: TabGroup) => {
 			return group.ID === ID;
 		});
 	}
 
-	public getTabGroupByApp(ID: TabIndentifier): TabGroup | undefined {
+	getTabGroupByApp(ID: TabIndentifier): TabGroup | undefined {
 		return this._tabGroups.find((group: TabGroup) => {
 			return group.tabs.some((tab: Tab) => {
 				const tabID = tab.ID;
@@ -44,7 +49,7 @@ export class TabService {
 		});
 	}
 
-	public getTab(ID: TabIndentifier): Tab | undefined {
+	getTab(ID: TabIndentifier): Tab | undefined {
 		const group = this.getTabGroupByApp(ID);
 
 		if (group) {
@@ -54,13 +59,19 @@ export class TabService {
 		return;
 	}
 
-	public async isPointOverTabGroup(x: number, y: number): Promise<TabGroup | null> {
+	async isPointOverTabGroup(x: number, y: number): Promise<TabGroup | null> {
 		const groupTabBounds = await Promise.all(
 			this._tabGroups.map(async group => {
 				const activeTabBounds = await group.activeTab.window.getWindowBounds();
 				const groupBounds = await group.window.getWindowBounds();
 
-				return { group, top: groupBounds.top!, left: groupBounds.left!, width: groupBounds.width!, height: groupBounds.height! + activeTabBounds.height! };
+				return {
+					group,
+					top: groupBounds.top!,
+					left: groupBounds.left!,
+					width: groupBounds.width!,
+					height: groupBounds.height! + activeTabBounds.height!
+				};
 			})
 		);
 
@@ -75,7 +86,7 @@ export class TabService {
 		}
 	}
 
-	public get tabGroups() {
+	get tabGroups() {
 		return this._tabGroups;
 	}
 }

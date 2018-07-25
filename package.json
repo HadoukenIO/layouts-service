@@ -1,43 +1,61 @@
 {
-	"name": "openfin-tabbing",
-	"version": "1.0.0",
-	"devDependencies": {
-		"clean-webpack-plugin": "^0.1.19",
-		"concurrently": "^3.5.1",
-		"css-loader": "^0.28.10",
-		"express": "^4.16.2",
-		"extract-text-webpack-plugin": "^4.0.0-beta.0",
-		"file-loader": "^1.1.9",
-		"fs-extra": "^5.0.0",
-		"gts": "^0.6.0",
-		"hadouken-js-adapter": "^0.32.1-alpha.5",
-		"mini-css-extract-plugin": "^0.4.0",
-		"npm": "^5.7.1",
-		"openfin-config-builder": "^1.0.9",
-		"openfin-launcher": "^1.4.2",
-		"openfin-layouts": "0.0.2",
-		"style-loader": "^0.20.2",
-		"ts-loader": "^4.3.1",
-		"tslint": "^5.10.0",
-		"tslint-config-prettier": "^1.13.0",
-		"typescript": "^2.9.1",
-		"url-loader": "^0.6.2",
-		"webpack": "^4.4.1",
-		"webpack-cli": "^2.0.13"
-	},
-	"dependencies": {
-		"@types/openfin": "^29.0.0",
-		"@types/uuid": "^3.4.3",
-		"uuid": "^3.3.2"
-	},
-	"scripts": {
-		"build": "webpack && node build.js",
-		"webpack": "webpack --watch",
-		"lint": "gts check",
-		"start": "concurrently --kill-others \"webpack --mode development --watch\" \"sleep 5 && node server.js\"",
-		"check": "gts check",
-		"clean": "gts clean",
-		"compile": "tsc -p .",
-		"fix": "gts fix"
-	}
+  "name": "openfin-tabbing",
+  "version": "1.0.0",
+  "devDependencies": {
+    "@types/jest": "^23.3.0",
+    "clean-webpack-plugin": "^0.1.19",
+    "concurrently": "^3.6.0",
+    "css-loader": "^0.28.10",
+    "express": "^4.16.2",
+    "extract-text-webpack-plugin": "^4.0.0-beta.0",
+    "file-loader": "^1.1.9",
+    "fs-extra": "^5.0.0",
+    "gts": "^0.6.0",
+    "hadouken-js-adapter": "^0.32.1-alpha.5",
+    "jest": "^23.4.1",
+    "mini-css-extract-plugin": "^0.4.0",
+    "npm": "^5.7.1",
+    "openfin-config-builder": "^1.0.9",
+    "openfin-launcher": "^1.4.2",
+    "openfin-layouts": "0.0.2",
+    "style-loader": "^0.20.2",
+    "ts-jest": "^23.0.1",
+    "ts-loader": "^4.3.1",
+    "tslint": "^5.10.0",
+    "tslint-config-prettier": "^1.13.0",
+    "typescript": "^2.9.1",
+    "url-loader": "^0.6.2",
+    "webpack": "^4.4.1",
+    "webpack-cli": "^2.0.13"
+  },
+  "dependencies": {
+    "@types/openfin": "^29.0.0",
+    "@types/uuid": "^3.4.3",
+    "uuid": "^3.3.2"
+  },
+  "scripts": {
+    "build": "webpack && node build.js",
+    "webpack": "webpack --watch",
+    "lint": "tslint --project .",
+    "start": "concurrently --kill-others \"webpack --mode development --watch\" \"sleep 5 && node server.js\"",
+    "check": "gts check",
+    "clean": "gts clean",
+    "compile": "tsc -p .",
+    "fix": "tslint --fix --project .",
+    "test": "jest"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testRegex": "(/src/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ]
+  }
 }

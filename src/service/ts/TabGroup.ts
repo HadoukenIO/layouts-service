@@ -5,7 +5,7 @@ import { GroupWindow } from "./GroupWindow";
 import { Tab } from "./Tab";
 
 export class TabGroup {
-	public readonly ID: string;
+	readonly ID: string;
 
 	private _window: GroupWindow;
 	private _windowOptions!: TabWindowOptions;
@@ -34,8 +34,8 @@ export class TabGroup {
 
 	public async addTab(tabPackage: TabPackage) {
 		const tab = new Tab(tabPackage, this);
-		await tab.init();
 		this._tabs.push(tab);
+		await tab.init();
 
 		return tab;
 	}
@@ -63,10 +63,15 @@ export class TabGroup {
 		});
 	}
 
-	public getTab(tabID: TabIndentifier) {
-		return this._tabs.find((tab: Tab) => {
-			return tabID === tab.ID;
-		});
+    /**
+     * @public
+     * @function getTab Gets the tab with the specified identifier
+     * @param tabID The tab identifier
+     */
+    public getTab(tabID: TabIndentifier): Tab | undefined {
+        return this.tabs.find((tab: Tab) => {
+            return tab.ID.uuid === tabID.uuid && tab.ID.name === tabID.uuid;
+        });
 	}
 
 	public async setActiveTab(tab: Tab) {

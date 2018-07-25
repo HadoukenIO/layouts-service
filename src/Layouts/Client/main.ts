@@ -16,7 +16,7 @@ const layoutsUuid = 'Layout-Manager';
 
 
 // Connect to the service
-export const serviceReady = async () => {
+export const connectToService = async () => {
     await fin.desktop.Service.connect({uuid: layoutsUuid, name: layoutsUuid}).then((channel: ServiceClient) => {
         window.layoutsChannel = layoutsChannel = channel;
         // Any unregistered action will simply return false
@@ -24,7 +24,7 @@ export const serviceReady = async () => {
     });
 };
 // Decide which parts of this you will implement, alter LayoutApp object to reflect this then send it back
-export const onWillSaveLayout = (layoutDecorator: (layoutApp: LayoutApp) => LayoutApp | false): void => {
+export const onWillSaveAppLayout = (layoutDecorator: (layoutApp: LayoutApp) => LayoutApp | false): void => {
     layoutsChannel.register('savingLayout', layoutDecorator);
 };
 // Get the layoutApp object, implement, then return implemented LayoutApp object (minus anything not implemented)

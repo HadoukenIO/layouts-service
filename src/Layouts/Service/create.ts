@@ -77,6 +77,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
 
 // tslint:disable-next-line:no-any
 export const createLayout = async(layoutName: LayoutName, opts?: any): Promise<Layout> => {
+    // may need to rework since only saving current layout & have separate saceLayoutObject
     const currentLayout = await getCurrentLayout();
     const options = opts || {};
     const layout = {...currentLayout, ...options, name: layoutName};

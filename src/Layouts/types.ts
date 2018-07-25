@@ -22,7 +22,7 @@ export interface WindowState extends Bounds {
     info: any;  // getinfo call...
     windowGroup: Identity[];
     contextGroups: string[];
-    customData: any;  // applications can add any context or other necessary data here
+    customData?: any;  // applications can add any context or other necessary data here
     image: any;
 }
 
@@ -42,11 +42,12 @@ export interface LayoutApp {
 export type LayoutName = string;
 
 export interface Layout {
-    monitorInfo: any;
-    type: string;
+    monitorInfo: any;  // saving but not using yet
+    type: string;      // not using yet
     name: LayoutName;
-    systemStartup?: boolean;
-    bounds?: Bounds;
+    customData?: any;
+    systemStartup?: boolean;  // not using yet
+    bounds?: Bounds;          // not using yet
     apps: LayoutApp[];
 }
 

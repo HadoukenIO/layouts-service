@@ -39,6 +39,12 @@ export class TabGroup {
 
 		if (this._tabs.length > 1) {
 			tab.window.hide();
+		} else {
+			const tabOpts = await tab.window.getWindowOptions();
+
+			if (tabOpts.opacity! === 0) {
+				tab.window.show();
+			}
 		}
 
 		return tab;
@@ -93,15 +99,15 @@ export class TabGroup {
 		);
 	}
 
-    /**
-     * @public
-     * @function getTab Gets the tab with the specified identifier
-     * @param tabID The tab identifier
-     */
-    public getTab(tabID: TabIndentifier): Tab | undefined {
-        return this.tabs.find((tab: Tab) => {
-            return tab.ID.uuid === tabID.uuid && tab.ID.name === tabID.uuid;
-        });
+	/**
+	 * @public
+	 * @function getTab Gets the tab with the specified identifier
+	 * @param tabID The tab identifier
+	 */
+	public getTab(tabID: TabIndentifier): Tab | undefined {
+		return this.tabs.find((tab: Tab) => {
+			return tab.ID.uuid === tabID.uuid && tab.ID.name === tabID.uuid;
+		});
 	}
 
 	public setActiveTab(tab: Tab) {

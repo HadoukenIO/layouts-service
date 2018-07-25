@@ -40,13 +40,13 @@ export class TabService {
 		}
 	}
 
-	getTabGroup(ID: string): TabGroup | undefined {
+	public getTabGroup(ID: string): TabGroup | undefined {
 		return this._tabGroups.find((group: TabGroup) => {
 			return group.ID === ID;
 		});
 	}
 
-	getTabGroupByApp(ID: TabIndentifier): TabGroup | undefined {
+	public getTabGroupByApp(ID: TabIndentifier): TabGroup | undefined {
 		return this._tabGroups.find((group: TabGroup) => {
 			return group.tabs.some((tab: Tab) => {
 				const tabID = tab.ID;
@@ -55,7 +55,7 @@ export class TabService {
 		});
 	}
 
-	getTab(ID: TabIndentifier): Tab | undefined {
+	public getTab(ID: TabIndentifier): Tab | undefined {
 		const group = this.getTabGroupByApp(ID);
 
 		if (group) {
@@ -65,7 +65,7 @@ export class TabService {
 		return;
 	}
 
-	async isPointOverTabGroup(x: number, y: number): Promise<TabGroup | null> {
+	public async isPointOverTabGroup(x: number, y: number): Promise<TabGroup | null> {
 		const groupTabBounds = await Promise.all(
 			this._tabGroups.map(async group => {
 				const activeTabBounds = await group.activeTab.window.getWindowBounds();
@@ -92,7 +92,7 @@ export class TabService {
 		}
 	}
 
-	get tabGroups() {
+	public get tabGroups() {
 		return this._tabGroups;
 	}
 }

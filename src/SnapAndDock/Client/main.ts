@@ -1,6 +1,7 @@
 /*tslint:disable:no-any*/
 
 import * as Mousetrap from 'mousetrap';
+import {GroupEventType} from '../Service/main';
 
 import {createClientPromise, exportClientFunction, ServiceClient, ServiceIdentity} from './util';
 
@@ -33,11 +34,11 @@ clientP.then(client => {
     });
 
     // Register servive listener for callbacks
-    client.register('joingroup', () => {
-        window.dispatchEvent(new Event('joingroup'));
+    client.register(GroupEventType.JOIN_SNAP_GROUP, () => {
+        window.dispatchEvent(new Event(GroupEventType.JOIN_SNAP_GROUP));
     });
-    client.register('leavegroup', () => {
-        window.dispatchEvent(new Event('leavegroup'));
+    client.register(GroupEventType.LEAVE_SNAP_GROUP, () => {
+        window.dispatchEvent(new Event(GroupEventType.LEAVE_SNAP_GROUP));
     });
 });
 
@@ -49,19 +50,13 @@ export const deregister = exportClientFunction(clientP, (client: ServiceClient) 
                               await client.dispatch('deregister', identity);
                           }) as (identity?: ServiceIdentity) => Promise<void>;
 
-
-enum GroupEventType {
-    'joingroup' = 'joingroup',
-    'leavegroup' = 'leavegroup'
-}
-
 /**
  * Registers an event listener for grouping events
- * @param {GroupEventType} eventType Event to be subscribed to. Valid options are 'joingroup' and 'leavegroup'
+ * @param {GroupEventType} eventType Event to be subscribed to. Valid options are 'join-snap-group' and 'leave-snap-group'
  * @param {() => void} callback Function to be executed on event firing. Takes no arguments and returns void.
  */
 export async function addEventListener(eventType: GroupEventType, callback: () => void): Promise<void> {
-    // Use native js event system to pass internal events around. 
+    // Use native js event system to pass internal events around.
     // Without this we would need to handle multiple registration ourselves.
     window.addEventListener(eventType, callback);
 }

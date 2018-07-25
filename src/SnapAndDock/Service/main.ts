@@ -28,13 +28,13 @@ async function registerService() {
         if (group.length < 2) {
             return;
         }
-        sendWindowServiceMessage('joingroup', window, providerChannel);
+        sendWindowServiceMessage(GroupEventType.JOIN_SNAP_GROUP, window, providerChannel);
     });
     (window as ServiceWindow).service.onWindowRemoved.add((group, window) => {
         if (group.length === 0) {
             return;
         }
-        sendWindowServiceMessage('leavegroup', window, providerChannel);
+        sendWindowServiceMessage(GroupEventType.LEAVE_SNAP_GROUP, window, providerChannel);
     });
 
     return providerChannel;
@@ -61,4 +61,7 @@ function sendWindowServiceMessage(action: GroupEventType, window: SnapWindow, pr
 /**
  * List of the valid grouping events that can be passed to the client.
  */
-type GroupEventType = 'joingroup'|'leavegroup';
+export enum GroupEventType {
+    JOIN_SNAP_GROUP = 'join-snap-group',
+    LEAVE_SNAP_GROUP = 'leave-snap-group'
+}

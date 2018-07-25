@@ -6,6 +6,7 @@ import { TabAPIActionProcessor } from "./TabAPIActionProcessor";
 import { TabGroup } from "./TabGroup";
 
 export class TabService {
+	public static INSTANCE: TabService;
 	private _tabGroups: TabGroup[];
 	private _eventHandler: EventHandler;
 	private mTabApiEventHandler: TabAPIActionProcessor;
@@ -13,8 +14,12 @@ export class TabService {
 	constructor() {
 		this._tabGroups = [];
 		this._eventHandler = new EventHandler(this);
+
+		TabService.INSTANCE = this;
+
 		this.mTabApiEventHandler = new TabAPIActionProcessor(this);
 		this.mTabApiEventHandler.init();
+
 	}
 
 	public async addTabGroup(windowOptions: TabWindowOptions) {
@@ -26,11 +31,12 @@ export class TabService {
 		return group;
 	}
 
-	public removeTabGroup(ID: string, closeApps: boolean) {
+	public async removeTabGroup(ID: string, closeApps: boolean) {
 		const group = this.getTabGroup(ID);
 
 		if (group) {
-			group.removeAllTabs(closeApps);
+			await group.removeAllTabs(closeApps);
+			await group.window.close(true);
 		}
 	}
 

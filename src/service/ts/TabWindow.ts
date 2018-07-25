@@ -1,15 +1,18 @@
 import { TabIndentifier } from "../../shared/types";
 import { AsyncWindow } from "./asyncWindow";
 import { Tab } from "./Tab";
+import { TabGroup } from "./TabGroup";
 
 export class TabWindow extends AsyncWindow {
 	private _tab: Tab;
+	private _tabGroup: TabGroup;
 	private _initialWindowOptions: fin.WindowOptions = {};
 	private _initialWindowBounds: fin.WindowBounds = {};
 
 	constructor(tab: Tab, tabID: TabIndentifier) {
 		super();
 		this._tab = tab;
+		this._tabGroup = tab.tabGroup;
 
 		this._window = fin.desktop.Window.wrap(tabID.uuid, tabID.name);
 	}
@@ -20,6 +23,32 @@ export class TabWindow extends AsyncWindow {
 
 		// @ts-ignore resizeRegion.sides is valid.  Its not in the type file.
 		await this.updateWindowOptions({ frame: false, resizeRegion: { sides: { top: false } } });
+
+		this._createWindowEventListeners();
+	}
+
+	public async hide() {
+		return new Promise((res, rej) => {
+			this._window.updateOptions(
+				{
+					opacity: 0
+				},
+				res,
+				rej
+			);
+		});
+	}
+
+	public async show() {
+		return new Promise((res, rej) => {
+			this._window.updateOptions(
+				{
+					opacity: 1
+				},
+				res,
+				rej
+			);
+		});
 	}
 
 	async alignPositionToTabGroup() {
@@ -42,8 +71,61 @@ export class TabWindow extends AsyncWindow {
 		});
 	}
 
-	private _createWindowEventListeners() {
+	protected _createWindowEventListeners() {
 		// TODO: Add Window Close/minimize/maximize etc events.
+
+		this._window.addEventListener("minimized", this._onMinimize.bind(this));
+
+		this._window.addEventListener("maximized", this._onMaximize.bind(this));
+
+		this._window.addEventListener("restored", this._onRestore.bind(this));
+
+		this._window.addEventListener("closed", this._onClose.bind(this));
+
+		this._window.addEventListener("focused", this._onFocus.bind(this));
+
+		this._window.addEventListener("bounds-changed", this._onBoundsChanged.bind(this));
+	}
+
+	private async _onMinimize() {
+		if (this._tab === this._tabGroup.activeTab) {
+			if ((await this._tabGroup.window.getState()) !== "minimized") {
+				await this._tabGroup.window.minimize();
+			}
+		}
+	}
+
+	private _onMaximize() {
+		if (this._tab === this._tabGroup.activeTab) {
+			this._tabGroup.window.maximize();
+		}
+	}
+
+	private _onRestore() {
+		if (this._tab === this._tabGroup.activeTab) {
+			this._tabGroup.window.restore();
+		}
+	}
+
+	private _onClose() {
+		if (this._tab === this._tabGroup.activeTab) {
+			this._tabGroup.removeTab(this._tab.ID, false);
+		}
+	}
+
+	private _onFocus() {
+		if (this._tab !== this._tabGroup.activeTab) {
+			this._tabGroup.switchTab(this._tab.ID);
+		}
+	}
+
+	private _onBoundsChanged() {
+		if (this._tab === this._tabGroup.activeTab) {
+			if (this._tabGroup.window.isMaximized) {
+				console.log("in on bounds changed");
+				this._tabGroup.window.restore();
+			}
+		}
 	}
 
 	get windowOptions() {

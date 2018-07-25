@@ -45,6 +45,7 @@
     "triple-equals": [true, "allow-null-check"],
     "use-isnan": true,
     "no-console": false,
+    "no-empty": false,
     "variable-name": [
       true,
       "check-format",

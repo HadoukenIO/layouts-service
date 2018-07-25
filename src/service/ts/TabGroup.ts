@@ -37,6 +37,10 @@ export class TabGroup {
 		this._tabs.push(tab);
 		await tab.init();
 
+		if (this._tabs.length > 1) {
+			tab.window.hide();
+		}
+
 		return tab;
 	}
 
@@ -48,8 +52,14 @@ export class TabGroup {
 		);
 	}
 
+	public async deregisterTab(ID: TabIndentifier) {
+		await this.removeTab(ID, false);
+
+		await this.window.updateWindowOptions({ frame: true });
+	}
+
 	public async removeTab(tabID: TabIndentifier, closeApp: boolean) {
-		const index: number = this._getTabIndex(tabID);
+		const index: number = this.getTabIndex(tabID);
 
 		if (index !== -1) {
 			await this._tabs[index].remove(closeApp);
@@ -57,10 +67,30 @@ export class TabGroup {
 		}
 	}
 
-	public removeAllTabs(closeApp: boolean) {
-		this._tabs.slice().forEach(async tab => {
-			await this.removeTab(tab.ID, closeApp);
-		});
+	public async switchTab(ID: TabIndentifier) {
+		const tab = this.getTab(ID);
+
+		if (tab && tab !== this._activeTab) {
+			await tab.window.show();
+
+			if (this._activeTab) {
+				this._activeTab.window.hide();
+			}
+
+			this.setActiveTab(tab);
+		}
+	}
+
+	public async removeAllTabs(closeApp: boolean) {
+		// this._tabs.slice().forEach(async tab => {
+		// 	await this.removeTab(tab.ID, closeApp);
+		// });
+
+		return Promise.all(
+			this._tabs.slice().map(tab => {
+				this.removeTab(tab.ID, closeApp);
+			})
+		);
 	}
 
     /**
@@ -74,12 +104,12 @@ export class TabGroup {
         });
 	}
 
-	public async setActiveTab(tab: Tab) {
+	public setActiveTab(tab: Tab) {
 		this._activeTab = tab;
 		fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, this.ID, ClientUIIABTopics.TABACTIVATED, tab.ID);
 	}
 
-	private _getTabIndex(tabID: TabIndentifier): number {
+	public getTabIndex(tabID: TabIndentifier): number {
 		return this.tabs.findIndex((tab: Tab) => {
 			return tabID === tab.ID;
 		});

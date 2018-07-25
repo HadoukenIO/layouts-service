@@ -1,3 +1,4 @@
+
 /**
  * @class Base class for all window objects
  */
@@ -22,6 +23,14 @@ export class AsyncWindow {
 			}
 		});
 	}
+
+
+	public resizeTo(width: number, height: number, anchor: fin.OpenFinAnchor) {
+		return new Promise((res, rej) => {
+			this._window.resizeTo(width, height, anchor, res, rej);
+		});
+	}
+
 
     /**
      * @function updateWindowOptions Updates the window options for the openfin window
@@ -48,17 +57,40 @@ export class AsyncWindow {
 		});
 	}
 
+	public getState(): Promise<string> {
+		return new Promise((res, rej) => {
+			this._window.getState(res, rej);
+		});
+	}
+
+	public moveTo(left: number, top: number) {
+		return new Promise((res, rej) => {
+			this._window.moveTo(left, top, res, rej);
+		});
+	}
+
+
     /**
      * @public
      * @function close Closes the openfin window
      * @param force Boolean flag to force close the window
      */
+
 	public close(force: boolean): Promise<void> {
 		return new Promise((res, rej) => {
 			this._window.close(force, res, rej);
 		});
 	}
 
+	public leaveGroup(): Promise<void> {
+		return new Promise((res, rej) => {
+			this._window.leaveGroup(res, rej);
+		});
+	}
+
+	protected _createWindowEventListeners() {
+		//
+	}
 
 	public get finWindow() {
 		return this._window;

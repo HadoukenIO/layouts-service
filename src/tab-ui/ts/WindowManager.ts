@@ -107,10 +107,10 @@ export class WindowManager {
 	 */
 	public restore(): void {
 		if (this.beforeMaximizedBounds && this.isMaximized) {
+			this.setIsMaximized = false;
 			const tabWindow = TabManager.instance.getActiveTab.getExternalApplication.getWindow;
 			tabWindow.resizeTo(this.beforeMaximizedBounds.width!, this.beforeMaximizedBounds.height!, "top-left");
 			tabWindow.moveTo(this.beforeMaximizedBounds.left!, this.beforeMaximizedBounds.top!);
-			this.setIsMaximized = false;
 		}
 	}
 

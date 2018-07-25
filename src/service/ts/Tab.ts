@@ -29,9 +29,7 @@ export class Tab {
 	}
 
 	public async remove(closeApp: boolean) {
-		await new Promise((res, rej) => {
-			this._tabWindow.finWindow.leaveGroup(res, rej);
-		});
+		await this._tabWindow.leaveGroup();
 
 		if (closeApp) {
 			await this._tabWindow.close(false);

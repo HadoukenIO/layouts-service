@@ -101,3 +101,10 @@ export interface IsOverWindowResult {
 	result: boolean;
 	window?: fin.OpenFinWindow | null;
 }
+
+export enum TabAPIWindowActions {
+	MAXIMIZE = "MAXIMIZEWINDOW",
+	MINIMIZE = "MINIMIZEWINDOW",
+	RESTORE = "RESTOREWINDOW",
+	CLOSE = "CLOSEWINDOW"
+}

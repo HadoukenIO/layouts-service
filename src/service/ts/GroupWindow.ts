@@ -8,6 +8,7 @@ import { TabWindow } from "./TabWindow";
 export class GroupWindow extends AsyncWindow {
 	private _initialWindowOptions: TabWindowOptions;
 	private _initialBounds: fin.WindowBounds = {};
+	private _beforeMaximizeBounds: fin.WindowBounds = {};
 	private _tabGroup: TabGroup;
 	private _isMaximized: boolean = false;
 	private _service: TabService = TabService.INSTANCE;
@@ -45,65 +46,51 @@ export class GroupWindow extends AsyncWindow {
 		});
 	}
 
-	public async maximize() {
-		console.log("in maximize");
+	public async maximizeGroup() {
+		this._beforeMaximizeBounds = await this._tabGroup.activeTab.window.getWindowBounds();
+
+		const moveto = this.moveTo(0, 0);
+		const tabresizeto = this._tabGroup.activeTab.window.resizeTo(screen.availWidth, screen.availHeight - this._tabGroup.initialWindowOptions.height!, "top-left");
+
+		await Promise.all([moveto, tabresizeto]);
+
 		this._isMaximized = true;
-		this._initialBounds = await this.getWindowBounds();
-
-		this.moveTo(0, 0);
-
-		this._window.resizeTo(screen.availWidth, this._tabGroup.initialWindowOptions.height!, "top-left");
-		this._tabGroup.activeTab.window.resizeTo(screen.availWidth, screen.availHeight - this._tabGroup.initialWindowOptions.height!, "top-left");
 	}
 
-	public async restore() {
-		console.log("in restore.  is maximized: ", this._isMaximized);
+	public async restoreGroup() {
 		if (this._isMaximized) {
-			this._tabGroup.window.resizeTo(this._initialWindowOptions.width!, this._initialWindowOptions.height!, "top-left");
-			this._tabGroup.window.moveTo(this._initialBounds.left!, this._initialBounds.top!);
+			const resize = this._tabGroup.window.resizeTo(this._beforeMaximizeBounds.width!, this._beforeMaximizeBounds.height!, "top-left");
+			const moveto = this._tabGroup.window.moveTo(this._beforeMaximizeBounds.left!, this._beforeMaximizeBounds.top!);
+
+			await Promise.all([resize, moveto]);
 
 			this._isMaximized = false;
 		} else {
-			this._window.restore();
+			await this._window.restore();
 		}
 	}
 
-	public async minimize() {
-		const activeTabState = await this._tabGroup.activeTab.window.getState();
-		if (activeTabState !== "minimized") {
-			await Promise.all(
-				this._tabGroup.tabs.map(tab => {
-					return new Promise((res, rej) => {
-						tab.window.finWindow.minimize(res, rej);
-					});
-				})
-			);
-		}
+	public async minimizeGroup() {
+		const activetab = new Promise(async (res, rej) => {
+			if ((await this._tabGroup.activeTab.window.getState()) !== "minimized") {
+				this._tabGroup.activeTab.window.finWindow.minimize(res, rej);
+			} else {
+				res();
+			}
+		});
 
-		this._window.minimize();
+		const group = new Promise((res, rej) => {
+			this._window.minimize(res, rej);
+		});
+
+		await Promise.all([activetab, group]);
 	}
 
-	protected _createWindowEventListeners() {
-		// TODO: Add Window Close/minimize/maximize etc events.
-
-		this._window.addEventListener("minimized", this.minimize.bind(this));
-
-		this._window.addEventListener("maximized", this.maximize.bind(this));
-
-		this._window.addEventListener("restored", this.restore.bind(this));
-
-		this._window.addEventListener("closed", this._onClose.bind(this));
-
-		this._window.addEventListener("focused", this._onFocus.bind(this));
+	public async closeGroup() {
+		await this._service.removeTabGroup(this._tabGroup.ID, true);
 	}
 
-	private async _onClose() {
-		this._service.removeTabGroup(this._tabGroup.ID, true);
-	}
-
-	private _onFocus() {
-		this._tabGroup.activeTab.window.finWindow.focus();
-	}
+	protected _createWindowEventListeners() {}
 
 	public get isMaximized() {
 		return this._isMaximized;

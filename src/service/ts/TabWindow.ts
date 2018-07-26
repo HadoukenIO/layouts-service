@@ -89,21 +89,21 @@ export class TabWindow extends AsyncWindow {
 
 	private async _onMinimize() {
 		if (this._tab === this._tabGroup.activeTab) {
-			if ((await this._tabGroup.window.getState()) !== "minimized") {
-				await this._tabGroup.window.minimize();
-			}
+			await this._tabGroup.window.minimizeGroup();
 		}
 	}
 
 	private _onMaximize() {
 		if (this._tab === this._tabGroup.activeTab) {
-			this._tabGroup.window.maximize();
+			this._tabGroup.window.maximizeGroup();
 		}
 	}
 
 	private _onRestore() {
 		if (this._tab === this._tabGroup.activeTab) {
-			this._tabGroup.window.restore();
+			this._tabGroup.window.restoreGroup();
+		} else {
+			this._tabGroup.switchTab(this._tab.ID);
 		}
 	}
 
@@ -123,7 +123,7 @@ export class TabWindow extends AsyncWindow {
 		if (this._tab === this._tabGroup.activeTab) {
 			if (this._tabGroup.window.isMaximized) {
 				console.log("in on bounds changed");
-				this._tabGroup.window.restore();
+				this._tabGroup.window.restoreGroup();
 			}
 		}
 	}

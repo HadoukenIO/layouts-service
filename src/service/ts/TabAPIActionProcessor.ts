@@ -1,4 +1,4 @@
-import { TabAPIActions, TabAPIInteractionMessage, TabAPIMessage, TabPackage } from "../../shared/types";
+import { TabAPIActions, TabAPIInteractionMessage, TabAPIMessage, TabAPIWindowActions, TabPackage } from "../../shared/types";
 
 import { Tab } from "./Tab";
 import { TabGroup } from "./TabGroup";
@@ -36,12 +36,12 @@ export class TabAPIActionProcessor {
 	 * @param name name of the sender
 	 */
 	private process(message: TabAPIMessage, uuid: string, name: string): void {
-        const tabGroup: TabGroup | undefined = this.mTabService.getTabGroup(name);
+		const tabGroup: TabGroup | undefined = this.mTabService.getTabGroup(name);
 
-        if (!tabGroup) {
-            console.error('No tab group has been found wit hthe name');
-            return;
-        }
+		if (!tabGroup) {
+			console.error("No tab group has been found wit hthe name");
+			return;
+		}
 
 		switch (message.action) {
 			case TabAPIActions.ADD:
@@ -49,12 +49,24 @@ export class TabAPIActionProcessor {
 				break;
 			case TabAPIActions.EJECT:
 				this.eject(message as TabAPIInteractionMessage, tabGroup);
-                break;
+				break;
+			case TabAPIActions.CLOSE:
+				this.close(message as TabAPIInteractionMessage, tabGroup);
+				break;
+			case TabAPIWindowActions.MAXIMIZE:
+				tabGroup.window.maximize();
+				break;
+			case TabAPIWindowActions.MINIMIZE:
+				tabGroup.window.minimize();
+				break;
+			case TabAPIWindowActions.CLOSE:
+				tabGroup.window.close();
+				break;
+			case TabAPIWindowActions.RESTORE:
+				tabGroup.window.restore();
+				break;
             case TabAPIActions.ACTIVATE:
                 this.activate(message as TabAPIInteractionMessage, tabGroup);
-                break;
-            case TabAPIActions.CLOSE:
-                this.close(message as TabAPIInteractionMessage, tabGroup);
                 break;
             case TabAPIActions.UPDATEPROPERTIES:
                 this.updateTabProperties(message as TabAPIInteractionMessage, tabGroup);
@@ -130,10 +142,11 @@ export class TabAPIActionProcessor {
     
         let tab: Tab | undefined = tabGroup.getTab({ uuid: applicationToClose.uuid, name: applicationToClose.name });
 
-        if (!tab) {
-            console.error("No tab has been found with the identifier");
-            return;
-        }
+
+		if (!tab) {
+			console.error("No tab has been found with the identifier");
+			return;
+		}
 
         await tab.remove(true);
     }

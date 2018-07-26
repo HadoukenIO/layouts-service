@@ -1,23 +1,38 @@
+
+import { ClientUIIABTopics, ServiceIABTopics, TabAPIActions, TabAPIInteractionMessage, TabAPIMessage, TabAPIWindowActions, TabIndentifier, TabProperties } from "../../shared/types";
+import { ClientUIWindowActions } from "./ClientUIWindowActions";
+import { sendAction } from "./ClientUtilities";
+
 import { TabApiEvents, ServiceIABTopics, TabAPIActions, TabAPIInteractionMessage, TabIndentifier, TabProperties } from "../../shared/types";
+
 
 /**
  * @description Interface to outline shape of event listeners for storage
  */
+
+
+
+
 interface IEventListener {
     eventType: TabApiEvents,
     callback: Function
 };
+
 
 /**
  * @class Client tabbing API
  */
 export class TabbingApi {
 
+	  public windowActions = new ClientUIWindowActions();
+  
     /**
      * @private
      * @description Holds event listeners
      */
     private mEventListeners: IEventListener[];
+  
+  
 
     /**
      * @constructor
@@ -51,7 +66,7 @@ export class TabbingApi {
 			properties: tabProperties
 		};
 
-		this.sendAction(payload);
+		sendAction(payload);
 	}
 
 	/**
@@ -73,8 +88,9 @@ export class TabbingApi {
 
 		const payload: TabAPIInteractionMessage = { action: TabAPIActions.EJECT, uuid, name };
 
-		this.sendAction(payload);
-    }
+
+		sendAction(payload);
+	}
 
     /**
      * @public
@@ -151,15 +167,17 @@ export class TabbingApi {
             return;
         }
 
-        if (!name) {
-            console.error("No name has been passed in");
-            return;
-        }
 
-        const payload: TabAPIInteractionMessage = { action: TabAPIActions.CLOSE, uuid, name }
+		if (!name) {
+			console.error("No name has been passed in");
+			return;
+		}
 
-        this.sendAction(payload);
-    }
+		const payload: TabAPIInteractionMessage = { action: TabAPIActions.CLOSE, uuid, name };
+
+		sendAction(payload);
+
+}
 
     /**
      * @public
@@ -188,15 +206,6 @@ export class TabbingApi {
 
         this.sendAction(payload);
     }
-
-	/**
-     * @private
-	 * @function sendAction sends an action to the
-	 * @param payload The payload to pass over to the TapAPIActionProcessor
-	 */
-	private sendAction(payload: TabAPIInteractionMessage) {
-		fin.desktop.InterApplicationBus.send("Tabbing_Main", "tab-api", payload);
-	}
 }
 
 (window as Window & { Tab: TabbingApi }).Tab = new TabbingApi();

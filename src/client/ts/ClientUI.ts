@@ -76,7 +76,29 @@ export class ClientUI {
 		const payload: TabAPIInteractionMessage = { action: TabAPIActions.EJECT, uuid, name };
 
 		this.sendAction(payload);
-	}
+    }
+
+    /**
+     * @public
+     * @function close Closes the tab and the application along with it
+     * @param uuid The uuid of the application
+     * @param name The name of the application
+     */
+    public close(uuid: string, name: string): void {
+        if (!uuid) {
+            console.error('No uuid has been passed in');
+            return;
+        }
+
+        if (!name) {
+            console.error('No name has been passed in');
+            return;
+        }
+
+        const payload: TabAPIInteractionMessage = { action: TabAPIActions.CLOSE, uuid, name }
+
+        this.sendAction(payload);
+    }
 
 	/**
 	 * @function sendAction sends an action to the

@@ -49,7 +49,10 @@ export class TabAPIActionProcessor {
 				break;
 			case TabAPIActions.EJECT:
 				this.eject(message as TabAPIInteractionMessage, tabGroup);
-				break;
+                break;
+            case TabAPIActions.CLOSE:
+                this.close(message as TabAPIInteractionMessage, tabGroup);
+                break;
 			default:
 				break;
 		}
@@ -102,6 +105,12 @@ export class TabAPIActionProcessor {
 		ejectTab(this.mTabService, { name: applicationToEject.name, uuid: applicationToEject.uuid }, tabGroup);
 	}
 
+    /**
+     * @private
+     * @function close Closes the tab and the application itself
+     * @param applicationToClose The application to close
+     * @param tabGroup The group the application is within
+     */
 	private async close(applicationToClose: TabAPIInteractionMessage, tabGroup: TabGroup | undefined) {
 		if (!applicationToClose) {
 			console.error("No application has been passed in");
@@ -111,6 +120,15 @@ export class TabAPIActionProcessor {
 		if (!tabGroup) {
 			console.error("No tab group has been passed in");
 			return;
-		}
+        }
+
+        let tab: Tab | undefined = tabGroup.getTab({ uuid: applicationToClose.uuid, name: applicationToClose.name });
+
+        if (!tab) {
+            console.error("No tab has been found with the identifier");
+            return;
+        }
+
+        await tab.remove(true);
 	}
 }

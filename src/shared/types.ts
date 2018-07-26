@@ -70,7 +70,8 @@ export enum ClientUIIABTopics {
 export enum TabAPIActions {
 	ADD = "ADD",
 	EJECT = "EJECT",
-	CLOSE = "CLOSE"
+    CLOSE = "CLOSE",
+    ACTIVATE = "ACTIVATE"
 }
 
 /**

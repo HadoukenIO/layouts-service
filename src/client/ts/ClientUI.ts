@@ -3,7 +3,7 @@ import { ClientUIIABTopics, ServiceIABTopics, TabAPIActions, TabAPIInteractionMe
 /**
  * @class Client tabbing API
  */
-export class ClientUI {
+export class TabbingApi {
 	private _ID: TabIndentifier;
 
 	constructor() {
@@ -35,7 +35,7 @@ export class ClientUI {
 	 * @param uuid The uuid of the application to be added
 	 * @param name The name of the application to be added
 	 */
-	public add(uuid: string, name: string, tabProperties: TabProperties): void {
+	public addTab(uuid: string, name: string, tabProperties: TabProperties): void {
 		if (!uuid) {
 			console.error("No uuid has been passed in");
 			return;
@@ -62,7 +62,7 @@ export class ClientUI {
 	 * @param uuid The uuid of the application to eject
 	 * @param name The name of the application to eject
 	 */
-	public eject(uuid: string, name: string): void {
+	public ejectTab(uuid: string, name: string): void {
 		if (!uuid) {
 			console.error("No uuid has been passed in");
 			return;
@@ -78,6 +78,23 @@ export class ClientUI {
 		this.sendAction(payload);
     }
 
+
+    public activateTab(uuid: string, name: string): void {
+        if (!uuid) {
+            console.error("No uui has been passed in");
+            return;
+        }
+        
+        if(!name) {
+            console.error("No name has been passed in");
+            return;
+        }
+
+        const payload: TabAPIInteractionMessage = { action: TabAPIActions.ACTIVATE, uuid, name };
+
+        this.sendAction(payload);
+    }
+
     /**
      * @public
      * @function close Closes the tab and the application along with it
@@ -91,7 +108,7 @@ export class ClientUI {
         }
 
         if (!name) {
-            console.error('No name has been passed in');
+            console.error("No name has been passed in");
             return;
         }
 
@@ -109,4 +126,5 @@ export class ClientUI {
 	}
 }
 
-(window as Window & { TabClientUI: ClientUI }).TabClientUI = new ClientUI();
+(fin.desktop as fin.OpenFinDesktop & { Tab: TabbingApi }).Tab = new TabbingApi();
+//(window as Window & ({fin.desktop: } & { Tab: TabbingApi })).Tab = new TabbingApi();

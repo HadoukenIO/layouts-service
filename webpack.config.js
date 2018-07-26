@@ -59,6 +59,6 @@ module.exports = [
 	}),
 	createWebpackConfigForProject("src/client", {
 		client: "./src/client/ts/client.ts",
-		clientUI: "./src/client/ts/clientui.ts"
+		tabbingApi: "./src/client/ts/TabbingApi.ts"
 	})
 ];

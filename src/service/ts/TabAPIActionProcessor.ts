@@ -23,6 +23,7 @@ export class TabAPIActionProcessor {
 	}
 
 	/**
+     * @public
 	 * @function init Initialises the TabAPIActionProcessor
 	 */
 	public init(): void {
@@ -30,6 +31,7 @@ export class TabAPIActionProcessor {
 	}
 
 	/**
+     * @private
 	 * @function process Processes the tab action
 	 * @param message The payload the tab api sent
 	 * @param uuid uuid of the sender

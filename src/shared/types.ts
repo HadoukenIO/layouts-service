@@ -55,6 +55,7 @@ export interface TabPackage {
 	tabID: TabIndentifier;
 	tabProps?: TabProperties;
 }
+export enum Events { }
 
 export enum TabApiEvents {
 	TABADDED = "TABADDED",

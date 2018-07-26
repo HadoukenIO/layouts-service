@@ -1,11 +1,10 @@
 import { TabAPIActions, TabApiEvents, TabAPIInteractionMessage, TabProperties } from "../../shared/types";
-import { ClientUIWindowActions } from "./ClientUIWindowActions";
-import { sendAction } from "./ClientUtilities";
+import { TabbingApiWindowActions } from "./TabbingApiWindowActions";
+import { Api } from "./Api";
 
 /**
  * @description Interface to outline shape of event listeners for storage
  */
-
 interface EventListener {
 	eventType: TabApiEvents;
 	callback: Function;
@@ -14,21 +13,30 @@ interface EventListener {
 /**
  * @class Client tabbing API
  */
-export class TabbingApi {
-	public windowActions = new ClientUIWindowActions();
+export class TabbingApi extends Api {
 
-	/**
-	 * @private
-	 * @description Holds event listeners
-	 */
-	private mEventListeners: EventListener[];
+    /**
+     * @private
+     * @description Class that holds window events
+     */
+    private mWindowActions = new TabbingApiWindowActions(super.sendAction);
+
+	
+
+    /**
+     * @public
+     * @function windowActions Property for getting the window action object
+     */
+    public get windowActions(): TabbingApiWindowActions {
+        return this.mWindowActions;
+    }
 
 	/**
 	 * @constructor
 	 * @description Constructor for the TabbingApi class
 	 */
-	constructor() {
-		this.mEventListeners = [];
+    constructor() {
+        super();
 	}
 
 	/**
@@ -55,7 +63,7 @@ export class TabbingApi {
 			properties: tabProperties
 		};
 
-		sendAction(payload);
+		super.sendAction(payload);
 	}
 
 	/**
@@ -77,7 +85,7 @@ export class TabbingApi {
 
 		const payload: TabAPIInteractionMessage = { action: TabAPIActions.EJECT, uuid, name };
 
-		sendAction(payload);
+		super.sendAction(payload);
 	}
 
 	/**
@@ -86,18 +94,8 @@ export class TabbingApi {
 	 * @param event The Api event to listen to
 	 * @param callback callback to handle the data received
 	 */
-	public addEventListener<T>(event: TabApiEvents, callback: (message: T) => void): void {
-		fin.desktop.InterApplicationBus.subscribe(
-			"*",
-			event,
-			callback,
-			() => {
-				this.mEventListeners.push({ eventType: event, callback });
-			},
-			(reason: string) => {
-				console.error(reason);
-			}
-		);
+    public addEventListener<T>(event: TabApiEvents, callback: (message: T) => void): void {
+        super.addEventListener(event, callback);
 	}
 
 	/**
@@ -119,7 +117,7 @@ export class TabbingApi {
 
 		const payload: TabAPIInteractionMessage = { action: TabAPIActions.ACTIVATE, uuid, name };
 
-		sendAction(payload);
+		super.sendAction(payload);
 	}
 
 	/**
@@ -128,33 +126,17 @@ export class TabbingApi {
 	 * @param event The api event that is being listened to
 	 * @param callback The callback registered to the event
 	 */
-	public removeEventListener<T>(event: TabApiEvents, callback: (message: T) => void): void {
-		const removeApiEvent: TabApiEvents = event;
-		fin.desktop.InterApplicationBus.unsubscribe(
-			"*",
-			event,
-			callback,
-			() => {
-				const eventToRemove: EventListener = { eventType: removeApiEvent, callback };
-				const index: number = this.mEventListeners.findIndex((currentEvent: EventListener) => {
-					return currentEvent.eventType === eventToRemove.eventType && currentEvent.callback === eventToRemove.callback;
-				});
-
-				delete this.mEventListeners[index];
-			},
-			(reason: string) => {
-				console.error(reason);
-			}
-		);
+    public removeEventListener<T>(event: TabApiEvents, callback: (message: T) => void): void {
+        super.removeEventListener(event, callback);
 	}
 
 	/**
 	 * @public
-	 * @function close Closes the tab and the application along with it
+	 * @function closeTab Closes the tab and the application along with it
 	 * @param uuid The uuid of the application
 	 * @param name The name of the application
 	 */
-	public close(uuid: string, name: string): void {
+	public closeTab(uuid: string, name: string): void {
 		if (!uuid) {
 			console.error("No uuid has been passed in");
 			return;
@@ -167,7 +149,7 @@ export class TabbingApi {
 
 		const payload: TabAPIInteractionMessage = { action: TabAPIActions.CLOSE, uuid, name };
 
-		sendAction(payload);
+		super.sendAction(payload);
 	}
 
 	/**
@@ -195,7 +177,7 @@ export class TabbingApi {
 
 		const payload: TabAPIInteractionMessage = { action: TabAPIActions.UPDATEPROPERTIES, uuid, name, properties };
 
-		sendAction(payload);
+		super.sendAction(payload);
 	}
 }
 

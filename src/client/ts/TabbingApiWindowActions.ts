@@ -1,7 +1,13 @@
 import { TabAPIMessage, TabAPIWindowActions } from "../../shared/types";
-import { sendAction } from "./ClientUtilities";
 
-export class ClientUIWindowActions {
+export class TabbingApiWindowActions {
+
+    private mSendAction: Function;
+
+    constructor(sendAction: Function) {
+        this.mSendAction = sendAction;
+    }
+
 	/**
 	 * @public
 	 * @function maximize Maximizes the tab client window.
@@ -9,7 +15,7 @@ export class ClientUIWindowActions {
 	public maximize(): void {
 		const payload: TabAPIMessage = { action: TabAPIWindowActions.MAXIMIZE };
 
-		sendAction(payload);
+        this.mSendAction(payload);
 	}
 
 	/**
@@ -19,7 +25,7 @@ export class ClientUIWindowActions {
 	public minimize(): void {
 		const payload: TabAPIMessage = { action: TabAPIWindowActions.MINIMIZE };
 
-		sendAction(payload);
+        this.mSendAction(payload);
 	}
 
 	/**
@@ -29,7 +35,7 @@ export class ClientUIWindowActions {
 	public restore(): void {
 		const payload: TabAPIMessage = { action: TabAPIWindowActions.RESTORE };
 
-		sendAction(payload);
+        this.mSendAction(payload);
 	}
 
 	/**
@@ -39,6 +45,6 @@ export class ClientUIWindowActions {
 	public close(): void {
 		const payload: TabAPIMessage = { action: TabAPIWindowActions.CLOSE };
 
-		sendAction(payload);
+        this.mSendAction(payload);
 	}
 }

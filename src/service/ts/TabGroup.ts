@@ -117,7 +117,7 @@ export class TabGroup {
 
 	public getTabIndex(tabID: TabIndentifier): number {
 		return this.tabs.findIndex((tab: Tab) => {
-			return tabID === tab.ID;
+			return tab.ID.uuid === tabID.uuid && tab.ID.name === tabID.uuid;
 		});
 	}
 

@@ -1,45 +1,34 @@
-
-import { ClientUIIABTopics, ServiceIABTopics, TabAPIActions, TabAPIInteractionMessage, TabAPIMessage, TabAPIWindowActions, TabIndentifier, TabProperties } from "../../shared/types";
+import { TabAPIActions, TabApiEvents, TabAPIInteractionMessage, TabProperties } from "../../shared/types";
 import { ClientUIWindowActions } from "./ClientUIWindowActions";
 import { sendAction } from "./ClientUtilities";
-
-import { TabApiEvents, ServiceIABTopics, TabAPIActions, TabAPIInteractionMessage, TabIndentifier, TabProperties } from "../../shared/types";
-
 
 /**
  * @description Interface to outline shape of event listeners for storage
  */
 
-
-
-
-interface IEventListener {
-    eventType: TabApiEvents,
-    callback: Function
-};
-
+interface EventListener {
+	eventType: TabApiEvents;
+	callback: Function;
+}
 
 /**
  * @class Client tabbing API
  */
 export class TabbingApi {
+	public windowActions = new ClientUIWindowActions();
 
-	  public windowActions = new ClientUIWindowActions();
-  
-    /**
-     * @private
-     * @description Holds event listeners
-     */
-    private mEventListeners: IEventListener[];
-  
-  
+	/**
+	 * @private
+	 * @description Holds event listeners
+	 */
+	private mEventListeners: EventListener[];
 
-    /**
-     * @constructor
-     * @description Constructor for the TabbingApi class
-     */
-    constructor() {
-        this.mEventListeners = [];
+	/**
+	 * @constructor
+	 * @description Constructor for the TabbingApi class
+	 */
+	constructor() {
+		this.mEventListeners = [];
 	}
 
 	/**
@@ -88,85 +77,88 @@ export class TabbingApi {
 
 		const payload: TabAPIInteractionMessage = { action: TabAPIActions.EJECT, uuid, name };
 
+		sendAction(payload);
+	}
+
+	/**
+	 * @public
+	 * @function addEventListener Adds an event listener
+	 * @param event The Api event to listen to
+	 * @param callback callback to handle the data received
+	 */
+	public addEventListener<T>(event: TabApiEvents, callback: (message: T) => void): void {
+		fin.desktop.InterApplicationBus.subscribe(
+			"*",
+			event,
+			callback,
+			() => {
+				this.mEventListeners.push({ eventType: event, callback });
+			},
+			(reason: string) => {
+				console.error(reason);
+			}
+		);
+	}
+
+	/**
+	 * @public
+	 * @function activateTab Activates the selected tab and brings to front
+	 * @param uuid The uuid of the application to activate
+	 * @param name The name of the application to activate
+	 */
+	public activateTab(uuid: string, name: string): void {
+		if (!uuid) {
+			console.error("No uui has been passed in");
+			return;
+		}
+
+		if (!name) {
+			console.error("No name has been passed in");
+			return;
+		}
+
+		const payload: TabAPIInteractionMessage = { action: TabAPIActions.ACTIVATE, uuid, name };
 
 		sendAction(payload);
 	}
 
-    /**
-     * @public
-     * @function addEventListener Adds an event listener
-     * @param event The Api event to listen to
-     * @param callback callback to handle the data received
-     */
-    public addEventListener<T>(event: TabApiEvents, callback: (message: T) => void): void {
-        fin.desktop.InterApplicationBus.subscribe("*", event, callback,
-            () => {
-                this.mEventListeners.push({ eventType: event, callback });
-            },
-            (reason: string) => {
-                console.error(reason);
-            }
-        );
-    }
+	/**
+	 * @public
+	 * @function removeEventListener Removes an event listener
+	 * @param event The api event that is being listened to
+	 * @param callback The callback registered to the event
+	 */
+	public removeEventListener<T>(event: TabApiEvents, callback: (message: T) => void): void {
+		const removeApiEvent: TabApiEvents = event;
+		fin.desktop.InterApplicationBus.unsubscribe(
+			"*",
+			event,
+			callback,
+			() => {
+				const eventToRemove: EventListener = { eventType: removeApiEvent, callback };
+				const index: number = this.mEventListeners.findIndex((currentEvent: EventListener) => {
+					return currentEvent.eventType === eventToRemove.eventType && currentEvent.callback === eventToRemove.callback;
+				});
 
-    /**
-     * @public
-     * @function activateTab Activates the selected tab and brings to front
-     * @param uuid The uuid of the application to activate
-     * @param name The name of the application to activate
-     */
-    public activateTab(uuid: string, name: string): void {
-        if (!uuid) {
-            console.error("No uui has been passed in");
-            return;
-        }
-        
-        if(!name) {
-            console.error("No name has been passed in");
-            return;
-        }
+				delete this.mEventListeners[index];
+			},
+			(reason: string) => {
+				console.error(reason);
+			}
+		);
+	}
 
-        const payload: TabAPIInteractionMessage = { action: TabAPIActions.ACTIVATE, uuid, name };
-
-        this.sendAction(payload);
-    }
-
-    /**
-     * @public
-     * @function removeEventListener Removes an event listener
-     * @param event The api event that is being listened to
-     * @param callback The callback registered to the event
-     */
-    public removeEventListener<T>(event: TabApiEvents, callback: (message: T) => void): void {
-        let removeApiEvent: TabApiEvents = event;
-        fin.desktop.InterApplicationBus.unsubscribe("*", event, callback,
-            () => {
-
-                let eventToRemove: IEventListener = { eventType: removeApiEvent, callback: callback }
-                let index: number = this.mEventListeners.findIndex((event: IEventListener) => {
-                    return event.eventType === eventToRemove.eventType && event.callback === eventToRemove.callback;
-                });
-
-                delete this.mEventListeners[index];
-            },
-            (reason: string) => {
-                console.error(reason);
-            }
-        );
-    }
-    
-    /** 
-     * @public
-     * @function close Closes the tab and the application along with it
-     * @param uuid The uuid of the application
-     * @param name The name of the application
-     */
-    public close(uuid: string, name: string): void {
-        if (!uuid) {
-            console.error('No uuid has been passed in');
-            return;
-        }
-
+	/**
+	 * @public
+	 * @function close Closes the tab and the application along with it
+	 * @param uuid The uuid of the application
+	 * @param name The name of the application
+	 */
+	public close(uuid: string, name: string): void {
+		if (!uuid) {
+			console.error("No uuid has been passed in");
+			return;
+		}
 
 		if (!name) {
 			console.error("No name has been passed in");
@@ -176,36 +168,35 @@ export class TabbingApi {
 		const payload: TabAPIInteractionMessage = { action: TabAPIActions.CLOSE, uuid, name };
 
 		sendAction(payload);
+	}
 
-}
+	/**
+	 * @public
+	 * @function updateTabProperties Updates the tab properties, for example name and icon
+	 * @param uuid The uuid of the tab to update properties
+	 * @param name The name of the tab to update properties
+	 * @param properties The new properties
+	 */
+	public updateTabProperties(uuid: string, name: string, properties: TabProperties): void {
+		if (!uuid) {
+			console.error("No uuid has been passed in");
+			return;
+		}
 
-    /**
-     * @public
-     * @function updateTabProperties Updates the tab properties, for example name and icon
-     * @param uuid The uuid of the tab to update properties
-     * @param name The name of the tab to update properties
-     * @param properties The new properties
-     */
-    public updateTabProperties(uuid: string, name: string, properties: TabProperties): void {
-        if (!uuid) {
-            console.error("No uuid has been passed in");
-            return;
-        }
+		if (!name) {
+			console.error("No name has been passed in");
+			return;
+		}
 
-        if (!name) {
-            console.error("No name has been passed in");
-            return;
-        }
+		if (!properties) {
+			console.error("No properties has been passed in");
+			return;
+		}
 
-        if (!properties) {
-            console.error('No properties has been passed in');
-            return;
-        }
+		const payload: TabAPIInteractionMessage = { action: TabAPIActions.UPDATEPROPERTIES, uuid, name, properties };
 
-        const payload: TabAPIInteractionMessage = { action: TabAPIActions.UPDATEPROPERTIES, uuid, name, properties };
-
-        this.sendAction(payload);
-    }
+		sendAction(payload);
+	}
 }
 
 (window as Window & { Tab: TabbingApi }).Tab = new TabbingApi();

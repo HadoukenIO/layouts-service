@@ -70,9 +70,9 @@ export enum TabApiEvents {
 export enum TabAPIActions {
 	ADD = "ADD",
 	EJECT = "EJECT",
-    CLOSE = "CLOSE",
-    ACTIVATE = "ACTIVATE",
-    UPDATEPROPERTIES = "UPDATEPROPERTIES"
+	CLOSE = "CLOSE",
+	ACTIVATE = "ACTIVATE",
+	UPDATEPROPERTIES = "UPDATEPROPERTIES"
 }
 
 /**

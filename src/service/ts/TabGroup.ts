@@ -1,6 +1,6 @@
 import { isNumber } from "util";
 import { v4 as uuidv4 } from "uuid";
-import { ClientUIIABTopics, ServiceIABTopics, TabIndentifier, TabPackage, TabProperties, TabWindowOptions } from "../../shared/types";
+import { ServiceIABTopics, TabIndentifier, TabPackage, TabProperties, TabWindowOptions, TabApiEvents } from "../../shared/types";
 import { GroupWindow } from "./GroupWindow";
 import { Tab } from "./Tab";
 
@@ -111,8 +111,8 @@ export class TabGroup {
 	}
 
 	public setActiveTab(tab: Tab) {
-		this._activeTab = tab;
-		fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, this.ID, ClientUIIABTopics.TABACTIVATED, tab.ID);
+        this._activeTab = tab;
+        fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, this.ID, TabApiEvents.TABACTIVATED, tab.ID);
 	}
 
 	public getTabIndex(tabID: TabIndentifier): number {

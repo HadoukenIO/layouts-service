@@ -1,32 +1,18 @@
-import { ClientUIIABTopics, ServiceIABTopics, TabAPIActions, TabAPIInteractionMessage, TabIndentifier, TabProperties } from "../../shared/types";
+import { TabApiEvents, ServiceIABTopics, TabAPIActions, TabAPIInteractionMessage, TabIndentifier, TabProperties } from "../../shared/types";
+
+interface IEventListener {
+    eventType: TabApiEvents,
+    callback: Function
+};
 
 /**
  * @class Client tabbing API
  */
 export class TabbingApi {
-	private _ID: TabIndentifier;
+    private mEventListeners: IEventListener[];
 
-	constructor() {
-		this._ID = {
-			uuid: fin.desktop.Application.getCurrent().uuid,
-			name: fin.desktop.Window.getCurrent().name
-		};
-
-		fin.desktop.InterApplicationBus.subscribe("*", ClientUIIABTopics.PROPERTIESUPDATED, message => {
-			console.log(ClientUIIABTopics.PROPERTIESUPDATED, message);
-		});
-
-		fin.desktop.InterApplicationBus.subscribe("*", ClientUIIABTopics.TABADDED, message => {
-			console.log(ClientUIIABTopics.TABADDED, message);
-		});
-
-		fin.desktop.InterApplicationBus.subscribe("*", ClientUIIABTopics.TABACTIVATED, message => {
-			console.log(ClientUIIABTopics.TABACTIVATED, message);
-		});
-
-		fin.desktop.InterApplicationBus.subscribe("*", ClientUIIABTopics.TABREMOVED, message => {
-			console.log(ClientUIIABTopics.TABREMOVED, message);
-		});
+    constructor() {
+        this.mEventListeners = [];
 	}
 
 	/**
@@ -78,7 +64,24 @@ export class TabbingApi {
 		this.sendAction(payload);
     }
 
+    /**
+     * @public
+     * @function addEventListener Adds an event listener
+     * @param event The Api event to listen to
+     * @param callback callback to handle the data received
+     */
+    public addEventListener<T>(event: TabApiEvents, callback: (message: T) => void): void {
+        fin.desktop.InterApplicationBus.subscribe("*", event, callback,
+            () => {
+                this.mEventListeners.push({ eventType: event, callback });
+            },
+            (reason: string) => {
+                console.error(reason);
+            }
+        );
+    }
 
+            
     public activateTab(uuid: string, name: string): void {
         if (!uuid) {
             console.error("No uui has been passed in");
@@ -97,6 +100,28 @@ export class TabbingApi {
 
     /**
      * @public
+     * @function removeEventListener Removes an event listener
+     * @param event The api event that is being listened to
+     * @param callback The callback registered to the event
+     */
+    public removeEventListener<T>(event: TabApiEvents, callback: (message: T) => void): void {
+        let removeApiEvent: TabApiEvents = event;
+        fin.desktop.InterApplicationBus.unsubscribe("*", event, callback,
+            () => {
+
+                let eventToRemove: IEventListener = { eventType: removeApiEvent, callback: callback }
+                let index: number = this.mEventListeners.findIndex((event: IEventListener) => {
+                    return event.eventType === eventToRemove.eventType && event.callback === eventToRemove.callback;
+                });
+
+                delete this.mEventListeners[index];
+            },
+            (reason: string) => {
+                console.error(reason);
+            }
+        );
+    }
+    
      * @function close Closes the tab and the application along with it
      * @param uuid The uuid of the application
      * @param name The name of the application

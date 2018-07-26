@@ -56,7 +56,7 @@ export interface TabPackage {
 	tabProps?: TabProperties;
 }
 
-export enum ClientUIIABTopics {
+export enum TabApiEvents {
 	TABADDED = "TABADDED",
 	TABREMOVED = "TABREMOVED",
 	PROPERTIESUPDATED = "PROPERTIESUPDATED",

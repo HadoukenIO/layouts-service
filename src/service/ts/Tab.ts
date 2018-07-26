@@ -1,4 +1,4 @@
-import { ClientUIIABTopics, TabIndentifier, TabPackage, TabProperties } from "../../shared/types";
+import { TabApiEvents, TabIndentifier, TabPackage, TabProperties } from "../../shared/types";
 import { TabGroup } from "./TabGroup";
 import { TabWindow } from "./TabWindow";
 
@@ -25,7 +25,7 @@ export class Tab {
 
 		this._tabProperties = this._loadTabProperties();
 
-		fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, this._tabGroup.ID, ClientUIIABTopics.TABADDED, this._tabProperties); // TODO;
+        fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, this._tabGroup.ID, TabApiEvents.TABADDED, this._tabProperties); // TODO;
 	}
 
 	public async remove(closeApp: boolean) {
@@ -35,12 +35,12 @@ export class Tab {
 			await this._tabWindow.close(false);
 		}
 
-		fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, this._tabGroup.ID, ClientUIIABTopics.TABREMOVED, this._tabID);
+        fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, this._tabGroup.ID, TabApiEvents.TABREMOVED, this._tabID);
 	}
 
 	public updateTabProperties(props: TabProperties) {
 		this._tabProperties = { ...this._tabProperties, ...props };
-		fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, this._tabGroup.ID, ClientUIIABTopics.PROPERTIESUPDATED, props);
+		fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, this._tabGroup.ID, TabApiEvents.PROPERTIESUPDATED, props);
 
 		this._saveTabProperties();
 	}

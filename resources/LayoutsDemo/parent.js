@@ -32,7 +32,14 @@ const removeForgetWins = (window) => {
 }
 window.forgetMe = forgetMe;
 
+const delayPromise = (ms) => {
+    return new Promise(res => {
+        setTimeout(res, ms);
+    })
+}
+
 const onAppRes = async (layoutApp) => {
+    await delayPromise(2000);
     console.log('Apprestore called:', layoutApp)
     const ofApp = await fin.Application.getCurrent();
     const openWindows = await ofApp.getChildWindows();
@@ -50,8 +57,8 @@ const onAppRes = async (layoutApp) => {
     return layoutApp;
 }
 
-window.LayoutsManager.serviceReady().then(() => {
-    window.LayoutsManager.onWillSaveLayout(layoutApp => {
+window.LayoutsManager.connectToService().then(() => {
+    window.LayoutsManager.onWillSaveAppLayout(layoutApp => {
         layoutApp.childWindows = layoutApp.childWindows.filter(removeForgetWins);
         return layoutApp;
     });

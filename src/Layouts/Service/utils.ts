@@ -1,4 +1,6 @@
+import {Window} from 'hadouken-js-adapter';
 import Fin from 'hadouken-js-adapter/out/types/src/api/fin';
+import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/system/application';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {LayoutApp, WindowState} from '../types';
@@ -70,4 +72,42 @@ const createPlaceholder = async (win: WindowState) => {
     actualWindow.on('shown', () => {
         placeholder.close();
     });
+};
+
+export const wasCreatedProgramatically = (app: LayoutApp) => {
+    return app && app.initialOptions && app.initialOptions.uuid && app.initialOptions.url;
+};
+
+// Type here should be ApplicationInfo from the js-adapter (needs to be updated)
+export const wasCreatedFromManifest = (app: LayoutApp, uuid?: string) => {
+    const {manifest, manifestUrl} = app;
+    const appUuid = uuid || app.uuid;
+    return typeof manifest === 'object' && manifest.startup_app && manifest.startup_app.uuid === appUuid;
+};
+
+
+export const showingWindowInApp = async(app: LayoutApp): Promise<boolean> => {
+    const {uuid, childWindows} = app;
+    const ofApp = await fin.Application.wrap({uuid});
+    const mainOfWin = await ofApp.getWindow();
+    if (await isShowingWindow(mainOfWin)) {
+        return true;
+    }
+
+    for (const child of childWindows) {
+        const {name} = child;
+        const ofWin = await fin.Window.wrap({uuid, name});
+        if (await isShowingWindow(ofWin)) {
+            return true;
+        }
+    }
+
+    return false;
+};
+
+const isShowingWindow = async(ofWin: Window): Promise<boolean> => {
+    const isShowing = await ofWin.isShowing();
+    const windowState = await ofWin.getState();
+    const isMinimized = windowState === 'minimized';
+    return (isShowing && !isMinimized) ? true : false;
 };

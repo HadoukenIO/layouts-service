@@ -15,19 +15,19 @@ let layoutsChannel: ServiceClient;
 const layoutsUuid = 'Layout-Manager';
 
 
-// connect to the service
-export const serviceReady = async () => {
+// Connect to the service
+export const connectToService = async () => {
     await fin.desktop.Service.connect({uuid: layoutsUuid, name: layoutsUuid}).then((channel: ServiceClient) => {
         window.layoutsChannel = layoutsChannel = channel;
         // Any unregistered action will simply return false
         channel.setDefaultAction(() => false);
     });
 };
-// decide which parts of this you will implement, alter LayoutApp object to reflect this then send it back
-export const onWillSaveLayout = (layoutDecorator: (layoutApp: LayoutApp) => LayoutApp | false): void => {
+// Decide which parts of this you will implement, alter LayoutApp object to reflect this then send it back
+export const onWillSaveAppLayout = (layoutDecorator: (layoutApp: LayoutApp) => LayoutApp | false): void => {
     layoutsChannel.register('savingLayout', layoutDecorator);
 };
-// get the layoutApp object, implement, then return implemented LayoutApp object (minus anything not implemented)
+// Get the layoutApp object, implement, then return implemented LayoutApp object (minus anything not implemented)
 export const onAppRestore = (layoutDecorator: (layoutApp: LayoutApp) => LayoutApp | false): void => {
     layoutsChannel.register('restoreApp', layoutDecorator);
 };
@@ -39,18 +39,27 @@ export const onLayoutSave = (listener: (layout: Layout) => void): void => {
 export const onLayoutRestore = (listener: (layoutApp: LayoutApp) => void): void => {
     layoutsChannel.register('layoutRestored', listener);
 };
-// set the current layout (if sting is sent it becomes layout name - if object, it becomes the layout)
-export const setLayout = (payload: LayoutName|Layout): Promise<Layout> => {
-    return layoutsChannel.dispatch('setLayout', payload);
+// Set the current layout
+export const saveCurrentLayout = (payload: LayoutName): Promise<Layout> => {
+    return layoutsChannel.dispatch('saveCurrentLayout', payload);
 };
-// get a previously saved layout
+// Set layout by sending a Layout object
+export const saveLayoutObject = (payload: Layout): Promise<Layout> => {
+    return layoutsChannel.dispatch('saveLayoutObject', payload);
+};
+// Get a previously saved layout
 export const getLayout = (name: LayoutName): Promise<Layout> => {
     return layoutsChannel.dispatch('getLayout', name);
 };
-// restore a previously saved layout - in v2, can restore from your own layout object
+// Get the names of all previously saved layouts
+export const getAllLayoutNames = (): Promise<LayoutName[]> => {
+    return layoutsChannel.dispatch('getAllLayoutNames', name);
+};
+// Restore a previously saved layout - in v2, can restore from your own layout object
 export const restoreLayout = (payload: LayoutName|Layout): Promise<Layout> => {
     return layoutsChannel.dispatch('restoreLayout', payload);
 };
+// Send this to the service when you have registered all routes after registration
 export const ready = (): Promise<Layout> => {
     return layoutsChannel.dispatch('appReady');
 };

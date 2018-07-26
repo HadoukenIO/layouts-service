@@ -56,6 +56,9 @@ export class TabAPIActionProcessor {
             case TabAPIActions.CLOSE:
                 this.close(message as TabAPIInteractionMessage, tabGroup);
                 break;
+            case TabAPIActions.UPDATEPROPERTIES:
+                this.updateTabProperties(message as TabAPIInteractionMessage, tabGroup);
+                break;
 			default:
 				break;
 		}
@@ -153,5 +156,37 @@ export class TabAPIActionProcessor {
         }
 
         await tabGroup.switchTab({ name: applicationToActivate.name, uuid: applicationToActivate.uuid });
+    }
+
+    /**
+     * @private
+     * @function updateTabProperties Updates the properties of the tab
+     * @param tabToUpdate Holds information about the tab to update and its new properties
+     * @param tabGroup The group the tab is in
+     */
+    private async updateTabProperties(tabToUpdate: TabAPIInteractionMessage, tabGroup: TabGroup | undefined) {
+        if (!tabToUpdate) {
+            console.error("No tab to update has beed passed in");
+            return;
+        }
+
+        if (!tabGroup) {
+            console.error("No tab group has been passed in");
+            return;
+        }
+
+        if (!tabToUpdate.properties) {
+            console.error("No tab properties to update");
+            return;
+        }
+
+        const tab: Tab | undefined = tabGroup.getTab({ uuid: tabToUpdate.uuid, name: tabToUpdate.name });
+
+        if (!tab) {
+            console.error("No tab has been found");
+            return;
+        }
+
+        tab.updateTabProperties(tabToUpdate.properties);
     }
 }

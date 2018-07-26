@@ -140,6 +140,7 @@ export class TabbingApi {
     }
     
     /** 
+     * @public
      * @function close Closes the tab and the application along with it
      * @param uuid The uuid of the application
      * @param name The name of the application
@@ -160,9 +161,38 @@ export class TabbingApi {
         this.sendAction(payload);
     }
 
+    /**
+     * @public
+     * @function updateTabProperties Updates the tab properties, for example name and icon
+     * @param uuid The uuid of the tab to update properties
+     * @param name The name of the tab to update properties
+     * @param properties The new properties
+     */
+    public updateTabProperties(uuid: string, name: string, properties: TabProperties): void {
+        if (!uuid) {
+            console.error("No uuid has been passed in");
+            return;
+        }
+
+        if (!name) {
+            console.error("No name has been passed in");
+            return;
+        }
+
+        if (!properties) {
+            console.error('No properties has been passed in');
+            return;
+        }
+
+        const payload: TabAPIInteractionMessage = { action: TabAPIActions.UPDATEPROPERTIES, uuid, name, properties };
+
+        this.sendAction(payload);
+    }
+
 	/**
+     * @private
 	 * @function sendAction sends an action to the
-	 * @param payload
+	 * @param payload The payload to pass over to the TapAPIActionProcessor
 	 */
 	private sendAction(payload: TabAPIInteractionMessage) {
 		fin.desktop.InterApplicationBus.send("Tabbing_Main", "tab-api", payload);

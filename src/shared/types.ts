@@ -71,7 +71,8 @@ export enum TabAPIActions {
 	ADD = "ADD",
 	EJECT = "EJECT",
     CLOSE = "CLOSE",
-    ACTIVATE = "ACTIVATE"
+    ACTIVATE = "ACTIVATE",
+    UPDATEPROPERTIES = "UPDATEPROPERTIES"
 }
 
 /**

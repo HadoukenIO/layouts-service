@@ -50,11 +50,12 @@ export class TabAPIActionProcessor {
 			case TabAPIActions.EJECT:
 				this.eject(message as TabAPIInteractionMessage, tabGroup);
                 break;
-      case TabAPIActions.ACTIVATE:
-          this.activate(message as TabAPIInteractionMessage, tabGroup);
-      case TabAPIActions.CLOSE:
-          this.close(message as TabAPIInteractionMessage, tabGroup);
-          break;
+            case TabAPIActions.ACTIVATE:
+                this.activate(message as TabAPIInteractionMessage, tabGroup);
+                break;
+            case TabAPIActions.CLOSE:
+                this.close(message as TabAPIInteractionMessage, tabGroup);
+                break;
 			default:
 				break;
 		}
@@ -114,25 +115,25 @@ export class TabAPIActionProcessor {
    * @param tabGroup The group the application is within
    */
 	private async close(applicationToClose: TabAPIInteractionMessage, tabGroup: TabGroup | undefined) {
-      if (!applicationToClose) {
-        console.error("No application has been passed in");
-        return;
-      }
+        if (!applicationToClose) {
+            console.error("No application has been passed in");
+            return;
+        }
 
-      if (!tabGroup) {
-        console.error("No tab group has been passed in");
-        return;
-      }
+        if (!tabGroup) {
+            console.error("No tab group has been passed in");
+            return;
+        }
     
-      let tab: Tab | undefined = tabGroup.getTab({ uuid: applicationToClose.uuid, name: applicationToClose.name });
+        let tab: Tab | undefined = tabGroup.getTab({ uuid: applicationToClose.uuid, name: applicationToClose.name });
 
-      if (!tab) {
-          console.error("No tab has been found with the identifier");
-          return;
-      }
+        if (!tab) {
+            console.error("No tab has been found with the identifier");
+            return;
+        }
 
-      await tab.remove(true);
-  }
+        await tab.remove(true);
+    }
 
     /**
      * @private

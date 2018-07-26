@@ -1,5 +1,8 @@
 import { TabApiEvents, ServiceIABTopics, TabAPIActions, TabAPIInteractionMessage, TabIndentifier, TabProperties } from "../../shared/types";
 
+/**
+ * @description Interface to outline shape of event listeners for storage
+ */
 interface IEventListener {
     eventType: TabApiEvents,
     callback: Function
@@ -9,8 +12,17 @@ interface IEventListener {
  * @class Client tabbing API
  */
 export class TabbingApi {
+
+    /**
+     * @private
+     * @description Holds event listeners
+     */
     private mEventListeners: IEventListener[];
 
+    /**
+     * @constructor
+     * @description Constructor for the TabbingApi class
+     */
     constructor() {
         this.mEventListeners = [];
 	}
@@ -81,7 +93,12 @@ export class TabbingApi {
         );
     }
 
-            
+    /**
+     * @public
+     * @function activateTab Activates the selected tab and brings to front
+     * @param uuid The uuid of the application to activate
+     * @param name The name of the application to activate
+     */
     public activateTab(uuid: string, name: string): void {
         if (!uuid) {
             console.error("No uui has been passed in");
@@ -122,6 +139,7 @@ export class TabbingApi {
         );
     }
     
+    /** 
      * @function close Closes the tab and the application along with it
      * @param uuid The uuid of the application
      * @param name The name of the application
@@ -151,5 +169,4 @@ export class TabbingApi {
 	}
 }
 
-(fin.desktop as fin.OpenFinDesktop & { Tab: TabbingApi }).Tab = new TabbingApi();
-//(window as Window & ({fin.desktop: } & { Tab: TabbingApi })).Tab = new TabbingApi();
+(window as Window & { Tab: TabbingApi }).Tab = new TabbingApi();

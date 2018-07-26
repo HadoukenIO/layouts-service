@@ -62,8 +62,8 @@ export class TabWindow extends AsyncWindow {
 			this._window.resizeTo(tabGroupBounds.width!, tabBounds.height!, "top-left", res, rej);
 		});
 
-		await new Promise((res, rej) => {
-			this._window.moveTo(tabGroupBounds.width!, tabGroupBounds.top! + tabGroupBounds.height!, res, rej);
+        await new Promise((res, rej) => {
+            this._window.moveTo(tabGroupBounds.left!, tabGroupBounds.top! + tabGroupBounds.height!, res, rej);
 		});
 
 		await new Promise((res, rej) => {

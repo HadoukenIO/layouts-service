@@ -1,4 +1,5 @@
 import {eSnapValidity, Resolver, SnapTarget} from './Resolver';
+import {Signal2} from './Signal';
 import {SnapGroup} from './SnapGroup';
 import {SnapView} from './SnapView';
 import {eTransformType, Mask, SnapWindow, WindowState} from './SnapWindow';
@@ -32,6 +33,24 @@ export class SnapService {
 
     private resolver: Resolver;
     private view: SnapView;
+
+    /**
+     * A window has been added to a group.
+     *
+     * Signal will be fired AFTER all state updates.
+     *
+     * Arguments: (group: SnapGroup, window: SnapWindow)
+     */
+    public readonly onWindowAdded: Signal2<SnapGroup, SnapWindow> = new Signal2();
+
+    /**
+     * A window has been removed from a group.
+     *
+     * Signal will be fired AFTER all state updates.
+     *
+     * Arguments: (group: SnapGroup, window: SnapWindow)
+     */
+    public readonly onWindowRemoved: Signal2<SnapGroup, SnapWindow> = new Signal2();
 
     constructor() {
         this.windows = [];
@@ -116,6 +135,7 @@ export class SnapService {
         group.onTransform.add(this.snapGroup, this);
         group.onCommit.add(this.applySnapTarget, this);
         group.onWindowRemoved.add(this.onWindowRemovedFromGroup, this);
+        group.onWindowAdded.add(this.sendWindowAddedMessage, this);
         this.groups.push(group);
         return group;
     }
@@ -129,7 +149,7 @@ export class SnapService {
             group.onTransform.remove(this.snapGroup, this);
             group.onCommit.remove(this.applySnapTarget, this);
             group.onWindowRemoved.remove(this.onWindowRemovedFromGroup, this);
-
+            group.onWindowAdded.remove(this.sendWindowAddedMessage, this);
             this.groups.splice(index, 1);
         }
     }
@@ -155,6 +175,19 @@ export class SnapService {
             // Empty groups are not allowed
             this.removeGroup(group);
         }
+        this.sendWindowRemovedMessage(group, window);
+    }
+
+    private sendWindowAddedMessage(group: SnapGroup, window: SnapWindow) {
+        const identity = window.getIdentity();
+        console.log('Window with identity', identity, 'added to group', group);
+        this.onWindowAdded.emit(group, window);
+    }
+
+    private sendWindowRemovedMessage(group: SnapGroup, window: SnapWindow) {
+        const identity = window.getIdentity();
+        console.log('Window with identity', identity, 'removed from group', group);
+        this.onWindowRemoved.emit(group, window);
     }
 
     private validateGroup(group: SnapGroup, modifiedWindow: SnapWindow): void {

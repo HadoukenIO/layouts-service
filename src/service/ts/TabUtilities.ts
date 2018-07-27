@@ -11,10 +11,7 @@ import { TabService } from "./TabService";
  * @param message Application or tab to be ejected
  */
 export async function ejectTab(tabService: TabService, message: TabIndentifier & TabWindowOptions, tabGroup?: TabGroup | undefined): Promise<void> {
-
-    const ejectedTab: Tab | undefined = tabGroup ?
-        tabGroup.getTab({ name: message.name, uuid: message.uuid }) :
-        tabService.getTab({ uuid: message.uuid, name: message.name });
+	const ejectedTab: Tab | undefined = tabGroup ? tabGroup.getTab({ name: message.name, uuid: message.uuid }) : tabService.getTab({ uuid: message.uuid, name: message.name });
 
 	let isOverTabWindowResult = null;
 
@@ -22,7 +19,7 @@ export async function ejectTab(tabService: TabService, message: TabIndentifier &
 		return;
 	}
 
-	await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false);
+	await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true);
 
 	if (message.screenX && message.screenY) {
 		isOverTabWindowResult = await tabService.isPointOverTabGroup(message.screenX, message.screenY);

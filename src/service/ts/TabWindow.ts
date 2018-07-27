@@ -62,8 +62,8 @@ export class TabWindow extends AsyncWindow {
 			this._window.resizeTo(tabGroupBounds.width!, tabBounds.height!, "top-left", res, rej);
 		});
 
-        await new Promise((res, rej) => {
-            this._window.moveTo(tabGroupBounds.left!, tabGroupBounds.top! + tabGroupBounds.height!, res, rej);
+		await new Promise((res, rej) => {
+			this._window.moveTo(tabGroupBounds.left!, tabGroupBounds.top! + tabGroupBounds.height!, res, rej);
 		});
 
 		await new Promise((res, rej) => {
@@ -109,7 +109,7 @@ export class TabWindow extends AsyncWindow {
 
 	private _onClose() {
 		if (this._tab === this._tabGroup.activeTab) {
-			this._tabGroup.removeTab(this._tab.ID, false);
+			this._tabGroup.removeTab(this._tab.ID, false, true);
 		}
 	}
 
@@ -117,6 +117,8 @@ export class TabWindow extends AsyncWindow {
 		if (this._tab !== this._tabGroup.activeTab) {
 			this._tabGroup.switchTab(this._tab.ID);
 		}
+
+		this._tabGroup.window.finWindow.bringToFront();
 	}
 
 	private _onBoundsChanged() {

@@ -59,7 +59,7 @@ export class GroupWindow extends AsyncWindow {
 
 	public async restoreGroup() {
 		if (this._isMaximized) {
-			const resize = this._tabGroup.window.resizeTo(this._beforeMaximizeBounds.width!, this._beforeMaximizeBounds.height!, "top-left");
+			const resize = this._tabGroup.activeTab.window.resizeTo(this._beforeMaximizeBounds.width!, this._beforeMaximizeBounds.height!, "top-left");
 			const moveto = this._tabGroup.window.moveTo(this._beforeMaximizeBounds.left!, this._beforeMaximizeBounds.top!);
 
 			await Promise.all([resize, moveto]);
@@ -90,7 +90,11 @@ export class GroupWindow extends AsyncWindow {
 		await this._service.removeTabGroup(this._tabGroup.ID, true);
 	}
 
-	protected _createWindowEventListeners() {}
+	protected _createWindowEventListeners() {
+		this._window.addEventListener("focused", () => {
+			this._tabGroup.activeTab.window.finWindow.bringToFront();
+		});
+	}
 
 	public get isMaximized() {
 		return this._isMaximized;

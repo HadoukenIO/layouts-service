@@ -142,14 +142,7 @@ export class TabAPIActionProcessor {
 			return;
 		}
 
-		const tab: Tab | undefined = tabGroup.getTab({ uuid: applicationToClose.uuid, name: applicationToClose.name });
-
-		if (!tab) {
-			console.error("No tab has been found with the identifier");
-			return;
-		}
-
-		await tab.remove(true);
+		await tabGroup.removeTab({ uuid: applicationToClose.uuid, name: applicationToClose.name }, true, true);
 	}
 
 	/**

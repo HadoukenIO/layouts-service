@@ -25,7 +25,7 @@ export class Tab {
 
 		this._tabProperties = this._loadTabProperties();
 
-        fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, this._tabGroup.ID, TabApiEvents.TABADDED, this._tabProperties); // TODO;
+		fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, this._tabGroup.ID, TabApiEvents.TABADDED, this._tabProperties); // TODO;
 	}
 
 	public async remove(closeApp: boolean) {
@@ -35,7 +35,7 @@ export class Tab {
 			await this._tabWindow.close(false);
 		}
 
-        fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, this._tabGroup.ID, TabApiEvents.TABREMOVED, this._tabID);
+		fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, this._tabGroup.ID, TabApiEvents.TABREMOVED, this._tabID);
 	}
 
 	public updateTabProperties(props: TabProperties) {

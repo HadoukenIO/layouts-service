@@ -71,9 +71,9 @@ export class AsyncWindow {
 		});
 	}
 
-	public leaveGroup(): Promise<void> {
+	public leaveGroup() {
 		return new Promise((res, rej) => {
-			this._window.leaveGroup(res, rej);
+			this._window.leaveGroup(res, res);
 		});
 	}
 

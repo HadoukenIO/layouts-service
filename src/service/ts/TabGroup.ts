@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { ServiceIABTopics, TabApiEvents, TabIndentifier, TabPackage, TabProperties, TabWindowOptions } from "../../shared/types";
 import { GroupWindow } from "./GroupWindow";
 import { Tab } from "./Tab";
+import { TabService } from "./TabService";
 
 export class TabGroup {
 	readonly ID: string;
@@ -64,12 +65,18 @@ export class TabGroup {
 		await this.window.updateWindowOptions({ frame: true });
 	}
 
-	public async removeTab(tabID: TabIndentifier, closeApp: boolean) {
+	public async removeTab(tabID: TabIndentifier, closeApp: boolean, closeGroupWindowCheck: boolean = false) {
 		const index: number = this.getTabIndex(tabID);
 
 		if (index !== -1) {
 			await this._tabs[index].remove(closeApp);
 			this._tabs.splice(index, 1);
+		}
+
+		if (closeGroupWindowCheck) {
+			if (this._tabs.length === 0) {
+				TabService.INSTANCE.removeTabGroup(this.ID, true);
+			}
 		}
 	}
 

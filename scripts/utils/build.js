@@ -1,7 +1,7 @@
 #! /usr/bin/env node
 const execa = require('execa');
-const webpack = require('./configWebpack')
-const run = require('./runLog')
+const webpack = require('./configWebpack');
+const run = require('./runLog');
 
 const main = async (mode = 'development') => {
     console.log('build ' + mode)

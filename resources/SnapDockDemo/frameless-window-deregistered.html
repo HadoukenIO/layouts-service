@@ -5,7 +5,8 @@
 <link rel="stylesheet" href="style.css">
 <script src="main.js"></script>
 <script>
-        Layouts.addEventListener('join-snap-group', () => { console.log('Joined group') });
-        Layouts.addEventListener('leave-snap-group', () => { console.log('Left group') });
+        // Deregister from layouts service
+        Layouts.deregister();
 </script>
+
 </html>

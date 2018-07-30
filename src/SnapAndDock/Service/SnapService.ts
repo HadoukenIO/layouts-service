@@ -1,5 +1,3 @@
-import {stat} from 'fs';
-
 import {eSnapValidity, Resolver, SnapTarget} from './Resolver';
 import {Signal2} from './Signal';
 import {SnapGroup} from './SnapGroup';
@@ -99,9 +97,6 @@ export class SnapService {
                 offset = {x: 1, y: 1};
             }
             window.offsetBy({x: Math.sign(offset.x) * UNDOCK_MOVE_DISTANCE, y: Math.sign(offset.y) * UNDOCK_MOVE_DISTANCE});
-
-            // Revalidate the group after undocking (should handle e.g. window in middle of group being removed)
-            this.validateGroup(group, window);
         }
     }
 
@@ -232,7 +227,10 @@ export class SnapService {
             // Empty groups are not allowed
             this.removeGroup(group);
         }
+        // Raise event to client
         this.sendWindowRemovedMessage(group, window);
+
+        this.validateGroup(group, window);
     }
 
     private sendWindowAddedMessage(group: SnapGroup, window: SnapWindow) {

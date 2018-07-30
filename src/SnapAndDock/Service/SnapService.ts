@@ -3,6 +3,10 @@ import {Signal2} from './Signal';
 import {SnapGroup} from './SnapGroup';
 import {SnapView} from './SnapView';
 import {eTransformType, Mask, SnapWindow, WindowState} from './SnapWindow';
+import {Point} from './utils/PointUtils';
+import {MeasureResult, RectUtils} from './utils/RectUtils';
+
+const UNDOCK_MOVE_SCALE = 30;
 
 /**
  * For passing state between service and view.
@@ -82,7 +86,16 @@ export class SnapService {
         });
 
         if (window) {
+            const group: SnapGroup = window.getGroup();
+
+            const offset = this.calculateOffset(window);
+
             window.setGroup(this.addGroup());
+
+            window.offsetBy({x: Math.sign(offset.x ? offset.x : 1) * UNDOCK_MOVE_SCALE, y: Math.sign(offset.y ? offset.y : 1) * UNDOCK_MOVE_SCALE});
+
+            // Revalidate the group after undocking (should handle e.g. window in middle of group being removed)
+            group.onModified.emit(group, window);
         }
     }
 
@@ -110,12 +123,27 @@ export class SnapService {
                        .length > 0;
         });
 
+
         // Exploding only makes sense if there is more than one window in the group.
         if (group && group.length > 1) {
             const windows = group.windows;
-            windows.forEach((window) => {
-                this.undock(window.getIdentity());
-            });
+
+            // Determine the offset for each window before modifying and window state
+            const offsets: Point[] = [];
+            for (let index = 0; index < windows.length; index++) {
+                const window = windows[index];
+                const offset = this.calculateOffset(window);
+                offsets[index] = offset;
+            }
+
+            for (let index = 0; index < windows.length; index++) {
+                const window = windows[index];
+                // Undock the windows
+                window.setGroup(this.addGroup());
+                // Apply previously calculated offset
+                const offset = offsets[index];
+                window.offsetBy({x: Math.sign(offset.x) * 0.5 * UNDOCK_MOVE_SCALE, y: Math.sign(offset.y) * 0.5 * UNDOCK_MOVE_SCALE});
+            }
         }
     }
 
@@ -252,5 +280,21 @@ export class SnapService {
 
         // Reset view
         this.view.update(null, null);
+    }
+
+    private calculateOffset(window: SnapWindow): Point {
+        const group = window.getGroup();
+        const totalOffset: Point = {x: 0, y: 0};
+        for (const groupedWindow of group.windows) {
+            // Exclude window being unsnapped
+            if (groupedWindow !== window) {
+                const distance: MeasureResult = RectUtils.distance(window.getState(), groupedWindow.getState());
+                if (distance.minAbs === 0 && distance.min < 0) {
+                    totalOffset.x = totalOffset.x + Math.sign((window.getState().center.x - groupedWindow.getState().center.x) * Math.abs(distance.y));
+                    totalOffset.y = totalOffset.y + Math.sign((window.getState().center.y - groupedWindow.getState().center.y) * Math.abs(distance.x));
+                }
+            }
+        }
+        return totalOffset;
     }
 }

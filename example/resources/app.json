@@ -17,7 +17,7 @@
     }],
     "runtime": {
         "arguments": "--v=1 --enable-crash-reporting",
-        "version": "8.56.30.55"
+        "version": "canary"
     },
     "shortcut": {
         "company": "HadoukenIO",

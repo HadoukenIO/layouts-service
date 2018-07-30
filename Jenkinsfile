@@ -23,6 +23,9 @@ pipeline {
                 sh "aws s3 cp ./dist/app.json ${STAGING_JSON}"
                 sh "aws s3 cp ./dist/layoutsManager/app.json ${LAYOUTSMANAGER_STAGING_JSON}"
                 echo "publishing pre-release version to npm: " + PREREL_VERSION
+                withCredentials([string(credentialsId: "NPM_TOKEN_WRITE", variable: 'NPM_TOKEN')]) {
+                    sh "echo //registry.npmjs.org/:_authToken=$NPM_TOKEN > $WORKSPACE/.npmrc"
+                }
                 sh "npm version --no-git-tag-version " + PREREL_VERSION
                 sh "npm publish --tag alpha"
                 sh "npm version --no-git-tag-version " + VERSION

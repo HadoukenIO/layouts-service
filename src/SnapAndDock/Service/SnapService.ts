@@ -3,11 +3,13 @@ import {Signal2} from './Signal';
 import {SnapGroup} from './SnapGroup';
 import {SnapView} from './SnapView';
 import {eTransformType, Mask, SnapWindow, WindowState} from './SnapWindow';
-import {Point} from './utils/PointUtils';
+import {Point, PointUtils} from './utils/PointUtils';
 import {MeasureResult, RectUtils} from './utils/RectUtils';
 
 // Defines the distance windows will be moved when undocked.
 const UNDOCK_MOVE_DISTANCE = 30;
+// Scaling factor for explosion spread.
+const EXPLODE_MOVE_SCALE = 0.1;
 
 /**
  * For passing state between service and view.
@@ -126,26 +128,24 @@ export class SnapService {
             return g.windows.findIndex(w => w.getIdentity().uuid === targetWindow.uuid && w.getIdentity().name === targetWindow.name) >= 0;
         });
 
-
-        // Exploding only makes sense if there is more than one window in the group.
+// Exploding only makes sense if there is more than one window in the group.
         if (group && group.length > 1) {
             const windows = group.windows;
-
             // Determine the offset for each window before modifying and window state
             const offsets: Point[] = [];
-            for (let index = 0; index < windows.length; index++) {
-                const window = windows[index];
-                const offset = this.calculateUndockMoveDirection(window);
-                offsets[index] = offset;
+            // group.center is recalculated on each call, so we assign it here once and use the value.
+            const groupCenter = group.center;
+            for (let i = 0; i < windows.length; i++) {
+                const windowState = windows[i].getState();
+                offsets[i] = PointUtils.scale(PointUtils.difference(groupCenter, windowState.center), EXPLODE_MOVE_SCALE);
             }
 
-            for (let index = 0; index < windows.length; index++) {
-                const window = windows[index];
+            for (let i = 0; i < windows.length; i++) {
+                const window = windows[i];
                 // Undock the windows
                 window.setGroup(this.addGroup());
                 // Apply previously calculated offset
-                const offset = offsets[index];
-                window.offsetBy({x: Math.sign(offset.x) * 0.5 * UNDOCK_MOVE_DISTANCE, y: Math.sign(offset.y) * 0.5 * UNDOCK_MOVE_DISTANCE});
+                window.offsetBy(offsets[i]);
             }
         }
     }
@@ -296,6 +296,7 @@ export class SnapService {
             if (groupedWindow !== window) {
                 const distance: MeasureResult = RectUtils.distance(window.getState(), groupedWindow.getState());
                 if (distance.minAbs === 0 && distance.min < 0) {
+                    // The x and y at the end are intentionally swapped. This makes sure that each adjoining window will only cause a move on a single axis.
                     totalOffset.x = totalOffset.x + Math.sign((window.getState().center.x - groupedWindow.getState().center.x) * Math.abs(distance.y));
                     totalOffset.y = totalOffset.y + Math.sign((window.getState().center.y - groupedWindow.getState().center.y) * Math.abs(distance.x));
                 }

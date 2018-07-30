@@ -100,7 +100,15 @@ export class SnapService {
     }
 
     public deregister(target: {uuid: string; name: string}): void {
-        // TODO (SERVICE-132)
+        const window: SnapWindow|undefined = this.windows.find((w) => {
+            const identity = w.getIdentity();
+            return target.uuid === identity.uuid && target.name === identity.name;
+        });
+
+        if (window) {
+            window.getWindow().leaveGroup();
+            window.onClose.emit(window);
+        }
     }
 
     /**

@@ -5,7 +5,8 @@
 <link rel="stylesheet" href="style.css">
 <script src="main.js"></script>
 <script>
-        Layouts.addEventListener('join-snap-group', () => { console.log('Joined group') });
-        Layouts.addEventListener('leave-snap-group', () => { console.log('Left group') });
+        // Will deregister from the layouts service on receiving a message on the 'deregister' IAB channel.
+        fin.desktop.InterApplicationBus.subscribe('*', 'deregister', () => {Layouts.deregister()})
 </script>
+
 </html>

@@ -39,9 +39,14 @@ export const flexibleGetLayout = async(input: Layout|LayoutName): Promise<Layout
             return layout;
         }
     } else if (typeof input === 'object') {
+        // some validation here?
         return input;
     }
     throw new Error('layout not found');
+};
+
+export const getAllLayoutNames = (): string[] => {
+    return Object.keys(localStorage);
 };
 
 export const layouts = new Storage();

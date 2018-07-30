@@ -91,11 +91,14 @@ export class SnapService {
         if (window) {
             const group: SnapGroup = window.getGroup();
 
-            const offset = this.calculateUndockMoveDirection(window);
+            let offset = this.calculateUndockMoveDirection(window);
 
             window.setGroup(this.addGroup());
 
-            window.offsetBy({x: Math.sign(offset.x ? offset.x : 1) * UNDOCK_MOVE_DISTANCE, y: Math.sign(offset.y ? offset.y : 1) * UNDOCK_MOVE_DISTANCE});
+            if (!offset.x && !offset.y) {
+                offset = {x: 1, y: 1};
+            }
+            window.offsetBy({x: Math.sign(offset.x) * UNDOCK_MOVE_DISTANCE, y: Math.sign(offset.y) * UNDOCK_MOVE_DISTANCE});
 
             // Revalidate the group after undocking (should handle e.g. window in middle of group being removed)
             this.validateGroup(group, window);

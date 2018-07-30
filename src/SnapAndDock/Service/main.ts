@@ -1,14 +1,10 @@
 import {SnapGroup} from './SnapGroup';
 import {SnapService} from './SnapService';
-import {SnapWindow} from './SnapWindow';
+import {SnapWindow, WindowIdentity} from './SnapWindow';
 import {win10Check} from './utils/platform';
 
 interface ServiceWindow extends Window {
     service: SnapService;
-}
-
-interface WindowIdentity extends fin.OpenFinIdentity {
-    name: string;
 }
 
 fin.desktop.main(main);

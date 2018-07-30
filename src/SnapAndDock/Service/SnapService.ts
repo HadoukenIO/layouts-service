@@ -1,3 +1,5 @@
+import {stat} from 'fs';
+
 import {eSnapValidity, Resolver, SnapTarget} from './Resolver';
 import {Signal2} from './Signal';
 import {SnapGroup} from './SnapGroup';
@@ -6,7 +8,8 @@ import {eTransformType, Mask, SnapWindow, WindowState} from './SnapWindow';
 import {Point} from './utils/PointUtils';
 import {MeasureResult, RectUtils} from './utils/RectUtils';
 
-const UNDOCK_MOVE_SCALE = 30;
+// Defines the distance windows will be moved when undocked.
+const UNDOCK_MOVE_DISTANCE = 30;
 
 /**
  * For passing state between service and view.
@@ -88,14 +91,14 @@ export class SnapService {
         if (window) {
             const group: SnapGroup = window.getGroup();
 
-            const offset = this.calculateOffset(window);
+            const offset = this.calculateUndockMoveDirection(window);
 
             window.setGroup(this.addGroup());
 
-            window.offsetBy({x: Math.sign(offset.x ? offset.x : 1) * UNDOCK_MOVE_SCALE, y: Math.sign(offset.y ? offset.y : 1) * UNDOCK_MOVE_SCALE});
+            window.offsetBy({x: Math.sign(offset.x ? offset.x : 1) * UNDOCK_MOVE_DISTANCE, y: Math.sign(offset.y ? offset.y : 1) * UNDOCK_MOVE_DISTANCE});
 
             // Revalidate the group after undocking (should handle e.g. window in middle of group being removed)
-            group.onModified.emit(group, window);
+            this.validateGroup(group, window);
         }
     }
 
@@ -113,7 +116,7 @@ export class SnapService {
 
     /**
      * Explodes a group. All windows in the group are unlocked.
-     * @param groupMember A window which is a member of the group to be exploded.
+     * @param targetWindow A window which is a member of the group to be exploded.
      */
     public explodeGroup(targetWindow: {uuid: string; name: string}): void {
         // NOTE: Since there is currently not a schema to identify a group, this method
@@ -122,13 +125,7 @@ export class SnapService {
 
         // Get the group containing the targetWindow
         const group: SnapGroup|undefined = this.groups.find((g) => {
-            const windows = g.windows;
-            return windows
-                       .filter((w) => {
-                           const identity = w.getIdentity();
-                           return targetWindow.uuid === identity.uuid && targetWindow.name === identity.name;
-                       })
-                       .length > 0;
+            return g.windows.findIndex(w => w.getIdentity().uuid === targetWindow.uuid && w.getIdentity().name === targetWindow.name) >= 0;
         });
 
 
@@ -140,7 +137,7 @@ export class SnapService {
             const offsets: Point[] = [];
             for (let index = 0; index < windows.length; index++) {
                 const window = windows[index];
-                const offset = this.calculateOffset(window);
+                const offset = this.calculateUndockMoveDirection(window);
                 offsets[index] = offset;
             }
 
@@ -150,7 +147,7 @@ export class SnapService {
                 window.setGroup(this.addGroup());
                 // Apply previously calculated offset
                 const offset = offsets[index];
-                window.offsetBy({x: Math.sign(offset.x) * 0.5 * UNDOCK_MOVE_SCALE, y: Math.sign(offset.y) * 0.5 * UNDOCK_MOVE_SCALE});
+                window.offsetBy({x: Math.sign(offset.x) * 0.5 * UNDOCK_MOVE_DISTANCE, y: Math.sign(offset.y) * 0.5 * UNDOCK_MOVE_DISTANCE});
             }
         }
     }
@@ -290,7 +287,7 @@ export class SnapService {
         this.view.update(null, null);
     }
 
-    private calculateOffset(window: SnapWindow): Point {
+    private calculateUndockMoveDirection(window: SnapWindow): Point {
         const group = window.getGroup();
         const totalOffset: Point = {x: 0, y: 0};
         for (const groupedWindow of group.windows) {

@@ -60,11 +60,11 @@ module.exports = (mode) => webpack(mode === 'production' ? {
         new CopyWebpackPlugin([{
             from: './resources/SnapDockService/app.template.json',
             to: 'SnapDockService/app.json',
-            transform: transform(process.env.OF_RUNTIME_VERSION || 'canary', 'http://localhost:1337/SnapDockService/provider.html', mode === 'development')
+            transform: transform(process.env.OF_RUNTIME_VERSION || 'alpha', 'http://localhost:1337/SnapDockService/provider.html', mode === 'development')
         },{
             from: './resources/LayoutsService/app.template.json',
             to: 'LayoutsService/app.json',
-            transform: transform(process.env.PROD_LAYOUTSMANAGER_RUNTIME_VERSION || 'canary', 'http://localhost:1337/LayoutsService/provider.html', mode === 'development')
+            transform: transform(process.env.PROD_LAYOUTSMANAGER_RUNTIME_VERSION || 'alpha', 'http://localhost:1337/LayoutsService/provider.html', mode === 'development')
         }]),
     ],
     mode: 'development'

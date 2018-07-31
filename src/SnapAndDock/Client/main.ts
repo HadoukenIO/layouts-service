@@ -50,6 +50,10 @@ export const deregister = exportClientFunction(clientP, (client: ServiceClient) 
                               await client.dispatch('deregister', identity);
                           }) as (identity?: ServiceIdentity) => Promise<void>;
 
+export const explodeGroup = exportClientFunction(clientP, (client: ServiceClient) => async (identity: ServiceIdentity = getId()) => {
+                                await client.dispatch('explode', identity);
+                            }) as (identity?: ServiceIdentity) => Promise<void>;
+
 /**
  * Registers an event listener for grouping events
  * @param {GroupEventType} eventType Event to be subscribed to. Valid options are 'join-snap-group' and 'leave-snap-group'

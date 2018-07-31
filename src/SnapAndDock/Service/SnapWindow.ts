@@ -21,7 +21,7 @@ export interface WindowState extends Rectangle {
     opacity: number;
 }
 
-interface WindowIdentity extends fin.OpenFinIdentity {
+export interface WindowIdentity extends fin.OpenFinIdentity {
     uuid: string;
     name: string;
 }

@@ -1,6 +1,6 @@
 import {SnapGroup} from './SnapGroup';
 import {SnapService} from './SnapService';
-import {SnapWindow} from './SnapWindow';
+import {SnapWindow, WindowIdentity} from './SnapWindow';
 import {win10Check} from './utils/platform';
 
 interface ServiceWindow extends Window {
@@ -16,11 +16,14 @@ async function init() {
 
 async function registerService() {
     const providerChannel = await fin.desktop.Service.register();
-    providerChannel.register('undock', (identity) => {
+    providerChannel.register('undock', (identity: WindowIdentity) => {
         (window as ServiceWindow).service.undock(identity);
     });
-    providerChannel.register('deregister', (identity) => {
+    providerChannel.register('deregister', (identity: WindowIdentity) => {
         (window as ServiceWindow).service.deregister(identity);
+    });
+    providerChannel.register('explode', (identity: WindowIdentity) => {
+        (window as ServiceWindow).service.explodeGroup(identity);
     });
 
     // Register listeners for window added/removed signals

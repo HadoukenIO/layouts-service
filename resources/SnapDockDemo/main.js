@@ -11,3 +11,8 @@ btn.innerText = 'Undock'
 btn.onclick = () => window.Layouts.undock()
 btn.style = '-webkit-app-region: no-drag'
 document.body.appendChild(btn)
+const explodeBtn = document.createElement('button')
+explodeBtn.innerText = 'Explode'
+explodeBtn.onclick = () => window.Layouts.explodeGroup()
+explodeBtn.style = '-webkit-app-region: no-drag'
+document.body.appendChild(explodeBtn)

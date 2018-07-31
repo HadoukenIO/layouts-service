@@ -19,7 +19,7 @@ module.exports = (mode) => webpack(mode === 'production' ? {
         'layoutsManager/client': './build/src/Layouts/Client/global.js'
     }, // file extension after index is optional for .js files
     output: {
-        path: path.resolve('dist'),
+        path: path.resolve('build'),
         filename: '[name].js'
     },
     plugins: [
@@ -52,7 +52,7 @@ module.exports = (mode) => webpack(mode === 'production' ? {
         'LayoutsService/client/global': './build/src/Layouts/Client/global.js'
     }, // file extension after index is optional for .js files
     output: {
-        path: path.resolve('dist'),
+        path: path.resolve('build'),
         filename: '[name].js'
     },
     plugins: [

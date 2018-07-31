@@ -128,7 +128,7 @@ export class SnapService {
             return g.windows.findIndex(w => w.getIdentity().uuid === targetWindow.uuid && w.getIdentity().name === targetWindow.name) >= 0;
         });
 
-// Exploding only makes sense if there is more than one window in the group.
+        // Exploding only makes sense if there is more than one window in the group.
         if (group && group.length > 1) {
             const windows = group.windows;
             // Determine the offset for each window before modifying and window state

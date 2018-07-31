@@ -1,6 +1,6 @@
 import { TabAPIActions, TabApiEvents, TabAPIInteractionMessage, TabProperties } from "../../shared/types";
-import { TabbingApiWindowActions } from "./TabbingApiWindowActions";
 import { Api } from "./Api";
+import { TabbingApiWindowActions } from "./TabbingApiWindowActions";
 
 /**
  * @description Interface to outline shape of event listeners for storage
@@ -14,29 +14,26 @@ interface EventListener {
  * @class Client tabbing API
  */
 export class TabbingApi extends Api {
+	/**
+	 * @private
+	 * @description Class that holds window events
+	 */
+	private mWindowActions = new TabbingApiWindowActions(super.sendAction);
 
-    /**
-     * @private
-     * @description Class that holds window events
-     */
-    private mWindowActions = new TabbingApiWindowActions(super.sendAction);
-
-	
-
-    /**
-     * @public
-     * @function windowActions Property for getting the window action object
-     */
-    public get windowActions(): TabbingApiWindowActions {
-        return this.mWindowActions;
-    }
+	/**
+	 * @public
+	 * @function windowActions Property for getting the window action object
+	 */
+	public get windowActions(): TabbingApiWindowActions {
+		return this.mWindowActions;
+	}
 
 	/**
 	 * @constructor
 	 * @description Constructor for the TabbingApi class
 	 */
-    constructor() {
-        super();
+	constructor() {
+		super();
 	}
 
 	/**
@@ -94,8 +91,8 @@ export class TabbingApi extends Api {
 	 * @param event The Api event to listen to
 	 * @param callback callback to handle the data received
 	 */
-    public addEventListener<T>(event: TabApiEvents, callback: (message: T) => void): void {
-        super.addEventListener(event, callback);
+	public addEventListener<T>(event: TabApiEvents, callback: (message: T) => void): void {
+		super.addEventListener(event, callback);
 	}
 
 	/**
@@ -126,8 +123,8 @@ export class TabbingApi extends Api {
 	 * @param event The api event that is being listened to
 	 * @param callback The callback registered to the event
 	 */
-    public removeEventListener<T>(event: TabApiEvents, callback: (message: T) => void): void {
-        super.removeEventListener(event, callback);
+	public removeEventListener<T>(event: TabApiEvents, callback: (message: T) => void): void {
+		super.removeEventListener(event, callback);
 	}
 
 	/**

@@ -1,4 +1,3 @@
-import { isNumber } from "util";
 import { TabWindowOptions } from "../../shared/types";
 import { AsyncWindow } from "./asyncWindow";
 import { TabGroup } from "./TabGroup";
@@ -19,10 +18,10 @@ export class GroupWindow extends AsyncWindow {
 
 		const windowOptionsSanitized: TabWindowOptions = {
 			url: windowOptions.url || "http://localhost:9001/tab-ui/",
-			width: windowOptions.width && isNumber(windowOptions.width) ? windowOptions.width : undefined,
-			height: windowOptions.height && isNumber(windowOptions.height) ? windowOptions.height : 62,
-			screenX: windowOptions.screenX && isNumber(windowOptions.screenX) ? windowOptions.screenX : undefined,
-			screenY: windowOptions.screenY && isNumber(windowOptions.screenY) ? windowOptions.screenY : undefined
+			width: windowOptions.width && !isNaN(windowOptions.width) ? windowOptions.width : undefined,
+			height: windowOptions.height && !isNaN(windowOptions.height) ? windowOptions.height : 62,
+			screenX: windowOptions.screenX && !isNaN(windowOptions.screenX) ? windowOptions.screenX : undefined,
+			screenY: windowOptions.screenY && !isNaN(windowOptions.screenY) ? windowOptions.screenY : undefined
 		};
 
 		this._initialWindowOptions = windowOptionsSanitized;

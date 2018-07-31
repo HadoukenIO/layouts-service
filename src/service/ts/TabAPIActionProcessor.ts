@@ -23,7 +23,7 @@ export class TabAPIActionProcessor {
 	}
 
 	/**
-     * @public
+	 * @public
 	 * @function init Initialises the TabAPIActionProcessor
 	 */
 	public init(): void {
@@ -31,7 +31,7 @@ export class TabAPIActionProcessor {
 	}
 
 	/**
-     * @private
+	 * @private
 	 * @function process Processes the tab action
 	 * @param message The payload the tab api sent
 	 * @param uuid uuid of the sender
@@ -39,7 +39,7 @@ export class TabAPIActionProcessor {
 	 */
 	private process(message: TabAPIMessage, uuid: string, name: string): void {
 		const tabGroup: TabGroup | undefined = this.mTabService.getTabGroup(name);
-
+		console.log(message);
 		if (!tabGroup) {
 			console.error("No tab group has been found wit hthe name");
 			return;
@@ -100,9 +100,17 @@ export class TabAPIActionProcessor {
 			tabProps: applicationToAttach.properties
 		};
 
+		const existingTab = await this.mTabService.getTab({ uuid: tabPackage.tabID.uuid, name: tabPackage.tabID.name });
+
+		if (existingTab) {
+			await existingTab.tabGroup.removeTab({ uuid: tabPackage.tabID.uuid, name: tabPackage.tabID.name }, false, true);
+		}
+
 		const addedTab: Tab = await tabGroup.addTab(tabPackage);
 
 		await addedTab.window.alignPositionToTabGroup();
+
+		await tabGroup.switchTab({ uuid: tabPackage.tabID.uuid, name: tabPackage.tabID.name });
 	}
 
 	/**

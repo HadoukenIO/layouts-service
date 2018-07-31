@@ -78,6 +78,5 @@ export async function initializeTab(message: TabWindowOptions, uuid: string, nam
 	}
 
 	group.window.finWindow.show();
-
-	group.setActiveTab(tab);
+	group.switchTab({ uuid, name });
 }

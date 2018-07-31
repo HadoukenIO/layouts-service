@@ -6,14 +6,16 @@
 
 <body>
     <button onclick="newApplication()">New Application</button>
-    <button onclick="newWindow()">New Window</button>
+    <button onclick="newApplication2()">New Window</button>
     <script src="dist/service-bundle.js"></script>
 
     <script>
+        let appCount = 0;
+
         function newApplication() {
-            const uuid = `App${Math.random() * 1000}`
+            const uuid = `App${appCount}`
             const app = new fin.desktop.Application({
-                url: "https://google.com", 
+                url: "http://localhost:9001/demo/App3.html", 
                 uuid: uuid, 
                 name: uuid,
                 mainWindowOptions: {
@@ -27,14 +29,16 @@
             },
                 () => {
                     app.run();
+                    appCount++;
                 }
             );
         }
 
         function newApplication2() {
-            const uuid = `App${Math.random() * 1000}`
+            const uuid = `App${appCount}`;
+
             const app = new fin.desktop.Application({
-                url: "http://localhost:9001/demo/App2.html", 
+                url: "http://localhost:9001/demo/App3.html", 
                 uuid: uuid, 
                 name: uuid,
                 mainWindowOptions: {
@@ -42,15 +46,18 @@
                     defaultHeight: 300,
                     saveWindowState: false,
                     autoShow: true,
-                    defaultCentered: true
-                    // preloadScripts: [{url: "http://localhost:9001/client/dist/client-bundle.js"}]
+                    defaultCentered: true,
+                    preloadScripts: [{url: "http://localhost:9001/client/dist/client-bundle.js"}]
+
                 }
             },
                 () => {
                     app.run();
+                    appCount++;
                 }
             );
         }
+
     </script>
 </body>
 

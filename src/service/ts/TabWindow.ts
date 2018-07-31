@@ -88,15 +88,11 @@ export class TabWindow extends AsyncWindow {
 	}
 
 	private async _onMinimize() {
-		if (this._tab === this._tabGroup.activeTab) {
-			await this._tabGroup.window.minimizeGroup();
-		}
+		this._tabGroup.window.minimizeGroup();
 	}
 
 	private _onMaximize() {
-		if (this._tab === this._tabGroup.activeTab) {
-			this._tabGroup.window.maximizeGroup();
-		}
+		this._tabGroup.window.maximizeGroup();
 	}
 
 	private _onRestore() {
@@ -108,9 +104,7 @@ export class TabWindow extends AsyncWindow {
 	}
 
 	private _onClose() {
-		if (this._tab === this._tabGroup.activeTab) {
-			this._tabGroup.removeTab(this._tab.ID, false, true);
-		}
+		this._tabGroup.removeTab(this._tab.ID, false, true);
 	}
 
 	private _onFocus() {

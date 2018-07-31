@@ -7,7 +7,6 @@
 
 <body>
     <div id="drag-region" class="drag"></div>
-    <div id="drag-shield"></div>
     <div id="tabs-container">
         <div id="tabs">
         </div>
@@ -15,11 +14,11 @@
     </div>
 
     <div id="window-button-wrap">
-        <div id="window-button-minimize" onclick="WindowManager.minimize()">
+        <div id="window-button-minimize" onclick="Tab.windowActions.minimize()">
         </div>
-        <div id="window-button-maximize" onclick="WindowManager.toggleMaximize()">
+        <div id="window-button-maximize" onclick="Tab.windowActions.maximize()">
         </div>
-        <div id="window-button-exit" onclick="WindowManager.exit()">
+        <div id="window-button-exit" onclick="Tab.windowActions.close()">
         </div>
     </div>
 
@@ -42,6 +41,8 @@
         
         <!-- End Edits -->
     </template>
+
+    <script src="dist/ui-bundle.js"></script>
 </body>
 
 

@@ -16,3 +16,6 @@ class Client {
 }
 
 (window as Window & { TabClient: Client }).TabClient = new Client();
+
+// @ts-ignore
+window.TabClient.init();

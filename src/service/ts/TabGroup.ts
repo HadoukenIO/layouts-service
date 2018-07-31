@@ -62,22 +62,33 @@ export class TabGroup {
 	public async deregisterTab(ID: TabIndentifier) {
 		await this.removeTab(ID, false);
 
-		await this.window.updateWindowOptions({ frame: true });
+		const tab = this.getTab(ID);
+
+		if (tab) {
+			await tab.window.updateWindowOptions({ frame: true });
+		}
 	}
 
 	public async removeTab(tabID: TabIndentifier, closeApp: boolean, closeGroupWindowCheck: boolean = false) {
 		const index: number = this.getTabIndex(tabID);
 
-		if (index !== -1) {
-			await this._tabs[index].remove(closeApp);
-			this._tabs.splice(index, 1);
+		if (index === -1) {
+			console.error("No tab with ID: " + tabID + " found in group.");
+			return;
 		}
+		const tabIndex = this._tabs[index];
+		this._tabs.splice(index, 1);
+
+		await tabIndex.remove(closeApp);
 
 		if (closeGroupWindowCheck) {
 			if (this._tabs.length === 0) {
-				TabService.INSTANCE.removeTabGroup(this.ID, true);
+				await TabService.INSTANCE.removeTabGroup(this.ID, true);
+				return;
 			}
 		}
+
+		this.switchTab({ uuid: this._tabs[0].ID.uuid, name: this._tabs[0].ID.name });
 	}
 
 	public async switchTab(ID: TabIndentifier) {
@@ -99,11 +110,12 @@ export class TabGroup {
 		// 	await this.removeTab(tab.ID, closeApp);
 		// });
 
-		return Promise.all(
-			this._tabs.slice().map(tab => {
-				this.removeTab(tab.ID, closeApp);
-			})
-		);
+		const refArray = this._tabs.slice();
+		const refArrayMap = refArray.map(tab => {
+			this.removeTab(tab.ID, closeApp);
+		});
+
+		return Promise.all(refArrayMap);
 	}
 
 	/**

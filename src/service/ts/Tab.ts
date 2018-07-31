@@ -25,7 +25,7 @@ export class Tab {
 
 		this._tabProperties = this._loadTabProperties();
 
-		fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, this._tabGroup.ID, TabApiEvents.TABADDED, this._tabProperties); // TODO;
+		fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, this._tabGroup.ID, TabApiEvents.TABADDED, { tabID: this.ID, tabProps: this._tabProperties }); // TODO;
 	}
 
 	public async remove(closeApp: boolean) {

@@ -55,7 +55,7 @@ export class AsyncWindow {
 
 	public close(force: boolean): Promise<void> {
 		return new Promise((res, rej) => {
-			this._window.close(force);
+			this._window.close(force, res, rej);
 		});
 	}
 

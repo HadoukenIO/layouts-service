@@ -7,7 +7,7 @@ var path = require('path')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 const transform = require('./templateBuilder')
 
-const PROD_RUNTIME_VERSION = '8.56.30.55'
+const PROD_RUNTIME_VERSION = '9.61.33.32'
 const PROD_LAYOUTSMANAGER_RUNTIME_VERSION = '9.61.33.32'
 
 module.exports = (mode) => webpack(mode === 'production' ? {

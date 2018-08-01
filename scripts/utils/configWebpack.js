@@ -7,8 +7,8 @@ var path = require('path')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 const transform = require('./templateBuilder')
 
-const PROD_RUNTIME_VERSION = '8.56.30.55'
-const PROD_LAYOUTSMANAGER_RUNTIME_VERSION = '9.61.33.15'
+const PROD_RUNTIME_VERSION = '9.61.33.32'
+const PROD_LAYOUTSMANAGER_RUNTIME_VERSION = '9.61.33.32'
 
 module.exports = (mode) => webpack(mode === 'production' ? {
     devtool: 'inline-source-map',
@@ -19,7 +19,7 @@ module.exports = (mode) => webpack(mode === 'production' ? {
         'layoutsManager/client': './build/src/Layouts/Client/global.js'
     }, // file extension after index is optional for .js files
     output: {
-        path: path.resolve('dist'),
+        path: path.resolve('build'),
         filename: '[name].js'
     },
     plugins: [
@@ -52,7 +52,7 @@ module.exports = (mode) => webpack(mode === 'production' ? {
         'LayoutsService/client/global': './build/src/Layouts/Client/global.js'
     }, // file extension after index is optional for .js files
     output: {
-        path: path.resolve('dist'),
+        path: path.resolve('build'),
         filename: '[name].js'
     },
     plugins: [
@@ -60,11 +60,15 @@ module.exports = (mode) => webpack(mode === 'production' ? {
         new CopyWebpackPlugin([{
             from: './resources/SnapDockService/app.template.json',
             to: 'SnapDockService/app.json',
-            transform: transform(process.env.OF_RUNTIME_VERSION || 'canary', 'http://localhost:1337/SnapDockService/provider.html', mode === 'development')
+            transform: transform(process.env.OF_RUNTIME_VERSION || PROD_RUNTIME_VERSION, 'http://localhost:1337/SnapDockService/provider.html', mode === 'development')
         },{
             from: './resources/LayoutsService/app.template.json',
             to: 'LayoutsService/app.json',
-            transform: transform(process.env.PROD_LAYOUTSMANAGER_RUNTIME_VERSION || 'canary', 'http://localhost:1337/LayoutsService/provider.html', mode === 'development')
+            transform: transform(process.env.PROD_LAYOUTSMANAGER_RUNTIME_VERSION || PROD_LAYOUTSMANAGER_RUNTIME_VERSION, 'http://localhost:1337/LayoutsService/provider.html', mode === 'development')
+        },{
+            from: './resources/test/app.template.json',
+            to: 'test/app.json',
+            transform: transform(process.env.OF_RUNTIME_VERSION || PROD_RUNTIME_VERSION, 'http://localhost:1337/test/test.html', false)
         }]),
     ],
     mode: 'development'

@@ -9,7 +9,7 @@ module.exports = (env, argv) => (argv.mode === 'production' ? {
         'parent': './build/src/parent.js',
     }, // file extension after index is optional for .js files
     output: {
-        path: path.join(__dirname, 'dist'),
+        path: path.join(__dirname, 'build'),
         filename: '[name].js'
     },
     plugins: [
@@ -35,7 +35,7 @@ module.exports = (env, argv) => (argv.mode === 'production' ? {
             'parent': './build/src/parent.js',
         }, // file extension after index is optional for .js files
         output: {
-            path: path.join(__dirname, 'dist'),
+            path: path.join(__dirname, 'build'),
             filename: '[name].js'
         },
         plugins: [

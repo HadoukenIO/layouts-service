@@ -3,7 +3,7 @@ const http = require('http')
 const handler =require('serve-handler')
 
 const options = {
-    public: 'dist',
+    public: 'build',
     trailingSlash: true,
     cleanUrls: false,
 }

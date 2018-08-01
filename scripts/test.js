@@ -16,7 +16,7 @@ const cleanup = async res => {
         const cmd = `lsof -n -i4TCP:${port} | grep LISTEN | awk '{ print $2 }' | xargs kill`;
         execa.shellSync(cmd);
     }
-    process.exit(res.code)
+    process.exit((res.failed===true) ? 1 : 0)
 }
 
 const fail = err => {

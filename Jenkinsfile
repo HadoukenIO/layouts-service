@@ -4,6 +4,14 @@ pipeline {
 
     stages {
 
+        stage ('test'){
+            agent { label 'win10-dservices' }
+            steps {
+                bat "npm i"
+                bat "npm test"
+            }
+        }
+
         stage ('build') {
             agent { label 'linux-slave' }
             when { branch "develop" }
@@ -30,15 +38,6 @@ pipeline {
                 sh "npm version --no-git-tag-version " + PREREL_VERSION
                 sh "npm publish --tag alpha"
                 sh "npm version --no-git-tag-version " + VERSION
-            }
-        }
-
-        stage ('test'){
-            agent { label 'win10-dservices' }
-            when { not { branch "develop" } }
-            steps {
-                bat "npm i"
-                bat "npm test"
             }
         }
     }

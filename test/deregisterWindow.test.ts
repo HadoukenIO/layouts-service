@@ -2,11 +2,11 @@ import { test } from 'ava';
 import { dragWindowTo } from './utils/dragWindowTo';
 import { getBounds } from './utils/getBounds';
 import * as robot from 'robotjs';
-import { resizeWindowToSize } from './utils/resizeWindowToSize';
 import { createChildWindow } from './utils/createChildWindow';
 import { Window, Fin } from 'hadouken-js-adapter';
-import { setTimeout } from 'timers';
 import { getConnection } from './utils/connect';
+import { getWindow } from './utils/getWindow';
+import { dragWindowAndHover } from './utils/dragWindowAndHover';
 
 let win1: Window, win2: Window;
 let fin: Fin;
@@ -119,5 +119,45 @@ test('deregister snapped window', async t => {
     // Windows should no longer be snapped.
     t.not(endbounds2.left, endbounds1.left);
     t.not(endbounds2.top, endbounds1.bottom);
+
+});
+
+test('no preview when deregistered - dragging registered', async t => {
+    // Wrap the pre-spawned preview window
+    const previewWin = await getWindow({ name: 'previewWindow-', uuid: 'Layouts-Manager' });
+
+    // Spawn two child windows (one of them deregistered)
+    win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/SnapDockDemo/frameless-window.html', frame: false });
+    win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/SnapDockDemo/frameless-window-deregistered.html', frame: false });
+
+    // Drag and hold the reigstered window next to the deregistered window
+    const win1Bounds = await getBounds(win1);
+    await dragWindowAndHover(win2, win1Bounds.right + 2, win1Bounds.top + 5);
+
+    // The preview window should still be hidden.
+    t.false(await previewWin.isShowing());
+
+    // Drop the window
+    robot.mouseToggle('up');
+
+});
+
+test('no preview when deregistered - dragging deregistered', async t => {
+    // Wrap the pre-spawned preview window
+    const previewWin = await getWindow({ name: 'previewWindow-', uuid: 'Layouts-Manager' });
+
+    // Spawn two child windows (one of them deregistered)
+    win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/SnapDockDemo/frameless-window-deregistered.html', frame: false });
+    win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/SnapDockDemo/frameless-window.html', frame: false });
+
+    // Drag and hold the dereigstered window next to the registered window
+    const win1Bounds = await getBounds(win1);
+    await dragWindowAndHover(win2, win1Bounds.right + 2, win1Bounds.top + 5);
+
+    // The preview window should still be hidden.
+    t.false(await previewWin.isShowing());
+
+    // Drop the window
+    robot.mouseToggle('up');
 
 });

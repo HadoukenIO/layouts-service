@@ -1,4 +1,3 @@
-
 'use strict';
 
 // webpack.config.js
@@ -69,6 +68,11 @@ module.exports = (mode) => webpack(mode === 'production' ? {
             from: './resources/test/app.template.json',
             to: 'test/app.json',
             transform: transform(process.env.OF_RUNTIME_VERSION || PROD_RUNTIME_VERSION, 'http://localhost:1337/test/test.html', false)
+        },
+        {
+            from: './resources/SnapDockDemo/app.template.json',
+            to: 'SnapDockDemo/app.json',
+            transform: transform(process.env.OF_RUNTIME_VERSION || PROD_RUNTIME_VERSION, 'http://localhost:1337/SnapDockDemo/dev.html', true)
         }]),
     ],
     mode: 'development'

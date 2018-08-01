@@ -15,9 +15,13 @@
     },
     "runtime": {
         "arguments": "--v=1 --enable-crash-reporting",
-        "version": "canary"
+        "version": "$PLACEHOLDER"
     },
-    "services": [{"name": "layouts", "manifestUrl": "http://localhost:1337/SnapDockService/app.json"}],
+    "services": [
+        {
+            "name": "layouts", "manifestUrl": "http://localhost:1337/SnapDockService/app.json"
+        }
+    ],
     "shortcut": {
         "company": "OpenFin",
         "description": "Snap-Dock-Demo",

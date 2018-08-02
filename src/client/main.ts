@@ -1,7 +1,7 @@
 import * as Mousetrap from 'mousetrap';
 
 import {Client as ServiceClient} from 'hadouken-js-adapter/out/types/src/api/services/client';
-import {Layout, LayoutApp, LayoutName} from '../types';
+import {Layout, LayoutApp, LayoutName} from './types';
 import { Identity } from 'hadouken-js-adapter';
 
 const IDENTITY = {uuid: 'Layout-Manager', name: 'Layout-Manager'};

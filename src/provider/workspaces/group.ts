@@ -2,7 +2,7 @@
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {promiseMap} from '../snapanddock/utils/async';
-import {LayoutApp, WindowState} from '../../types';
+import {LayoutApp, WindowState} from '../../client/types';
 
 // tslint:disable-next-line:no-any
 declare var fin: any;

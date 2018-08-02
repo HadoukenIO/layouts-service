@@ -2,7 +2,7 @@ import {Window, Application} from 'hadouken-js-adapter';
 import Fin from 'hadouken-js-adapter/out/types/src/api/fin';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 import { ServiceIdentity } from 'hadouken-js-adapter/out/types/src/api/services/channel';
-import { LayoutApp } from '../types';
+import { LayoutApp } from '../client/types';
 
 import * as Layouts from '../client/main';
 

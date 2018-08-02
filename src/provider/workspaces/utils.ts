@@ -3,7 +3,7 @@ import Fin from 'hadouken-js-adapter/out/types/src/api/fin';
 import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/system/application';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
-import {LayoutApp, WindowState} from '../../types';
+import {LayoutApp, WindowState} from '../../client/types';
 
 // tslint:disable-next-line:no-any
 declare var fin: any;

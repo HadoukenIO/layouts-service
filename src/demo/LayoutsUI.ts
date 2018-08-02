@@ -2,7 +2,7 @@ import * as Layouts from '../client/main';
 import { Application } from 'hadouken-js-adapter';
 import { ServiceIdentity } from 'hadouken-js-adapter/out/types/src/api/services/channel';
 import { _Window } from 'hadouken-js-adapter/out/types/src/api/window/window';
-import { LayoutApp } from '../types';
+import { LayoutApp } from '../client/types';
 
 //tslint:disable-next-line:no-any
 declare var fin: any;

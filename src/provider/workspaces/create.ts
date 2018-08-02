@@ -3,7 +3,7 @@ import Fin from 'hadouken-js-adapter/out/types/src/api/fin';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {promiseMap} from '../snapanddock/utils/async';
-import {Layout, LayoutApp, LayoutName, WindowState} from '../../types';
+import {Layout, LayoutApp, LayoutName, WindowState} from '../../client/types';
 
 import {getGroup} from './group';
 import {providerChannel} from '../main';

@@ -1,4 +1,4 @@
-import {Layout, LayoutName} from '../../types';
+import {Layout, LayoutName} from '../../client/types';
 
 import {providerChannel} from '../main';
 /*tslint:disable:no-any*/

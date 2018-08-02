@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "rootDir": ".",
+    "rootDir": "src/client",
     "outDir": "module_dist",
     "target": "es2017",
     "module": "commonjs",

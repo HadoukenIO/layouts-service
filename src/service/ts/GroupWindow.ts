@@ -27,12 +27,12 @@ export class GroupWindow extends AsyncWindow {
 		this._initialWindowOptions = windowOptionsSanitized;
 	}
 
-	public async init() {
+	public async init(): Promise<void> {
 		this._window = await this._createTabWindow();
 		this._createWindowEventListeners();
 	}
 
-	public async alignPositionToApp(app: TabWindow) {
+	public async alignPositionToApp(app: TabWindow): Promise<void> {
 		const win: fin.OpenFinWindow = app.finWindow;
 		const bounds = await app.getWindowBounds();
 
@@ -45,7 +45,7 @@ export class GroupWindow extends AsyncWindow {
 		});
 	}
 
-	public async maximizeGroup() {
+	public async maximizeGroup(): Promise<void> {
 		this._beforeMaximizeBounds = await this._tabGroup.activeTab.window.getWindowBounds();
 
 		const moveto = this.moveTo(0, 0);
@@ -56,7 +56,7 @@ export class GroupWindow extends AsyncWindow {
 		this._isMaximized = true;
 	}
 
-	public async restoreGroup() {
+	public async restoreGroup(): Promise<void> {
 		if (this._isMaximized) {
 			const resize = this._tabGroup.activeTab.window.resizeTo(this._beforeMaximizeBounds.width!, this._beforeMaximizeBounds.height!, "top-left");
 			const moveto = this._tabGroup.window.moveTo(this._beforeMaximizeBounds.left!, this._beforeMaximizeBounds.top!);
@@ -69,7 +69,7 @@ export class GroupWindow extends AsyncWindow {
 		}
 	}
 
-	public async minimizeGroup() {
+	public async minimizeGroup(): Promise<void> {
 		const activetab = new Promise(async (res, rej) => {
 			if ((await this._tabGroup.activeTab.window.getState()) !== "minimized") {
 				this._tabGroup.activeTab.window.finWindow.minimize(res, rej);
@@ -85,21 +85,21 @@ export class GroupWindow extends AsyncWindow {
 		await Promise.all([activetab, group]);
 	}
 
-	public async closeGroup() {
+	public async closeGroup(): Promise<void> {
 		await this._service.removeTabGroup(this._tabGroup.ID, true);
 	}
 
-	protected _createWindowEventListeners() {
+	protected _createWindowEventListeners(): void {
 		this._window.addEventListener("focused", () => {
 			this._tabGroup.activeTab.window.finWindow.bringToFront();
 		});
 	}
 
-	public get isMaximized() {
+    public get isMaximized(): boolean {
 		return this._isMaximized;
 	}
 
-	public set isMaximized(maximized: boolean) {
+    public set isMaximized(maximized: boolean) {
 		this._isMaximized = maximized;
 	}
 
@@ -124,7 +124,7 @@ export class GroupWindow extends AsyncWindow {
 				() => {
 					res(win);
 				},
-				e => {
+				(e) => {
 					rej(e);
 				}
 			);

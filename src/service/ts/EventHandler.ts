@@ -1,6 +1,7 @@
 import { ServiceIABTopics, TabIndentifier, TabPackage, TabProperties, TabWindowOptions } from "../../shared/types";
 import { TabService } from "./TabService";
 import { ejectTab, initializeTab } from "./TabUtilities";
+import { TabGroup } from "./TabGroup";
 
 /**
  * @class Handles events coming from the application
@@ -39,8 +40,8 @@ export class EventHandler {
      * @private
      * @function _onMonitorInfoChanged For each group tab we realign all the apps when there is a change in monitor information
      */
-	private async _onMonitorInfoChanged(): Promise<void> {
-		this._service.tabGroups.forEach(group => {
+    private async _onMonitorInfoChanged(): Promise<void> {
+        this._service.tabGroups.forEach((group: TabGroup) => {
 			group.realignApps();
 		});
 	}
@@ -65,7 +66,7 @@ export class EventHandler {
      * @param uuid The uuid of the application to initialise tabbing on
      * @param name The name of the application to initialise tabbing on
      */
-	private async _onClientInit(message: TabWindowOptions, uuid: string, name: string) {
+	private async _onClientInit(message: TabWindowOptions, uuid: string, name: string): Promise<void> {
 		initializeTab(message, uuid, name, this._service);
 	}
 
@@ -74,7 +75,7 @@ export class EventHandler {
      * @function _onTabEjected Eject tab when a message comes in based on the payload
      * @param message TabIdentifier and tab window options
      */
-	private async _onTabEjected(message: TabIndentifier & TabWindowOptions) {
+	private async _onTabEjected(message: TabIndentifier & TabWindowOptions): Promise<void> {
 		ejectTab(this._service, message);
 	}
 }

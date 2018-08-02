@@ -5,6 +5,14 @@ import { Tab } from "./Tab";
 import { TabAPIActionProcessor } from "./TabAPIActionProcessor";
 import { TabGroup } from "./TabGroup";
 
+interface GroupInfo {
+    group: TabGroup,
+    top: number,
+    left: number,
+    width: number,
+    height: number
+}
+
 export class TabService {
 	public static INSTANCE: TabService;
 	private _tabGroups: TabGroup[];
@@ -22,7 +30,7 @@ export class TabService {
 
 	}
 
-	public async addTabGroup(windowOptions: TabWindowOptions) {
+    public async addTabGroup(windowOptions: TabWindowOptions): Promise<TabGroup> {
 		const group = new TabGroup(windowOptions);
 		await group.init();
 
@@ -31,7 +39,7 @@ export class TabService {
 		return group;
 	}
 
-	public async removeTabGroup(ID: string, closeApps: boolean) {
+	public async removeTabGroup(ID: string, closeApps: boolean): Promise<void> {
 		const group = this.getTabGroup(ID);
 
 		if (group) {
@@ -66,8 +74,8 @@ export class TabService {
 	}
 
 	public async isPointOverTabGroup(x: number, y: number): Promise<TabGroup | null> {
-		const groupTabBounds = await Promise.all(
-			this._tabGroups.map(async group => {
+        const groupTabBounds = await Promise.all(
+            this._tabGroups.map(async (group: TabGroup) => {
 				const activeTabBounds = await group.activeTab.window.getWindowBounds();
 				const groupBounds = await group.window.getWindowBounds();
 
@@ -81,7 +89,7 @@ export class TabService {
 			})
 		);
 
-		const result = groupTabBounds.find(group => {
+        const result: GroupInfo | undefined = groupTabBounds.find((group: GroupInfo) => {
 			return x > group.left && x < group.width + group.left && y > group.top && y < group.top + group.height;
 		});
 
@@ -92,7 +100,7 @@ export class TabService {
 		}
 	}
 
-	public get tabGroups() {
+    public get tabGroups(): TabGroup[] {
 		return this._tabGroups;
 	}
 }

@@ -2,9 +2,9 @@ import { TabAPIMessage, TabAPIWindowActions } from "../../shared/types";
 
 export class TabbingApiWindowActions {
 
-    private mSendAction: Function;
+    private mSendAction: (payload: TabAPIMessage) => void;
 
-    constructor(sendAction: Function) {
+    constructor(sendAction: (payload: TabAPIMessage) => void) {
         this.mSendAction = sendAction;
     }
 

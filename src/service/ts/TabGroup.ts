@@ -29,11 +29,11 @@ export class TabGroup {
 		this._windowOptions = windowOptionsSanitized;
 	}
 
-	public async init() {
+	public async init(): Promise<void> {
 		await this._window.init();
 	}
 
-	public async addTab(tabPackage: TabPackage) {
+	public async addTab(tabPackage: TabPackage): Promise<Tab> {
 		const tab = new Tab(tabPackage, this);
 		this._tabs.push(tab);
 		await tab.init();
@@ -59,7 +59,7 @@ export class TabGroup {
 		);
 	}
 
-	public async deregisterTab(ID: TabIndentifier) {
+	public async deregisterTab(ID: TabIndentifier): Promise<void> {
 		await this.removeTab(ID, false);
 
 		const tab = this.getTab(ID);
@@ -69,7 +69,7 @@ export class TabGroup {
 		}
 	}
 
-	public async removeTab(tabID: TabIndentifier, closeApp: boolean, closeGroupWindowCheck: boolean = false) {
+	public async removeTab(tabID: TabIndentifier, closeApp: boolean, closeGroupWindowCheck: boolean = false): Promise<void> {
 		const index: number = this.getTabIndex(tabID);
 
 		if (index === -1) {
@@ -91,7 +91,7 @@ export class TabGroup {
 		this.switchTab({ uuid: this._tabs[0].ID.uuid, name: this._tabs[0].ID.name });
 	}
 
-	public async switchTab(ID: TabIndentifier) {
+	public async switchTab(ID: TabIndentifier): Promise<void> {
 		const tab = this.getTab(ID);
 
 		if (tab && tab !== this._activeTab) {
@@ -105,7 +105,7 @@ export class TabGroup {
 		}
 	}
 
-	public async removeAllTabs(closeApp: boolean) {
+	public async removeAllTabs(closeApp: boolean): Promise<void[]> {
 		// this._tabs.slice().forEach(async tab => {
 		// 	await this.removeTab(tab.ID, closeApp);
 		// });
@@ -129,7 +129,7 @@ export class TabGroup {
 		});
 	}
 
-	public setActiveTab(tab: Tab) {
+	public setActiveTab(tab: Tab): void {
 		this._activeTab = tab;
 		fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, this.ID, TabApiEvents.TABACTIVATED, tab.ID);
 	}
@@ -140,19 +140,19 @@ export class TabGroup {
 		});
 	}
 
-	public get initialWindowOptions() {
+    public get initialWindowOptions(): TabWindowOptions {
 		return this._windowOptions;
 	}
 
-	public get activeTab() {
+    public get activeTab(): Tab {
 		return this._activeTab;
 	}
 
-	public get window() {
+    public get window(): GroupWindow {
 		return this._window;
 	}
 
-	public get tabs() {
+	public get tabs(): Tab[] {
 		return this._tabs;
 	}
 }

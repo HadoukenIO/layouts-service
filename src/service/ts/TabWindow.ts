@@ -17,7 +17,7 @@ export class TabWindow extends AsyncWindow {
 		this._window = fin.desktop.Window.wrap(tabID.uuid, tabID.name);
 	}
 
-	async init() {
+	public async init(): Promise<void> {
 		this._initialWindowOptions = await this.getWindowOptions();
 		this._initialWindowBounds = await this.getWindowBounds();
 
@@ -27,7 +27,7 @@ export class TabWindow extends AsyncWindow {
 		this._createWindowEventListeners();
 	}
 
-	public async hide() {
+    public async hide(): Promise<{}> {
 		return new Promise((res, rej) => {
 			this._window.updateOptions(
 				{
@@ -39,7 +39,7 @@ export class TabWindow extends AsyncWindow {
 		});
 	}
 
-	public async show() {
+    public async show(): Promise<{}> {
 		return new Promise((res, rej) => {
 			this._window.updateOptions(
 				{
@@ -51,7 +51,7 @@ export class TabWindow extends AsyncWindow {
 		});
 	}
 
-	async alignPositionToTabGroup() {
+	public async alignPositionToTabGroup(): Promise<void> {
 		const groupWindow = this._tab.tabGroup.window;
 		const groupActiveTab = this._tab.tabGroup.activeTab;
 
@@ -71,7 +71,7 @@ export class TabWindow extends AsyncWindow {
 		});
 	}
 
-	protected _createWindowEventListeners() {
+	protected _createWindowEventListeners(): void {
 		// TODO: Add Window Close/minimize/maximize etc events.
 
 		this._window.addEventListener("minimized", this._onMinimize.bind(this));
@@ -87,35 +87,35 @@ export class TabWindow extends AsyncWindow {
 		this._window.addEventListener("bounds-changed", this._onBoundsChanged.bind(this));
 	}
 
-	private async _onMinimize() {
-		this._tabGroup.window.minimizeGroup();
+	private _onMinimize(): Promise<void> {
+		return this._tabGroup.window.minimizeGroup();
 	}
 
-	private _onMaximize() {
-		this._tabGroup.window.maximizeGroup();
+	private _onMaximize(): Promise<void> {
+		return this._tabGroup.window.maximizeGroup();
 	}
 
-	private _onRestore() {
+	private _onRestore(): Promise<void> {
 		if (this._tab === this._tabGroup.activeTab) {
-			this._tabGroup.window.restoreGroup();
+			return this._tabGroup.window.restoreGroup();
 		} else {
-			this._tabGroup.switchTab(this._tab.ID);
+			return this._tabGroup.switchTab(this._tab.ID);
 		}
 	}
 
-	private _onClose() {
-		this._tabGroup.removeTab(this._tab.ID, false, true);
+	private _onClose(): Promise<void> {
+		return this._tabGroup.removeTab(this._tab.ID, false, true);
 	}
 
-	private _onFocus() {
+    private _onFocus(): Promise<void> | void {
 		if (this._tab !== this._tabGroup.activeTab) {
-			this._tabGroup.switchTab(this._tab.ID);
+			return this._tabGroup.switchTab(this._tab.ID);
 		}
 
 		this._tabGroup.window.finWindow.bringToFront();
 	}
 
-	private _onBoundsChanged() {
+	private _onBoundsChanged(): void {
 		if (this._tab === this._tabGroup.activeTab) {
 			if (this._tabGroup.window.isMaximized) {
 				console.log("in on bounds changed");
@@ -124,7 +124,7 @@ export class TabWindow extends AsyncWindow {
 		}
 	}
 
-	get windowOptions() {
+	public get windowOptions(): fin.WindowOptions {
 		return this._initialWindowOptions;
 	}
 }

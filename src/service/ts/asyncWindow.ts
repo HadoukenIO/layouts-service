@@ -22,7 +22,7 @@ export class AsyncWindow {
 		});
 	}
 
-	public resizeTo(width: number, height: number, anchor: fin.OpenFinAnchor) {
+    public resizeTo(width: number, height: number, anchor: fin.OpenFinAnchor): Promise<{}> {
 		return new Promise((res, rej) => {
 			this._window.resizeTo(width, height, anchor, res, rej);
 		});
@@ -71,14 +71,10 @@ export class AsyncWindow {
 		});
 	}
 
-	public leaveGroup() {
-		return new Promise((res, rej) => {
-			this._window.leaveGroup(res, res);
+    public leaveGroup(): Promise<void> {
+        return new Promise((res, rej) => {
+			this._window.leaveGroup(res, rej);
 		});
-	}
-
-	protected _createWindowEventListeners() {
-		//
 	}
 
 	public get finWindow() {

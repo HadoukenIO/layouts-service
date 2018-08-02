@@ -13,7 +13,7 @@ import { TabService } from "./TabService";
 export async function ejectTab(tabService: TabService, message: TabIndentifier & TabWindowOptions, tabGroup?: TabGroup | undefined): Promise<void> {
 	const ejectedTab: Tab | undefined = tabGroup ? tabGroup.getTab({ name: message.name, uuid: message.uuid }) : tabService.getTab({ uuid: message.uuid, name: message.name });
 
-	let isOverTabWindowResult = null;
+	let isOverTabWindowResult: TabGroup | null = null;
 
 	if (!ejectedTab) {
 		return;
@@ -68,8 +68,8 @@ export async function initializeTab(message: TabWindowOptions, uuid: string, nam
 		return;
 	}
 
-	const group = await tabService.addTabGroup(message);
-	const tab = await group.addTab({ tabID: { uuid, name } });
+    const group: TabGroup = await tabService.addTabGroup(message);
+	const tab: Tab = await group.addTab({ tabID: { uuid, name } });
 
 	if (message.screenX && message.screenY) {
 		await tab.window.alignPositionToTabGroup();

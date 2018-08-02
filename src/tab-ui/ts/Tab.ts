@@ -66,25 +66,22 @@ export class Tab {
 	 * Handles the HTML5 DragEvent onStart
 	 * @param e {DragEvent} DragEvent
 	 */
-	// private _onDragStart(e: DragEvent): void {
-	// 	e.dataTransfer.effectAllowed = "move";
+	private _onDragStart(e: DragEvent): void {
+		e.dataTransfer.effectAllowed = "move";
 
-	// 	DragWindowManager.show();
-	// 	this.externalApplication.getWindow.leaveGroup();
-	// 	WindowManager.instance.setDidGetDrop = false;
-	// }
+		// @ts-ignore
+		window.Tab.startDrag();
+	}
 
 	/**
 	 * Handles the HTML5 DragEvent onDragEnd
 	 * @param e {DragEvent} DragEvent
 	 */
-	// private _onDragEnd(e: DragEvent): void {
-	// 	this.getExternalApplication.getWindow.getBounds(bounds => {
-	// 		TabManager.instance.ejectTab(this.getTabId, EjectTriggers.DRAG, e.screenX, e.screenY, bounds.width, bounds.height);
-	// 	});
-
-	// 	DragWindowManager.hide();
-	// }
+	private _onDragEnd(e: DragEvent): void {
+		console.log(e);
+		// @ts-ignore
+		window.Tab.endDrag(e, this._ID.uuid, this._ID.name);
+	}
 
 	/**
 	 * @method _render Renders the Tab to the DOM from generation.
@@ -127,8 +124,8 @@ export class Tab {
 
 		// Set the onclick, drag events to top tab DOM.
 		tab.onclick = this._onClickHandler.bind(this);
-		// tab.addEventListener("dragstart", this._onDragStart.bind(this), false);
-		// tab.addEventListener("dragend", this._onDragEnd.bind(this), false);
+		tab.addEventListener("dragstart", this._onDragStart.bind(this), false);
+		tab.addEventListener("dragend", this._onDragEnd.bind(this), false);
 
 		return tab;
 	}

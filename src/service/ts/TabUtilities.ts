@@ -19,37 +19,44 @@ export async function ejectTab(tabService: TabService, message: TabIndentifier &
 		return;
 	}
 
-	await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true);
-
 	if (message.screenX && message.screenY) {
 		isOverTabWindowResult = await tabService.isPointOverTabGroup(message.screenX, message.screenY);
 	}
 
 	if (isOverTabWindowResult) {
 		if (isOverTabWindowResult !== ejectedTab.tabGroup) {
-			await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false);
+			await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true);
 
 			// TODO: Add restricting logic to disallow cross group UI tab adding.
 			const tab = await isOverTabWindowResult.addTab({ tabID: ejectedTab.ID });
 
-			await tab.window.alignPositionToTabGroup();
+			tab.window.alignPositionToTabGroup();
 		}
 	} else {
 		const originalOptions = ejectedTab.tabGroup.initialWindowOptions;
+		const [tabGroupBounds] = await Promise.all([ejectedTab.tabGroup.window.getWindowBounds()]);
+
 		if (message.screenX && message.screenY) {
-			initializeTab(
-				{
-					url: originalOptions.url,
-					height: originalOptions.height,
-					screenX: message.screenX,
-					screenY: message.screenY
-				},
-				ejectedTab.ID.uuid,
-				ejectedTab.ID.name,
-				tabService
-			);
+			if (ejectedTab.tabGroup.tabs.length === 1) {
+				ejectedTab.tabGroup.window.moveTo(message.screenX, message.screenY);
+			} else {
+				await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true);
+				initializeTab(
+					{
+						url: originalOptions.url,
+						height: originalOptions.height,
+						width: tabGroupBounds.width,
+						screenX: message.screenX,
+						screenY: message.screenY
+					},
+					ejectedTab.ID.uuid,
+					ejectedTab.ID.name,
+					tabService
+				);
+			}
 		} else {
-			initializeTab({ url: originalOptions.url, height: originalOptions.height }, ejectedTab.ID.uuid, ejectedTab.ID.name, tabService);
+			await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true);
+			initializeTab({ url: originalOptions.url, height: originalOptions.height, width: tabGroupBounds.width }, ejectedTab.ID.uuid, ejectedTab.ID.name, tabService);
 		}
 	}
 }
@@ -76,7 +83,6 @@ export async function initializeTab(message: TabWindowOptions, uuid: string, nam
 	} else {
 		await group.window.alignPositionToApp(tab.window);
 	}
-
 	group.window.finWindow.show();
 	group.switchTab({ uuid, name });
 }

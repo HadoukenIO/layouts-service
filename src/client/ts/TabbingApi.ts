@@ -1,4 +1,4 @@
-import { TabAPIActions, TabApiEvents, TabAPIInteractionMessage, TabProperties } from "../../shared/types";
+import { TabAPIActions, TabAPIDragMessage, TabApiEvents, TabAPIInteractionMessage, TabAPIMessage, TabProperties } from "../../shared/types";
 import { Api } from "./Api";
 import { TabbingApiWindowActions } from "./TabbingApiWindowActions";
 
@@ -173,6 +173,18 @@ export class TabbingApi extends Api {
 		}
 
 		const payload: TabAPIInteractionMessage = { action: TabAPIActions.UPDATEPROPERTIES, uuid, name, properties };
+
+		super.sendAction(payload);
+	}
+
+	public startDrag() {
+		const payload: TabAPIMessage = { action: TabAPIActions.STARTDRAG };
+
+		super.sendAction(payload);
+	}
+
+	public endDrag(event: DragEvent, uuid: string, name: string) {
+		const payload: TabAPIDragMessage = { action: TabAPIActions.ENDDRAG, uuid, name, event: { screenX: event.screenX, screenY: event.screenY } };
 
 		super.sendAction(payload);
 	}

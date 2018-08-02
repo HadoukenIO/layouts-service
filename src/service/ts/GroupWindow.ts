@@ -36,13 +36,12 @@ export class GroupWindow extends AsyncWindow {
 		const win: fin.OpenFinWindow = app.finWindow;
 		const bounds = await app.getWindowBounds();
 
-		await this._window.resizeTo(bounds.width!, this._initialWindowOptions.height!, "top-left");
+		const resizeTo = this._window.resizeTo(bounds.width!, this._initialWindowOptions.height!, "top-left");
 
-		await this._window.moveTo(bounds.left!, bounds.top! - this._initialWindowOptions.height!);
+		const moveTo = this._window.moveTo(bounds.left!, bounds.top! - this._initialWindowOptions.height!);
 
-		await new Promise((res, rej) => {
-			win.joinGroup(this._window!, res, rej);
-		});
+		await Promise.all([resizeTo, moveTo]);
+		win.joinGroup(this._window!);
 	}
 
 	public async maximizeGroup(): Promise<void> {

@@ -1,4 +1,4 @@
-import { TabAPIActions, TabAPIInteractionMessage, TabAPIMessage, TabAPIWindowActions, TabPackage } from "../../shared/types";
+import { TabAPIActions, TabAPIDragMessage, TabAPIInteractionMessage, TabAPIMessage, TabAPIWindowActions, TabPackage } from "../../shared/types";
 
 import { Tab } from "./Tab";
 import { TabGroup } from "./TabGroup";
@@ -73,9 +73,35 @@ export class TabAPIActionProcessor {
 			case TabAPIActions.UPDATEPROPERTIES:
 				this.updateTabProperties(message as TabAPIInteractionMessage, tabGroup);
 				break;
+			case TabAPIActions.STARTDRAG:
+				this.startDrag();
+				break;
+			case TabAPIActions.ENDDRAG:
+				this.endDrag(message as TabAPIDragMessage, tabGroup);
+				break;
 			default:
 				break;
 		}
+	}
+
+	private async startDrag() {
+		this.mTabService.dragWindowManager.show();
+	}
+
+	private async endDrag(message: TabAPIDragMessage, group: TabGroup) {
+		if (!message.event) {
+			console.warn("No drag event passed. Cancelling eject");
+			return;
+		}
+
+		if (!message.uuid || !message.name) {
+			console.error("No valid tabID has been passed in");
+			return;
+		}
+		console.log(message.event);
+		this.mTabService.dragWindowManager.hide();
+
+		ejectTab(this.mTabService, { uuid: message.uuid, name: message.name, screenX: message.event.screenX, screenY: message.event.screenY }, group);
 	}
 
 	/**
@@ -103,14 +129,21 @@ export class TabAPIActionProcessor {
 		const existingTab = await this.mTabService.getTab({ uuid: tabPackage.tabID.uuid, name: tabPackage.tabID.name });
 
 		if (existingTab) {
+			if (existingTab.tabGroup === tabGroup) {
+				console.error("Error:  Tab already exists in this tab group!");
+				return;
+			}
+
 			await existingTab.tabGroup.removeTab({ uuid: tabPackage.tabID.uuid, name: tabPackage.tabID.name }, false, true);
 		}
 
 		const addedTab: Tab = await tabGroup.addTab(tabPackage);
 
-		await addedTab.window.alignPositionToTabGroup();
+		const align = addedTab.window.alignPositionToTabGroup();
 
-		await tabGroup.switchTab({ uuid: tabPackage.tabID.uuid, name: tabPackage.tabID.name });
+		const switchTab = tabGroup.switchTab({ uuid: tabPackage.tabID.uuid, name: tabPackage.tabID.name });
+
+		await Promise.all([align, switchTab]);
 	}
 
 	/**

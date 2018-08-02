@@ -51,8 +51,8 @@ export class TabGroup {
 		return tab;
 	}
 
-	public async realignApps(): Promise<void> {
-		await Promise.all(
+	public async realignApps() {
+		return Promise.all(
 			this._tabs.map(tab => {
 				tab.window.alignPositionToTabGroup();
 			})
@@ -73,7 +73,6 @@ export class TabGroup {
 		const index: number = this.getTabIndex(tabID);
 
 		if (index === -1) {
-			console.error("No tab with ID: " + tabID + " found in group.");
 			return;
 		}
 		const tabIndex = this._tabs[index];
@@ -88,7 +87,9 @@ export class TabGroup {
 			}
 		}
 
-		this.switchTab({ uuid: this._tabs[0].ID.uuid, name: this._tabs[0].ID.name });
+		if (this._tabs.length > 0) {
+			this.switchTab({ uuid: this._tabs[0].ID.uuid, name: this._tabs[0].ID.name });
+		}
 	}
 
 	public async switchTab(ID: TabIndentifier): Promise<void> {
@@ -100,6 +101,8 @@ export class TabGroup {
 			if (this._activeTab) {
 				this._activeTab.window.hide();
 			}
+
+			tab.window.finWindow.bringToFront();
 
 			this.setActiveTab(tab);
 		}

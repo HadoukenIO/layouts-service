@@ -79,6 +79,9 @@ export class TabAPIActionProcessor {
 			case TabAPIActions.ENDDRAG:
 				this.endDrag(message as TabAPIDragMessage, tabGroup);
 				break;
+			case TabAPIWindowActions.TOGGLEMAXIMIZE:
+				tabGroup.window.toggleMaximize();
+				break;
 			default:
 				break;
 		}

@@ -44,7 +44,18 @@ export class GroupWindow extends AsyncWindow {
 		win.joinGroup(this._window!);
 	}
 
+
+	public async toggleMaximize() {
+		if (this._isMaximized) {
+			this.restoreGroup();
+		} else {
+			this.maximizeGroup();
+		}
+	}
+
+
 	public async maximizeGroup(): Promise<void> {
+
 		this._beforeMaximizeBounds = await this._tabGroup.activeTab.window.getWindowBounds();
 
 		const moveto = this.moveTo(0, 0);
@@ -57,35 +68,42 @@ export class GroupWindow extends AsyncWindow {
 
 	public async restoreGroup(): Promise<void> {
 		if (this._isMaximized) {
-			const resize = this._tabGroup.activeTab.window.resizeTo(this._beforeMaximizeBounds.width!, this._beforeMaximizeBounds.height!, "top-left");
-			const moveto = this._tabGroup.window.moveTo(this._beforeMaximizeBounds.left!, this._beforeMaximizeBounds.top!);
-
-			await Promise.all([resize, moveto]);
-
-			this._isMaximized = false;
+			if ((await this.getState()) === "minimized") {
+				this._window.restore();
+				return;
+			} else {
+				const resize = this._tabGroup.activeTab.window.resizeTo(this._beforeMaximizeBounds.width!, this._beforeMaximizeBounds.height!, "top-left");
+				const moveto = this._tabGroup.window.moveTo(this._beforeMaximizeBounds.left!, this._beforeMaximizeBounds.top!);
+				this._isMaximized = false;
+				return Promise.all([resize, moveto]);
+			}
 		} else {
-			await this._window.restore();
+			return new Promise((res, rej) => {
+				this._window.restore(res, rej);
+			});
 		}
 	}
 
-	public async minimizeGroup(): Promise<void> {
-		const activetab = new Promise(async (res, rej) => {
-			if ((await this._tabGroup.activeTab.window.getState()) !== "minimized") {
-				this._tabGroup.activeTab.window.finWindow.minimize(res, rej);
-			} else {
-				res();
-			}
+
+	public async minimizeGroup() {
+		const minWins = this._tabGroup.tabs.map(tab => {
+			return new Promise((res, rej) => {
+				tab.window.finWindow.minimize(res, rej);
+			});
+
 		});
 
 		const group = new Promise((res, rej) => {
 			this._window.minimize(res, rej);
 		});
 
-		await Promise.all([activetab, group]);
+		return Promise.all([minWins, group]);
 	}
 
+
 	public async closeGroup(): Promise<void> {
-		await this._service.removeTabGroup(this._tabGroup.ID, true);
+		return this._service.removeTabGroup(this._tabGroup.ID, true);
+
 	}
 
 	protected _createWindowEventListeners(): void {

@@ -15,7 +15,7 @@ export class TabbingApiWindowActions {
 	public maximize(): void {
 		const payload: TabAPIMessage = { action: TabAPIWindowActions.MAXIMIZE };
 
-        this.mSendAction(payload);
+		this.mSendAction(payload);
 	}
 
 	/**
@@ -25,7 +25,7 @@ export class TabbingApiWindowActions {
 	public minimize(): void {
 		const payload: TabAPIMessage = { action: TabAPIWindowActions.MINIMIZE };
 
-        this.mSendAction(payload);
+		this.mSendAction(payload);
 	}
 
 	/**
@@ -35,7 +35,7 @@ export class TabbingApiWindowActions {
 	public restore(): void {
 		const payload: TabAPIMessage = { action: TabAPIWindowActions.RESTORE };
 
-        this.mSendAction(payload);
+		this.mSendAction(payload);
 	}
 
 	/**
@@ -45,6 +45,16 @@ export class TabbingApiWindowActions {
 	public close(): void {
 		const payload: TabAPIMessage = { action: TabAPIWindowActions.CLOSE };
 
-        this.mSendAction(payload);
+		this.mSendAction(payload);
+	}
+
+	/**
+	 * @public
+	 * @function toggleMaximize Restores if the window is maximized, if not will maximize.
+	 */
+	public toggleMaximize(): void {
+		const payload: TabAPIMessage = { action: TabAPIWindowActions.TOGGLEMAXIMIZE };
+
+		this.mSendAction(payload);
 	}
 }

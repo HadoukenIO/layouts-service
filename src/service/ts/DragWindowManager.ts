@@ -38,7 +38,7 @@ export class DragWindowManager extends AsyncWindow {
 			this._window = new fin.desktop.Window(
 				{
 					name: "TabbingDragWindow",
-					url: "http://localhost:9001/tab-ui/drag.html",
+					url: "http://localhost:9001/service/drag.html",
 					defaultHeight: 1,
 					defaultWidth: 1,
 					defaultLeft: 0,
@@ -56,6 +56,7 @@ export class DragWindowManager extends AsyncWindow {
 				() => {
 					this._window.resizeTo(screen.width, screen.height, "top-left");
 					this._window.hide();
+					res();
 				},
 				rej
 			);

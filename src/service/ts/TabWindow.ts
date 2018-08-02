@@ -33,7 +33,13 @@ export class TabWindow extends AsyncWindow {
 	}
 
 	public async show() {
-		return this._window.updateOptions({
+		const state = await this.getState();
+
+		if (state === "minimized") {
+			this._window.restore();
+		}
+
+		this._window.updateOptions({
 			opacity: 1
 		});
 	}
@@ -80,7 +86,9 @@ export class TabWindow extends AsyncWindow {
 	}
 
 	private async _onMinimize() {
-		this._tabGroup.window.minimizeGroup();
+		if (this._tab === this._tabGroup.activeTab) {
+			this._tabGroup.window.minimizeGroup();
+		}
 	}
 
 	private _onMaximize() {
@@ -92,6 +100,7 @@ export class TabWindow extends AsyncWindow {
 			this._tabGroup.window.restoreGroup();
 		} else {
 			this._tabGroup.switchTab(this._tab.ID);
+			this._tabGroup.window.restoreGroup();
 		}
 	}
 

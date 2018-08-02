@@ -30,7 +30,9 @@ export async function ejectTab(tabService: TabService, message: TabIndentifier &
 			// TODO: Add restricting logic to disallow cross group UI tab adding.
 			const tab = await isOverTabWindowResult.addTab({ tabID: ejectedTab.ID });
 
-			tab.window.alignPositionToTabGroup();
+			await tab.window.alignPositionToTabGroup();
+
+			isOverTabWindowResult.switchTab(ejectedTab.ID);
 		}
 	} else {
 		const originalOptions = ejectedTab.tabGroup.initialWindowOptions;

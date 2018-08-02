@@ -1,142 +1,148 @@
-import { test } from 'ava';
-import { dragWindowTo } from './utils/dragWindowTo';
+import { test, GenericTestContext } from 'ava';
+import { dragWindowTo, dragWindowToOtherWindow, dragSideToSide, Corner } from './utils/dragWindowTo';
 import { getBounds, NormalizedBounds } from './utils/getBounds';
 import { createChildWindow } from './utils/createChildWindow';
 import { Window, Fin } from 'hadouken-js-adapter';
 import { getConnection } from './utils/connect';
-import { undockWindow, WindowIdentity} from './utils/undockWindow';
-import { resolve } from 'url';
+import { undockWindow, WindowIdentity } from './utils/undockWindow';
+import {isAdjacentTo, Side} from './utils/isAdjacentTo';
+import {getDistanceBetween} from './utils/getDistanceBetween';
+import {opposite, perpendicular} from './utils/SideUtils';
 
 // TODO - Change client/service file structure to allow importing these values
-const UNDOCK_MOVE_DISTANCE = 30; 
+const UNDOCK_MOVE_DISTANCE = 30;
 
-let win1: Window, win2: Window, win3: Window, win4: Window;
-let bounds1: NormalizedBounds, bounds2:NormalizedBounds;
+let windows: Window[] = new Array<Window>();
 let fin: Fin;
+
+const windowPositions = [
+    { defaultTop: 300, defaultLeft: 300 },
+    { defaultTop: 300, defaultLeft: 600 },
+    { defaultTop: 600, defaultLeft: 300 },
+    { defaultTop: 600, defaultLeft: 600 }
+];
+const windowOptions = {
+    autoShow: true,
+    saveWindowState: false,
+    defaultHeight: 200,
+    defaultWidth: 200,
+    url: 'http://localhost:1337/SnapDockDemo/frameless-window.html',
+    frame: false
+};
 
 test.before(async () => {
     fin = await getConnection();
 });
 test.afterEach.always(async () => {
-    await win1.close();
-    await win2.close();
+    for (const win of windows) {
+        if (win) { await win.close(); }
+    }
+    windows = new Array<Window>();
 });
 
-test('Two windows - undock bottom', async t => {
-    t.plan(4);
 
-    win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/SnapDockDemo/frameless-window.html', frame: false });
-    win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/SnapDockDemo/frameless-window.html', frame: false });
+async function initWindows(t: GenericTestContext<any>, num: number, side?: Side) {
+    for (let i = 0; i < num; i++) {
+        windows[i] = await createChildWindow({ ...(windowPositions[i]), ...windowOptions });
+    }
 
-    const win2Bounds = await getBounds(win2);
+    if(num === 2 && side) {
+        const win1Bounds = await getBounds(windows[1]);
 
-    // Snap the windows
-    await dragWindowTo(win1, win2Bounds.left + 50, win2Bounds.bottom + 2);
+        // Snap the windows
+        await dragSideToSide(windows[1],opposite(side) , windows[0],side );
 
-    bounds1 = await getBounds(win1);
-    bounds2 = await getBounds(win2);
+        // Windows are adjacent
+        t.true(await isAdjacentTo(windows[0], windows[1], side));    
+    }
 
-    // Windows are adjacent
-    t.is(bounds1.left, bounds2.left);
-    t.is(bounds1.top, bounds2.bottom);
+    if (num === 4) {
+        await dragWindowToOtherWindow(windows[1], 'bottom-left', windows[0], 'bottom-right', { x: 2, y: -10 });
+        await dragWindowToOtherWindow(windows[2], 'top-right', windows[0], 'bottom-right', { x: -10, y: 2 });
+        await dragWindowToOtherWindow(windows[3], 'top-left', windows[0], 'bottom-right', { x: 10, y: 2 });
+    }
+}
 
-    // Send and undock message to the service
-    await undockWindow(win1.identity as WindowIdentity);
+test('One ungrouped window - no effect on undock', async t => {
+    await initWindows(t, 1);
 
-    bounds1 = await getBounds(win1);
-    bounds2 = await getBounds(win2);
+    const boundsBefore = await getBounds(windows[0]);
 
-    // Undocked window moved away from other window(s)
-    t.is(bounds1.left, bounds2.left);
-    t.is(bounds1.top, bounds2.bottom + UNDOCK_MOVE_DISTANCE);
+    await undockWindow(windows[0].identity as WindowIdentity);
+
+    await new Promise((r) => setTimeout(r, 2000));
+
+    const boundsAfter = await getBounds(windows[0]);
+
+    t.deepEqual(boundsBefore, boundsAfter);
+
 });
 
-test('Two windows - undock top', async t => {
-    t.plan(4);
+// Runs two-window test for each side
+(['bottom', 'top', 'left', 'right'] as Side[]).forEach((side:Side) => {
+    twoWindowTest(side);
+});
 
+// Runs four-window test for each corner
+(['top-left' , 'top-right' , 'bottom-left' , 'bottom-right'] as Corner[]).forEach((corner) => {
+    fourWindowTest(corner);
+});
+
+function twoWindowTest(side:Side) {
+    test('Two windows - undock '+ side, async t => {
+        // Spawn and snap two windows
+        await initWindows(t, 2, side);
     
-
-    win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/SnapDockDemo/frameless-window.html', frame: false });
-    win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/SnapDockDemo/frameless-window.html', frame: false });
-
-    const win1Bounds = await getBounds(win1);
-
-    // Snap the windows
-    await dragWindowTo(win2, win1Bounds.left + 50, win1Bounds.bottom + 2);
-
-    bounds1 = await getBounds(win1);
-    bounds2 = await getBounds(win2);
-
-    // Windows are adjacent
-    t.is(bounds1.left, bounds2.left);
-    t.is(bounds1.bottom, bounds2.top);
-
-    // Send and undock message to the service
-    await undockWindow(win1.identity as WindowIdentity);
-
-    bounds1 = await getBounds(win1);
-    bounds2 = await getBounds(win2);
-
-    // Undocked window moved away from other window(s)
-    t.is(bounds1.left, bounds2.left);
-    t.is(bounds1.bottom, bounds2.top - UNDOCK_MOVE_DISTANCE);
-});
+        // Send and undock message to the service
+        await undockWindow(windows[1].identity as WindowIdentity);
+    
+        // Undocked window moved away from other window(s)
+        t.is(await getDistanceBetween(windows[0], side, windows[1], opposite(side)), UNDOCK_MOVE_DISTANCE);
+        t.is(await getDistanceBetween(windows[0], perpendicular(side), windows[1],perpendicular(side)), 0);
+    });
+}
 
 
-test('Two windows - undock right', async t => {
-    t.plan(4);
+function fourWindowTest(corner: Corner) {
+    // Map from corner to window index
+    const cornerToWindowMap = {
+        'top-left' : 0,
+        'top-right' : 1,
+        'bottom-left' : 2,
+        'bottom-right' : 3,
+    };
 
-    win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/SnapDockDemo/frameless-window.html', frame: false });
-    win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/SnapDockDemo/frameless-window.html', frame: false });
+    // Map to get the offset from a window index to the window in the direction from it
+    // example 1: the window below window 1 is (1 + map['bottom']) = 1 + 2 ==> window 3 is below window 1
+    // example 2: the window to the right of window 2 is (2 + map['right']) = 2 + 1 ==> window 3 is right of window 2
+    const sideToWindowMap = {
+        'bottom': 2,
+        'top': -2,
+        'right': 1,
+        'left': -1
+    };
 
-    const win2Bounds = await getBounds(win2);
+    test('Four windows - undock ' + corner, async t => {
 
-    // Snap the windows
-    await dragWindowTo(win1, win2Bounds.right + 2, win2Bounds.top + 50);
+        // Spawn and snap 4 windows
+        await initWindows(t, 4);
 
-    bounds1 = await getBounds(win1);
-    bounds2 = await getBounds(win2);
+        // Gets the window index to be undocked
+        const undockedIndex = cornerToWindowMap[corner];
 
-    // Windows are adjacent
-    t.is(bounds1.left, bounds2.right);
-    t.is(bounds1.top, bounds2.top);
+        // Send undock message to the service
+        await undockWindow(windows[undockedIndex].identity as WindowIdentity);
 
-    // Send and undock message to the service
-    await undockWindow(win1.identity as WindowIdentity);
+        // These three lines use the sideToWindowMap to find the windows that the undocked windows moved away from (e.g. top-left ==> bottom , right)
+        // It then calculates the spacing between those windows and the undocked window 
+        const [sideY, sideX] = corner.split('-') as Side[];
+        const distanceX = await getDistanceBetween(windows[undockedIndex], opposite(sideX), windows[undockedIndex + sideToWindowMap[opposite(sideX)]], sideX);
+        const distanceY = await getDistanceBetween(windows[undockedIndex], opposite(sideY), windows[undockedIndex + sideToWindowMap[opposite(sideY)]], sideY);
 
-    bounds1 = await getBounds(win1);
-    bounds2 = await getBounds(win2);
+        // Check that the window moved in the expected way
+        t.is(distanceX, UNDOCK_MOVE_DISTANCE);
+        t.is(distanceY, UNDOCK_MOVE_DISTANCE);
 
-    // Undocked window moved away from other window(s)
-    t.is(bounds1.left, bounds2.right + UNDOCK_MOVE_DISTANCE);
-    t.is(bounds1.top, bounds2.top);
-});
+    });
 
-test('Two windows - undock left', async t => {
-    t.plan(4);
-
-    win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/SnapDockDemo/frameless-window.html', frame: false });
-    win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/SnapDockDemo/frameless-window.html', frame: false });
-
-    const win1Bounds = await getBounds(win1);
-
-    // Snap the windows
-    await dragWindowTo(win2, win1Bounds.right + 2, win1Bounds.top + 50);
-
-    bounds1 = await getBounds(win1);
-    bounds2 = await getBounds(win2);
-
-    // Windows are adjacent
-    t.is(bounds1.right, bounds2.left);
-    t.is(bounds1.top, bounds2.top);
-
-    // Send and undock message to the service
-    await undockWindow(win1.identity as WindowIdentity);
-
-    bounds1 = await getBounds(win1);
-    bounds2 = await getBounds(win2);
-
-    // Undocked window moved away from other window(s)
-    t.is(bounds1.right, bounds2.left - UNDOCK_MOVE_DISTANCE);
-    t.is(bounds1.top, bounds2.top);
-});
+}

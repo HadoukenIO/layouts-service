@@ -55,7 +55,7 @@ export interface TabPackage {
 	tabID: TabIndentifier;
 	tabProps?: TabProperties;
 }
-export enum Events { }
+export enum Events {}
 
 export enum TabApiEvents {
 	TABADDED = "TABADDED",
@@ -69,6 +69,8 @@ export enum TabApiEvents {
  * this will determine which action to execute on service side
  */
 export enum TabAPIActions {
+	STARTDRAG = "STARTDRAG",
+	ENDDRAG = "ENDDRAG",
 	ADD = "ADD",
 	EJECT = "EJECT",
 	CLOSE = "CLOSE",
@@ -90,6 +92,12 @@ export interface TabAPIInteractionMessage extends TabAPIMessage {
 	uuid: string;
 	name: string;
 	properties?: TabProperties;
+}
+
+export interface TabAPIDragMessage extends TabAPIMessage {
+	event: TabWindowOptions | null;
+	uuid: string;
+	name: string;
 }
 
 export enum ClientIABTopics {

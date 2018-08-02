@@ -17,11 +17,12 @@
 
                 document.body.addEventListener("dragover", (ev)=>{
                     ev.preventDefault();
-                    ev.dataTransfer.dropEffect = "move";
+                    ev.stopPropagation();
                     return false;
                 });
 
                 document.body.addEventListener("drop", (ev)=>{
+                    ev.preventDefault();
                     ev.stopPropagation();
                     return false;
                 });

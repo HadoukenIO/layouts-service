@@ -18,36 +18,23 @@ export class TabWindow extends AsyncWindow {
 	}
 
 	async init() {
-		this._initialWindowOptions = await this.getWindowOptions();
-		this._initialWindowBounds = await this.getWindowBounds();
+		[this._initialWindowOptions, this._initialWindowBounds] = await Promise.all([this.getWindowOptions(), this.getWindowBounds()]);
 
 		// @ts-ignore resizeRegion.sides is valid.  Its not in the type file.
-		await this.updateWindowOptions({ frame: false, resizeRegion: { sides: { top: false } } });
+		this.updateWindowOptions({ frame: false, resizeRegion: { sides: { top: false } } });
 
 		this._createWindowEventListeners();
 	}
 
 	public async hide() {
-		return new Promise((res, rej) => {
-			this._window.updateOptions(
-				{
-					opacity: 0
-				},
-				res,
-				rej
-			);
+		return this.updateWindowOptions({
+			opacity: 0
 		});
 	}
 
 	public async show() {
-		return new Promise((res, rej) => {
-			this._window.updateOptions(
-				{
-					opacity: 1
-				},
-				res,
-				rej
-			);
+		return this._window.updateOptions({
+			opacity: 1
 		});
 	}
 
@@ -55,20 +42,25 @@ export class TabWindow extends AsyncWindow {
 		const groupWindow = this._tab.tabGroup.window;
 		const groupActiveTab = this._tab.tabGroup.activeTab;
 
-		const tabGroupBounds = await groupWindow.getWindowBounds();
-		const tabBounds = await (groupActiveTab ? groupActiveTab.window.getWindowBounds() : this.getWindowBounds());
+		const tabGroupBoundsP = groupWindow.getWindowBounds();
+		const tabBoundsP = groupActiveTab ? groupActiveTab.window.getWindowBounds() : this.getWindowBounds();
 
-		await new Promise((res, rej) => {
+		const [tabGroupBounds, tabBounds] = await Promise.all([tabGroupBoundsP, tabBoundsP]);
+
+		const resize = new Promise((res, rej) => {
 			this._window.resizeTo(tabGroupBounds.width!, tabBounds.height!, "top-left", res, rej);
 		});
 
-		await new Promise((res, rej) => {
+		const moveTo = new Promise((res, rej) => {
 			this._window.moveTo(tabGroupBounds.left!, tabGroupBounds.top! + tabGroupBounds.height!, res, rej);
 		});
 
-		await new Promise((res, rej) => {
-			this._window.joinGroup(groupWindow.finWindow, res, rej);
-		});
+		await Promise.all([resize, moveTo]);
+
+		// tslint:disable-next-line:no-unused-expression
+		// new Promise((res, rej) => {
+		this._window.joinGroup(groupWindow.finWindow);
+		// });
 	}
 
 	protected _createWindowEventListeners() {

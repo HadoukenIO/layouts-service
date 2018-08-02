@@ -1,0 +1,23 @@
+{
+    "startup_app": {
+        "name": "Layouts-Demo",
+        "url": "http://localhost:1337/demo/LayoutsUI.html",
+        "uuid": "Layouts-Demo",
+        "autoShow": true,
+        "defaultHeight": 500,
+        "defaultWidth": 700,
+        "_experimental": {
+            "v2Api": true
+        }
+    },
+    "runtime": {
+        "arguments": "--v=1 --enable-crash-reporting --inspect=9222",
+        "version": "9.61.33.15"
+    },
+    "services": [{"name": "layoutsManager", "manifestUrl": "http://localhost:1337/provider/app.json"}],
+    "shortcut": {
+        "company": "OpenFin",
+        "description": "Layouts-Demo",
+        "name": "Layouts-Demo"
+    }
+}

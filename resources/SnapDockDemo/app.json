@@ -3,7 +3,7 @@
     "startup_app": {
         "name": "Snap-Dock-Demo",
         "description": "OpenFin POC",
-        "url": "http://localhost:1337/SnapDockDemo/dev.html",
+        "url": "http://localhost:1337/demo/dev.html",
         "uuid": "Snap-Dock-Demo",
         "autoShow": true,
         "defaultHeight": 250,
@@ -15,9 +15,9 @@
     },
     "runtime": {
         "arguments": "--v=1 --enable-crash-reporting",
-        "version": "canary"
+        "version": "alpha"
     },
-    "services": [{"name": "layouts", "manifestUrl": "http://localhost:1337/SnapDockService/app.json"}],
+    "services": [{"name": "layouts", "manifestUrl": "http://localhost:1337/provider/app.json"}],
     "shortcut": {
         "company": "OpenFin",
         "description": "Snap-Dock-Demo",

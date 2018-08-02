@@ -1,11 +1,19 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "rootDir": ".",
     "outDir": "module_dist",
+    "target": "es2017",
+    "module": "commonjs",
+    "sourceMap": true,
+    "lib": [
+      "dom",
+      "es2017"
+    ],
     "declaration": true
   },
   "include": [
-    "src/SnapAndDock/fin.d.ts",
-    "src/SnapAndDock/Client/main.ts"
+    "src/client/fin.d.ts",
+    "src/client/main.ts"
   ]
 }

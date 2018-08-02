@@ -1,0 +1,29 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Demo App - App 1</title>
+    <script src="./LayoutsUI-bundle.js"></script>
+</head>
+<body>
+    <h3>App 1 - Demo Layout "Manager"</h3>
+    <div>
+        <input value="Name of Layout" id="layoutName">
+    </div>
+    <div>
+        <button onclick="LayoutsUI.setLayout()">Set Layout</button>
+        <button onclick="LayoutsUI.getLayout()">Get Layout</button>
+        <button onclick="LayoutsUI.getAllLayouts()">Get All Layouts</button>
+        <button onclick="LayoutsUI.restoreLayout()">Restore Layout</button>
+        <button onclick="LayoutsUI.createChild()">Create Child</button>
+        <button onclick="LayoutsUI.createApp()">Create (one) App</button>
+    </div>
+    <div>
+        <textArea id='showLayout' style="margin: 0px;width: 100%;height: 90%;"></textArea>
+    </div>
+    <script>
+        LayoutsUI.createSnapWindows();
+    </script>
+</body>
+</html>

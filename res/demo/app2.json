@@ -1,10 +1,9 @@
 {
     "devtools_port": 9090,
     "startup_app": {
-        "name": "LayoutsClient",
-        "description": "OpenFin POC",
-        "url": "http://localhost:1337/layout-client.html",
-        "uuid": "LayoutsClient",
+        "name": "App-2",
+        "url": "http://localhost:1337/demo/app2.html",
+        "uuid": "App-2",
         "autoShow": true,
         "defaultHeight": 400,
         "defaultWidth": 500,
@@ -14,6 +13,7 @@
     },
     "runtime": {
         "arguments": "--v=1 --enable-crash-reporting",
-        "version": "alpha"
-    }
+        "version": "9.61.33.15"
+    },
+    "services": [{"name": "layoutsManager", "manifestUrl": "http://localhost:1337/provider/app.json"}]
 }

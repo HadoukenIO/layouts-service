@@ -21,8 +21,8 @@ test.afterEach.always(async () => {
 
 test('normal deregister, snap with registered', async t => {
 
-    win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/SnapDockDemo/frameless-window.html', frame: false });
-    win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/SnapDockDemo/frameless-window-deregistered.html', frame: false });
+    win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window.html', frame: false });
+    win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window-deregistered.html', frame: false });
 
     const win2Bounds = await getBounds(win2);
 
@@ -39,8 +39,8 @@ test('normal deregister, snap with registered', async t => {
 
 test('normal deregister, snap with degistered', async t => {
 
-    win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/SnapDockDemo/frameless-window.html', frame: false });
-    win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/SnapDockDemo/frameless-window-deregistered.html', frame: false });
+    win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window.html', frame: false });
+    win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window-deregistered.html', frame: false });
 
     const win1bounds = await getBounds(win1);
 
@@ -56,8 +56,8 @@ test('normal deregister, snap with degistered', async t => {
 
 test('delayed deregister, snap with registered', async t => {
 
-    win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/SnapDockDemo/frameless-window.html', frame: false });
-    win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/SnapDockDemo/frameless-window-delayed-deregistered.html', frame: false });
+    win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window.html', frame: false });
+    win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window-delayed-deregistered.html', frame: false });
 
     const win2Bounds = await getBounds(win2);
 
@@ -73,8 +73,8 @@ test('delayed deregister, snap with registered', async t => {
 
 test('delayed deregister, snap with deregistered', async t => {
 
-    win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/SnapDockDemo/frameless-window.html', frame: false });
-    win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/SnapDockDemo/frameless-window-delayed-deregistered.html', frame: false });
+    win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window.html', frame: false });
+    win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window-delayed-deregistered.html', frame: false });
 
     const win1bounds = await getBounds(win1);
 
@@ -90,8 +90,8 @@ test('delayed deregister, snap with deregistered', async t => {
 
 test('deregister snapped window', async t => {
 
-    win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/SnapDockDemo/frameless-window.html', frame: false });
-    win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/SnapDockDemo/frameless-window-triggered-deregistered.html', frame: false });
+    win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window.html', frame: false });
+    win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window-triggered-deregistered.html', frame: false });
 
     const win1bounds = await getBounds(win1);
 

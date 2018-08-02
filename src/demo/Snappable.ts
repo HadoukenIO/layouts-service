@@ -1,5 +1,6 @@
 import * as Layouts from '../client/main';
 
+//Build HTML
 const colors =
 ['#7B7BFF', '#A7A7A7', '#3D4059', '#D8D8D8', '#1A194D', '#B6B6B6'];
 const n = parseInt(fin.desktop.Window.getCurrent().name.slice(-1), 10);
@@ -20,10 +21,15 @@ explodeBtn.onclick = () => Layouts.explodeGroup();
 (explodeBtn.style as any) = '-webkit-app-region: no-drag';
 document.body.appendChild(explodeBtn);
 
+//Add listeners
 Layouts.addEventListener('join-snap-group', () => {
     console.log('Joined group');
 });
-
 Layouts.addEventListener('leave-snap-group', () => {
     console.log('Left group');
 });
+
+//Allow window to de-register from layouts at a time of its choosing
+export async function deregister() {
+    Layouts.deregister();
+}

@@ -9,9 +9,7 @@ function createConfig(component, entryPoint, isReact, isLibrary, ...plugins) {
         entry: entryPoint,
         output: {
             path: outputDir + '/' + component,
-            filename: '[name]-bundle.js',
-            libraryTarget: 'window',
-            library: '[name]'
+            filename: '[name]-bundle.js'
         },
         resolve: {
             extensions: ['.ts', '.tsx', '.js']

@@ -13,10 +13,10 @@ import { _Window } from 'hadouken-js-adapter/out/types/src/api/window/window';
 let win1: _Window, win2: _Window, win3: _Window, win4: _Window;
 
 test.beforeEach(async () => {
-    win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 0, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/SnapDockDemo/frameless-window.html', frame: false });
-    win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 250, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/SnapDockDemo/frameless-window.html', frame: false });
-    win3 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 500, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/SnapDockDemo/frameless-window.html', frame: false });
-    win4 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 750, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/SnapDockDemo/frameless-window.html', frame: false });
+    win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 0, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window.html', frame: false });
+    win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 250, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window.html', frame: false });
+    win3 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 500, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window.html', frame: false });
+    win4 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 750, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window.html', frame: false });
 
     let win1Bounds = await getBounds(win1);
     let win2Bounds = await getBounds(win2);

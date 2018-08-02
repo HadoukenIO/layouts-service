@@ -5,7 +5,7 @@
 <script src="./Snappable-bundle.js"></script>
 <script>
     // Will deregister from the layouts service on receiving a message on the 'deregister' IAB channel.
-    fin.desktop.InterApplicationBus.subscribe('*', 'deregister', () => {Layouts.deregister()})
+    fin.desktop.InterApplicationBus.subscribe('*', 'deregister', () => {Snappable.deregister()})
 </script>
 
 </html>

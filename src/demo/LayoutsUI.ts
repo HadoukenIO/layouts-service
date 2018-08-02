@@ -74,10 +74,6 @@ export async function createApp() {
     // app.run();
 }
 
-export async function deregister() {
-    Layouts.deregister();
-}
-
 export function forgetMe(identity: ServiceIdentity) {
     forgetWindows.push(identity);
 }

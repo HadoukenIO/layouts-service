@@ -2,9 +2,9 @@
     "devtools_port": 9090,
     "runtime": {
         "arguments": "--v=1 --enable-crash-reporting",
-        "version": "alpha"
+        "version": "9.61.33.15"
     },
-    "services":[{"name": "layouts", "manifestUrl": "http://localhost:1337/SnapDockService/app.json"}],
+    "services":[{"name": "layouts", "manifestUrl": "http://localhost:1337/provider/app.json"}],
     "startup_app": {
         "name": "testApp",
         "uuid": "testApp",

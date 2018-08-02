@@ -10,7 +10,8 @@
       "dom",
       "es2017"
     ],
-    "declaration": true
+    "declaration": true,
+    "skipLibCheck": true
   },
   "include": [
     "src/client/fin.d.ts",

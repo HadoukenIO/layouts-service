@@ -7,7 +7,7 @@ var path = require('path')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 const transform = require('./templateBuilder')
 
-const PROD_RUNTIME_VERSION = '8.56.30.55'
+const PROD_RUNTIME_VERSION = '9.61.33.15'
 const PROD_LAYOUTSMANAGER_RUNTIME_VERSION = '9.61.33.15'
 
 module.exports = (mode) => webpack(mode === 'production' ? {
@@ -60,11 +60,11 @@ module.exports = (mode) => webpack(mode === 'production' ? {
         new CopyWebpackPlugin([{
             from: './resources/SnapDockService/app.template.json',
             to: 'SnapDockService/app.json',
-            transform: transform(process.env.OF_RUNTIME_VERSION || 'canary', 'http://localhost:1337/SnapDockService/provider.html', mode === 'development')
+            transform: transform(process.env.OF_RUNTIME_VERSION || '9.61.33.15', 'http://localhost:1337/SnapDockService/provider.html', mode === 'development')
         },{
             from: './resources/LayoutsService/app.template.json',
             to: 'LayoutsService/app.json',
-            transform: transform(process.env.PROD_LAYOUTSMANAGER_RUNTIME_VERSION || 'canary', 'http://localhost:1337/LayoutsService/provider.html', mode === 'development')
+            transform: transform(process.env.PROD_LAYOUTSMANAGER_RUNTIME_VERSION || '9.61.33.15', 'http://localhost:1337/LayoutsService/provider.html', mode === 'development')
         }]),
     ],
     mode: 'development'

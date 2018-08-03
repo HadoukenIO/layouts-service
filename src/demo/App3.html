@@ -21,6 +21,14 @@
 
         fin.desktop.main(()=>{
             window.TabClient.init();
+
+                       window.TabClient.addEventListener("TABBED", (e) => {
+                console.log("TABBED: ", e);
+            });
+
+            window.TabClient.addEventListener("UNTABBED", (e) => {
+                console.log("UNTABBED: ", e);
+            });
         })
     </script>
 </body>

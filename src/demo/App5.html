@@ -21,6 +21,14 @@
 
       fin.desktop.main(()=>{
             window.TabClient.init("http://localhost:9001/tab-ui/index3.html");
+
+                       window.TabClient.addEventListener("TABBED", (e) => {
+                console.log("TABBED: ", e);
+            });
+
+            window.TabClient.addEventListener("UNTABBED", (e) => {
+                console.log("UNTABBED: ", e);
+            });
         })
     </script>
 </body>

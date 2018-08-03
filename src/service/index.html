@@ -5,11 +5,13 @@
 </head>
 
 <body>
-    <button onclick="newApplication()">1. New App 1</button>
+    <button onclick="newApplication()">New App 1</button>
 
-    <button onclick="newApplication2()">2. New App 1</button>
+    <button onclick="newApplication2()">New App 2</button>
 
-    <button onclick="newApplication3()">3. New App 1</button>
+    <button onclick="newApplication3()">New App 3</button>
+
+    <button onclick="newApplication4()">New App no init</button>
 
     <script src="dist/service-bundle.js"></script>
 
@@ -17,7 +19,8 @@
         let appCount = 0;
         let appCount2 = 200;
         let appCount3 = 300;
-
+        let appCount4 = 400;
+        
         function newApplication() {
             const uuid = `App${appCount}`
             const app = new fin.desktop.Application({
@@ -80,6 +83,28 @@
                 () => {
                     app.run();
                     appCount3++;
+                }
+            );
+        }
+
+                        function newApplication4() {
+            const uuid = `App${appCount4}`
+            const app = new fin.desktop.Application({
+                url: "http://localhost:9001/demo/noauto.html", 
+                uuid: uuid, 
+                name: uuid,
+                mainWindowOptions: {
+                    defaultWidth: 400,
+                    defaultHeight: 300,
+                    saveWindowState: false,
+                    autoShow: true,
+                    defaultCentered: true,
+                    preloadScripts: [{ url: "http://localhost:9001/client/dist/appApi-bundle.js"}]
+                }
+            },
+                () => {
+                    app.run();
+                    appCount4++;
                 }
             );
         }

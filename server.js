@@ -9,7 +9,7 @@ app.use(express.static('res'));
 app.use(express.static('resources'));
 
 console.log("Starting server...");
-app.listen(1337, () => {
+app.listen(1337, async () => {
     console.log("Launching Demo application");
 
     if (os.platform() === 'darwin') {

@@ -1,4 +1,4 @@
-import { TabAPIActions, TabAPIDragMessage, TabApiEvents, TabAPIInteractionMessage, TabAPIMessage, TabProperties } from "../../shared/types";
+import { TabAPIActions, TabAPIDragMessage, TabApiEvents, TabAPIInteractionMessage, TabAPIMessage, TabProperties, AppApiEvents } from "../../shared/types";
 import { Api } from "./Api";
 import { TabbingApiWindowActions } from "./TabbingApiWindowActions";
 
@@ -87,16 +87,6 @@ export class TabbingApi extends Api {
 
 	/**
 	 * @public
-	 * @function addEventListener Adds an event listener
-	 * @param event The Api event to listen to
-	 * @param callback callback to handle the data received
-	 */
-	public addEventListener<T>(event: TabApiEvents, callback: (message: T) => void): void {
-		super.addEventListener(event, callback);
-	}
-
-	/**
-	 * @public
 	 * @function activateTab Activates the selected tab and brings to front
 	 * @param uuid The uuid of the application to activate
 	 * @param name The name of the application to activate
@@ -115,16 +105,6 @@ export class TabbingApi extends Api {
 		const payload: TabAPIInteractionMessage = { action: TabAPIActions.ACTIVATE, uuid, name };
 
 		super.sendAction(payload);
-	}
-
-	/**
-	 * @public
-	 * @function removeEventListener Removes an event listener
-	 * @param event The api event that is being listened to
-	 * @param callback The callback registered to the event
-	 */
-	public removeEventListener<T>(event: TabApiEvents, callback: (message: T) => void): void {
-		super.removeEventListener(event, callback);
 	}
 
 	/**

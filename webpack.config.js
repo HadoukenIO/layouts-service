@@ -58,7 +58,7 @@ module.exports = [
 		service: "./src/service/ts/index.ts"
 	}),
 	createWebpackConfigForProject("src/client", {
-		client: "./src/client/ts/client.ts",
+		appApi: "./src/client/ts/AppApi.ts",
 		tabbingApi: "./src/client/ts/TabbingApi.ts"
 	})
 ];

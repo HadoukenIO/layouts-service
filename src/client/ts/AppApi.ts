@@ -1,9 +1,12 @@
 import { ClientIABTopics, ServiceIABTopics, TabIndentifier } from "../../shared/types";
+import { Api } from "./Api";
 
-class Client {
+class AppApi extends Api {
 	private _ID: TabIndentifier;
 
-	constructor() {
+    constructor() {
+        super();
+
 		this._ID = {
 			uuid: fin.desktop.Application.getCurrent().uuid,
 			name: fin.desktop.Window.getCurrent().name
@@ -20,7 +23,7 @@ class Client {
 	}
 }
 
-(window as Window & { TabClient: Client }).TabClient = new Client();
+(window as Window & { TabClient: AppApi }).TabClient = new AppApi();
 
 // @ts-ignore
 // window.TabClient.init();

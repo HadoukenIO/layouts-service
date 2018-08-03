@@ -1,4 +1,4 @@
-import { TabApiEvents, TabAPIMessage } from "../../shared/types";
+import { TabApiEvents, TabAPIMessage, AppApiEvents } from "../../shared/types";
 
 /**
  * @description Interface to outline shape of event listeners for storage
@@ -42,7 +42,7 @@ export abstract class Api {
 	 * @param event The Api event to listen to
 	 * @param callback callback to handle the data received
 	 */
-	protected addEventListener<T extends TabApiEvents, U>(event: T, callback: (message: U) => void): void {
+    public addEventListener<T extends TabApiEvents | AppApiEvents, U>(event: T, callback: (message: U) => void): void {
 		fin.desktop.InterApplicationBus.subscribe(
 			"*",
 			event,
@@ -62,8 +62,8 @@ export abstract class Api {
 	 * @param event The api event that is being listened to
 	 * @param callback The callback registered to the event
 	 */
-	protected removeEventListener<T extends TabApiEvents, U>(event: T, callback: (message: U) => void): void {
-		const removeApiEvent: TabApiEvents = event;
+    public removeEventListener<T extends TabApiEvents | AppApiEvents, U>(event: T, callback: (message: U) => void): void {
+        const removeApiEvent: TabApiEvents | AppApiEvents = event;
 		fin.desktop.InterApplicationBus.unsubscribe(
 			"*",
 			event,

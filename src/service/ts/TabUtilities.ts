@@ -25,14 +25,18 @@ export async function ejectTab(tabService: TabService, message: TabIndentifier &
 
 	if (isOverTabWindowResult) {
 		if (isOverTabWindowResult !== ejectedTab.tabGroup) {
-			await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true);
+			if (isOverTabWindowResult.initialWindowOptions.url === ejectedTab.tabGroup.initialWindowOptions.url) {
+				await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true);
 
-			// TODO: Add restricting logic to disallow cross group UI tab adding.
-			const tab = await isOverTabWindowResult.addTab({ tabID: ejectedTab.ID });
+				// TODO: Add restricting logic to disallow cross group UI tab adding.
+				const tab = await isOverTabWindowResult.addTab({ tabID: ejectedTab.ID });
 
-			await tab.window.alignPositionToTabGroup();
+				await tab.window.alignPositionToTabGroup();
 
-			isOverTabWindowResult.switchTab(ejectedTab.ID);
+				isOverTabWindowResult.switchTab(ejectedTab.ID);
+			} else {
+				console.warn("Cannot tab - mismatched group Urls!");
+			}
 		}
 	} else {
 		const originalOptions = ejectedTab.tabGroup.initialWindowOptions;
@@ -77,7 +81,7 @@ export async function initializeTab(message: TabWindowOptions, uuid: string, nam
 		return;
 	}
 
-    const group: TabGroup = await tabService.addTabGroup(message);
+	const group: TabGroup = await tabService.addTabGroup(message);
 	const tab: Tab = await group.addTab({ tabID: { uuid, name } });
 
 	if (message.screenX && message.screenY) {

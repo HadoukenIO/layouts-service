@@ -118,6 +118,23 @@ export class TabManager {
 			console.log("TABACTIVATED", tabInfo);
 			this.setActiveTab(tabInfo);
 		});
+
+		// @ts-ignore
+		window.Tab.addEventListener(TabApiEvents.PROPERTIESUPDATED, (tabInfo: TabPackage) => {
+			console.log("TABPROPERTIESUPDATED", tabInfo);
+			const tab = this.getTab(tabInfo.tabID);
+			if (tabInfo.tabProps) {
+				if (tabInfo.tabProps.icon) {
+					// @ts-ignore
+					tab.updateIcon(tabInfo.tabProps.icon);
+				}
+
+				if (tabInfo.tabProps.title) {
+					// @ts-ignore
+					tab.updateText(tabInfo.tabProps.title);
+				}
+			}
+		});
 	}
 
 	/**

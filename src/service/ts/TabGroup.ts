@@ -33,6 +33,15 @@ export class TabGroup {
 		await this._window.init();
 	}
 
+	public initSettings(settings: { height: number }) {
+		if (isNaN(settings.height)) {
+			return;
+		}
+		this._windowOptions.height = settings.height;
+
+		this._window.finWindow.resizeTo(this._windowOptions.width!, this._windowOptions.height, "top-left");
+	}
+
 	public async addTab(tabPackage: TabPackage): Promise<Tab> {
 		const tab = new Tab(tabPackage, this);
 		this._tabs.push(tab);
@@ -143,15 +152,15 @@ export class TabGroup {
 		});
 	}
 
-    public get initialWindowOptions(): TabWindowOptions {
+	public get initialWindowOptions(): TabWindowOptions {
 		return this._windowOptions;
 	}
 
-    public get activeTab(): Tab {
+	public get activeTab(): Tab {
 		return this._activeTab;
 	}
 
-    public get window(): GroupWindow {
+	public get window(): GroupWindow {
 		return this._window;
 	}
 

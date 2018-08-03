@@ -5,12 +5,18 @@
 </head>
 
 <body>
-    <button onclick="newApplication()">New Application</button>
-    <button onclick="newApplication2()">New Window</button>
+    <button onclick="newApplication()">1. New App 1</button>
+
+    <button onclick="newApplication2()">2. New App 1</button>
+
+    <button onclick="newApplication3()">3. New App 1</button>
+
     <script src="dist/service-bundle.js"></script>
 
     <script>
         let appCount = 0;
+        let appCount2 = 200;
+        let appCount3 = 300;
 
         function newApplication() {
             const uuid = `App${appCount}`
@@ -34,11 +40,10 @@
             );
         }
 
-        function newApplication2() {
-            const uuid = `App${appCount}`;
-
+                function newApplication2() {
+            const uuid = `App${appCount2}`
             const app = new fin.desktop.Application({
-                url: "http://localhost:9001/demo/App3.html", 
+                url: "http://localhost:9001/demo/App4.html", 
                 uuid: uuid, 
                 name: uuid,
                 mainWindowOptions: {
@@ -48,15 +53,37 @@
                     autoShow: true,
                     defaultCentered: true,
                     preloadScripts: [{url: "http://localhost:9001/client/dist/client-bundle.js"}]
-
                 }
             },
                 () => {
                     app.run();
-                    appCount++;
+                    appCount2++;
                 }
             );
         }
+
+                function newApplication3() {
+            const uuid = `App${appCount3}`
+            const app = new fin.desktop.Application({
+                url: "http://localhost:9001/demo/App5.html", 
+                uuid: uuid, 
+                name: uuid,
+                mainWindowOptions: {
+                    defaultWidth: 400,
+                    defaultHeight: 300,
+                    saveWindowState: false,
+                    autoShow: true,
+                    defaultCentered: true,
+                    preloadScripts: [{url: "http://localhost:9001/client/dist/client-bundle.js"}]
+                }
+            },
+                () => {
+                    app.run();
+                    appCount3++;
+                }
+            );
+        }
+
 
     </script>
 </body>

@@ -1,4 +1,4 @@
-import { TabAPIActions, TabAPIDragMessage, TabAPIInteractionMessage, TabAPIMessage, TabAPIWindowActions, TabPackage } from "../../shared/types";
+import { TabAPIActions, TabAPIDragMessage, TabAPIInteractionMessage, TabAPIMessage, TabAPIWindowActions, TabPackage, TabProperties } from "../../shared/types";
 
 import { Tab } from "./Tab";
 import { TabGroup } from "./TabGroup";
@@ -82,6 +82,9 @@ export class TabAPIActionProcessor {
 			case TabAPIWindowActions.TOGGLEMAXIMIZE:
 				tabGroup.window.toggleMaximize();
 				break;
+			case TabAPIActions.INIT:
+				this.initTabUISettings(message as TabAPIDragMessage, tabGroup);
+				break;
 			default:
 				break;
 		}
@@ -89,6 +92,20 @@ export class TabAPIActionProcessor {
 
 	private async startDrag() {
 		this.mTabService.dragWindowManager.show();
+	}
+
+	private async initTabUISettings(message: TabAPIDragMessage, group: TabGroup) {
+		if (!message.event) {
+			console.warn("No drag event passed. Cancelling eject");
+			return;
+		}
+
+		if (!message.uuid || !message.name) {
+			console.error("No valid tabID has been passed in");
+			return;
+		}
+
+		group.initSettings({ height: message.event.height! });
 	}
 
 	private async endDrag(message: TabAPIDragMessage, group: TabGroup) {

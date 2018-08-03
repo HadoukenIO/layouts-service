@@ -64,6 +64,12 @@ export enum TabApiEvents {
 	TABACTIVATED = "TABACTIVATED"
 }
 
+export enum AppApiEvents {
+	CLIENTINIT = "CLIENTINIT",
+	TABBED = "TABBED",
+	UNTABBED = "UNTABBED"
+}
+
 /**
  * @description The action the tab client api will send to the service,
  * this will determine which action to execute on service side
@@ -75,7 +81,8 @@ export enum TabAPIActions {
 	EJECT = "EJECT",
 	CLOSE = "CLOSE",
 	ACTIVATE = "ACTIVATE",
-	UPDATEPROPERTIES = "UPDATEPROPERTIES"
+	UPDATEPROPERTIES = "UPDATEPROPERTIES",
+	INIT = "TABINIT"
 }
 
 /**

@@ -40,7 +40,7 @@ export class Tab {
 
 	public updateTabProperties(props: TabProperties) {
 		this._tabProperties = { ...this._tabProperties, ...props };
-		fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, this._tabGroup.ID, TabApiEvents.PROPERTIESUPDATED, props);
+		fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, this._tabGroup.ID, TabApiEvents.PROPERTIESUPDATED, { tabID: this.ID, tabProps: props });
 
 		this._saveTabProperties();
 	}

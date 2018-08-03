@@ -129,7 +129,8 @@ export class GroupWindow extends AsyncWindow {
 					defaultLeft: this._initialWindowOptions.screenX,
 					defaultTop: this._initialWindowOptions.screenY,
 					defaultCentered: !this._initialWindowOptions.screenX && !this._initialWindowOptions.screenY,
-					saveWindowState: false
+					saveWindowState: false,
+					showTaskbarIcon: false
 				},
 				() => {
 					res(win);

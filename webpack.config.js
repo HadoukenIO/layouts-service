@@ -4,7 +4,7 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 const outputDir = path.resolve(__dirname, './build');
 
-function createConfig(component, entryPoint, isReact, isLibrary, ...plugins) {
+function createConfig(component, entryPoint, isLibrary, ...plugins) {
     const config = {
         entry: entryPoint,
         output: {
@@ -25,29 +25,6 @@ function createConfig(component, entryPoint, isReact, isLibrary, ...plugins) {
         plugins: []
     };
 
-    if (isReact) {
-        config.module.rules.unshift(
-            {
-                test: /\.css$/,
-                use: ExtractTextPlugin.extract({
-                    fallback: 'style-loader',
-                    use: 'css-loader'
-                })
-            },
-            {
-                test: /\.(png|jpg|gif|otf|svg)$/,
-                use: [
-                    {
-                        loader: 'url-loader',
-                        options: {
-                            limit: 8192
-                        }
-                    }
-                ]
-            }
-        );
-        config.plugins.push([new ExtractTextPlugin({ filename: '[name]-bundle.css' })]);
-    }
     if (isLibrary) {
         config.output.library = '[name]';
         config.output.libraryTarget = 'window';
@@ -61,7 +38,7 @@ function createConfig(component, entryPoint, isReact, isLibrary, ...plugins) {
 
 module.exports = [
     createConfig('client', './src/client/main.ts'),
-    createConfig('provider', './src/provider/main.ts', false, false, new CopyWebpackPlugin(
+    createConfig('provider', './src/provider/main.ts', false, new CopyWebpackPlugin(
         [{
             // Provider temporarily requires an extra plugin to override index.html within provider app.json
             // Will be removed once the RVM supports relative paths within app.json files
@@ -83,6 +60,6 @@ module.exports = [
             }
         }]
     )),
-    createConfig('demo', {LayoutsUI: './src/demo/LayoutsUI.ts'}, false, true),
-    createConfig('demo', {Snappable: './src/demo/Snappable.ts'}, false, true)
+    createConfig('demo', {LayoutsUI: './src/demo/LayoutsUI.ts'}, true),
+    createConfig('demo', {Snappable: './src/demo/Snappable.ts'}, true)
 ];

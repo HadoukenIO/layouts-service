@@ -1,4 +1,4 @@
-const openfinLauncher = require('openfin-launcher');
+const {launch} = require('hadouken-js-adapter');
 const express = require('express');
 const os = require('os');
 
@@ -15,10 +15,8 @@ app.listen(1337, async () => {
     if (os.platform() === 'darwin') {
         console.log("Starting Provider for Mac OS");
         const providerConf = path.resolve('res/provider/app.json');
-        await openfinLauncher.launch({ manifestUrl: providerConf }).catch(err => console.log(err));
+        await launch({ manifestUrl: providerConf }).catch(console.log);
     }
 
-    openfinLauncher
-        .launchOpenFin({configPath: "http://localhost:1337/demo/app.json"})
-        .catch(err => console.log(err));
+    await launch({manifestUrl: "http://localhost:1337/demo/app.json"}).catch(console.log);
 });

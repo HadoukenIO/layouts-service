@@ -8,7 +8,7 @@ import { Side, perpendicular } from './SideUtils';
 export const dragWindowTo = async (identityOrWindow: Win, x: number, y: number) => {
     await dragWindowAndHover(identityOrWindow, x, y);
     robot.mouseToggle('up');
-    await new Promise((r) => setTimeout(r, 2000));
+    await new Promise((r) => setTimeout(r, 500));
 };
 
 enum CornerEnum {

@@ -47,8 +47,6 @@ async function initWindows(t: GenericTestContext<any>, num: number, side?: Side)
     }
 
     if(num === 2 && side) {
-        const win1Bounds = await getBounds(windows[1]);
-
         // Snap the windows
         await dragSideToSide(windows[1],opposite(side) , windows[0],side );
 

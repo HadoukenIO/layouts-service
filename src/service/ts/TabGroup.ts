@@ -69,12 +69,13 @@ export class TabGroup {
 	}
 
 	public async deregisterTab(ID: TabIndentifier): Promise<void> {
-		await this.removeTab(ID, false);
-
 		const tab = this.getTab(ID);
 
+		await this.removeTab(ID, false, true);
+
 		if (tab) {
-			await tab.window.updateWindowOptions({ frame: true });
+			console.log("in if");
+			tab.window.updateWindowOptions({ frame: true, opacity: 1.0 });
 		}
 	}
 
@@ -97,11 +98,15 @@ export class TabGroup {
 		}
 
 		if (this._tabs.length > 0) {
-			this.switchTab({ uuid: this._tabs[0].ID.uuid, name: this._tabs[0].ID.name });
+			await this.switchTab(null);
 		}
 	}
 
-	public async switchTab(ID: TabIndentifier): Promise<void> {
+	public async switchTab(ID: TabIndentifier | null, hideActiveTab: boolean = true): Promise<void> {
+		if (!ID) {
+			ID = { uuid: this._tabs[0].ID.uuid, name: this._tabs[0].ID.name };
+		}
+
 		const tab = this.getTab(ID);
 
 		if (tab && tab !== this._activeTab) {

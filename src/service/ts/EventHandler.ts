@@ -1,4 +1,4 @@
-import { ServiceIABTopics, TabIndentifier, TabPackage, TabProperties, TabWindowOptions } from "../../shared/types";
+import { AppApiEvents, ServiceIABTopics, TabIndentifier, TabPackage, TabProperties, TabWindowOptions } from "../../shared/types";
 import { TabGroup } from "./TabGroup";
 import { TabService } from "./TabService";
 import { ejectTab, initializeTab } from "./TabUtilities";
@@ -29,9 +29,8 @@ export class EventHandler {
 	 * @function _createListeners Subscribes to topics and handles messages coming into those topics
 	 */
 	private async _createListeners(): Promise<void> {
-		fin.desktop.InterApplicationBus.subscribe("*", ServiceIABTopics.CLIENTINIT, this._onClientInit.bind(this));
-		fin.desktop.InterApplicationBus.subscribe("*", ServiceIABTopics.TABEJECTED, this._onTabEjected.bind(this));
-		fin.desktop.InterApplicationBus.subscribe("*", ServiceIABTopics.UPDATETABPROPERTIES, this._onUpdateTabProperties.bind(this));
+		fin.desktop.InterApplicationBus.subscribe("*", AppApiEvents.CLIENTINIT, this._onClientInit.bind(this));
+		fin.desktop.InterApplicationBus.subscribe("*", AppApiEvents.DEREGISTER, this._onClientDeregister.bind(this));
 
 		fin.desktop.System.addEventListener("monitor-info-changed", this._onMonitorInfoChanged.bind(this));
 	}
@@ -48,19 +47,6 @@ export class EventHandler {
 
 	/**
 	 * @private
-	 * @function _onUpdateTabProperties Updates the tab properties
-	 * @param message The new tab properties
-	 */
-	private async _onUpdateTabProperties(message: TabPackage): Promise<void> {
-		const tab = this._service.getTab({ ...message.tabID });
-
-		if (tab && message.tabProps) {
-			tab.updateTabProperties({ ...message.tabProps });
-		}
-	}
-
-	/**
-	 * @private
 	 * @function _onClientInit Initialises tabbing on the application
 	 * @param message TabWindowOptions
 	 * @param uuid The uuid of the application to initialise tabbing on
@@ -70,12 +56,11 @@ export class EventHandler {
 		initializeTab(message, uuid, name, this._service);
 	}
 
-	/**
-	 * @private
-	 * @function _onTabEjected Eject tab when a message comes in based on the payload
-	 * @param message TabIdentifier and tab window options
-	 */
-	private async _onTabEjected(message: TabIndentifier & TabWindowOptions): Promise<void> {
-		// ejectTab(this._service, message);
+	private async _onClientDeregister(message: {}, uuid: string, name: string) {
+		const tabGroup = this._service.getTabGroupByApp({ uuid, name });
+
+		if (tabGroup) {
+			tabGroup.deregisterTab({ uuid, name });
+		}
 	}
 }

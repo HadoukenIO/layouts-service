@@ -67,7 +67,8 @@ export enum TabApiEvents {
 export enum AppApiEvents {
 	CLIENTINIT = "CLIENTINIT",
 	TABBED = "TABBED",
-	UNTABBED = "UNTABBED"
+	UNTABBED = "UNTABBED",
+	DEREGISTER = "DEREGISTER"
 }
 
 /**

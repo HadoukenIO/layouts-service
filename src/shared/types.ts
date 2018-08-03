@@ -125,3 +125,7 @@ export enum TabAPIWindowActions {
 	CLOSE = "CLOSEWINDOW",
 	TOGGLEMAXIMIZE = "TOGGLEMAXIMIZE"
 }
+
+export interface TabbedEventPayload {
+	tabGroupID: string;
+}

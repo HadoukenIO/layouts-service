@@ -1,1 +1,0 @@
-import 'expose-loader?LayoutsManager!./main';

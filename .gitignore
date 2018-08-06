@@ -1,6 +1,7 @@
 node_modules
 build
 .DS_STORE
+.vscode
 module_dist
 example/resources/fonts
 npm-debug.log

@@ -2,28 +2,31 @@ import { TabApiEvents } from "../../shared/APITypes";
 import { TabIdentifier, TabPackage, TabProperties } from "../../shared/types";
 import { Tab } from "./Tab";
 /**
- * @class TabManager Handles the management of individual tabs and some of their functionality.
+ * Handles the management of tabs and some of their functionality.
  */
 export class TabManager {
 	/**
-	 * @method tabContainer The HTML Element container for the tabs.
+	 *  The HTML Element container for the tabs.
 	 */
 	public static tabContainer: HTMLElement = document.getElementById("tabs")!;
 
 	/**
-	 * @member tabs An array of the tabs present in the window.
+	 * An array of the tabs present in the window.
 	 */
 	private tabs: Tab[] = [];
 
 	/**
-	 * @member activeTab The currently active tab (highlighted).
+	 * The currently active tab (highlighted).
 	 */
 	private activeTab!: Tab;
 
+	/**
+	 * The last active tab before the current active tab.
+	 */
 	private lastActiveTab!: Tab | null;
 
 	/**
-	 * @constructor Constructs the TabManager class.
+	 * Constructs the TabManager class.
 	 */
 	constructor() {
 		TabManager.tabContainer = document.getElementById("tabs")!;
@@ -31,12 +34,12 @@ export class TabManager {
 	}
 
 	/**
-	 * @method addTab Creates a new Tab and renders.
+	 * Creates a new Tab and renders.
 	 * @param {TabIdentifier} tabID An object containing the uuid, name for the external application/window.
 	 */
 	public async addTab(tabID: TabIdentifier, tabProps: TabProperties) {
 		if (this._getTabIndex(tabID) === -1) {
-			const tab = new Tab(tabID, tabProps, this);
+			const tab = new Tab(tabID, tabProps);
 			await tab.init();
 
 			this.tabs.push(tab);
@@ -44,7 +47,7 @@ export class TabManager {
 	}
 
 	/**
-	 * @method removeTab Removes a Tab.
+	 * Removes a Tab.
 	 * @param {TabIdentifier} tabID An object containing the uuid, name for the external application/window.
 	 */
 	public removeTab(tabID: TabIdentifier, closeApp: boolean = false): void {
@@ -59,6 +62,7 @@ export class TabManager {
 	}
 
 	/**
+	 * Unsets the active tab
 	 * @method unsetActiveTab Removes the active status from the current active Tab.
 	 */
 	public unsetActiveTab(): void {
@@ -70,7 +74,7 @@ export class TabManager {
 	}
 
 	/**
-	 * @method setActive Sets a specified tab as active.  If no tab is specified then the first tab will be chosen.
+	 * Sets a specified tab as active.  If no tab is specified then the first tab will be chosen.
 	 * @param {TabIdentifier | null} tabID An object containing the uuid, name for the external application/window or null.
 	 */
 	public setActiveTab(tabID: TabIdentifier | null = null): void {
@@ -89,7 +93,7 @@ export class TabManager {
 	}
 
 	/**
-	 * @method getTab Finds and gets the Tab object.
+	 * Finds and gets the Tab object.
 	 * @param {TabIdentifier} tabID An object containing the uuid, name for the external application/window.
 	 */
 	public getTab(tabID: TabIdentifier): Tab | undefined {
@@ -139,7 +143,7 @@ export class TabManager {
 	}
 
 	/**
-	 * @method _getTabIndex Gets the Tab index from the array.
+	 * Gets the Tab index from the array.
 	 * @param {TabIdentifier} tabID An object containing the uuid, name for the external application/window.
 	 */
 	private _getTabIndex(tabID: TabIdentifier): number {
@@ -149,17 +153,25 @@ export class TabManager {
 	}
 
 	/**
-	 * @method getTabs Returns an array of all the tabs.
+	 * Returns an array of all the tabs.
 	 * @returns {Tab[]}
 	 */
 	public get getTabs(): Tab[] {
 		return this.tabs;
 	}
 
+	/**
+	 * Returns the last active tab.
+	 * @returns {Tab | null} Last Active Tab
+	 */
 	public get getLastActiveTab(): Tab | null {
 		return this.lastActiveTab;
 	}
 
+	/**
+	 * Returns the active tab.
+	 * @returns {Tab} Active Tab
+	 */
 	public get getActiveTab(): Tab {
 		return this.activeTab;
 	}

@@ -3,51 +3,60 @@ import { TabManager } from "./TabManager";
 
 export class Tab {
 	/**
-	 * @member domNode Contains the HTML Element for the tab.
+	 * Contains the HTML Element for the tab.
 	 */
 	private domNode!: HTMLElement;
-	private _tabManager: TabManager;
+
+	/**
+	 * Properties to the tab (icon, title)
+	 */
 	private _properties: TabProperties;
+
+	/**
+	 * ID of the Tab (uuid, name);
+	 */
 	private _ID: TabIdentifier;
 
 	/**
-	 * @constructor Constructor for the Tab class.
+	 * Constructor for the Tab class.
 	 * @param {TabIdentifier} tabID An object containing the uuid, name for the external application/window.
 	 */
-	constructor(tabID: TabIdentifier, tabProperties: TabProperties, tabManager: TabManager) {
+	constructor(tabID: TabIdentifier, tabProperties: TabProperties) {
 		this._ID = tabID;
-		this._tabManager = tabManager;
 		this._properties = tabProperties;
 	}
 
-	public async init() {
+	/**
+	 * Initializes the Tab class
+	 */
+	public init() {
 		this._render();
 	}
 
 	/**
-	 * @method remove Removes the Tab from DOM.
+	 * Removes the Tab from DOM.
 	 */
 	public remove(): void {
 		this.domNode.remove();
 	}
 
 	/**
-	 * @method setActive Sets the Active class on the Tab DOM.
+	 * Sets the Active class on the Tab DOM.
 	 */
 	public setActive(): void {
 		this.domNode.classList.add("active");
 	}
 
 	/**
-	 * @method unsetActive Removes the Active class from the Tab DOM.
+	 * Removes the Active class from the Tab DOM.
 	 */
 	public unsetActive(): void {
 		this.domNode.classList.remove("active");
 	}
 
 	/**
-	 * @method updateIcon Updates the icon of this tab.
-	 * @param icon The URL to the icon image.
+	 * Updates the icon of this tab.
+	 * @param {string} icon The URL to the icon image.
 	 */
 	public updateIcon(icon: string = ""): void {
 		const iconNode = this.domNode.querySelectorAll(".tab-favicon")[0];
@@ -56,6 +65,10 @@ export class Tab {
 		this._properties.icon = icon;
 	}
 
+	/**
+	 * Updates the text of the tab.
+	 * @param {string} text Text to update with.
+	 */
 	public updateText(text: string): void {
 		const textNode = this.domNode.querySelectorAll(".tab-content")[0];
 		(textNode as HTMLElement).textContent = text;
@@ -64,7 +77,7 @@ export class Tab {
 	}
 	/**
 	 * Handles the HTML5 DragEvent onStart
-	 * @param e {DragEvent} DragEvent
+	 * @param {DragEvent} e DragEvent
 	 */
 	private _onDragStart(e: DragEvent): void {
 		e.dataTransfer.effectAllowed = "move";
@@ -75,16 +88,15 @@ export class Tab {
 
 	/**
 	 * Handles the HTML5 DragEvent onDragEnd
-	 * @param e {DragEvent} DragEvent
+	 * @param {DragEvent} e DragEvent
 	 */
 	private _onDragEnd(e: DragEvent): void {
-		console.log(e);
 		// @ts-ignore
 		window.Tab.endDrag(e, this._ID.uuid, this._ID.name);
 	}
 
 	/**
-	 * @method _render Renders the Tab to the DOM from generation.
+	 * Renders the Tab to the DOM from generation.
 	 */
 	private _render(): void {
 		this.domNode = this._generateDOM();
@@ -94,8 +106,8 @@ export class Tab {
 	}
 
 	/**
-	 * @method _onClickHandler Handles all click events from this Tab DOM.
-	 * @param e MouseEvent
+	 * Handles all click events from this Tab DOM.
+	 * @param {MouseEvent} e MouseEvent
 	 */
 	private _onClickHandler(e: MouseEvent): void {
 		switch ((e.target as Element).className) {
@@ -113,8 +125,8 @@ export class Tab {
 	}
 
 	/**
-	 * @method _generateDOM Generates the DOM for this tab.
-	 * @returns {HTMLElement}
+	 * Generates the DOM for this tab.
+	 * @returns {HTMLElement} DOM Node
 	 */
 	private _generateDOM(): HTMLElement {
 		// Get tab template from HTML (index.html)
@@ -131,7 +143,7 @@ export class Tab {
 	}
 
 	/**
-	 * @method getTabID Creates a tab identifier object consisting of UUID, Name
+	 * Returns tab identifier object consisting of UUID, Name
 	 * @returns {TabIdentifier} {uuid, name}
 	 */
 	public get ID(): TabIdentifier {
@@ -142,8 +154,8 @@ export class Tab {
 	}
 
 	/**
-	 * @method DOM
-	 * @returns {HTMLElement}
+	 * Returns the DOM Node for the tab
+	 * @returns {HTMLElement} DOM Node
 	 */
 	public get DOM(): HTMLElement {
 		return this.domNode;

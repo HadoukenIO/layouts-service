@@ -2,13 +2,35 @@ import { AppApiEvents, TabApiEvents, TabIndentifier, TabPackage, TabProperties }
 import { TabGroup } from "./TabGroup";
 import { TabWindow } from "./TabWindow";
 
+/**
+ * The Tab class handles functionality related to the tab itself.
+ */
 export class Tab {
+	/**
+	 * This Tabs ID (uuid, name);
+	 */
 	private readonly _tabID: TabIndentifier;
+
+	/**
+	 * Handle to the tab group that this tab belongs to.
+	 */
 	private readonly _tabGroup: TabGroup;
 
+	/**
+	 * The properties (title, icon) for the tab.
+	 */
 	private _tabProperties: TabProperties = {};
+
+	/**
+	 * Handle to this tabs window.
+	 */
 	private _tabWindow: TabWindow;
 
+	/**
+	 * Constructor for the Tab Class.
+	 * @param {TabPackage} tabPackage The tab package contains the uuid, name, and any properties for the tab.
+	 * @param {TabGroup} tabGroup The tab group to which this tab belongs.
+	 */
 	constructor(tabPackage: TabPackage, tabGroup: TabGroup) {
 		this._tabID = tabPackage.tabID;
 		this._tabGroup = tabGroup;
@@ -20,6 +42,9 @@ export class Tab {
 		this._tabWindow = new TabWindow(this, tabPackage.tabID);
 	}
 
+	/**
+	 * Initalizes Async methods required for the Tab Class.
+	 */
 	public async init() {
 		await this._tabWindow.init();
 
@@ -29,8 +54,12 @@ export class Tab {
 		fin.desktop.InterApplicationBus.send(this.ID.uuid, this.ID.name, AppApiEvents.TABBED, { tabGroupID: this._tabGroup.ID });
 	}
 
+	/**
+	 * Remove the Tab from the group and possibly its window.
+	 * @param closeApp Flag if we should close the tabs window.
+	 */
 	public async remove(closeApp: boolean) {
-		await this._tabWindow.leaveGroup();
+		this._tabWindow.leaveGroup();
 
 		if (closeApp) {
 			await this._tabWindow.close(false);
@@ -40,6 +69,10 @@ export class Tab {
 		fin.desktop.InterApplicationBus.send(this.ID.uuid, this.ID.name, AppApiEvents.UNTABBED, { tabGroupID: this._tabGroup.ID });
 	}
 
+	/**
+	 * Updates the Tab properties with the passed values.
+	 * @param {TabProperties} props The tab properties to update.
+	 */
 	public updateTabProperties(props: TabProperties) {
 		this._tabProperties = { ...this._tabProperties, ...props };
 		fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, this._tabGroup.ID, TabApiEvents.PROPERTIESUPDATED, { tabID: this.ID, tabProps: props });
@@ -47,10 +80,17 @@ export class Tab {
 		this._saveTabProperties();
 	}
 
+	/**
+	 * Saves the current Tab properties to the localstorage.
+	 */
 	private _saveTabProperties() {
 		localStorage.setItem(JSON.stringify(this._tabID), JSON.stringify(this._tabProperties));
 	}
 
+	/**
+	 * Loads the Tab properties from the localstorage.
+	 * @returns {TabProperties} TabProperties
+	 */
 	private _loadTabPropertiesFromStorage(): TabProperties {
 		const props = localStorage.getItem(JSON.stringify(this._tabID));
 
@@ -61,6 +101,10 @@ export class Tab {
 		}
 	}
 
+	/**
+	 * Returns a complete TabProperties set loaded from localstorage + default values.
+	 * @returns {TabProperties} TabProperties
+	 */
 	private _loadTabProperties(): TabProperties {
 		const windowOptions = this._tabWindow.windowOptions;
 
@@ -73,13 +117,26 @@ export class Tab {
 		};
 	}
 
+	/**
+	 * Returns this Tabs Tab Set.
+	 * @returns {TabGroup} TabGroup
+	 */
 	public get tabGroup(): TabGroup {
 		return this._tabGroup;
 	}
 
+	/**
+	 * Returns this Tabs window.
+	 * @returns {TabWindow} TabWindow
+	 */
 	public get window(): TabWindow {
 		return this._tabWindow;
 	}
+
+	/**
+	 * Returns this Tabs ID.
+	 * @returns {TabIndentifier} ID
+	 */
 	public get ID(): TabIndentifier {
 		return this._tabID;
 	}

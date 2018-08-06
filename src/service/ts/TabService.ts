@@ -7,14 +7,43 @@ import { TabAPIActionProcessor } from "./TabAPIActionProcessor";
 import { TabGroup } from "./TabGroup";
 import { ZIndexer } from "./ZIndexer";
 
+/**
+ * The overarching class for the Tab Service.
+ */
 export class TabService {
+	/**
+	 * Handle of this Tab Service Instance.
+	 */
 	public static INSTANCE: TabService;
+
+	/**
+	 * Contains all the tabsets of this service.
+	 */
 	private _tabGroups: TabGroup[];
+
+	/**
+	 * Handle to the AppApi Handler.
+	 */
 	private _eventHandler: EventHandler;
+
+	/**
+	 * Handle to the TabAPIActionProcessor
+	 */
 	private mTabApiEventHandler: TabAPIActionProcessor;
+
+	/**
+	 * Handle to the DragWindowManager
+	 */
 	private _dragWindowManager: DragWindowManager;
+
+	/**
+	 * Handle to the ZIndexer
+	 */
 	private _zIndexer: ZIndexer = new ZIndexer();
 
+	/**
+	 * Constructor of the TabService Class.
+	 */
 	constructor() {
 		this._tabGroups = [];
 		this._dragWindowManager = new DragWindowManager();
@@ -28,7 +57,12 @@ export class TabService {
 		TabService.INSTANCE = this;
 	}
 
-	public async addTabGroup(windowOptions: TabWindowOptions) {
+	/**
+	 * Creates a new tab group
+	 * @param {TabWindowOptions} WindowOptions Window Options used to create the tab group window (positions, dimensions, url, etc...)
+	 * @returns {TabGroup} TabGroup
+	 */
+	public async addTabGroup(windowOptions: TabWindowOptions): Promise<TabGroup> {
 		const group = new TabGroup(windowOptions);
 		await group.init();
 
@@ -37,7 +71,12 @@ export class TabService {
 		return group;
 	}
 
-	public async removeTabGroup(ID: string, closeApps: boolean) {
+	/**
+	 * Removes the tab group from the service and optionally closes all the groups tab windows.
+	 * @param ID ID of the tab group to remove.
+	 * @param closeApps Flag if we should close the groups tab windows.
+	 */
+	public async removeTabGroup(ID: string, closeApps: boolean): Promise<void> {
 		const groupIndex = this._getGroupIndex(ID);
 
 		if (groupIndex !== -1) {
@@ -50,12 +89,22 @@ export class TabService {
 		}
 	}
 
+	/**
+	 * Returns a tab group searched by its ID.
+	 * @param ID ID of the tab group to find.
+	 * @returns {TabGroup | undefined} TabGroup
+	 */
 	public getTabGroup(ID: string): TabGroup | undefined {
 		return this._tabGroups.find((group: TabGroup) => {
 			return group.ID === ID;
 		});
 	}
 
+	/**
+	 * Returns a tab group searched by a tab it contains.
+	 * @param ID ID of the tab group to find.
+	 * @returns {TabGroup | undefined} Tabgroup
+	 */
 	public getTabGroupByApp(ID: TabIndentifier): TabGroup | undefined {
 		return this._tabGroups.find((group: TabGroup) => {
 			return group.tabs.some((tab: Tab) => {
@@ -65,6 +114,10 @@ export class TabService {
 		});
 	}
 
+	/**
+	 * Returns an individual Tab.
+	 * @param ID ID of the tab to get.
+	 */
 	public getTab(ID: TabIndentifier): Tab | undefined {
 		const group = this.getTabGroupByApp(ID);
 
@@ -75,6 +128,12 @@ export class TabService {
 		return;
 	}
 
+	/**
+	 * Checks for any windows that is under a specific point.
+	 * @param {number} x X Coordinate
+	 * @param {number} y Y Coordinate
+	 * @returns {TabGroup | null}
+	 */
 	public async isPointOverTabGroup(x: number, y: number): Promise<TabGroup | null> {
 		const groupTabBounds = await Promise.all(
 			this._tabGroups.map(async group => {
@@ -118,17 +177,30 @@ export class TabService {
 		return null;
 	}
 
+	/**
+	 * Returns the array index of a tab group.
+	 * @param ID ID of the tab group to search.
+	 * @returns {number} Index number.
+	 */
 	private _getGroupIndex(ID: string): number {
 		return this._tabGroups.findIndex((tab: TabGroup) => {
 			return tab.ID === ID;
 		});
 	}
 
-	public get dragWindowManager() {
+	/**
+	 * Returns the DragWindowManager instance.
+	 * @returns {DragWindowManager} DragWindowManager
+	 */
+	public get dragWindowManager(): DragWindowManager {
 		return this._dragWindowManager;
 	}
 
-	public get tabGroups() {
+	/**
+	 * Returns the Tab Group Array
+	 * @returns {TabGroup[]} Tab Groups Array
+	 */
+	public get tabGroups(): TabGroup[] {
 		return this._tabGroups;
 	}
 }

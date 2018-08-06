@@ -25,7 +25,7 @@ export async function ejectTab(tabService: TabService, message: TabIndentifier &
 
 	if (isOverTabWindowResult) {
 		if (isOverTabWindowResult !== ejectedTab.tabGroup) {
-			if (isOverTabWindowResult.initialWindowOptions.url === ejectedTab.tabGroup.initialWindowOptions.url) {
+			if (isOverTabWindowResult.window.initialWindowOptions.url === ejectedTab.tabGroup.window.initialWindowOptions.url) {
 				await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true);
 
 				// TODO: Add restricting logic to disallow cross group UI tab adding.
@@ -39,7 +39,7 @@ export async function ejectTab(tabService: TabService, message: TabIndentifier &
 			}
 		}
 	} else {
-		const originalOptions = ejectedTab.tabGroup.initialWindowOptions;
+		const originalOptions = ejectedTab.tabGroup.window.initialWindowOptions;
 		const [tabGroupBounds] = await Promise.all([ejectedTab.tabGroup.window.getWindowBounds()]);
 
 		if (message.screenX && message.screenY) {

@@ -4,14 +4,40 @@ import { TabGroup } from "./TabGroup";
 import { TabService } from "./TabService";
 import { TabWindow } from "./TabWindow";
 
+/**
+ * Handles the window for the Tab-Set
+ */
 export class GroupWindow extends AsyncWindow {
+	/**
+	 * The initial window options used to create this window.
+	 */
 	private _initialWindowOptions: TabWindowOptions;
-	private _initialBounds: fin.WindowBounds = {};
+
+	/**
+	 * Used to store the window bounds before a maximized is called.
+	 */
 	private _beforeMaximizeBounds: fin.WindowBounds = {};
+
+	/**
+	 * Handle to this windows tab group.
+	 */
 	private _tabGroup: TabGroup;
+
+	/**
+	 * Flag for if the window is maximized.
+	 */
 	private _isMaximized: boolean = false;
+
+	/**
+	 * Handle to the Tab service.
+	 */
 	private _service: TabService = TabService.INSTANCE;
 
+	/**
+	 * Constructor for the GroupWindow Class.
+	 * @param windowOptions Window Options for creating the tab set.
+	 * @param tabGroup The tab group to which this window belongs.
+	 */
 	constructor(windowOptions: TabWindowOptions, tabGroup: TabGroup) {
 		super();
 		this._tabGroup = tabGroup;
@@ -27,11 +53,18 @@ export class GroupWindow extends AsyncWindow {
 		this._initialWindowOptions = windowOptionsSanitized;
 	}
 
+	/**
+	 * Initialized Async methods for the GroupWindow class.
+	 */
 	public async init(): Promise<void> {
 		this._window = await this._createTabWindow();
 		this._createWindowEventListeners();
 	}
 
+	/**
+	 * Aligns this tab set window on top of a provided window.
+	 * @param app Window to align this tab set window to.
+	 */
 	public async alignPositionToApp(app: TabWindow): Promise<void> {
 		const win: fin.OpenFinWindow = app.finWindow;
 		const bounds = await app.getWindowBounds();
@@ -44,26 +77,35 @@ export class GroupWindow extends AsyncWindow {
 		win.joinGroup(this._window!);
 	}
 
-	public async toggleMaximize() {
+	/**
+	 * Toggles the window to a maximized state.  If the window is maximized we will restore it, if not we will maximize it.
+	 */
+	public async toggleMaximize(): Promise<void | void[]> {
 		if (this._isMaximized) {
-			this.restoreGroup();
+			return this.restoreGroup();
 		} else {
-			this.maximizeGroup();
+			return this.maximizeGroup();
 		}
 	}
 
+	/**
+	 * Maximizes the tab set window.  This will resize the tab window to as large as possible with the tab set window on top.
+	 */
 	public async maximizeGroup(): Promise<void> {
 		this._beforeMaximizeBounds = await this._tabGroup.activeTab.window.getWindowBounds();
 
 		const moveto = this.moveTo(0, 0);
-		const tabresizeto = this._tabGroup.activeTab.window.resizeTo(screen.availWidth, screen.availHeight - this._tabGroup.initialWindowOptions.height!, "top-left");
+		const tabresizeto = this._tabGroup.activeTab.window.resizeTo(screen.availWidth, screen.availHeight - this._initialWindowOptions.height!, "top-left");
 
 		await Promise.all([moveto, tabresizeto]);
 
 		this._isMaximized = true;
 	}
 
-	public async restoreGroup() {
+	/**
+	 * Restores the tab set window.  If the tab set window is in a maximized state we will restore the window to its "before maximized" bounds.
+	 */
+	public async restoreGroup(): Promise<void | void[]> {
 		if (this._isMaximized) {
 			if ((await this.getState()) === "minimized") {
 				this._window.restore();
@@ -75,44 +117,57 @@ export class GroupWindow extends AsyncWindow {
 				return Promise.all([resize, moveto]);
 			}
 		} else {
-			return new Promise((res, rej) => {
-				this._window.restore(res, rej);
-			});
+			return this._window.restore();
 		}
 	}
 
+	/**
+	 * Minimizes the tab set window and all tab windows.
+	 */
 	public async minimizeGroup() {
 		const minWins = this._tabGroup.tabs.map(tab => {
-			return new Promise((res, rej) => {
-				tab.window.finWindow.minimize(res, rej);
-			});
+			return tab.window.minimize();
 		});
 
-		const group = new Promise((res, rej) => {
-			this._window.minimize(res, rej);
-		});
+		const group = this._window.minimize();
 
 		return Promise.all([minWins, group]);
 	}
 
+	/**
+	 * Closes the tab set window and all its apps.
+	 */
 	public async closeGroup(): Promise<void> {
 		return this._service.removeTabGroup(this._tabGroup.ID, true);
 	}
 
+	/**
+	 * Creates event listeners for the tab set window.
+	 */
 	protected _createWindowEventListeners(): void {
 		this._window.addEventListener("focused", () => {
 			this._tabGroup.activeTab.window.finWindow.bringToFront();
 		});
 	}
 
+	/**
+	 * Returns the maximized state
+	 * @returns {boolean} is Maximized?
+	 */
 	public get isMaximized(): boolean {
 		return this._isMaximized;
 	}
 
+	/**
+	 * Sets the is Maximized flag.
+	 */
 	public set isMaximized(maximized: boolean) {
 		this._isMaximized = maximized;
 	}
 
+	/**
+	 * Creates the tab set window using the window options passed in during initialization.
+	 */
 	private async _createTabWindow(): Promise<fin.OpenFinWindow> {
 		// @ts-ignore TS complains, but verified this is real and working.
 		return new Promise((res, rej) => {
@@ -140,5 +195,13 @@ export class GroupWindow extends AsyncWindow {
 				}
 			);
 		});
+	}
+
+	/**
+	 * Returns the initial window options provided during initialization.
+	 * @returns {TabWindowOptions} TabWindowOptions
+	 */
+	public get initialWindowOptions(): TabWindowOptions {
+		return this._initialWindowOptions;
 	}
 }

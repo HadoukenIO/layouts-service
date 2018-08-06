@@ -5,10 +5,23 @@ interface ZIndex {
 	ID: TabIndentifier;
 }
 
+/**
+ * Keeps track of window Z-indexes.  Currently a POC!
+ */
 export class ZIndexer {
+	/**
+	 * Handle to this instance.
+	 */
 	public static INSTANCE: ZIndexer;
+
+	/**
+	 * The array of z-indexes of windows + IDs
+	 */
 	private _stack: ZIndex[] = [];
 
+	/**
+	 * Constructor of the ZIndexer class.
+	 */
 	constructor() {
 		if (ZIndexer.INSTANCE) {
 			return ZIndexer.INSTANCE;
@@ -37,6 +50,10 @@ export class ZIndexer {
 		ZIndexer.INSTANCE = this;
 	}
 
+	/**
+	 * Updates the windows index in the stack and sorts array.
+	 * @param ID ID of the window to update (uuid, name)
+	 */
 	public update(ID: TabIndentifier) {
 		const time = new Date().valueOf();
 
@@ -55,6 +72,11 @@ export class ZIndexer {
 		});
 	}
 
+	/**
+	 * Returns order of zindexs for a set of window IDs.  Order is from top to bottom.
+	 * @param {TabIndentifier[]} ids Array of IDs to get order of.
+	 * @return {TabIndentifier[] | null} Array of TabIdentifiers or null
+	 */
 	public getTop(ids: TabIndentifier[]): TabIndentifier[] | null {
 		const resArray: TabIndentifier[] = [];
 		this._stack.forEach(idx => {
@@ -68,6 +90,10 @@ export class ZIndexer {
 		return resArray.length > 0 ? resArray : null;
 	}
 
+	/**
+	 * Creates window event listeners on a specified window.
+	 * @param win Window to add the event listeners to.
+	 */
 	private _addEventListeners(win: fin.OpenFinWindow) {
 		win.addEventListener("focused", () => {
 			// @ts-ignore
@@ -85,7 +111,11 @@ export class ZIndexer {
 		});
 	}
 
-	public get indexes() {
+	/**
+	 * Returns the array of indexes.
+	 * @returns {ZIndex[]} ZIndex[]
+	 */
+	public get indexes(): ZIndex[] {
 		return this._stack;
 	}
 }

@@ -1,25 +1,26 @@
 import { AsyncWindow } from "./asyncWindow";
 
+/**
+ * Handles the Drag Window which appears when API drag and drop is initialized.
+ */
 export class DragWindowManager extends AsyncWindow {
-	private static application = fin.desktop.Application.getCurrent();
-
-	// tslint:disable-next-line:no-any
-	private mouseTrackerInterval: any;
-
-	// tslint:disable-next-line:no-any
+	// tslint:disable-next-line:no-any setTimout return Type is confused by VSC
 	private _hideTimeout: any;
 
 	constructor() {
 		super();
-
-		// this._setupListeners();
 	}
 
-	public async init() {
-		console.log("in init");
+	/**
+	 * Initializes Async Methods required by this class.
+	 */
+	public async init(): Promise<void> {
 		await this._createDragWindow();
 	}
 
+	/**
+	 * Shows the drag window overlay.
+	 */
 	public show(): void {
 		this._window.show();
 
@@ -28,12 +29,18 @@ export class DragWindowManager extends AsyncWindow {
 		}, 15000);
 	}
 
+	/**
+	 * Hides the drag window overlay.
+	 */
 	public hide(): void {
 		this._window.hide();
 		clearTimeout(this._hideTimeout);
 	}
 
-	private _createDragWindow() {
+	/**
+	 * Creates the drag overlay window.
+	 */
+	private _createDragWindow(): Promise<void> {
 		return new Promise((res, rej) => {
 			this._window = new fin.desktop.Window(
 				{
@@ -62,27 +69,4 @@ export class DragWindowManager extends AsyncWindow {
 			);
 		});
 	}
-
-	private _setWindowToMouse(set: boolean): void {
-		if (set) {
-			this.mouseTrackerInterval = setInterval(() => {
-				fin.desktop.System.getMousePosition(mousePosition => {
-					super._window.moveTo(mousePosition.left - 500, mousePosition.top - 500);
-					fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, "tab-ping", { screenX: mousePosition.left, screenY: mousePosition.top });
-				});
-			}, 25);
-		} else {
-			clearInterval(this.mouseTrackerInterval);
-		}
-	}
-
-	// private _setupListeners(): void {
-	// 	fin.desktop.InterApplicationBus.subscribe(DragWindowManager.application.uuid, "DragManager:Hide", () => {
-	// 		this.window.hide();
-	// 	});
-
-	// 	fin.desktop.InterApplicationBus.subscribe(DragWindowManager.application.uuid, "DragManager:Show", () => {
-	// 		this.window.show();
-	// 	});
-	// }
 }

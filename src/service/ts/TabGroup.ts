@@ -5,43 +5,52 @@ import { GroupWindow } from "./GroupWindow";
 import { Tab } from "./Tab";
 import { TabService } from "./TabService";
 
+/**
+ * Handles functionality for the TabSet
+ */
 export class TabGroup {
-	readonly ID: string;
+	/**
+	 * The ID for the TabGroup.
+	 */
+	public readonly ID: string;
 
+	/**
+	 * Handle to this tabgroups window.
+	 */
 	private _window: GroupWindow;
-	private _windowOptions!: TabWindowOptions;
+
+	/**
+	 * Tabs currently in this tab group.
+	 */
 	private _tabs: Tab[];
+
+	/**
+	 * The active tab in the tab group.
+	 */
 	private _activeTab!: Tab;
 
+	/**
+	 * Constructor for the TabGroup Class.
+	 * @param {TabWindowOptions} windowOptions
+	 */
 	constructor(windowOptions: TabWindowOptions) {
 		this.ID = uuidv4();
 		this._tabs = [];
 		this._window = new GroupWindow(windowOptions, this);
-
-		const windowOptionsSanitized: TabWindowOptions = {
-			url: windowOptions.url || "http://localhost:9001/tab-ui/",
-			width: windowOptions.width && isNumber(windowOptions.width) ? windowOptions.width : undefined,
-			height: windowOptions.height && isNumber(windowOptions.height) ? windowOptions.height : 62,
-			screenX: windowOptions.screenX && isNumber(windowOptions.screenX) ? windowOptions.screenX : undefined,
-			screenY: windowOptions.screenY && isNumber(windowOptions.screenY) ? windowOptions.screenY : undefined
-		};
-
-		this._windowOptions = windowOptionsSanitized;
 	}
 
+	/**
+	 * Initializes the async methods required for the TabGroup Class.
+	 */
 	public async init(): Promise<void> {
 		await this._window.init();
 	}
 
-	public initSettings(settings: { height: number }) {
-		if (isNaN(settings.height)) {
-			return;
-		}
-		this._windowOptions.height = settings.height;
-
-		this._window.finWindow.resizeTo(this._windowOptions.width!, this._windowOptions.height, "top-left");
-	}
-
+	/**
+	 * Adds a Tab to the tabset.
+	 * @param {TabPackage} tabPackage The package containing uuid, name, tabProperties of the tab to be added.
+	 * @returns {Tab} The created tab.
+	 */
 	public async addTab(tabPackage: TabPackage): Promise<Tab> {
 		const tab = new Tab(tabPackage, this);
 		this._tabs.push(tab);
@@ -60,7 +69,10 @@ export class TabGroup {
 		return tab;
 	}
 
-	public async realignApps() {
+	/**
+	 * Realigns all tab windows of the group to the position of the tab set window.
+	 */
+	public realignApps() {
 		return Promise.all(
 			this._tabs.map(tab => {
 				tab.window.alignPositionToTabGroup();
@@ -68,17 +80,26 @@ export class TabGroup {
 		);
 	}
 
+	/**
+	 * Deregisters the Tab from tabbing altogether.
+	 * @param ID ID (uuid, name) of the Tab to deregister.
+	 */
 	public async deregisterTab(ID: TabIndentifier): Promise<void> {
 		const tab = this.getTab(ID);
 
 		await this.removeTab(ID, false, true);
 
 		if (tab) {
-			console.log("in if");
 			tab.window.updateWindowOptions({ frame: true, opacity: 1.0 });
 		}
 	}
 
+	/**
+	 * Removes a specified tab from the tab group.
+	 * @param {TabIndentifier} tabID The Tabs ID to remove.
+	 * @param {boolean} closeApp Flag to force close the tab window or not.
+	 * @param {boolean} closeGroupWindowCheck Flag to check if we should close the tab set window if there are no more tabs.
+	 */
 	public async removeTab(tabID: TabIndentifier, closeApp: boolean, closeGroupWindowCheck: boolean = false): Promise<void> {
 		const index: number = this.getTabIndex(tabID);
 
@@ -102,6 +123,11 @@ export class TabGroup {
 		}
 	}
 
+	/**
+	 * Switches the active Tab in the group. Hides current active window.
+	 * @param {TabIndentifier} ID The ID of the tab to set as active.
+	 * @param {boolean} hideActiveTab Flag if we should hide the current active tab.
+	 */
 	public async switchTab(ID: TabIndentifier | null, hideActiveTab: boolean = true): Promise<void> {
 		if (!ID) {
 			ID = { uuid: this._tabs[0].ID.uuid, name: this._tabs[0].ID.name };
@@ -122,11 +148,11 @@ export class TabGroup {
 		}
 	}
 
-	public async removeAllTabs(closeApp: boolean): Promise<void[]> {
-		// this._tabs.slice().forEach(async tab => {
-		// 	await this.removeTab(tab.ID, closeApp);
-		// });
-
+	/**
+	 * Removes all tabs from this tab set.
+	 * @param closeApp Flag if we should close the tab windows.
+	 */
+	public removeAllTabs(closeApp: boolean): Promise<void[]> {
 		const refArray = this._tabs.slice();
 		const refArrayMap = refArray.map(tab => {
 			this.removeTab(tab.ID, closeApp);
@@ -136,8 +162,7 @@ export class TabGroup {
 	}
 
 	/**
-	 * @public
-	 * @function getTab Gets the tab with the specified identifier
+	 * Gets the tab with the specified identifier
 	 * @param tabID The tab identifier
 	 */
 	public getTab(tabID: TabIndentifier): Tab | undefined {
@@ -146,29 +171,46 @@ export class TabGroup {
 		});
 	}
 
+	/**
+	 * Sets the active tab.  Does not switch tabs or hide/show windows.
+	 * @param {Tab} tab The Tab to set as active.
+	 */
 	public setActiveTab(tab: Tab): void {
 		this._activeTab = tab;
 		fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, this.ID, TabApiEvents.TABACTIVATED, tab.ID);
 	}
 
+	/**
+	 * Finds the index of the specified Tab in the array.
+	 * @param tabID The ID of the Tab.
+	 * @returns {number} Index Number.
+	 */
 	public getTabIndex(tabID: TabIndentifier): number {
 		return this.tabs.findIndex((tab: Tab) => {
 			return tab.ID.uuid === tabID.uuid && tab.ID.name === tabID.uuid;
 		});
 	}
 
-	public get initialWindowOptions(): TabWindowOptions {
-		return this._windowOptions;
-	}
-
+	/**
+	 * Returns the current active tab of the tab set.
+	 * @returns {Tab} The Active Tab
+	 */
 	public get activeTab(): Tab {
 		return this._activeTab;
 	}
 
+	/**
+	 * Returns the tab sets window.
+	 * @returns {GroupWindow} The group window.
+	 */
 	public get window(): GroupWindow {
 		return this._window;
 	}
 
+	/**
+	 * Returns the tabs of this tab set.
+	 * @returns {Tab[]} Array of tabs.
+	 */
 	public get tabs(): Tab[] {
 		return this._tabs;
 	}

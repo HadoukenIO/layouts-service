@@ -8,15 +8,13 @@ import { ejectTab, initializeTab } from "./TabUtilities";
  */
 export class EventHandler {
 	/**
-	 * @private
-	 * @description Handle to the TabService
+	 * Handle to the TabService
 	 */
 	private _service: TabService;
 
 	/**
-	 * @constructor
-	 * @description Constructor for the Event handler class
-	 * @param service Tab service
+	 * Constructor for the Event handler class
+	 * @param {TabService} service Tab service
 	 */
 	constructor(service: TabService) {
 		this._service = service;
@@ -25,8 +23,7 @@ export class EventHandler {
 	}
 
 	/**
-	 * @private
-	 * @function _createListeners Subscribes to topics and handles messages coming into those topics
+	 * Subscribes to topics and handles messages coming into those topics
 	 */
 	private async _createListeners(): Promise<void> {
 		fin.desktop.InterApplicationBus.subscribe("*", AppApiEvents.CLIENTINIT, this._onClientInit.bind(this));
@@ -36,8 +33,7 @@ export class EventHandler {
 	}
 
 	/**
-	 * @private
-	 * @function _onMonitorInfoChanged For each group tab we realign all the apps when there is a change in monitor information
+	 * For each group tab we realign all the apps when there is a change in monitor information
 	 */
 	private async _onMonitorInfoChanged(): Promise<void> {
 		this._service.tabGroups.forEach((group: TabGroup) => {
@@ -46,8 +42,7 @@ export class EventHandler {
 	}
 
 	/**
-	 * @private
-	 * @function _onClientInit Initialises tabbing on the application
+	 * Initialises tabbing on the application
 	 * @param message TabWindowOptions
 	 * @param uuid The uuid of the application to initialise tabbing on
 	 * @param name The name of the application to initialise tabbing on
@@ -56,6 +51,12 @@ export class EventHandler {
 		initializeTab(message, uuid, name, this._service);
 	}
 
+	/**
+	 * Deregisters the window from tabbing.
+	 * @param {} message None.
+	 * @param {string} uuid The uuid of the application to deregister.
+	 * @param {string} name The name of the application to deregister.
+	 */
 	private async _onClientDeregister(message: {}, uuid: string, name: string) {
 		const tabGroup = this._service.getTabGroupByApp({ uuid, name });
 

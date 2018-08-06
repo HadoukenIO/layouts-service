@@ -1,4 +1,5 @@
-import { TabApiEvents, TabAPIMessage, AppApiEvents } from "../../shared/types";
+import { AppApiEvents, TabApiEvents } from "../../shared/APITypes";
+import { TabAPIMessage } from "../../shared/types";
 
 /**
  * @description Interface to outline shape of event listeners for storage
@@ -24,25 +25,12 @@ export abstract class Api {
 	}
 
 	/**
-	 * @function sendAction sends an action to the
-	 * @param payload
-	 */
-	protected sendAction(payload: TabAPIMessage) {
-		if (!payload) {
-			console.error("No payload was passed in");
-			return;
-		}
-
-		fin.desktop.InterApplicationBus.send("Tabbing_Main", "tab-api", payload);
-	}
-
-	/**
 	 * @protected
 	 * @function addEventListener Adds an event listener
 	 * @param event The Api event to listen to
 	 * @param callback callback to handle the data received
 	 */
-    public addEventListener<T extends TabApiEvents | AppApiEvents, U>(event: T, callback: (message: U) => void): void {
+	public addEventListener<T extends TabApiEvents | AppApiEvents, U>(event: T, callback: (message: U) => void): void {
 		fin.desktop.InterApplicationBus.subscribe(
 			"*",
 			event,
@@ -62,8 +50,8 @@ export abstract class Api {
 	 * @param event The api event that is being listened to
 	 * @param callback The callback registered to the event
 	 */
-    public removeEventListener<T extends TabApiEvents | AppApiEvents, U>(event: T, callback: (message: U) => void): void {
-        const removeApiEvent: TabApiEvents | AppApiEvents = event;
+	public removeEventListener<T extends TabApiEvents | AppApiEvents, U>(event: T, callback: (message: U) => void): void {
+		const removeApiEvent: TabApiEvents | AppApiEvents = event;
 		fin.desktop.InterApplicationBus.unsubscribe(
 			"*",
 			event,
@@ -80,5 +68,18 @@ export abstract class Api {
 				console.error(reason);
 			}
 		);
+	}
+
+	/**
+	 * @function sendAction sends an action to the
+	 * @param payload
+	 */
+	protected sendAction(payload: TabAPIMessage) {
+		if (!payload) {
+			console.error("No payload was passed in");
+			return;
+		}
+
+		fin.desktop.InterApplicationBus.send("Tabbing_Main", "tab-api", payload);
 	}
 }

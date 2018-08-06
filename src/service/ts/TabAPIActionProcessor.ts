@@ -1,4 +1,5 @@
-import { TabAPIActions, TabAPIDragMessage, TabAPIInteractionMessage, TabAPIMessage, TabAPIWindowActions, TabPackage, TabProperties } from "../../shared/types";
+import { TabAPIActions, TabAPIWindowActions } from "../../shared/APITypes";
+import { TabAPIDragMessage, TabAPIInteractionMessage, TabAPIMessage, TabPackage, TabProperties } from "../../shared/types";
 
 import { Tab } from "./Tab";
 import { TabGroup } from "./TabGroup";

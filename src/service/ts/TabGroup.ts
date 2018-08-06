@@ -1,6 +1,7 @@
 import { isNumber } from "util";
 import { v4 as uuidv4 } from "uuid";
-import { ServiceIABTopics, TabApiEvents, TabIndentifier, TabPackage, TabProperties, TabWindowOptions } from "../../shared/types";
+import { TabApiEvents } from "../../shared/APITypes";
+import { TabIndentifier, TabPackage, TabWindowOptions } from "../../shared/types";
 import { GroupWindow } from "./GroupWindow";
 import { Tab } from "./Tab";
 import { TabService } from "./TabService";

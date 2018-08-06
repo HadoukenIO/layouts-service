@@ -1,4 +1,5 @@
-import { TabApiEvents, TabIndentifier, TabPackage, TabProperties } from "../../shared/types";
+import { TabApiEvents } from "../../shared/APITypes";
+import { TabIndentifier, TabPackage, TabProperties } from "../../shared/types";
 import { Tab } from "./Tab";
 /**
  * @class TabManager Handles the management of individual tabs and some of their functionality.

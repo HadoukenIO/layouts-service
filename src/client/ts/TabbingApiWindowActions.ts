@@ -1,12 +1,12 @@
-import { TabAPIMessage, TabAPIWindowActions } from "../../shared/types";
+import { TabAPIWindowActions } from "../../shared/APITypes";
+import { TabAPIMessage } from "../../shared/types";
 
 export class TabbingApiWindowActions {
+	private mSendAction: (payload: TabAPIMessage) => void;
 
-    private mSendAction: (payload: TabAPIMessage) => void;
-
-    constructor(sendAction: (payload: TabAPIMessage) => void) {
-        this.mSendAction = sendAction;
-    }
+	constructor(sendAction: (payload: TabAPIMessage) => void) {
+		this.mSendAction = sendAction;
+	}
 
 	/**
 	 * @public

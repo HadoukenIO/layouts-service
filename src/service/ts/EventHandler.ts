@@ -1,7 +1,8 @@
-import { AppApiEvents, ServiceIABTopics, TabIndentifier, TabPackage, TabProperties, TabWindowOptions } from "../../shared/types";
+import { AppApiEvents } from "../../shared/APITypes";
+import { TabWindowOptions } from "../../shared/types";
 import { TabGroup } from "./TabGroup";
 import { TabService } from "./TabService";
-import { ejectTab, initializeTab } from "./TabUtilities";
+import { initializeTab } from "./TabUtilities";
 
 /**
  * @class Handles events coming from the application

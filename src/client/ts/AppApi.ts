@@ -1,4 +1,5 @@
-import { AppApiEvents, ClientIABTopics, ServiceIABTopics, TabIndentifier } from "../../shared/types";
+import { AppApiEvents } from "../../shared/APITypes";
+import { ServiceIABTopics, TabIndentifier } from "../../shared/types";
 import { Api } from "./Api";
 
 class AppApi extends Api {

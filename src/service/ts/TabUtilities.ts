@@ -1,4 +1,4 @@
-import { TabIndentifier, TabWindowOptions } from "../../shared/types";
+import { TabIdentifier, TabWindowOptions } from "../../shared/types";
 
 import { Tab } from "./Tab";
 import { TabGroup } from "./TabGroup";
@@ -10,7 +10,7 @@ import { TabService } from "./TabService";
  * @param tabService The service itself which holds the tab groups
  * @param message Application or tab to be ejected
  */
-export async function ejectTab(tabService: TabService, message: TabIndentifier & TabWindowOptions, tabGroup?: TabGroup | undefined): Promise<void> {
+export async function ejectTab(tabService: TabService, message: TabIdentifier & TabWindowOptions, tabGroup?: TabGroup | undefined): Promise<void> {
 	const ejectedTab: Tab | undefined = tabGroup ? tabGroup.getTab({ name: message.name, uuid: message.uuid }) : tabService.getTab({ uuid: message.uuid, name: message.name });
 
 	let isOverTabWindowResult: TabGroup | null = null;

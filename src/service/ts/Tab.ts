@@ -1,5 +1,5 @@
 import { AppApiEvents, TabApiEvents } from "../../shared/APITypes";
-import { TabIndentifier, TabPackage, TabProperties } from "../../shared/types";
+import { TabIdentifier, TabPackage, TabProperties } from "../../shared/types";
 import { TabGroup } from "./TabGroup";
 import { TabWindow } from "./TabWindow";
 
@@ -10,7 +10,7 @@ export class Tab {
 	/**
 	 * This Tabs ID (uuid, name);
 	 */
-	private readonly _tabID: TabIndentifier;
+	private readonly _tabID: TabIdentifier;
 
 	/**
 	 * Handle to the tab group that this tab belongs to.
@@ -136,9 +136,9 @@ export class Tab {
 
 	/**
 	 * Returns this Tabs ID.
-	 * @returns {TabIndentifier} ID
+	 * @returns {TabIdentifier} ID
 	 */
-	public get ID(): TabIndentifier {
+	public get ID(): TabIdentifier {
 		return this._tabID;
 	}
 }

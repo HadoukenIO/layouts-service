@@ -1,9 +1,9 @@
 import { AppApiEvents } from "../../shared/APITypes";
-import { ServiceIABTopics, TabIndentifier } from "../../shared/types";
+import { ServiceIABTopics, TabIdentifier } from "../../shared/types";
 import { Api } from "./Api";
 
 class AppApi extends Api {
-	private _ID: TabIndentifier;
+	private _ID: TabIdentifier;
 
 	constructor() {
 		super();

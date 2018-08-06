@@ -1,5 +1,5 @@
 import { TabApiEvents } from "../../shared/APITypes";
-import { TabIndentifier, TabPackage, TabProperties } from "../../shared/types";
+import { TabIdentifier, TabPackage, TabProperties } from "../../shared/types";
 import { Tab } from "./Tab";
 /**
  * @class TabManager Handles the management of individual tabs and some of their functionality.
@@ -32,9 +32,9 @@ export class TabManager {
 
 	/**
 	 * @method addTab Creates a new Tab and renders.
-	 * @param {TabIndentifier} tabID An object containing the uuid, name for the external application/window.
+	 * @param {TabIdentifier} tabID An object containing the uuid, name for the external application/window.
 	 */
-	public async addTab(tabID: TabIndentifier, tabProps: TabProperties) {
+	public async addTab(tabID: TabIdentifier, tabProps: TabProperties) {
 		if (this._getTabIndex(tabID) === -1) {
 			const tab = new Tab(tabID, tabProps, this);
 			await tab.init();
@@ -45,9 +45,9 @@ export class TabManager {
 
 	/**
 	 * @method removeTab Removes a Tab.
-	 * @param {TabIndentifier} tabID An object containing the uuid, name for the external application/window.
+	 * @param {TabIdentifier} tabID An object containing the uuid, name for the external application/window.
 	 */
-	public removeTab(tabID: TabIndentifier, closeApp: boolean = false): void {
+	public removeTab(tabID: TabIdentifier, closeApp: boolean = false): void {
 		const index: number = this._getTabIndex(tabID);
 		const tab: Tab | undefined = this.getTab(tabID);
 
@@ -71,9 +71,9 @@ export class TabManager {
 
 	/**
 	 * @method setActive Sets a specified tab as active.  If no tab is specified then the first tab will be chosen.
-	 * @param {TabIndentifier | null} tabID An object containing the uuid, name for the external application/window or null.
+	 * @param {TabIdentifier | null} tabID An object containing the uuid, name for the external application/window or null.
 	 */
-	public setActiveTab(tabID: TabIndentifier | null = null): void {
+	public setActiveTab(tabID: TabIdentifier | null = null): void {
 		if (tabID) {
 			const tab: Tab | undefined = this.getTab(tabID);
 
@@ -90,9 +90,9 @@ export class TabManager {
 
 	/**
 	 * @method getTab Finds and gets the Tab object.
-	 * @param {TabIndentifier} tabID An object containing the uuid, name for the external application/window.
+	 * @param {TabIdentifier} tabID An object containing the uuid, name for the external application/window.
 	 */
-	public getTab(tabID: TabIndentifier): Tab | undefined {
+	public getTab(tabID: TabIdentifier): Tab | undefined {
 		return this.tabs.find((tab: Tab) => {
 			return tab.ID.name === tabID.name && tab.ID.uuid === tabID.uuid;
 		});
@@ -109,13 +109,13 @@ export class TabManager {
 		});
 
 		// @ts-ignore
-		window.Tab.addEventListener(TabApiEvents.TABREMOVED, (tabInfo: TabIndentifier) => {
+		window.Tab.addEventListener(TabApiEvents.TABREMOVED, (tabInfo: TabIdentifier) => {
 			console.log("TABREMOVED", tabInfo);
 			this.removeTab(tabInfo);
 		});
 
 		// @ts-ignore
-		window.Tab.addEventListener(TabApiEvents.TABACTIVATED, (tabInfo: TabIndentifier) => {
+		window.Tab.addEventListener(TabApiEvents.TABACTIVATED, (tabInfo: TabIdentifier) => {
 			console.log("TABACTIVATED", tabInfo);
 			this.setActiveTab(tabInfo);
 		});
@@ -140,9 +140,9 @@ export class TabManager {
 
 	/**
 	 * @method _getTabIndex Gets the Tab index from the array.
-	 * @param {TabIndentifier} tabID An object containing the uuid, name for the external application/window.
+	 * @param {TabIdentifier} tabID An object containing the uuid, name for the external application/window.
 	 */
-	private _getTabIndex(tabID: TabIndentifier): number {
+	private _getTabIndex(tabID: TabIdentifier): number {
 		return this.tabs.findIndex((tab: Tab) => {
 			return tab.ID.name === tabID.name && tab.ID.uuid === tabID.uuid;
 		});

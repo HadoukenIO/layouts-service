@@ -1,4 +1,4 @@
-import { TabIndentifier, TabProperties } from "../../shared/types";
+import { TabIdentifier, TabProperties } from "../../shared/types";
 import { TabManager } from "./TabManager";
 
 export class Tab {
@@ -8,13 +8,13 @@ export class Tab {
 	private domNode!: HTMLElement;
 	private _tabManager: TabManager;
 	private _properties: TabProperties;
-	private _ID: TabIndentifier;
+	private _ID: TabIdentifier;
 
 	/**
 	 * @constructor Constructor for the Tab class.
-	 * @param {TabIndentifier} tabID An object containing the uuid, name for the external application/window.
+	 * @param {TabIdentifier} tabID An object containing the uuid, name for the external application/window.
 	 */
-	constructor(tabID: TabIndentifier, tabProperties: TabProperties, tabManager: TabManager) {
+	constructor(tabID: TabIdentifier, tabProperties: TabProperties, tabManager: TabManager) {
 		this._ID = tabID;
 		this._tabManager = tabManager;
 		this._properties = tabProperties;
@@ -132,9 +132,9 @@ export class Tab {
 
 	/**
 	 * @method getTabID Creates a tab identifier object consisting of UUID, Name
-	 * @returns {TabIndentifier} {uuid, name}
+	 * @returns {TabIdentifier} {uuid, name}
 	 */
-	public get ID(): TabIndentifier {
+	public get ID(): TabIdentifier {
 		return {
 			uuid: this._ID.uuid,
 			name: this._ID.name

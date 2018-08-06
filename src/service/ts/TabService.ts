@@ -1,4 +1,4 @@
-import { TabIndentifier, TabPackage, TabWindowOptions } from "../../shared/types";
+import { TabIdentifier, TabPackage, TabWindowOptions } from "../../shared/types";
 
 import { DragWindowManager } from "./DragWindowManager";
 import { EventHandler } from "./EventHandler";
@@ -105,7 +105,7 @@ export class TabService {
 	 * @param ID ID of the tab group to find.
 	 * @returns {TabGroup | undefined} Tabgroup
 	 */
-	public getTabGroupByApp(ID: TabIndentifier): TabGroup | undefined {
+	public getTabGroupByApp(ID: TabIdentifier): TabGroup | undefined {
 		return this._tabGroups.find((group: TabGroup) => {
 			return group.tabs.some((tab: Tab) => {
 				const tabID = tab.ID;
@@ -118,7 +118,7 @@ export class TabService {
 	 * Returns an individual Tab.
 	 * @param ID ID of the tab to get.
 	 */
-	public getTab(ID: TabIndentifier): Tab | undefined {
+	public getTab(ID: TabIdentifier): Tab | undefined {
 		const group = this.getTabGroupByApp(ID);
 
 		if (group) {

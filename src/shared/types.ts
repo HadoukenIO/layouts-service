@@ -1,4 +1,4 @@
-export interface TabIndentifier {
+export interface TabIdentifier {
 	name: string;
 	uuid: string;
 }
@@ -29,7 +29,7 @@ export interface TabWindowOptions {
 }
 
 export interface TabPackage {
-	tabID: TabIndentifier;
+	tabID: TabIdentifier;
 	tabProps?: TabProperties;
 }
 

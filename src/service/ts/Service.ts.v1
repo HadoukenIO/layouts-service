@@ -1,4 +1,4 @@
-import { EjectTriggers, TabIndentifier, TabOptions } from "../../shared/types";
+import { EjectTriggers, TabIdentifier, TabOptions } from "../../shared/types";
 import { DragWindowManager } from "./DragWindowManager";
 
 export interface IsOverWindowResult {
@@ -34,7 +34,7 @@ export class Service {
 		fin.desktop.Window.getCurrent().addEventListener("close-requested", this._onCloseRequested.bind(this));
 	}
 
-	private _onTabInit(message: { UI: string; additionalWindows: TabIndentifier[] }, uuid: string, name: string) {
+	private _onTabInit(message: { UI: string; additionalWindows: TabIdentifier[] }, uuid: string, name: string) {
 		this._createTabWindow([{ uuid, name }, ...message.additionalWindows], {}, message.UI);
 	}
 
@@ -188,7 +188,7 @@ export class Service {
 	 * @param screenY Optional. The screen Y coord to create the tab window at.
 	 * @param width Optional.  The width of the window once it is created.
 	 */
-	private _createTabWindow(tabIds: TabIndentifier[], options: TabOptions = {}, URL: string | null = null, screenX: number | null = null, screenY: number = 100, width: number | null = null) {
+	private _createTabWindow(tabIds: TabIdentifier[], options: TabOptions = {}, URL: string | null = null, screenX: number | null = null, screenY: number = 100, width: number | null = null) {
 		const tabWindow: fin.OpenFinWindow = new fin.desktop.Window({
 			name: `${Math.random() * 10000}`,
 			url: URL || "http://localhost:9001/tab-ui/",

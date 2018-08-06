@@ -1,8 +1,8 @@
-import { TabIndentifier } from "../../shared/types";
+import { TabIdentifier } from "../../shared/types";
 
 interface ZIndex {
 	timestamp: number;
-	ID: TabIndentifier;
+	ID: TabIdentifier;
 }
 
 /**
@@ -54,7 +54,7 @@ export class ZIndexer {
 	 * Updates the windows index in the stack and sorts array.
 	 * @param ID ID of the window to update (uuid, name)
 	 */
-	public update(ID: TabIndentifier) {
+	public update(ID: TabIdentifier) {
 		const time = new Date().valueOf();
 
 		const index = this._stack.find(i => {
@@ -74,11 +74,11 @@ export class ZIndexer {
 
 	/**
 	 * Returns order of zindexs for a set of window IDs.  Order is from top to bottom.
-	 * @param {TabIndentifier[]} ids Array of IDs to get order of.
-	 * @return {TabIndentifier[] | null} Array of TabIdentifiers or null
+	 * @param {TabIdentifier[]} ids Array of IDs to get order of.
+	 * @return {TabIdentifier[] | null} Array of TabIdentifiers or null
 	 */
-	public getTop(ids: TabIndentifier[]): TabIndentifier[] | null {
-		const resArray: TabIndentifier[] = [];
+	public getTop(ids: TabIdentifier[]): TabIdentifier[] | null {
+		const resArray: TabIdentifier[] = [];
 		this._stack.forEach(idx => {
 			const result = ids.find(idsidx => {
 				return idx.ID.uuid === idsidx.uuid && idx.ID.name === idsidx.name;

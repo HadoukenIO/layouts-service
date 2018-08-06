@@ -1,4 +1,4 @@
-import { TabIndentifier, TabWindowOptions } from "../../shared/types";
+import { TabIdentifier, TabWindowOptions } from "../../shared/types";
 import { AsyncWindow } from "./asyncWindow";
 import { Tab } from "./Tab";
 import { TabGroup } from "./TabGroup";
@@ -32,7 +32,7 @@ export class TabWindow extends AsyncWindow {
 	 * @param tab Tab that the window belongs to.
 	 * @param tabID Identifier of the tab app window (uuid, name)
 	 */
-	constructor(tab: Tab, tabID: TabIndentifier) {
+	constructor(tab: Tab, tabID: TabIdentifier) {
 		super();
 		this._tab = tab;
 		this._tabGroup = tab.tabGroup;

@@ -1,7 +1,7 @@
 import { isNumber } from "util";
 import { v4 as uuidv4 } from "uuid";
 import { TabApiEvents } from "../../shared/APITypes";
-import { TabIndentifier, TabPackage, TabWindowOptions } from "../../shared/types";
+import { TabIdentifier, TabPackage, TabWindowOptions } from "../../shared/types";
 import { GroupWindow } from "./GroupWindow";
 import { Tab } from "./Tab";
 import { TabService } from "./TabService";
@@ -85,7 +85,7 @@ export class TabGroup {
 	 * Deregisters the Tab from tabbing altogether.
 	 * @param ID ID (uuid, name) of the Tab to deregister.
 	 */
-	public async deregisterTab(ID: TabIndentifier): Promise<void> {
+	public async deregisterTab(ID: TabIdentifier): Promise<void> {
 		const tab = this.getTab(ID);
 
 		await this.removeTab(ID, false, true);
@@ -97,11 +97,11 @@ export class TabGroup {
 
 	/**
 	 * Removes a specified tab from the tab group.
-	 * @param {TabIndentifier} tabID The Tabs ID to remove.
+	 * @param {TabIdentifier} tabID The Tabs ID to remove.
 	 * @param {boolean} closeApp Flag to force close the tab window or not.
 	 * @param {boolean} closeGroupWindowCheck Flag to check if we should close the tab set window if there are no more tabs.
 	 */
-	public async removeTab(tabID: TabIndentifier, closeApp: boolean, closeGroupWindowCheck: boolean = false): Promise<void> {
+	public async removeTab(tabID: TabIdentifier, closeApp: boolean, closeGroupWindowCheck: boolean = false): Promise<void> {
 		const index: number = this.getTabIndex(tabID);
 
 		if (index === -1) {
@@ -126,10 +126,10 @@ export class TabGroup {
 
 	/**
 	 * Switches the active Tab in the group. Hides current active window.
-	 * @param {TabIndentifier} ID The ID of the tab to set as active.
+	 * @param {TabIdentifier} ID The ID of the tab to set as active.
 	 * @param {boolean} hideActiveTab Flag if we should hide the current active tab.
 	 */
-	public async switchTab(ID: TabIndentifier | null, hideActiveTab: boolean = true): Promise<void> {
+	public async switchTab(ID: TabIdentifier | null, hideActiveTab: boolean = true): Promise<void> {
 		if (!ID) {
 			ID = { uuid: this._tabs[0].ID.uuid, name: this._tabs[0].ID.name };
 		}
@@ -166,7 +166,7 @@ export class TabGroup {
 	 * Gets the tab with the specified identifier
 	 * @param tabID The tab identifier
 	 */
-	public getTab(tabID: TabIndentifier): Tab | undefined {
+	public getTab(tabID: TabIdentifier): Tab | undefined {
 		return this.tabs.find((tab: Tab) => {
 			return tab.ID.uuid === tabID.uuid && tab.ID.name === tabID.uuid;
 		});
@@ -186,7 +186,7 @@ export class TabGroup {
 	 * @param tabID The ID of the Tab.
 	 * @returns {number} Index Number.
 	 */
-	public getTabIndex(tabID: TabIndentifier): number {
+	public getTabIndex(tabID: TabIdentifier): number {
 		return this.tabs.findIndex((tab: Tab) => {
 			return tab.ID.uuid === tabID.uuid && tab.ID.name === tabID.uuid;
 		});

@@ -203,19 +203,13 @@ const arrangements:ArrangementsType = {
             [5, 'top-right', 3, 'bottom-left', {x:95, y:2}],
             [6, 'top-left', 3, 'bottom-right', {x:-105, y:2}],
         ]
-    },
-    9: {
-        'grid': [
-
-        ]
     }
 };
 
-// tslint:disable-next-line:forin
-for (const num in arrangements) {
+Object.keys(arrangements).forEach(num => {
     const count = Number.parseInt(num);
-    // tslint:disable-next-line:forin
-    for (const name in arrangements[count]) {
+    
+    Object.keys(arrangements[count]).forEach(name => {
         test(`${count} windows - ${name}`, async t => {
 
             await initWindows(count, name);
@@ -225,5 +219,5 @@ for (const num in arrangements) {
             await assertExploded(t);
 
         });
-    }
-}
+    });
+});

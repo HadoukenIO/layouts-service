@@ -91,15 +91,19 @@ export class SnapService {
         if (window) {
             const group: SnapGroup = window.getGroup();
 
-            let offset = this.calculateUndockMoveDirection(window);
+            // Only do anything if the window is actually grouped
+            if (group.length > 1) {
+                let offset = this.calculateUndockMoveDirection(window);
 
-            window.setGroup(this.addGroup());
+                window.setGroup(this.addGroup());
 
-            if (!offset.x && !offset.y) {
-                offset = {x: 1, y: 1};
+                if (!offset.x && !offset.y) {
+                    offset = {x: 1, y: 1};
+                }
+                window.offsetBy({x: Math.sign(offset.x) * UNDOCK_MOVE_DISTANCE, y: Math.sign(offset.y) * UNDOCK_MOVE_DISTANCE});
             }
-            window.offsetBy({x: Math.sign(offset.x) * UNDOCK_MOVE_DISTANCE, y: Math.sign(offset.y) * UNDOCK_MOVE_DISTANCE});
         }
+
     }
 
     public deregister(target: {uuid: string; name: string}): void {

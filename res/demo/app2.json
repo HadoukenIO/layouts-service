@@ -1,0 +1,19 @@
+{
+    "devtools_port": 9090,
+    "startup_app": {
+        "name": "App-2",
+        "url": "http://localhost:1337/demo/app2.html",
+        "uuid": "App-2",
+        "autoShow": true,
+        "defaultHeight": 400,
+        "defaultWidth": 500,
+        "_experimental": {
+            "v2Api": true
+        }
+    },
+    "runtime": {
+        "arguments": "--v=1 --enable-crash-reporting",
+        "version": "9.61.33.15"
+    },
+    "services": [{"name": "layoutsManager", "manifestUrl": "http://localhost:1337/provider/app.json"}]
+}

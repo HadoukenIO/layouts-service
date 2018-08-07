@@ -203,17 +203,12 @@ const arrangements:ArrangementsType = {
             [5, 'top-right', 3, 'bottom-left', {x:95, y:2}],
             [6, 'top-left', 3, 'bottom-right', {x:-105, y:2}],
         ]
-    },
-    9: {
-        'grid': [
-
-        ]
     }
 };
 
 // tslint:disable-next-line:forin
-//for (const num in arrangements) {
-    const count = 9;//Number.parseInt(num);
+for (const num in arrangements) {
+    const count = Number.parseInt(num);
     // tslint:disable-next-line:forin
     for (const name in arrangements[count]) {
         test(`${count} windows - ${name}`, async t => {
@@ -226,4 +221,4 @@ const arrangements:ArrangementsType = {
 
         });
     }
-//}
+}

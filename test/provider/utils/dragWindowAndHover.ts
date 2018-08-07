@@ -9,11 +9,7 @@ export const dragWindowAndHover = async (identityOrWindow: Win, x: number, y: nu
     const win = await getWindow(identityOrWindow);
     await win.focus();
 
-<<<<<<< HEAD:test/utils/dragWindowAndHover.ts
-    const bounds = await getBounds(identityOrWindow);
-=======
     const bounds = await getBounds(win);
->>>>>>> develop:test/provider/utils/dragWindowAndHover.ts
     robot.mouseToggle('up');
     robot.moveMouse(bounds.left + xOffset, bounds.top + yOffset);
     robot.mouseToggle('down');

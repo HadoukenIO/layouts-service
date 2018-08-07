@@ -5,9 +5,9 @@ import { createChildWindow } from './utils/createChildWindow';
 import { Window, Fin } from 'hadouken-js-adapter';
 import { getConnection } from './utils/connect';
 import { undockWindow, WindowIdentity } from './utils/undockWindow';
-import {isAdjacentTo, Side} from './utils/isAdjacentTo';
+import {isAdjacentTo} from './utils/isAdjacentTo';
 import {getDistanceBetween} from './utils/getDistanceBetween';
-import {opposite, perpendicular} from './utils/SideUtils';
+import {opposite, perpendicular, Side} from './utils/SideUtils';
 
 // TODO - Change client/service file structure to allow importing these values
 const UNDOCK_MOVE_DISTANCE = 30;

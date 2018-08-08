@@ -12,7 +12,7 @@
     },
     "runtime": {
         "arguments": "--v=1 --enable-crash-reporting --inspect=9222",
-        "version": "9.61.33.15"
+        "version": "9.61.33.32"
     },
     "services": [{"name": "layoutsManager", "manifestUrl": "http://localhost:1337/provider/app.json"}],
     "shortcut": {

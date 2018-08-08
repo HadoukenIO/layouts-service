@@ -5,7 +5,7 @@ export class Tab {
 	/**
 	 * Contains the HTML Element for the tab.
 	 */
-	private domNode!: HTMLElement;
+	private _domNode!: HTMLElement;
 
 	/**
 	 * Properties to the tab (icon, title)
@@ -37,21 +37,21 @@ export class Tab {
 	 * Removes the Tab from DOM.
 	 */
 	public remove(): void {
-		this.domNode.remove();
+		this._domNode.remove();
 	}
 
 	/**
 	 * Sets the Active class on the Tab DOM.
 	 */
 	public setActive(): void {
-		this.domNode.classList.add("active");
+		this._domNode.classList.add("active");
 	}
 
 	/**
 	 * Removes the Active class from the Tab DOM.
 	 */
 	public unsetActive(): void {
-		this.domNode.classList.remove("active");
+		this._domNode.classList.remove("active");
 	}
 
 	/**
@@ -59,7 +59,7 @@ export class Tab {
 	 * @param {string} icon The URL to the icon image.
 	 */
 	public updateIcon(icon: string = ""): void {
-		const iconNode = this.domNode.querySelectorAll(".tab-favicon")[0];
+		const iconNode = this._domNode.querySelectorAll(".tab-favicon")[0];
 		(iconNode as HTMLElement).style.backgroundImage = `url("${icon}")`;
 
 		this._properties.icon = icon;
@@ -70,7 +70,7 @@ export class Tab {
 	 * @param {string} text Text to update with.
 	 */
 	public updateText(text: string): void {
-		const textNode = this.domNode.querySelectorAll(".tab-content")[0];
+		const textNode = this._domNode.querySelectorAll(".tab-content")[0];
 		(textNode as HTMLElement).textContent = text;
 
 		this._properties.title = text;
@@ -99,8 +99,8 @@ export class Tab {
 	 * Renders the Tab to the DOM from generation.
 	 */
 	private _render(): void {
-		this.domNode = this._generateDOM();
-		TabManager.tabContainer.appendChild(this.domNode);
+		this._domNode = this._generateDOM();
+		TabManager.tabContainer.appendChild(this._domNode);
 		this.updateText(this._properties.title!);
 		this.updateIcon(this._properties.icon!);
 	}
@@ -125,6 +125,24 @@ export class Tab {
 	}
 
 	/**
+	 * Handles all double click events from this Tab DOM.
+	 * @param {MouseEvent} e MouseEvent
+	 */
+	private _onDblClickHandler(e: MouseEvent): void {
+		switch ((e.target as Element).className) {
+			case "tab-content":
+			case "tab-content-wrap": {
+				this._handlePropertiesInput();
+				break;
+			}
+			default: {
+				// @ts-ignore
+				window.Tab.activateTab(this._ID.uuid, this._ID.name);
+			}
+		}
+	}
+
+	/**
 	 * Generates the DOM for this tab.
 	 * @returns {HTMLElement} DOM Node
 	 */
@@ -136,10 +154,45 @@ export class Tab {
 
 		// Set the onclick, drag events to top tab DOM.
 		tab.onclick = this._onClickHandler.bind(this);
+		tab.ondblclick = this._onDblClickHandler.bind(this);
 		tab.addEventListener("dragstart", this._onDragStart.bind(this), false);
+
 		tab.addEventListener("dragend", this._onDragEnd.bind(this), false);
 
 		return tab;
+	}
+
+	/**
+	 * Creates the input field on the tab and handles events on it.
+	 */
+	private _handlePropertiesInput(): void {
+		const textNode: Element = this._domNode.querySelectorAll(".tab-content")[0];
+		const textNodeValue: string = textNode.textContent;
+		textNode.textContent = "";
+
+		const inputNode: HTMLInputElement = document.createElement("input");
+
+		inputNode.value = textNodeValue || "";
+
+		function _onBlur(): void {
+			try {
+				inputNode.remove();
+				// @ts-ignore
+				window.Tab.updateTabProperties(this._ID.uuid, this._ID.name, { title: inputNode.value });
+			} catch (e) {}
+		}
+
+		inputNode.addEventListener("keypress", keyEvent => {
+			const key = keyEvent.which || keyEvent.keyCode;
+			if (key === 13) {
+				_onBlur();
+			}
+		});
+
+		inputNode.addEventListener("blur", _onBlur.bind(this));
+
+		textNode.insertAdjacentElement("afterbegin", inputNode);
+		inputNode.focus();
 	}
 
 	/**
@@ -158,6 +211,6 @@ export class Tab {
 	 * @returns {HTMLElement} DOM Node
 	 */
 	public get DOM(): HTMLElement {
-		return this.domNode;
+		return this._domNode;
 	}
 }

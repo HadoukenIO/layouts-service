@@ -1,4 +1,3 @@
-import { isNumber } from "util";
 import { v4 as uuidv4 } from "uuid";
 import { TabApiEvents } from "../../shared/APITypes";
 import { TabIdentifier, TabPackage, TabWindowOptions } from "../../shared/types";

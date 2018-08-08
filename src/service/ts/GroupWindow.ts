@@ -148,6 +148,12 @@ export class GroupWindow extends AsyncWindow {
 		this._window.addEventListener("focused", () => {
 			this._tabGroup.activeTab.window.finWindow.bringToFront();
 		});
+
+		this._window.addEventListener("closed", () => {
+			if (this._tabGroup.tabs.length > 0) {
+				this._tabGroup.removeAllTabs(true);
+			}
+		});
 	}
 
 	/**

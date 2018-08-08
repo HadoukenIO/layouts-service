@@ -155,7 +155,7 @@ export class TabGroup {
 	public removeAllTabs(closeApp: boolean): Promise<void[]> {
 		const refArray = this._tabs.slice();
 		const refArrayMap = refArray.map(tab => {
-			this.removeTab(tab.ID, closeApp);
+			this.removeTab(tab.ID, closeApp, true);
 		});
 
 		return Promise.all(refArrayMap);

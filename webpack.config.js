@@ -36,9 +36,27 @@ function createConfig(component, entryPoint, isLibrary, ...plugins) {
     return config;
 }
 
+function prepConfig(config) {
+    const newConf = Object.assign({}, config);
+    if (typeof process.env.GIT_SHORT_SHA != 'undefined' && process.env.GIT_SHORT_SHA != "" ) {
+        newConf.startup_app.url = 'https://cdn.openfin.co/services/openfin/layouts/' + process.env.GIT_SHORT_SHA + '/index.html';
+        newConf.startup_app.autoShow = false;
+    } else if (typeof process.env.CDN_ROOT_URL != 'undefined' && process.env.CDN_ROOT_URL != "" ) {
+        newConf.startup_app.url = process.env.CDN_ROOT_URL + '/index.html';
+    } else {
+        newConf.startup_app.url = 'http://localhost:1337/provider/provider.html';
+    }
+    return newConf;
+}
+
 module.exports = [
     createConfig('client', './src/client/main.ts'),
-    createConfig('provider', './src/provider/main.ts', false, new CopyWebpackPlugin(
+    createConfig(
+        'provider', 
+        './src/provider/main.ts', 
+        false, 
+        new CopyWebpackPlugin( [{ from: './res/provider/provider.html' }]), 
+        new CopyWebpackPlugin(
         [{
             // Provider temporarily requires an extra plugin to override index.html within provider app.json
             // Will be removed once the RVM supports relative paths within app.json files
@@ -46,20 +64,11 @@ module.exports = [
             to: '.',
             transform: (content) => {
                 const config = JSON.parse(content);
-
-                if (typeof process.env.GIT_SHORT_SHA != 'undefined' && process.env.GIT_SHORT_SHA != "" ) {
-                    config.startup_app.url = 'https://cdn.openfin.co/services/openfin/layouts/' + process.env.GIT_SHORT_SHA + '/index.html';
-                    config.startup_app.autoShow = false;
-                } else if (typeof process.env.CDN_ROOT_URL != 'undefined' && process.env.CDN_ROOT_URL != "" ) {
-                    config.startup_app.url = process.env.CDN_ROOT_URL + '/index.html';
-                } else {
-                    config.startup_app.url = 'http://localhost:1337/provider/provider.html';
-                }
-
-                return JSON.stringify(config, null, 4);
+                const newConfig = prepConfig(config);
+                return JSON.stringify(newConfig, null, 4);
             }
         }]
     )),
-    createConfig('demo', {LayoutsUI: './src/demo/LayoutsUI.ts'}, true),
+    createConfig('demo', {LayoutsUI: './src/demo/LayoutsUI.ts'}, true, new CopyWebpackPlugin( [{ from: './res/demo' }]) ),
     createConfig('demo', {Snappable: './src/demo/Snappable.ts'}, true)
 ];

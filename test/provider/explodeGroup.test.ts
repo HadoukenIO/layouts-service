@@ -35,17 +35,6 @@ const windowOptions = {
     frame: false
 };
 
-/* Encodes the window positions to be tested. The format is: 
-* { 
-*    number of windows: { 
-*        name of window arrangement: [
-*            Array of window movements (executed in sequence)
-*            that will create the desired arrangement of format 
-*            [moved window index, moved corner, target window index, target corner, offset]
-*        ]
-*    }
-* }
-*/
 const arrangements: ArrangementsType = {
     1: {
         'default': []

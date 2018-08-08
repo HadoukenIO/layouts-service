@@ -8,6 +8,17 @@ type MoveArgs = [number, Corner, number, Corner, Point];
 
 type Arrangement = MoveArgs[];
 
+/* Encodes the window positions to be tested. The format is: 
+* { 
+*    number of windows: { 
+*        name of window arrangement: [
+*            Array of window movements (executed in sequence)
+*            that will create the desired arrangement of format 
+*            [moved window index, moved corner, target window index, target corner, offset]
+*        ]
+*    }
+* }
+*/
 export interface ArrangementsType {
     [numWindows: number]: {
         [arrangementName: string]: Arrangement

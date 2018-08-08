@@ -5,11 +5,11 @@
 </head>
 
 <body>
-    <button onclick="newApp('App3')">New App 1</button>
+    <button onclick="newApp('default')">Default UI</button>
 
-    <button onclick="newApp('App4')">New App 2</button>
+    <button onclick="newApp('App2')">New App 2</button>
 
-    <button onclick="newApp('App5')">New App 3</button>
+    <button onclick="newApp('App3')">New App 3</button>
 
     <button onclick="newApp('noauto')">New App no init</button>
 
@@ -19,7 +19,7 @@
         function newApp(page) {
             const uuid = `App${appCount}`
             const app = new fin.desktop.Application({
-                url: `http://localhost:9001/demo/${page}.html`, 
+                url: `http://localhost:9001/demo/App/${page}.html`, 
                 uuid: uuid, 
                 name: uuid,
                 mainWindowOptions: {

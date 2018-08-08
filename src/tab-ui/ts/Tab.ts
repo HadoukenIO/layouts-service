@@ -82,8 +82,7 @@ export class Tab {
 	private _onDragStart(e: DragEvent): void {
 		e.dataTransfer.effectAllowed = "move";
 
-		// @ts-ignore
-		window.Tab.startDrag();
+		TabManager.tabAPI.startDrag();
 	}
 
 	/**
@@ -92,7 +91,7 @@ export class Tab {
 	 */
 	private _onDragEnd(e: DragEvent): void {
 		// @ts-ignore
-		window.Tab.endDrag(e, this._ID.uuid, this._ID.name);
+		TabManager.tabAPI.endDrag(e, this._ID.uuid, this._ID.name);
 	}
 
 	/**
@@ -112,14 +111,12 @@ export class Tab {
 	private _onClickHandler(e: MouseEvent): void {
 		switch ((e.target as Element).className) {
 			case "tab-exit": {
-				// @ts-ignore
-				window.Tab.closeTab(this._ID.uuid, this._ID.name);
+				TabManager.tabAPI.closeTab(this._ID.uuid, this._ID.name);
 
 				break;
 			}
 			default: {
-				// @ts-ignore
-				window.Tab.activateTab(this._ID.uuid, this._ID.name);
+				TabManager.tabAPI.activateTab(this._ID.uuid, this._ID.name);
 			}
 		}
 	}

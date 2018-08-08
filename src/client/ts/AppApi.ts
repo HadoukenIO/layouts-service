@@ -2,7 +2,7 @@ import { AppApiEvents } from "../../shared/APITypes";
 import { ServiceIABTopics, TabIdentifier } from "../../shared/types";
 import { Api } from "./Api";
 
-class AppApi extends Api {
+export class AppApi extends Api {
 	private _ID: TabIdentifier;
 
 	constructor() {
@@ -29,6 +29,3 @@ class AppApi extends Api {
 }
 
 (window as Window & { TabClient: AppApi }).TabClient = new AppApi();
-
-// @ts-ignore
-// window.TabClient.init();

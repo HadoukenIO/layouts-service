@@ -170,5 +170,3 @@ export class TabbingApi extends Api {
 		super.sendAction(payload);
 	}
 }
-
-(window as Window & { Tab: TabbingApi }).Tab = new TabbingApi();

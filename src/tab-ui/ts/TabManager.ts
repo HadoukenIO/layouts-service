@@ -1,3 +1,4 @@
+import { TabbingApi } from "../../client/ts/TabbingApi";
 import { TabApiEvents } from "../../shared/APITypes";
 import { TabIdentifier, TabPackage, TabProperties } from "../../shared/types";
 import { Tab } from "./Tab";
@@ -9,6 +10,11 @@ export class TabManager {
 	 *  The HTML Element container for the tabs.
 	 */
 	public static tabContainer: HTMLElement = document.getElementById("tabs")!;
+
+	/**
+	 * Handle to the Tabbing API
+	 */
+	public static tabAPI: TabbingApi = new TabbingApi();
 
 	/**
 	 * An array of the tabs present in the window.
@@ -106,36 +112,30 @@ export class TabManager {
 	 * Creates listeners for various IAB + Window Events.
 	 */
 	private _setupListeners(): void {
-		// @ts-ignore
-		window.Tab.addEventListener(TabApiEvents.TABADDED, (tabInfo: TabPackage) => {
+		TabManager.tabAPI.addEventListener(TabApiEvents.TABADDED, (tabInfo: TabPackage) => {
 			console.log("TABADDED", tabInfo);
 			this.addTab(tabInfo.tabID, tabInfo.tabProps!);
 		});
 
-		// @ts-ignore
-		window.Tab.addEventListener(TabApiEvents.TABREMOVED, (tabInfo: TabIdentifier) => {
+		TabManager.tabAPI.addEventListener(TabApiEvents.TABREMOVED, (tabInfo: TabIdentifier) => {
 			console.log("TABREMOVED", tabInfo);
 			this.removeTab(tabInfo);
 		});
 
-		// @ts-ignore
-		window.Tab.addEventListener(TabApiEvents.TABACTIVATED, (tabInfo: TabIdentifier) => {
+		TabManager.tabAPI.addEventListener(TabApiEvents.TABACTIVATED, (tabInfo: TabIdentifier) => {
 			console.log("TABACTIVATED", tabInfo);
 			this.setActiveTab(tabInfo);
 		});
 
-		// @ts-ignore
-		window.Tab.addEventListener(TabApiEvents.PROPERTIESUPDATED, (tabInfo: TabPackage) => {
+		TabManager.tabAPI.addEventListener(TabApiEvents.PROPERTIESUPDATED, (tabInfo: TabPackage) => {
 			console.log("TABPROPERTIESUPDATED", tabInfo);
 			const tab = this.getTab(tabInfo.tabID);
-			if (tabInfo.tabProps) {
+			if (tab && tabInfo.tabProps) {
 				if (tabInfo.tabProps.icon) {
-					// @ts-ignore
 					tab.updateIcon(tabInfo.tabProps.icon);
 				}
 
 				if (tabInfo.tabProps.title) {
-					// @ts-ignore
 					tab.updateText(tabInfo.tabProps.title);
 				}
 			}

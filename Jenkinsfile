@@ -25,9 +25,8 @@ pipeline {
                     S3_LOC = env.DSERVICE_S3_ROOT + "layouts/" + GIT_SHORT_SHA
                     STAGING_JSON = env.DSERVICE_S3_ROOT + "layouts/" + "app.staging.json"
                 }
-                sh "GIT_SHORT_SHA=${GIT_SHORT_SHA} npm build"
+                sh "GIT_SHORT_SHA=${GIT_SHORT_SHA} npm run build"
                 sh "echo ${GIT_SHORT_SHA} > ./build/SHA.txt"
-                sh "aws s3 cp ./res/provider ${S3_LOC}/ --recursive"
                 sh "aws s3 cp ./build/provider ${S3_LOC}/ --recursive"
                 sh "aws s3 cp ./build/provider/app.json ${STAGING_JSON}"
                 echo "publishing pre-release version to npm: " + PREREL_VERSION

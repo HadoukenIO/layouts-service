@@ -130,8 +130,6 @@ test.afterEach.always(async () => {
     windows = new Array<Window>();
 });
 
-/* ----- Helper Functions ----- */
-
 async function assertExploded(t: GenericTestContext<AnyContext>) {
 
     // Check each window
@@ -153,14 +151,6 @@ async function assertExploded(t: GenericTestContext<AnyContext>) {
         }
     }
 }
-
-/* ----- Individual Tests ----- */
-
-/*
-* Add any individual tests to be run here.
-*/
-
-/* ----- Macro Tests ----- */
 
 /* 
 * A basic explode test will be run for each window arrangement in the arrangemtns object.

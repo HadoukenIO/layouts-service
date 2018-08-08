@@ -164,7 +164,7 @@ export class Tab {
 	 */
 	private _handlePropertiesInput(): void {
 		const textNode: Element = this._domNode.querySelectorAll(".tab-content")[0];
-		const textNodeValue: string = textNode.textContent;
+		const textNodeValue: string | null = textNode.textContent;
 		textNode.textContent = "";
 
 		const inputNode: HTMLInputElement = document.createElement("input");

@@ -37,7 +37,7 @@
     "build": "webpack && node build.js",
     "webpack": "webpack --watch",
     "lint": "tslint --project .",
-    "start": "concurrently --kill-others \"webpack --mode development --watch\" \"sleep 7 && node server.js\"",
+    "start": "concurrently --kill-others \"webpack --mode development --watch\" \"sleep 10 && node server.js\"",
     "check": "gts check",
     "clean": "gts clean",
     "compile": "tsc -p .",

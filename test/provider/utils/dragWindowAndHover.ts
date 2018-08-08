@@ -1,10 +1,14 @@
 import * as robot from 'robotjs';
 import { getBounds } from './getBounds';
-import { Win } from './getWindow';
+import { Win, getWindow } from './getWindow';
 const xOffset = 30;
 const yOffset = 10;
 
 export const dragWindowAndHover = async (identityOrWindow: Win, x: number, y: number) => {
+    // Focus the window to make sure it's on top.
+    const win = await getWindow(identityOrWindow);
+    await win.focus();
+
     const bounds = await getBounds(identityOrWindow);
     robot.mouseToggle('up');
     robot.moveMouse(bounds.left + xOffset, bounds.top + yOffset);

@@ -8,6 +8,7 @@ pipeline {
             agent { label 'win10-dservices' }
             steps {
                 bat "npm i"
+                bat "npm run check"
                 bat "npm test"
             }
         }

@@ -12,10 +12,11 @@
     "build": "webpack --mode production",
     "build:dev": "webpack --mode development",
     "prepare": "tsc -p tsconfig.npm.json",
-    "watch": "concurrently \"npm run watch:ts\" \"npm run watch:wp\" \"node scripts/serve\"",
+    "watch": "concurrently \"npm run watch:ts\" \"npm run watch:wp\" \"npm start\"",
     "watch:ts": "tsc -w -p .",
     "watch:wp": "webpack --watch --mode development",
-    "dev": "npm run build:dev && npm run start"
+    "dev": "npm run build:dev && npm run start",
+    "start": "node server.js"
   },
   "keywords": [],
   "license": "Apache-2.0",

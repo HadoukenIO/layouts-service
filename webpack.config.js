@@ -59,6 +59,7 @@ module.exports = [
 	}),
 	createWebpackConfigForProject("src/client", {
 		appApi: "./src/client/ts/AppApi.ts",
-		tabbingApi: "./src/client/ts/TabbingApi.ts"
+		tabbingApi: "./src/client/ts/TabbingApi.ts",
+		sarApi: "./src/client/ts/SaveAndRestoreApi.ts"
 	})
 ];

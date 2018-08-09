@@ -3,6 +3,11 @@ export interface TabIdentifier {
 	uuid: string;
 }
 
+export enum TabServiceID {
+	NAME = "TABBING_MAIN",
+	UUID = "TABBING_MAIN"
+}
+
 export interface TabOptions {
 	alignTabWindow?: boolean;
 	screenX?: number;
@@ -57,4 +62,19 @@ export interface TabAPIDragMessage extends TabAPIMessage {
 
 export interface TabbedEventPayload {
 	tabGroupID: string;
+}
+
+export interface TabBlob {
+	groupInfo: {
+		url: string;
+		active: TabIdentifier;
+		dimensions: {
+			x: number;
+			y: number;
+			width: number;
+			setHeight: number;
+			appHeight: number;
+		};
+	};
+	tabs: TabIdentifier[];
 }

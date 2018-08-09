@@ -34,3 +34,12 @@ export enum TabAPIWindowActions {
 	CLOSE = "CLOSEWINDOW",
 	TOGGLEMAXIMIZE = "TOGGLEMAXIMIZE"
 }
+
+export enum SaveAndRestoreActions {
+	GETBLOB = "SARGETBLOB",
+	SENDBLOB = "SARSENDBLOB"
+}
+
+export enum SaveAndRestoreEvents {
+	GETBLOBRETURN = "SARRETURNBLOB"
+}

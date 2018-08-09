@@ -45,7 +45,7 @@ export class DragWindowManager extends AsyncWindow {
 			this._window = new fin.desktop.Window(
 				{
 					name: "TabbingDragWindow",
-					url: "http://localhost:1337/service/drag.html",
+					url: "http://localhost:1337/tabProvider/drag.html",
 					defaultHeight: 1,
 					defaultWidth: 1,
 					defaultLeft: 0,

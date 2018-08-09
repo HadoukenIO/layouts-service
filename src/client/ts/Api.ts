@@ -30,7 +30,17 @@ export abstract class Api {
 	 * @param event The Api event to listen to
 	 * @param callback callback to handle the data received
 	 */
-	public addEventListener<T extends TabApiEvents | AppApiEvents, U>(event: T, callback: (message: U) => void): void {
+    public addEventListener<T extends TabApiEvents | AppApiEvents, U>(event: T, callback: (message: U) => void): void {
+        if (!event) {
+            console.error('No event has been passed in');
+            return;
+        }
+
+        if (!callback) {
+            console.error('No callback has been passed in');
+            return;
+        }
+
 		fin.desktop.InterApplicationBus.subscribe(
 			"*",
 			event,

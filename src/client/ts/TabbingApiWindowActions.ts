@@ -1,12 +1,18 @@
 import { TabAPIWindowActions } from "../../shared/APITypes";
 import { TabAPIMessage } from "../../shared/types";
+import { Api } from "./Api";
 
-export class TabbingApiWindowActions {
-	private mSendAction: (payload: TabAPIMessage) => void;
+/**
+ * @class Handles window actions for the tab strip
+ */
+export class TabbingApiWindowActions extends Api {
 
-	constructor(sendAction: (payload: TabAPIMessage) => void) {
-		this.mSendAction = sendAction;
-	}
+    /**
+     * @constructor Constructor fot the TabingApiWindowActions
+     */
+    constructor() {
+        super();
+    }
 
 	/**
 	 * @public
@@ -15,7 +21,7 @@ export class TabbingApiWindowActions {
 	public maximize(): void {
 		const payload: TabAPIMessage = { action: TabAPIWindowActions.MAXIMIZE };
 
-		this.mSendAction(payload);
+        super.sendAction(payload);
 	}
 
 	/**
@@ -25,7 +31,7 @@ export class TabbingApiWindowActions {
 	public minimize(): void {
 		const payload: TabAPIMessage = { action: TabAPIWindowActions.MINIMIZE };
 
-		this.mSendAction(payload);
+        super.sendAction(payload);
 	}
 
 	/**
@@ -35,7 +41,7 @@ export class TabbingApiWindowActions {
 	public restore(): void {
 		const payload: TabAPIMessage = { action: TabAPIWindowActions.RESTORE };
 
-		this.mSendAction(payload);
+        super.sendAction(payload);
 	}
 
 	/**
@@ -45,7 +51,7 @@ export class TabbingApiWindowActions {
 	public close(): void {
 		const payload: TabAPIMessage = { action: TabAPIWindowActions.CLOSE };
 
-		this.mSendAction(payload);
+        super.sendAction(payload);
 	}
 
 	/**
@@ -55,6 +61,6 @@ export class TabbingApiWindowActions {
 	public toggleMaximize(): void {
 		const payload: TabAPIMessage = { action: TabAPIWindowActions.TOGGLEMAXIMIZE };
 
-		this.mSendAction(payload);
+        super.sendAction(payload);
 	}
 }

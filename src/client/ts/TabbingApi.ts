@@ -19,22 +19,23 @@ export class TabbingApi extends Api {
 	 * @private
 	 * @description Class that holds window events
 	 */
-	private mWindowActions = new TabbingApiWindowActions(super.sendAction);
+    private mWindowActions: TabbingApiWindowActions | undefined;
 
 	/**
 	 * @public
 	 * @function windowActions Property for getting the window action object
 	 */
-	public get windowActions(): TabbingApiWindowActions {
+    public get windowActions(): TabbingApiWindowActions | undefined {
 		return this.mWindowActions;
-	}
+    }
 
 	/**
 	 * @constructor
 	 * @description Constructor for the TabbingApi class
 	 */
 	constructor() {
-		super();
+        super();
+        this.mWindowActions = new TabbingApiWindowActions();
 	}
 
 	/**
@@ -43,7 +44,7 @@ export class TabbingApi extends Api {
 	 * @param uuid The uuid of the application to be added
 	 * @param name The name of the application to be added
 	 */
-	public addTab(uuid: string, name: string, tabProperties: TabProperties): void {
+	public addTab(uuid: string, name: string, tabProperties?: TabProperties): void {
 		if (!uuid) {
 			console.error("No uuid has been passed in");
 			return;
@@ -94,7 +95,7 @@ export class TabbingApi extends Api {
 	 */
 	public activateTab(uuid: string, name: string): void {
 		if (!uuid) {
-			console.error("No uui has been passed in");
+			console.error("No uuid has been passed in");
 			return;
 		}
 
@@ -164,7 +165,21 @@ export class TabbingApi extends Api {
 		super.sendAction(payload);
 	}
 
-	public endDrag(event: DragEvent, uuid: string, name: string) {
+    public endDrag(event: DragEvent, uuid: string, name: string) {
+        if (!event) {
+            console.error('No drag event has been passed in');
+            return;
+        }
+        if (!uuid) {
+            console.error('No uuid has been passed in');
+            return;
+        }
+
+        if (!name) {
+            console.error('No name has been passed in');
+            return;
+        }
+
 		const payload: TabAPIDragMessage = { action: TabAPIActions.ENDDRAG, uuid, name, event: { screenX: event.screenX, screenY: event.screenY } };
 
 		super.sendAction(payload);

@@ -8,3 +8,4 @@ dist
 .tmp
 npm-debug.log
 /.vs
+/coverage

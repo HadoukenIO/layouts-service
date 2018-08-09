@@ -2,7 +2,7 @@ import { AppApiEvents } from "../../shared/APITypes";
 import { TabWindowOptions } from "../../shared/types";
 import { TabGroup } from "./TabGroup";
 import { TabService } from "./TabService";
-import { initializeTab } from "./TabUtilities";
+import { initializeTabbing } from "./TabUtilities";
 
 /**
  * @class Handles events coming from the application
@@ -49,7 +49,7 @@ export class EventHandler {
 	 * @param name The name of the application to initialise tabbing on
 	 */
 	private async _onClientInit(message: TabWindowOptions, uuid: string, name: string): Promise<void> {
-		initializeTab(message, uuid, name, this._service);
+		initializeTabbing(message, uuid, name, this._service);
 	}
 
 	/**

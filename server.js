@@ -6,7 +6,6 @@ const app = express();
 
 app.use(express.static('build'));
 app.use(express.static('res'));
-app.use(express.static('resources'));
 
 console.log("Starting server...");
 app.listen(1337, async () => {

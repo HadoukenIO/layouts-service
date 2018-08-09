@@ -99,7 +99,7 @@ export async function explodeGroup(identity: Identity = getId()): Promise<void> 
 /**
  * Decide which parts of this you will implement, alter LayoutApp object to reflect this then send it back
  */
-export async function onWillSaveAppLayout(layoutDecorator: (layoutApp: LayoutApp) => LayoutApp | false): Promise<boolean> {
+export async function onWillSaveAppLayout(layoutDecorator: (layoutApp: LayoutApp) => LayoutApp | false | Promise<LayoutApp | false>): Promise<boolean> {
     const service: ServiceClient = await servicePromise;
     return service.register('savingLayout', layoutDecorator);
 }
@@ -107,7 +107,7 @@ export async function onWillSaveAppLayout(layoutDecorator: (layoutApp: LayoutApp
 /**
  * Get the layoutApp object, implement, then return implemented LayoutApp object (minus anything not implemented)
  */
-export async function onAppRestore(layoutDecorator: (layoutApp: LayoutApp) => LayoutApp | false): Promise<boolean> {
+export async function onAppRestore(layoutDecorator: (layoutApp: LayoutApp) => LayoutApp | false | Promise<LayoutApp | false>): Promise<boolean> {
     const service: ServiceClient = await servicePromise;
     return service.register('restoreApp', layoutDecorator);
 }

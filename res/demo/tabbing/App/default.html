@@ -1,0 +1,36 @@
+<html>
+
+<head>
+    <title></title>
+    <style>
+        body {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+    </style>
+
+</head>
+
+<body>
+    <script>
+        var randomColor = "#"+((1<<24)*Math.random()|0).toString(16); 
+    
+        document.body.style.backgroundColor = randomColor;
+
+        fin.desktop.main(()=>{
+            window.TabClient.init();
+
+                       window.TabClient.addEventListener("TABBED", (e) => {
+                console.log("TABBED: ", e);
+            });
+
+            window.TabClient.addEventListener("UNTABBED", (e) => {
+                console.log("UNTABBED: ", e);
+            });
+        })
+    </script>
+</body>
+
+</html>

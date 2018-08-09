@@ -1,0 +1,49 @@
+<html>
+
+<head>
+    <link rel="stylesheet" type="text/css" href="css/tabs2.css">
+    <script src="../../client/dist/tabbingApi-bundle.js"></script>
+</head>
+
+<body>
+    <div id="drag-region" class="drag"></div>
+    <div id="tabs-container">
+        <div id="tabs">
+        </div>
+        <div id="tabs-bottom-border"></div>
+    </div>
+
+    <div id="window-button-wrap">
+        <div id="window-button-minimize" onclick="Tab.windowActions.minimize()">
+        </div>
+        <div id="window-button-maximize" onclick="Tab.windowActions.toggleMaximize()">
+        </div>
+        <div id="window-button-exit" onclick="Tab.windowActions.close()">
+        </div>
+    </div>
+
+    <template id="tab-template">
+        <!-- Edit Below Here -->
+
+        <div class="tab" draggable="true">
+            <div class="tab-left">
+                <div class="tab-left-overlay"></div>
+            </div>
+            <div class="tab-content-wrap">
+                <div class="tab-favicon"></div>
+                <div class="tab-content" draggable="false"></div>
+                <div class="tab-exit"></div>
+            </div>
+            <div class="tab-right">
+                <div class="tab-right-overlay"></div>
+            </div>
+        </div>
+        
+        <!-- End Edits -->
+    </template>
+
+    <script src="../../tab-ui/dist/ui-bundle.js"></script>
+</body>
+
+
+</html>

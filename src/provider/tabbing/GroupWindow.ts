@@ -43,7 +43,7 @@ export class GroupWindow extends AsyncWindow {
 		this._tabGroup = tabGroup;
 
 		const windowOptionsSanitized: TabWindowOptions = {
-			url: windowOptions.url || "http://localhost:1337/tab-ui/",
+			url: windowOptions.url || "http://localhost:1337/tabprovider/tabstrip/tabstrip.html",
 			width: windowOptions.width && !isNaN(windowOptions.width) ? windowOptions.width : undefined,
 			height: windowOptions.height && !isNaN(windowOptions.height) ? windowOptions.height : 62,
 			screenX: windowOptions.screenX && !isNaN(windowOptions.screenX) ? windowOptions.screenX : undefined,

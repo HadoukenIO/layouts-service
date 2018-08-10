@@ -1,5 +1,5 @@
-import { AppApiEvents, TabApiEvents } from "../shared/APITypes";
-import { TabAPIMessage } from "../shared/types";
+import { AppApiEvents, TabApiEvents } from "./APITypes";
+import { TabAPIMessage } from "./types";
 
 /**
  * @description Interface to outline shape of event listeners for storage

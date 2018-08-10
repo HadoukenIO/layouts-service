@@ -1,6 +1,6 @@
 import { Api } from "./Api";
-import { AppApiEvents } from '../shared/APITypes';
-import { TabIdentifier, ServiceIABTopics } from '../shared/types';
+import { AppApiEvents } from './APITypes';
+import { TabIdentifier, ServiceIABTopics } from './types';
 
 export class AppApi extends Api {
 	private _ID: TabIdentifier;

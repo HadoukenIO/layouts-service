@@ -1,5 +1,5 @@
-import { TabAPIWindowActions } from "../shared/APITypes";
-import { TabAPIMessage } from "../shared/types";
+import { TabAPIWindowActions } from "./APITypes";
+import { TabAPIMessage } from "./types";
 import { Api } from "./Api";
 
 /**

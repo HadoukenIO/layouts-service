@@ -1,5 +1,5 @@
-import { SaveAndRestoreActions, SaveAndRestoreEvents } from "../shared/APITypes";
-import { TabBlob, TabServiceID } from "../shared/types";
+import { SaveAndRestoreActions, SaveAndRestoreEvents } from "./APITypes";
+import { TabBlob, TabServiceID } from "./types";
 
 class SaveAndRestoreAPI {
 	static getTabBlob(): Promise<TabBlob[]> {

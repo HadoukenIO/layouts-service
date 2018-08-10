@@ -5,3 +5,4 @@ build
 module_dist
 example/resources/fonts
 npm-debug.log
+/.vs

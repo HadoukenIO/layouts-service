@@ -35,15 +35,14 @@
     "uuid": "^3.3.2"
   },
   "scripts": {
-    "build": "webpack && node build.js",
-    "webpack": "webpack --watch",
-    "lint": "tslint --project .",
-    "start": "concurrently --kill-others \"webpack --mode development --watch\" \"sleep 10 && node server.js\"",
+    "test": "jest",
     "check": "gts check",
     "clean": "gts clean",
-    "compile": "tsc -p .",
-    "fix": "tslint --fix --project .",
-    "test": "jest"
+    "fix": "gts fix",
+    "build": "webpack --mode production",
+    "build:dev": "webpack --mode development",
+    "dev": "npm run build:dev && npm run start",
+    "start": "node server.js"
   },
   "jest": {
     "transform": {

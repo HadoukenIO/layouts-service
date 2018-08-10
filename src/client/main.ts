@@ -5,7 +5,8 @@ import {Layout, LayoutApp, LayoutName} from './types';
 import { Identity } from 'hadouken-js-adapter';
 
 const IDENTITY = {uuid: 'Layout-Manager', name: 'Layout-Manager'};
-const VERSION = '0.0.1';
+
+const pkg = require('../../package.json');
 
 //tslint:disable-next-line:no-any
 declare var fin: any;
@@ -27,7 +28,7 @@ const getId = (() => {
     };
 })();
 
-const servicePromise: Promise<ServiceClient> = fin.desktop.Service.connect({...IDENTITY, payload: VERSION}).then((service: ServiceClient) => {
+const servicePromise: Promise<ServiceClient> = fin.desktop.Service.connect({...IDENTITY, payload: {version: pkg.version}}).then((service: ServiceClient) => {
     // Map undocking keybind
     Mousetrap.bind('mod+shift+u', () => {
         service.dispatch('undock', getId());

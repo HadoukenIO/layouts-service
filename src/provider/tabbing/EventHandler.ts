@@ -1,5 +1,5 @@
-import { AppApiEvents } from "../../shared/APITypes";
-import { TabWindowOptions } from "../../shared/types";
+import { AppApiEvents } from "../../client/APITypes";
+import { TabWindowOptions } from "../../client/types";
 import { TabGroup } from "./TabGroup";
 import { TabService } from "./TabService";
 import { initializeTabbing } from "./TabUtilities";

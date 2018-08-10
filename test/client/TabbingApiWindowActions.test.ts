@@ -1,6 +1,6 @@
 ﻿import { TabbingApiWindowActions } from "../../../client/ts/TabbingApiWindowActions";
-import { TabAPIWindowActions } from "../../../shared/APITypes";
-import { TabAPIMessage } from "../../../shared/types";
+import { TabAPIWindowActions } from "../../../client/APITypes";
+import { TabAPIMessage } from "../../../client/types";
 import { createFinMock } from "../../FinMock";
 
 // tslint:disable:variable-name
@@ -32,7 +32,7 @@ describe("Tests for tabbing api window actions", () => {
 				tabbingApiWindowActions.maximize();
 
 				// Assert
-				expect(fin.desktop.InterApplicationBus.send).toBeCalledWith("Tabbing_Main", "tab-api", expectedPayload);
+				expect(fin.desktop.InterApplicationBus.send).toBeCalledWith("Layout-Manager", "tab-api", expectedPayload);
 			});
 		});
 	});
@@ -50,7 +50,7 @@ describe("Tests for tabbing api window actions", () => {
 			tabbingApiWindowActions.minimize();
 
 			// Assert
-			expect(fin.desktop.InterApplicationBus.send).toBeCalledWith("Tabbing_Main", "tab-api", expectedPayload);
+			expect(fin.desktop.InterApplicationBus.send).toBeCalledWith("Layout-Manager", "tab-api", expectedPayload);
 		});
 	});
 
@@ -67,7 +67,7 @@ describe("Tests for tabbing api window actions", () => {
 			tabbingApiWindowActions.restore();
 
 			// Assert
-			expect(fin.desktop.InterApplicationBus.send).toBeCalledWith("Tabbing_Main", "tab-api", expectedPayload);
+			expect(fin.desktop.InterApplicationBus.send).toBeCalledWith("Layout-Manager", "tab-api", expectedPayload);
 		});
 	});
 
@@ -84,7 +84,7 @@ describe("Tests for tabbing api window actions", () => {
 			tabbingApiWindowActions.close();
 
 			// Assert
-			expect(fin.desktop.InterApplicationBus.send).toBeCalledWith("Tabbing_Main", "tab-api", expectedPayload);
+			expect(fin.desktop.InterApplicationBus.send).toBeCalledWith("Layout-Manager", "tab-api", expectedPayload);
 		});
 	});
 
@@ -101,7 +101,7 @@ describe("Tests for tabbing api window actions", () => {
 			tabbingApiWindowActions.toggleMaximize();
 
 			// Assert
-			expect(fin.desktop.InterApplicationBus.send).toBeCalledWith("Tabbing_Main", "tab-api", expectedPayload);
+			expect(fin.desktop.InterApplicationBus.send).toBeCalledWith("Layout-Manager", "tab-api", expectedPayload);
 		});
 	});
 });

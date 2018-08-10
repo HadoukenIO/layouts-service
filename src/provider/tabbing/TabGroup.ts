@@ -1,6 +1,6 @@
 import { uuidv4 } from "./TabUtilities";
-import { TabApiEvents } from "../../shared/APITypes";
-import { TabIdentifier, TabPackage, TabWindowOptions } from "../../shared/types";
+import { TabApiEvents } from "../../client/APITypes";
+import { TabIdentifier, TabPackage, TabWindowOptions } from "../../client/types";
 import { GroupWindow } from "./GroupWindow";
 import { Tab } from "./Tab";
 import { TabService } from "./TabService";

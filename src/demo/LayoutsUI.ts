@@ -9,6 +9,7 @@ declare var fin: any;
 declare var window: _Window & {forgetMe: (identity: ServiceIdentity)=>void};
 
 let numChildren = 0;
+let numTabbedWindows = 0;
 const launchDir = location.href.slice(0, location.href.lastIndexOf('/'));
 const forgetWindows: ServiceIdentity[] = [];
 
@@ -95,6 +96,27 @@ export function createSnapWindows(): void {
             }, console.log, console.error);
         }
     });
+}
+
+export function createTabbedWindow(page: string) {
+    const uuid = `App${numTabbedWindows}`;
+    const app = new fin.desktop.Application({
+        url: `http://localhost:1337/demo/tabbing/App/${page}.html`, 
+        uuid, 
+        name: uuid,
+        mainWindowOptions: {
+            defaultWidth: 400,
+            defaultHeight: 300,
+            saveWindowState: false,
+            autoShow: true,
+            defaultCentered: true
+        }
+    },
+        () => {
+            app.run();
+            numTabbedWindows++;
+        }
+    );
 }
 
 async function delayPromise(ms: number): Promise<{}> {

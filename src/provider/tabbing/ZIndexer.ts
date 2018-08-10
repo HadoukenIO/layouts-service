@@ -1,4 +1,4 @@
-import { TabIdentifier } from "../../shared/types";
+import { TabIdentifier } from "../../client/types";
 
 interface ZIndex {
 	timestamp: number;

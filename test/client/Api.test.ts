@@ -1,7 +1,7 @@
 import 'jest';
-import { createFinMock } from '../../FinMock';
-import { Api } from '../../../client/ts/Api';
-import { TabAPIActions, TabApiEvents } from '../../../shared/APITypes';
+import { createFinMock } from './utils/FinMock';
+import { Api } from '../../src/client/Api';
+import { TabAPIActions, TabApiEvents } from '../../src/client/APITypes';
 
 declare namespace fin.desktop {
     var InterApplicationBus: {

@@ -1,4 +1,4 @@
-import { TabIdentifier, TabProperties } from "../../../shared/types";
+import { TabIdentifier, TabProperties } from "../../../client/types";
 import { TabManager } from "./TabManager";
 
 export class Tab {

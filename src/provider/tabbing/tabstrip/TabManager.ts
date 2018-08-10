@@ -1,6 +1,6 @@
 import { TabbingApi } from "../../../client/TabbingApi";
-import { TabApiEvents } from "../../../shared/APITypes";
-import { TabIdentifier, TabPackage, TabProperties } from "../../../shared/types";
+import { TabApiEvents } from "../../../client/APITypes";
+import { TabIdentifier, TabPackage, TabProperties } from "../../../client/types";
 import { Tab } from "./TabItem";
 /**
  * Handles the management of tabs and some of their functionality.

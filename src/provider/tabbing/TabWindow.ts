@@ -1,4 +1,4 @@
-import { TabIdentifier, TabWindowOptions } from "../../shared/types";
+import { TabIdentifier, TabWindowOptions } from "../../client/types";
 import { AsyncWindow } from "./asyncWindow";
 import { Tab } from "./Tab";
 import { TabGroup } from "./TabGroup";

@@ -1,5 +1,5 @@
-import { SaveAndRestoreActions, SaveAndRestoreEvents } from "../../shared/APITypes";
-import { TabBlob, TabIdentifier } from "../../shared/types";
+import { SaveAndRestoreActions, SaveAndRestoreEvents } from "../../client/APITypes";
+import { TabBlob, TabIdentifier } from "../../client/types";
 import { Tab } from "./Tab";
 import { TabGroup } from "./TabGroup";
 import { TabService } from "./TabService";

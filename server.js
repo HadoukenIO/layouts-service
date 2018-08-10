@@ -18,7 +18,4 @@ app.listen(1337, async () => {
     }
 
     await launch({manifestUrl: "http://localhost:1337/demo/app.json"}).catch(console.log);
-
-    console.log("Launching tabbing Demo application")
-    await launch({ manifestUrl: "http://localhost:1337/demo/tabbing/app.json" }).catch(console.log);
 });

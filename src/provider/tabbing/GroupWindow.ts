@@ -1,4 +1,4 @@
-import { TabWindowOptions } from "../../shared/types";
+import { TabWindowOptions } from "../../client/types";
 import { AsyncWindow } from "./asyncWindow";
 import { TabGroup } from "./TabGroup";
 import { TabService } from "./TabService";
@@ -46,7 +46,7 @@ export class GroupWindow extends AsyncWindow {
 		this._tabGroup = tabGroup;
 
 		const windowOptionsSanitized: TabWindowOptions = {
-			url: windowOptions.url || "http://localhost:1337/provider/tabstrip/tabstrip.html",
+			url: windowOptions.url || "http://localhost:1337/provider/tabbing/tabstrip/tabstrip.html",
 			width: windowOptions.width && !isNaN(windowOptions.width) ? windowOptions.width : undefined,
 			height: windowOptions.height && !isNaN(windowOptions.height) ? windowOptions.height : 62,
 			screenX: windowOptions.screenX && !isNaN(windowOptions.screenX) ? windowOptions.screenX : undefined,

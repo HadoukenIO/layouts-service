@@ -1,5 +1,5 @@
-import { AppApiEvents, TabApiEvents } from "../../shared/APITypes";
-import { TabIdentifier, TabPackage, TabProperties } from "../../shared/types";
+import { AppApiEvents, TabApiEvents } from "../../client/APITypes";
+import { TabIdentifier, TabPackage, TabProperties } from "../../client/types";
 import { TabGroup } from "./TabGroup";
 import { TabWindow } from "./TabWindow";
 

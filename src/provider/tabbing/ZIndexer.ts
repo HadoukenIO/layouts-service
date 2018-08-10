@@ -30,20 +30,20 @@ export class ZIndexer {
 			return ZIndexer.INSTANCE;
 		}
 
-		fin.desktop.Application.getCurrent().addEventListener("window-created", win => {
+		fin.desktop.Application.getCurrent().addEventListener("window-created", (win: { name: string }) => {
 			// @ts-ignore
 			const w = fin.desktop.Window.wrap(fin.desktop.Application.getCurrent().uuid, win.name);
 			this._addEventListeners(w);
 		});
 
-		fin.desktop.System.addEventListener("application-started", ev => {
+		fin.desktop.System.addEventListener("application-started", (ev: { uuid: string }) => {
 			// @ts-ignore
 			const app = fin.desktop.Application.wrap(ev.uuid);
 			const appWin = app.getWindow();
 
 			this._addEventListeners(appWin);
 
-			app.addEventListener("window-created", win => {
+			app.addEventListener("window-created", (win: { uuid: string; name: string }) => {
 				// @ts-ignore
 				const w = fin.desktop.Window.wrap(app.uuid, win.name);
 				this._addEventListeners(w);

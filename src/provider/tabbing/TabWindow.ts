@@ -112,11 +112,11 @@ export class TabWindow extends AsyncWindow {
 
 		this._window.addEventListener("maximized", this._onMaximize.bind(this));
 
-		this._window.addEventListener("restored", this._onRestore.bind(this));
+		// this._window.addEventListener("restored", this._onRestore.bind(this));
 
 		this._window.addEventListener("closed", this._onClose.bind(this));
 
-		this._window.addEventListener("focused", this._onFocus.bind(this));
+		//this._window.addEventListener("focused", this._onFocus.bind(this));
 
 		this._window.addEventListener("bounds-changed", this._onBoundsChanged.bind(this));
 	}

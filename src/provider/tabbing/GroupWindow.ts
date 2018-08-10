@@ -111,8 +111,7 @@ export class GroupWindow extends AsyncWindow {
 	public async restoreGroup(): Promise<void | void[]> {
 		if (this._isMaximized) {
 			if ((await this.getState()) === "minimized") {
-				this._window.restore();
-				return;
+				return this._tabGroup.activeTab.window.restore();
 			} else {
 				const resize = this._tabGroup.activeTab.window.resizeTo(this._beforeMaximizeBounds.width!, this._beforeMaximizeBounds.height!, "top-left");
 				const moveto = this._tabGroup.window.moveTo(this._beforeMaximizeBounds.left!, this._beforeMaximizeBounds.top!);
@@ -120,7 +119,7 @@ export class GroupWindow extends AsyncWindow {
 				return Promise.all([resize, moveto]);
 			}
 		} else {
-			return this._window.restore();
+			return this._tabGroup.activeTab.window.restore();
 		}
 	}
 
@@ -132,7 +131,7 @@ export class GroupWindow extends AsyncWindow {
 			return tab.window.minimize();
 		});
 
-		const group = this._window.minimize();
+		const group = super._window.minimize();
 
 		return Promise.all([minWins, group]);
 	}
@@ -157,6 +156,10 @@ export class GroupWindow extends AsyncWindow {
 				this._tabGroup.removeAllTabs(true);
 			}
 		});
+
+		this._window.addEventListener("restored", this.restoreGroup.bind(this));
+
+		this._window.addEventListener("minimized", this.minimizeGroup.bind(this));
 	}
 
 	/**
@@ -199,7 +202,7 @@ export class GroupWindow extends AsyncWindow {
 				() => {
 					res(win);
 				},
-				e => {
+				(e: string) => {
 					rej(e);
 				}
 			);

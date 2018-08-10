@@ -1,6 +1,7 @@
 <html>
 
 <head>
+    <script src="../../../client/tabs-bundle.js"></script>
     <title></title>
     <style>
         body {
@@ -19,10 +20,10 @@
     
         document.body.style.backgroundColor = randomColor;
 
-      fin.desktop.main(()=>{
-            window.TabClient.init("http://localhost:9001/demo/tabbing/UI/UI2.html");
+        fin.desktop.main(()=>{
+            window.TabClient.init("http://localhost:1337/demo/tabbing/UI/UI2.html");
 
-                       window.TabClient.addEventListener("TABBED", (e) => {
+            window.TabClient.addEventListener("TABBED", (e) => {
                 console.log("TABBED: ", e);
             });
 

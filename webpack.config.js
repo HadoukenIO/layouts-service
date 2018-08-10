@@ -36,7 +36,7 @@ function createConfig(component, entryPoint, isLibrary, ...plugins) {
 }
 
 module.exports = [
-    createConfig('tabset', './src/provider/tabbing/tabstrip/Tabstrip.ts', false, new CopyWebpackPlugin([{ from: './res/provider/tabbing/tabstrip' }])),
-    createConfig('tabprovider', './src/provider/tabbing/index.ts', false, new CopyWebpackPlugin([{ from: './res/provider/tabbing' }])),
-    createConfig('tabclient', ['./src/client/AppApi.ts', './src/client/SaveAndRestoreApi.ts', './src/client/TabbingApi.ts'], true, new CopyWebpackPlugin([{ from: './res/demo', to: '../demo' }]))
+    createConfig('provider', {tabStrip: './src/provider/tabbing/tabstrip/Tabstrip.ts'}, false, new CopyWebpackPlugin([{ from: './res/provider/tabbing/tabstrip' }])),
+    createConfig('provider', {tabs: './src/provider/tabbing/index.ts'}, false, new CopyWebpackPlugin([{ from: './res/provider/tabbing' }])),
+    createConfig('client', {tabs: './src/client/main.ts'}, true, new CopyWebpackPlugin([{ from: './res/demo', to: '../demo' }]))
 ];

@@ -2,7 +2,7 @@
 	"startup_app": {
 		"name": "Tabbing",
 		"description": "Openfin Tabbing",
-		"url": "http://localhost:1337/tabProvider/index.html",
+		"url": "http://localhost:1337/provider/index.html",
 		"defaultWidth": 100,
 		"defaultHeight": 100,
 		"smallWindow": true,

@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from "uuid";
+import { uuidv4 } from "./TabUtilities";
 import { TabApiEvents } from "../../shared/APITypes";
 import { TabIdentifier, TabPackage, TabWindowOptions } from "../../shared/types";
 import { GroupWindow } from "./GroupWindow";

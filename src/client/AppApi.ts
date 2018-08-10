@@ -1,7 +1,6 @@
 import { Api } from "./Api";
 import { AppApiEvents } from "./APITypes";
 import { TabIdentifier, ServiceIABTopics, TabServiceID } from "./types";
-import { TabService } from "../provider/tabbing/TabService";
 
 export class AppApi extends Api {
 	private _ID: TabIdentifier;

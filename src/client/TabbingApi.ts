@@ -159,13 +159,13 @@ export class TabbingApi extends Api {
 		super.sendAction(payload);
 	}
 
-	public startDrag() {
+	public startDrag(): void {
 		const payload: TabAPIMessage = { action: TabAPIActions.STARTDRAG };
 
 		super.sendAction(payload);
 	}
 
-    public endDrag(event: DragEvent, uuid: string, name: string) {
+    public endDrag(event: DragEvent, uuid: string, name: string): void {
         if (!event) {
             console.error('No drag event has been passed in');
             return;

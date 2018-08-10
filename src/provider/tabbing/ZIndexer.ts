@@ -5,9 +5,6 @@ interface ZIndex {
 	ID: TabIdentifier;
 }
 
-// tslint:disable-next-line:no-any
-declare var fin: any;
-
 /**
  * Keeps track of window Z-indexes.  Currently a POC!
  */
@@ -36,7 +33,7 @@ export class ZIndexer {
 			this._addEventListeners(w);
 		});
 
-		fin.desktop.System.addEventListener("application-started", (ev: { uuid: string }) => {
+		fin.desktop.System.addEventListener("application-started", (ev: fin.SystemBaseEvent) => {
 			// @ts-ignore
 			const app = fin.desktop.Application.wrap(ev.uuid);
 			const appWin = app.getWindow();

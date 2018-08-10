@@ -4,7 +4,6 @@ import { TabIdentifier, TabPackage, TabWindowOptions } from "../../shared/types"
 import { GroupWindow } from "./GroupWindow";
 import { Tab } from "./Tab";
 import { TabService } from "./TabService";
-
 /**
  * Handles functionality for the TabSet
  */
@@ -106,20 +105,22 @@ export class TabGroup {
 		if (index === -1) {
 			return;
 		}
-		const tabIndex = this._tabs[index];
+		const tab = this._tabs[index];
 		this._tabs.splice(index, 1);
 
-		await tabIndex.remove(closeApp);
+		if (this._tabs.length > 0 && this.activeTab.ID.uuid === tab.ID.uuid && this.activeTab.ID.name === tab.ID.name) {
+			const nextTab: TabIdentifier = this._tabs[index] ? this._tabs[index].ID : this._tabs[index - 1].ID;
+
+			await this.switchTab(nextTab);
+		}
+
+		await tab.remove(closeApp);
 
 		if (closeGroupWindowCheck) {
 			if (this._tabs.length === 0) {
 				await TabService.INSTANCE.removeTabGroup(this.ID, true);
 				return;
 			}
-		}
-
-		if (this._tabs.length > 0) {
-			await this.switchTab(null);
 		}
 	}
 
@@ -128,11 +129,7 @@ export class TabGroup {
 	 * @param {TabIdentifier} ID The ID of the tab to set as active.
 	 * @param {boolean} hideActiveTab Flag if we should hide the current active tab.
 	 */
-	public async switchTab(ID: TabIdentifier | null, hideActiveTab: boolean = true): Promise<void> {
-		if (!ID) {
-			ID = { uuid: this._tabs[0].ID.uuid, name: this._tabs[0].ID.name };
-		}
-
+	public async switchTab(ID: TabIdentifier, hideActiveTab: boolean = true): Promise<void> {
 		const tab = this.getTab(ID);
 
 		if (tab && tab !== this._activeTab) {

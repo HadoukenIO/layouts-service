@@ -70,5 +70,10 @@ module.exports = [
         }]
     )),
     createConfig('demo', {LayoutsUI: './src/demo/LayoutsUI.ts'}, true, new CopyWebpackPlugin( [{ from: './res/demo' }]) ),
-    createConfig('demo', {Snappable: './src/demo/Snappable.ts'}, true)
+    createConfig('demo', {Snappable: './src/demo/Snappable.ts'}, true),
+
+    //Tabbing
+    createConfig('provider', {tabStrip: './src/provider/tabbing/tabstrip/Tabstrip.ts'}, false, new CopyWebpackPlugin([{ from: './res/provider/tabbing/tabstrip' }])),
+    createConfig('provider', {tabs: './src/provider/tabbing/index.ts'}, false, new CopyWebpackPlugin([{ from: './res/provider/tabbing' }])),
+    createConfig('client', {tabs: './src/client/main.ts'}, true, new CopyWebpackPlugin([{ from: './res/demo', to: '../demo' }]))
 ];

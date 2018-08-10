@@ -1,0 +1,42 @@
+<html>
+
+<head>
+    <script src="../../../client/tabs-bundle.js"></script>
+</head>
+
+<body>
+    <button onclick="newApp('default')">Default UI</button>
+
+    <button onclick="newApp('App2')">New App 2</button>
+
+    <button onclick="newApp('App3')">New App 3</button>
+
+    <button onclick="newApp('noauto')">New App no init</button>
+
+    <script>
+        let appCount = 0;
+
+        function newApp(page) {
+            const uuid = `App${appCount}`
+            const app = new fin.desktop.Application({
+                url: `http://localhost:1337/demo/tabbing/App/${page}.html`, 
+                uuid: uuid, 
+                name: uuid,
+                mainWindowOptions: {
+                    defaultWidth: 400,
+                    defaultHeight: 300,
+                    saveWindowState: false,
+                    autoShow: true,
+                    defaultCentered: true
+                }
+            },
+                () => {
+                    app.run();
+                    appCount++;
+                }
+            );
+        }
+    </script>
+</body>
+
+</html>

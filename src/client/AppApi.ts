@@ -1,6 +1,7 @@
 import { Api } from "./Api";
-import { AppApiEvents } from './APITypes';
-import { TabIdentifier, ServiceIABTopics } from './types';
+import { AppApiEvents } from "./APITypes";
+import { TabIdentifier, ServiceIABTopics, TabServiceID } from "./types";
+import { TabService } from "../provider/tabbing/TabService";
 
 export class AppApi extends Api {
 	private _ID: TabIdentifier;
@@ -12,19 +13,19 @@ export class AppApi extends Api {
 			uuid: fin.desktop.Application.getCurrent().uuid,
 			name: fin.desktop.Window.getCurrent().name
 		};
+	}
+
+	public init(url?: string | undefined, height?: number | undefined) {
+		fin.desktop.InterApplicationBus.send(TabServiceID.UUID, TabServiceID.NAME, ServiceIABTopics.CLIENTINIT, { url, height });
 
 		// Give the frame back if our service dies
-		fin.desktop.Window.wrap("Tabbing_Main", "Tabbing_Main").addEventListener("closed", () => {
+		fin.desktop.Window.wrap(TabServiceID.UUID, TabServiceID.NAME).addEventListener("closed", () => {
 			fin.desktop.Window.getCurrent().updateOptions({ frame: true });
 		});
 	}
 
-	public init(url?: string | undefined, height?: number | undefined) {
-		fin.desktop.InterApplicationBus.send("Tabbing_Main", "Tabbing_Main", ServiceIABTopics.CLIENTINIT, { url, height });
-	}
-
 	public deregister() {
-		fin.desktop.InterApplicationBus.send("Tabbing_Main", "Tabbing_Main", AppApiEvents.DEREGISTER, {});
+		fin.desktop.InterApplicationBus.send(TabServiceID.UUID, TabServiceID.NAME, AppApiEvents.DEREGISTER, {});
 	}
 }
 

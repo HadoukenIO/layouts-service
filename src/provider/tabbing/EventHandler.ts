@@ -4,6 +4,8 @@ import { TabGroup } from "./TabGroup";
 import { TabService } from "./TabService";
 import { initializeTabbing } from "./TabUtilities";
 
+// tslint:disable-next-line:no-any
+declare var fin: any;
 /**
  * @class Handles events coming from the application
  */

@@ -3,6 +3,9 @@ import { TabIdentifier, TabPackage, TabProperties } from "../../shared/types";
 import { TabGroup } from "./TabGroup";
 import { TabWindow } from "./TabWindow";
 
+// tslint:disable-next-line:no-any
+declare var fin: any;
+
 /**
  * The Tab class handles functionality related to the tab itself.
  */

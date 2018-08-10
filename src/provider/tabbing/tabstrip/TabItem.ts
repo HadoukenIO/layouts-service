@@ -58,7 +58,7 @@ export class Tab {
 	 * Updates the icon of this tab.
 	 * @param {string} icon The URL to the icon image.
 	 */
-	public updateIcon(icon: string = ""): void {
+	public updateIcon(icon = ""): void {
 		const iconNode = this._domNode.querySelectorAll(".tab-favicon")[0];
 		(iconNode as HTMLElement).style.backgroundImage = `url("${icon}")`;
 
@@ -175,7 +175,7 @@ export class Tab {
 			try {
 				inputNode.remove();
 				// @ts-ignore
-				window.Tab.updateTabProperties(this._ID.uuid, this._ID.name, { title: inputNode.value });
+				TabManager.tabAPI.updateTabProperties(this._ID.uuid, this._ID.name, { title: inputNode.value });
 			} catch (e) {}
 		}
 

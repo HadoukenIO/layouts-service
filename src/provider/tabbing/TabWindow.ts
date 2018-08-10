@@ -3,6 +3,9 @@ import { AsyncWindow } from "./asyncWindow";
 import { Tab } from "./Tab";
 import { TabGroup } from "./TabGroup";
 
+// tslint:disable-next-line:no-any
+declare var fin: any;
+
 /**
  * Handles the window for the Tab
  */
@@ -20,12 +23,12 @@ export class TabWindow extends AsyncWindow {
 	/**
 	 * The initial options of the tab window.
 	 */
-	private _initialWindowOptions: fin.WindowOptions = {};
+	private _initialWindowOptions!: fin.WindowOptions;
 
 	/**
 	 * The intitial bounds of the tab window.
 	 */
-	private _initialWindowBounds: fin.WindowBounds = {};
+	private _initialWindowBounds!: fin.WindowBounds;
 
 	/**
 	 * Constructor of the TabWindow Class.

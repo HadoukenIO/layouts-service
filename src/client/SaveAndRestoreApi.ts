@@ -2,7 +2,7 @@ import { SaveAndRestoreActions, SaveAndRestoreEvents } from "./APITypes";
 import { TabBlob, TabServiceID } from "./types";
 
 class SaveAndRestoreAPI {
-	static getTabBlob(): Promise<TabBlob[]> {
+	public static getTabBlob(): Promise<TabBlob[]> {
 		return new Promise((res, rej) => {
 			const listener = (message: TabBlob[]) => {
 				fin.desktop.InterApplicationBus.unsubscribe(TabServiceID.UUID, TabServiceID.NAME, SaveAndRestoreEvents.GETBLOBRETURN, listener);

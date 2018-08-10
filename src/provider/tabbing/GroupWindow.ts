@@ -4,6 +4,9 @@ import { TabGroup } from "./TabGroup";
 import { TabService } from "./TabService";
 import { TabWindow } from "./TabWindow";
 
+// tslint:disable-next-line:no-any
+declare var fin: any;
+
 /**
  * Handles the window for the Tab-Set
  */
@@ -16,7 +19,7 @@ export class GroupWindow extends AsyncWindow {
 	/**
 	 * Used to store the window bounds before a maximized is called.
 	 */
-	private _beforeMaximizeBounds: fin.WindowBounds = {};
+	private _beforeMaximizeBounds!: fin.WindowBounds;
 
 	/**
 	 * Handle to this windows tab group.
@@ -26,7 +29,7 @@ export class GroupWindow extends AsyncWindow {
 	/**
 	 * Flag for if the window is maximized.
 	 */
-	private _isMaximized: boolean = false;
+	private _isMaximized = false;
 
 	/**
 	 * Handle to the Tab service.

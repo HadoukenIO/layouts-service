@@ -5,6 +5,9 @@ interface ZIndex {
 	ID: TabIdentifier;
 }
 
+// tslint:disable-next-line:no-any
+declare var fin: any;
+
 /**
  * Keeps track of window Z-indexes.  Currently a POC!
  */

@@ -1,5 +1,8 @@
 import { AppApiEvents, TabApiEvents } from "./APITypes";
-import { TabAPIMessage } from "./types";
+import { TabAPIMessage, TabServiceID } from "./types";
+
+// tslint:disable-next-line:no-any
+declare var fin: any;
 
 /**
  * @description Interface to outline shape of event listeners for storage
@@ -30,16 +33,16 @@ export abstract class Api {
 	 * @param event The Api event to listen to
 	 * @param callback callback to handle the data received
 	 */
-    public addEventListener<T extends TabApiEvents | AppApiEvents, U>(event: T, callback: (message: U) => void): void {
-        if (!event) {
-            console.error('No event has been passed in');
-            return;
-        }
+	public addEventListener<T extends TabApiEvents | AppApiEvents, U>(event: T, callback: (message: U) => void): void {
+		if (!event) {
+			console.error("No event has been passed in");
+			return;
+		}
 
-        if (!callback) {
-            console.error('No callback has been passed in');
-            return;
-        }
+		if (!callback) {
+			console.error("No callback has been passed in");
+			return;
+		}
 
 		fin.desktop.InterApplicationBus.subscribe(
 			"*",
@@ -90,6 +93,6 @@ export abstract class Api {
 			return;
 		}
 
-		fin.desktop.InterApplicationBus.send("Tabbing_Main", "tab-api", payload);
+		fin.desktop.InterApplicationBus.send(TabServiceID.UUID, "tab-api", payload);
 	}
 }

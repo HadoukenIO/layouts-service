@@ -4,6 +4,10 @@ import { TabIdentifier, TabPackage, TabWindowOptions } from "../../shared/types"
 import { GroupWindow } from "./GroupWindow";
 import { Tab } from "./Tab";
 import { TabService } from "./TabService";
+
+// tslint:disable-next-line:no-any
+declare var fin: any;
+
 /**
  * Handles functionality for the TabSet
  */
@@ -99,7 +103,7 @@ export class TabGroup {
 	 * @param {boolean} closeApp Flag to force close the tab window or not.
 	 * @param {boolean} closeGroupWindowCheck Flag to check if we should close the tab set window if there are no more tabs.
 	 */
-	public async removeTab(tabID: TabIdentifier, closeApp: boolean, closeGroupWindowCheck: boolean = false): Promise<void> {
+	public async removeTab(tabID: TabIdentifier, closeApp: boolean, closeGroupWindowCheck = false): Promise<void> {
 		const index: number = this.getTabIndex(tabID);
 
 		if (index === -1) {
@@ -129,7 +133,7 @@ export class TabGroup {
 	 * @param {TabIdentifier} ID The ID of the tab to set as active.
 	 * @param {boolean} hideActiveTab Flag if we should hide the current active tab.
 	 */
-	public async switchTab(ID: TabIdentifier, hideActiveTab: boolean = true): Promise<void> {
+	public async switchTab(ID: TabIdentifier, hideActiveTab = true): Promise<void> {
 		const tab = this.getTab(ID);
 
 		if (tab && tab !== this._activeTab) {

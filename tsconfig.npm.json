@@ -14,7 +14,7 @@
     "skipLibCheck": true
   },
   "include": [
-    "src/client/fin.d.ts",
+    "src/fin.d.ts",
     "src/client/main.ts"
   ]
 }

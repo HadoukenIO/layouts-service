@@ -39,10 +39,10 @@ function createConfig(component, entryPoint, isLibrary, ...plugins) {
 function prepConfig(config) {
     const newConf = Object.assign({}, config);
     if (typeof process.env.GIT_SHORT_SHA != 'undefined' && process.env.GIT_SHORT_SHA != "" ) {
-        newConf.startup_app.url = 'https://cdn.openfin.co/services/openfin/layouts/' + process.env.GIT_SHORT_SHA + '/index.html';
+        newConf.startup_app.url = 'https://cdn.openfin.co/services/openfin/layouts/' + process.env.GIT_SHORT_SHA + '/provider.html';
         newConf.startup_app.autoShow = false;
     } else if (typeof process.env.CDN_ROOT_URL != 'undefined' && process.env.CDN_ROOT_URL != "" ) {
-        newConf.startup_app.url = process.env.CDN_ROOT_URL + '/index.html';
+        newConf.startup_app.url = process.env.CDN_ROOT_URL + '/provider.html';
     } else {
         newConf.startup_app.url = 'http://localhost:1337/provider/provider.html';
     }
@@ -50,12 +50,10 @@ function prepConfig(config) {
 }
 
 module.exports = [
-    createConfig('client', './src/client/main.ts'),
-    createConfig(
-        'provider', 
-        './src/provider/main.ts', 
-        false, 
-        new CopyWebpackPlugin( [{ from: './res/provider/provider.html' }]), 
+    createConfig('client', './src/client/main.ts', false),
+    createConfig('provider', './src/provider/main.ts', false, 
+        new CopyWebpackPlugin([{ from: './res/provider/provider.html' }]),
+        new CopyWebpackPlugin([{ from: './res/provider/tabbing/', to: './tabbing' }]),
         new CopyWebpackPlugin(
         [{
             // Provider temporarily requires an extra plugin to override index.html within provider app.json
@@ -69,6 +67,7 @@ module.exports = [
             }
         }]
     )),
+    createConfig('provider', {tabStrip: './src/provider/tabbing/tabstrip/Tabstrip.ts'}, false),
     createConfig('demo', {LayoutsUI: './src/demo/LayoutsUI.ts'}, true, new CopyWebpackPlugin( [{ from: './res/demo' }]) ),
     createConfig('demo', {Snappable: './src/demo/Snappable.ts'}, true)
 ];

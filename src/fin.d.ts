@@ -570,7 +570,7 @@ declare namespace fin {
          * Registers an event listener on the specified event.
          */
         addEventListener(
-            type: 'application-created', listener: (event: SystemBaseEvent) => void, callback?: () => void, errorCallback?: (reason: string) => void): void;
+            type: 'application-created'|'application-started', listener: (event: SystemBaseEvent) => void, callback?: () => void, errorCallback?: (reason: string) => void): void;
         addEventListener(
             type: OpenFinSystemEventType,
             listener: (event: SystemBaseEvent|DesktopIconClickedEvent|IdleStateChangedEvent|MonitorInfoChangedEvent|SessionChangedEvent) => void,

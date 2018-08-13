@@ -2,29 +2,31 @@ import {SnapGroup} from './snapanddock/SnapGroup';
 import {SnapService} from './snapanddock/SnapService';
 import {SnapWindow, WindowIdentity} from './snapanddock/SnapWindow';
 import {win10Check} from './snapanddock/utils/platform';
-import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
-
+import {TabService} from './tabbing/TabService';
 import {saveCurrentLayout, saveLayoutObject} from './workspaces/create';
 import {getAppToRestore, restoreApplication, restoreLayout} from './workspaces/restore';
 import {getAllLayoutNames, getLayout} from './workspaces/storage';
-import { Provider } from 'hadouken-js-adapter/out/types/src/api/services/provider';
 
-export let service: SnapService;
+import {Provider} from 'hadouken-js-adapter/out/types/src/api/services/provider';
+import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
+
+export let snapService: SnapService;
+export let tabService: TabService;
 export let providerChannel: Provider;
-declare const window: Window & {providerChannel: Provider; service: SnapService;};
+declare const window: Window & {providerChannel: Provider; snapService: SnapService; tabService: TabService;};
 
 fin.desktop.main(main);
 
 async function registerService() {
     providerChannel = window.providerChannel = (await fin.desktop.Service.register()) as Provider;
     providerChannel.register('undock', (identity: WindowIdentity) => {
-        window.service.undock(identity);
+        snapService.undock(identity);
     });
     providerChannel.register('deregister', (identity: WindowIdentity) => {
-        window.service.deregister(identity);
+        snapService.deregister(identity);
     });
     providerChannel.register('explode', (identity: WindowIdentity) => {
-        window.service.explodeGroup(identity);
+        snapService.explodeGroup(identity);
     });
     providerChannel.register('saveCurrentLayout', saveCurrentLayout);
     providerChannel.register('saveLayoutObject', saveLayoutObject);
@@ -41,13 +43,13 @@ async function registerService() {
     });
 
     // Register listeners for window added/removed signals
-    window.service.onWindowAdded.add((group, window) => {
+    snapService.onWindowAdded.add((group, window) => {
         if (group.length < 2) {
             return;
         }
         sendWindowServiceMessage(GroupEventType.JOIN_SNAP_GROUP, window, providerChannel);
     });
-    window.service.onWindowRemoved.add((group, window) => {
+    snapService.onWindowRemoved.add((group, window) => {
         if (group.length === 0) {
             return;
         }
@@ -58,7 +60,8 @@ async function registerService() {
 }
 
 export async function main() {
-    service = window.service = new SnapService();
+    snapService = window.snapService = new SnapService();
+    tabService = window.tabService = new TabService();
     await win10Check;
     return await registerService();
 }

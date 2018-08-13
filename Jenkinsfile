@@ -8,6 +8,7 @@ pipeline {
             agent { label 'win10-dservices' }
             steps {
                 bat "npm i"
+                bat "npm run check"
                 bat "npm test"
             }
         }
@@ -17,7 +18,6 @@ pipeline {
             when { branch "develop" }
             steps {
                 sh "npm i --ignore-scripts"
-                sh "npm run check"
                 script {
                     GIT_SHORT_SHA = sh ( script: "git rev-parse --short HEAD", returnStdout: true ).trim()
                     VERSION = sh ( script: "node -pe \"require('./package.json').version\"", returnStdout: true ).trim()

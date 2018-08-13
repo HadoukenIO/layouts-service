@@ -131,7 +131,7 @@ export class GroupWindow extends AsyncWindow {
 			return tab.window.minimize();
 		});
 
-		const group = super._window.minimize();
+		const group = this._window.minimize();
 
 		return Promise.all([minWins, group]);
 	}

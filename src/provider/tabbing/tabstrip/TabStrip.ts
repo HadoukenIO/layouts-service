@@ -13,7 +13,7 @@ fin.desktop.main(() => {
 
 	if (TabManager.tabAPI && TabManager.tabAPI.windowActions) {
 		minimizeElem!.onclick = TabManager.tabAPI.windowActions.minimize;
-		maximizeElem!.onclick = TabManager.tabAPI.windowActions.maximize;
+		maximizeElem!.onclick = TabManager.tabAPI.windowActions.toggleMaximize;
 		closeElem!.onclick = TabManager.tabAPI.windowActions.close;
 	}
 });

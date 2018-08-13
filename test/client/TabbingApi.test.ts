@@ -1,56 +1,10 @@
-// import { TabbingApi } from "../../src/client/TabbingApi";
-// import { TabAPIActions } from "../../src/client/APITypes";
-// import { TabAPIDragMessage, TabAPIInteractionMessage, TabAPIMessage, TabProperties } from "../../src/client/types";
+import { TabbingApi } from "../../src/client/TabbingApi";
+import { TabAPIActions } from "../../src/client/APITypes";
+import { TabAPIDragMessage, TabAPIInteractionMessage, TabAPIMessage, TabProperties } from "../../src/client/types";
 import { createFinMock } from "./utils/FinMock";
 
 // tslint:disable:variable-name
 // tslint:disable:no-any
-
-// Need to re-declare any definitions that exist outside of the 'test' directory into test class.
-// This is a temporary work-around, a solution will be found as part of SERVICE-182
-enum TabAPIActions {
-	STARTDRAG = "STARTDRAG",
-	ENDDRAG = "ENDDRAG",
-	ADD = "ADD",
-	EJECT = "EJECT",
-	CLOSE = "CLOSE",
-	ACTIVATE = "ACTIVATE",
-	UPDATEPROPERTIES = "UPDATEPROPERTIES",
-	INIT = "TABINIT"
-}
-interface TabProperties {
-	title?: string;
-	icon?: string;
-}
-declare class TabbingApiWindowActions {
-	constructor();
-	public addEventListener<U>(event: string, callback: (message: U) => void): void;
-	public removeEventListener<U>(event: string, callback: (message: U) => void): void;
-	public maximize(): void;
-	public minimize(): void;
-	public restore(): void;
-	public close(): void;
-	public toggleMaximize(): void;
-}
-declare class TabbingApi {
-	constructor();
-	public windowActions: TabbingApiWindowActions;
-	public addEventListener<T extends Event, U>(event: T, callback: (message: U) => void): void;
-	public removeEventListener<T extends Event, U>(event: T, callback: (message: U) => void): void;
-	public addTab(uuid: string, name: string, tabProperties?: TabProperties): void;
-	public ejectTab(uuid: string, name: string): void;
-	public activateTab(uuid: string, name: string): void;
-	public closeTab(uuid: string, name: string): void;
-	public updateTabProperties(uuid: string, name: string, properties: TabProperties): void;
-	public startDrag(): void;
-    public endDrag(event: DragEvent, uuid: string, name: string): void;
-}
-
-declare namespace fin.desktop {
-	let InterApplicationBus: {
-		send: (name: string, uuid: string, message: any) => void;
-	};
-}
 
 beforeEach(() => {
 	jest.restoreAllMocks();
@@ -95,7 +49,7 @@ describe("Tests for tab api", () => {
 				const expectedAction: TabAPIActions = TabAPIActions.ADD;
 				const expectedClientUuid: string = "some uuid";
 				const expectedClientName: string = "some name";
-				const expectedPayload/*: TabAPIInteractionMessage*/ = {
+				const expectedPayload: TabAPIInteractionMessage = {
 					action: expectedAction,
 					uuid: expectedClientUuid,
 					name: expectedClientName
@@ -149,7 +103,7 @@ describe("Tests for tab api", () => {
 				// Arrange
 				const uuid: string = "some random uuid";
 				const name: string = "some random name";
-				const expectedPayload/*: TabAPIInteractionMessage*/ = {
+				const expectedPayload: TabAPIInteractionMessage = {
 					uuid,
 					name,
 					action: TabAPIActions.EJECT
@@ -208,7 +162,7 @@ describe("Tests for tab api", () => {
 				const name: string = "somename";
 				jest.spyOn(fin.desktop.InterApplicationBus, "send");
 				const tabbingApi: TabbingApi = new TabbingApi();
-				const expectedPayload/*: TabAPIInteractionMessage*/ = {
+				const expectedPayload: TabAPIInteractionMessage = {
 					action: TabAPIActions.ACTIVATE,
 					uuid,
 					name
@@ -265,7 +219,7 @@ describe("Tests for tab api", () => {
 				const name: string = "somename";
 				jest.spyOn(fin.desktop.InterApplicationBus, "send");
 				const tabbingApi: TabbingApi = new TabbingApi();
-				const expectedPayload/*: TabAPIInteractionMessage*/ = {
+				const expectedPayload: TabAPIInteractionMessage = {
 					action: TabAPIActions.CLOSE,
 					uuid,
 					name
@@ -287,7 +241,7 @@ describe("Tests for tab api", () => {
 				const expectedErrorMessage: string = "No uuid has been passed in";
 				const uuid: string = null!;
 				const name: string = "somename";
-				const tabProperties/*: TabProperties*/ = {
+				const tabProperties: TabProperties = {
 					title: "sometitle",
 					icon: "someicon"
 				};
@@ -308,7 +262,7 @@ describe("Tests for tab api", () => {
 				const expectedErrorMessage: string = "No name has been passed in";
 				const uuid: string = "testuuid";
 				const name: string = null!;
-				const tabProperties/*: TabProperties*/ = {
+				const tabProperties: TabProperties = {
 					title: "sometitle",
 					icon: "someicon"
 				};
@@ -345,13 +299,13 @@ describe("Tests for tab api", () => {
 				// Arrange
 				const uuid: string = "someuuid";
 				const name: string = "somename";
-				const tabProperties/*: TabProperties*/ = {
+				const tabProperties: TabProperties = {
 					title: "sometitle",
 					icon: "someicon"
 				};
 				jest.spyOn(fin.desktop.InterApplicationBus, "send");
 				const tabbingApi: TabbingApi = new TabbingApi();
-				const expectedPayload/*: TabAPIInteractionMessage*/ = {
+				const expectedPayload: TabAPIInteractionMessage = {
 					action: TabAPIActions.UPDATEPROPERTIES,
 					uuid,
 					name,
@@ -371,7 +325,7 @@ describe("Tests for tab api", () => {
 		describe("Calling startDrag", () => {
 			it("should call fin.desktop.InterApplicationBus.send", () => {
 				// Arrange
-				const expectedPayload/*: TabAPIMessage*/ = {
+				const expectedPayload: TabAPIMessage = {
 					action: TabAPIActions.STARTDRAG
 				};
 				const tabbingApi: TabbingApi = new TabbingApi();
@@ -469,7 +423,7 @@ describe("Tests for tab api", () => {
 				const name: string = "somename";
 				Object.defineProperty(mockDragEvent, "screenX", { get: () => screenX });
 				Object.defineProperty(mockDragEvent, "screenY", { get: () => screenY });
-				const expectedPayload/*: TabAPIDragMessage*/ = {
+				const expectedPayload: TabAPIDragMessage = {
 					action: TabAPIActions.ENDDRAG,
 					uuid,
 					name,

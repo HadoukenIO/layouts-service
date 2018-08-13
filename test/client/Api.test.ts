@@ -1,20 +1,7 @@
 import 'jest';
 import { createFinMock } from './utils/FinMock';
-// import { Api } from '../../src/client/Api';
-// import { TabApiEvents } from '../../src/client/APITypes';
-
-// Need to re-declare any definitions that exist outside of the 'test' directory into test class.
-// This is a temporary work-around, a solution will be found as part of SERVICE-182
-enum TabApiEvents {
-	TABADDED = "TABADDED",
-	TABREMOVED = "TABREMOVED",
-	PROPERTIESUPDATED = "PROPERTIESUPDATED",
-	TABACTIVATED = "TABACTIVATED"
-}
-declare class Api {
-	public addEventListener<U>(event: string, callback: (message: U) => void): void;
-	public removeEventListener<U>(event: string, callback: (message: U) => void): void;
-}
+import { Api } from '../../src/client/Api';
+import { TabApiEvents } from '../../src/client/APITypes';
 
 /**
  * Execute before each test

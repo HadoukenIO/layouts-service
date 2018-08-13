@@ -50,9 +50,9 @@ export async function createChild() {
     numChildren++;
 }
 
-export function openChild(name: string, i: number) {
+export function openChild(name: string, i: number, url?: string) {
     const win = fin.Window.create({
-        url: `${launchDir}/demo-window.html`,
+        url: url || `${launchDir}/demo-window.html`,
         autoShow: true,
         defaultHeight: 250 + 50*i,
         defaultWidth: 250 + 50*i,
@@ -110,7 +110,7 @@ async function onAppRes(layoutApp: LayoutApp): Promise<LayoutApp> {
     const openWindows = await ofApp.getChildWindows();
     const openAndPosition = layoutApp.childWindows.map(async (win, index) => {
         if(!openWindows.some((w: Application) => w.identity.name === win.name)) {
-            const ofWin = await openChild(win.name, index);
+            const ofWin = await openChild(win.name, index, win.info.url);
             await ofWin.setBounds(win).catch((e: Error) => console.log('Setbounds error:', e));
         } else {
             const ofWin = await fin.Window.wrap(win);
@@ -126,10 +126,13 @@ function removeForgetWins(window: ServiceIdentity) {
     return !forgetWindows.some(w => w.name === window.name);
 }
 
+//Do not snap to other windows
+Layouts.deregister();
+
+//Allow layouts service to save and restore this application
 Layouts.onWillSaveAppLayout(layoutApp => {
     layoutApp.childWindows = layoutApp.childWindows.filter(removeForgetWins);
     return layoutApp;
 });
-//tslint:disable-next-line:no-any
-Layouts.onAppRestore(onAppRes as any);
+Layouts.onAppRestore(onAppRes);
 Layouts.ready();

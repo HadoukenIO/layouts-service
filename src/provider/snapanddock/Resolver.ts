@@ -179,6 +179,11 @@ export class Resolver {
      * @param activeGroup The group that is currently being moved
      */
     public getSnapTarget(groups: SnapGroup[], activeGroup: SnapGroup): SnapTarget|null {
+        if (activeGroup.windows.length > 1) {
+            //Group-to-Group snapping not yet supported
+            return null;
+        }
+
         const candidate: SnapCandidate = this.findSnapCandidates(groups, activeGroup);
 
         if (this.isValidCandidate(candidate)) {

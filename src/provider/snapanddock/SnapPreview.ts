@@ -50,8 +50,9 @@ export class SnapPreview {
         if (!this.tempWindowIsActive || this.activeGroup !== activeGroup) {
             this.tempWindowIsActive = true;
 
-            this.tempWindow.window.show();
-            this.setWindowSize(this.tempWindow, groupHalfSize);
+            this.setWindowSize(this.tempWindow, groupHalfSize).then(() => {
+                this.tempWindow.window.show();
+            });
         }
 
         this.activeWindowPreview = this.tempWindow;
@@ -128,12 +129,14 @@ export class SnapPreview {
         return preview;
     }
 
-    private setWindowSize(preview: PreviewWindow, halfSize: Point): void {
-        // Resize OpenFin window
-        preview.window.resizeTo(halfSize.x * 2, halfSize.y * 2, 'top-left');
+    private setWindowSize(preview: PreviewWindow, halfSize: Point): Promise<void> {
+        return new Promise((resolve: ()=>void, reject: (reason: string) => void) => {
+            // Update cached halfSize (do this immediately)
+            PointUtils.assign(this.tempWindow.halfSize, halfSize);
 
-        // Also update cached halfSize
-        PointUtils.assign(this.tempWindow.halfSize, halfSize);
+            // Resize OpenFin window
+            preview.window.resizeTo(halfSize.x * 2, halfSize.y * 2, 'top-left', resolve, reject);
+        });
     }
 
     private setWindowPosition(preview: PreviewWindow, center: Point, halfSize: Point, snapOffset: Point): void {

@@ -180,7 +180,7 @@ export class Resolver {
      */
     public getSnapTarget(groups: SnapGroup[], activeGroup: SnapGroup): SnapTarget|null {
         if (activeGroup.windows.length > 1) {
-            //Group-to-Group snapping not yet supported
+            // Group-to-Group snapping not yet supported
             return null;
         }
 

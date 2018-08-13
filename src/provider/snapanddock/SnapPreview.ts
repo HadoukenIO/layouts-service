@@ -130,7 +130,7 @@ export class SnapPreview {
     }
 
     private setWindowSize(preview: PreviewWindow, halfSize: Point): Promise<void> {
-        return new Promise((resolve: ()=>void, reject: (reason: string) => void) => {
+        return new Promise((resolve: () => void, reject: (reason: string) => void) => {
             // Update cached halfSize (do this immediately)
             PointUtils.assign(this.tempWindow.halfSize, halfSize);
 

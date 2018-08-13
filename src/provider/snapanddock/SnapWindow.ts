@@ -274,7 +274,7 @@ export class SnapWindow {
         if (count >= 2 && index >= 0) {
             this.window.joinGroup(windows[index === 0 ? 1 : 0].window);
 
-            //Bring other windows in group to front
+            // Bring other windows in group to front
             windows.forEach((groupWindow: SnapWindow) => {
                 if (groupWindow !== this) {
                     groupWindow.window.bringToFront();

@@ -168,7 +168,7 @@ export class TabGroup {
 	 */
 	public getTab(tabID: TabIdentifier): Tab | undefined {
 		return this.tabs.find((tab: Tab) => {
-			return tab.ID.uuid === tabID.uuid && tab.ID.name === tabID.uuid;
+			return tab.ID.uuid === tabID.uuid && tab.ID.name === tabID.name;
 		});
 	}
 
@@ -188,7 +188,7 @@ export class TabGroup {
 	 */
 	public getTabIndex(tabID: TabIdentifier): number {
 		return this.tabs.findIndex((tab: Tab) => {
-			return tab.ID.uuid === tabID.uuid && tab.ID.name === tabID.uuid;
+			return tab.ID.uuid === tabID.uuid && tab.ID.name === tabID.name;
 		});
 	}
 

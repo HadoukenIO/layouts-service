@@ -1,5 +1,6 @@
-import {AsyncWindow} from './asyncWindow';
+import {TabIdentifier} from '../../client/types';
 
+import {AsyncWindow} from './asyncWindow';
 
 /**
  * Handles the Drag Window which appears when API drag and drop is initialized.
@@ -22,8 +23,13 @@ export class DragWindowManager extends AsyncWindow {
     /**
      * Shows the drag window overlay.
      */
-    public show(): void {
+    public show(source: TabIdentifier): void {
         this._window.show();
+        this._window.focus();
+
+        // Bring source window in front of invisible window
+        fin.desktop.Window.wrap(source.uuid, source.name).focus();
+
 
         this._hideTimeout = setTimeout(() => {
             this.hide();
@@ -56,7 +62,7 @@ export class DragWindowManager extends AsyncWindow {
                     opacity: 0.01,
                     frame: false,
                     waitForPageLoad: false,
-                    alwaysOnTop: true,
+                    alwaysOnTop: false,
                     showTaskbarIcon: false,
                     // @ts-ignore smallWidnow flag is valid
                     smallWindow: true

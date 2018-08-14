@@ -6,7 +6,6 @@ import {Tab} from './Tab';
 import {TabService} from './TabService';
 import {uuidv4} from './TabUtilities';
 
-
 /**
  * Handles functionality for the TabSet
  */

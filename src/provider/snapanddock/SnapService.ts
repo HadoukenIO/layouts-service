@@ -1,10 +1,11 @@
-import {eSnapValidity, Resolver, SnapTarget} from './Resolver';
-import {Signal2} from './Signal';
-import {SnapGroup} from './SnapGroup';
-import {SnapView} from './SnapView';
-import {eTransformType, Mask, SnapWindow, WindowState} from './SnapWindow';
-import {Point, PointUtils} from './utils/PointUtils';
-import {MeasureResult, RectUtils} from './utils/RectUtils';
+import { eSnapValidity, Resolver, SnapTarget } from './Resolver';
+import { Signal2 } from './Signal';
+import { SnapGroup } from './SnapGroup';
+import { SnapView } from './SnapView';
+import { eTransformType, Mask, SnapWindow, WindowState } from './SnapWindow';
+import { Point, PointUtils } from './utils/PointUtils';
+import { MeasureResult, RectUtils } from './utils/RectUtils';
+import { TabService } from '../tabbing/TabService';
 
 // Defines the distance windows will be moved when undocked.
 const UNDOCK_MOVE_DISTANCE = 30;
@@ -23,7 +24,7 @@ export interface SnapState {
      * Only set when user is actually dragging a window, otherwise null. When this is null, other values within this
      * interface do not apply.
      */
-    activeGroup: SnapWindow|null;
+    activeGroup: SnapWindow | null;
 
     /**
      * The current candidate for the snapping action. The group to which 'activeGroup' will be snapped to if the user
@@ -31,7 +32,7 @@ export interface SnapState {
      *
      * Will be null when there is no valid snap target.
      */
-    target: SnapTarget|null;
+    target: SnapTarget | null;
 }
 
 export class SnapService {
@@ -82,8 +83,8 @@ export class SnapService {
         });
     }
 
-    public undock(target: {uuid: string; name: string}): void {
-        const window: SnapWindow|undefined = this.windows.find((w) => {
+    public undock(target: { uuid: string; name: string }): void {
+        const window: SnapWindow | undefined = this.windows.find((w) => {
             const identity = w.getIdentity();
             return target.uuid === identity.uuid && target.name === identity.name;
         });
@@ -98,15 +99,15 @@ export class SnapService {
                 window.setGroup(this.addGroup());
 
                 if (!offset.x && !offset.y) {
-                    offset = {x: 1, y: 1};
+                    offset = { x: 1, y: 1 };
                 }
-                window.offsetBy({x: Math.sign(offset.x) * UNDOCK_MOVE_DISTANCE, y: Math.sign(offset.y) * UNDOCK_MOVE_DISTANCE});
+                window.offsetBy({ x: Math.sign(offset.x) * UNDOCK_MOVE_DISTANCE, y: Math.sign(offset.y) * UNDOCK_MOVE_DISTANCE });
             }
         }
     }
 
-    public deregister(target: {uuid: string; name: string}): void {
-        const window: SnapWindow|undefined = this.windows.find((w) => {
+    public deregister(target: { uuid: string; name: string }): void {
+        const window: SnapWindow | undefined = this.windows.find((w) => {
             const identity = w.getIdentity();
             return target.uuid === identity.uuid && target.name === identity.name;
         });
@@ -121,13 +122,13 @@ export class SnapService {
      * Explodes a group. All windows in the group are unlocked.
      * @param targetWindow A window which is a member of the group to be exploded.
      */
-    public explodeGroup(targetWindow: {uuid: string; name: string}): void {
+    public explodeGroup(targetWindow: { uuid: string; name: string }): void {
         // NOTE: Since there is currently not a schema to identify a group, this method
         // accepts a window that is a member of the group. Once there is a way of uniquely
         // identifying groups, this can be changed
 
         // Get the group containing the targetWindow
-        const group: SnapGroup|undefined = this.groups.find((g) => {
+        const group: SnapGroup | undefined = this.groups.find((g) => {
             return g.windows.findIndex(w => w.getIdentity().uuid === targetWindow.uuid && w.getIdentity().name === targetWindow.name) >= 0;
         });
 
@@ -256,10 +257,21 @@ export class SnapService {
     }
 
     private snapGroup(activeGroup: SnapGroup, type: Mask<eTransformType>): void {
-        const snapTarget: SnapTarget|null = this.resolver.getSnapTarget(this.groups, activeGroup);
+        const snapTarget: SnapTarget | null = this.resolver.getSnapTarget(this.groups, activeGroup);
 
         if (snapTarget) {
             console.log('Found snap target: ' + snapTarget.group.windows[0].getId());
+        } else if (activeGroup.length === 1) {
+            // If a single window is being dragged, it is possible to create a tabset
+
+            const activeState = activeGroup.windows[0].getState();
+
+            // Window will be tabbed if center of the dragged window overlaps with an initialized tabbable window.
+            TabService.INSTANCE.isPointOverTabGroup(activeState.center.x, activeState.center.y).then((tabTarget) => {
+                if (tabTarget) {
+                    console.log('Found tab target: ' + tabTarget.tabs);
+                }
+            });
         } else {
             console.log('No snap targets');
         }
@@ -268,9 +280,10 @@ export class SnapService {
     }
 
     private applySnapTarget(activeGroup: SnapGroup): void {
-        const snapTarget: SnapTarget|null = this.resolver.getSnapTarget(this.groups, activeGroup);
+        const snapTarget: SnapTarget | null = this.resolver.getSnapTarget(this.groups, activeGroup);
 
-        if (snapTarget && snapTarget.validity === eSnapValidity.VALID && (!(window as Window & {foo: boolean}).foo)) {
+        // SNAP WINDOWS
+        if (snapTarget && snapTarget.validity === eSnapValidity.VALID && (!(window as Window & { foo: boolean }).foo)) {
             // Move all windows in activeGroup to snapTarget.group
             activeGroup.windows.forEach((window: SnapWindow) => {
                 if (window === snapTarget.activeWindow && snapTarget.halfSize) {
@@ -285,6 +298,21 @@ export class SnapService {
                 console.warn(
                     'Expected group to have been removed, but still exists (' + activeGroup.id + ': ' + activeGroup.windows.map(w => w.getId()).join() + ')');
             }
+        // TAB WINDOWS
+        } else if (activeGroup.length === 1) {
+            // If a single window is being dragged, it is possible to create a tabset
+            const activeState = activeGroup.windows[0].getState();
+
+            // Window will be tabbed if center of the dragged window overlaps with an initialized tabbable window.
+            TabService.INSTANCE.isPointOverTabGroup(activeState.center.x, activeState.center.y).then((tabTarget) => {
+                if (tabTarget) {
+                    console.log('Tabbing to target: ' + tabTarget.tabs);
+                    // TODO (SERVICE-196?) Add tabbing api call (posisbly directly to the service) to 
+                    // tab the windows together.
+                }
+            });
+
+
         }
 
         // Reset view
@@ -293,7 +321,7 @@ export class SnapService {
 
     private calculateUndockMoveDirection(window: SnapWindow): Point {
         const group = window.getGroup();
-        const totalOffset: Point = {x: 0, y: 0};
+        const totalOffset: Point = { x: 0, y: 0 };
         for (const groupedWindow of group.windows) {
             // Exclude window being unsnapped
             if (groupedWindow !== window) {

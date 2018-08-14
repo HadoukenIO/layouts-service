@@ -186,13 +186,6 @@ export class TabService {
 		return null;
     }
 
-    /**
-     * 
-     */
-    public async AddTabs(): Promise<void> {
-
-    }
-
 	/**
 	 * Returns the array index of a tab group.
 	 * @param ID ID of the tab group to search.

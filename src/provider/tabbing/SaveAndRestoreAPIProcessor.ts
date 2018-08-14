@@ -15,6 +15,7 @@ export async function getTabSaveInfo(): Promise<TabBlob[] | undefined> {
 		console.error("No Tab Service!");
 		return;
 	}
+
 	return Promise.all(
 		TabService.INSTANCE.tabGroups.map(async (group: TabGroup) => {
 			const tabs: TabIdentifier[] = group.tabs.map((tab: Tab) => {
@@ -39,5 +40,13 @@ export async function getTabSaveInfo(): Promise<TabBlob[] | undefined> {
 		})
 	);
 
+}
+
+/**
+ * Restores tabs and tab groups using the given tab blob information.
+ * @param {TabBlob[]} tabBlob Array of TabBlobs
+ */
+export function restoreTabs(tabBlob: TabBlob[]): void {
+	// TODO add restore tabs here
 }
 

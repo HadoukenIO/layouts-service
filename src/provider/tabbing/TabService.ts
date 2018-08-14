@@ -184,7 +184,14 @@ export class TabService {
 		}
 
 		return null;
-	}
+    }
+
+    /**
+     * 
+     */
+    public async AddTabs(): Promise<void> {
+
+    }
 
 	/**
 	 * Returns the array index of a tab group.

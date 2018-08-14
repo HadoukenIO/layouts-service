@@ -1,4 +1,4 @@
-import { TabIdentifier, TabWindowOptions } from "../../client/types";
+import { TabIdentifier, TabWindowOptions, TabBlob } from "../../client/types";
 
 import { Tab } from "./Tab";
 import { TabGroup } from "./TabGroup";
@@ -135,6 +135,48 @@ export async function initializeTabbing(message: TabWindowOptions, uuid: string,
 	// Switch tab on group to make our added tab the active one
 	group.switchTab({ uuid, name });
 }
+
+/**
+ * Takes a tabblob and restores windows based on the blob
+ * @param tabBlob Restoration data
+ */
+export async function addMultiplWindowsToTab(tabBlob: TabBlob[]): Promise<void> {
+    tabBlob.forEach(async (blob) => {
+        const newTabWindowOptions: TabWindowOptions = {
+            url: blob.groupInfo.url,
+            screenX: blob.groupInfo.dimensions.x,
+            screenY: blob.groupInfo.dimensions.y,
+            height: blob.groupInfo.dimensions.setHeight,
+            width: blob.groupInfo.dimensions.width,
+        };
+
+        // Create new tabgroup
+        const group: TabGroup = await TabService.INSTANCE.addTabGroup(newTabWindowOptions);
+
+        blob.tabs.forEach(async (tab) => {
+            const existingTab: Tab | undefined = TabService.INSTANCE.getTab({ uuid: tab.uuid, name: tab.name });
+
+            if (existingTab) {
+                await existingTab.tabGroup.removeTab(existingTab.ID, false, true)
+            }
+
+            const newTab: Tab = await group.addTab({ tabID: { uuid: tab.uuid, name: tab.name } });
+           
+            if (blob.groupInfo.dimensions.x && blob.groupInfo.dimensions.y) {
+                // if we are provided coords then we tab group is created at them so we need to bring the app window to group.
+                await newTab.window.alignPositionToTabGroup();
+            } else {
+                // if no coords then its safe to assume we need to move group window to app window.
+                await group.window.alignPositionToApp(newTab.window);
+            }
+        });
+
+        group.window.finWindow.show();
+        group.switchTab({ uuid: blob.groupInfo.active.uuid, name: blob.groupInfo.active.uuid });
+    });
+}
+
+(window as any).multiwindow = addMultiplWindowsToTab;
 
 /**
  * Creates a UUIDv4() ID

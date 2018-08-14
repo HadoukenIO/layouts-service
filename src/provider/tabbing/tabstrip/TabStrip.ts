@@ -1,7 +1,5 @@
 import { TabManager } from "./TabManager";
 
-// tslint:disable-next-line:no-any
-declare var fin: any;
 
 fin.desktop.main(() => {
 	const tabManager: TabManager = new TabManager();

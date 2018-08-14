@@ -5,8 +5,6 @@ import { GroupWindow } from "./GroupWindow";
 import { Tab } from "./Tab";
 import { TabService } from "./TabService";
 
-// tslint:disable-next-line:no-any
-declare var fin: any;
 
 /**
  * Handles functionality for the TabSet

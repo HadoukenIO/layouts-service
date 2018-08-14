@@ -3,8 +3,6 @@ import { AsyncWindow } from "./asyncWindow";
 import { Tab } from "./Tab";
 import { TabGroup } from "./TabGroup";
 
-// tslint:disable-next-line:no-any
-declare var fin: any;
 
 /**
  * Handles the window for the Tab

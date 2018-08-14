@@ -5,7 +5,6 @@ import { TabService } from "./TabService";
 import { TabWindow } from "./TabWindow";
 
 // tslint:disable-next-line:no-any
-declare var fin: any;
 
 /**
  * Handles the window for the Tab-Set

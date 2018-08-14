@@ -180,6 +180,8 @@ export class SnapService {
             snapWindow.onClose.add(this.onWindowClosed, this);
             this.windows.push(snapWindow);
 
+            window.addEventListener('group-changed', this.onWindowGroupChanged.bind(this));
+
             return snapWindow;
         });
     }
@@ -207,6 +209,21 @@ export class SnapService {
             group.onWindowAdded.remove(this.sendWindowAddedMessage, this);
             this.groups.splice(index, 1);
         }
+    }
+
+    private onWindowGroupChanged(this: SnapService, event: fin.WindowGroupChangedEvent) {
+        console.log('Revieved window group changed event: ', event);
+        const sourceWindow = this.windows.find(w => 
+            w.getIdentity().uuid === event.sourceWindowAppUuid && w.getIdentity().name === event.sourceWindowName
+        );
+        const targetWindow = this.windows.find(w => 
+            w.getIdentity().uuid === event.targetWindowAppUuid && w.getIdentity().name === event.targetWindowName
+        );
+
+        if (sourceWindow && targetWindow) {
+            sourceWindow.setGroup(targetWindow.getGroup());
+        }
+        
     }
 
     private onWindowClosed(snapWindow: SnapWindow): void {

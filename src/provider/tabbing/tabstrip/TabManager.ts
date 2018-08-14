@@ -55,7 +55,7 @@ export class TabManager {
                 });
 
                 // Sends the new order to the service to update the cache
-                // TODO: Fill in api call once available
+                // TODO: Fill in api call once available (SERVICE-216)
             }
         });
     }

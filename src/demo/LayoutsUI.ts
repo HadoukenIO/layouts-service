@@ -25,13 +25,6 @@ export async function getLayout() {
     const name = (document.getElementById('layoutName') as HTMLTextAreaElement).value;
     const layout = await Layouts.getLayout(name);
 
-    layout.apps.forEach(app => {
-        app.mainWindow.image = "...";
-        app.childWindows.forEach(win => {
-            win.image = "...";
-        });
-    });
-
     document.getElementById('showLayout')!.innerHTML = JSON.stringify(layout, null, 2);
 }
 

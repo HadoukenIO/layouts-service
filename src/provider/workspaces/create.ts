@@ -120,9 +120,7 @@ export const saveLayoutObject = async(payload: Layout, identity: Identity): Prom
 
 const getLayoutWindowData = async (ofWin: Window) => {
     const {uuid} = ofWin.identity;
-    const image = await ofWin.getSnapshot();
-    // const image = '';
     const info = await ofWin.getInfo();
     const windowGroup = await getGroup(ofWin.identity);
-    return {contextGroups: [], image, info, uuid, windowGroup};
+    return {contextGroups: [], info, uuid, windowGroup};
 };

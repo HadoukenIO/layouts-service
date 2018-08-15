@@ -1,3 +1,4 @@
+import "jest";
 import { TabbingApi } from "../../src/client/TabbingApi";
 import { TabAPIActions } from "../../src/client/APITypes";
 import { TabAPIDragMessage, TabAPIInteractionMessage, TabAPIMessage, TabProperties } from "../../src/client/types";

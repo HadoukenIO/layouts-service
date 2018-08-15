@@ -151,7 +151,7 @@ export interface Dimensions {
     x: number;
     y: number;
     width: number;
-    setHeight: number;
+    tabGroupHeight: number;
     appHeight: number;
 }
 

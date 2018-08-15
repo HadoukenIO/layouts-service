@@ -9,9 +9,21 @@ import { TabGroup } from "./TabGroup";
 import { ZIndexer } from "./ZIndexer";
 
 /**
+ * Interface for the tab service
+ */
+export interface ITabService {
+    addTabGroup(windowOptions: TabWindowOptions): Promise<TabGroup>;
+    removeTabGroup(ID: string, closeApps: boolean): Promise<void>;
+    getTabGroup(ID: string): TabGroup | undefined;
+    getTabGroupByApp(ID: TabIdentifier): TabGroup | undefined;
+    getTab(ID: TabIdentifier): Tab | undefined;
+    isPointOverTabGroup(x: number, y: number): Promise<TabGroup | null>;
+}
+
+/**
  * The overarching class for the Tab Service.
  */
-export class TabService {
+export class TabService implements ITabService {
 	/**
 	 * Handle of this Tab Service Instance.
 	 */

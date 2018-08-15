@@ -138,22 +138,28 @@ export async function initializeTabbing(message: TabWindowOptions, uuid: string,
 
 /**
  * Takes a tabblob and restores windows based on the blob
+ * @function createTabGroup
  * @param tabBlob Restoration data
  */
-export async function addMultiplWindowsToTab(tabBlob: TabBlob[]): Promise<void> {
-    tabBlob.forEach(async (blob) => {
+export async function createTabGroupFromMultipleWindows(tabBlob: TabBlob[] | null = null, tabService: TabService): Promise<void> {
+    if (!tabBlob) {
+        console.error("No tab blob supplied");
+        return;
+    }
+
+    for (let blob of tabBlob) {
         const newTabWindowOptions: TabWindowOptions = {
             url: blob.groupInfo.url,
             screenX: blob.groupInfo.dimensions.x,
             screenY: blob.groupInfo.dimensions.y,
-            height: blob.groupInfo.dimensions.setHeight,
+            height: blob.groupInfo.dimensions.tabGroupHeight,
             width: blob.groupInfo.dimensions.width,
         };
 
         // Create new tabgroup
         const group: TabGroup = await TabService.INSTANCE.addTabGroup(newTabWindowOptions);
 
-        for (var tab of blob.tabs) {
+        for (let tab of blob.tabs) {
             const existingTab: Tab | undefined = TabService.INSTANCE.getTab({ uuid: tab.uuid, name: tab.name });
 
             if (existingTab) {
@@ -173,7 +179,7 @@ export async function addMultiplWindowsToTab(tabBlob: TabBlob[]): Promise<void> 
 
         group.window.finWindow.show();
         group.switchTab({ uuid: blob.groupInfo.active.uuid, name: blob.groupInfo.active.uuid });
-    });
+    };
 }
 
 /**

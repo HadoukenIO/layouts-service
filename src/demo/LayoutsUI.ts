@@ -82,13 +82,59 @@ export function openChild(name: string, i: number, url?: string) {
     return win;
 }
 
-export async function createApp() {
+export async function createAppFromManifest2() {
     const appUrl = `${launchDir}/app2.json`;
     console.log('appurl', appUrl);
     fin.desktop.Application.createFromManifest(appUrl, (a: Application)=>a.run(), (e: Error) => { throw e; });
     // v2 api broken for createfromman / run
     // const app = await fin.Application.createFromManifest(appUrl);
     // app.run();
+}
+export async function createAppFromManifest3() {
+    const appUrl = `${launchDir}/app3.json`;
+    console.log('appurl', appUrl);
+    fin.desktop.Application.createFromManifest(appUrl, (a: Application)=>a.run(), (e: Error) => { throw e; });
+    // v2 api broken for createfromman / run
+    // const app = await fin.Application.createFromManifest(appUrl);
+    // app.run();
+}
+
+export async function createAppProgrammatically4() {
+    const app = new fin.desktop.Application({
+        url: `http://localhost:1337/demo/app4.html`,
+        uuid: 'App-4',
+        name: 'App-4',
+        mainWindowOptions: {
+            defaultWidth: 400,
+            defaultHeight: 300,
+            saveWindowState: false,
+            autoShow: true,
+            defaultCentered: true
+        }
+    },
+        () => {
+            app.run();
+        }
+    );
+}
+
+export async function createAppProgrammatically5() {
+    const app = new fin.desktop.Application({
+        url: `http://localhost:1337/demo/app5.html`,
+        uuid: 'App-5',
+        name: 'App-5',
+        mainWindowOptions: {
+            defaultWidth: 300,
+            defaultHeight: 400,
+            saveWindowState: false,
+            autoShow: true,
+            defaultCentered: true
+        }
+    },
+        () => {
+            app.run();
+        }
+    );
 }
 
 export function forgetMe(identity: ServiceIdentity) {

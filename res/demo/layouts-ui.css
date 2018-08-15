@@ -19,8 +19,13 @@ h1 {
     color: #ffffff;
 }
 
+h3 {
+    margin: 5px;
+}
+
 button {
     width: 150px;
+    font-size: x-small;
     height: 30px;
     box-sizing: border-box;
     border: 3px solid var(--border-color);

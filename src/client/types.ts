@@ -154,7 +154,7 @@ export interface TabBlob {
 			x: number;
 			y: number;
 			width: number;
-			setHeight: number;
+			tabGroupHeight: number;
 			appHeight: number;
 		};
 	};

@@ -31,7 +31,7 @@ export async function getTabSaveInfo(): Promise<TabBlob[] | undefined> {
 					x: groupBounds.left!,
 					y: groupBounds.top!,
 					width: groupBounds.width!,
-					setHeight: groupBounds.height!,
+					tabGroupHeight: groupBounds.height!,
 					appHeight: appBounds.height!
 				}
 			};

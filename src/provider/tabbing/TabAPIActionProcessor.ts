@@ -6,8 +6,6 @@ import { TabGroup } from "./TabGroup";
 import { TabService } from "./TabService";
 import { ejectTab } from "./TabUtilities";
 
-// tslint:disable-next-line:no-any
-declare var fin: any;
 
 /**
  * Handles all calls from tab api to service

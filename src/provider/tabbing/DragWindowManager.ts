@@ -1,7 +1,5 @@
 import { AsyncWindow } from "./asyncWindow";
 
-// tslint:disable-next-line:no-any
-declare var fin: any;
 
 /**
  * Handles the Drag Window which appears when API drag and drop is initialized.

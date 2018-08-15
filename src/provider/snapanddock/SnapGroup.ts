@@ -156,9 +156,9 @@ export class SnapGroup {
             // Setup hierarchy
             this._windows.push(window);
             this.checkRoot();
-            if (window.getGroup() !== this) {
-                window.setGroup(this);
-            }
+            // if (window.getGroup() !== this) {
+            //     window.setGroup(this);
+            // }
 
             // Will need to re-calculate cached properties
             this._origin.markStale();

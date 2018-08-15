@@ -39,7 +39,13 @@ export const groupWindow = async (win: WindowState) => {
     const {uuid, name} = win;
     const ofWin = await fin.Window.wrap({uuid, name});
     await promiseMap(win.windowGroup, async (w: Identity) => {
-        const toGroup = await fin.Window.wrap({uuid: w.uuid, name: w.name});
-        await ofWin.mergeGroups(toGroup);
+        const toWindow = await fin.Window.wrap({uuid: w.uuid, name: w.name});
+        const toGroup = await toWindow.getGroup();
+
+        if (toGroup.length > 0) {
+            await ofWin.mergeGroups(toWindow);
+        } else {
+            await ofWin.joinGroup(toWindow);
+        }
     });
 };

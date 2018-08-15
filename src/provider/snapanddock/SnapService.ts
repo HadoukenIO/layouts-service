@@ -2,7 +2,7 @@ import {eSnapValidity, Resolver, SnapTarget} from './Resolver';
 import {Signal2} from './Signal';
 import {SnapGroup} from './SnapGroup';
 import {SnapView} from './SnapView';
-import {eTransformType, Mask, SnapWindow, WindowState} from './SnapWindow';
+import {eTransformType, Mask, SnapWindow, WindowIdentity, WindowState} from './SnapWindow';
 import {Point, PointUtils} from './utils/PointUtils';
 import {MeasureResult, RectUtils} from './utils/RectUtils';
 
@@ -212,18 +212,44 @@ export class SnapService {
     }
 
     private onWindowGroupChanged(this: SnapService, event: fin.WindowGroupChangedEvent) {
-        console.log('Revieved window group changed event: ', event);
-        const sourceWindow = this.windows.find(w => 
-            w.getIdentity().uuid === event.sourceWindowAppUuid && w.getIdentity().name === event.sourceWindowName
-        );
-        const targetWindow = this.windows.find(w => 
-            w.getIdentity().uuid === event.targetWindowAppUuid && w.getIdentity().name === event.targetWindowName
-        );
-
-        if (sourceWindow && targetWindow) {
-            sourceWindow.setGroup(targetWindow.getGroup());
+        // Each group operation will raise an event from every window involved. We should filter out to
+        // only receive the one from the window being moved.
+        if (event.name !== event.sourceWindowName || event.uuid !== event.sourceWindowAppUuid) {
+            return;
         }
-        
+
+        console.log('Revieved window group changed event: ', event);
+        const sourceWindow = this.getSnapWindow({uuid: event.sourceWindowAppUuid, name: event.sourceWindowName});
+
+        if (sourceWindow) {
+            if (event.reason === 'leave') {
+                sourceWindow.setGroup(this.addGroup(), undefined, undefined, true);
+            } else {
+                const targetWindow = this.getSnapWindow({uuid: event.targetWindowAppUuid, name: event.targetWindowName});
+
+                // Merge the groups
+                if (targetWindow) {
+                    if (event.reason === 'merge') {
+                        // Get array of SnapWindows from the native group window array
+                        event.sourceGroup
+                            .map(win => {
+                                return this.getSnapWindow({uuid: win.appUuid, name: win.windowName});
+                            })
+                            // Add all windows from source group to the target group.
+                            // Windows are synthetic snapped since they are
+                            // already native grouped.
+                            .forEach((snapWin) => {
+                                // Ignore any undefined results (i.e. windows unknown to the service)
+                                if (snapWin !== undefined) {
+                                    snapWin.setGroup(targetWindow.getGroup(), undefined, undefined, true);
+                                }
+                            });
+                    } else {
+                        sourceWindow.setGroup(targetWindow.getGroup(), undefined, undefined, true);
+                    }
+                }
+            }
+        }
     }
 
     private onWindowClosed(snapWindow: SnapWindow): void {
@@ -323,5 +349,9 @@ export class SnapService {
             }
         }
         return totalOffset;
+    }
+
+    private getSnapWindow(finWindow: WindowIdentity) {
+        return this.windows.find(w => w.getIdentity().uuid === finWindow.uuid && w.getIdentity().name === finWindow.name);
     }
 }

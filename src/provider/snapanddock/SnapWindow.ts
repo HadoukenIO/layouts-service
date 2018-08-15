@@ -227,12 +227,16 @@ export class SnapWindow {
      * @param offset An offset to apply to this windows position (use this to enusre window is in correct position)
      * @param newHalfSize Can also simultaneously change the size of the window
      */
-    public setGroup(group: SnapGroup, offset?: Point, newHalfSize?: Point): void {
+    public setGroup(group: SnapGroup, offset?: Point, newHalfSize?: Point, syntheticSnap?: boolean): void {
         if (group !== this.group) {
             group.addWindow(this);
+
+            if (!syntheticSnap && this.group !== group) {
+                this.unsnap();
+            }
+
             this.group = group;
 
-            this.unsnap();
             if (offset || newHalfSize) {
                 const delta: Partial<WindowState> = {};
 
@@ -247,8 +251,12 @@ export class SnapWindow {
                     delta.center.y += newHalfSize.y - this.state.halfSize.y;
                 }
 
-                this.applyState(delta, () => this.snap());
-            } else if (group.windows.length >= 2) {
+                this.applyState(delta, () => {
+                    if (!syntheticSnap) {
+                        this.snap();
+                    }
+                });
+            } else if (!syntheticSnap && group.windows.length >= 2) {
                 this.snap();
             }
         }

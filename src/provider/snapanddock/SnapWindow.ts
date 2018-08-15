@@ -114,6 +114,7 @@ export class SnapWindow {
     private identity: WindowIdentity;
     private id: string;  // Created from window uuid and name
     private group: SnapGroup;
+    private prevGroup: SnapGroup | null;
     private registered: boolean;
 
     // State tracking for "synth move" detection
@@ -129,6 +130,7 @@ export class SnapWindow {
         this.boundsChangeCountSinceLastCommit = 0;
 
         this.group = group;
+        this.prevGroup = null;
         group.addWindow(this);
 
         // Add listeners
@@ -213,6 +215,10 @@ export class SnapWindow {
         return this.group;
     }
 
+    public getPrevGroup(): SnapGroup | null{
+        return this.prevGroup;
+    }
+
     /**
      * Moves this window into a different group. Has no effect if function is called with the group that this window
      * currently belongs to. This also handles removing the window from it's previous group.
@@ -227,15 +233,15 @@ export class SnapWindow {
      * @param offset An offset to apply to this windows position (use this to enusre window is in correct position)
      * @param newHalfSize Can also simultaneously change the size of the window
      */
-    public setGroup(group: SnapGroup, offset?: Point, newHalfSize?: Point, syntheticSnap?: boolean): void {
+    public setGroup(group: SnapGroup, offset?: Point, newHalfSize?: Point, synthetic?: boolean): void {
         if (group !== this.group) {
+            this.prevGroup = this.group;
+            this.group = group;
             group.addWindow(this);
 
-            if (!syntheticSnap && this.group !== group) {
+            if(!synthetic) {
                 this.unsnap();
             }
-
-            this.group = group;
 
             if (offset || newHalfSize) {
                 const delta: Partial<WindowState> = {};
@@ -251,12 +257,8 @@ export class SnapWindow {
                     delta.center.y += newHalfSize.y - this.state.halfSize.y;
                 }
 
-                this.applyState(delta, () => {
-                    if (!syntheticSnap) {
-                        this.snap();
-                    }
-                });
-            } else if (!syntheticSnap && group.windows.length >= 2) {
+                this.applyState(delta, () => this.snap());
+            } else if (group.windows.length >= 2 && !synthetic) {
                 this.snap();
             }
         }

@@ -142,7 +142,7 @@ export class SnapGroup {
     public addWindow(window: SnapWindow): void {
         if (!this._windows.includes(window)) {
             // Remove window from it's previous group
-            const prevGroup = window.getGroup();
+            const prevGroup =( window.getGroup() === this) ? window.getPrevGroup() : window.getGroup();
             if (prevGroup) {
                 prevGroup.removeWindow(window);
             }
@@ -156,9 +156,9 @@ export class SnapGroup {
             // Setup hierarchy
             this._windows.push(window);
             this.checkRoot();
-            // if (window.getGroup() !== this) {
-            //     window.setGroup(this);
-            // }
+            if (window.getGroup() !== this) {
+                window.setGroup(this);
+            }
 
             // Will need to re-calculate cached properties
             this._origin.markStale();

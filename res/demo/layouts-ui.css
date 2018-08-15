@@ -50,6 +50,7 @@ button:active {
     height: 30px;
     padding-left: 10px;
     margin: 3px;
+    vertical-align: bottom;
 }
 
 #layoutSelect {

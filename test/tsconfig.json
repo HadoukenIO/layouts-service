@@ -11,6 +11,7 @@
       ]
     },
     "include": [
+      "../src/fin.d.ts",
       "provider/**/*.ts"
     ],
     "exclude": [

@@ -72,7 +72,6 @@ export class TabAPIActionProcessor {
                 this._updateTabProperties(message as TabAPIInteractionMessage, tabGroup);
                 break;
             case TabAPIActions.STARTDRAG:
-                console.log('Received startDrag event');
                 this._startDrag({uuid, name});
                 break;
             case TabAPIActions.ENDDRAG:
@@ -90,7 +89,6 @@ export class TabAPIActionProcessor {
      * Starts the drag window process & shows the drag window overlay.
      */
     private async _startDrag(source: TabIdentifier) {
-        console.log('Received startDrag event');
         this.mTabService.dragWindowManager.show(source);
     }
 

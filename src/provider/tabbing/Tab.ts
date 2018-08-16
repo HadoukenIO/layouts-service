@@ -29,6 +29,11 @@ export class Tab {
 	private _tabWindow: TabWindow;
 
 	/**
+	 * The order of the tab in the window
+	 */
+	private _windowOrderIndex: number;
+
+	/**
 	 * Constructor for the Tab Class.
 	 * @param {TabPackage} tabPackage The tab package contains the uuid, name, and any properties for the tab.
 	 * @param {TabGroup} tabGroup The tab group to which this tab belongs.
@@ -36,6 +41,7 @@ export class Tab {
 	constructor(tabPackage: TabPackage, tabGroup: TabGroup) {
 		this._tabID = tabPackage.tabID;
 		this._tabGroup = tabGroup;
+		this._windowOrderIndex = this.tabGroup.tabs.length;
 
 		if (tabPackage.tabProps) {
 			this._tabProperties = tabPackage.tabProps;
@@ -117,6 +123,21 @@ export class Tab {
 			icon: this._tabProperties.icon || storageProps.icon || windowIcon,
 			title: this._tabProperties.title || storageProps.title || windowOptions.name
 		};
+	}
+
+	/**
+	 * Returns the index which this tab is ordered in the group.
+	 * @returns {number} Order Index
+	 */
+	public get orderIndex(): number {
+		return this._windowOrderIndex;
+	}
+
+	/**
+	 * Sets the index for this tab in the group.
+	 */
+	public set orderIndex(order: number) {
+		this._windowOrderIndex = order;
 	}
 
 	/**

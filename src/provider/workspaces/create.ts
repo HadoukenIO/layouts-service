@@ -31,7 +31,8 @@ export const getCurrentLayout = async(): Promise<Layout> => {
             const isRunning = await ofApp.isRunning();
             const hasMainWindow = !!app.mainWindow.name;
             const isService = app.uuid === fin.desktop.Application.getCurrent().uuid;
-            if (!hasMainWindow || !isRunning || isService || !showingWindowInApp(app)) {
+            const isShowing = await showingWindowInApp(app);
+            if (!hasMainWindow || !isRunning || isService || !isShowing) {
                 return null;
             }
 

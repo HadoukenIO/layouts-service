@@ -103,7 +103,5 @@ export const showingWindowInApp = async(app: LayoutApp): Promise<boolean> => {
 
 const isShowingWindow = async(ofWin: Window): Promise<boolean> => {
     const isShowing = await ofWin.isShowing();
-    const windowState = await ofWin.getState();
-    const isMinimized = windowState === 'minimized';
-    return (isShowing && !isMinimized) ? true : false;
+    return isShowing;
 };

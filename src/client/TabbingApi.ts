@@ -1,5 +1,5 @@
 import { TabAPIActions, TabApiEvents } from "./APITypes";
-import { TabAPIDragMessage, TabAPIInteractionMessage, TabAPIMessage, TabProperties } from "./types";
+import { TabAPIDragMessage, TabAPIInteractionMessage, TabAPIMessage, TabProperties, TabIdentifier } from "./types";
 import { Api } from "./Api";
 import { TabbingApiWindowActions } from "./TabbingApiWindowActions";
 
@@ -19,23 +19,48 @@ export class TabbingApi extends Api {
 	 * @private
 	 * @description Class that holds window events
 	 */
-    private mWindowActions: TabbingApiWindowActions | undefined;
+	private mWindowActions: TabbingApiWindowActions | undefined;
 
 	/**
 	 * @public
 	 * @function windowActions Property for getting the window action object
 	 */
-    public get windowActions(): TabbingApiWindowActions | undefined {
+	public get windowActions(): TabbingApiWindowActions | undefined {
 		return this.mWindowActions;
-    }
+	}
 
 	/**
 	 * @constructor
 	 * @description Constructor for the TabbingApi class
 	 */
 	constructor() {
-        super();
-        this.mWindowActions = new TabbingApiWindowActions();
+		super();
+		this.mWindowActions = new TabbingApiWindowActions();
+	}
+
+	/**
+	 * Sends a new tab order to the service when tabs are reordered in the UI.
+	 * @param {Tab[]} tabs Tab Identifiers in index order of first (0) to last (n).  
+	 */
+	public sendTabOrder(tabs: TabIdentifier[] = []) {
+		if (tabs.length === 0) {
+			console.log("No tabs passed in");
+			return;
+		}
+
+		for (const id of tabs) {
+			if (!id.uuid || !id.name) {
+				console.error("Malformed Tab ID: ", id);
+				return;
+			}
+		}
+
+		const payload = {
+			action: TabAPIActions.TABSREORDERED,
+			properties: tabs
+		};
+
+		super.sendAction(payload);
 	}
 
 	/**
@@ -165,20 +190,20 @@ export class TabbingApi extends Api {
 		super.sendAction(payload);
 	}
 
-    public endDrag(event: DragEvent, uuid: string, name: string): void {
-        if (!event) {
-            console.error('No drag event has been passed in');
-            return;
-        }
-        if (!uuid) {
-            console.error('No uuid has been passed in');
-            return;
-        }
+	public endDrag(event: DragEvent, uuid: string, name: string): void {
+		if (!event) {
+			console.error('No drag event has been passed in');
+			return;
+		}
+		if (!uuid) {
+			console.error('No uuid has been passed in');
+			return;
+		}
 
-        if (!name) {
-            console.error('No name has been passed in');
-            return;
-        }
+		if (!name) {
+			console.error('No name has been passed in');
+			return;
+		}
 
 		const payload: TabAPIDragMessage = { action: TabAPIActions.ENDDRAG, uuid, name, event: { screenX: event.screenX, screenY: event.screenY } };
 

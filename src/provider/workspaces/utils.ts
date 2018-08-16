@@ -57,16 +57,12 @@ const createPlaceholder = async (win: WindowState) => {
     if (!win.isShowing || win.state === 'minimized') {
         return;
     }
-    const image = new Image();
-    image.src = `data:image/png;base64, ${win.image}`;
-    image.style.filter = 'blur(2px)';
     const {name, height, width, left, top, uuid} = win;
 
     const placeholder = new fin.desktop.Window(
-        {name, autoShow: true, defaultHeight: height, defaultWidth: width, defaultLeft: left, defaultTop: top, saveWindowState: false, opacity: 0.6}, () => {
-            placeholder.nativeWindow.document.body.appendChild(image);
+        { name, autoShow: true, defaultHeight: height, defaultWidth: width, defaultLeft: left, defaultTop: top, saveWindowState: false, opacity: 0.6, backgroundColor: '#D3D3D3'}, () => {
             placeholder.nativeWindow.document.body.style.overflow = 'hidden';
-            placeholder.blur();
+            placeholder.nativeWindow.document.bgColor = "D3D3D3";
         });
     const actualWindow = await fin.Window.wrap({uuid, name});
     actualWindow.on('shown', () => {

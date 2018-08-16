@@ -23,7 +23,6 @@ export interface WindowState extends Bounds {
 	windowGroup: Identity[];
 	contextGroups: string[];
 	customData?: any; // applications can add any context or other necessary data here
-	image: any;
 }
 
 export interface LayoutApp {

@@ -55,9 +55,7 @@ export class TabGroup {
      */
     public async addTab(tabPackage: TabPackage): Promise<Tab> {
         const tab = new Tab(tabPackage, this);
-
         this._tabs.push(tab);
-
         await tab.init();
 
         if (this._tabs.length > 1) {

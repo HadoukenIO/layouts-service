@@ -81,6 +81,31 @@ export class TabGroup {
     }
 
     /**
+     * Reorders the tab structure to match what is present in the UI.
+     * @param {TabIdentifier[]} orderReference The order which we should rearrange our tabs to match.  This will come from the UI component.
+     */
+    public reOrderTabArray(orderReference: TabIdentifier[]): void {
+        if (this._tabs.length !== orderReference.length) {
+            console.error('Mismatched array lengths on reorder!');
+            return;
+        }
+
+        orderReference.forEach((ref, i) => {
+            const tabToUpdate: Tab|undefined = this._tabs.find((tab) => {
+                return tab.ID.name === ref.name && tab.ID.uuid === ref.uuid;
+            });
+
+            if (tabToUpdate) {
+                tabToUpdate.orderIndex = i;
+            }
+        });
+
+        this._tabs = this._tabs.sort((a, b) => {
+            return a.orderIndex - b.orderIndex;
+        });
+    }
+
+    /**
      * Deregisters the Tab from tabbing altogether.
      * @param ID ID (uuid, name) of the Tab to deregister.
      */
@@ -116,6 +141,10 @@ export class TabGroup {
         }
 
         await tab.remove(closeApp);
+
+        this._tabs.forEach((tab: Tab, i) => {
+            tab.orderIndex = i;
+        });
 
         if (closeGroupWindowCheck) {
             if (this._tabs.length === 0) {

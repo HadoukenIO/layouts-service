@@ -1,10 +1,10 @@
-import {TabApiEvents} from '../../client/APITypes';
-import {TabIdentifier, TabPackage, TabWindowOptions} from '../../client/types';
+import { TabApiEvents } from '../../client/APITypes';
+import { TabIdentifier, TabPackage, TabWindowOptions } from '../../client/types';
 
-import {GroupWindow} from './GroupWindow';
-import {Tab} from './Tab';
-import {TabService} from './TabService';
-import {uuidv4} from './TabUtilities';
+import { GroupWindow } from './GroupWindow';
+import { Tab } from './Tab';
+import { TabService } from './TabService';
+import { uuidv4 } from './TabUtilities';
 
 
 /**
@@ -84,25 +84,41 @@ export class TabGroup {
      * Reorders the tab structure to match what is present in the UI.
      * @param {TabIdentifier[]} orderReference The order which we should rearrange our tabs to match.  This will come from the UI component.
      */
-    public reOrderTabArray(orderReference: TabIdentifier[]): void {
+    public reOrderTabArray(orderReference: TabIdentifier[]): boolean {
+
+        //We should receive a 1:1 length match between the tabs we know of and the tabs the UI is sending
         if (this._tabs.length !== orderReference.length) {
             console.error('Mismatched array lengths on reorder!');
-            return;
+            return false;
         }
 
-        orderReference.forEach((ref, i) => {
-            const tabToUpdate: Tab|undefined = this._tabs.find((tab) => {
-                return tab.ID.name === ref.name && tab.ID.uuid === ref.uuid;
+        // The new order
+        const newlyOrdered: Tab[] = [];
+
+        // Copy of the tabs we know of
+        const existingTabsCheck: Tab[] = this._tabs.slice();
+
+        orderReference.forEach((ref) => {
+            this._tabs.find((tab, i) => {
+                if (tab.ID.name === ref.name && tab.ID.uuid === ref.uuid) {
+                    newlyOrdered.push(tab);
+                    delete existingTabsCheck[i];
+                    return true;
+                }
+
+                return false;
             });
-
-            if (tabToUpdate) {
-                tabToUpdate.orderIndex = i;
-            }
         });
 
-        this._tabs = this._tabs.sort((a, b) => {
-            return a.orderIndex - b.orderIndex;
-        });
+        // Any tabs we know of that werent in the array to match against will be stuck on the end of the new order.
+        // Prevents user from putting nonexistant tabs to match against
+        newlyOrdered.push(...existingTabsCheck.filter((tab) => {
+            if (tab) return true;
+            return false;
+        }));
+
+        this._tabs = newlyOrdered;
+        return true;
     }
 
     /**
@@ -115,7 +131,7 @@ export class TabGroup {
         await this.removeTab(ID, false, true);
 
         if (tab) {
-            tab.window.updateWindowOptions({frame: true, opacity: 1.0});
+            tab.window.updateWindowOptions({ frame: true, opacity: 1.0 });
         }
     }
 
@@ -141,10 +157,6 @@ export class TabGroup {
         }
 
         await tab.remove(closeApp);
-
-        this._tabs.forEach((tab: Tab, i) => {
-            tab.orderIndex = i;
-        });
 
         if (closeGroupWindowCheck) {
             if (this._tabs.length === 0) {
@@ -192,7 +204,7 @@ export class TabGroup {
      * Gets the tab with the specified identifier
      * @param tabID The tab identifier
      */
-    public getTab(tabID: TabIdentifier): Tab|undefined {
+    public getTab(tabID: TabIdentifier): Tab | undefined {
         return this.tabs.find((tab: Tab) => {
             return tab.ID.uuid === tabID.uuid && tab.ID.name === tabID.name;
         });

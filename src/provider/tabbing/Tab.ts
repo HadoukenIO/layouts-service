@@ -1,7 +1,7 @@
-import {AppApiEvents, TabApiEvents} from '../../client/APITypes';
-import {TabIdentifier, TabPackage, TabProperties} from '../../client/types';
-import {TabGroup} from './TabGroup';
-import {TabWindow} from './TabWindow';
+import { AppApiEvents, TabApiEvents } from '../../client/APITypes';
+import { TabIdentifier, TabPackage, TabProperties } from '../../client/types';
+import { TabGroup } from './TabGroup';
+import { TabWindow } from './TabWindow';
 
 
 /**
@@ -29,11 +29,6 @@ export class Tab {
     private _tabWindow: TabWindow;
 
     /**
-     * The order of the tab in the window
-     */
-    private _windowOrderIndex: number;
-
-    /**
      * Constructor for the Tab Class.
      * @param {TabPackage} tabPackage The tab package contains the uuid, name, and any properties for the tab.
      * @param {TabGroup} tabGroup The tab group to which this tab belongs.
@@ -41,7 +36,6 @@ export class Tab {
     constructor(tabPackage: TabPackage, tabGroup: TabGroup) {
         this._tabID = tabPackage.tabID;
         this._tabGroup = tabGroup;
-        this._windowOrderIndex = this.tabGroup.tabs.length;
 
         if (tabPackage.tabProps) {
             this._tabProperties = tabPackage.tabProps;
@@ -59,8 +53,8 @@ export class Tab {
         this._tabProperties = this._loadTabProperties();
 
         fin.desktop.InterApplicationBus.send(
-            fin.desktop.Application.getCurrent().uuid, this._tabGroup.ID, TabApiEvents.TABADDED, {tabID: this.ID, tabProps: this._tabProperties});
-        fin.desktop.InterApplicationBus.send(this.ID.uuid, this.ID.name, AppApiEvents.TABBED, {tabGroupID: this._tabGroup.ID});
+            fin.desktop.Application.getCurrent().uuid, this._tabGroup.ID, TabApiEvents.TABADDED, { tabID: this.ID, tabProps: this._tabProperties });
+        fin.desktop.InterApplicationBus.send(this.ID.uuid, this.ID.name, AppApiEvents.TABBED, { tabGroupID: this._tabGroup.ID });
     }
 
     /**
@@ -75,7 +69,7 @@ export class Tab {
         }
 
         fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, this._tabGroup.ID, TabApiEvents.TABREMOVED, this._tabID);
-        fin.desktop.InterApplicationBus.send(this.ID.uuid, this.ID.name, AppApiEvents.UNTABBED, {tabGroupID: this._tabGroup.ID});
+        fin.desktop.InterApplicationBus.send(this.ID.uuid, this.ID.name, AppApiEvents.UNTABBED, { tabGroupID: this._tabGroup.ID });
     }
 
     /**
@@ -83,9 +77,9 @@ export class Tab {
      * @param {TabProperties} props The tab properties to update.
      */
     public updateTabProperties(props: TabProperties) {
-        this._tabProperties = {...this._tabProperties, ...props};
+        this._tabProperties = { ...this._tabProperties, ...props };
         fin.desktop.InterApplicationBus.send(
-            fin.desktop.Application.getCurrent().uuid, this._tabGroup.ID, TabApiEvents.PROPERTIESUPDATED, {tabID: this.ID, tabProps: props});
+            fin.desktop.Application.getCurrent().uuid, this._tabGroup.ID, TabApiEvents.PROPERTIESUPDATED, { tabID: this.ID, tabProps: props });
 
         this._saveTabProperties();
     }
@@ -126,21 +120,6 @@ export class Tab {
             icon: this._tabProperties.icon || storageProps.icon || windowIcon,
             title: this._tabProperties.title || storageProps.title || windowOptions.name
         };
-    }
-
-    /**
-     * Returns the index which this tab is ordered in the group.
-     * @returns {number} Order Index
-     */
-    public get orderIndex(): number {
-        return this._windowOrderIndex;
-    }
-
-    /**
-     * Sets the index for this tab in the group.
-     */
-    public set orderIndex(order: number) {
-        this._windowOrderIndex = order;
     }
 
     /**

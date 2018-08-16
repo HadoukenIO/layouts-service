@@ -157,7 +157,7 @@ export class TabGroup {
      * @param {TabIdentifier} ID The ID of the tab to set as active.
      * @param {boolean} hideActiveTab Flag if we should hide the current active tab.
      */
-    public async switchTab(ID: TabIdentifier): Promise<void> {
+    public async switchTab(ID: TabIdentifier, hideActiveTab = true): Promise<void> {
         const tab = this.getTab(ID);
 
         if (tab && tab !== this._activeTab) {

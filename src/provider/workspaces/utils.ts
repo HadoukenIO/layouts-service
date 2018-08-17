@@ -23,24 +23,20 @@ export const positionWindow = async (win: WindowState) => {
         await ofWin.leaveGroup();
         await ofWin.setBounds(win);
 
-        // FOR DEMO!!!
-        await ofWin.show();
-        await ofWin.restore();
-
         // COMMENTED OUT FOR DEMO
-        // if (win.state === 'normal') {
-        //     await ofWin.restore();
-        // } else if (win.state === 'minimized') {
-        //     await ofWin.minimize();
-        // } else if (win.state === 'maximized') {
-        //     await ofWin.maximize();
-        // }
+        if (win.state === 'normal') {
+            await ofWin.restore();
+        } else if (win.state === 'minimized') {
+            await ofWin.minimize();
+        } else if (win.state === 'maximized') {
+            await ofWin.maximize();
+        }
 
-        // if (win.isShowing) {
-        // await ofWin.show();
-        // } else {
-        //     await ofWin.hide();
-        // }
+        if (win.isShowing) {
+            await ofWin.show();
+        } else {
+            await ofWin.hide();
+        }
     } catch (e) {
         console.error('position window error', e);
     }

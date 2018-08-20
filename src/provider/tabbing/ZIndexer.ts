@@ -51,7 +51,7 @@ export class ZIndexer {
 
                 // Listen for any new child windows
                 app.addEventListener('window-created', (win: {name: string}) => {
-                    const w = fin.desktop.Window.wrap(fin.desktop.Application.getCurrent().uuid, win.name);
+                    const w = fin.desktop.Window.wrap(app.uuid, win.name);
                     this._addEventListeners(w);
                 });
 

@@ -1,14 +1,14 @@
 import {SnapGroup} from './SnapGroup';
 import {SnapWindow, WindowState} from './SnapWindow';
-import {Point} from './utils/PointUtils';
-import {Range, RangeUtils} from './utils/RangeUtils';
+import {Point, PointUtils} from './utils/PointUtils';
+import {Range, RangeUtils, eDirection, SnapRange, SnapRanges} from './utils/RangeUtils';
 import {MeasureResult, RectUtils} from './utils/RectUtils';
 
 
 /**
  * The maximum distance at which two windows will snap together.
  */
-const SNAP_DISTANCE = 35;
+export const SNAP_DISTANCE = 35;
 
 /**
  * If two window corners would snap to a distance less than this threshold, the active window will be snapped to the
@@ -17,7 +17,7 @@ const SNAP_DISTANCE = 35;
  * This radius essentially defines how "sticky" the corners of windows are. Larger values makes it easier to align
  * windows.
  */
-const ANCHOR_DISTANCE = 100;
+export const ANCHOR_DISTANCE = 100;
 
 /**
  * The minimum amount of overlap required for two window edges to snap together.
@@ -100,69 +100,7 @@ export interface SnapTarget {
      * A snap target is always generated for any groups within range of the target window.
      */
     validity: eSnapValidity;
-
-    /**
-     * Indicates the general direction in which the window is snapping.
-     */
-    direction: Direction;
-
-    /**
-     * Indicates if this snap is in a horizontal or vertical direction.
-     *
-     * This overlaps with direction (direction[orientation] will always be non-zero).
-     */
-    orientation: Orientation;
 }
-
-
-/**
- * Short-lived temporary object. This is used to keep track of the best group we've found so far when deciding what the
- * active group should snap to.
- *
- * If there is nothing within range for the active group to snap to, this object will remain in a
- * nullified/un-initailsed state.
- */
-interface SnapCandidate {
-    /**
-     * The group that is our current candidate
-     */
-    group: SnapGroup|null;
-
-    activeWindow: SnapWindow|null;
-    candidateWindow: SnapWindow|null;
-
-    /**
-     * The absolute distance between the two windows.
-     *
-     * When there are multiple snap candidates, the candidate with the smallest distance will be preferred.
-     */
-    distance: number;
-
-    /**
-     * The result of the Rectangle-Rectangle distance check that resulted in this candidate being created.
-     */
-    measure: MeasureResult|null;
-
-    /**
-     * Indicates the direction of 'otherWindow' relative to 'activeWindow', in each dimension.
-     *
-     * Both x and y wil be either -1, 0 or 1 - with the following meanings:
-     * -1: otherWindow is to the the left/top of activeWindow
-     *  0: otherWindow and activeWindow are horizontally/vertically aligned
-     *  1: otherWindow is to the right/bottom of activeWindow
-     */
-    direction: Direction;
-}
-
-/**
- * A verison of SnapCandidate where all fields are non-null.
- *
- * Since SnapCandidate is used in a way where it starts out uninitialised, this type exists to represent a candidate
- * that we know was actually initialised.
- */
-type ValidCandidate = {
-    [P in keyof SnapCandidate]: NonNullable<SnapCandidate[P]>
-};
 
 /**
  * State-less class that contains all the main snap and dock logic.
@@ -179,26 +117,15 @@ export class Resolver {
      * @param activeGroup The group that is currently being moved
      */
     public getSnapTarget(groups: SnapGroup[], activeGroup: SnapGroup): SnapTarget|null {
+        const ranges: SnapRanges = new SnapRanges();
+        const targets: SnapTarget[] = [];
+
+        // Group-to-Group snapping not yet supported
         if (activeGroup.windows.length > 1) {
-            // Group-to-Group snapping not yet supported
             return null;
         }
 
-        const candidate: SnapCandidate = this.findSnapCandidates(groups, activeGroup);
-
-        if (this.isValidCandidate(candidate)) {
-            return this.createSnapTarget(candidate);
-        } else {
-            return null;
-        }
-    }
-
-    private findSnapCandidates(groups: SnapGroup[], activeGroup: SnapGroup): SnapCandidate {
-        // We'll use this to store the best candidate we find
-        const bestCandidate:
-            SnapCandidate = {group: null, activeWindow: null, candidateWindow: null, distance: Number.MAX_VALUE, measure: null, direction: {x: 0, y: 0}};
-
-        // Find any windows that are close to the a window in activeGroup
+        // Find any groups that are close to a window in activeGroup
         groups.forEach((candidateGroup: SnapGroup) => {
             if (candidateGroup !== activeGroup) {
                 // Before checking any windows, make sure the bounding boxes of each group overlaps
@@ -209,89 +136,59 @@ export class Resolver {
 
                         // Only do the next loop if there's a chance that this window can intersect with the other group
                         if (this.isSnappable(activeState) && RectUtils.distance(candidateGroup, activeState).within(SNAP_DISTANCE)) {
+                            ranges.reset();
+
                             candidateGroup.windows.forEach(candidateWindow => {
-                                this.checkForSnap(activeWindow, activeState, candidateWindow, bestCandidate);
+                                const candidateState: WindowState = candidateWindow.getState();
+
+                                if (this.isSnappable(candidateState)) {
+                                    ranges.add(activeState, candidateState, SNAP_DISTANCE);
+                                }
                             });
                         }
                     });
                 }
+
+                //Create snap target
+                const target: SnapTarget|null = ranges.createTarget(candidateGroup, activeGroup.windows[0]);
+                if (target) {
+                    targets.push(target);
+                }
             }
         });
 
-        return bestCandidate;
-    }
-
-    private isValidCandidate(candidate: SnapCandidate): candidate is ValidCandidate {
-        return candidate.group !== null;
-    }
-
-    private intersect(candidateWindow: SnapWindow, groupWindow: SnapWindow) {
-        const candidateWindowState = candidateWindow.getState();
-        const groupWindowState = groupWindow.getState();
-        const distance = RectUtils.distance(candidateWindowState, groupWindowState);
-        return (distance.x <= 0 && distance.y <= 0);
-    }
-
-    /**
-     * Converts a SnapCandidate to a SnapTarget. This requires determining that the snap won't violate any
-     * constraints, and also calculating exactly where the group should snap to.
-     *
-     * @param candidate A snap candidate. Needs to be an "actual" candidate - not just a newly-initialised SnapCandidate object
-     */
-    private createSnapTarget(candidate: ValidCandidate): SnapTarget {
-        // Create a snap target with the best-match pair of windows (if there was such a pair)
-        let result: eSnapValidity = eSnapValidity.VALID;  // Assume valid, unless we find an issue
-        const snapOffset: Point = {x: 0, y: 0};
-        const measure: MeasureResult = candidate.measure;
-        let orientation: Orientation = 'x';
-        let halfSize: Point|null = null;
-
-        // Snap groups together
-        if (this.shouldSnapAlongAxis(measure, 'x')) {
-            snapOffset.x = measure.x * candidate.direction.x;
-        }
-        if (this.shouldSnapAlongAxis(measure, 'y')) {
-            snapOffset.y = measure.y * candidate.direction.y;
-            orientation = 'y';
-        }
-
-        // Ensure this snap doesn't invalidate any constraints
-        if (measure.x >= -MIN_OVERLAP && measure.y >= -MIN_OVERLAP) {
-            result = eSnapValidity.CORNERS;
+        if (targets.length === 0) {
+            return null;
+        } else if (targets.length === 1) {
+            return targets[0];
         } else {
-            // TODO: Ensure no windows in the snapped-together group would overlap each other (SERVICE-129)
+            //Multiple candidate groups within range. Pick the best available target.
+            return this.findBestTarget(targets);
         }
+    }
 
-        // Snap to anchor points
-        if (result !== eSnapValidity.CORNERS) {
-            const anchorOrientation: Orientation = (orientation === 'x') ? 'y' : 'x';
-            const activeState: WindowState = candidate.activeWindow.getState();
-            const candidateState: WindowState = candidate.candidateWindow.getState();
+    private findBestTarget(targets: SnapTarget[]): SnapTarget|null {
+        //Sort candidates so that most preferable is at start of array
+        targets = targets.sort((a: SnapTarget, b: SnapTarget) => {
+            const offsetA: Point = a.snapOffset, offsetB: Point = b.snapOffset;
 
-            const activeRange: Range = RangeUtils.createFromRect(activeState, anchorOrientation);
-            const candidateRange: Range = RangeUtils.createFromRect(candidateState, anchorOrientation);
-            const anchoredRange: Range = RangeUtils.snap(candidateRange, activeRange, ANCHOR_DISTANCE, candidate.activeWindow.getGroup().length === 1);
-
-            if (!RangeUtils.equal(activeRange, anchoredRange)) {
-                snapOffset[anchorOrientation] = anchoredRange.min - activeRange.min;
-
-                if (anchorOrientation === 'x') {
-                    halfSize = {x: RangeUtils.size(anchoredRange) / 2, y: activeState.halfSize.y};
-                } else {
-                    halfSize = {x: activeState.halfSize.x, y: RangeUtils.size(anchoredRange) / 2};
-                }
+            if (a.validity !== b.validity && (a.validity === eSnapValidity.VALID || b.validity === eSnapValidity.VALID)) {
+                //Prefer valid targets
+                return a.validity - b.validity;
+            } else if (this.isAnchorSnap(a) !== this.isAnchorSnap(b)) {
+                //Prefer snaps to anchor points
+                return (offsetA.x && offsetA.y) ? -1 : 1;
+            } else {
+                //If both candidates are valid, prefer candidate with smallest offset
+                return PointUtils.lengthSquared(a.snapOffset) - PointUtils.lengthSquared(b.snapOffset);
             }
-        }
+        });
 
-        return {
-            group: candidate.group,
-            activeWindow: candidate.activeWindow,
-            snapOffset,
-            halfSize,
-            validity: result,
-            direction: candidate.direction,
-            orientation
-        };
+        return targets[0] || null;
+    }
+
+    private isAnchorSnap(target: SnapTarget): boolean {
+        return target.snapOffset.x !== 0 && target.snapOffset.y !== 0;
     }
 
     /**
@@ -303,71 +200,5 @@ export class Resolver {
      */
     private isSnappable(windowState: WindowState): boolean {
         return !windowState.hidden && windowState.opacity > 0 && windowState.state === 'normal';
-    }
-
-    /**
-     * Checks a pair of windows to see if they are within snapping-distance of each other.
-     *
-     * Any windows within snapping distance are pushed into a list, and we will later select the best available
-     * candidate.
-     *
-     * @param activeWindow The window within the active group that we're currently testing
-     * @param activeState The state of activeWindow
-     * @param candidateWindow The window within the non-active group that we want to check against activeWindow
-     * @param currentTarget Details about the best candidate we have found so far (if any)
-     */
-    private checkForSnap(activeWindow: SnapWindow, activeState: WindowState, candidateWindow: SnapWindow, currentTarget: SnapCandidate): void {
-        let distBtwnWindows: MeasureResult;
-        const candidateState: WindowState = candidateWindow.getState();
-
-        if (this.isSnappable(candidateState)) {
-            distBtwnWindows = RectUtils.distance(activeState, candidateState);
-
-            if (distBtwnWindows.border(SNAP_DISTANCE)) {
-                // Calculate the distance between windows, for comparison purposes
-                let distance;
-                if (distBtwnWindows.x >= 0 || distBtwnWindows.y >= 0) {
-                    distance = Math.max(distBtwnWindows.x, 0) + Math.max(distBtwnWindows.y, 0);
-                } else {
-                    distance = Math.min(-distBtwnWindows.x, -distBtwnWindows.y);
-                }
-
-                // Save this candidate, unless we have a better candidate already
-                if (distance < currentTarget.distance) {
-                    currentTarget.group = candidateWindow.getGroup();
-                    currentTarget.activeWindow = activeWindow;
-                    currentTarget.candidateWindow = candidateWindow;
-                    currentTarget.measure = distBtwnWindows;
-                    currentTarget.distance = distance;
-                    currentTarget.direction!.x = Math.sign(candidateState.center.x - activeState.center.x) as (-1 | 0 | 1);
-                    currentTarget.direction!.y = Math.sign(candidateState.center.y - activeState.center.y) as (-1 | 0 | 1);
-                }
-            }
-        }
-    }
-
-    /**
-     * Given a point that indicates the overlap/separation between two rectangles, decides if the rectangles should be
-     * snapped-together. This function only considers a single axis at a time.
-     *
-     * @param offset Specifies the overlap/separation of two rectangles, in each dimension. @see MeasureResult
-     * @param axis Which orientation we're currently considering
-     */
-    private shouldSnapAlongAxis(offset: Point, axis: Orientation): boolean {
-        const distToRectangle: number = offset[axis];
-        const oppositeDistance: number = offset[axis === 'x' ? 'y' : 'x'];
-
-        if (distToRectangle > 0 && oppositeDistance > 0) {
-            // User is trying to join windows corner-to-corner, since there is no overlap in either dimension.
-            // This is a bit of special-case, it's the only time we'll snap on both the X and Y axes at the same time.
-            return true;
-        } else if (Math.abs(distToRectangle) < SNAP_DISTANCE) {
-            // Rectangles overlap, and by less than the snap distance.
-            // Should snap, unless we're on a corner and we're overlapping by a larger amount in the opposite dimension
-            return oppositeDistance < 0 && !(distToRectangle < 0 && oppositeDistance > distToRectangle);
-        } else {
-            // Rectangles overlap, but by more than the snap distance.
-            return false;
-        }
     }
 }

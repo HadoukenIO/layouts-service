@@ -157,7 +157,7 @@ export interface Dimensions {
 export interface Group {
     url: string;
     active: TabIdentifier;
-    dimensions: Dimensions
+    dimensions: Dimensions;
 }
 
 export interface TabBlob {

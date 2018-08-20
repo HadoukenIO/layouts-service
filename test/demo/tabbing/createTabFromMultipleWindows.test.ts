@@ -4,7 +4,7 @@ import * as robot from 'robotjs';
 import { Window, Fin, Application } from 'hadouken-js-adapter';
 import { getConnection } from '../../provider/utils/connect';
 import { getWindow } from '../../provider/utils/getWindow';
-import { createTabGroupFromMultipleWindows } from '../../../src/provider/tabbing/TabUtilities';
+import { createTabGroupsFromMultipleWindows } from '../../../src/provider/tabbing/TabUtilities';
 import { TabBlob } from '../../../src/client/types';
 import { TabService } from '../../../src/provider/tabbing/TabService';
 import { executeJavascriptOnService } from '../utils/executeJavascriptOnService';
@@ -56,7 +56,7 @@ test("Create tab group from 2 windows", async (assert) => {
 
 
     // Act
-    const scriptToExecute: string = `createTabGroupFromMultipleWindows(${JSON.stringify(tabBlobs)}).then(() => { fin.desktop.InterApplicationBus.send("TEST", "replytest", "script evaluated", () => { console.log('successfully published') }, console.error)})`;
+    const scriptToExecute: string = `createTabGroupsFromMultipleWindows(${JSON.stringify(tabBlobs)}).then(() => { fin.desktop.InterApplicationBus.send("TEST", "replytest", "script evaluated", () => { console.log('successfully published') }, console.error)})`;
     await executeJavascriptOnService(scriptToExecute);
 
     // Tab group should have been created

@@ -138,10 +138,10 @@ export async function initializeTabbing(message: TabWindowOptions, uuid: string,
 
 /**
  * Takes a tabblob and restores windows based on the blob
- * @function createTabGroup
- * @param tabBlob Restoration data
+ * @function createTabGroupsFromMultipleWindows
+ * @param tabBlob[] Restoration data
  */
-export async function createTabGroupFromMultipleWindows(tabBlob: TabBlob[] | null = null, tabService: TabService | null): Promise<void> {
+export async function createTabGroupsFromMultipleWindows(tabBlob: TabBlob[] | null = null): Promise<void> {
     if (!tabBlob) {
         console.error("No tab blob supplied");
         return;
@@ -182,7 +182,7 @@ export async function createTabGroupFromMultipleWindows(tabBlob: TabBlob[] | nul
     };
 }
 
-(window as Window & { createTabGroupFromMultipleWindows: Function }).createTabGroupFromMultipleWindows = createTabGroupFromMultipleWindows;
+(window as Window & { createTabGroupsFromMultipleWindows: Function }).createTabGroupsFromMultipleWindows = createTabGroupsFromMultipleWindows;
 
 /**
  * Creates a UUIDv4() ID

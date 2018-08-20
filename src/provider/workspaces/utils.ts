@@ -75,6 +75,7 @@ export const wasCreatedProgrammatically = (app: LayoutApp) => {
 
 // Type here should be ApplicationInfo from the js-adapter (needs to be updated)
 export const wasCreatedFromManifest = (app: LayoutApp, uuid?: string) => {
+    //@ts-ignore
     const {manifest, manifestUrl} = app;
     const appUuid = uuid || app.uuid;
     return typeof manifest === 'object' && manifest.startup_app && manifest.startup_app.uuid === appUuid;

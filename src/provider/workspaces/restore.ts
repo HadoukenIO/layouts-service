@@ -7,7 +7,7 @@ import {Layout, LayoutApp, LayoutName, WindowState} from '../../client/types';
 import {regroupLayout} from './group';
 import {providerChannel} from '../main';
 import {flexibleGetLayout} from './storage';
-import {createAppPlaceholders, isClientConnection, positionWindow, wasCreatedFromManifest, wasCreatedProgrammatically} from './utils';
+import {createAppPlaceholders, isClientConnection, positionWindow, wasCreatedProgrammatically} from './utils';
 
 /*tslint:disable-next-line:no-any*/
 declare var fin: any;
@@ -79,39 +79,32 @@ export const restoreLayout = async(payload: LayoutName|Layout, identity: Identit
                     }));
                 }
                 // Start App
-                if (wasCreatedFromManifest(app)) {
-                    const {manifest, manifestUrl} = app;
+                if (app.createdFromManifest) {
+                    const {manifestUrl} = app;
                     // Started from manifest
-                    if (manifestUrl) {
-                        console.log('App has manifestUrl:', app);
-                        // v2 api broken - below is messy but should be replaced with v2 (can just await create and run below w/ v2)
+                    console.log('App has manifestUrl:', app);
+                    // v2 api broken - below is messy but should be replaced with v2 (can just await create and run below w/ v2)
 
-                        // ofApp = await fin.Application.createFromManifest(manifestUrl);
-                        // SHOULD PROBABLY TRY TO CERATE AND RUN FIRST, THEN TRY TO RUN IF GET ERROR
-                        const v1App = fin.desktop.Application.wrap(app.uuid);
-                        const runV1 = (v1App: fin.OpenFinApplication, errCb?: Function) => {
-                            const defaultErrCb = () => console.error('App Run error');
-                            const errorCallback = errCb || defaultErrCb;
-                            v1App.run(() => {
-                                console.log('Running App created from manifest:', app);
-                                positionWindow(app.mainWindow);
-                            }, () => errorCallback(app));
-                        };
+                    // ofApp = await fin.Application.createFromManifest(manifestUrl);
+                    // SHOULD PROBABLY TRY TO CERATE AND RUN FIRST, THEN TRY TO RUN IF GET ERROR
+                    const v1App = fin.desktop.Application.wrap(app.uuid);
+                    const runV1 = (v1App: fin.OpenFinApplication, errCb?: Function) => {
+                        const defaultErrCb = () => console.error('App Run error');
+                        const errorCallback = errCb || defaultErrCb;
+                        v1App.run(() => {
+                            console.log('Running App created from manifest:', app);
+                            positionWindow(app.mainWindow);
+                        }, () => errorCallback(app));
+                    };
 
-                        const notInCoreState = (app: LayoutApp) => {
-                            fin.desktop.Application.createFromManifest(app.manifestUrl, (v1App: fin.OpenFinApplication) => {
-                                console.log('Created from manifest:', v1App);
-                                runV1(v1App);
-                            }, (e: Error) => console.error('Create from manifest error:', e));
-                        };
+                    const notInCoreState = (app: LayoutApp) => {
+                        fin.desktop.Application.createFromManifest(app.manifestUrl, (v1App: fin.OpenFinApplication) => {
+                            console.log('Created from manifest:', v1App);
+                            runV1(v1App);
+                        }, (e: Error) => console.error('Create from manifest error:', e));
+                    };
 
-                        runV1(v1App, notInCoreState);
-
-                    } else {
-                        // Have app manifest but not a mannifest Url (Is this possible???)
-                        console.log('No manifest URL creating from manifest startup app options:', app);
-                        ofApp = await fin.Application.create(manifest.startup_app);
-                    }
+                    runV1(v1App, notInCoreState);
                 } else {
                     // Application created programmatically
                     if (wasCreatedProgrammatically(app)) {

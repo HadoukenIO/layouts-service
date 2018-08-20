@@ -27,7 +27,7 @@ export interface WindowState extends Bounds {
 
 export interface LayoutApp {
 	manifestUrl?: string;
-	manifest?: any;
+	createdFromManifest: boolean;
 	parentUuid?: string;
 	initialOptions?: any;
 	launchMode?: string;

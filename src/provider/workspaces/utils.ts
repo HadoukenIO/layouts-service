@@ -66,7 +66,7 @@ const createPlaceholder = async (win: WindowState) => {
     });
 };
 
-export const wasCreatedProgramatically = (app: LayoutApp) => {
+export const wasCreatedProgrammatically = (app: LayoutApp) => {
     return app && app.initialOptions && app.initialOptions.uuid && app.initialOptions.url;
 };
 

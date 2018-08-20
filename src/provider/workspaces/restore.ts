@@ -7,7 +7,7 @@ import {Layout, LayoutApp, LayoutName, WindowState} from '../../client/types';
 import {regroupLayout} from './group';
 import {providerChannel} from '../main';
 import {flexibleGetLayout} from './storage';
-import {createAppPlaceholders, isClientConnection, positionWindow, wasCreatedFromManifest, wasCreatedProgramatically} from './utils';
+import {createAppPlaceholders, isClientConnection, positionWindow, wasCreatedFromManifest, wasCreatedProgrammatically} from './utils';
 
 /*tslint:disable-next-line:no-any*/
 declare var fin: any;
@@ -113,8 +113,8 @@ export const restoreLayout = async(payload: LayoutName|Layout, identity: Identit
                         ofApp = await fin.Application.create(manifest.startup_app);
                     }
                 } else {
-                    // Application created programatically
-                    if (wasCreatedProgramatically(app)) {
+                    // Application created programmatically
+                    if (wasCreatedProgrammatically(app)) {
                         console.warn('App created programmatically, app may not restart again:', app);
                         ofApp = await fin.Application.create(app.initialOptions);
                     } else {

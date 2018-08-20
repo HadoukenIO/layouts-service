@@ -8,7 +8,7 @@ import {Layout, LayoutApp, LayoutName, WindowState} from '../../client/types';
 import {getGroup} from './group';
 import {providerChannel} from '../main';
 import {saveLayout} from './storage';
-import {isClientConnection, showingWindowInApp, wasCreatedFromManifest, wasCreatedProgramatically} from './utils';
+import {isClientConnection, showingWindowInApp, wasCreatedFromManifest, wasCreatedProgrammatically} from './utils';
 
 // tslint:disable-next-line:no-any
 declare var fin: any;
@@ -57,7 +57,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
 
                 return {...win, ...windowLayoutData};
             });
-            if (wasCreatedFromManifest(appInfo, uuid) || wasCreatedProgramatically(appInfo)) {
+            if (wasCreatedFromManifest(appInfo, uuid) || wasCreatedProgrammatically(appInfo)) {
                 return {...app, ...appInfo, uuid, confirmed: false};
             } else {
                 console.error('Not saving app, cannot restore:', app);

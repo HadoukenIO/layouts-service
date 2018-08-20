@@ -42,23 +42,8 @@ export async function ejectTab(tabService: TabService, message: TabIdentifier&Ta
     if (isOverTabWindowResult) {
         // If the window underneath our point is not the group we're ejecting from.
         if (isOverTabWindowResult !== ejectedTab.tabGroup) {
-            // If the window underneath our point has the same URL as the ejecting group
-            if (isOverTabWindowResult.window.initialWindowOptions.url === ejectedTab.tabGroup.window.initialWindowOptions.url) {
-                // Remove the tab from the ejecting group
-                await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true);
-
-                // Add the tab to the window underneath our point
-                const tab = await isOverTabWindowResult.addTab({tabID: ejectedTab.ID});
-
-                // Align the app window to the new tab group (window underneath)
-                await tab.window.alignPositionToTabGroup();
-
-                // Switch to the added tab in the new group to show the proper window
-                isOverTabWindowResult.switchTab(ejectedTab.ID);
-            } else {
-                // If we the two group URLs dont match then we dont allow tabbing!
-                console.warn('Cannot tab - mismatched group Urls!');
-            }
+            // Add the tab
+            await isOverTabWindowResult.addTab({tabID: ejectedTab.ID});
         }
     } else {
         // If we have no window underneath our point...
@@ -115,7 +100,11 @@ export async function initializeTabbing(message: TabWindowOptions, uuid: string,
     }
 
     const group: TabGroup = await tabService.addTabGroup(message);
-    const tab: Tab = await group.addTab({tabID: {uuid, name}});
+    const tab: Tab|undefined = await group.addTab({tabID: {uuid, name}}, false, false);
+
+    if (!tab) {
+        return;
+    }
 
     if (message.screenX && message.screenY) {
         // if we are provided coords then we tab group is created at them so we need to bring the app window to group.

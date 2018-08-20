@@ -6,7 +6,7 @@ import { createChildWindow } from './utils/createChildWindow';
 import { Window, Fin } from 'hadouken-js-adapter';
 import { getConnection } from './utils/connect';
 
-let win1: Window, win2: Window;
+let win1: Window, win2: Window, win3: Window;
 let fin: Fin;
 
 test.before(async () => {
@@ -19,8 +19,10 @@ test.beforeEach(async () => {
     await delay(1);
 });
 test.afterEach.always(async () => {
-    await win1.close();
-    await win2.close();
+    if (win1 && win1.identity) { await win1.close(); }
+    if (win2 && win2.identity) { await win2.close(); }
+    if (win3 && win3.identity) { await win3.close(); }
+    win1 = win2 = win3 = {} as Window;
 });
 
 test('Tabset on dragover - basic drop', async t => {
@@ -82,7 +84,7 @@ test.only('Tabset on dragover - drop on torn-out dropped window', async t => {
     await Promise.all([assertAloneInTab(win1, t), assertAloneInTab(win2, t)]);
 
     // Spawn a third window
-    const win3 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window.html', frame: false });
+    win3 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window.html', frame: false });
 
     // Drag win3 over win2 to make a tabset
     await dragWindowToOtherWindow(win3,'top-left', win2, 'top-left', {x:-20, y:-20});

@@ -55,11 +55,14 @@ const createPlaceholder = async (win: WindowState) => {
     }
     const {name, height, width, left, top, uuid} = win;
 
+    const placeholderName = "Placeholder-" + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
     const placeholder = new fin.desktop.Window(
-        { name, autoShow: true, defaultHeight: height, defaultWidth: width, defaultLeft: left, defaultTop: top, saveWindowState: false, opacity: 0.6, backgroundColor: '#D3D3D3'}, () => {
+        { name: placeholderName, autoShow: true, defaultHeight: height, defaultWidth: width, defaultLeft: left, defaultTop: top, saveWindowState: false, opacity: 0.6, backgroundColor: '#D3D3D3'}, () => {
             placeholder.nativeWindow.document.body.style.overflow = 'hidden';
             placeholder.nativeWindow.document.bgColor = "D3D3D3";
         });
+
     const actualWindow = await fin.Window.wrap({uuid, name});
     actualWindow.on('shown', () => {
         placeholder.close();

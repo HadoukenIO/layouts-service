@@ -8,8 +8,16 @@
     <script>
         fin.desktop.InterApplicationBus.subscribe('*', 'test', (message) => {
             console.log(message);
-            eval(message);
-            fin.desktop.InterApplicationBus.publish("TEST", "replytest", "script evaluated");
+            const returnVal = eval(message);
+
+            if (returnVal instanceof Promise) {
+                returnVal.then(() => {
+                    fin.desktop.InterApplicationBus.send("TEST", "replytest", "script evaluated");
+                });
+            } else {
+                fin.desktop.InterApplicationBus.send("TEST", "replytest", "script evaluated");
+            }
+            
         });
     </script>
     <title>Layouts Manager Service</title>

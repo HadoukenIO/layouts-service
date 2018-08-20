@@ -24,7 +24,7 @@ test.afterEach.always(async () => {
 
 test("Create tab group from 2 windows", async (assert) => {
     // Arrange
-    const app1: Application = await createTabbingWindow('default', 'App0', 100);
+    const app1: Application = await createTabbingWindow('default', 'App0', 200);
     const app2: Application = await createTabbingWindow('default', 'App1', 500);
 
     await Promise.all([app1.run(), app2.run()]);
@@ -38,7 +38,7 @@ test("Create tab group from 2 windows", async (assert) => {
             url: "",
             active: { uuid: win2.identity.uuid, name: win2.identity.name! },
             dimensions: {
-                x: 100,
+                x: 200,
                 y: 100,
                 width: preWin2Bounds.width,
                 tabGroupHeight: 130,
@@ -56,7 +56,7 @@ test("Create tab group from 2 windows", async (assert) => {
 
 
     // Act
-    const scriptToExecute: string = `createTabGroupsFromMultipleWindows(${JSON.stringify(tabBlobs)}).then(() => { fin.desktop.InterApplicationBus.send("TEST", "replytest", "script evaluated", () => { console.log('successfully published') }, console.error)})`;
+    const scriptToExecute: string = `createTabGroupsFromMultipleWindows(${JSON.stringify(tabBlobs)})`;
     await executeJavascriptOnService(scriptToExecute);
 
     // Tab group should have been created
@@ -73,19 +73,21 @@ test("Create tab group from 2 windows", async (assert) => {
     const tabGroupBounds: NormalizedBounds = await getBounds(newTabGroupWindow!);
 
     // Window Bounds equality check
-    assert.true(win2Bounds.bottom == win1Bounds.bottom, `bottom are win2: ${win2Bounds.bottom} win1: ${win1Bounds.bottom}`);
-    assert.true(win2Bounds.height == win1Bounds.height, `height are win2: ${win2Bounds.height} win1: ${win1Bounds.height}`);
-    assert.true(win2Bounds.left == win1Bounds.left, `left are win2: ${win2Bounds.left} win1: ${win1Bounds.left}`);
-    assert.true(win2Bounds.right == win1Bounds.right, `right are win2: ${win2Bounds.right} win1: ${win1Bounds.right}`);
-    assert.true(win2Bounds.top == win1Bounds.top, `top are win2: ${win2Bounds.top} win1: ${win1Bounds.top}`);
-    assert.true(win2Bounds.width == win1Bounds.width, `width are win2: ${win2Bounds.width} win1: ${win1Bounds.width}`);
+    assert.is(win2Bounds.bottom, win1Bounds.bottom);
+    assert.is(win2Bounds.height, win1Bounds.height);
+    assert.is(win2Bounds.left, win1Bounds.left);
+    assert.is(win2Bounds.right, win1Bounds.right);
+    assert.is(win2Bounds.top, win1Bounds.top);
+    assert.is(win2Bounds.width, win1Bounds.width);
+    assert.is(win2Bounds.left, tabBlobs[0].groupInfo.dimensions.x);
+    assert.is(win1Bounds.left, tabBlobs[0].groupInfo.dimensions.x);
 
     // TabGroup existence check
-    assert.true(tabGroupBounds.bottom == win2Bounds.top, `Window top bound: ${win2Bounds.top} tab group bottom bound: ${tabGroupBounds.bottom}`);
-    assert.true(tabGroupBounds.width == win2Bounds.width, `tab group width ${tabGroupBounds.width} window width: ${win2Bounds.width}`);
-    assert.true(tabGroupBounds.left == win1Bounds.left, `left are tabgroup: ${win2Bounds.left} win2: ${win1Bounds.left}`);
-    assert.true(tabGroupBounds.right == win1Bounds.right, `right are tabgroup: ${tabGroupBounds.right} win2: ${win2Bounds.right}`);
-    assert.true(tabGroupBounds.top + tabGroupBounds.height == win2Bounds.top, `tab top - height: ${tabGroupBounds.top + tabGroupBounds.height} tab group bottom bound: ${win2Bounds.top}`);
+    assert.is(tabGroupBounds.bottom, win2Bounds.top);
+    assert.is(tabGroupBounds.width, win2Bounds.width);
+    assert.is(tabGroupBounds.left, win1Bounds.left);
+    assert.is(tabGroupBounds.right, win1Bounds.right);
+    assert.is(tabGroupBounds.top + tabGroupBounds.height, win2Bounds.top);
     
 });
 

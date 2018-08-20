@@ -66,7 +66,7 @@ export class SaveAndRestoreAPIProcessor {
 						x: groupBounds.left!,
 						y: groupBounds.top!,
 						width: groupBounds.width!,
-						setHeight: groupBounds.height!,
+						tabGroupHeight: groupBounds.height!,
 						appHeight: appBounds.height!
 					}
 				};

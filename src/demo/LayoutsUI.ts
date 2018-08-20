@@ -17,12 +17,28 @@ window.forgetMe = forgetMe;
 
 export async function setLayout() {
     const name = (document.getElementById('layoutName') as HTMLTextAreaElement).value;
+    const layoutSelect = document.getElementById('layoutSelect') as HTMLSelectElement;
     const layout = await Layouts.saveCurrentLayout(name);
+
+    if (layoutSelect) {
+        let optionPresent = false;
+        for (let idx = 0; idx < layoutSelect.options.length;  idx++) { // looping over the options
+            if (layoutSelect.options[idx].value === name) {
+                optionPresent = true;
+                return;
+            }
+        }
+
+        if (!optionPresent) {
+            const option = createOptionElement(name);
+            layoutSelect.appendChild(option);
+        }
+    }
     document.getElementById('showLayout')!.innerHTML = JSON.stringify(layout, null, 2);
 }
 
 export async function getLayout() {
-    const name = (document.getElementById('layoutName') as HTMLTextAreaElement).value;
+    const name = (document.getElementById('layoutSelect') as HTMLSelectElement).value;
     const layout = await Layouts.getLayout(name);
 
     document.getElementById('showLayout')!.innerHTML = JSON.stringify(layout, null, 2);
@@ -34,7 +50,7 @@ export async function getAllLayouts() {
 }
 
 export async function restoreLayout() {
-    const name = (document.getElementById('layoutName') as HTMLTextAreaElement).value;
+    const name = (document.getElementById('layoutSelect') as HTMLSelectElement).value;
     const layout = await Layouts.restoreLayout(name);
     console.log('after layout,', layout);
 }
@@ -59,13 +75,59 @@ export function openChild(name: string, i: number, url?: string) {
     return win;
 }
 
-export async function createApp() {
+export async function createAppFromManifest2() {
     const appUrl = `${launchDir}/app2.json`;
     console.log('appurl', appUrl);
     fin.desktop.Application.createFromManifest(appUrl, (a: Application)=>a.run(), (e: Error) => { throw e; });
     // v2 api broken for createfromman / run
     // const app = await fin.Application.createFromManifest(appUrl);
     // app.run();
+}
+export async function createAppFromManifest3() {
+    const appUrl = `${launchDir}/app3.json`;
+    console.log('appurl', appUrl);
+    fin.desktop.Application.createFromManifest(appUrl, (a: Application)=>a.run(), (e: Error) => { throw e; });
+    // v2 api broken for createfromman / run
+    // const app = await fin.Application.createFromManifest(appUrl);
+    // app.run();
+}
+
+export async function createAppProgrammatically4() {
+    const app = new fin.desktop.Application({
+        url: `http://localhost:1337/demo/app4.html`,
+        uuid: 'App-4',
+        name: 'App-4',
+        mainWindowOptions: {
+            defaultWidth: 400,
+            defaultHeight: 300,
+            saveWindowState: false,
+            autoShow: true,
+            defaultCentered: true
+        }
+    },
+        () => {
+            app.run();
+        }
+    );
+}
+
+export async function createAppProgrammatically5() {
+    const app = new fin.desktop.Application({
+        url: `http://localhost:1337/demo/app5.html`,
+        uuid: 'App-5',
+        name: 'App-5',
+        mainWindowOptions: {
+            defaultWidth: 300,
+            defaultHeight: 400,
+            saveWindowState: false,
+            autoShow: true,
+            defaultCentered: true
+        }
+    },
+        () => {
+            app.run();
+        }
+    );
 }
 
 export function forgetMe(identity: ServiceIdentity) {
@@ -141,6 +203,25 @@ function removeForgetWins(window: ServiceIdentity) {
     return !forgetWindows.some(w => w.name === window.name);
 }
 
+function addLayoutNamesToDropdown() {
+    Layouts.getAllLayoutNames().then((names) => {
+        const layoutSelect = document.getElementById('layoutSelect');
+        names.forEach((name) => {
+            const option = createOptionElement(name);
+            if (layoutSelect) {
+                layoutSelect.appendChild(option);
+            }
+        });
+    });
+}
+
+function createOptionElement(name: string) {
+    const option = document.createElement('option');
+    option.value = name;
+    option.innerHTML = name;
+    return option;
+}
+
 //Do not snap to other windows
 Layouts.deregister();
 
@@ -151,3 +232,7 @@ Layouts.onWillSaveAppLayout(layoutApp => {
 });
 Layouts.onAppRestore(onAppRes);
 Layouts.ready();
+
+fin.desktop.main(() => {
+    addLayoutNamesToDropdown();
+});

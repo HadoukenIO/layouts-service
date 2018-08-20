@@ -14,7 +14,8 @@
   },
   "include": [
     "src/fin.d.ts",
-    "src/provider/snapanddock/**/*.ts"
+    "src/provider/snapanddock/**/*.ts",
+    "src/provider/tabbing/**/*.ts"
   ],
   "exclude": [
     "node_modules"

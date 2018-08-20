@@ -141,7 +141,7 @@ export async function initializeTabbing(message: TabWindowOptions, uuid: string,
  * @function createTabGroupsFromMultipleWindows
  * @param tabBlob[] Restoration data
  */
-export async function createTabGroupsFromMultipleWindows(tabBlob: TabBlob[] | null = null): Promise<void> {
+export async function createTabGroupsFromMultipleWindows(tabBlob: TabBlob[]): Promise<void> {
     if (!tabBlob) {
         console.error("No tab blob supplied");
         return;

@@ -1,0 +1,27 @@
+{
+    "devtools_port": 9091,
+    "startup_app": {
+        "name": "Layout-Manager",
+        "description": "OpenFin Layouts Managing Service",
+        "url": "http://localhost:1337/test/provider.html",
+        "uuid": "Layout-Manager",
+        "autoShow": true,
+        "showTaskbarIcon": true,
+        "defaultHeight": 300,
+        "defaultWidth": 400,
+        "_experimental": {
+            "v2Api": true
+        }
+    },
+    "exports": {
+        "name": "layoutsManager",
+        "supportedVersions": [
+            "0.0.1"
+        ]
+    },
+  "runtime": {
+    "arguments": "--v=1 --enable-crash-reporting",
+    "version": "9.61.33.32"
+  },
+    "shortcut": {}
+}

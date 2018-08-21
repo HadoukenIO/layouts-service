@@ -79,7 +79,7 @@ export const restoreLayout = async(payload: LayoutName|Layout, identity: Identit
                     }));
                 }
                 // Start App
-                if (app.createdFromManifest) {
+                if (app.manifestUrl) {
                     const {manifestUrl} = app;
                     // Started from manifest
                     console.log('App has manifestUrl:', app);

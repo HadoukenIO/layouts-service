@@ -54,10 +54,11 @@ export const getCurrentLayout = async(): Promise<Layout> => {
             });
             if (wasCreatedFromManifest(appInfo, uuid)) {
                 delete appInfo.manifest;
-                return { ...app, ...appInfo, uuid, createdFromManifest: true, confirmed: false };
+                return { ...app, ...appInfo, uuid, confirmed: false };
             } else if (wasCreatedProgrammatically(appInfo)) {
                 delete appInfo.manifest;
-                return { ...app, ...appInfo, uuid, createdFromManifest: false, confirmed: false };
+                delete appInfo.manifestUrl;
+                return { ...app, ...appInfo, uuid, confirmed: false };
             } else {
                 console.error('Not saving app, cannot restore:', app);
                 return null;

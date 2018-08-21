@@ -85,39 +85,22 @@ export class TabGroup {
      * @param {TabIdentifier[]} orderReference The order which we should rearrange our tabs to match.  This will come from the UI component.
      */
     public reOrderTabArray(orderReference: TabIdentifier[]): boolean {
-        // We should receive a 1:1 length match between the tabs we know of and the tabs the UI is sending
-        if (this._tabs.length !== orderReference.length) {
-            console.error('Mismatched array lengths on reorder!');
+        const newlyOrdered = orderReference
+                                 .map((ref) => this._tabs.find((tab, i) => {
+                                     if (tab.ID.name === ref.name && tab.ID.uuid === ref.uuid) {
+                                         return true;
+                                     }
+                                     return false;
+                                 }))
+                                 .filter((tab: Tab|undefined) => tab !== undefined);
+
+        if (newlyOrdered.length === this._tabs.length) {
+            this._tabs = newlyOrdered as Tab[];
+            return true;
+        } else {
+            console.error('Input array must reference each tab exactly once');
             return false;
         }
-
-        // The new order
-        const newlyOrdered: Tab[] = [];
-
-        // Copy of the tabs we know of
-        const existingTabsCheck: Tab[] = this._tabs.slice();
-
-        orderReference.forEach((ref) => {
-            this._tabs.find((tab, i) => {
-                if (tab.ID.name === ref.name && tab.ID.uuid === ref.uuid) {
-                    newlyOrdered.push(tab);
-                    delete existingTabsCheck[i];
-                    return true;
-                }
-
-                return false;
-            });
-        });
-
-        // Any tabs we know of that werent in the array to match against will be stuck on the end of the new order.
-        // Prevents user from putting nonexistant tabs to match against
-        newlyOrdered.push(...existingTabsCheck.filter((tab) => {
-            if (tab) return true;
-            return false;
-        }));
-
-        this._tabs = newlyOrdered;
-        return true;
     }
 
     /**

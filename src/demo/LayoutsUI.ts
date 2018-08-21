@@ -183,12 +183,8 @@ async function onAppRes(layoutApp: LayoutApp): Promise<LayoutApp> {
         if(!openWindows.some((w: Application) => w.identity.name === win.name)) {
             const ofWin = await openChild(win.name, index, win.info.url);
             positionWindow(win);
-            // await ofWin.setBounds(win).catch((e: Error) => console.log('Setbounds error:', e));
         } else {
-            // const ofWin = await fin.Window.wrap(win);
             positionWindow(win);
-            // await ofWin.leaveGroup();
-            // await ofWin.setBounds(win).catch((e: Error) => console.log('Setbounds error:', e));
         }
     });
     await Promise.all(openAndPosition);

@@ -63,7 +63,7 @@ build()
     .catch(fail)
     //Had to restrict pattern to only include 'provider' as we now have a mix of ava and jest based tests.
     //Will need to port one to the other at some point - needs some discussion first.
-    //.then(OF_PORT => run('ava --serial', ['build/test/test/demo/**/*.test.js'], { env: { OF_PORT } }))
-    .then(OF_PORT => run('ava --serial', ['build/test/**/*.test.js'], { env: { OF_PORT } }))
+    .then(OF_PORT => run('ava --serial', ['build/test/test/demo/**/*.test.js'], { env: { OF_PORT } }))
+    //.then(OF_PORT => run('ava --serial', ['build/test/**/*.test.js'], { env: { OF_PORT } }))
     .then(cleanup)
     .catch(cleanup);

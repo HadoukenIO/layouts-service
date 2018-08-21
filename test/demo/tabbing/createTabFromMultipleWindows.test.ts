@@ -39,8 +39,8 @@ test("Create tab group from 2 windows", async (assert) => {
             url: "",
             active: { uuid: win2.identity.uuid, name: win2.identity.name! },
             dimensions: {
-                x: 1000,
-                y: 500,
+                x: 100,
+                y: 100,
                 width: preWin2Bounds.width,
                 tabGroupHeight: 100,
                 appHeight: preWin2Bounds.height
@@ -62,7 +62,9 @@ test("Create tab group from 2 windows", async (assert) => {
 
     // Tab group should have been created
     const serviceChildWindows: Window[] = await serviceApplication.getChildWindows();
+
     var uuidTestPattern = new RegExp('^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$', 'i');
+
     const newTabGroupWindow: Window | undefined = serviceChildWindows.find((window: Window) => {
         return window.identity.uuid == "Layout-Manager" && uuidTestPattern.test(window.identity.name!);
     });
@@ -80,7 +82,8 @@ test("Create tab group from 2 windows", async (assert) => {
     assert.is(win2Bounds.right, win1Bounds.right);
     assert.is(win2Bounds.top, win1Bounds.top);
     assert.is(win2Bounds.width, win1Bounds.width);
-    assert.is(win2Bounds.top, tabBlobs[0].groupInfo.dimensions.y + tabBlobs[0].groupInfo.dimensions.tabGroupHeight);
+    assert.is(win2Bounds.top, (tabBlobs[0].groupInfo.dimensions.y + tabBlobs[0].groupInfo.dimensions.tabGroupHeight));
+    assert.is(win2Bounds.left, tabBlobs[0].groupInfo.dimensions.x);
     
 
     // TabGroup existence check

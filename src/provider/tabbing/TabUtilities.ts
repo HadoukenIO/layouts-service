@@ -172,7 +172,7 @@ export async function createTabGroupsFromMultipleWindows(tabBlob: TabBlob[]): Pr
                 await existingTab.tabGroup.removeTab(existingTab.ID, false, true);
             }
 
-            const newTab: Tab|undefined = await group.addTab({tabID: {uuid: tab.uuid, name: tab.name}});
+            const newTab: Tab|undefined = await group.addTab({tabID: {uuid: tab.uuid, name: tab.name}}, false, false);
 
             if (!newTab) {
                 console.error('No tab was added');

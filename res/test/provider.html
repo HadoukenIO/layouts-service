@@ -8,22 +8,45 @@
     <script>
         fin.desktop.InterApplicationBus.subscribe('*', 'test', (message) => {
             console.log(message);
-            const returnVal = eval(message);
 
-            if (returnVal instanceof Promise) {
-                returnVal.then(() => {
-                    fin.desktop.InterApplicationBus.send("TEST", "replytest", "script evaluated");
-                });
-            } else {
-                fin.desktop.InterApplicationBus.send("TEST", "replytest", "script evaluated");
+            fin.desktop.System.showDeveloperTools()
+
+            try {
+                const returnVal = eval(message);
+
+                if (returnVal instanceof Promise) {
+                    returnVal.then((val) => {
+                        if (val) {
+                            try {
+                                JSON.stringify(val);
+                                fin.desktop.InterApplicationBus.send("TEST", "replytest", val);
+                            } catch (error) {
+                                fin.desktop.InterApplicationBus.send("TEST", "replytest", 'Error: ' + error);
+                            }
+                        } else {
+                            fin.desktop.InterApplicationBus.send("TEST", "replytest", "Script executed");
+                        }
+                    });
+                } else if (returnVal) {
+                    try {
+                        JSON.stringify(val);
+                        fin.desktop.InterApplicationBus.send("TEST", "replytest", returnVal);
+                    } catch (error) {
+                        fin.desktop.InterApplicationBus.send("TEST", "replytest", 'Error: ' + error);
+                    }
+                } else {
+                    fin.desktop.InterApplicationBus.send("TEST", "replytest", "Script executed");
+                }
+            } catch (error) {
+                fin.desktop.InterApplicationBus.send("TEST", "replytest", 'Error: ' + error);
             }
-            
         });
     </script>
     <title>Layouts Manager Service</title>
 </head>
 
 <body>
-  <h3>"Headless" Layouts Manager Service</h3>
+    <h3>"Headless" Layouts Manager Service</h3>
 </body>
+
 </html>

@@ -6,6 +6,7 @@ import { createChildWindow } from './utils/createChildWindow';
 import { Window, Fin } from 'hadouken-js-adapter';
 import { getConnection } from './utils/connect';
 import { undockWindow, WindowIdentity } from './utils/undockWindow';
+import { executeJavascriptOnService } from '../demo/utils/executeJavascriptOnService';
 
 let win1: Window, win2: Window;
 let fin: Fin;
@@ -311,7 +312,8 @@ async function assertGrouped(win1: Window, win2: Window, t: TestContext) {
     }
     
     // Both windows are in the same SnapGroup
-    // TODO
+    const [snapGroup1, snapGroup2] = [await getSnapGroup(win1), await getSnapGroup(win2)];
+    t.deepEqual(snapGroup1, snapGroup2);
 }
 
 async function assertNotGrouped(win: Window, t: TestContext) {
@@ -320,7 +322,8 @@ async function assertNotGrouped(win: Window, t: TestContext) {
     t.is(group.length, 0);
 
     // Window is alone in it's SnapGroup
-    // TODO
+    const snapGroup = await getSnapGroup(win);
+    t.is(snapGroup.length, 1);
 }
 
 async function assertMoved(bounds1:NormalizedBounds, bounds2:NormalizedBounds, t: TestContext) {
@@ -329,6 +332,16 @@ async function assertMoved(bounds1:NormalizedBounds, bounds2:NormalizedBounds, t
 
 async function assertNotMoved(bounds1:NormalizedBounds, bounds2:NormalizedBounds, t: TestContext) {
     t.deepEqual(bounds1, bounds2);
+}
+
+// Should replace this 'any' once types can be imported seperately to implementation
+async function getSnapGroup(win: Window): Promise<any[]> {
+    return JSON.parse(await executeJavascriptOnService(`
+    snapService.getSnapWindow({
+        uuid: "${win.identity.uuid}", 
+        name: "${win.identity.name}"
+    }).group.windows.map(w => w.identity)
+    `));
 }
 
 async function delay(seconds: number) {

@@ -120,7 +120,7 @@ export async function initializeTabbing(message: TabWindowOptions, uuid: string,
     }
 
     const group: TabGroup = await tabService.addTabGroup(message);
-    const tab: Tab | undefined = await group.addTab({ tabID: { uuid, name } }, false, false);
+    const tab: Tab|undefined = await group.addTab({tabID: {uuid, name}}, false, false);
 
     if (!tab) {
         console.error('No tab was added');

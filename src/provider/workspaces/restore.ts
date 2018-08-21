@@ -70,7 +70,7 @@ export const restoreLayout = async(payload: LayoutName|Layout, identity: Identit
             } else {
                 let ofApp: undefined|Application;
                 console.log('App is not running:', app);
-                createAppPlaceholders(app);
+                await createAppPlaceholders(app);
 
                 // App is not running - setup communication to fire once app is started
                 if (app.confirmed) {

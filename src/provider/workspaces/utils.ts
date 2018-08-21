@@ -42,7 +42,7 @@ export const positionWindow = async (win: WindowState) => {
     }
 };
 
-export const createAppPlaceholders = (app: LayoutApp) => {
+export const createAppPlaceholders = async (app: LayoutApp) => {
     createPlaceholder(app.mainWindow);
     app.childWindows.forEach((win: WindowState) => {
         createPlaceholder(win);
@@ -73,9 +73,18 @@ export const wasCreatedProgrammatically = (app: LayoutApp) => {
     return app && app.initialOptions && app.initialOptions.uuid && app.initialOptions.url;
 };
 
+interface AppInfo {
+    manifest: {
+        startup_app: { 
+            uuid: string;
+        };
+    };
+    manifestUrl: string;
+    uuid: string;
+}
+
 // Type here should be ApplicationInfo from the js-adapter (needs to be updated)
-export const wasCreatedFromManifest = (app: LayoutApp, uuid?: string) => {
-    //@ts-ignore
+export const wasCreatedFromManifest = (app: AppInfo, uuid?: string) => {
     const {manifest, manifestUrl} = app;
     const appUuid = uuid || app.uuid;
     return typeof manifest === 'object' && manifest.startup_app && manifest.startup_app.uuid === appUuid;

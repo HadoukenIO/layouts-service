@@ -182,9 +182,9 @@ async function onAppRes(layoutApp: LayoutApp): Promise<LayoutApp> {
     const openAndPosition = layoutApp.childWindows.map(async (win, index) => {
         if(!openWindows.some((w: Application) => w.identity.name === win.name)) {
             const ofWin = await openChild(win.name, index, win.info.url);
-            positionWindow(win);
+            await positionWindow(win);
         } else {
-            positionWindow(win);
+            await positionWindow(win);
         }
     });
     await Promise.all(openAndPosition);

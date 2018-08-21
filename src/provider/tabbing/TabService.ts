@@ -1,11 +1,12 @@
-import { TabIdentifier, TabPackage, TabWindowOptions } from "../../client/types";
+import { TabIdentifier, TabPackage, TabWindowOptions } from '../../client/types';
 
-import { DragWindowManager } from "./DragWindowManager";
-import { EventHandler } from "./EventHandler";
-import { Tab } from "./Tab";
-import { TabAPIActionProcessor } from "./TabAPIActionProcessor";
-import { TabGroup } from "./TabGroup";
-import { ZIndexer } from "./ZIndexer";
+import { DragWindowManager } from './DragWindowManager';
+import { EventHandler } from './EventHandler';
+import { SaveAndRestoreAPIProcessor } from './SaveAndRestoreAPIProcessor';
+import { Tab } from './Tab';
+import { TabAPIActionProcessor } from './TabAPIActionProcessor';
+import { TabGroup } from './TabGroup';
+import { ZIndexer } from './ZIndexer';
 
 /**
  * The overarching class for the Tab Service.

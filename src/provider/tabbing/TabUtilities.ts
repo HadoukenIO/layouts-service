@@ -1,4 +1,4 @@
-import {TabIdentifier, TabWindowOptions} from '../../client/types';
+import {TabBlob, TabIdentifier, TabWindowOptions} from '../../client/types';
 
 import {Tab} from './Tab';
 import {TabGroup} from './TabGroup';
@@ -42,8 +42,28 @@ export async function ejectTab(tabService: TabService, message: TabIdentifier&Ta
     if (isOverTabWindowResult) {
         // If the window underneath our point is not the group we're ejecting from.
         if (isOverTabWindowResult !== ejectedTab.tabGroup) {
-            // Add the tab
-            await isOverTabWindowResult.addTab({tabID: ejectedTab.ID});
+            // If the window underneath our point has the same URL as the ejecting group
+            if (isOverTabWindowResult.window.initialWindowOptions.url === ejectedTab.tabGroup.window.initialWindowOptions.url) {
+                // Remove the tab from the ejecting group
+                await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true);
+
+                // Add the tab to the window underneath our point
+                const tab = await isOverTabWindowResult.addTab({tabID: ejectedTab.ID});
+
+                if (!tab) {
+                    console.error('Tab was not added');
+                    return;
+                }
+
+                // Align the app window to the new tab group (window underneath)
+                await tab.window.alignPositionToTabGroup();
+
+                // Switch to the added tab in the new group to show the proper window
+                isOverTabWindowResult.switchTab(ejectedTab.ID);
+            } else {
+                // If we the two group URLs dont match then we dont allow tabbing!
+                console.warn('Cannot tab - mismatched group Urls!');
+            }
         }
     } else {
         // If we have no window underneath our point...
@@ -103,6 +123,7 @@ export async function initializeTabbing(message: TabWindowOptions, uuid: string,
     const tab: Tab|undefined = await group.addTab({tabID: {uuid, name}}, false, false);
 
     if (!tab) {
+        console.error('No tab was added');
         return;
     }
 
@@ -120,6 +141,59 @@ export async function initializeTabbing(message: TabWindowOptions, uuid: string,
     // Switch tab on group to make our added tab the active one
     group.switchTab({uuid, name});
 }
+
+/**
+ * Takes a tabblob and restores windows based on the blob
+ * @function createTabGroupsFromMultipleWindows
+ * @param tabBlob[] Restoration data
+ */
+export async function createTabGroupsFromMultipleWindows(tabBlob: TabBlob[]): Promise<void> {
+    if (!tabBlob) {
+        console.error('No tab blob supplied');
+        return;
+    }
+
+    for (const blob of tabBlob) {
+        const newTabWindowOptions: TabWindowOptions = {
+            url: blob.groupInfo.url,
+            screenX: blob.groupInfo.dimensions.x,
+            screenY: blob.groupInfo.dimensions.y,
+            height: blob.groupInfo.dimensions.tabGroupHeight,
+            width: blob.groupInfo.dimensions.width,
+        };
+
+        // Create new tabgroup
+        const group: TabGroup = await TabService.INSTANCE.addTabGroup(newTabWindowOptions);
+
+        for (const tab of blob.tabs) {
+            const existingTab: Tab|undefined = TabService.INSTANCE.getTab({uuid: tab.uuid, name: tab.name});
+
+            if (existingTab) {
+                await existingTab.tabGroup.removeTab(existingTab.ID, false, true);
+            }
+
+            const newTab: Tab|undefined = await group.addTab({tabID: {uuid: tab.uuid, name: tab.name}}, false, false);
+
+            if (!newTab) {
+                console.error('No tab was added');
+                return;
+            }
+
+            if (blob.groupInfo.dimensions.x && blob.groupInfo.dimensions.y) {
+                // if we are provided coords then we tab group is created at them so we need to bring the app window to group.
+                await newTab.window.alignPositionToTabGroup();
+            } else {
+                // if no coords then its safe to assume we need to move group window to app window.
+                await group.window.alignPositionToApp(newTab.window);
+            }
+        }
+
+        group.window.finWindow.show();
+        group.switchTab({uuid: blob.groupInfo.active.uuid, name: blob.groupInfo.active.uuid});
+    }
+}
+
+(window as Window & {createTabGroupsFromMultipleWindows: Function}).createTabGroupsFromMultipleWindows = createTabGroupsFromMultipleWindows;
 
 /**
  * Creates a UUIDv4() ID

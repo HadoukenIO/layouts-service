@@ -8,6 +8,7 @@ import { createTabGroupsFromMultipleWindows } from '../../../src/provider/tabbin
 import { TabBlob } from '../../../src/client/types';
 import { TabService } from '../../../src/provider/tabbing/TabService';
 import { executeJavascriptOnService } from '../utils/executeJavascriptOnService';
+import { setTimeout } from 'timers';
 
 let win1: Window
 let win2: Window;
@@ -38,10 +39,10 @@ test("Create tab group from 2 windows", async (assert) => {
             url: "",
             active: { uuid: win2.identity.uuid, name: win2.identity.name! },
             dimensions: {
-                x: 200,
-                y: 100,
+                x: 1000,
+                y: 500,
                 width: preWin2Bounds.width,
-                tabGroupHeight: 130,
+                tabGroupHeight: 100,
                 appHeight: preWin2Bounds.height
             }
         },
@@ -79,8 +80,8 @@ test("Create tab group from 2 windows", async (assert) => {
     assert.is(win2Bounds.right, win1Bounds.right);
     assert.is(win2Bounds.top, win1Bounds.top);
     assert.is(win2Bounds.width, win1Bounds.width);
-    assert.is(win2Bounds.left, tabBlobs[0].groupInfo.dimensions.x);
-    assert.is(win1Bounds.left, tabBlobs[0].groupInfo.dimensions.x);
+    assert.is(win2Bounds.top, tabBlobs[0].groupInfo.dimensions.y + tabBlobs[0].groupInfo.dimensions.tabGroupHeight);
+    
 
     // TabGroup existence check
     assert.is(tabGroupBounds.bottom, win2Bounds.top);
@@ -88,7 +89,6 @@ test("Create tab group from 2 windows", async (assert) => {
     assert.is(tabGroupBounds.left, win1Bounds.left);
     assert.is(tabGroupBounds.right, win1Bounds.right);
     assert.is(tabGroupBounds.top + tabGroupBounds.height, win2Bounds.top);
-    
 });
 
 /**

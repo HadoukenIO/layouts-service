@@ -146,10 +146,6 @@ export interface TabbedEventPayload {
 }
 
 export interface TabBlob {
-    groupInfo: {url: string; active: TabIdentifier; dimensions: {x: number; y: number; width: number; setHeight: number; appHeight: number;};};
+    groupInfo: Group;
     tabs: TabIdentifier[];
-}
-
-export interface TabAPIReorderMessage extends TabAPIMessage {
-    tabOrder: TabIdentifier[];
 }

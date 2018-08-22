@@ -4,7 +4,9 @@ const randomColor = () => {
     return "#"+((1<<24)*Math.random()|0).toString(16);
 };
 
-document.body.style.backgroundColor = randomColor();
+document.addEventListener('DOMContentLoaded', () => {
+    document.body.style.backgroundColor = randomColor();
+});
 
 fin.desktop.main(()=>{
     Layouts.addEventListener("TABBED", (e:any) => {

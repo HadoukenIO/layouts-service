@@ -59,7 +59,7 @@ test('Tabset on dragover - tearout dropped window', async t => {
 
 });
 
-test.only('Tabset on dragover - drop on torn-out dropped window', async t => {
+test('Tabset on dragover - drop on torn-out dropped window', async t => {
 
     // Drag win1 over win2 to make a tabset
     await dragWindowToOtherWindow(win1,'top-left', win2, 'top-left', {x:-20, y:-20});

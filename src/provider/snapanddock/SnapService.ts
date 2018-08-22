@@ -262,17 +262,6 @@ export class SnapService {
 
         if (snapTarget) {
             console.log('Found snap target: ' + snapTarget.group.windows[0].getId());
-        } else if (activeGroup.length === 1 && !TabService.INSTANCE.getTabGroupByApp(activeGroup.windows[0].getIdentity())) {
-            // If a single window is being dragged, it is possible to create a tabset
-
-            const activeState = activeGroup.windows[0].getState();
-
-            // Window will be tabbed if center of the dragged window overlaps with an initialized tabbable window.
-            TabService.INSTANCE.isPointOverTabGroup(activeState.center.x, activeState.center.y).then((tabTarget) => {
-                if (tabTarget) {
-                    console.log('Found tab target: ' + tabTarget.tabs);
-                }
-            });
         } else {
             console.log('No snap targets');
         }

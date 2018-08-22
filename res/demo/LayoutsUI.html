@@ -3,22 +3,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Demo App - App 1</title>
+    <title>Layouts Manager</title>
+    <link rel="stylesheet" href="./layouts-ui.css">
     <script src="./LayoutsUI-bundle.js"></script>
 </head>
 <body>
-    <h3>App 1 - Demo Layout "Manager"</h3>
+    <h3>Layouts</h3>
     <div>
-        <input value="Name of Layout" id="layoutName">
-    </div>
-    <div>
-        <button onclick="LayoutsUI.setLayout()">Set Layout</button>
-        <button onclick="LayoutsUI.getLayout()">Get Layout</button>
-        <button onclick="LayoutsUI.getAllLayouts()">Get All Layouts</button>
+        <select name="" id="layoutSelect"></select>
         <button onclick="LayoutsUI.restoreLayout()">Restore Layout</button>
-        <button onclick="LayoutsUI.createChild()">Create Child</button>
-        <button onclick="LayoutsUI.createApp()">Create (one) App</button>
+        <button onclick="LayoutsUI.getLayout()">Get Layout</button>
+        <button onclick="LayoutsUI.getAllLayouts()">Layout Names</button>
     </div>
+    <div>
+        <input placeholder="Name of Layout" id="layoutName">
+        <button onclick="LayoutsUI.setLayout()">Set Layout</button>
+    </div>
+    <h3>Manage</h3>
+    <div>
+        <button onclick="LayoutsUI.createAppFromManifest2()">Create App2 From Manifest</button>
+        <button onclick="LayoutsUI.createAppFromManifest3()">Create App3 From Manifest</button>
+        <button onclick="LayoutsUI.createAppProgrammatically4()">Create App4 Programmatically</button>
+        <button onclick="LayoutsUI.createAppProgrammatically5()">Create App5 Programmatically</button>
+        <button onclick="LayoutsUI.createSnapWindows()">Create Snap Windows</button>
+    </div>
+    <h3>Tabbed Windows</h3>
     <div>
         <button onclick="LayoutsUI.createTabbedWindow('default')">Default UI</button>
         <button onclick="LayoutsUI.createTabbedWindow('App2')">New App 2</button>
@@ -26,10 +35,7 @@
         <button onclick="LayoutsUI.createTabbedWindow('noauto')">New App no init</button>
     </div>
     <div>
-        <textArea id='showLayout' style="margin: 0px;width: 100%;height: 90%;"></textArea>
+        <textArea id='showLayout'></textArea>
     </div>
-    <script>
-        LayoutsUI.createSnapWindows();
-    </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
     "startup_app": {
         "name": "Layout-Manager",
         "description": "OpenFin Layouts Managing Service",
-        "url": "https://cdn.openfin.co/services/openfin/layouts/stable/index.html",
+        "url": "http://localhost:1337/test/provider.html",
         "uuid": "Layout-Manager",
         "autoShow": true,
         "showTaskbarIcon": true,
@@ -19,8 +19,9 @@
             "0.0.1"
         ]
     },
-    "runtime": {
-        "arguments": "--v=1 --enable-crash-reporting",
-        "version": "9.61.33.32"
-    }
+  "runtime": {
+    "arguments": "--v=1 --enable-crash-reporting",
+    "version": "9.61.33.32"
+  },
+    "shortcut": {}
 }

@@ -92,7 +92,7 @@ export class SnapRanges {
 
                         //Snap to min/max points
                         if (numValidRanges === 1) {
-                            const snapToMin = Math.abs(Math.abs(activeState.center[range.opposite] - range.min) - activeState.halfSize[range.opposite]) < ANCHOR_DISTANCE;
+                            const snapToMin = Math.abs((activeState.center[range.opposite] - activeState.halfSize[range.opposite]) - range.min) < ANCHOR_DISTANCE;
                             const snapToMax = Math.abs((activeState.center[range.opposite] + activeState.halfSize[range.opposite]) - range.max) < ANCHOR_DISTANCE;
 
                             if (snapToMin && snapToMax) {

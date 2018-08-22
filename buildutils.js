@@ -1,5 +1,3 @@
-const path = require('path')
-
 // this function simply copies/modifies root package.json into the 
 // dist dir with the correct paths
 // this is only useful for ./src/demo
@@ -20,12 +18,11 @@ function mockDistDir() {
 }
 
 // shared function to create a webpack config for an entry point
-function createConfig(component, entryPoint, isLibrary, ...plugins) {
-    const outputDir = path.resolve(__dirname, './build');
+function createConfig(outPath, entryPoint, isLibrary, ...plugins) {
     const config = {
         entry: entryPoint,
         output: {
-            path: outputDir + '/' + component,
+            path: outPath,
             filename: '[name]-bundle.js'
         },
         resolve: {

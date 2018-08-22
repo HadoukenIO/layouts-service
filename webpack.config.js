@@ -1,9 +1,12 @@
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const path = require('path')
 
 const utils = require('./buildutils');
 
+const outputDir = path.resolve(__dirname, './build');
+
 module.exports = [
-    utils.createConfig('provider', './staging/provider/main.js', false, 
+    utils.createConfig(`${outputDir}/provider`, './staging/provider/main.js', false, 
         new CopyWebpackPlugin([{ from: './res/provider/provider.html' }]),
         new CopyWebpackPlugin([{ from: './res/provider/tabbing/', to: './tabbing' }]),
         new CopyWebpackPlugin(
@@ -19,5 +22,5 @@ module.exports = [
             }
         }]
     )),
-    utils.createConfig('provider', {tabStrip: './staging/provider/tabbing/tabstrip/TabStrip.js'}, false),
+    utils.createConfig(`${outputDir}/provider`, {tabStrip: './staging/provider/tabbing/tabstrip/TabStrip.js'}, false),
 ];

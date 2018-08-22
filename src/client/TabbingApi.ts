@@ -1,7 +1,7 @@
 import {Api} from './Api';
 import {TabAPIActions, TabApiEvents} from './APITypes';
 import {TabbingApiWindowActions} from './TabbingApiWindowActions';
-import {TabAPIDragMessage, TabAPIInteractionMessage, TabAPIMessage, TabIdentifier, TabProperties} from './types';
+import {TabAPIDragMessage, TabAPIInteractionMessage, TabAPIMessage, TabAPIReorderMessage, TabIdentifier, TabProperties} from './types';
 
 /**
  * @description Interface to outline shape of event listeners for storage
@@ -55,7 +55,7 @@ export class TabbingApi extends Api {
             }
         }
 
-        const payload = {action: TabAPIActions.TABSREORDERED, properties: tabs};
+        const payload: TabAPIReorderMessage = {action: TabAPIActions.TABSREORDERED, tabOrder: tabs};
 
         super.sendAction(payload);
     }

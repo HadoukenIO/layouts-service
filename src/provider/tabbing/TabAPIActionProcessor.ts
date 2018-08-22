@@ -1,5 +1,5 @@
 import {TabAPIActions, TabAPIWindowActions} from '../../client/APITypes';
-import {TabAPIDragMessage, TabAPIInteractionMessage, TabAPIMessage, TabIdentifier, TabPackage} from '../../client/types';
+import {TabAPIDragMessage, TabAPIInteractionMessage, TabAPIMessage, TabAPIReorderMessage, TabIdentifier, TabPackage} from '../../client/types';
 
 import {Tab} from './Tab';
 import {TabGroup} from './TabGroup';
@@ -79,7 +79,7 @@ export class TabAPIActionProcessor {
                 this._endDrag(message as TabAPIDragMessage, tabGroup);
                 break;
             case TabAPIActions.TABSREORDERED:
-                this._tabsReordered(message as {action: TabAPIActions, properties: TabIdentifier[]}, tabGroup);
+                this._tabsReordered(message as TabAPIReorderMessage, tabGroup);
                 break;
             case TabAPIWindowActions.TOGGLEMAXIMIZE:
                 tabGroup.window.toggleMaximize();
@@ -101,8 +101,8 @@ export class TabAPIActionProcessor {
      * @param message The array of tabs to sort by.
      * @param group The TabGroup attached to this call.
      */
-    private async _tabsReordered(message: {action: TabAPIActions, properties: TabIdentifier[]}, group: TabGroup) {
-        group.reOrderTabArray(message.properties);
+    private _tabsReordered(message: TabAPIReorderMessage, group: TabGroup) {
+        group.reOrderTabArray(message.tabOrder);
     }
 
     /**

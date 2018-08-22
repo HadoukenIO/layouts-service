@@ -12,7 +12,8 @@ const IDENTITY = {
     uuid: 'layouts-service',
     name: 'layouts-service'
 };
-const VERSION = '0.0.1';
+
+const VERSION = require('./version');
 
 // tslint:disable-next-line:no-any
 declare var fin: any;
@@ -34,7 +35,8 @@ const getId = (() => {
     };
 })();
 
-const servicePromise: Promise<ServiceClient> = fin.desktop.Service.connect({...IDENTITY, payload: VERSION}).then((service: ServiceClient) => {
+const servicePromise: Promise<ServiceClient> = fin.desktop.Service.connect({...IDENTITY, payload: {version: VERSION}}).then((service: ServiceClient) => {
+    console.log('client connected to service: ' + VERSION);
     // Map undocking keybind
     Mousetrap.bind('mod+shift+u', () => {
         service.dispatch('undockWindow', getId());
@@ -109,6 +111,20 @@ export async function addEventListener(
     // Use native js event system to pass internal events around.
     // Without this we would need to handle multiple registration ourselves.
     window.addEventListener(eventType, callback);
+}
+
+/**
+ * Will undock every window that is currently connected to a current window.
+ *
+ * This will completely disband the entire group, not just the windows directly touching 'identity'.
+ *
+ * Has no effect if 'identity' isn't currently snapped to any other window.
+ *
+ * @param identity A window belonging to the group that should be exploded, defaults to the current window/group
+ */
+export async function explodeGroup(identity: Identity = getId()): Promise<void> {
+    const service: ServiceClient = await servicePromise;
+    return service.dispatch('explode', identity);
 }
 
 /**

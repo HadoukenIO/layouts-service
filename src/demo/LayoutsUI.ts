@@ -1,4 +1,3 @@
-import * as Layouts from '../client/main';
 import { Application } from 'hadouken-js-adapter';
 import { ServiceIdentity } from 'hadouken-js-adapter/out/types/src/api/services/channel';
 import { _Window } from 'hadouken-js-adapter/out/types/src/api/window/window';
@@ -10,6 +9,8 @@ export interface Workspace {
     id: string;
     layout: Layout;
 }
+
+const Layouts = require('openfin-layouts');
 
 //tslint:disable-next-line:no-any
 declare var fin: any;
@@ -226,8 +227,14 @@ function createOptionElement(id: string) {
 Layouts.deregister();
 
 //Allow layouts service to save and restore this application
+<<<<<<< HEAD
 Layouts.onApplicationSave(() => {
     return {test: true};
+=======
+Layouts.onWillSaveAppLayout((layoutApp:any) => {
+    layoutApp.childWindows = layoutApp.childWindows.filter(removeForgetWins);
+    return layoutApp;
+>>>>>>> make layouts like fdc3 (PR-6) and notifs (PR-22)
 });
 Layouts.onAppRestore(onAppRes);
 Layouts.ready();

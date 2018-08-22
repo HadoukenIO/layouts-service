@@ -211,7 +211,7 @@ export class SnapService {
         }
     }
 
-    private onWindowGroupChanged(this: SnapService, event: fin.WindowGroupChangedEvent) {
+    private onWindowGroupChanged(event: fin.WindowGroupChangedEvent) {
         // Each group operation will raise an event from every window involved. We should filter out to
         // only receive the one from the window being moved.
         if (event.name !== event.sourceWindowName || event.uuid !== event.sourceWindowAppUuid) {

@@ -232,6 +232,7 @@ export class SnapWindow {
      * @param group The group that this window should be added to
      * @param offset An offset to apply to this windows position (use this to enusre window is in correct position)
      * @param newHalfSize Can also simultaneously change the size of the window
+     * @param synthetic Signifies that the setGroup has been triggered by a native group event. Will disable native group changes that would normally occur
      */
     public setGroup(group: SnapGroup, offset?: Point, newHalfSize?: Point, synthetic?: boolean): void {
         if (group !== this.group) {
@@ -257,7 +258,11 @@ export class SnapWindow {
                     delta.center.y += newHalfSize.y - this.state.halfSize.y;
                 }
 
-                this.applyState(delta, () => this.snap());
+                this.applyState(delta, () => {
+                    if(!synthetic) {
+                        this.snap();
+                    }
+                });
             } else if (group.windows.length >= 2 && !synthetic) {
                 this.snap();
             }

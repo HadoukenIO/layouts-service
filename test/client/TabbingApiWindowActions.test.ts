@@ -1,5 +1,4 @@
-﻿import "jest";
-import { TabbingApiWindowActions } from "../../src/client/TabbingApiWindowActions";
+﻿import { TabbingApiWindowActions } from "../../src/client/TabbingApiWindowActions";
 import { TabAPIWindowActions } from "../../src/client/APITypes";
 import { TabAPIMessage } from "../../src/client/types";
 import { createFinMock } from "./utils/FinMock";

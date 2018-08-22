@@ -62,7 +62,7 @@ export class SaveAndRestoreAPIProcessor {
                 url: group.window.initialWindowOptions.url!,
                 active: group.activeTab.ID,
                 dimensions:
-                    {x: groupBounds.left!, y: groupBounds.top!, width: groupBounds.width!, tabGroupHeight: groupBounds.height!, appHeight: appBounds.height!}
+                    {x: groupBounds.left!, y: groupBounds.top!, width: groupBounds.width!, setHeight: groupBounds.height!, appHeight: appBounds.height!}
             };
 
             return {tabs, groupInfo};

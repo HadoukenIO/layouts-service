@@ -1,7 +1,7 @@
 {
     "extends": "../node_modules/gts/tsconfig-google.json",
     "compilerOptions": {
-      "rootDir": "..",
+      "rootDir": ".",
       "outDir": "../build/test",
       "target": "es6",
       "module": "commonjs",
@@ -11,9 +11,8 @@
       ]
     },
     "include": [
-      "provider/**/*.ts",
-      "demo/**/*.ts",
-      "../src/fin.d.ts"
+      "../src/fin.d.ts",
+      "provider/**/*.ts"
     ],
     "exclude": [
       "../node_modules"

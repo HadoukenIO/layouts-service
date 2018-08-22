@@ -1,4 +1,4 @@
-import {TabBlob, TabIdentifier, TabWindowOptions} from '../../client/types';
+import {TabIdentifier, TabWindowOptions} from '../../client/types';
 
 import {Tab} from './Tab';
 import {TabGroup} from './TabGroup';
@@ -49,11 +49,6 @@ export async function ejectTab(tabService: TabService, message: TabIdentifier&Ta
 
                 // Add the tab to the window underneath our point
                 const tab = await isOverTabWindowResult.addTab({tabID: ejectedTab.ID});
-
-                if (!tab) {
-                    console.error('Tab was not added');
-                    return;
-                }
 
                 // Align the app window to the new tab group (window underneath)
                 await tab.window.alignPositionToTabGroup();
@@ -120,12 +115,7 @@ export async function initializeTabbing(message: TabWindowOptions, uuid: string,
     }
 
     const group: TabGroup = await tabService.addTabGroup(message);
-    const tab: Tab|undefined = await group.addTab({tabID: {uuid, name}}, false, false);
-
-    if (!tab) {
-        console.error('No tab was added');
-        return;
-    }
+    const tab: Tab = await group.addTab({tabID: {uuid, name}});
 
     if (message.screenX && message.screenY) {
         // if we are provided coords then we tab group is created at them so we need to bring the app window to group.
@@ -141,59 +131,6 @@ export async function initializeTabbing(message: TabWindowOptions, uuid: string,
     // Switch tab on group to make our added tab the active one
     group.switchTab({uuid, name});
 }
-
-/**
- * Takes a tabblob and restores windows based on the blob
- * @function createTabGroupsFromMultipleWindows
- * @param tabBlob[] Restoration data
- */
-export async function createTabGroupsFromMultipleWindows(tabBlob: TabBlob[]): Promise<void> {
-    if (!tabBlob) {
-        console.error('No tab blob supplied');
-        return;
-    }
-
-    for (const blob of tabBlob) {
-        const newTabWindowOptions: TabWindowOptions = {
-            url: blob.groupInfo.url,
-            screenX: blob.groupInfo.dimensions.x,
-            screenY: blob.groupInfo.dimensions.y,
-            height: blob.groupInfo.dimensions.tabGroupHeight,
-            width: blob.groupInfo.dimensions.width,
-        };
-
-        // Create new tabgroup
-        const group: TabGroup = await TabService.INSTANCE.addTabGroup(newTabWindowOptions);
-
-        for (const tab of blob.tabs) {
-            const existingTab: Tab|undefined = TabService.INSTANCE.getTab({uuid: tab.uuid, name: tab.name});
-
-            if (existingTab) {
-                await existingTab.tabGroup.removeTab(existingTab.ID, false, true);
-            }
-
-            const newTab: Tab|undefined = await group.addTab({tabID: {uuid: tab.uuid, name: tab.name}}, false, false);
-
-            if (!newTab) {
-                console.error('No tab was added');
-                return;
-            }
-
-            if (blob.groupInfo.dimensions.x && blob.groupInfo.dimensions.y) {
-                // if we are provided coords then we tab group is created at them so we need to bring the app window to group.
-                await newTab.window.alignPositionToTabGroup();
-            } else {
-                // if no coords then its safe to assume we need to move group window to app window.
-                await group.window.alignPositionToApp(newTab.window);
-            }
-        }
-
-        group.window.finWindow.show();
-        group.switchTab({uuid: blob.groupInfo.active.uuid, name: blob.groupInfo.active.uuid});
-    }
-}
-
-(window as Window & {createTabGroupsFromMultipleWindows: Function}).createTabGroupsFromMultipleWindows = createTabGroupsFromMultipleWindows;
 
 /**
  * Creates a UUIDv4() ID

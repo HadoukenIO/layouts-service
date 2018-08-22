@@ -1,8 +1,10 @@
-import "jest";
 import { TabbingApi } from "../../src/client/TabbingApi";
 import { TabAPIActions } from "../../src/client/APITypes";
 import { TabAPIDragMessage, TabAPIInteractionMessage, TabAPIMessage, TabProperties } from "../../src/client/types";
 import { createFinMock } from "./utils/FinMock";
+
+// tslint:disable:variable-name
+// tslint:disable:no-any
 
 beforeEach(() => {
 	jest.restoreAllMocks();

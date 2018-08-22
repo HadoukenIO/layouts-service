@@ -5,7 +5,6 @@
   "types": "module_dist/main.d.ts",
   "main": "module_dist/main.js",
   "scripts": {
-    "test:unit": "jest",
     "test": "node test/runner.js",
     "check": "gts check",
     "clean": "gts clean",
@@ -55,8 +54,8 @@
     "transform": {
       "^.+\\.tsx?$": "ts-jest"
     },
-    "rootDir": "test",
-    "testRegex": ".unittest.ts$",
+    "rootDir": "test/client",
+    "testRegex": ".test.ts$",
     "moduleFileExtensions": [
       "ts",
       "tsx",

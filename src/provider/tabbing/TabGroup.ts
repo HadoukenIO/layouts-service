@@ -51,24 +51,9 @@ export class TabGroup {
     /**
      * Adds a Tab to the tabset.
      * @param {TabPackage} tabPackage The package containing uuid, name, tabProperties of the tab to be added.
-     * @param {boolean} handleTabSwitch Flag to let us know if we should handle switching the tab.  Default true.
-     * @param {boolean} handleAlignment Flag to let us know if we should handle aligning the tab group to tab.  Default true;
      * @returns {Tab} The created tab.
      */
-    public async addTab(tabPackage: TabPackage, handleTabSwitch = true, handleAlignment = true): Promise<Tab|undefined> {
-        const existingTab = TabService.INSTANCE.getTab({uuid: tabPackage.tabID.uuid, name: tabPackage.tabID.name});
-
-        if (existingTab) {
-            if (existingTab.tabGroup.window.initialWindowOptions.url !== this.window.initialWindowOptions.url) {
-                console.error('Cannot tab - mismatched group Urls!');
-                return;
-            }
-
-            console.info('Existing tab attempting to be added.  Removing the first instance...');
-
-            await existingTab.tabGroup.removeTab(existingTab.ID, false, true);
-        }
-
+    public async addTab(tabPackage: TabPackage): Promise<Tab> {
         const tab = new Tab(tabPackage, this);
         this._tabs.push(tab);
         await tab.init();
@@ -83,18 +68,6 @@ export class TabGroup {
             }
         }
 
-        if (handleAlignment) {
-            if (this._tabs.length > 1) {
-                tab.window.alignPositionToTabGroup();
-            } else {
-                this._window.alignPositionToApp(tab.window);
-            }
-        }
-
-        if (handleTabSwitch) {
-            await this.switchTab(tab.ID);
-        }
-
         return tab;
     }
 
@@ -105,6 +78,29 @@ export class TabGroup {
         return Promise.all(this._tabs.map(tab => {
             tab.window.alignPositionToTabGroup();
         }));
+    }
+
+    /**
+     * Reorders the tab structure to match what is present in the UI.
+     * @param {TabIdentifier[]} orderReference The order which we should rearrange our tabs to match.  This will come from the UI component.
+     */
+    public reOrderTabArray(orderReference: TabIdentifier[]): boolean {
+        const newlyOrdered = orderReference
+                                 .map((ref) => this._tabs.find((tab, i) => {
+                                     if (tab.ID.name === ref.name && tab.ID.uuid === ref.uuid) {
+                                         return true;
+                                     }
+                                     return false;
+                                 }))
+                                 .filter((tab: Tab|undefined) => tab !== undefined);
+
+        if (newlyOrdered.length === this._tabs.length) {
+            this._tabs = newlyOrdered as Tab[];
+            return true;
+        } else {
+            console.error('Input array must reference each tab exactly once');
+            return false;
+        }
     }
 
     /**

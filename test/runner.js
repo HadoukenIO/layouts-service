@@ -65,5 +65,5 @@ build()
     //Will need to port one to the other at some point - needs some discussion first.
     //.then(OF_PORT => run('ava --serial', ['build/test/test/demo/**/*.test.js'], { env: { OF_PORT } }))
     .then(OF_PORT => run('ava --serial', ['build/test/**/*.test.js'], { env: { OF_PORT } }))
-    .then(cleanup)
-    .catch(cleanup);
+    .catch(cleanup)
+    .then(cleanup);

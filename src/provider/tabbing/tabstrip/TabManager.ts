@@ -53,9 +53,8 @@ export class TabManager {
                 const orderedTabList: TabIdentifier[] = Array.from(tabNodes).map((el) => {
                     return {uuid: el.dataset.uuid as string, name: el.dataset.name as string};
                 });
-
                 // Sends the new order to the service to update the cache
-                // TODO: Fill in api call once available (SERVICE-216)
+                TabManager.tabAPI.sendTabOrder(orderedTabList);
             }
         });
     }

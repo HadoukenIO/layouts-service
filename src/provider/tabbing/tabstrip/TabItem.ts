@@ -165,6 +165,10 @@ export class Tab {
         tab.addEventListener('dragstart', this._onDragStart.bind(this), true);
         tab.addEventListener('dragend', this._onDragEnd.bind(this), true);
 
+        // Add custom data tags to track tabidentity from DOM
+        tab.dataset.name = this._ID.name;
+        tab.dataset.uuid = this._ID.uuid;
+
         return tab;
     }
 

@@ -59,7 +59,7 @@ const servicePromise: Promise<ServiceClient> = fin.desktop.Service.connect({...I
  * 
  * @param identity The window to undock, defaults to the current window
  */
-export async function undock(identity: Identity = getId()): Promise<void> {
+export async function undockWindow(identity: Identity = getId()): Promise<void> {
     const service: ServiceClient = await servicePromise;
     return service.dispatch('undock', identity);
 }
@@ -94,7 +94,7 @@ export async function addEventListener(eventType: 'join-snap-group'|'leave-snap-
  * 
  * @param identity A window belonging to the group that should be exploded, defaults to the current window/group
  */
-export async function explodeGroup(identity: Identity = getId()): Promise<void> {
+export async function undockGroup(identity: Identity = getId()): Promise<void> {
     const service: ServiceClient = await servicePromise;
     return service.dispatch('explode', identity);
 }

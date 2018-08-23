@@ -10,13 +10,13 @@ h1.innerHTML = `Window ${n}`;
 document.body.appendChild(h1);
 const btn = document.createElement('button');
 btn.innerText = 'Undock';
-btn.onclick = () => Layouts.undock();
+btn.onclick = () => Layouts.undockWindow();
 //tslint:disable-next-line:no-any
 (btn.style as any) = '-webkit-app-region: no-drag';
 document.body.appendChild(btn);
 const explodeBtn = document.createElement('button');
 explodeBtn.innerText = 'Explode';
-explodeBtn.onclick = () => Layouts.explodeGroup();
+explodeBtn.onclick = () => Layouts.undockGroup();
 //tslint:disable-next-line:no-any
 (explodeBtn.style as any) = '-webkit-app-region: no-drag';
 document.body.appendChild(explodeBtn);

@@ -46,14 +46,7 @@ const removeForgetWins = (window: ServiceIdentity) => {
 //tslint:disable-next-line:no-any
 (window as any).forgetMe = forgetMe;
 
-const delayPromise = (ms: number) => {
-    return new Promise(res => {
-        setTimeout(res, ms);
-    });
-};
-
 async function onAppRes(layoutApp: LayoutApp): Promise<LayoutApp> {
-    await delayPromise(2000);
     console.log('Apprestore called:', layoutApp);
     const ofApp = await fin.Application.getCurrent();
     const openWindows = await ofApp.getChildWindows();

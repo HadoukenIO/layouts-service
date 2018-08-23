@@ -1,3 +1,5 @@
+import {TabService} from '../tabbing/TabService';
+
 import {eSnapValidity, Resolver, SnapTarget} from './Resolver';
 import {Signal2} from './Signal';
 import {SnapGroup} from './SnapGroup';
@@ -270,6 +272,7 @@ export class SnapService {
     private applySnapTarget(activeGroup: SnapGroup): void {
         const snapTarget: SnapTarget|null = this.resolver.getSnapTarget(this.groups, activeGroup);
 
+        // SNAP WINDOWS
         if (snapTarget && snapTarget.validity === eSnapValidity.VALID && (!(window as Window & {foo: boolean}).foo)) {
             // Move all windows in activeGroup to snapTarget.group
             activeGroup.windows.forEach((window: SnapWindow) => {
@@ -285,6 +288,18 @@ export class SnapService {
                 console.warn(
                     'Expected group to have been removed, but still exists (' + activeGroup.id + ': ' + activeGroup.windows.map(w => w.getId()).join() + ')');
             }
+            // TAB WINDOWS
+        } else if (activeGroup.length === 1 && !TabService.INSTANCE.getTabGroupByApp(activeGroup.windows[0].getIdentity())) {
+            // If a single untabbed window is being dragged, it is possible to create a tabset
+            const activeState = activeGroup.windows[0].getState();
+
+            // Window will be tabbed if center of the dragged window overlaps with an initialized tabbable window.
+            TabService.INSTANCE.isPointOverTabGroup(activeState.center.x, activeState.center.y).then((tabTarget) => {
+                if (tabTarget) {
+                    console.log('Tabbing to target: ' + tabTarget.tabs);
+                    tabTarget.addTab({tabID: activeGroup.windows[0].getIdentity()});
+                }
+            });
         }
 
         // Reset view

@@ -24,17 +24,10 @@ body {
 }
 
 #tabs {
-	width: 100%;
+	width: calc(100% - 40px);
 	height: 28px;
 	display: flex;
-}
-
-#tabs .tab:first-child {
-	margin-left: 10px !important;
-}
-
-#tabs .tab:last-child {
-	margin-right: 10px !important;
+	margin: 0 20;
 }
 
 #tabs-container {
@@ -53,7 +46,7 @@ body {
 	width: 243px;
 	display: flex;
 	justify-content: space-between;
-	margin-left: -15px;
+	margin: 0 -7px;
 	min-width: 72px;
 	-webkit-app-region: no-drag;
 }

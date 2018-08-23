@@ -6,7 +6,6 @@ import {TabGroup} from './TabGroup';
 import {TabService} from './TabService';
 import {ejectTab} from './TabUtilities';
 
-
 /**
  * Handles all calls from tab api to service
  */
@@ -73,7 +72,7 @@ export class TabAPIActionProcessor {
                 this._updateTabProperties(message as TabAPIInteractionMessage, tabGroup);
                 break;
             case TabAPIActions.STARTDRAG:
-                this._startDrag();
+                this._startDrag({uuid, name});
                 break;
             case TabAPIActions.ENDDRAG:
                 this._endDrag(message as TabAPIDragMessage, tabGroup);
@@ -92,8 +91,8 @@ export class TabAPIActionProcessor {
     /**
      * Starts the drag window process & shows the drag window overlay.
      */
-    private async _startDrag() {
-        this.mTabService.dragWindowManager.show();
+    private async _startDrag(source: TabIdentifier) {
+        this.mTabService.dragWindowManager.show(source);
     }
 
     /**

@@ -4,8 +4,6 @@ import {TabGroup} from './TabGroup';
 import {TabService} from './TabService';
 import {TabWindow} from './TabWindow';
 
-// tslint:disable-next-line:no-any
-
 /**
  * Handles the window for the Tab-Set
  */

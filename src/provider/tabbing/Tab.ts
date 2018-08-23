@@ -3,7 +3,6 @@ import {TabIdentifier, TabPackage, TabProperties} from '../../client/types';
 import {TabGroup} from './TabGroup';
 import {TabWindow} from './TabWindow';
 
-
 /**
  * The Tab class handles functionality related to the tab itself.
  */

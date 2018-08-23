@@ -18,13 +18,13 @@
                 document.body.addEventListener("dragover", (ev)=>{
                     ev.preventDefault();
                     ev.stopPropagation();
-                    return false;
+                    return true;
                 });
 
                 document.body.addEventListener("drop", (ev)=>{
                     ev.preventDefault();
                     ev.stopPropagation();
-                    return false;
+                    return true;
                 });
             });
         </script>

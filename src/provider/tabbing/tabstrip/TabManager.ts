@@ -1,3 +1,5 @@
+import Sortable from 'sortablejs';
+
 import {TabApiEvents} from '../../../client/APITypes';
 import {TabbingApi} from '../../../client/TabbingApi';
 import {TabIdentifier, TabPackage, TabProperties} from '../../../client/types';
@@ -33,12 +35,28 @@ export class TabManager {
      */
     private lastActiveTab!: Tab|null;
 
+    private dragDropManager: Sortable;
+
     /**
      * Constructs the TabManager class.
      */
     constructor() {
         TabManager.tabContainer = document.getElementById('tabs')!;
         this._setupListeners();
+
+        this.dragDropManager = Sortable.create(TabManager.tabContainer, {
+            sort: true,
+            animation: 200,
+            onUpdate: (evt) => {
+                // Gets the new tab order as an array of TabIdentifiers
+                const tabNodes = ((document.getElementById('tabs') as HTMLDivElement).getElementsByClassName('tab') as NodeListOf<HTMLDivElement>);
+                const orderedTabList: TabIdentifier[] = Array.from(tabNodes).map((el) => {
+                    return {uuid: el.dataset.uuid as string, name: el.dataset.name as string};
+                });
+                // Sends the new order to the service to update the cache
+                TabManager.tabAPI.sendTabOrder(orderedTabList);
+            }
+        });
     }
 
     /**

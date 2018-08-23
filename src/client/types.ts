@@ -27,7 +27,6 @@ export interface WindowState extends Bounds {
 
 export interface LayoutApp {
     manifestUrl?: string;
-    manifest?: any;
     parentUuid?: string;
     initialOptions?: any;
     launchMode?: string;
@@ -146,7 +145,6 @@ export interface TabbedEventPayload {
     tabGroupID: string;
 }
 
-
 export interface Dimensions {
     x: number;
     y: number;
@@ -164,4 +162,8 @@ export interface Group {
 export interface TabBlob {
     groupInfo: Group;
     tabs: TabIdentifier[];
+}
+
+export interface TabAPIReorderMessage extends TabAPIMessage {
+    tabOrder: TabIdentifier[];
 }

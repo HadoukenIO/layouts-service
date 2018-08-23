@@ -8,7 +8,7 @@ import {Layout, LayoutApp, LayoutName, WindowState} from '../../client/types';
 import {getGroup} from './group';
 import {providerChannel} from '../main';
 import {saveLayout} from './storage';
-import {isClientConnection, showingWindowInApp, wasCreatedFromManifest, wasCreatedProgramatically} from './utils';
+import {isClientConnection, showingWindowInApp, wasCreatedFromManifest, wasCreatedProgrammatically} from './utils';
 
 // tslint:disable-next-line:no-any
 declare var fin: any;
@@ -31,7 +31,8 @@ export const getCurrentLayout = async(): Promise<Layout> => {
             const isRunning = await ofApp.isRunning();
             const hasMainWindow = !!app.mainWindow.name;
             const isService = app.uuid === fin.desktop.Application.getCurrent().uuid;
-            if (!hasMainWindow || !isRunning || isService || !showingWindowInApp(app)) {
+            const isShowing = await showingWindowInApp(app);
+            if (!hasMainWindow || !isRunning || isService || !isShowing) {
                 return null;
             }
 
@@ -39,11 +40,6 @@ export const getCurrentLayout = async(): Promise<Layout> => {
                 console.log('Appinfo Error', e);
                 return {};
             });
-
-            // FOR PRE 9.61.33.15
-            if (!appInfo.manifest) {
-                appInfo.manifest = await ofApp.getManifest().catch(() => undefined);
-            }
 
             const mainOfWin = await ofApp.getWindow();
             const mainWindowLayoutData = await getLayoutWindowData(mainOfWin);
@@ -56,8 +52,13 @@ export const getCurrentLayout = async(): Promise<Layout> => {
 
                 return {...win, ...windowLayoutData};
             });
-            if (wasCreatedFromManifest(appInfo, uuid) || wasCreatedProgramatically(appInfo)) {
-                return {...app, ...appInfo, uuid, confirmed: false};
+            if (wasCreatedFromManifest(appInfo, uuid)) {
+                delete appInfo.manifest;
+                return { ...app, ...appInfo, uuid, confirmed: false };
+            } else if (wasCreatedProgrammatically(appInfo)) {
+                delete appInfo.manifest;
+                delete appInfo.manifestUrl;
+                return { ...app, ...appInfo, uuid, confirmed: false };
             } else {
                 console.error('Not saving app, cannot restore:', app);
                 return null;

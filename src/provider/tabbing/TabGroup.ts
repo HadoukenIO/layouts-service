@@ -6,7 +6,6 @@ import {Tab} from './Tab';
 import {TabService} from './TabService';
 import {uuidv4} from './TabUtilities';
 
-
 /**
  * Handles functionality for the TabSet
  */
@@ -112,6 +111,29 @@ export class TabGroup {
         return Promise.all(this._tabs.map(tab => {
             tab.window.alignPositionToTabGroup();
         }));
+    }
+
+    /**
+     * Reorders the tab structure to match what is present in the UI.
+     * @param {TabIdentifier[]} orderReference The order which we should rearrange our tabs to match.  This will come from the UI component.
+     */
+    public reOrderTabArray(orderReference: TabIdentifier[]): boolean {
+        const newlyOrdered = orderReference
+                                 .map((ref) => this._tabs.find((tab, i) => {
+                                     if (tab.ID.name === ref.name && tab.ID.uuid === ref.uuid) {
+                                         return true;
+                                     }
+                                     return false;
+                                 }))
+                                 .filter((tab: Tab|undefined) => tab !== undefined);
+
+        if (newlyOrdered.length === this._tabs.length) {
+            this._tabs = newlyOrdered as Tab[];
+            return true;
+        } else {
+            console.error('Input array must reference each tab exactly once');
+            return false;
+        }
     }
 
     /**

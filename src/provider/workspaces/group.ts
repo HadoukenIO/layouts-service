@@ -39,7 +39,16 @@ export const groupWindow = async (win: WindowState) => {
     const {uuid, name} = win;
     const ofWin = await fin.Window.wrap({uuid, name});
     await promiseMap(win.windowGroup, async (w: Identity) => {
-        const toGroup = await fin.Window.wrap({uuid: w.uuid, name: w.name});
-        await ofWin.mergeGroups(toGroup);
+        const toWindow = await fin.Window.wrap({uuid: w.uuid, name: w.name});
+        const toGroup = await toWindow.getGroup();
+
+        // Merging two ungrouped windows does not raise any grouping events through the runtime
+        // In that case, we will call joinGroup. This will have no impact on behaviour from S&R's 
+        // perspective, but will allow S&R to integrate properly with S&D.
+        if (toGroup.length > 0) {
+            await ofWin.mergeGroups(toWindow);
+        } else {
+            await ofWin.joinGroup(toWindow);
+        }
     });
 };

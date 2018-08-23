@@ -44,14 +44,21 @@ export class TabManager {
     /**
      * Creates a new Tab and renders.
      * @param {TabIdentifier} tabID An object containing the uuid, name for the external application/window.
+     * @param {tabProps} tabProps An object containing Tab Properties (icon, title,etc)
      */
-    public async addTab(tabID: TabIdentifier, tabProps: TabProperties) {
+    public async addTab(tabID: TabIdentifier, tabProps: TabProperties, index: number) {
         if (this._getTabIndex(tabID) === -1) {
-            const tab = new Tab(tabID, tabProps);
-            await tab.init();
+            const tab = new Tab(tabID, tabProps, this);
+            await tab.init(index);
 
-            this.tabs.push(tab);
+            if (index > this.tabs.length) {
+                this.tabs.push(tab);
+            } else {
+                this.tabs.splice(index, 0, tab);
+            }
         }
+
+        console.log(this.tabs);
     }
 
     /**
@@ -116,7 +123,7 @@ export class TabManager {
     private _setupListeners(): void {
         TabManager.tabAPI.addEventListener(TabApiEvents.TABADDED, (tabInfo: TabPackage) => {
             console.log('TABADDED', tabInfo);
-            this.addTab(tabInfo.tabID, tabInfo.tabProps!);
+            this.addTab(tabInfo.tabID, tabInfo.tabProps!, tabInfo.index!);
         });
 
         TabManager.tabAPI.addEventListener(TabApiEvents.TABREMOVED, (tabInfo: TabIdentifier) => {

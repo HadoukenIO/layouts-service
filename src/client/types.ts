@@ -117,6 +117,7 @@ export interface TabWindowOptions {
 export interface TabPackage {
     tabID: TabIdentifier;
     tabProps?: TabProperties;
+    index?: number;
 }
 
 /**

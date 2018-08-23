@@ -141,13 +141,7 @@ export class TabAPIActionProcessor {
             await existingTab.tabGroup.removeTab({uuid: tabPackage.tabID.uuid, name: tabPackage.tabID.name}, false, true);
         }
 
-        const addedTab: Tab = await tabGroup.addTab(tabPackage);
-
-        const align = addedTab.window.alignPositionToTabGroup();
-
-        const switchTab = tabGroup.switchTab({uuid: tabPackage.tabID.uuid, name: tabPackage.tabID.name});
-
-        Promise.all([align, switchTab]);
+        await tabGroup.addTab(tabPackage);
     }
 
     /**

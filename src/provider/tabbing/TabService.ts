@@ -1,4 +1,4 @@
-import { TabIdentifier, TabPackage, TabWindowOptions } from '../../client/types';
+import {TabIdentifier, TabPackage, TabWindowOptions} from '../../client/types';
 
 import {DragWindowManager} from './DragWindowManager';
 import {EventHandler} from './EventHandler';

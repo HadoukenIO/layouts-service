@@ -160,6 +160,21 @@ export interface Group {
     dimensions: Dimensions;
 }
 
+
+export interface Dimensions {
+    x: number;
+    y: number;
+    width: number;
+    tabGroupHeight: number;
+    appHeight: number;
+}
+
+export interface Group {
+    url: string;
+    active: TabIdentifier;
+    dimensions: Dimensions;
+}
+
 export interface TabBlob {
     groupInfo: Group;
     tabs: TabIdentifier[];

@@ -3,11 +3,10 @@ import Fin from 'hadouken-js-adapter/out/types/src/api/fin';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {promiseMap} from '../snapanddock/utils/async';
-import {Layout, LayoutApp, LayoutName, WindowState} from '../../client/types';
+import {Layout, LayoutApp, WindowState} from '../../client/types';
 
 import {getGroup} from './group';
 import {providerChannel} from '../main';
-import {saveLayout} from './storage';
 import {isClientConnection, showingWindowInApp, wasCreatedFromManifest, wasCreatedProgrammatically} from './utils';
 
 // tslint:disable-next-line:no-any
@@ -76,19 +75,9 @@ export const getCurrentLayout = async(): Promise<Layout> => {
     return layoutObject;
 };
 
-// tslint:disable-next-line:no-any
-export const createLayout = async(layoutName: LayoutName, opts?: any): Promise<Layout> => {
-    // may need to rework since only saving current layout & have separate saceLayoutObject
-    const currentLayout = await getCurrentLayout();
-    const options = opts || {};
-    const layout = {...currentLayout, ...options, name: layoutName};
-    saveLayout(layout);
-    return layout;
-};
-
 // payload eventually could be a layout... for now just a name to set current layout
-export const saveCurrentLayout = async(payload: LayoutName, identity: Identity): Promise<Layout> => {
-    const preLayout = await createLayout(payload);
+export const generateLayout = async(payload: null, identity: Identity): Promise<Layout> => {
+    const preLayout = await getCurrentLayout();
 
     const apps = await promiseMap(preLayout.apps, async (app: LayoutApp) => {
         const defaultResponse = {...app, childWindows: []};
@@ -109,14 +98,8 @@ export const saveCurrentLayout = async(payload: LayoutName, identity: Identity):
     });
 
     const confirmedLayout = {...preLayout, apps};
-    saveLayout(confirmedLayout);
+    console.log("confirmedLayout", confirmedLayout);
     return confirmedLayout;
-};
-
-export const saveLayoutObject = async(payload: Layout, identity: Identity): Promise<Layout> => {
-    // SOME SORT OF VALIDATION HERE???
-    saveLayout(payload);
-    return payload;
 };
 
 const getLayoutWindowData = async (ofWin: Window) => {

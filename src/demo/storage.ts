@@ -1,6 +1,5 @@
-import {Layout, LayoutName} from '../../client/types';
+import {Layout, LayoutName} from '../client/types';
 
-import {providerChannel} from '../main';
 /*tslint:disable:no-any*/
 
 // STORAGE - TODO: use indexedDB?
@@ -23,12 +22,11 @@ class Storage {
     }
 }
 
-export const getLayout = (layoutName: LayoutName): string /* Layout */ => {
+export const getLayout = (layoutName: LayoutName): Layout /* Layout */ => {
     return layouts.get(layoutName);
 };
 
 export const saveLayout = (layout: Layout) => {
-    providerChannel.publish('layout-saved', layout);
     layouts.set(layout.name, layout);
 };
 

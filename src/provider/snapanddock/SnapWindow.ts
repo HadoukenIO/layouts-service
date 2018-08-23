@@ -114,7 +114,7 @@ export class SnapWindow {
     private identity: WindowIdentity;
     private id: string;  // Created from window uuid and name
     private group: SnapGroup;
-    private prevGroup: SnapGroup | null;
+    private prevGroup: SnapGroup|null;
     private registered: boolean;
 
     // State tracking for "synth move" detection
@@ -215,7 +215,7 @@ export class SnapWindow {
         return this.group;
     }
 
-    public getPrevGroup(): SnapGroup | null{
+    public getPrevGroup(): SnapGroup|null {
         return this.prevGroup;
     }
 
@@ -240,7 +240,7 @@ export class SnapWindow {
             this.group = group;
             group.addWindow(this);
 
-            if(!synthetic) {
+            if (!synthetic) {
                 this.unsnap();
             }
 
@@ -259,7 +259,7 @@ export class SnapWindow {
                 }
 
                 this.applyState(delta, () => {
-                    if(!synthetic) {
+                    if (!synthetic) {
                         this.snap();
                     }
                 });

@@ -20,7 +20,7 @@
         ]
     },
     "runtime": {
-        "arguments": "--v=1 --enable-crash-reporting",
+        "arguments": "--v=1 --enable-crash-reporting --enable-aggressive-domstorage-flushing",
         "version": "9.61.33.32"
     }
 }

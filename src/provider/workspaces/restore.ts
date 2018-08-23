@@ -6,7 +6,6 @@ import {Layout, LayoutApp, LayoutName, WindowState} from '../../client/types';
 
 import {regroupLayout} from './group';
 import {providerChannel} from '../main';
-import {flexibleGetLayout} from './storage';
 import {createAppPlaceholders, isClientConnection, positionWindow, wasCreatedProgrammatically} from './utils';
 
 /*tslint:disable-next-line:no-any*/
@@ -41,8 +40,8 @@ export const restoreApplication = async(layoutApp: LayoutApp, resolve: Function)
     appsToRestore.delete(uuid);
 };
 
-export const restoreLayout = async(payload: LayoutName|Layout, identity: Identity): Promise<Layout> => {
-    const layout = await flexibleGetLayout(payload);
+export const restoreLayout = async(payload: Layout, identity: Identity): Promise<Layout> => {
+    const layout = payload;
     const startupApps: Promise<LayoutApp>[] = [];
     console.log('Restoring layout:', layout);
     const apps = await promiseMap(layout.apps, async(app: LayoutApp): Promise<LayoutApp> => {

@@ -4,7 +4,7 @@ import {eSnapValidity, Resolver, SnapTarget} from './Resolver';
 import {Signal2} from './Signal';
 import {SnapGroup} from './SnapGroup';
 import {SnapView} from './SnapView';
-import {eTransformType, Mask, SnapWindow, WindowState, WindowIdentity} from './SnapWindow';
+import {eTransformType, Mask, SnapWindow, WindowIdentity, WindowState} from './SnapWindow';
 import {Point, PointUtils} from './utils/PointUtils';
 import {MeasureResult, RectUtils} from './utils/RectUtils';
 
@@ -252,7 +252,6 @@ export class SnapService {
                     }
                 }
             }
-
         }
     }
 
@@ -367,9 +366,8 @@ export class SnapService {
         }
         return totalOffset;
     }
-    
+
     private getSnapWindow(finWindow: WindowIdentity) {
         return this.windows.find(w => w.getIdentity().uuid === finWindow.uuid && w.getIdentity().name === finWindow.name);
     }
-
 }

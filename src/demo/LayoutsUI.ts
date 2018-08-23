@@ -4,6 +4,7 @@ import { ServiceIdentity } from 'hadouken-js-adapter/out/types/src/api/services/
 import { _Window } from 'hadouken-js-adapter/out/types/src/api/window/window';
 import { LayoutApp } from '../client/types';
 import { positionWindow } from '../provider/workspaces/utils';
+import * as Storage from './storage';
 
 //tslint:disable-next-line:no-any
 declare var fin: any;
@@ -19,7 +20,9 @@ window.forgetMe = forgetMe;
 export async function setLayout() {
     const name = (document.getElementById('layoutName') as HTMLTextAreaElement).value;
     const layoutSelect = document.getElementById('layoutSelect') as HTMLSelectElement;
-    const layout = await Layouts.saveCurrentLayout(name);
+    const layout = await Layouts.generateLayout();
+    console.log("in set layout", layout);
+    layout.name = name;
 
     if (layoutSelect) {
         let optionPresent = false;
@@ -35,25 +38,28 @@ export async function setLayout() {
             layoutSelect.appendChild(option);
         }
     }
+
+    Storage.saveLayout(layout);
     document.getElementById('showLayout')!.innerHTML = JSON.stringify(layout, null, 2);
 }
 
 export async function getLayout() {
     const name = (document.getElementById('layoutSelect') as HTMLSelectElement).value;
-    const layout = await Layouts.getLayout(name);
+    const layout = Storage.getLayout(name);
 
     document.getElementById('showLayout')!.innerHTML = JSON.stringify(layout, null, 2);
 }
 
 export async function getAllLayouts() {
-    const layoutNames = await Layouts.getAllLayoutNames();
+    const layoutNames = Storage.getAllLayoutNames();
     document.getElementById('showLayout')!.innerHTML = JSON.stringify(layoutNames, null, 2);
 }
 
 export async function restoreLayout() {
     const name = (document.getElementById('layoutSelect') as HTMLSelectElement).value;
-    const layout = await Layouts.restoreLayout(name);
-    console.log('after layout,', layout);
+    const layout = Storage.getLayout(name);
+    const afterLayout = await Layouts.restoreLayout(layout);
+    console.log('after layout,', afterLayout);
 }
 
 export async function createChild() {
@@ -196,14 +202,13 @@ function removeForgetWins(window: ServiceIdentity) {
 }
 
 function addLayoutNamesToDropdown() {
-    Layouts.getAllLayoutNames().then((names) => {
-        const layoutSelect = document.getElementById('layoutSelect');
-        names.forEach((name) => {
-            const option = createOptionElement(name);
-            if (layoutSelect) {
-                layoutSelect.appendChild(option);
-            }
-        });
+    const names = Storage.getAllLayoutNames();
+    const layoutSelect = document.getElementById('layoutSelect');
+    names.forEach((name) => {
+        const option = createOptionElement(name);
+        if (layoutSelect) {
+            layoutSelect.appendChild(option);
+        }
     });
 }
 

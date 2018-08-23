@@ -131,46 +131,20 @@ export async function onLayoutRestore(listener: (layoutApp: LayoutApp) => void):
     return service.register('layoutRestored', listener);
 }
 /**
- * Set the current layout
+ * Generate the Layout object for the current Layout
  */
-export async function saveCurrentLayout(payload: LayoutName): Promise<Layout> {
+export async function generateLayout(): Promise<Layout> {
     const service: ServiceClient = await servicePromise;
-    return service.dispatch('saveCurrentLayout', payload);
+    console.log("in generateLayout");
+    return service.dispatch('generateLayout');
 }
 
 /**
- * Set layout by sending a Layout object
+ * Restore a layout from a Layout object
  */
-export async function saveLayoutObject(payload: Layout): Promise<Layout> {
+export async function restoreLayout(payload: Layout): Promise<Layout> {
     const service: ServiceClient = await servicePromise;
-
-    return service.dispatch('saveLayoutObject', payload);
-}
-
-/**
- * Get a previously saved layout
- */
-export async function getLayout(name: LayoutName): Promise<Layout> {
-    const service: ServiceClient = await servicePromise;
-
-    return service.dispatch('getLayout', name);
-}
-
-/**
- * Get the names of all previously saved layouts
- */
-export async function getAllLayoutNames(): Promise<LayoutName[]> {
-    const service: ServiceClient = await servicePromise;
-
-    return service.dispatch('getAllLayoutNames', name);
-}
-
-/**
- * Restore a previously saved layout - in v2, can restore from your own layout object
- */
-export async function restoreLayout(payload: LayoutName|Layout): Promise<Layout> {
-    const service: ServiceClient = await servicePromise;
-
+    console.log("in client code", payload);
     return service.dispatch('restoreLayout', payload);
 }
 

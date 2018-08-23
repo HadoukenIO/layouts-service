@@ -1,8 +1,10 @@
+import {TabService} from '../tabbing/TabService';
+
 import {eSnapValidity, Resolver, SnapTarget} from './Resolver';
 import {Signal2} from './Signal';
 import {SnapGroup} from './SnapGroup';
 import {SnapView} from './SnapView';
-import {eTransformType, Mask, SnapWindow, WindowState} from './SnapWindow';
+import {eTransformType, Mask, SnapWindow, WindowState, WindowIdentity} from './SnapWindow';
 import {Point, PointUtils} from './utils/PointUtils';
 import {MeasureResult, RectUtils} from './utils/RectUtils';
 
@@ -180,6 +182,8 @@ export class SnapService {
             snapWindow.onClose.add(this.onWindowClosed, this);
             this.windows.push(snapWindow);
 
+            window.addEventListener('group-changed', this.onWindowGroupChanged.bind(this));
+
             return snapWindow;
         });
     }
@@ -206,6 +210,49 @@ export class SnapService {
             group.onWindowRemoved.remove(this.onWindowRemovedFromGroup, this);
             group.onWindowAdded.remove(this.sendWindowAddedMessage, this);
             this.groups.splice(index, 1);
+        }
+    }
+
+    private onWindowGroupChanged(event: fin.WindowGroupChangedEvent) {
+        // Each group operation will raise an event from every window involved. We should filter out to
+        // only receive the one from the window being moved.
+        if (event.name !== event.sourceWindowName || event.uuid !== event.sourceWindowAppUuid) {
+            return;
+        }
+
+
+        console.log('Revieved window group changed event: ', event);
+        const sourceWindow = this.getSnapWindow({uuid: event.sourceWindowAppUuid, name: event.sourceWindowName});
+
+        if (sourceWindow) {
+            if (event.reason === 'leave') {
+                sourceWindow.setGroup(this.addGroup(), undefined, undefined, true);
+            } else {
+                const targetWindow = this.getSnapWindow({uuid: event.targetWindowAppUuid, name: event.targetWindowName});
+
+                // Merge the groups
+                if (targetWindow) {
+                    if (event.reason === 'merge') {
+                        // Get array of SnapWindows from the native group window array
+                        event.sourceGroup
+                            .map(win => {
+                                return this.getSnapWindow({uuid: win.appUuid, name: win.windowName});
+                            })
+                            // Add all windows from source group to the target group.
+                            // Windows are synthetic snapped since they are
+                            // already native grouped.
+                            .forEach((snapWin) => {
+                                // Ignore any undefined results (i.e. windows unknown to the service)
+                                if (snapWin !== undefined) {
+                                    snapWin.setGroup(targetWindow.getGroup(), undefined, undefined, true);
+                                }
+                            });
+                    } else {
+                        sourceWindow.setGroup(targetWindow.getGroup(), undefined, undefined, true);
+                    }
+                }
+            }
+
         }
     }
 
@@ -270,6 +317,7 @@ export class SnapService {
     private applySnapTarget(activeGroup: SnapGroup): void {
         const snapTarget: SnapTarget|null = this.resolver.getSnapTarget(this.groups, activeGroup);
 
+        // SNAP WINDOWS
         if (snapTarget && snapTarget.validity === eSnapValidity.VALID && (!(window as Window & {foo: boolean}).foo)) {
             // Move all windows in activeGroup to snapTarget.group
             activeGroup.windows.forEach((window: SnapWindow) => {
@@ -285,6 +333,18 @@ export class SnapService {
                 console.warn(
                     'Expected group to have been removed, but still exists (' + activeGroup.id + ': ' + activeGroup.windows.map(w => w.getId()).join() + ')');
             }
+            // TAB WINDOWS
+        } else if (activeGroup.length === 1 && !TabService.INSTANCE.getTabGroupByApp(activeGroup.windows[0].getIdentity())) {
+            // If a single untabbed window is being dragged, it is possible to create a tabset
+            const activeState = activeGroup.windows[0].getState();
+
+            // Window will be tabbed if center of the dragged window overlaps with an initialized tabbable window.
+            TabService.INSTANCE.isPointOverTabGroup(activeState.center.x, activeState.center.y).then((tabTarget) => {
+                if (tabTarget) {
+                    console.log('Tabbing to target: ' + tabTarget.tabs);
+                    tabTarget.addTab({tabID: activeGroup.windows[0].getIdentity()});
+                }
+            });
         }
 
         // Reset view
@@ -307,4 +367,9 @@ export class SnapService {
         }
         return totalOffset;
     }
+    
+    private getSnapWindow(finWindow: WindowIdentity) {
+        return this.windows.find(w => w.getIdentity().uuid === finWindow.uuid && w.getIdentity().name === finWindow.name);
+    }
+
 }

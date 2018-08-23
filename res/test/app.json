@@ -2,9 +2,9 @@
     "devtools_port": 9090,
     "runtime": {
         "arguments": "--v=1 --enable-crash-reporting",
-        "version": "9.61.33.15"
+        "version": "9.61.33.32"
     },
-    "services":[{"name": "layouts", "manifestUrl": "http://localhost:1337/provider/app.json"}],
+    "services":[{"name": "layouts", "manifestUrl": "http://localhost:1337/test/provider.json"}],
     "startup_app": {
         "name": "testApp",
         "uuid": "testApp",

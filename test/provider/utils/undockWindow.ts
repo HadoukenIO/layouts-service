@@ -14,5 +14,5 @@ const getClientConnection = async () => {
 
 export async function undockWindow(identity: WindowIdentity) {
     const client = await getClientConnection();
-    await client.dispatch('undock', identity);
+    await client.dispatch('undockWindow', identity);
 }

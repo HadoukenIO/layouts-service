@@ -31,7 +31,7 @@ async function registerService() {
             console.log(`connection from client: ${app.name}, unable to determine version`);
         }
     });
-    providerChannel.register('undock', (identity: WindowIdentity) => {
+    providerChannel.register('undockWindow', (identity: WindowIdentity) => {
         snapService.undock(identity);
     });
     providerChannel.register('deregister', (identity: WindowIdentity) => {

@@ -114,20 +114,6 @@ export async function addEventListener(
 }
 
 /**
- * Will undock every window that is currently connected to a current window.
- *
- * This will completely disband the entire group, not just the windows directly touching 'identity'.
- *
- * Has no effect if 'identity' isn't currently snapped to any other window.
- *
- * @param identity A window belonging to the group that should be exploded, defaults to the current window/group
- */
-export async function explodeGroup(identity: Identity = getId()): Promise<void> {
-    const service: ServiceClient = await servicePromise;
-    return service.dispatch('explode', identity);
-}
-
-/**
  * Decide which parts of this you will implement, alter LayoutApp object to reflect this then send it back
  */
 export async function onApplicationSave(customDataDecorator: () => CustomData): Promise<boolean> {

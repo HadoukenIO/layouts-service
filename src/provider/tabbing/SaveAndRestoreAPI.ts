@@ -53,11 +53,25 @@ export async function swapTab(add: TabIdentifier, swapWith: TabIdentifier) {
 
     const tabIndex = group.getTabIndex(swapWith);
 
-    await group.removeTab(swapWith, false, false);
-    const tab = await group.addTab({tabID: add}, false, true, tabIndex);
+    // remove swap with tab, dont close app, dont switch tabs, dont close group window
+    await group.removeTab(swapWith, false, false, false);
 
-    // Hides the new tab in case it was visible prior.
-    tab!.window.hide();
+    let tab: Tab|undefined;
+
+    if (group.tabs.length === 0) {
+        tab = await group.addTab({tabID: add}, false, false, tabIndex);
+        tab!.window.alignPositionToTabGroup();
+    } else {
+        tab = await group.addTab({tabID: add}, false, true, tabIndex);
+    }
+
+    if (group.activeTab && group.activeTab.ID.uuid === swapWith.uuid && group.activeTab.ID.name === swapWith.name) {
+        // if the switchedwith tab was the active one, we make the added tab active
+        group.switchTab(add);
+    } else {
+        // else we hide it because the added tab might be visible.
+        tab!.window.hide();
+    }
 
     return;
 }

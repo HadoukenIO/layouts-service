@@ -14,5 +14,5 @@ const getClientConnection = async () => {
 
 export async function explodeGroup(identity: WindowIdentity) {
     const client = await getClientConnection();
-    await client.dispatch('explode', identity);
+    await client.dispatch('undockGroup', identity);
 }

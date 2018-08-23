@@ -145,7 +145,6 @@ export interface TabbedEventPayload {
     tabGroupID: string;
 }
 
-
 export interface Dimensions {
     x: number;
     y: number;
@@ -163,4 +162,8 @@ export interface Group {
 export interface TabBlob {
     groupInfo: Group;
     tabs: TabIdentifier[];
+}
+
+export interface TabAPIReorderMessage extends TabAPIMessage {
+    tabOrder: TabIdentifier[];
 }

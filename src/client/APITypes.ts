@@ -6,7 +6,8 @@ export enum TabApiEvents {
 }
 
 export enum AppApiEvents {
-	CLIENTINIT = "CLIENTINIT",
+    CLIENTINIT = "CLIENTINIT",
+    SETTABCLIENT = "SETTABCLIENT",
 	TABBED = "TABBED",
 	UNTABBED = "UNTABBED",
 	DEREGISTER = "DEREGISTER"

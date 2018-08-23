@@ -119,7 +119,15 @@ export async function initializeTabbing(message: TabWindowOptions, uuid: string,
         return;
     }
 
-    const group: TabGroup = await tabService.addTabGroup(message);
+    let group: TabGroup | undefined = await tabService.getTabGroupByApp({ uuid, name });
+
+    if (!group) {
+        group = await tabService.addTabGroup(message);
+    }
+
+    // Shows the group and attaches listeners to the tab group window
+    await group.init();
+
     const tab: Tab|undefined = await group.addTab({tabID: {uuid, name}}, false, false);
 
     if (!tab) {

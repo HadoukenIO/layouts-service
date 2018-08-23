@@ -53,9 +53,10 @@ export class TabGroup {
      * @param {TabPackage} tabPackage The package containing uuid, name, tabProperties of the tab to be added.
      * @param {boolean} handleTabSwitch Flag to let us know if we should handle switching the tab.  Default true.
      * @param {boolean} handleAlignment Flag to let us know if we should handle aligning the tab group to tab.  Default true;
+     * @param {number} index Where should we insert the tab?  -1 defaults to the end of the order.
      * @returns {Tab} The created tab.
      */
-    public async addTab(tabPackage: TabPackage, handleTabSwitch = true, handleAlignment = true): Promise<Tab|undefined> {
+    public async addTab(tabPackage: TabPackage, handleTabSwitch = true, handleAlignment = true, index = -1): Promise<Tab|undefined> {
         const existingTab = TabService.INSTANCE.getTab({uuid: tabPackage.tabID.uuid, name: tabPackage.tabID.name});
 
         if (existingTab) {
@@ -70,7 +71,13 @@ export class TabGroup {
         }
 
         const tab = new Tab(tabPackage, this);
-        this._tabs.push(tab);
+
+        if (index > -1 && index <= this.tabs.length) {
+            this._tabs.splice(index, 0, tab);
+        } else {
+            this._tabs.push(tab);
+        }
+
         await tab.init();
 
         if (this._tabs.length > 1) {

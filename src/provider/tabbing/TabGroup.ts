@@ -52,9 +52,10 @@ export class TabGroup {
      * @param {TabPackage} tabPackage The package containing uuid, name, tabProperties of the tab to be added.
      * @param {boolean} handleTabSwitch Flag to let us know if we should handle switching the tab.  Default true.
      * @param {boolean} handleAlignment Flag to let us know if we should handle aligning the tab group to tab.  Default true;
+     * @param {number} index Where should we insert the tab?  -1 defaults to the end of the order.
      * @returns {Tab} The created tab.
      */
-    public async addTab(tabPackage: TabPackage, handleTabSwitch = true, handleAlignment = true): Promise<Tab|undefined> {
+    public async addTab(tabPackage: TabPackage, handleTabSwitch = true, handleAlignment = true, index = -1): Promise<Tab|undefined> {
         const existingTab = TabService.INSTANCE.getTab({uuid: tabPackage.tabID.uuid, name: tabPackage.tabID.name});
 
         if (existingTab) {
@@ -69,7 +70,13 @@ export class TabGroup {
         }
 
         const tab = new Tab(tabPackage, this);
-        this._tabs.push(tab);
+
+        if (index > -1 && index <= this.tabs.length) {
+            this._tabs.splice(index, 0, tab);
+        } else {
+            this._tabs.push(tab);
+        }
+
         await tab.init();
 
         if (this._tabs.length > 1) {
@@ -149,7 +156,7 @@ export class TabGroup {
      * @param {boolean} closeApp Flag to force close the tab window or not.
      * @param {boolean} closeGroupWindowCheck Flag to check if we should close the tab set window if there are no more tabs.
      */
-    public async removeTab(tabID: TabIdentifier, closeApp: boolean, closeGroupWindowCheck = false): Promise<void> {
+    public async removeTab(tabID: TabIdentifier, closeApp: boolean, closeGroupWindowCheck = false, switchTab = true): Promise<void> {
         const index: number = this.getTabIndex(tabID);
 
         if (index === -1) {
@@ -158,7 +165,7 @@ export class TabGroup {
         const tab = this._tabs[index];
         this._tabs.splice(index, 1);
 
-        if (this._tabs.length > 0 && this.activeTab.ID.uuid === tab.ID.uuid && this.activeTab.ID.name === tab.ID.name) {
+        if (switchTab && this._tabs.length > 0 && this.activeTab.ID.uuid === tab.ID.uuid && this.activeTab.ID.name === tab.ID.name) {
             const nextTab: TabIdentifier = this._tabs[index] ? this._tabs[index].ID : this._tabs[index - 1].ID;
 
             await this.switchTab(nextTab);

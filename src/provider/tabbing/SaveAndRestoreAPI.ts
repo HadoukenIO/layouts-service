@@ -34,6 +34,43 @@ export async function getTabSaveInfo(): Promise<TabBlob[]|undefined> {
     }));
 }
 
+
+/**
+ * Swaps an existing tab in a tab group with a new tab.  This will keep the original tabs index.
+ * @param {TabIdentifier} add The new window to add into the group
+ * @param {TabIdentifier} swapWith The existing window in the group
+ */
+export async function swapTab(add: TabIdentifier, swapWith: TabIdentifier) {
+    if (!TabService.INSTANCE) {
+        return Promise.reject('No Tab Service!');
+    }
+
+    const group = TabService.INSTANCE.getTabGroupByApp(swapWith);
+
+    if (!group) {
+        return Promise.reject(`No tab group found for ${swapWith}`);
+    }
+
+    const tabIndex = group.getTabIndex(swapWith);
+
+    let tab: Tab|undefined;
+
+    tab = await group.addTab({tabID: add}, false, true, tabIndex);
+
+    // remove swap with tab, dont close app, dont switch tabs, dont close group window
+    await group.removeTab(swapWith, false, false, false);
+
+    if (group.activeTab && group.activeTab.ID.uuid === swapWith.uuid && group.activeTab.ID.name === swapWith.name) {
+        // if the switchedwith tab was the active one, we make the added tab active
+        group.switchTab(add);
+    } else {
+        // else we hide it because the added tab might be visible.
+        tab!.window.hide();
+    }
+
+    return;
+}
+
 /**
  * Restores tabs and tab groups using the given tab blob information.
  * @param {TabBlob[]} tabBlob Array of TabBlobs

@@ -142,7 +142,7 @@ export class SnapGroup {
     public addWindow(window: SnapWindow): void {
         if (!this._windows.includes(window)) {
             // Remove window from it's previous group
-            const prevGroup =( window.getGroup() === this) ? window.getPrevGroup() : window.getGroup();
+            const prevGroup = (window.getGroup() === this) ? window.getPrevGroup() : window.getGroup();
             if (prevGroup) {
                 prevGroup.removeWindow(window);
             }

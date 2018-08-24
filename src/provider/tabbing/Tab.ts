@@ -52,7 +52,10 @@ export class Tab {
         this._tabProperties = this._loadTabProperties();
 
         fin.desktop.InterApplicationBus.send(
-            fin.desktop.Application.getCurrent().uuid, this._tabGroup.ID, TabApiEvents.TABADDED, {tabID: this.ID, tabProps: this._tabProperties});
+            fin.desktop.Application.getCurrent().uuid,
+            this._tabGroup.ID,
+            TabApiEvents.TABADDED,
+            {tabID: this.ID, tabProps: this._tabProperties, index: this.tabGroup.getTabIndex(this._tabID)});
         fin.desktop.InterApplicationBus.send(this.ID.uuid, this.ID.name, AppApiEvents.TABBED, {tabGroupID: this._tabGroup.ID});
     }
 

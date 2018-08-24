@@ -18,19 +18,26 @@ export class Tab {
     private _ID: TabIdentifier;
 
     /**
+     * Handle to the TabManager
+     */
+    private _tabManager: TabManager;
+
+    /**
      * Constructor for the Tab class.
      * @param {TabIdentifier} tabID An object containing the uuid, name for the external application/window.
+     * @param {TabManager} tabManager Reference to the tab manager handling this tab.
      */
-    constructor(tabID: TabIdentifier, tabProperties: TabProperties) {
+    constructor(tabID: TabIdentifier, tabProperties: TabProperties, tabManager: TabManager) {
         this._ID = tabID;
         this._properties = tabProperties;
+        this._tabManager = tabManager;
     }
 
     /**
      * Initializes the Tab class
      */
-    public init() {
-        this._render();
+    public init(index: number) {
+        this._render(index);
     }
 
     /**
@@ -98,9 +105,17 @@ export class Tab {
     /**
      * Renders the Tab to the DOM from generation.
      */
-    private _render(): void {
+    private _render(index: number): void {
         this._domNode = this._generateDOM();
-        TabManager.tabContainer.appendChild(this._domNode);
+        if (index > this._tabManager.getTabs.length) {
+            TabManager.tabContainer.appendChild(this._domNode);
+        } else if (index === 0) {
+            TabManager.tabContainer.insertAdjacentElement('afterbegin', this._domNode);
+        } else {
+            const prevTab = this._tabManager.getTabs[index - 1];
+            prevTab._domNode.insertAdjacentElement('afterend', this._domNode);
+        }
+
         this.updateText(this._properties.title!);
         this.updateIcon(this._properties.icon!);
     }

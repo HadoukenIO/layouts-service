@@ -75,8 +75,6 @@ export class TabManager {
                 this.tabs.splice(index, 0, tab);
             }
         }
-
-        console.log(this.tabs);
     }
 
     /**

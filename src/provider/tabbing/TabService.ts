@@ -7,6 +7,7 @@ import {Tab} from './Tab';
 import {TabAPIActionProcessor} from './TabAPIActionProcessor';
 import {TabGroup} from './TabGroup';
 import {ZIndexer} from './ZIndexer';
+import { Identity } from 'hadouken-js-adapter';
 
 /**
  * The overarching class for the Tab Service.
@@ -142,8 +143,22 @@ export class TabService {
      * @param {number} y Y Coordinate
      * @returns {TabGroup | null}
      */
-    public async isPointOverTabGroup(x: number, y: number): Promise<TabGroup|null> {
-        const groupTabBounds = await Promise.all(this._tabGroups.map(async group => {
+    public async isPointOverTabGroup(x: number, y: number, identity?: Identity): Promise<TabGroup | null> {
+        let groups: TabGroup[];
+        if (identity) {
+            groups = this.tabGroups.filter((group) => {
+                const activeTabIdentifier: TabIdentifier = group.activeTab.ID;
+                if (activeTabIdentifier.name === identity.name && activeTabIdentifier.uuid === identity.uuid) {
+                    return false;
+                }
+
+                return true;
+            });
+        } else {
+            groups = this._tabGroups;
+        }
+
+        const groupTabBounds = await Promise.all(groups.map(async group => {
             const activeTabBoundsP = group.activeTab.window.getWindowBounds();
             const groupBoundsP = group.window.getWindowBounds();
 

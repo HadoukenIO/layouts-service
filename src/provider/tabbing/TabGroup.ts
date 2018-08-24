@@ -128,6 +128,11 @@ export class TabGroup {
      * @param {boolean} closeGroupWindowCheck Flag to check if we should close the tab set window if there are no more tabs.
      */
     public async removeTab(tabID: TabIdentifier, closeApp: boolean, closeGroupWindowCheck = false): Promise<void> {
+
+        if (this.tabs.length === 1) {
+            this.window.finWindow.hide();
+        }
+
         const index: number = this.getTabIndex(tabID);
 
         if (index === -1) {

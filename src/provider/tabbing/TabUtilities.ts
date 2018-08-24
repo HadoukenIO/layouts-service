@@ -144,8 +144,8 @@ export async function initializeTabbing(message: TabWindowOptions, uuid: string,
     }
 
     // shows the tab group window because it is default hidden
-    group.window.finWindow.show();
-
+    //group.window.finWindow.show();
+    
     // Switch tab on group to make our added tab the active one
     group.switchTab({uuid, name});
 }

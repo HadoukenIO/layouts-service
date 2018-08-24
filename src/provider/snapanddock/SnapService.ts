@@ -4,9 +4,11 @@ import {eSnapValidity, Resolver, SnapTarget} from './Resolver';
 import {Signal2} from './Signal';
 import {SnapGroup} from './SnapGroup';
 import {SnapView} from './SnapView';
-import {eTransformType, Mask, SnapWindow, WindowState} from './SnapWindow';
+import {eTransformType, Mask, SnapWindow, WindowState, WindowIdentity} from './SnapWindow';
 import {Point, PointUtils} from './utils/PointUtils';
 import {MeasureResult, RectUtils} from './utils/RectUtils';
+import { TabGroup } from '../tabbing/TabGroup';
+import { Tab } from '../tabbing/Tab';
 
 // Defines the distance windows will be moved when undocked.
 const UNDOCK_MOVE_DISTANCE = 30;
@@ -289,15 +291,27 @@ export class SnapService {
                     'Expected group to have been removed, but still exists (' + activeGroup.id + ': ' + activeGroup.windows.map(w => w.getId()).join() + ')');
             }
             // TAB WINDOWS
-        } else if (activeGroup.length === 1 && !TabService.INSTANCE.getTabGroupByApp(activeGroup.windows[0].getIdentity())) {
+        } else if (activeGroup.length === 1) {
+            const currentDragWindowIdentity: WindowIdentity = activeGroup.windows[0].getIdentity()
+            const currentDragWindowTabGroup: TabGroup | undefined = TabService.INSTANCE.getTabGroupByApp(currentDragWindowIdentity);
+
+            if (!currentDragWindowTabGroup) {
+                return;
+            }
+
+            if (currentDragWindowTabGroup.tabs.length > 1) {
+                return;
+            }
+
             // If a single untabbed window is being dragged, it is possible to create a tabset
             const activeState = activeGroup.windows[0].getState();
 
             // Window will be tabbed if center of the dragged window overlaps with an initialized tabbable window.
-            TabService.INSTANCE.isPointOverTabGroup(activeState.center.x, activeState.center.y).then((tabTarget) => {
+            TabService.INSTANCE.isPointOverTabGroup(activeState.center.x, activeState.center.y, currentDragWindowIdentity).then((tabTarget) => {
                 if (tabTarget) {
                     console.log('Tabbing to target: ' + tabTarget.tabs);
-                    tabTarget.addTab({tabID: activeGroup.windows[0].getIdentity()});
+                    tabTarget.addTab({ tabID: currentDragWindowIdentity });
+                    tabTarget.window.finWindow.show();
                 }
             });
         }

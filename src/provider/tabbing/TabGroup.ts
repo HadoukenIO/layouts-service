@@ -1,10 +1,10 @@
-import { TabApiEvents } from '../../client/APITypes';
-import { TabIdentifier, TabPackage, TabWindowOptions } from '../../client/types';
+import {TabApiEvents} from '../../client/APITypes';
+import {TabIdentifier, TabPackage, TabWindowOptions} from '../../client/types';
 
-import { GroupWindow } from './GroupWindow';
-import { Tab } from './Tab';
-import { TabService } from './TabService';
-import { uuidv4 } from './TabUtilities';
+import {GroupWindow} from './GroupWindow';
+import {Tab} from './Tab';
+import {TabService} from './TabService';
+import {uuidv4} from './TabUtilities';
 
 /**
  * Handles functionality for the TabSet
@@ -55,8 +55,8 @@ export class TabGroup {
      * @param {number} index Where should we insert the tab?  -1 defaults to the end of the order.
      * @returns {Tab} The created tab.
      */
-    public async addTab(tabPackage: TabPackage, handleTabSwitch = true, handleAlignment = true, index = -1): Promise<Tab | undefined> {
-        const existingTab = TabService.INSTANCE.getTab({ uuid: tabPackage.tabID.uuid, name: tabPackage.tabID.name });
+    public async addTab(tabPackage: TabPackage, handleTabSwitch = true, handleAlignment = true, index = -1): Promise<Tab|undefined> {
+        const existingTab = TabService.INSTANCE.getTab({uuid: tabPackage.tabID.uuid, name: tabPackage.tabID.name});
 
         if (existingTab) {
             if (existingTab.tabGroup.window.initialWindowOptions.url !== this.window.initialWindowOptions.url) {
@@ -119,13 +119,13 @@ export class TabGroup {
      */
     public reOrderTabArray(orderReference: TabIdentifier[]): boolean {
         const newlyOrdered = orderReference
-            .map((ref) => this._tabs.find((tab, i) => {
-                if (tab.ID.name === ref.name && tab.ID.uuid === ref.uuid) {
-                    return true;
-                }
-                return false;
-            }))
-            .filter((tab: Tab | undefined) => tab !== undefined);
+                                 .map((ref) => this._tabs.find((tab, i) => {
+                                     if (tab.ID.name === ref.name && tab.ID.uuid === ref.uuid) {
+                                         return true;
+                                     }
+                                     return false;
+                                 }))
+                                 .filter((tab: Tab|undefined) => tab !== undefined);
 
         if (newlyOrdered.length === this._tabs.length) {
             this._tabs = newlyOrdered as Tab[];
@@ -146,7 +146,7 @@ export class TabGroup {
         await this.removeTab(ID, false, true);
 
         if (tab) {
-            tab.window.updateWindowOptions({ frame: true, opacity: 1.0 });
+            tab.window.updateWindowOptions({frame: true, opacity: 1.0});
         }
     }
 
@@ -219,7 +219,7 @@ export class TabGroup {
      * Gets the tab with the specified identifier
      * @param tabID The tab identifier
      */
-    public getTab(tabID: TabIdentifier): Tab | undefined {
+    public getTab(tabID: TabIdentifier): Tab|undefined {
         return this.tabs.find((tab: Tab) => {
             return tab.ID.uuid === tabID.uuid && tab.ID.name === tabID.name;
         });

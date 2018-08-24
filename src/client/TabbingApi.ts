@@ -203,4 +203,4 @@ export class TabbingApi extends Api {
     }
 }
 
-(window as Window & { Tab: TabbingApi }).Tab = new TabbingApi();
+(window as Window & {Tab: TabbingApi}).Tab = new TabbingApi();

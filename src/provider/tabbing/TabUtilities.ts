@@ -46,7 +46,7 @@ export async function ejectTab(tabService: TabService, message: TabIdentifier&Ta
             if (isOverTabWindowResult.window.initialWindowOptions.url === ejectedTab.tabGroup.window.initialWindowOptions.url) {
                 // Remove the tab from the ejecting group
                 await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true);
-                isOverTabWindowResult.tabs[0].window.updateWindowOptions({ frame: false });
+                isOverTabWindowResult.tabs[0].window.updateWindowOptions({frame: false});
                 // Add the tab to the window underneath our point
                 const tab = await isOverTabWindowResult.addTab({tabID: ejectedTab.ID});
 
@@ -90,10 +90,17 @@ export async function ejectTab(tabService: TabService, message: TabIdentifier&Ta
 
                 // Reinitialize a new tab group + tab using the ejecting groups options
                 initializeTabbing(
-                    { url: originalOptions.url, height: originalOptions.height, width: tabGroupBounds.width, screenX: message.screenX, screenY: message.screenY - ejectedTabGroup.window.initialWindowOptions.height! },
+                    {
+                        url: originalOptions.url,
+                        height: originalOptions.height,
+                        width: tabGroupBounds.width,
+                        screenX: message.screenX,
+                        screenY: message.screenY - ejectedTabGroup.window.initialWindowOptions.height!
+                    },
                     ejectedTab.ID.uuid,
                     ejectedTab.ID.name,
-                    tabService, true);
+                    tabService,
+                    true);
             }
         } else {
             // If we have no screenX & screenY and no window underneath (obviously...)
@@ -103,13 +110,17 @@ export async function ejectTab(tabService: TabService, message: TabIdentifier&Ta
 
             // Reinitialize the tab at the app windows existing location
             initializeTabbing(
-                {url: originalOptions.url, height: originalOptions.height, width: tabGroupBounds.width}, ejectedTab.ID.uuid, ejectedTab.ID.name, tabService, true);
+                {url: originalOptions.url, height: originalOptions.height, width: tabGroupBounds.width},
+                ejectedTab.ID.uuid,
+                ejectedTab.ID.name,
+                tabService,
+                true);
         }
     }
 
     if (tabGroup && tabGroup.tabs.length === 1) {
         tabGroup.window.finWindow.hide();
-        tabGroup.tabs[0].window.updateWindowOptions({ frame: true });
+        tabGroup.tabs[0].window.updateWindowOptions({frame: true});
     }
 }
 
@@ -126,7 +137,7 @@ export async function initializeTabbing(message: TabWindowOptions, uuid: string,
         return;
     }
 
-    let group: TabGroup | undefined = await tabService.getTabGroupByApp({ uuid, name });
+    let group: TabGroup|undefined = await tabService.getTabGroupByApp({uuid, name});
 
     if (!group) {
         group = await tabService.addTabGroup(message);
@@ -143,7 +154,7 @@ export async function initializeTabbing(message: TabWindowOptions, uuid: string,
     }
 
     if (ejected) {
-        tab.window.updateWindowOptions({ frame: true });
+        tab.window.updateWindowOptions({frame: true});
     }
 
     if (message.screenX && message.screenY) {
@@ -155,8 +166,8 @@ export async function initializeTabbing(message: TabWindowOptions, uuid: string,
     }
 
     // shows the tab group window because it is default hidden
-    //group.window.finWindow.show();
-    
+    // group.window.finWindow.show();
+
     // Switch tab on group to make our added tab the active one
     group.switchTab({uuid, name});
 }

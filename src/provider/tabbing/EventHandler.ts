@@ -27,7 +27,7 @@ export class EventHandler {
      * Subscribes to topics and handles messages coming into those topics
      */
     private async _createListeners(): Promise<void> {
-        fin.desktop.InterApplicationBus.subscribe("*", AppApiEvents.SETTABCLIENT, this.setTabClientReceived.bind(this));
+        fin.desktop.InterApplicationBus.subscribe('*', AppApiEvents.SETTABCLIENT, this.setTabClientReceived.bind(this));
         fin.desktop.InterApplicationBus.subscribe('*', AppApiEvents.CLIENTINIT, this._onClientInit.bind(this));
         fin.desktop.InterApplicationBus.subscribe('*', AppApiEvents.DEREGISTER, this._onClientDeregister.bind(this));
 
@@ -36,15 +36,15 @@ export class EventHandler {
 
     private async setTabClientReceived(windowOptions: TabWindowOptions, uuid: string, name: string): Promise<void> {
         if (!windowOptions) {
-            console.error("No window options has been passed");
+            console.error('No window options has been passed');
             return;
         }
 
-        const foundGroup: TabGroup | undefined = this._service.getTabGroupByApp({ uuid, name });
+        const foundGroup: TabGroup|undefined = this._service.getTabGroupByApp({uuid, name});
 
-        // Check if this has been called already if it has we dont want to 
+        // Check if this has been called already if it has we dont want to
         if (foundGroup) {
-            console.error("group has already been created");
+            console.error('group has already been created');
             return;
         }
 

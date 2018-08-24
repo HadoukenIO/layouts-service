@@ -1,14 +1,14 @@
+import {Tab} from '../tabbing/Tab';
+import {TabGroup} from '../tabbing/TabGroup';
 import {TabService} from '../tabbing/TabService';
 
 import {eSnapValidity, Resolver, SnapTarget} from './Resolver';
 import {Signal2} from './Signal';
 import {SnapGroup} from './SnapGroup';
 import {SnapView} from './SnapView';
-import {eTransformType, Mask, SnapWindow, WindowState, WindowIdentity} from './SnapWindow';
+import {eTransformType, Mask, SnapWindow, WindowIdentity, WindowState} from './SnapWindow';
 import {Point, PointUtils} from './utils/PointUtils';
 import {MeasureResult, RectUtils} from './utils/RectUtils';
-import { TabGroup } from '../tabbing/TabGroup';
-import { Tab } from '../tabbing/Tab';
 
 // Defines the distance windows will be moved when undocked.
 const UNDOCK_MOVE_DISTANCE = 30;
@@ -336,8 +336,8 @@ export class SnapService {
             }
             // TAB WINDOWS
         } else if (activeGroup.length === 1) {
-            const currentDragWindowIdentity: WindowIdentity = activeGroup.windows[0].getIdentity()
-            const currentDragWindowTabGroup: TabGroup | undefined = TabService.INSTANCE.getTabGroupByApp(currentDragWindowIdentity);
+            const currentDragWindowIdentity: WindowIdentity = activeGroup.windows[0].getIdentity();
+            const currentDragWindowTabGroup: TabGroup|undefined = TabService.INSTANCE.getTabGroupByApp(currentDragWindowIdentity);
 
             if (!currentDragWindowTabGroup) {
                 return;
@@ -354,8 +354,8 @@ export class SnapService {
             TabService.INSTANCE.isPointOverTabGroup(activeState.center.x, activeState.center.y, currentDragWindowIdentity).then((tabTarget) => {
                 if (tabTarget) {
                     console.log('Tabbing to target: ' + tabTarget.tabs);
-                    tabTarget.tabs[0].window.updateWindowOptions({ frame: false });
-                    tabTarget.addTab({ tabID: currentDragWindowIdentity });
+                    tabTarget.tabs[0].window.updateWindowOptions({frame: false});
+                    tabTarget.addTab({tabID: currentDragWindowIdentity});
                     tabTarget.window.finWindow.show();
                 }
             });

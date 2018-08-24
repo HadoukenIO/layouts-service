@@ -1,3 +1,5 @@
+import {Identity} from 'hadouken-js-adapter';
+
 import {TabIdentifier, TabPackage, TabWindowOptions} from '../../client/types';
 
 import {DragWindowManager} from './DragWindowManager';
@@ -6,7 +8,6 @@ import {Tab} from './Tab';
 import {TabAPIActionProcessor} from './TabAPIActionProcessor';
 import {TabGroup} from './TabGroup';
 import {ZIndexer} from './ZIndexer';
-import { Identity } from 'hadouken-js-adapter';
 
 /**
  * The overarching class for the Tab Service.
@@ -66,7 +67,7 @@ export class TabService {
      */
     public async addTabGroup(windowOptions: TabWindowOptions): Promise<TabGroup> {
         const group: TabGroup = new TabGroup(windowOptions);
- 
+
         this._tabGroups.push(group);
 
         return group;
@@ -135,7 +136,7 @@ export class TabService {
      * @param {number} y Y Coordinate
      * @returns {TabGroup | null}
      */
-    public async isPointOverTabGroup(x: number, y: number, identity?: Identity): Promise<TabGroup | null> {
+    public async isPointOverTabGroup(x: number, y: number, identity?: Identity): Promise<TabGroup|null> {
         let groups: TabGroup[];
         if (identity) {
             groups = this.tabGroups.filter((group) => {

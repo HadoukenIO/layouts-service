@@ -48,7 +48,7 @@ export class TabWindow extends AsyncWindow {
 
         if (this._tabGroup.tabs.length > 1) {
             // @ts-ignore resizeRegion.sides is valid.  Its not in the type file.
-            this.updateWindowOptions({ showTaskbarIcon: false, frame: false, resizeRegion: { sides: { top: false } } });
+            this.updateWindowOptions({showTaskbarIcon: false, frame: false, resizeRegion: {sides: {top: false}}});
         }
 
         this._createWindowEventListeners();

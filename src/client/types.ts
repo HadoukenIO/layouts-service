@@ -1,58 +1,58 @@
 /*tslint:disable:no-any*/
-import { Identity } from "hadouken-js-adapter/out/types/src/identity";
+import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 export interface Url {
-	url: string;
+    url: string;
 }
 
 export interface Bounds {
-	height: number;
-	width: number;
-	top: number;
-	left: number;
-	right?: number;
-	bottom?: number;
+    height: number;
+    width: number;
+    top: number;
+    left: number;
+    right?: number;
+    bottom?: number;
 }
 
 export interface WindowState extends Bounds {
-	uuid: string;
-	name: string;
-	isShowing: boolean;
-	state: string;
-	info: any; // getinfo call...
-	windowGroup: Identity[];
-	contextGroups: string[];
-	customData?: any; // applications can add any context or other necessary data here
+    uuid: string;
+    name: string;
+    isShowing: boolean;
+    state: string;
+    info: any;  // getinfo call...
+    windowGroup: Identity[];
+    contextGroups: string[];
+    customData?: any;  // applications can add any context or other necessary data here
 }
 
 export interface LayoutApp {
-	manifestUrl?: string;
-	manifest?: any;
-	parentUuid?: string;
-	initialOptions?: any;
-	launchMode?: string;
-	uuid: string;
-	mainWindow: WindowState;
-	childWindows: WindowState[];
-	confirmed?: boolean;
-	customData?: any; // applications can add any context or other necessary data here
+    manifestUrl?: string;
+    manifest?: any;
+    parentUuid?: string;
+    initialOptions?: any;
+    launchMode?: string;
+    uuid: string;
+    mainWindow: WindowState;
+    childWindows: WindowState[];
+    confirmed?: boolean;
+    customData?: any;  // applications can add any context or other necessary data here
 }
 
 export type LayoutName = string;
 
 export interface Layout {
-	monitorInfo: any; // saving but not using yet
-	type: string; // not using yet
-	name: LayoutName;
-	customData?: any;
-	systemStartup?: boolean; // not using yet
-	bounds?: Bounds; // not using yet
-	apps: LayoutApp[];
+    monitorInfo: any;  // saving but not using yet
+    type: string;      // not using yet
+    name: LayoutName;
+    customData?: any;
+    systemStartup?: boolean;  // not using yet
+    bounds?: Bounds;          // not using yet
+    apps: LayoutApp[];
 }
 
 export interface AppToRestore {
-	resolve: Function;
-	layoutApp: LayoutApp;
+    resolve: Function;
+    layoutApp: LayoutApp;
 }
 
 /* Workflows
@@ -80,43 +80,43 @@ Restoring A Layout
 */
 
 export interface TabIdentifier {
-	name: string;
-	uuid: string;
+    name: string;
+    uuid: string;
 }
 
 export enum TabServiceID {
-	NAME = "Layout-Manager",
-	UUID = "Layout-Manager"
+    NAME = 'Layout-Manager',
+    UUID = 'Layout-Manager'
 }
 
 export interface TabOptions {
-	alignTabWindow?: boolean;
-	screenX?: number;
-	screenY?: number;
+    alignTabWindow?: boolean;
+    screenX?: number;
+    screenY?: number;
 }
 
 export enum ServiceIABTopics {
-    SETTABCLIENT = "SETTABCLIENT",
-	CLIENTINIT = "CLIENTINIT",
-	TABEJECTED = "TABEJECTED",
-	UPDATETABPROPERTIES = "UPDATETABPROPERTIES"
+    SETTABCLIENT = 'SETTABCLIENT',
+    CLIENTINIT = 'CLIENTINIT',
+    TABEJECTED = 'TABEJECTED',
+    UPDATETABPROPERTIES = 'UPDATETABPROPERTIES'
 }
 
 export interface TabProperties {
-	title?: string;
-	icon?: string;
+    title?: string;
+    icon?: string;
 }
 
 export interface TabWindowOptions {
-	url?: string;
-	screenX?: number;
-	screenY?: number;
-	width?: number;
-	height?: number;
+    url?: string;
+    screenX?: number;
+    screenY?: number;
+    width?: number;
+    height?: number;
 }
 
 export interface TabPackage {
-	tabID: TabIdentifier;
+    tabID: TabIdentifier;
     tabProps?: TabProperties;
     index?: number;
 }
@@ -125,26 +125,26 @@ export interface TabPackage {
  * @description Each action coming into the will have an action attached
  */
 export interface TabAPIMessage {
-	action: string;
+    action: string;
 }
 
 /**
  * @description When the tab API makes a call to the service a uuid and name should be provided
  */
 export interface TabAPIInteractionMessage extends TabAPIMessage {
-	uuid: string;
-	name: string;
-	properties?: TabProperties;
+    uuid: string;
+    name: string;
+    properties?: TabProperties;
 }
 
 export interface TabAPIDragMessage extends TabAPIMessage {
-	event: TabWindowOptions | null;
-	uuid: string;
-	name: string;
+    event: TabWindowOptions|null;
+    uuid: string;
+    name: string;
 }
 
 export interface TabbedEventPayload {
-	tabGroupID: string;
+    tabGroupID: string;
 }
 
 
@@ -164,7 +164,7 @@ export interface Group {
 
 export interface TabBlob {
     groupInfo: Group;
-	tabs: TabIdentifier[];
+    tabs: TabIdentifier[];
 }
 
 export interface TabAPIReorderMessage extends TabAPIMessage {

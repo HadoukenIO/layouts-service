@@ -1,13 +1,16 @@
+
 import {Identity} from 'hadouken-js-adapter';
-
-import {TabIdentifier, TabPackage, TabWindowOptions} from '../../client/types';
-
+import {Bounds, TabIdentifier, TabPackage, TabWindowOptions} from '../../client/types';
 import {DragWindowManager} from './DragWindowManager';
 import {EventHandler} from './EventHandler';
 import {Tab} from './Tab';
 import {TabAPIActionProcessor} from './TabAPIActionProcessor';
 import {TabGroup} from './TabGroup';
 import {ZIndexer} from './ZIndexer';
+
+interface GroupTabBounds extends Bounds {
+    group: TabGroup;
+}
 
 /**
  * The overarching class for the Tab Service.
@@ -154,13 +157,22 @@ export class TabService {
         const groupTabBounds = await Promise.all(groups.map(async group => {
             const activeTabBoundsP = group.activeTab.window.getWindowBounds();
             const groupBoundsP = group.window.getWindowBounds();
+            const activeTabShowingP = group.activeTab.window.isShowing();
 
-            const [activeTabBounds, groupBounds] = await Promise.all([activeTabBoundsP, groupBoundsP]);
+            const [activeTabBounds, groupBounds, activeTabShowing] = await Promise.all([activeTabBoundsP, groupBoundsP, activeTabShowingP]);
+
+            if (!activeTabShowing) {
+                return;
+            }
 
             return {group, top: groupBounds.top!, left: groupBounds.left!, width: groupBounds.width!, height: groupBounds.height! + activeTabBounds.height!};
         }));
 
-        const result = groupTabBounds.filter(group => {
+        const result: GroupTabBounds[] = groupTabBounds.filter((group): group is GroupTabBounds => {
+            if (!group) {
+                return false;
+            }
+
             return x > group.left && x < group.width + group.left && y > group.top && y < group.top + group.height;
         });
 

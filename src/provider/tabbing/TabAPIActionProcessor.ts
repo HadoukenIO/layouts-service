@@ -92,7 +92,7 @@ export class TabAPIActionProcessor {
      * Starts the drag window process & shows the drag window overlay.
      */
     private async _startDrag(source: TabIdentifier) {
-        this.mTabService.dragWindowManager.show(source);
+        this.mTabService.dragWindowManager.showWindow(source);
     }
 
     /**
@@ -119,7 +119,7 @@ export class TabAPIActionProcessor {
             console.error('No valid tabID has been passed in');
             return;
         }
-        this.mTabService.dragWindowManager.hide();
+        this.mTabService.dragWindowManager.hideWindow();
 
         ejectTab(this.mTabService, {uuid: message.uuid, name: message.name, screenX: message.event.screenX, screenY: message.event.screenY}, group);
     }

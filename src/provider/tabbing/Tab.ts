@@ -3,7 +3,6 @@ import {TabIdentifier, TabPackage, TabProperties} from '../../client/types';
 import {TabGroup} from './TabGroup';
 import {TabWindow} from './TabWindow';
 
-
 /**
  * The Tab class handles functionality related to the tab itself.
  */
@@ -53,7 +52,10 @@ export class Tab {
         this._tabProperties = this._loadTabProperties();
 
         fin.desktop.InterApplicationBus.send(
-            fin.desktop.Application.getCurrent().uuid, this._tabGroup.ID, TabApiEvents.TABADDED, {tabID: this.ID, tabProps: this._tabProperties});
+            fin.desktop.Application.getCurrent().uuid,
+            this._tabGroup.ID,
+            TabApiEvents.TABADDED,
+            {tabID: this.ID, tabProps: this._tabProperties, index: this.tabGroup.getTabIndex(this._tabID)});
         fin.desktop.InterApplicationBus.send(this.ID.uuid, this.ID.name, AppApiEvents.TABBED, {tabGroupID: this._tabGroup.ID});
     }
 

@@ -33,7 +33,6 @@ export class ZIndexer {
         });
 
         fin.desktop.System.addEventListener('application-started', (ev: fin.SystemBaseEvent) => {
-            // @ts-ignore
             const app = fin.desktop.Application.wrap(ev.uuid);
             const appWin = app.getWindow();
 
@@ -42,6 +41,29 @@ export class ZIndexer {
             app.addEventListener('window-created', (win: fin.WindowEvent) => {
                 const w = fin.desktop.Window.wrap(app.uuid, win.name);
                 this._addEventListeners(w);
+            });
+        });
+
+        // Register all existing applications
+        fin.desktop.System.getAllApplications(apps => {
+            apps.forEach(appID => {
+                const app = fin.desktop.Application.wrap(appID.uuid);
+
+                // Listen for any new child windows
+                app.addEventListener('window-created', (win: {name: string}) => {
+                    const w = fin.desktop.Window.wrap(app.uuid, win.name);
+                    this._addEventListeners(w);
+                });
+
+                // Register main window
+                this._addEventListeners(app.getWindow());
+
+                // Register existing child windows
+                app.getChildWindows(children => {
+                    children.forEach(w => {
+                        this._addEventListeners(w);
+                    });
+                });
             });
         });
 

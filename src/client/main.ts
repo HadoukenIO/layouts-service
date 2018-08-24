@@ -33,7 +33,7 @@ const getId = (() => {
 const servicePromise: Promise<ServiceClient> = fin.desktop.Service.connect({...IDENTITY, payload: VERSION}).then((service: ServiceClient) => {
     // Map undocking keybind
     Mousetrap.bind('mod+shift+u', () => {
-        service.dispatch('undock', getId());
+        service.dispatch('undockWindow', getId());
         console.log('Window un-docked via keyboard shortcut');
     });
 
@@ -59,9 +59,23 @@ const servicePromise: Promise<ServiceClient> = fin.desktop.Service.connect({...I
  * 
  * @param identity The window to undock, defaults to the current window
  */
-export async function undock(identity: Identity = getId()): Promise<void> {
+export async function undockWindow(identity: Identity = getId()): Promise<void> {
     const service: ServiceClient = await servicePromise;
-    return service.dispatch('undock', identity);
+    return service.dispatch('undockWindow', identity);
+}
+
+/**
+ * Will undock every window that is currently connected to a current window.
+ * 
+ * This will completely disband the entire group, not just the windows directly touching 'identity'.
+ * 
+ * Has no effect if 'identity' isn't currently snapped to any other window.
+ * 
+ * @param identity A window belonging to the group that should be disbanded, defaults to the current window/group
+ */
+export async function undockGroup(identity: Identity = getId()): Promise<void> {
+    const service: ServiceClient = await servicePromise;
+    return service.dispatch('undockGroup', identity);
 }
 
 /**
@@ -83,20 +97,6 @@ export async function addEventListener(eventType: 'join-snap-group'|'leave-snap-
     // Use native js event system to pass internal events around.
     // Without this we would need to handle multiple registration ourselves.
     window.addEventListener(eventType, callback);
-}
-
-/**
- * Will undock every window that is currently connected to a current window.
- * 
- * This will completely disband the entire group, not just the windows directly touching 'identity'.
- * 
- * Has no effect if 'identity' isn't currently snapped to any other window.
- * 
- * @param identity A window belonging to the group that should be exploded, defaults to the current window/group
- */
-export async function explodeGroup(identity: Identity = getId()): Promise<void> {
-    const service: ServiceClient = await servicePromise;
-    return service.dispatch('explode', identity);
 }
 
 /**

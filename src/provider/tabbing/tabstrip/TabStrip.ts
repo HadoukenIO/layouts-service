@@ -1,6 +1,5 @@
 import {TabManager} from './TabManager';
 
-
 fin.desktop.main(() => {
     const tabManager: TabManager = new TabManager();
     (window as Window & {tabManager: TabManager}).tabManager = tabManager;

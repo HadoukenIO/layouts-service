@@ -19,13 +19,13 @@ fin.desktop.main(main);
 
 async function registerService() {
     providerChannel = window.providerChannel = (await fin.desktop.Service.register()) as Provider;
-    providerChannel.register('undock', (identity: WindowIdentity) => {
+    providerChannel.register('undockWindow', (identity: WindowIdentity) => {
         snapService.undock(identity);
     });
     providerChannel.register('deregister', (identity: WindowIdentity) => {
         snapService.deregister(identity);
     });
-    providerChannel.register('explode', (identity: WindowIdentity) => {
+    providerChannel.register('undockGroup', (identity: WindowIdentity) => {
         snapService.explodeGroup(identity);
     });
     providerChannel.register('saveCurrentLayout', saveCurrentLayout);

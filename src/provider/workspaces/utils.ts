@@ -23,30 +23,26 @@ export const positionWindow = async (win: WindowState) => {
         await ofWin.leaveGroup();
         await ofWin.setBounds(win);
 
-        // FOR DEMO!!!
-        await ofWin.show();
-        await ofWin.restore();
-
         // COMMENTED OUT FOR DEMO
-        // if (win.state === 'normal') {
-        //     await ofWin.restore();
-        // } else if (win.state === 'minimized') {
-        //     await ofWin.minimize();
-        // } else if (win.state === 'maximized') {
-        //     await ofWin.maximize();
-        // }
+        if (win.state === 'normal') {
+            await ofWin.restore();
+        } else if (win.state === 'minimized') {
+            await ofWin.minimize();
+        } else if (win.state === 'maximized') {
+            await ofWin.maximize();
+        }
 
-        // if (win.isShowing) {
-        // await ofWin.show();
-        // } else {
-        //     await ofWin.hide();
-        // }
+        if (win.isShowing) {
+            await ofWin.show();
+        } else {
+            await ofWin.hide();
+        }
     } catch (e) {
         console.error('position window error', e);
     }
 };
 
-export const createAppPlaceholders = (app: LayoutApp) => {
+export const createAppPlaceholders = async (app: LayoutApp) => {
     createPlaceholder(app.mainWindow);
     app.childWindows.forEach((win: WindowState) => {
         createPlaceholder(win);
@@ -59,23 +55,36 @@ const createPlaceholder = async (win: WindowState) => {
     }
     const {name, height, width, left, top, uuid} = win;
 
+    const placeholderName = "Placeholder-" + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
     const placeholder = new fin.desktop.Window(
-        { name, autoShow: true, defaultHeight: height, defaultWidth: width, defaultLeft: left, defaultTop: top, saveWindowState: false, opacity: 0.6, backgroundColor: '#D3D3D3'}, () => {
+        { name: placeholderName, autoShow: true, defaultHeight: height, defaultWidth: width, defaultLeft: left, defaultTop: top, saveWindowState: false, opacity: 0.6, backgroundColor: '#D3D3D3'}, () => {
             placeholder.nativeWindow.document.body.style.overflow = 'hidden';
             placeholder.nativeWindow.document.bgColor = "D3D3D3";
         });
+
     const actualWindow = await fin.Window.wrap({uuid, name});
     actualWindow.on('shown', () => {
         placeholder.close();
     });
 };
 
-export const wasCreatedProgramatically = (app: LayoutApp) => {
+export const wasCreatedProgrammatically = (app: LayoutApp) => {
     return app && app.initialOptions && app.initialOptions.uuid && app.initialOptions.url;
 };
 
+interface AppInfo {
+    manifest: {
+        startup_app: { 
+            uuid: string;
+        };
+    };
+    manifestUrl: string;
+    uuid: string;
+}
+
 // Type here should be ApplicationInfo from the js-adapter (needs to be updated)
-export const wasCreatedFromManifest = (app: LayoutApp, uuid?: string) => {
+export const wasCreatedFromManifest = (app: AppInfo, uuid?: string) => {
     const {manifest, manifestUrl} = app;
     const appUuid = uuid || app.uuid;
     return typeof manifest === 'object' && manifest.startup_app && manifest.startup_app.uuid === appUuid;
@@ -103,7 +112,5 @@ export const showingWindowInApp = async(app: LayoutApp): Promise<boolean> => {
 
 const isShowingWindow = async(ofWin: Window): Promise<boolean> => {
     const isShowing = await ofWin.isShowing();
-    const windowState = await ofWin.getState();
-    const isMinimized = windowState === 'minimized';
-    return (isShowing && !isMinimized) ? true : false;
+    return isShowing;
 };

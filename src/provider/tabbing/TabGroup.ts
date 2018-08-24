@@ -6,7 +6,6 @@ import {Tab} from './Tab';
 import {TabService} from './TabService';
 import {uuidv4} from './TabUtilities';
 
-
 /**
  * Handles functionality for the TabSet
  */
@@ -53,9 +52,10 @@ export class TabGroup {
      * @param {TabPackage} tabPackage The package containing uuid, name, tabProperties of the tab to be added.
      * @param {boolean} handleTabSwitch Flag to let us know if we should handle switching the tab.  Default true.
      * @param {boolean} handleAlignment Flag to let us know if we should handle aligning the tab group to tab.  Default true;
+     * @param {number} index Where should we insert the tab?  -1 defaults to the end of the order.
      * @returns {Tab} The created tab.
      */
-    public async addTab(tabPackage: TabPackage, handleTabSwitch = true, handleAlignment = true): Promise<Tab|undefined> {
+    public async addTab(tabPackage: TabPackage, handleTabSwitch = true, handleAlignment = true, index = -1): Promise<Tab|undefined> {
         const existingTab = TabService.INSTANCE.getTab({uuid: tabPackage.tabID.uuid, name: tabPackage.tabID.name});
 
         if (existingTab) {
@@ -70,7 +70,13 @@ export class TabGroup {
         }
 
         const tab = new Tab(tabPackage, this);
-        this._tabs.push(tab);
+
+        if (index > -1 && index <= this.tabs.length) {
+            this._tabs.splice(index, 0, tab);
+        } else {
+            this._tabs.push(tab);
+        }
+
         await tab.init();
 
         if (this._tabs.length > 1) {
@@ -108,6 +114,29 @@ export class TabGroup {
     }
 
     /**
+     * Reorders the tab structure to match what is present in the UI.
+     * @param {TabIdentifier[]} orderReference The order which we should rearrange our tabs to match.  This will come from the UI component.
+     */
+    public reOrderTabArray(orderReference: TabIdentifier[]): boolean {
+        const newlyOrdered = orderReference
+                                 .map((ref) => this._tabs.find((tab, i) => {
+                                     if (tab.ID.name === ref.name && tab.ID.uuid === ref.uuid) {
+                                         return true;
+                                     }
+                                     return false;
+                                 }))
+                                 .filter((tab: Tab|undefined) => tab !== undefined);
+
+        if (newlyOrdered.length === this._tabs.length) {
+            this._tabs = newlyOrdered as Tab[];
+            return true;
+        } else {
+            console.error('Input array must reference each tab exactly once');
+            return false;
+        }
+    }
+
+    /**
      * Deregisters the Tab from tabbing altogether.
      * @param ID ID (uuid, name) of the Tab to deregister.
      */
@@ -127,7 +156,7 @@ export class TabGroup {
      * @param {boolean} closeApp Flag to force close the tab window or not.
      * @param {boolean} closeGroupWindowCheck Flag to check if we should close the tab set window if there are no more tabs.
      */
-    public async removeTab(tabID: TabIdentifier, closeApp: boolean, closeGroupWindowCheck = false): Promise<void> {
+    public async removeTab(tabID: TabIdentifier, closeApp: boolean, closeGroupWindowCheck = false, switchTab = true): Promise<void> {
         const index: number = this.getTabIndex(tabID);
 
         if (index === -1) {
@@ -136,7 +165,7 @@ export class TabGroup {
         const tab = this._tabs[index];
         this._tabs.splice(index, 1);
 
-        if (this._tabs.length > 0 && this.activeTab.ID.uuid === tab.ID.uuid && this.activeTab.ID.name === tab.ID.name) {
+        if (switchTab && this._tabs.length > 0 && this.activeTab.ID.uuid === tab.ID.uuid && this.activeTab.ID.name === tab.ID.name) {
             const nextTab: TabIdentifier = this._tabs[index] ? this._tabs[index].ID : this._tabs[index - 1].ID;
 
             await this.switchTab(nextTab);

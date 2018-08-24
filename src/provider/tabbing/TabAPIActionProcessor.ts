@@ -1,11 +1,10 @@
 import {TabAPIActions, TabAPIWindowActions} from '../../client/APITypes';
-import {TabAPIDragMessage, TabAPIInteractionMessage, TabAPIMessage, TabPackage} from '../../client/types';
+import {TabAPIDragMessage, TabAPIInteractionMessage, TabAPIMessage, TabAPIReorderMessage, TabIdentifier, TabPackage} from '../../client/types';
 
 import {Tab} from './Tab';
 import {TabGroup} from './TabGroup';
 import {TabService} from './TabService';
 import {ejectTab} from './TabUtilities';
-
 
 /**
  * Handles all calls from tab api to service
@@ -73,10 +72,13 @@ export class TabAPIActionProcessor {
                 this._updateTabProperties(message as TabAPIInteractionMessage, tabGroup);
                 break;
             case TabAPIActions.STARTDRAG:
-                this._startDrag();
+                this._startDrag({uuid, name});
                 break;
             case TabAPIActions.ENDDRAG:
                 this._endDrag(message as TabAPIDragMessage, tabGroup);
+                break;
+            case TabAPIActions.TABSREORDERED:
+                this._tabsReordered(message as TabAPIReorderMessage, tabGroup);
                 break;
             case TabAPIWindowActions.TOGGLEMAXIMIZE:
                 tabGroup.window.toggleMaximize();
@@ -89,8 +91,17 @@ export class TabAPIActionProcessor {
     /**
      * Starts the drag window process & shows the drag window overlay.
      */
-    private async _startDrag() {
-        this.mTabService.dragWindowManager.show();
+    private async _startDrag(source: TabIdentifier) {
+        this.mTabService.dragWindowManager.show(source);
+    }
+
+    /**
+     * Handles when the UI component reorders its tabs.  Needed for save and restore.
+     * @param message The array of tabs to sort by.
+     * @param group The TabGroup attached to this call.
+     */
+    private _tabsReordered(message: TabAPIReorderMessage, group: TabGroup) {
+        group.reOrderTabArray(message.tabOrder);
     }
 
     /**

@@ -23,7 +23,7 @@ export class DragWindowManager extends AsyncWindow {
     /**
      * Shows the drag window overlay.
      */
-    public show(source: TabIdentifier): void {
+    public showWindow(source: TabIdentifier): void {
         this._window.show();
         this._window.focus();
 
@@ -39,7 +39,7 @@ export class DragWindowManager extends AsyncWindow {
     /**
      * Hides the drag window overlay.
      */
-    public hide(): void {
+    public hideWindow(): void {
         this._window.hide();
         clearTimeout(this._hideTimeout);
     }

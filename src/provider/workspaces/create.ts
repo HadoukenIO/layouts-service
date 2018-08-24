@@ -98,7 +98,6 @@ export const generateLayout = async(payload: null, identity: Identity): Promise<
     });
 
     const confirmedLayout = {...preLayout, apps};
-    console.log("confirmedLayout", confirmedLayout);
     return confirmedLayout;
 };
 

@@ -21,7 +21,6 @@ export async function setLayout() {
     const name = (document.getElementById('layoutName') as HTMLTextAreaElement).value;
     const layoutSelect = document.getElementById('layoutSelect') as HTMLSelectElement;
     const layout = await Layouts.generateLayout();
-    console.log("in set layout", layout);
     layout.name = name;
 
     if (layoutSelect) {
@@ -58,7 +57,7 @@ export async function restoreLayout() {
     const name = (document.getElementById('layoutSelect') as HTMLSelectElement).value;
     const layout = Storage.getLayout(name);
     const afterLayout = await Layouts.restoreLayout(layout);
-    console.log('after layout,', afterLayout);
+    document.getElementById('showLayout')!.innerHTML = JSON.stringify(afterLayout, null, 2);
 }
 
 export async function createChild() {

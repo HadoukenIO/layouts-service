@@ -135,7 +135,6 @@ export async function onLayoutRestore(listener: (layoutApp: LayoutApp) => void):
  */
 export async function generateLayout(): Promise<Layout> {
     const service: ServiceClient = await servicePromise;
-    console.log("in generateLayout");
     return service.dispatch('generateLayout');
 }
 
@@ -144,7 +143,6 @@ export async function generateLayout(): Promise<Layout> {
  */
 export async function restoreLayout(payload: Layout): Promise<Layout> {
     const service: ServiceClient = await servicePromise;
-    console.log("in client code", payload);
     return service.dispatch('restoreLayout', payload);
 }
 

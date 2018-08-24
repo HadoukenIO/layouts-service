@@ -1,28 +1,9 @@
+import {SNAP_DISTANCE} from './Config';
 import {Projector} from './Projector';
 import {SnapGroup} from './SnapGroup';
 import {SnapWindow, WindowState} from './SnapWindow';
 import {Point, PointUtils} from './utils/PointUtils';
 import {RectUtils} from './utils/RectUtils';
-
-
-/**
- * The maximum distance at which two windows will snap together.
- */
-export const SNAP_DISTANCE = 35;
-
-/**
- * If two window corners would snap to a distance less than this threshold, the active window will be snapped to the
- * corner of the candidate window.
- *
- * This radius essentially defines how "sticky" the corners of windows are. Larger values makes it easier to align
- * windows.
- */
-export const ANCHOR_DISTANCE = 100;
-
-/**
- * The minimum amount of overlap required for two window edges to snap together.
- */
-export const MIN_OVERLAP = 50;
 
 export enum eSnapValidity {
     /**
@@ -153,7 +134,7 @@ export class Resolver {
                         }
                     });
 
-                    //Create snap target
+                    // Create snap target
                     const target: SnapTarget|null = projector.createTarget(candidateGroup, activeGroup.windows[0]);
                     if (target) {
                         targets.push(target);
@@ -167,24 +148,24 @@ export class Resolver {
         } else if (targets.length === 1) {
             return targets[0];
         } else {
-            //Multiple candidate groups within range. Pick the best available target.
+            // Multiple candidate groups within range. Pick the best available target.
             return this.findBestTarget(targets);
         }
     }
 
     private findBestTarget(targets: SnapTarget[]): SnapTarget|null {
-        //Sort candidates so that most preferable is at start of array
+        // Sort candidates so that most preferable is at start of array
         targets = targets.sort((a: SnapTarget, b: SnapTarget) => {
             const offsetA: Point = a.snapOffset, offsetB: Point = b.snapOffset;
 
             if (a.validity !== b.validity && (a.validity === eSnapValidity.VALID || b.validity === eSnapValidity.VALID)) {
-                //Prefer valid targets
+                // Prefer valid targets
                 return a.validity - b.validity;
             } else if (this.isAnchorSnap(a) !== this.isAnchorSnap(b)) {
-                //Prefer snaps to anchor points
+                // Prefer snaps to anchor points
                 return (offsetA.x && offsetA.y) ? -1 : 1;
             } else {
-                //If both candidates are valid, prefer candidate with smallest offset
+                // If both candidates are valid, prefer candidate with smallest offset
                 return PointUtils.lengthSquared(a.snapOffset) - PointUtils.lengthSquared(b.snapOffset);
             }
         });

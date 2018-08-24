@@ -1,6 +1,7 @@
 import * as robot from 'robotjs';
+import { delay } from './delay';
 import { getBounds } from './getBounds';
-import { Win, getWindow } from './getWindow';
+import { getWindow, Win } from './getWindow';
 const xOffset = 30;
 const yOffset = 10;
 
@@ -14,4 +15,6 @@ export const dragWindowAndHover = async (identityOrWindow: Win, x: number, y: nu
     robot.moveMouse(bounds.left + xOffset, bounds.top + yOffset);
     robot.mouseToggle('down');
     robot.moveMouseSmooth(x + xOffset, y + yOffset);
+
+    await delay(500);
 };

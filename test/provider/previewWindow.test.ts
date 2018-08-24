@@ -1,14 +1,10 @@
-import { test } from 'ava';
-import { getConnection } from './utils/connect';
-import { dragWindowTo } from './utils/dragWindowTo';
-import { dragWindowAndHover } from './utils/dragWindowAndHover';
-import { getBounds, NormalizedBounds } from './utils/getBounds';
-import { Win } from './utils/getWindow';
-import { Application, Fin } from 'hadouken-js-adapter';
 import * as robot from 'robotjs';
-import { resizeWindowToSize } from './utils/resizeWindowToSize';
-import { createChildWindow } from './utils/createChildWindow';
+import { test } from 'ava';
 import { _Window } from 'hadouken-js-adapter/out/types/src/api/window/window';
+import { getConnection } from './utils/connect';
+import { createChildWindow } from './utils/createChildWindow';
+import { dragWindowAndHover } from './utils/dragWindowAndHover';
+import { getBounds } from './utils/getBounds';
 let previewWin: _Window;
 
 test.beforeEach(async () => {
@@ -113,7 +109,7 @@ test('preview resize width on snap - smaller to bigger', async t => {
 
 test('preview resize height on snap - smaller to bigger', async t => {
     let win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 300, defaultWidth: 300 });
-    let win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 220, defaultWidth: 220 });
+    let win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 190, defaultWidth: 220 });
 
     let win1Bounds = await getBounds(win1);
     let win2Bounds = await getBounds(win2);

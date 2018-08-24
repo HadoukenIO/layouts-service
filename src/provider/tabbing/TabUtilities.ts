@@ -46,7 +46,7 @@ export async function ejectTab(tabService: TabService, message: TabIdentifier&Ta
             if (isOverTabWindowResult.window.initialWindowOptions.url === ejectedTab.tabGroup.window.initialWindowOptions.url) {
                 // Remove the tab from the ejecting group
                 await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true);
-
+                isOverTabWindowResult.tabs[0].window.updateWindowOptions({ frame: false });
                 // Add the tab to the window underneath our point
                 const tab = await isOverTabWindowResult.addTab({tabID: ejectedTab.ID});
 
@@ -60,6 +60,7 @@ export async function ejectTab(tabService: TabService, message: TabIdentifier&Ta
 
                 // Switch to the added tab in the new group to show the proper window
                 isOverTabWindowResult.switchTab(ejectedTab.ID);
+                isOverTabWindowResult.window.finWindow.show();
             } else {
                 // If we the two group URLs dont match then we dont allow tabbing!
                 console.warn('Cannot tab - mismatched group Urls!');

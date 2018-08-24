@@ -69,7 +69,7 @@ export class Projector {
         const direction: eDirection = this.getDirectionFromOffset(distBtwnWindows, activeState, candidateState);
         const isValid: boolean = this.borders[direction].project(activeState, candidateState, distBtwnWindows);
 
-        this.blocked = this.blocked && !isValid;
+        this.blocked = this.blocked || !isValid;
     }
 
     /**

@@ -3,7 +3,6 @@ import {AsyncWindow} from './asyncWindow';
 import {Tab} from './Tab';
 import {TabGroup} from './TabGroup';
 
-
 /**
  * Handles the window for the Tab
  */

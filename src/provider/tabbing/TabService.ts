@@ -2,7 +2,6 @@ import {TabIdentifier, TabPackage, TabWindowOptions} from '../../client/types';
 
 import {DragWindowManager} from './DragWindowManager';
 import {EventHandler} from './EventHandler';
-import {SaveAndRestoreAPIProcessor} from './SaveAndRestoreAPIProcessor';
 import {Tab} from './Tab';
 import {TabAPIActionProcessor} from './TabAPIActionProcessor';
 import {TabGroup} from './TabGroup';
@@ -43,10 +42,6 @@ export class TabService {
      */
     private _zIndexer: ZIndexer = new ZIndexer();
 
-    /**
-     * Handle to the save and restore API processor
-     */
-    private mSaveAndRestoreEventHandler: SaveAndRestoreAPIProcessor;
 
     /**
      * Constructor of the TabService Class.
@@ -60,9 +55,6 @@ export class TabService {
 
         this.mTabApiEventHandler = new TabAPIActionProcessor(this);
         this.mTabApiEventHandler.init();
-
-        this.mSaveAndRestoreEventHandler = new SaveAndRestoreAPIProcessor(this);
-        this.mSaveAndRestoreEventHandler.init();
 
         TabService.INSTANCE = this;
     }

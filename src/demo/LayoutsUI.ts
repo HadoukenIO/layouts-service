@@ -3,6 +3,7 @@ import { Application } from 'hadouken-js-adapter';
 import { ServiceIdentity } from 'hadouken-js-adapter/out/types/src/api/services/channel';
 import { _Window } from 'hadouken-js-adapter/out/types/src/api/window/window';
 import { LayoutApp } from '../client/types';
+import { positionWindow } from '../provider/workspaces/utils';
 
 //tslint:disable-next-line:no-any
 declare var fin: any;
@@ -174,25 +175,16 @@ export function createTabbedWindow(page: string) {
     );
 }
 
-async function delayPromise(ms: number): Promise<{}> {
-    return new Promise(res => {
-        setTimeout(res, ms);
-    });
-}
-
 async function onAppRes(layoutApp: LayoutApp): Promise<LayoutApp> {
-    await delayPromise(2000);
     console.log('Apprestore called:', layoutApp);
     const ofApp = await fin.Application.getCurrent();
     const openWindows = await ofApp.getChildWindows();
     const openAndPosition = layoutApp.childWindows.map(async (win, index) => {
         if(!openWindows.some((w: Application) => w.identity.name === win.name)) {
             const ofWin = await openChild(win.name, index, win.info.url);
-            await ofWin.setBounds(win).catch((e: Error) => console.log('Setbounds error:', e));
+            await positionWindow(win);
         } else {
-            const ofWin = await fin.Window.wrap(win);
-            await ofWin.leaveGroup();
-            await ofWin.setBounds(win).catch((e: Error) => console.log('Setbounds error:', e));
+            await positionWindow(win);
         }
     });
     await Promise.all(openAndPosition);

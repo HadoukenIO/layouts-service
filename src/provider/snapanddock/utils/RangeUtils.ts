@@ -1,5 +1,4 @@
-import {Direction, Orientation} from '../Resolver';
-
+import {Orientation} from '../Resolver';
 import {Rectangle} from './RectUtils';
 
 /**
@@ -17,6 +16,10 @@ export class RangeUtils {
 
     public static equal(range1: Range, range2: Range): boolean {
         return range1.min === range2.min && range1.max === range2.max;
+    }
+
+    public static within(range: Range, value: number): boolean {
+        return value >= range.min && value <= range.max;
     }
 
     public static createFromRect(rect: Rectangle, orientation: Orientation): Range {

@@ -85,7 +85,7 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
                     // v2 api broken - below is messy but should be replaced with v2 (can just await create and run below w/ v2)
 
                     // ofApp = await fin.Application.createFromManifest(manifestUrl);
-                    // SHOULD PROBABLY TRY TO CERATE AND RUN FIRST, THEN TRY TO RUN IF GET ERROR
+                    // SHOULD PROBABLY TRY TO CREATE AND RUN FIRST, THEN TRY TO RUN IF GET ERROR
                     const v1App = fin.desktop.Application.wrap(app.uuid);
                     const runV1 = (v1App: fin.OpenFinApplication, errCb?: Function) => {
                         const defaultErrCb = () => console.error('App Run error');

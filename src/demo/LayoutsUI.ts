@@ -46,7 +46,6 @@ export async function setLayout() {
 export async function getLayout() {
     const name = (document.getElementById('layoutSelect') as HTMLSelectElement).value;
     const layout = Storage.getLayout(name);
-
     document.getElementById('showLayout')!.innerHTML = JSON.stringify(layout, null, 2);
 }
 

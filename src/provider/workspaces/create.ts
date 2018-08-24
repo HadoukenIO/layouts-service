@@ -75,7 +75,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
     return layoutObject;
 };
 
-// payload eventually could be a layout... for now just a name to set current layout
+// No payload. Just returns the current layout with child windows.
 export const generateLayout = async(payload: null, identity: Identity): Promise<Layout> => {
     const preLayout = await getCurrentLayout();
 

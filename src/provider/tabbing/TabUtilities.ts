@@ -84,14 +84,15 @@ export async function ejectTab(tabService: TabService, message: TabIdentifier&Ta
                 // If there are other tabs in the ejecting tab group
 
                 // Remove the tab
+                const ejectedTabGroup: TabGroup = ejectedTab.tabGroup;
                 await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true);
 
                 // Reinitialize a new tab group + tab using the ejecting groups options
                 initializeTabbing(
-                    {url: originalOptions.url, height: originalOptions.height, width: tabGroupBounds.width, screenX: message.screenX, screenY: message.screenY},
+                    { url: originalOptions.url, height: originalOptions.height, width: tabGroupBounds.width, screenX: message.screenX, screenY: message.screenY - ejectedTabGroup.window.initialWindowOptions.height! },
                     ejectedTab.ID.uuid,
                     ejectedTab.ID.name,
-                    tabService);
+                    tabService, true);
             }
         } else {
             // If we have no screenX & screenY and no window underneath (obviously...)
@@ -101,8 +102,13 @@ export async function ejectTab(tabService: TabService, message: TabIdentifier&Ta
 
             // Reinitialize the tab at the app windows existing location
             initializeTabbing(
-                {url: originalOptions.url, height: originalOptions.height, width: tabGroupBounds.width}, ejectedTab.ID.uuid, ejectedTab.ID.name, tabService);
+                {url: originalOptions.url, height: originalOptions.height, width: tabGroupBounds.width}, ejectedTab.ID.uuid, ejectedTab.ID.name, tabService, true);
         }
+    }
+
+    if (tabGroup && tabGroup.tabs.length === 1) {
+        tabGroup.window.finWindow.hide();
+        tabGroup.tabs[0].window.updateWindowOptions({ frame: true });
     }
 }
 
@@ -113,7 +119,7 @@ export async function ejectTab(tabService: TabService, message: TabIdentifier&Ta
  * @param name the name of the application to add as a tab
  * @param tabService The tab service
  */
-export async function initializeTabbing(message: TabWindowOptions, uuid: string, name: string, tabService: TabService): Promise<void> {
+export async function initializeTabbing(message: TabWindowOptions, uuid: string, name: string, tabService: TabService, ejected?: boolean): Promise<void> {
     if (tabService.getTabGroupByApp({name, uuid})) {
         console.error('This window has already been initialised with a tab', {name, uuid});
         return;
@@ -133,6 +139,10 @@ export async function initializeTabbing(message: TabWindowOptions, uuid: string,
     if (!tab) {
         console.error('No tab was added');
         return;
+    }
+
+    if (ejected) {
+        tab.window.updateWindowOptions({ frame: true });
     }
 
     if (message.screenX && message.screenY) {

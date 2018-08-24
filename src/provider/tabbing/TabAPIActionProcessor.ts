@@ -191,7 +191,12 @@ export class TabAPIActionProcessor {
             return;
         }
 
-        tabGroup.removeTab({uuid: applicationToClose.uuid, name: applicationToClose.name}, true, true);
+        await tabGroup.removeTab({ uuid: applicationToClose.uuid, name: applicationToClose.name }, true, true);
+
+        if (tabGroup.tabs.length === 1) {
+            tabGroup.tabs[0].window.updateWindowOptions({ frame: true });
+            tabGroup.window.finWindow.hide();
+        }
     }
 
     /**

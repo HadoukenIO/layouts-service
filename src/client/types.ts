@@ -117,7 +117,8 @@ export interface TabWindowOptions {
 
 export interface TabPackage {
 	tabID: TabIdentifier;
-	tabProps?: TabProperties;
+    tabProps?: TabProperties;
+    index?: number;
 }
 
 /**
@@ -164,4 +165,8 @@ export interface Group {
 export interface TabBlob {
     groupInfo: Group;
 	tabs: TabIdentifier[];
+}
+
+export interface TabAPIReorderMessage extends TabAPIMessage {
+    tabOrder: TabIdentifier[];
 }

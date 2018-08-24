@@ -102,6 +102,24 @@ export class AsyncWindow {
         });
     }
 
+    public isShowing(): Promise<boolean> {
+        return new Promise((res, rej) => {
+            this._window.isShowing(res, rej);
+        });
+    }
+
+    public show(force = false): Promise<void> {
+        return new Promise((res, rej) => {
+            this._window.show(force, res, rej);
+        });
+    }
+
+    public hide(): Promise<void> {
+        return new Promise((res, rej) => {
+            this._window.hide(res, rej);
+        });
+    }
+
     /**
      * Returns the Openfin Window
      */

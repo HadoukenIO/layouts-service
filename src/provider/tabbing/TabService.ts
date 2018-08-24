@@ -137,6 +137,7 @@ export class TabService {
      * Checks for any windows that is under a specific point.
      * @param {number} x X Coordinate
      * @param {number} y Y Coordinate
+     * @param {Identity} identity This is an optional parameter, if passed in it will skip the check on this identity.
      * @returns {TabGroup | null}
      */
     public async isPointOverTabGroup(x: number, y: number, identity?: Identity): Promise<TabGroup|null> {

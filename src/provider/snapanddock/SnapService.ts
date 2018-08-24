@@ -332,6 +332,8 @@ export class SnapService {
             // TAB WINDOWS
         } else if (activeGroup.length === 1) {
             const currentDragWindowIdentity: WindowIdentity = activeGroup.windows[0].getIdentity();
+
+            // Since all windows are opted in to tabbing by default we grab the current windows tab group
             const currentDragWindowTabGroup: TabGroup|undefined = TabService.INSTANCE.getTabGroupByApp(currentDragWindowIdentity);
 
             if (!currentDragWindowTabGroup) {
@@ -345,7 +347,7 @@ export class SnapService {
             // If a single untabbed window is being dragged, it is possible to create a tabset
             const activeState = activeGroup.windows[0].getState();
 
-            // Window will be tabbed if center of the dragged window overlaps with an initialized tabbable window.
+            // Window will be tabbed if center of the dragged window overlaps with a tabbable window.
             TabService.INSTANCE.isPointOverTabGroup(activeState.center.x, activeState.center.y, currentDragWindowIdentity).then((tabTarget) => {
                 if (tabTarget) {
                     console.log('Tabbing to target: ' + tabTarget.tabs);

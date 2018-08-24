@@ -1,8 +1,8 @@
+import {Projector} from './Projector';
 import {SnapGroup} from './SnapGroup';
 import {SnapWindow, WindowState} from './SnapWindow';
 import {Point, PointUtils} from './utils/PointUtils';
-import {Range, RangeUtils, eDirection, SnapRange, SnapRanges} from './utils/RangeUtils';
-import {MeasureResult, RectUtils} from './utils/RectUtils';
+import {RectUtils} from './utils/RectUtils';
 
 
 /**
@@ -22,7 +22,7 @@ export const ANCHOR_DISTANCE = 100;
 /**
  * The minimum amount of overlap required for two window edges to snap together.
  */
-const MIN_OVERLAP = 50;
+export const MIN_OVERLAP = 50;
 
 export enum eSnapValidity {
     /**
@@ -110,6 +110,11 @@ export interface SnapTarget {
  */
 export class Resolver {
     /**
+     * Util that is reset and re-used with each candidate group.
+     */
+    private projector: Projector = new Projector();
+
+    /**
      * The only publicly-exposed function of this class - determines if 'activeGroup', in it's current location, should
      * be snapped to another group.
      *
@@ -117,7 +122,7 @@ export class Resolver {
      * @param activeGroup The group that is currently being moved
      */
     public getSnapTarget(groups: SnapGroup[], activeGroup: SnapGroup): SnapTarget|null {
-        const ranges: SnapRanges = new SnapRanges();
+        const projector: Projector = this.projector;
         const targets: SnapTarget[] = [];
 
         // Group-to-Group snapping not yet supported
@@ -130,29 +135,29 @@ export class Resolver {
             if (candidateGroup !== activeGroup) {
                 // Before checking any windows, make sure the bounding boxes of each group overlaps
                 if (RectUtils.distance(activeGroup, candidateGroup).within(SNAP_DISTANCE)) {
+                    projector.reset();
+
                     // Need to iterate over every window in both groups
                     activeGroup.windows.forEach(activeWindow => {
                         const activeState = activeWindow.getState();
 
                         // Only do the next loop if there's a chance that this window can intersect with the other group
                         if (this.isSnappable(activeState) && RectUtils.distance(candidateGroup, activeState).within(SNAP_DISTANCE)) {
-                            ranges.reset();
-
                             candidateGroup.windows.forEach(candidateWindow => {
                                 const candidateState: WindowState = candidateWindow.getState();
 
                                 if (this.isSnappable(candidateState)) {
-                                    ranges.add(activeState, candidateState, SNAP_DISTANCE);
+                                    projector.project(activeState, candidateState);
                                 }
                             });
                         }
                     });
-                }
 
-                //Create snap target
-                const target: SnapTarget|null = ranges.createTarget(candidateGroup, activeGroup.windows[0]);
-                if (target) {
-                    targets.push(target);
+                    //Create snap target
+                    const target: SnapTarget|null = projector.createTarget(candidateGroup, activeGroup.windows[0]);
+                    if (target) {
+                        targets.push(target);
+                    }
                 }
             }
         });

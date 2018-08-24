@@ -120,7 +120,7 @@ export class Resolver {
 
                     // Need to iterate over every window in both groups
                     activeGroup.windows.forEach(activeWindow => {
-                        const activeState = activeWindow.getState();
+                        const activeState: WindowState = activeWindow.getState();
 
                         // Only do the next loop if there's a chance that this window can intersect with the other group
                         if (this.isSnappable(activeState) && RectUtils.distance(candidateGroup, activeState).within(SNAP_DISTANCE)) {

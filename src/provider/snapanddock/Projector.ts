@@ -82,7 +82,7 @@ export class Projector {
      * @param activeWindow The window that is being moved by the user
      */
     public createTarget(candidateGroup: SnapGroup, activeWindow: SnapWindow): SnapTarget|null {
-        const borders = this.borders;
+        const borders: BorderProjection[] = this.borders;
 
         if (!this.blocked) {
             const activeState: WindowState = activeWindow.getState();
@@ -98,7 +98,7 @@ export class Projector {
 
                 // Snap active window to each active border
                 validDirections.forEach((border: BorderProjection) => {
-                    const opposite = borders[(border.direction + 2) % 4];
+                    const opposite: BorderProjection = borders[(border.direction + 2) % 4];
 
                     if (opposite.distance === Number.MAX_SAFE_INTEGER) {
                         // Move rectangle to touch this edge
@@ -106,9 +106,9 @@ export class Projector {
 
                         // Snap to min/max points
                         if (validDirections.length === 1) {
-                            const snapToMin =
+                            const snapToMin: boolean =
                                 Math.abs((activeState.center[border.opposite] - activeState.halfSize[border.opposite]) - border.min) < ANCHOR_DISTANCE;
-                            const snapToMax =
+                            const snapToMax: boolean =
                                 Math.abs((activeState.center[border.opposite] + activeState.halfSize[border.opposite]) - border.max) < ANCHOR_DISTANCE;
 
                             if (snapToMin && snapToMax) {
@@ -169,11 +169,11 @@ export class Projector {
     }
 
     private clipProjections(): void {
-        const ranges = this.borders;
+        const borders: BorderProjection[] = this.borders;
 
         for (let i = 0; i < 4; i++) {
-            ranges[i].clip(ranges[(i + 1) % 4]);
-            ranges[i].clip(ranges[(i + 3) % 4]);
+            borders[i].clip(borders[(i + 1) % 4]);
+            borders[i].clip(borders[(i + 3) % 4]);
         }
     }
 }
@@ -247,8 +247,8 @@ class BorderProjection implements Range {
      * @param activeState The window that this projection is based on
      */
     public getOverlap(activeState: WindowState): number {
-        const center = (this.min + this.max) / 2;
-        const halfSize = (this.max - this.min) / 2;
+        const center: number = (this.min + this.max) / 2;
+        const halfSize: number = (this.max - this.min) / 2;
 
         return (activeState.halfSize[this.opposite] + halfSize) - Math.abs(activeState.center[this.opposite] - center);
     }
@@ -282,9 +282,9 @@ class BorderProjection implements Range {
 
             this.distance = distance;
 
-            const min = candidateState.center[opposite] - candidateState.halfSize[opposite];
-            const max = candidateState.center[opposite] + candidateState.halfSize[opposite];
-            const isContiguous = this.min > this.max || RangeUtils.within(this, min) || RangeUtils.within(this, max);
+            const min: number = candidateState.center[opposite] - candidateState.halfSize[opposite];
+            const max: number = candidateState.center[opposite] + candidateState.halfSize[opposite];
+            const isContiguous: boolean = this.min > this.max || RangeUtils.within(this, min) || RangeUtils.within(this, max);
 
             if (isContiguous || this.windowBridgesRanges(activeState, RangeUtils.createFromRect(candidateState, this.opposite))) {
                 this.min = Math.min(this.min, min);

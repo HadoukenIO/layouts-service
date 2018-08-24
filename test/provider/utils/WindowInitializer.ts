@@ -1,8 +1,8 @@
-import { Corner } from './dragWindowTo';
 import { Point } from 'hadouken-js-adapter/out/types/src/api/system/point';
-import { Window, Fin } from '../../../node_modules/hadouken-js-adapter';
-import { createChildWindow} from './createChildWindow';
-import { dragWindowToOtherWindow} from './dragWindowTo';
+import { Window } from '../../../node_modules/hadouken-js-adapter';
+import { createChildWindow } from './createChildWindow';
+import { delay } from './delay';
+import { Corner, dragWindowToOtherWindow } from './dragWindowTo';
 
 type MoveArgs = [number, Corner, number, Corner, Point];
 
@@ -69,7 +69,7 @@ export class WindowInitializer {
         }
 
         // Slight delay to allow things to stablize
-        await new Promise(r => setTimeout(r, 500));
+        await delay(500);
         
         return windows;
     }

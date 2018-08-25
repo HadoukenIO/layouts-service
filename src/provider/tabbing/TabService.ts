@@ -1,5 +1,6 @@
 import {Bounds, TabIdentifier, TabPackage, TabWindowOptions} from '../../client/types';
 
+import {APIHandler} from './APIHandler';
 import {DragWindowManager} from './DragWindowManager';
 import {EventHandler} from './EventHandler';
 import {Tab} from './Tab';
@@ -19,6 +20,8 @@ export class TabService {
      * Handle of this Tab Service Instance.
      */
     public static INSTANCE: TabService;
+
+    public apiHandler: APIHandler;
 
     /**
      * Contains all the tabsets of this service.
@@ -55,6 +58,7 @@ export class TabService {
         this._dragWindowManager.init();
 
         this._eventHandler = new EventHandler(this);
+        this.apiHandler = new APIHandler(this);
 
         this.mTabApiEventHandler = new TabAPIActionProcessor(this);
         this.mTabApiEventHandler.init();

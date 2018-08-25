@@ -194,7 +194,7 @@ export async function ready(): Promise<Layout> {
  *
  * If there is no tab group associated with the window context, will resolve to null.
  */
-export async function getTabs(window?: Identity): Promise<Identity[]|null> {
+export async function getTabs(window: Identity = getId()): Promise<Identity[]|null> {
     const service: ServiceClient = await servicePromise;
 
     return service.dispatch(TabAPI.GETTABS, window);
@@ -205,6 +205,16 @@ export async function getTabs(window?: Identity): Promise<Identity[]|null> {
  * This binding happens on the application level.  An application cannot have different windows using different tabbing UI.
  */
 export async function setTabClient(url: string, config: TabClientConfig): Promise<void> {
+    if (!config || isNaN(config.height)) {
+        return Promise.reject('Invalid config height provided');
+    }
+
+    try {
+        // tslint:disable-next-line:no-unused-expression
+        new URL(url);
+    } catch (e) {
+        return Promise.reject(e);
+    }
     const service: ServiceClient = await servicePromise;
 
     return service.dispatch(TabAPI.SETTABCLIENT, {url, config});
@@ -215,6 +225,9 @@ export async function setTabClient(url: string, config: TabClientConfig): Promis
  * used as the seed for the tab UI properties.
  */
 export async function createTabGroup(windows: Identity[]): Promise<void> {
+    if (!windows || windows.length === 0) {
+        return Promise.reject('Invalid window identity array');
+    }
     const service: ServiceClient = await servicePromise;
 
     return service.dispatch(TabAPI.CREATETABGROUP, windows);
@@ -227,7 +240,10 @@ export async function createTabGroup(windows: Identity[]): Promise<void> {
  *
  * The added tab will be brought into focus.
  */
-export async function addTab(targetWindow: Identity, windowToAdd?: Identity): Promise<void> {
+export async function addTab(targetWindow: Identity, windowToAdd: Identity = getId()): Promise<void> {
+    if (!targetWindow || !targetWindow.uuid || !targetWindow.name) {
+        return Promise.reject('Invalid targetWindow provided');
+    }
     const service: ServiceClient = await servicePromise;
 
     return service.dispatch(TabAPI.ADDTAB, {targetWindow, windowToAdd});
@@ -237,7 +253,7 @@ export async function addTab(targetWindow: Identity, windowToAdd?: Identity): Pr
  * Removes the specified tab from its tab group.
  * Uses current window context by default
  */
-export async function removeTab(window?: Identity): Promise<void> {
+export async function removeTab(window: Identity = getId()): Promise<void> {
     const service: ServiceClient = await servicePromise;
 
     return service.dispatch(TabAPI.REMOVETAB, window);
@@ -246,7 +262,10 @@ export async function removeTab(window?: Identity): Promise<void> {
 /**
  * Brings the specified tab to the front of the set.
  */
-export async function setActiveTab(window?: Identity): Promise<void> {
+export async function setActiveTab(window: Identity): Promise<void> {
+    if (!window || !window.name || !window.uuid) {
+        return Promise.reject('Invalid window provided');
+    }
     const service: ServiceClient = await servicePromise;
 
     return service.dispatch(TabAPI.SETACTIVETAB, window);
@@ -255,7 +274,10 @@ export async function setActiveTab(window?: Identity): Promise<void> {
 /**
  * Closes the tab for the window context and removes it from the associated tab group.
  */
-export async function closeTab(window?: Identity): Promise<void> {
+export async function closeTab(window: Identity): Promise<void> {
+    if (!window || !window.name || !window.uuid) {
+        return Promise.reject('Invalid window provided');
+    }
     const service: ServiceClient = await servicePromise;
 
     return service.dispatch(TabAPI.SETACTIVETAB, window);
@@ -264,7 +286,10 @@ export async function closeTab(window?: Identity): Promise<void> {
 /**
  * Minimizes the tab group for the window context.
  */
-export async function minimizeTabGroup(window?: Identity): Promise<void> {
+export async function minimizeTabGroup(window: Identity): Promise<void> {
+    if (!window || !window.name || !window.uuid) {
+        return Promise.reject('Invalid window provided');
+    }
     const service: ServiceClient = await servicePromise;
 
     return service.dispatch(TabAPI.MINIMIZETABGROUP, window);
@@ -273,7 +298,10 @@ export async function minimizeTabGroup(window?: Identity): Promise<void> {
 /**
  * Maximizes the tab group for the window context.
  */
-export async function maximizeTabGroup(window?: Identity): Promise<void> {
+export async function maximizeTabGroup(window: Identity): Promise<void> {
+    if (!window || !window.name || !window.uuid) {
+        return Promise.reject('Invalid window provided');
+    }
     const service: ServiceClient = await servicePromise;
 
     return service.dispatch(TabAPI.MAXIMIZETABGROUP, window);
@@ -282,7 +310,10 @@ export async function maximizeTabGroup(window?: Identity): Promise<void> {
 /**
  * Closes the tab group for the window context.
  */
-export async function closeTabGroup(window?: Identity): Promise<void> {
+export async function closeTabGroup(window: Identity): Promise<void> {
+    if (!window || !window.name || !window.uuid) {
+        return Promise.reject('Invalid window provided');
+    }
     const service: ServiceClient = await servicePromise;
 
     return service.dispatch(TabAPI.CLOSETABGROUP, window);
@@ -291,7 +322,10 @@ export async function closeTabGroup(window?: Identity): Promise<void> {
 /**
  * Restores the tab group for the window context to its normal state.
  */
-export async function restoreTabGroup(window?: Identity): Promise<void> {
+export async function restoreTabGroup(window: Identity): Promise<void> {
+    if (!window || !window.name || !window.uuid) {
+        return Promise.reject('Invalid window provided');
+    }
     const service: ServiceClient = await servicePromise;
 
     return service.dispatch(TabAPI.RESTORETABGROUP, window);
@@ -301,17 +335,23 @@ export async function restoreTabGroup(window?: Identity): Promise<void> {
  * Resets the tabs to the order provided.  The length of tabs Identity array must match the current number of tabs, and each current tab must appear in the
  * array exactly once to be valid.  If the input isn’t valid, the call will reject and no change will be made.
  */
-export async function reorderTabs(newOrdering?: Identity[]): Promise<void> {
+export async function reorderTabs(newOrdering: Identity[]): Promise<void> {
+    if (!newOrdering || newOrdering.length === 0) {
+        return Promise.reject('Invalid new Order array');
+    }
     const service: ServiceClient = await servicePromise;
 
     return service.dispatch(TabAPI.REORDERTABS, newOrdering);
 }
 
 export const tabStrip = {
-    async updateTabProperties(uuid: string, name: string, properties: TabProperties): Promise<void> {
+    async updateTabProperties(window: Identity, properties: TabProperties): Promise<void> {
+        if (!window || !window.name || !window.uuid) {
+            return Promise.reject('Invalid window provided');
+        }
         const service: ServiceClient = await servicePromise;
 
-        return service.dispatch(TabAPI.UPDATETABPROPERTIES, {uuid, name, properties});
+        return service.dispatch(TabAPI.UPDATETABPROPERTIES, {window, properties});
     },
 
     async startDrag() {
@@ -320,9 +360,12 @@ export const tabStrip = {
         return service.dispatch(TabAPI.STARTDRAG);
     },
 
-    async endDrag(event: DragEvent, uuid: string, name: string) {
+    async endDrag(event: DragEvent, window: Identity) {
+        if (!window || !window.name || !window.uuid) {
+            return Promise.reject('Invalid window provided');
+        }
         const service: ServiceClient = await servicePromise;
 
-        return service.dispatch(TabAPI.ENDDRAG, {event, uuid, name});
+        return service.dispatch(TabAPI.ENDDRAG, {event, window});
     }
 };

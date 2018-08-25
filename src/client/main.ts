@@ -195,6 +195,9 @@ export async function ready(): Promise<Layout> {
  * If there is no tab group associated with the window context, will resolve to null.
  */
 export async function getTabs(window: Identity = getId()): Promise<Identity[]|null> {
+    if (!window || !window.name || !window.uuid) {
+        return Promise.reject('Invalid window provided');
+    }
     const service: ServiceClient = await servicePromise;
 
     return service.dispatch(TabAPI.GETTABS, window);
@@ -244,6 +247,9 @@ export async function addTab(targetWindow: Identity, windowToAdd: Identity = get
     if (!targetWindow || !targetWindow.uuid || !targetWindow.name) {
         return Promise.reject('Invalid targetWindow provided');
     }
+    if (!windowToAdd || !windowToAdd.name || !windowToAdd.uuid) {
+        return Promise.reject('Invalid window provided');
+    }
     const service: ServiceClient = await servicePromise;
 
     return service.dispatch(TabAPI.ADDTAB, {targetWindow, windowToAdd});
@@ -254,6 +260,9 @@ export async function addTab(targetWindow: Identity, windowToAdd: Identity = get
  * Uses current window context by default
  */
 export async function removeTab(window: Identity = getId()): Promise<void> {
+    if (!window || !window.name || !window.uuid) {
+        return Promise.reject('Invalid window provided');
+    }
     const service: ServiceClient = await servicePromise;
 
     return service.dispatch(TabAPI.REMOVETAB, window);

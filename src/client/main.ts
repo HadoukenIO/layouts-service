@@ -362,6 +362,9 @@ export async function reorderTabs(newOrdering: Identity[]): Promise<void> {
 }
 
 export const tabStrip = {
+    /**
+     * Updates a Tabs Properties on the Tab strip.
+     */
     async updateTabProperties(window: Identity, properties: TabProperties): Promise<void> {
         if (!window || !window.name || !window.uuid) {
             return Promise.reject('Invalid window provided');
@@ -371,12 +374,18 @@ export const tabStrip = {
         return service.dispatch(TabAPI.UPDATETABPROPERTIES, {window, properties});
     },
 
+    /**
+     * Starts the HTML5 Dragging Sequence
+     */
     async startDrag() {
         const service: ServiceClient = await servicePromise;
 
         return service.dispatch(TabAPI.STARTDRAG);
     },
 
+    /**
+     * Ends the HTML5 Dragging Sequence.
+     */
     async endDrag(event: DragEvent, window: Identity) {
         if (!window || !window.name || !window.uuid) {
             return Promise.reject('Invalid window provided');

@@ -42,7 +42,7 @@ export async function ejectTab(tabService: TabService, message: TabIdentifier&Ta
 
             if (!overWindowTabGroup) {
                 isOverTabWindowResult = await tabService.addTabGroup({});
-                isOverTabWindowResult.init();
+                await isOverTabWindowResult.init();
 
                 const windowOverTabToCreate: TabPackage = {
                     tabID: windowOverIdentifier

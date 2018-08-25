@@ -168,7 +168,6 @@ export class TabService {
             const windowUnderPoint: TabIdentifier | null = await this.getWindowAt(x, y, exclude);
             if (windowUnderPoint) {
                 if (exclude && exclude.name !== windowUnderPoint.name) {
-                    console.log("lazily creating tab fgroup");
                     tabGroup = await this.addTabGroup({});
                     await tabGroup.init();
                     await tabGroup.addTab({ tabID: windowUnderPoint });

@@ -167,3 +167,8 @@ export interface TabBlob {
 export interface TabAPIReorderMessage extends TabAPIMessage {
     tabOrder: TabIdentifier[];
 }
+
+
+export interface TabClientConfig {
+    height: number;
+}

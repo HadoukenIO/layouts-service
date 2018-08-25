@@ -1,16 +1,20 @@
+import {Identity} from 'hadouken-js-adapter';
+import {Client as ServiceClient} from 'hadouken-js-adapter/out/types/src/api/services/client';
 import * as Mousetrap from 'mousetrap';
 
-import {Client as ServiceClient} from 'hadouken-js-adapter/out/types/src/api/services/client';
-import {Layout, LayoutApp, LayoutName} from './types';
-import {Identity} from 'hadouken-js-adapter';
+import {TabAPI, TabAPIActions} from './APITypes';
+import {Layout, LayoutApp, LayoutName, TabClientConfig, TabProperties} from './types';
 
-export {AppApi} from "./AppApi";
-export {TabbingApi} from "./TabbingApi";
+export {AppApi} from './AppApi';
+export {TabbingApi} from './TabbingApi';
 
-const IDENTITY = {uuid: 'Layout-Manager', name: 'Layout-Manager'};
+const IDENTITY = {
+    uuid: 'Layout-Manager',
+    name: 'Layout-Manager'
+};
 const VERSION = '0.0.1';
 
-//tslint:disable-next-line:no-any
+// tslint:disable-next-line:no-any
 declare var fin: any;
 
 if (typeof fin === 'undefined') {
@@ -38,14 +42,14 @@ const servicePromise: Promise<ServiceClient> = fin.desktop.Service.connect({...I
     });
 
     // Register service listeners
-    service.register('WARN', (payload: any) => console.warn(payload));  //tslint:disable-line:no-any
+    service.register('WARN', (payload: any) => console.warn(payload));  // tslint:disable-line:no-any
     service.register('join-snap-group', () => {
         window.dispatchEvent(new Event('join-snap-group'));
     });
     service.register('leave-snap-group', () => {
         window.dispatchEvent(new Event('leave-snap-group'));
     });
-    
+
     // Any unregistered action will simply return false
     service.setDefaultAction(() => false);
 
@@ -54,9 +58,9 @@ const servicePromise: Promise<ServiceClient> = fin.desktop.Service.connect({...I
 
 /**
  * Undocks a window from any group it currently belongs to.
- * 
+ *
  * Has no effect if the window is not currently docked.
- * 
+ *
  * @param identity The window to undock, defaults to the current window
  */
 export async function undockWindow(identity: Identity = getId()): Promise<void> {
@@ -66,11 +70,11 @@ export async function undockWindow(identity: Identity = getId()): Promise<void> 
 
 /**
  * Will undock every window that is currently connected to a current window.
- * 
+ *
  * This will completely disband the entire group, not just the windows directly touching 'identity'.
- * 
+ *
  * Has no effect if 'identity' isn't currently snapped to any other window.
- * 
+ *
  * @param identity A window belonging to the group that should be disbanded, defaults to the current window/group
  */
 export async function undockGroup(identity: Identity = getId()): Promise<void> {
@@ -80,7 +84,7 @@ export async function undockGroup(identity: Identity = getId()): Promise<void> {
 
 /**
  * Allows a window to opt-out of this service. This will disable all layouts-related functionality for the given window.
- * 
+ *
  * @param identity The window to deregister, defaults to the current window
  */
 export async function deregister(identity: Identity = getId()): Promise<void> {
@@ -102,7 +106,7 @@ export async function addEventListener(eventType: 'join-snap-group'|'leave-snap-
 /**
  * Decide which parts of this you will implement, alter LayoutApp object to reflect this then send it back
  */
-export async function onWillSaveAppLayout(layoutDecorator: (layoutApp: LayoutApp) => LayoutApp | false | Promise<LayoutApp | false>): Promise<boolean> {
+export async function onWillSaveAppLayout(layoutDecorator: (layoutApp: LayoutApp) => LayoutApp | false | Promise<LayoutApp|false>): Promise<boolean> {
     const service: ServiceClient = await servicePromise;
     return service.register('savingLayout', layoutDecorator);
 }
@@ -110,7 +114,7 @@ export async function onWillSaveAppLayout(layoutDecorator: (layoutApp: LayoutApp
 /**
  * Get the layoutApp object, implement, then return implemented LayoutApp object (minus anything not implemented)
  */
-export async function onAppRestore(layoutDecorator: (layoutApp: LayoutApp) => LayoutApp | false | Promise<LayoutApp | false>): Promise<boolean> {
+export async function onAppRestore(layoutDecorator: (layoutApp: LayoutApp) => LayoutApp | false | Promise<LayoutApp|false>): Promise<boolean> {
     const service: ServiceClient = await servicePromise;
     return service.register('restoreApp', layoutDecorator);
 }
@@ -182,3 +186,143 @@ export async function ready(): Promise<Layout> {
 
     return service.dispatch('appReady');
 }
+
+/**
+ * Returns array of window references for tabs belonging to the tab group of the provided window context.
+ *
+ * If no Identity is provided as an argument, the current window context will be used.
+ *
+ * If there is no tab group associated with the window context, will resolve to null.
+ */
+export async function getTabs(window?: Identity): Promise<Identity[]|null> {
+    const service: ServiceClient = await servicePromise;
+
+    return service.dispatch(TabAPI.GETTABS, window);
+}
+
+/**
+ * If a custom tab-strip UI is being used - this sets the URL for the tab-strip.
+ * This binding happens on the application level.  An application cannot have different windows using different tabbing UI.
+ */
+export async function setTabClient(url: string, config: TabClientConfig): Promise<void> {
+    const service: ServiceClient = await servicePromise;
+
+    return service.dispatch(TabAPI.SETTABCLIENT, {url, config});
+}
+
+/**
+ * Given a set of windows, will create a tab group construct and UI around them.  The bounds and positioning of the first (applicable) window in the set will be
+ * used as the seed for the tab UI properties.
+ */
+export async function createTabGroup(windows: Identity[]): Promise<void> {
+    const service: ServiceClient = await servicePromise;
+
+    return service.dispatch(TabAPI.CREATETABGROUP, windows);
+}
+
+/**
+ * Adds current window context (or window specified in second arg)  to the tab group of the target window (first arg).
+ *
+ * Will reject with an error if the TabClient of the target and context tab group do not match.
+ *
+ * The added tab will be brought into focus.
+ */
+export async function addTab(targetWindow: Identity, windowToAdd?: Identity): Promise<void> {
+    const service: ServiceClient = await servicePromise;
+
+    return service.dispatch(TabAPI.ADDTAB, {targetWindow, windowToAdd});
+}
+
+/**
+ * Removes the specified tab from its tab group.
+ * Uses current window context by default
+ */
+export async function removeTab(window?: Identity): Promise<void> {
+    const service: ServiceClient = await servicePromise;
+
+    return service.dispatch(TabAPI.REMOVETAB, window);
+}
+
+/**
+ * Brings the specified tab to the front of the set.
+ */
+export async function setActiveTab(window?: Identity): Promise<void> {
+    const service: ServiceClient = await servicePromise;
+
+    return service.dispatch(TabAPI.SETACTIVETAB, window);
+}
+
+/**
+ * Closes the tab for the window context and removes it from the associated tab group.
+ */
+export async function closeTab(window?: Identity): Promise<void> {
+    const service: ServiceClient = await servicePromise;
+
+    return service.dispatch(TabAPI.SETACTIVETAB, window);
+}
+
+/**
+ * Minimizes the tab group for the window context.
+ */
+export async function minimizeTabGroup(window?: Identity): Promise<void> {
+    const service: ServiceClient = await servicePromise;
+
+    return service.dispatch(TabAPI.MINIMIZETABGROUP, window);
+}
+
+/**
+ * Maximizes the tab group for the window context.
+ */
+export async function maximizeTabGroup(window?: Identity): Promise<void> {
+    const service: ServiceClient = await servicePromise;
+
+    return service.dispatch(TabAPI.MAXIMIZETABGROUP, window);
+}
+
+/**
+ * Closes the tab group for the window context.
+ */
+export async function closeTabGroup(window?: Identity): Promise<void> {
+    const service: ServiceClient = await servicePromise;
+
+    return service.dispatch(TabAPI.CLOSETABGROUP, window);
+}
+
+/**
+ * Restores the tab group for the window context to its normal state.
+ */
+export async function restoreTabGroup(window?: Identity): Promise<void> {
+    const service: ServiceClient = await servicePromise;
+
+    return service.dispatch(TabAPI.RESTORETABGROUP, window);
+}
+
+/**
+ * Resets the tabs to the order provided.  The length of tabs Identity array must match the current number of tabs, and each current tab must appear in the
+ * array exactly once to be valid.  If the input isn’t valid, the call will reject and no change will be made.
+ */
+export async function reorderTabs(newOrdering?: Identity[]): Promise<void> {
+    const service: ServiceClient = await servicePromise;
+
+    return service.dispatch(TabAPI.REORDERTABS, newOrdering);
+}
+
+export const tabStrip = {
+    async updateTabProperties(uuid: string, name: string, properties: TabProperties): Promise<void> {
+        const service: ServiceClient = await servicePromise;
+
+        return service.dispatch(TabAPI.UPDATETABPROPERTIES, {uuid, name, properties});
+    },
+
+    async startDrag() {
+        const service: ServiceClient = await servicePromise;
+
+        return service.dispatch(TabAPI.STARTDRAG);
+    },
+
+    async endDrag(event: DragEvent, uuid: string, name: string) {
+        const service: ServiceClient = await servicePromise;
+
+        return service.dispatch(TabAPI.ENDDRAG, {event, uuid, name});
+    }
+};

@@ -48,8 +48,10 @@ export async function ejectTab(tabService: TabService, message: TabIdentifier&Ta
                     tabID: windowOverIdentifier
                 }
 
-                await isOverTabWindowResult!.addTab( windowOverTabToCreate);
-            } 
+                await isOverTabWindowResult!.addTab(windowOverTabToCreate);
+            } else {
+                isOverTabWindowResult = overWindowTabGroup;
+            }
         }
     }
 

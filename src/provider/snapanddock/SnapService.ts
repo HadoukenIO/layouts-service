@@ -346,7 +346,8 @@ export class SnapService {
                             tab.window.updateWindowOptions({ frame: false });
                         });
                         tabTarget.addTab({ tabID: currentDragWindowIdentity });
-                        tabTarget.window.finWindow.show();                    }
+                        tabTarget.window.finWindow.show();
+                    }
                 });
             }
         }

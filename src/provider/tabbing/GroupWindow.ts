@@ -57,8 +57,13 @@ export class GroupWindow extends AsyncWindow {
      * Initialized Async methods for the GroupWindow class.
      */
     public async init(): Promise<void> {
+        console.time('createWindow');
         this._window = await this._createTabWindow();
+        console.timeEnd('createWindow');
+
+        console.time("createlisteners");
         this._createWindowEventListeners();
+        console.timeEnd("createlisteners");
     }
 
     /**
@@ -195,7 +200,8 @@ export class GroupWindow extends AsyncWindow {
                     defaultTop: this._initialWindowOptions.screenY,
                     defaultCentered: !this._initialWindowOptions.screenX && !this._initialWindowOptions.screenY,
                     saveWindowState: false,
-                    taskbarIconGroup: this._tabGroup.ID
+                    taskbarIconGroup: this._tabGroup.ID,
+                    waitForPageLoad: false
                 },
                 () => {
                     res(win);

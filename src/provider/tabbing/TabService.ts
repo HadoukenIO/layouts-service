@@ -163,20 +163,24 @@ export class TabService {
 
     public async getOrCreateTabGroupAt(x: number, y: number, exclude?: Identity): Promise<TabGroup|null> {
         let tabGroup: TabGroup|null = await this.getTabGroupAt(x, y, exclude);
-
         if (!tabGroup) {
             const windowUnderPoint: TabIdentifier | null = await this.getWindowAt(x, y, exclude);
             if (windowUnderPoint) {
                 if (exclude && exclude.name !== windowUnderPoint.name) {
+                    console.time("addTabGroup");
                     tabGroup = await this.addTabGroup({});
+                    console.timeEnd("addTabGroup");
+                    console.time("init");
                     await tabGroup.init();
+                    console.timeEnd("init");
+                    console.time("addTab");
                     await tabGroup.addTab({ tabID: windowUnderPoint });
+                    console.timeEnd("addTab");
                 }
             }
         } else {
             console.log("returning existing tabset");
         }
-
         return tabGroup;
     }
 

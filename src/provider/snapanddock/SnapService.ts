@@ -339,15 +339,13 @@ export class SnapService {
             // Window will be tabbed if center of the dragged window overlaps with a tabbable window.
             const activeTabSet = TabService.INSTANCE.getTabGroupByApp(currentDragWindowIdentity);
             if (!activeTabSet || activeTabSet.tabs.length < 2) {
-                TabService.INSTANCE.getOrCreateTabGroupAt(activeState.center.x, activeState.center.y, currentDragWindowIdentity).then((tabTarget) => {
-                    if (tabTarget && !tabTarget.getTab(currentDragWindowIdentity)) {
-                        console.log('Tabbing to target: ' + tabTarget.tabs);
-                        tabTarget.tabs.forEach((tab: Tab) => {
-                            tab.window.updateWindowOptions({ frame: false });
-                        });
-                        tabTarget.addTab({ tabID: currentDragWindowIdentity });
-                        tabTarget.window.finWindow.show();
-                    }
+                TabService.INSTANCE.getOrCreateTabGroupAt(activeState.center.x, activeState.center.y, currentDragWindowIdentity)
+                    .then((tabTarget: TabGroup | null) => {
+                        if (tabTarget && !tabTarget.getTab(currentDragWindowIdentity)) {
+                            console.log('Tabbing to target: ' + tabTarget.tabs);
+                            tabTarget.addTab({ tabID: currentDragWindowIdentity });
+                            tabTarget.window.finWindow.show();
+                        }
                 });
             }
         }

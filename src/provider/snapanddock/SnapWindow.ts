@@ -287,7 +287,7 @@ export class SnapWindow {
         const index = windows.indexOf(this);
 
         if (count >= 2 && index >= 0) {
-            console.log("[SnapAndDock][snap] - joinGroup");
+            console.log('[SnapAndDock][snap] - joinGroup');
             this.window.joinGroup(windows[index === 0 ? 1 : 0].window);
 
             // Bring other windows in group to front
@@ -304,7 +304,7 @@ export class SnapWindow {
     }
 
     private unsnap(): void {
-        console.log("[SnapAndDock][unsnap] - leaveGroup");
+        console.log('[SnapAndDock][unsnap] - leaveGroup');
         this.window.leaveGroup();
     }
 

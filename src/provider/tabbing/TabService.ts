@@ -1,16 +1,18 @@
 
 import {Identity} from 'hadouken-js-adapter';
+
 import {Bounds, TabIdentifier, TabPackage, TabWindowOptions} from '../../client/types';
+import {SnapService} from '../snapanddock/SnapService';
+import {SnapWindow, WindowState} from '../snapanddock/SnapWindow';
+import {Point} from '../snapanddock/utils/PointUtils';
+import {RectUtils} from '../snapanddock/utils/RectUtils';
+
 import {DragWindowManager} from './DragWindowManager';
 import {EventHandler} from './EventHandler';
 import {Tab} from './Tab';
 import {TabAPIActionProcessor} from './TabAPIActionProcessor';
 import {TabGroup} from './TabGroup';
 import {ZIndexer} from './ZIndexer';
-import { SnapWindow, WindowState } from '../snapanddock/SnapWindow';
-import { SnapService } from '../snapanddock/SnapService';
-import { RectUtils } from '../snapanddock/utils/RectUtils';
-import { Point } from '../snapanddock/utils/PointUtils';
 
 interface GroupTabBounds extends Bounds {
     group: TabGroup;
@@ -147,16 +149,16 @@ export class TabService {
     public async getTabGroupAt(x: number, y: number, exclude?: Identity): Promise<TabGroup|null> {
         const point: Point = {x, y};
         const id = exclude ? `${exclude.uuid}/${exclude.name}` : null;
-        const windows: SnapWindow[] = (window as Window&{snapService:SnapService}).snapService["windows"];
+        const windows: SnapWindow[] = (window as Window & {snapService: SnapService}).snapService['windows'];
         const windowUnderPoint: SnapWindow|undefined = windows.find((window: SnapWindow) => {
             const state: WindowState = window.getState();
-            return window.getId() != id && RectUtils.isPointInRect(state.center, state.halfSize, point);
+            return window.getId() !== id && RectUtils.isPointInRect(state.center, state.halfSize, point);
         });
 
         if (windowUnderPoint) {
             return this.getTabGroupByApp(windowUnderPoint.getIdentity()) || null;
         } else {
-            console.log("no window at position " + x + ", " + y);
+            console.log('no window at position ' + x + ', ' + y);
             return null;
         }
     }
@@ -164,22 +166,22 @@ export class TabService {
     public async getOrCreateTabGroupAt(x: number, y: number, exclude?: Identity): Promise<TabGroup|null> {
         let tabGroup: TabGroup|null = await this.getTabGroupAt(x, y, exclude);
         if (!tabGroup) {
-            const windowUnderPoint: TabIdentifier | null = await this.getWindowAt(x, y, exclude);
+            const windowUnderPoint: TabIdentifier|null = await this.getWindowAt(x, y, exclude);
             if (windowUnderPoint) {
                 if (exclude && exclude.name !== windowUnderPoint.name) {
-                    console.time("addTabGroup");
+                    console.time('addTabGroup');
                     tabGroup = await this.addTabGroup({});
-                    console.timeEnd("addTabGroup");
-                    console.time("init");
+                    console.timeEnd('addTabGroup');
+                    console.time('init');
                     await tabGroup.init();
-                    console.timeEnd("init");
-                    console.time("addTab");
-                    await tabGroup.addTab({ tabID: windowUnderPoint });
-                    console.timeEnd("addTab");
+                    console.timeEnd('init');
+                    console.time('addTab');
+                    await tabGroup.addTab({tabID: windowUnderPoint});
+                    console.timeEnd('addTab');
                 }
             }
         } else {
-            console.log("returning existing tabset");
+            console.log('returning existing tabset');
         }
         return tabGroup;
     }
@@ -187,10 +189,10 @@ export class TabService {
     public async getWindowAt(x: number, y: number, exclude?: Identity): Promise<TabIdentifier|null> {
         const point: Point = {x, y};
         const id = exclude ? `${exclude.uuid}/${exclude.name}` : null;
-        const windows: SnapWindow[] = (window as Window&{snapService:SnapService}).snapService["windows"];
+        const windows: SnapWindow[] = (window as Window & {snapService: SnapService}).snapService['windows'];
         const windowsAtPoint: SnapWindow[] = windows.filter((window: SnapWindow) => {
             const state: WindowState = window.getState();
-            return window.getId() != id && RectUtils.isPointInRect(state.center, state.halfSize, point);
+            return window.getId() !== id && RectUtils.isPointInRect(state.center, state.halfSize, point);
         });
 
         const sortedWindows: TabIdentifier[]|null = ZIndexer.INSTANCE.getTop(windowsAtPoint.map(window => window.getIdentity()));

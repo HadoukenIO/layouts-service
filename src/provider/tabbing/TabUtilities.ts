@@ -1,4 +1,4 @@
-import {TabBlob, TabIdentifier, TabWindowOptions, TabPackage} from '../../client/types';
+import {TabBlob, TabIdentifier, TabPackage, TabWindowOptions} from '../../client/types';
 
 import {Tab} from './Tab';
 import {TabGroup} from './TabGroup';
@@ -31,22 +31,20 @@ export async function ejectTab(tabService: TabService, message: TabIdentifier&Ta
     }
 
     // Default result is null (no window)
-    let isOverTabWindowResult: TabGroup | undefined = undefined;
+    let isOverTabWindowResult: TabGroup|undefined = undefined;
 
     // If we have a screenX & screenY we check if there is a tab group + tab window underneath
     if (message.screenX && message.screenY) {
-        const windowOverIdentifier: TabIdentifier | null = await tabService.getWindowAt(message.screenX, message.screenY);
+        const windowOverIdentifier: TabIdentifier|null = await tabService.getWindowAt(message.screenX, message.screenY);
 
         if (windowOverIdentifier) {
-            let overWindowTabGroup: TabGroup | undefined = tabService.getTabGroupByApp(windowOverIdentifier);
+            const overWindowTabGroup: TabGroup|undefined = tabService.getTabGroupByApp(windowOverIdentifier);
 
             if (!overWindowTabGroup) {
                 isOverTabWindowResult = await tabService.addTabGroup({});
                 await isOverTabWindowResult.init();
 
-                const windowOverTabToCreate: TabPackage = {
-                    tabID: windowOverIdentifier
-                }
+                const windowOverTabToCreate: TabPackage = {tabID: windowOverIdentifier};
 
                 await isOverTabWindowResult!.addTab(windowOverTabToCreate);
             } else {

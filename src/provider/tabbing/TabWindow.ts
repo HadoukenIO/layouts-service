@@ -93,7 +93,7 @@ export class TabWindow extends AsyncWindow {
         });
 
         await Promise.all([resize, moveTo]);
-        console.log("[Tabbing][alignPositionToTabGroup] - joinGroup");
+        console.log('[Tabbing][alignPositionToTabGroup] - joinGroup');
         this._window.joinGroup(groupWindow.finWindow);
     }
 

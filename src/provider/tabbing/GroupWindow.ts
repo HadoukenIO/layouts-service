@@ -61,9 +61,9 @@ export class GroupWindow extends AsyncWindow {
         this._window = await this._createTabWindow();
         console.timeEnd('createWindow');
 
-        console.time("createlisteners");
+        console.time('createlisteners');
         this._createWindowEventListeners();
-        console.timeEnd("createlisteners");
+        console.timeEnd('createlisteners');
     }
 
     /**
@@ -79,7 +79,7 @@ export class GroupWindow extends AsyncWindow {
         const moveTo = this._window.moveTo(bounds.left!, bounds.top! - this._initialWindowOptions.height!);
 
         await Promise.all([resizeTo, moveTo]);
-        console.log("[Tabbing][alignPositionToApp] - joinGroup");
+        console.log('[Tabbing][alignPositionToApp] - joinGroup');
         win.joinGroup(this._window!);
     }
 

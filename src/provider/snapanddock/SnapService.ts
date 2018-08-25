@@ -10,6 +10,7 @@ import {MeasureResult, RectUtils} from './utils/RectUtils';
 
 // Defines the distance windows will be moved when undocked.
 const UNDOCK_MOVE_DISTANCE = 30;
+
 // Scaling factor for explosion spread.
 const EXPLODE_MOVE_SCALE = 0.1;
 
@@ -303,12 +304,6 @@ export class SnapService {
 
     private snapGroup(activeGroup: SnapGroup, type: Mask<eTransformType>): void {
         const snapTarget: SnapTarget|null = this.resolver.getSnapTarget(this.groups, activeGroup);
-
-        if (snapTarget) {
-            console.log('Found snap target: ' + snapTarget.group.windows[0].getId());
-        } else {
-            console.log('No snap targets');
-        }
 
         this.view.update(activeGroup, snapTarget);
     }

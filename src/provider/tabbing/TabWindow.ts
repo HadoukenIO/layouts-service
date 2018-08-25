@@ -55,21 +55,21 @@ export class TabWindow extends AsyncWindow {
     /**
      * Hides the tab window.
      */
-    public async hide(): Promise<void> {
-        return this.updateWindowOptions({opacity: 0});
+    public async hideWindow() {
+        return this._window.hide();
     }
 
     /**
      * Shows the tab window. If the window is minimized we will restore it.
      */
-    public async show(): Promise<void> {
+    public async showWindow() {
         const state = await this.getState();
 
         if (state === 'minimized') {
             this._window.restore();
         }
 
-        this._window.updateOptions({opacity: 1});
+        return this._window.show();
     }
 
     /**

@@ -70,7 +70,7 @@ export function openChild(name: string, i: number, url?: string) {
         defaultLeft: 320*(i%3),
         defaultTop: i > 2 ? 400 : 50,
         saveWindowState: false,
-
+        frame: !(url && url.includes('frameless')),
         name
     });
     return win;

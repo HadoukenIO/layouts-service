@@ -15,9 +15,17 @@ export class PointUtils {
         return lhs;
     }
 
+    public static clone(point: Point): Point {
+        return {x: point.x, y: point.y};
+    }
+
     // tslint:disable-next-line:no-any
     public static isPoint(value: any): value is Point {
         return value.x !== undefined && value.y !== undefined;
+    }
+
+    public static lengthSquared(p: Point): number {
+        return Math.sqrt((p.x * p.x) + (p.y * p.y));
     }
 
     /**

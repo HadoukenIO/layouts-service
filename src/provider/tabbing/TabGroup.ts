@@ -80,13 +80,9 @@ export class TabGroup {
         await tab.init();
 
         if (this._tabs.length > 1) {
-            tab.window.hide();
+            tab.window.hideWindow();
         } else {
-            const tabOpts = await tab.window.getWindowOptions();
-
-            if (tabOpts.opacity! === 0) {
-                tab.window.show();
-            }
+            tab.window.showWindow();
         }
 
         if (handleAlignment) {
@@ -146,7 +142,8 @@ export class TabGroup {
         await this.removeTab(ID, false, true);
 
         if (tab) {
-            tab.window.updateWindowOptions({frame: true, opacity: 1.0});
+            tab.window.updateWindowOptions({frame: true});
+            return tab.window.showWindow();
         }
     }
 
@@ -190,14 +187,11 @@ export class TabGroup {
         const tab = this.getTab(ID);
 
         if (tab && tab !== this._activeTab) {
-            await tab.window.show();
-
-            if (this._activeTab) {
-                this._activeTab.window.hide();
-            }
-
+            await tab.window.showWindow();
             tab.window.finWindow.bringToFront();
-
+            if (this._activeTab) {
+                await this._activeTab.window.hideWindow();
+            }
             this.setActiveTab(tab);
         }
     }

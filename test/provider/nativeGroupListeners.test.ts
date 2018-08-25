@@ -1,10 +1,10 @@
-import { test, Context, GenericTestContext, AnyContext, TestContext } from 'ava';
-import { dragWindowTo, dragWindowToOtherWindow, dragSideToSide } from './utils/dragWindowTo';
-import { getBounds, NormalizedBounds } from './utils/getBounds';
-import * as robot from 'robotjs';
-import { createChildWindow } from './utils/createChildWindow';
-import { Window, Fin } from 'hadouken-js-adapter';
+import { test, TestContext } from 'ava';
+import { Fin, Window } from 'hadouken-js-adapter';
 import { getConnection } from './utils/connect';
+import { createChildWindow } from './utils/createChildWindow';
+import { delay } from './utils/delay';
+import { dragSideToSide } from './utils/dragWindowTo';
+import { getBounds, NormalizedBounds } from './utils/getBounds';
 import { undockWindow, WindowIdentity } from './utils/undockWindow';
 
 // Valid ways of grouping two windows (used to parameterise large number of similar tests)
@@ -36,7 +36,7 @@ test.beforeEach(async () => {
     win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window.html', frame: false });
     win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window.html', frame: false });
     windows = [win1, win2];
-    await delay(1);
+    await delay(1000);
 });
 test.afterEach.always(async () => {
     if (win1 && win1.identity) { await win1.close(); }
@@ -123,11 +123,6 @@ function assertMoved(bounds1: NormalizedBounds, bounds2: NormalizedBounds, t: Te
 function assertNotMoved(bounds1: NormalizedBounds, bounds2: NormalizedBounds, t: TestContext) {
     t.deepEqual(bounds1, bounds2);
 }
-
-async function delay(seconds: number) {
-    return new Promise<void>(r => setTimeout(r, seconds * 1000));
-}
-
 /* ====== Tests ====== */
 
 for (const firstGroup of Object.keys(groupingFunctions) as GroupingType[]) {

@@ -340,12 +340,13 @@ export class SnapService {
             const activeTabSet = TabService.INSTANCE.getTabGroupByApp(currentDragWindowIdentity);
             if (!activeTabSet || activeTabSet.tabs.length < 2) {
                 TabService.INSTANCE.getOrCreateTabGroupAt(activeState.center.x, activeState.center.y, currentDragWindowIdentity).then((tabTarget) => {
-                    if (tabTarget && tabTarget.tabs.length === 1 && !tabTarget.getTab(currentDragWindowIdentity)) {
+                    if (tabTarget && !tabTarget.getTab(currentDragWindowIdentity)) {
                         console.log('Tabbing to target: ' + tabTarget.tabs);
-                        tabTarget.tabs[0].window.updateWindowOptions({ frame: false });
+                        tabTarget.tabs.forEach((tab: Tab) => {
+                            tab.window.updateWindowOptions({ frame: false });
+                        });
                         tabTarget.addTab({ tabID: currentDragWindowIdentity });
-                        tabTarget.window.finWindow.show();
-                    }
+                        tabTarget.window.finWindow.show();                    }
                 });
             }
         }

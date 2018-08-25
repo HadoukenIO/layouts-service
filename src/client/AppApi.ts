@@ -9,7 +9,7 @@ export class AppApi extends Api {
         super();
         this._ID = {uuid: fin.desktop.Application.getCurrent().uuid, name: fin.desktop.Window.getCurrent().name};
 
-        this.setTabClient('');
+        // this.setTabClient('');
     }
 
     /**

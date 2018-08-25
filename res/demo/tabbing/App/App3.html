@@ -21,7 +21,7 @@
         document.body.style.backgroundColor = randomColor;
 
         fin.desktop.main(()=>{
-            window.TabClient.init("http://localhost:1337/demo/tabbing/UI/UI2.html");
+            window.TabClient.setTabClient("http://localhost:1337/demo/tabbing/UI/UI2.html");
 
             window.TabClient.addEventListener("TABBED", (e) => {
                 console.log("TABBED: ", e);

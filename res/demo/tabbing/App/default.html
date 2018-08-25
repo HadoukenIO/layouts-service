@@ -21,9 +21,7 @@
         document.body.style.backgroundColor = randomColor;
 
         fin.desktop.main(()=>{
-            window.TabClient.init();
-
-                       window.TabClient.addEventListener("TABBED", (e) => {
+            window.TabClient.addEventListener("TABBED", (e) => {
                 console.log("TABBED: ", e);
             });
 

@@ -7,6 +7,10 @@ import {Tab} from './Tab';
 import {TabAPIActionProcessor} from './TabAPIActionProcessor';
 import {TabGroup} from './TabGroup';
 import {ZIndexer} from './ZIndexer';
+import { SnapWindow, WindowState } from '../snapanddock/SnapWindow';
+import { SnapService } from '../snapanddock/SnapService';
+import { RectUtils } from '../snapanddock/utils/RectUtils';
+import { Point } from '../snapanddock/utils/PointUtils';
 
 interface GroupTabBounds extends Bounds {
     group: TabGroup;
@@ -137,9 +141,60 @@ export class TabService {
      * Checks for any windows that is under a specific point.
      * @param {number} x X Coordinate
      * @param {number} y Y Coordinate
-     * @param {Identity} identity This is an optional parameter, if passed in it will skip the check on this identity.
+     * @param {Identity} exclude This is an optional parameter, if passed in it will skip the check on this identity.
      * @returns {TabGroup | null}
      */
+    public async getTabGroupAt(x: number, y: number, exclude?: Identity): Promise<TabGroup|null> {
+        const point: Point = {x, y};
+        const id = exclude ? `${exclude.uuid}/${exclude.name}` : null;
+        const windows: SnapWindow[] = (window as Window&{snapService:SnapService}).snapService["windows"];
+        const windowUnderPoint: SnapWindow|undefined = windows.find((window: SnapWindow) => {
+            const state: WindowState = window.getState();
+            return window.getId() != id && RectUtils.isPointInRect(state.center, state.halfSize, point);
+        });
+
+        if (windowUnderPoint) {
+            return this.getTabGroupByApp(windowUnderPoint.getIdentity()) || null;
+        } else {
+            console.log("no window at position " + x + ", " + y);
+            return null;
+        }
+    }
+
+    public async getOrCreateTabGroupAt(x: number, y: number, exclude?: Identity): Promise<TabGroup|null> {
+        let tabGroup: TabGroup|null = await this.getTabGroupAt(x, y, exclude);
+
+        if (!tabGroup) {
+            const windowUnderPoint: TabIdentifier | null = await this.getWindowAt(x, y, exclude);
+            if (windowUnderPoint) {
+                if (exclude && exclude.name !== windowUnderPoint.name) {
+                    console.log("lazily creating tab fgroup");
+                    tabGroup = await this.addTabGroup({});
+                    await tabGroup.init();
+                    await tabGroup.addTab({ tabID: windowUnderPoint });
+                }
+            }
+        } else {
+            console.log("returning existing tabset");
+        }
+
+        return tabGroup;
+    }
+
+    public async getWindowAt(x: number, y: number, exclude?: Identity): Promise<TabIdentifier|null> {
+        const point: Point = {x, y};
+        const id = exclude ? `${exclude.uuid}/${exclude.name}` : null;
+        const windows: SnapWindow[] = (window as Window&{snapService:SnapService}).snapService["windows"];
+        const windowsAtPoint: SnapWindow[] = windows.filter((window: SnapWindow) => {
+            const state: WindowState = window.getState();
+            return window.getId() != id && RectUtils.isPointInRect(state.center, state.halfSize, point);
+        });
+
+        const sortedWindows: TabIdentifier[]|null = ZIndexer.INSTANCE.getTop(windowsAtPoint.map(window => window.getIdentity()));
+
+        return (sortedWindows && sortedWindows[0]) || null;
+    }
+
     public async isPointOverTabGroup(x: number, y: number, identity?: Identity): Promise<TabGroup|null> {
         let groups: TabGroup[];
         if (identity) {

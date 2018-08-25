@@ -74,6 +74,7 @@ export class GroupWindow extends AsyncWindow {
         const moveTo = this._window.moveTo(bounds.left!, bounds.top! - this._initialWindowOptions.height!);
 
         await Promise.all([resizeTo, moveTo]);
+        console.log("[Tabbing][alignPositionToApp] - joinGroup");
         win.joinGroup(this._window!);
     }
 

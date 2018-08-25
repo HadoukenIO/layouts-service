@@ -1,6 +1,7 @@
 
-import {TabClientConfig, TabIdentifier, TabProperties} from '../../client/types';
+import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
+import {TabClientConfig, TabIdentifier, TabProperties} from '../../client/types';
 
 import {TabService} from './TabService';
 import {ejectTab} from './TabUtilities';
@@ -168,8 +169,8 @@ export class APIHandler {
      * Resets the tabs to the order provided.  The length of tabs Identity array must match the current number of tabs, and each current tab must appear in the
      * array exactly once to be valid.  If the input isn’t valid, the call will reject and no change will be made.
      */
-    public reorderTabs(newOrdering: TabIdentifier[], id: TabIdentifier) {
-        const group = this.mTabService.getTabGroupByApp(id) || this.mTabService.getTabGroup(id.name);
+    public reorderTabs(newOrdering: TabIdentifier[], id: Identity) {
+        const group = this.mTabService.getTabGroupByApp(id as TabIdentifier) || this.mTabService.getTabGroup(id.name!);
 
         if (!group) {
             return Promise.reject('No group found');

@@ -1,12 +1,9 @@
-import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
-import {TabAPIActions, TabAPIWindowActions} from '../../client/APITypes';
-import {TabAPIDragMessage, TabAPIInteractionMessage, TabAPIMessage, TabAPIReorderMessage, TabClientConfig, TabIdentifier, TabPackage, TabProperties} from '../../client/types';
+import {TabClientConfig, TabIdentifier, TabProperties} from '../../client/types';
 
-import {Tab} from './Tab';
-import {TabGroup} from './TabGroup';
+
 import {TabService} from './TabService';
-import {createTabGroupsFromMultipleWindows, ejectTab} from './TabUtilities';
+import {ejectTab} from './TabUtilities';
 
 /**
  * Handles all calls from tab api to service
@@ -30,6 +27,19 @@ export class APIHandler {
      */
     public setTabClient(payload: {url: string, config: TabClientConfig}) {
         // TODO: SETTABCLIENT
+    }
+
+    /**
+     * Allows a window to opt-out of this service. This will disable all tabbing-related functionality for the given window.
+     */
+    public async deregister(window: TabIdentifier) {
+        const group = this.mTabService.getTabGroupByApp(window);
+
+        if (!group) {
+            return Promise.reject('No tab group found!');
+        }
+
+        return await group.removeTab(window, false, true);
     }
 
 

@@ -30,6 +30,7 @@ async function registerService() {
     });
     providerChannel.register('deregister', (identity: WindowIdentity) => {
         snapService.deregister(identity);
+        tabService.apiHandler.deregister(identity);
     });
     providerChannel.register('undockGroup', (identity: WindowIdentity) => {
         snapService.explodeGroup(identity);

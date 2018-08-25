@@ -100,5 +100,7 @@ function sendWindowServiceMessage(action: GroupEventType, window: SnapWindow, pr
  */
 export enum GroupEventType {
     JOIN_SNAP_GROUP = 'join-snap-group',
-    LEAVE_SNAP_GROUP = 'leave-snap-group'
+    LEAVE_SNAP_GROUP = 'leave-snap-group',
+    JOIN_TAB_GROUP = 'join-tab-group',
+    LEAVE_TAB_GROUP = 'leave-tab-group'
 }

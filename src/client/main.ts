@@ -49,6 +49,13 @@ const servicePromise: Promise<ServiceClient> = fin.desktop.Service.connect({...I
     service.register('leave-snap-group', () => {
         window.dispatchEvent(new Event('leave-snap-group'));
     });
+    service.register('join-tab-group', () => {
+        window.dispatchEvent(new Event('join-tab-group'));
+    });
+
+    service.register('leave-tab-group', () => {
+        window.dispatchEvent(new Event('leave-tab-group'));
+    });
 
     // Any unregistered action will simply return false
     service.setDefaultAction(() => false);
@@ -97,7 +104,8 @@ export async function deregister(identity: Identity = getId()): Promise<void> {
  * @param {string} eventType Event to be subscribed to. Valid options are 'join-snap-group' and 'leave-snap-group'
  * @param {() => void} callback Function to be executed on event firing. Takes no arguments and returns void.
  */
-export async function addEventListener(eventType: 'join-snap-group'|'leave-snap-group', callback: () => void): Promise<void> {
+export async function addEventListener(
+    eventType: 'join-snap-group'|'leave-snap-group'|'join-tab-group'|'leave-tab-group', callback: () => void): Promise<void> {
     // Use native js event system to pass internal events around.
     // Without this we would need to handle multiple registration ourselves.
     window.addEventListener(eventType, callback);

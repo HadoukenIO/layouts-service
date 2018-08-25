@@ -60,8 +60,7 @@ export class TabGroup {
 
         if (existingTab) {
             if (existingTab.tabGroup.window.initialWindowOptions.url !== this.window.initialWindowOptions.url) {
-                console.error('Cannot tab - mismatched group Urls!');
-                return;
+                return Promise.reject('Cannot tab - mismatched group Urls!');
             }
 
             console.info('Existing tab attempting to be added.  Removing the first instance...');

@@ -27,7 +27,7 @@ export async function ejectTab(tabService: TabService, message: TabIdentifier&Ta
 
     // if the tab is not valid then return out of here!
     if (!ejectedTab) {
-        return;
+        return Promise.reject('No tab in group?');
     }
 
     // Default result is null (no window)

@@ -62,18 +62,17 @@ async function registerService() {
         sendWindowServiceMessage(GroupEventType.LEAVE_SNAP_GROUP, window, providerChannel);
     });
 
-    providerChannel.register(TabAPI.GETTABS, null);
-    providerChannel.register(TabAPI.CLOSETABGROUP, null);
-    providerChannel.register(TabAPI.CREATETABGROUP, null);
-    providerChannel.register(TabAPI.ENDDRAG, null);
-    providerChannel.register(TabAPI.GETTABS, null);
-    providerChannel.register(TabAPI.MAXIMIZETABGROUP, null);
-    providerChannel.register(TabAPI.MINIMIZETABGROUP, null);
-    providerChannel.register(TabAPI.REMOVETAB, null);
-    providerChannel.register(TabAPI.REORDERTABS, null);
-    providerChannel.register(TabAPI.RESTORETABGROUP, null);
-    providerChannel.register(TabAPI.SETACTIVETAB, null);
-    providerChannel.register(TabAPI.SETTABCLIENT, null);
+    providerChannel.register(TabAPI.CLOSETABGROUP, tabService.apiHandler.closeTabGroup);
+    providerChannel.register(TabAPI.CREATETABGROUP, tabService.apiHandler.createTabGroup);
+    providerChannel.register(TabAPI.ENDDRAG, tabService.apiHandler.endDrag);
+    providerChannel.register(TabAPI.GETTABS, tabService.apiHandler.getTabs);
+    providerChannel.register(TabAPI.MAXIMIZETABGROUP, tabService.apiHandler.maximizeTabGroup);
+    providerChannel.register(TabAPI.MINIMIZETABGROUP, tabService.apiHandler.minimizeTabGroup);
+    providerChannel.register(TabAPI.REMOVETAB, tabService.apiHandler.removeTab);
+    providerChannel.register(TabAPI.REORDERTABS, tabService.apiHandler.reorderTabs);
+    providerChannel.register(TabAPI.RESTORETABGROUP, tabService.apiHandler.restoreTabGroup);
+    providerChannel.register(TabAPI.SETACTIVETAB, tabService.apiHandler.setActiveTab);
+    providerChannel.register(TabAPI.SETTABCLIENT, tabService.apiHandler.setTabClient);
 
     return providerChannel;
 }

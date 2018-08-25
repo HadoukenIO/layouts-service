@@ -27,7 +27,7 @@ export class APIHandler {
      * This binding happens on the application level.  An application cannot have different windows using different tabbing UI.
      */
     public setTabClient(payload: {url: string, config: TabClientConfig}) {
-        // TODO: SETTABCLIENT
+        // TODO: SETTABCLIENT: WAITING ON A FUTURE PR!
     }
 
     /**

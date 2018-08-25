@@ -1,3 +1,8 @@
+import {Provider} from 'hadouken-js-adapter/out/types/src/api/services/provider';
+import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
+
+import {TabAPI} from '../client/APITypes';
+
 import {SnapGroup} from './snapanddock/SnapGroup';
 import {SnapService} from './snapanddock/SnapService';
 import {SnapWindow, WindowIdentity} from './snapanddock/SnapWindow';
@@ -7,13 +12,14 @@ import {saveCurrentLayout, saveLayoutObject} from './workspaces/create';
 import {getAppToRestore, restoreApplication, restoreLayout} from './workspaces/restore';
 import {getAllLayoutNames, getLayout} from './workspaces/storage';
 
-import {Provider} from 'hadouken-js-adapter/out/types/src/api/services/provider';
-import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
-
 export let snapService: SnapService;
 export let tabService: TabService;
 export let providerChannel: Provider;
-declare const window: Window & {providerChannel: Provider; snapService: SnapService; tabService: TabService;};
+declare const window: Window&{
+    providerChannel: Provider;
+    snapService: SnapService;
+    tabService: TabService;
+};
 
 fin.desktop.main(main);
 
@@ -55,6 +61,19 @@ async function registerService() {
         }
         sendWindowServiceMessage(GroupEventType.LEAVE_SNAP_GROUP, window, providerChannel);
     });
+
+    providerChannel.register(TabAPI.GETTABS, null);
+    providerChannel.register(TabAPI.CLOSETABGROUP, null);
+    providerChannel.register(TabAPI.CREATETABGROUP, null);
+    providerChannel.register(TabAPI.ENDDRAG, null);
+    providerChannel.register(TabAPI.GETTABS, null);
+    providerChannel.register(TabAPI.MAXIMIZETABGROUP, null);
+    providerChannel.register(TabAPI.MINIMIZETABGROUP, null);
+    providerChannel.register(TabAPI.REMOVETAB, null);
+    providerChannel.register(TabAPI.REORDERTABS, null);
+    providerChannel.register(TabAPI.RESTORETABGROUP, null);
+    providerChannel.register(TabAPI.SETACTIVETAB, null);
+    providerChannel.register(TabAPI.SETTABCLIENT, null);
 
     return providerChannel;
 }

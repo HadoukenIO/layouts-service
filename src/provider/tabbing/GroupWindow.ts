@@ -180,7 +180,12 @@ export class GroupWindow extends AsyncWindow {
 
 
     public updateInitialWindowOptions(update: TabWindowOptions) {
-        this._initialWindowOptions = Object.assign(this._initialWindowOptions, this._sanitizeTabWindowOptions(update));
+        const sanitized = this._sanitizeTabWindowOptions(update);
+        this._initialWindowOptions.url = sanitized.url || this._initialWindowOptions.url;
+        this._initialWindowOptions.width = sanitized.width || this._initialWindowOptions.width;
+        this._initialWindowOptions.height = sanitized.height || this._initialWindowOptions.height;
+        this._initialWindowOptions.screenX = sanitized.screenX || this._initialWindowOptions.screenX;
+        this._initialWindowOptions.screenY = sanitized.screenY || this._initialWindowOptions.screenY;
     }
     /**
      * Creates the tab set window using the window options passed in during initialization.

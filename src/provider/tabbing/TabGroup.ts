@@ -50,9 +50,11 @@ export class TabGroup {
     private async _initializeTabGroup() {
         await this._window.init();
         await this.redressTabsInGroup(true);
-        await this._window.alignPositionToApp(this._tabs[0].window);
+
+        if (!this.window.initialWindowOptions.screenX && !this.window.initialWindowOptions.screenY) await this._window.alignPositionToApp(this._tabs[0].window);
+
         this._window.show(false);
-        this.realignApps();
+        if (!this.window.initialWindowOptions.screenX && !this.window.initialWindowOptions.screenY) this.realignApps();
     }
 
     public async redressTabsInGroup(goingToShow: boolean) {
@@ -80,10 +82,10 @@ export class TabGroup {
         const existingTab = TabService.INSTANCE.getTab({uuid: tabPackage.tabID.uuid, name: tabPackage.tabID.name});
 
         if (existingTab) {
-            if (existingTab.tabGroup.window.initialWindowOptions.url !== this.window.initialWindowOptions.url) {
-                console.error('Cannot tab - mismatched group Urls!');
-                return;
-            }
+            // if (existingTab.tabGroup.window.initialWindowOptions.url !== this.window.initialWindowOptions.url) {
+            //     console.error('Cannot tab - mismatched group Urls!');
+            //     return;
+            // }
 
             console.info('Existing tab attempting to be added.  Removing the first instance...');
 
@@ -111,11 +113,8 @@ export class TabGroup {
 
         await tab.init();
 
-        // If we are first tab make sure we are visible, otherwise we should be hidden
         if (this._tabs.length > 1) {
-            tab.window.hideWindow();
-        } else {
-            tab.window.showWindow();
+            tab.window.hide();
         }
 
         if (this._tabs.length === 2) {
@@ -134,6 +133,8 @@ export class TabGroup {
         // Switch tab to set activeTab.  If handleTabSwitch false this must be handled externally.
         if (handleTabSwitch) {
             await this.switchTab(tab.ID);
+        } else {
+            await tab.window.hide();
         }
 
         return tab;

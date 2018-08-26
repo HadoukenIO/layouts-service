@@ -84,10 +84,9 @@ export async function ejectTab(tabService: TabService, message: TabIdentifier&Ta
  * @function createTabGroupsFromMultipleWindows
  * @param tabBlob[] Restoration data
  */
-export async function createTabGroupsFromMultipleWindows(tabBlob: TabBlob[]): Promise<void> {
+export async function createTabGroupsFromTabBlob(tabBlob: TabBlob[]): Promise<void> {
     if (!tabBlob) {
-        console.error('No tab blob supplied');
-        return;
+        return Promise.reject('No tab blob supplied');
     }
 
     for (const blob of tabBlob) {
@@ -115,22 +114,14 @@ export async function createTabGroupsFromMultipleWindows(tabBlob: TabBlob[]): Pr
                 console.error('No tab was added');
                 return;
             }
-
-            if (blob.groupInfo.dimensions.x && blob.groupInfo.dimensions.y) {
-                // if we are provided coords then we tab group is created at them so we need to bring the app window to group.
-                await newTab.window.alignPositionToTabGroup();
-            } else {
-                // if no coords then its safe to assume we need to move group window to app window.
-                await group.window.alignPositionToApp(newTab.window);
-            }
         }
 
-        group.window.finWindow.show();
-        group.switchTab({uuid: blob.groupInfo.active.uuid, name: blob.groupInfo.active.uuid});
+        await group.realignApps();
+        await group.switchTab({uuid: blob.groupInfo.active.uuid, name: blob.groupInfo.active.uuid});
     }
 }
 
-(window as Window & {createTabGroupsFromMultipleWindows: Function}).createTabGroupsFromMultipleWindows = createTabGroupsFromMultipleWindows;
+(window as Window & {createTabGroupsFromMultipleWindows: Function}).createTabGroupsFromMultipleWindows = createTabGroupsFromTabBlob;
 
 /**
  * Creates a UUIDv4() ID

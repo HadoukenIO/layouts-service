@@ -2,7 +2,7 @@ import {TabBlob, TabIdentifier} from '../../client/types';
 import {Tab} from './Tab';
 import {TabGroup} from './TabGroup';
 import {TabService} from './TabService';
-import {createTabGroupsFromMultipleWindows} from './TabUtilities';
+import {createTabGroupsFromTabBlob} from './TabUtilities';
 
 /**
  * Gathers information from tab sets and their tabs, and returns as a JSON object back to the requesting application/window.
@@ -80,5 +80,5 @@ export function restoreTabs(tabBlob: TabBlob[]): Promise<void> {
         return Promise.reject('No Tab Service!');
     }
 
-    return createTabGroupsFromMultipleWindows(tabBlob);
+    return createTabGroupsFromTabBlob(tabBlob);
 }

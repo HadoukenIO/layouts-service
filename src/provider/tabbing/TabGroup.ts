@@ -89,11 +89,6 @@ export class TabGroup {
         const existingTab = TabService.INSTANCE.getTab({uuid: tabPackage.tabID.uuid, name: tabPackage.tabID.name});
 
         if (existingTab) {
-            // if (existingTab.tabGroup.window.initialWindowOptions.url !== this.window.initialWindowOptions.url) {
-            //     console.error('Cannot tab - mismatched group Urls!');
-            //     return;
-            // }
-
             console.info('Existing tab attempting to be added.  Removing the first instance...');
 
             await existingTab.tabGroup.removeTab(existingTab.ID, false, true);

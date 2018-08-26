@@ -1,5 +1,6 @@
 import {ApplicationUIConfig, Bounds, TabIdentifier, TabPackage, TabWindowOptions} from '../../client/types';
 
+import {APIHandler} from './APIHandler';
 import {DragWindowManager} from './DragWindowManager';
 import {EventHandler} from './EventHandler';
 import {Tab} from './Tab';
@@ -19,6 +20,16 @@ export class TabService {
      * Handle of this Tab Service Instance.
      */
     public static INSTANCE: TabService;
+
+    /**
+     * Handle to the Tabbing API Handler
+     */
+    public apiHandler: APIHandler;
+
+    /**
+     * Reference to any application UI configurations set via setTabClient API
+     */
+    private _applicationUIConfigs: ApplicationUIConfig[];
 
     /**
      * Contains all the tabsets of this service.
@@ -58,6 +69,7 @@ export class TabService {
         this._dragWindowManager.init();
 
         this._eventHandler = new EventHandler(this);
+        this.apiHandler = new APIHandler(this);
 
         this.mTabApiEventHandler = new TabAPIActionProcessor(this);
         this.mTabApiEventHandler.init();
@@ -93,6 +105,27 @@ export class TabService {
         this._tabGroups.push(group);
 
         return group;
+    }
+
+    /**
+     * Finds an applications UI Configuration, if present.
+     * @param {string} uuid The UUID of the application we are searching for.
+     */
+    public getAppUIConfig(uuid: string) {
+        return this._applicationUIConfigs.find((config) => {
+            return config.uuid === uuid;
+        });
+    }
+
+    /**
+     * Adds a custom UI configuration for an applications tab strip.
+     * @param uuid UUID of the application to add.
+     * @param config Configuration of the applications UI
+     */
+    public addAppUIConfig(uuid: string, config: ApplicationUIConfig) {
+        if (!this.getAppUIConfig(uuid)) {
+            this._applicationUIConfigs.push(config);
+        }
     }
 
     /**

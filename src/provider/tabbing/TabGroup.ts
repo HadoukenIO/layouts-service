@@ -49,17 +49,23 @@ export class TabGroup {
 
     private async _initializeTabGroup() {
         await this._window.init();
-        await this.redressTabsInGroup();
+        await this.redressTabsInGroup(true);
         await this._window.alignPositionToApp(this._tabs[0].window);
         this._window.show(false);
         this.realignApps();
     }
 
-    public async redressTabsInGroup() {
+    public async redressTabsInGroup(goingToShow: boolean) {
         // we are preparing to show the tab group;
-        return Promise.all(this._tabs.map((tab) => {
-            tab.init();
-        }));
+        if (goingToShow) {
+            return Promise.all(this._tabs.map((tab) => {
+                tab.init();
+            }));
+        } else {
+            return Promise.all(this._tabs.map((tab) => {
+                tab.deInit();
+            }));
+        }
     }
 
     /**
@@ -195,7 +201,7 @@ export class TabGroup {
         const tab = this._tabs[index];
         this._tabs.splice(index, 1);
 
-        if (switchTab && this._tabs.length > 0 && this.activeTab.ID.uuid === tab.ID.uuid && this.activeTab.ID.name === tab.ID.name) {
+        if (switchTab && this._tabs.length > 1 && this.activeTab.ID.uuid === tab.ID.uuid && this.activeTab.ID.name === tab.ID.name) {
             const nextTab: TabIdentifier = this._tabs[index] ? this._tabs[index].ID : this._tabs[index - 1].ID;
 
             await this.switchTab(nextTab);
@@ -204,8 +210,10 @@ export class TabGroup {
         await tab.remove(closeApp);
 
         if (closeGroupWindowCheck) {
-            if (this._tabs.length === 0) {
-                await TabService.INSTANCE.removeTabGroup(this.ID, true);
+            if (this._tabs.length === 1) {
+                await this.redressTabsInGroup(false);
+
+                await TabService.INSTANCE.removeTabGroup(this.ID, false);
                 return;
             }
         }

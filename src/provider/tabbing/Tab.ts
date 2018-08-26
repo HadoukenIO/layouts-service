@@ -59,6 +59,10 @@ export class Tab {
         fin.desktop.InterApplicationBus.send(this.ID.uuid, this.ID.name, AppApiEvents.TABBED, {tabGroupID: this._tabGroup.ID});
     }
 
+    public async deInit() {
+        await this._tabWindow.deInit();
+    }
+
     /**
      * Remove the Tab from the group and possibly its window.
      * @param closeApp Flag if we should close the tabs window.
@@ -66,12 +70,11 @@ export class Tab {
     public async remove(closeApp: boolean) {
         this._tabWindow.leaveGroup();
 
+        fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, this._tabGroup.ID, TabApiEvents.TABREMOVED, this._tabID);
+        fin.desktop.InterApplicationBus.send(this.ID.uuid, this.ID.name, AppApiEvents.UNTABBED, {tabGroupID: this._tabGroup.ID});
+
         if (closeApp) {
             return this._tabWindow.close(false);
-        } else {
-            fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, this._tabGroup.ID, TabApiEvents.TABREMOVED, this._tabID);
-            fin.desktop.InterApplicationBus.send(this.ID.uuid, this.ID.name, AppApiEvents.UNTABBED, {tabGroupID: this._tabGroup.ID});
-            return this._tabWindow.deInit();
         }
     }
 

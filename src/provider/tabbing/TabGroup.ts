@@ -224,7 +224,7 @@ export class TabGroup {
 
         if (closeGroupWindowCheck) {
             if (this._tabs.length === 1) {
-                await this.redressTabsInGroup(false);
+                await this._redressTabsInGroup(false);
 
                 await TabService.INSTANCE.removeTabGroup(this.ID, false);
                 return;

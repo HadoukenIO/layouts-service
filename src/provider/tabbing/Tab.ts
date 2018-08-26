@@ -59,6 +59,9 @@ export class Tab {
         fin.desktop.InterApplicationBus.send(this.ID.uuid, this.ID.name, AppApiEvents.TABBED, {tabGroupID: this._tabGroup.ID});
     }
 
+    /**
+     * Deinitializes the tab from tabbing.
+     */
     public async deInit() {
         await this._tabWindow.deInit();
     }

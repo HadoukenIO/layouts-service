@@ -47,9 +47,12 @@ export class TabGroup {
         await this._window.init();
     }
 
+    /**
+     * Initializes the tab group window.  This will initalize tabs in the group, show the window, and handle alignment.
+     */
     private async _initializeTabGroup() {
         await this._window.init();
-        await this.redressTabsInGroup(true);
+        await this._redressTabsInGroup(true);
 
         if (!this.window.initialWindowOptions.screenX && !this.window.initialWindowOptions.screenY) await this._window.alignPositionToApp(this._tabs[0].window);
 
@@ -57,7 +60,12 @@ export class TabGroup {
         if (!this.window.initialWindowOptions.screenX && !this.window.initialWindowOptions.screenY) this.realignApps();
     }
 
-    public async redressTabsInGroup(goingToShow: boolean) {
+
+    /**
+     * Initializes the group tabs for use with the group window.
+     * @param {boolean} goingToShow Are we about to show the group window?
+     */
+    private async _redressTabsInGroup(goingToShow: boolean) {
         // we are preparing to show the tab group;
         if (goingToShow) {
             return Promise.all(this._tabs.map((tab) => {

@@ -132,7 +132,12 @@ export function uuidv4(): string {
     return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16));
 }
 
-
+/**
+ * Finds a window at a specific coordinate.
+ * @param {number} x Screen X Coord
+ * @param {number} y Screen Y Coord
+ * @param {Identity} exclude Window to exclude from the search
+ */
 export function getWindowAt(x: number, y: number, exclude?: Identity) {
     const point: Point = {x, y};
     const id = exclude ? `${exclude.uuid}/${exclude.name}` : null;
@@ -147,6 +152,11 @@ export function getWindowAt(x: number, y: number, exclude?: Identity) {
     return (sortedWindows && sortedWindows[0]) || null;
 }
 
+/**
+ * Checks and Compares two UUIDs to see if they have compatible UIs for tabbing.
+ * @param uuid1 First UUID to Compare
+ * @param uuid2 Second UUId to Compare
+ */
 export function compareTabGroupUIs(uuid1: string, uuid2: string) {
     const uuid1Config = TabService.INSTANCE.getAppUIConfig(uuid1);
     const uuid2Config = TabService.INSTANCE.getAppUIConfig(uuid2);

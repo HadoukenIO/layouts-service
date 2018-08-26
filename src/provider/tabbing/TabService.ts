@@ -152,6 +152,10 @@ export class TabService {
         return;
     }
 
+    /**
+     * Creates a new tab group with provided tabs.  Will use the UI and position of the first Identity provided for positioning.
+     * @param tabs An array of Identities to add to a group.
+     */
     public async createTabGroupWithTabs(tabs: TabIdentifier[]) {
         if (tabs.length === 0) {
             return Promise.reject('Must provide at least 1 Tab Identifier');

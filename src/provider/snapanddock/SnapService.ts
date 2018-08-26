@@ -1,6 +1,6 @@
 import {Tab} from '../tabbing/Tab';
 import {TabService} from '../tabbing/TabService';
-import {getWindowAt, initializeTabbing} from '../tabbing/TabUtilities';
+import {getWindowAt} from '../tabbing/TabUtilities';
 
 import {eSnapValidity, Resolver, SnapTarget} from './Resolver';
 import {Signal2} from './Signal';

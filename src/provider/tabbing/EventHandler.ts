@@ -2,7 +2,6 @@ import {AppApiEvents} from '../../client/APITypes';
 import {TabWindowOptions} from '../../client/types';
 import {TabGroup} from './TabGroup';
 import {TabService} from './TabService';
-import {initializeTabbing} from './TabUtilities';
 
 /**
  * @class Handles events coming from the application

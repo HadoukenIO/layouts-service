@@ -65,49 +65,19 @@ export async function ejectTab(tabService: TabService, message: TabIdentifier&Ta
         await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true);
 
         if (message.screenX && message.screenY) {
-            return ejectedTab.window.moveTo(message.screenX!, message.screenY!);
+            ejectedTab.window.moveTo(message.screenX!, message.screenY!);
+            ejectedTab.window.show();
+            return;
         }
 
         const bounds = await ejectedTab.window.getWindowBounds();
-        return ejectedTab.window.moveTo(bounds.left, bounds.top);
+
+        ejectedTab.window.moveTo(bounds.left, bounds.top);
+        ejectedTab.window.show();
+        return;
     }
 }
 
-/**
- * Creates a new tab group and adds a tab to it.
- * @param message Tab window options
- * @param uuid the uuid of the application to add as a tab
- * @param name the name of the application to add as a tab
- * @param tabService The tab service
- */
-export async function initializeTabbing(message: TabWindowOptions, uuid: string, name: string, tabService: TabService): Promise<void> {
-    if (tabService.getTabGroupByApp({name, uuid})) {
-        console.error('This window has already been initialised with a tab', {name, uuid});
-        return;
-    }
-
-    const group: TabGroup = await tabService.addTabGroup(message);
-    const tab: Tab|undefined = await group.addTab({tabID: {uuid, name}}, false, false);
-
-    if (!tab) {
-        console.error('No tab was added');
-        return;
-    }
-
-    if (message.screenX && message.screenY) {
-        // if we are provided coords then we tab group is created at them so we need to bring the app window to group.
-        await tab.window.alignPositionToTabGroup();
-    } else {
-        // if no coords then its safe to assume we need to move group window to app window.
-        await group.window.alignPositionToApp(tab.window);
-    }
-
-    // shows the tab group window because it is default hidden
-    group.window.finWindow.show();
-
-    // Switch tab on group to make our added tab the active one
-    group.switchTab({uuid, name});
-}
 
 /**
  * Takes a tabblob and restores windows based on the blob

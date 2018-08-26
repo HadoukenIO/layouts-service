@@ -211,7 +211,6 @@ export class TabGroup {
 
         if (!closeApp) {
             tab.deInit();
-            tab.window.show();
         }
 
         if (closeGroupWindowCheck) {

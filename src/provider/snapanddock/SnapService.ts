@@ -1,6 +1,6 @@
 import {Tab} from '../tabbing/Tab';
 import {TabService} from '../tabbing/TabService';
-import {getWindowAt} from '../tabbing/TabUtilities';
+import {compareTabGroupUIs, getWindowAt} from '../tabbing/TabUtilities';
 
 import {eSnapValidity, Resolver, SnapTarget} from './Resolver';
 import {Signal2} from './Signal';
@@ -341,11 +341,7 @@ export class SnapService {
 
                 // There is a window under our drop point
                 if (windowUnderPoint) {
-                    const windowUnderPointConfig = TabService.INSTANCE.getAppUIConfig(windowUnderPoint.uuid);
-                    const currentDragWindowConfig = TabService.INSTANCE.getAppUIConfig(currentDragWindowIdentity.uuid);
-
-                    if ((windowUnderPointConfig && currentDragWindowConfig && currentDragWindowConfig.url === windowUnderPointConfig.url) ||
-                        (!windowUnderPointConfig && !currentDragWindowConfig)) {
+                    if (compareTabGroupUIs(windowUnderPoint.uuid, currentDragWindowIdentity.uuid)) {
                         const tabGroupUnderPoint = TabService.INSTANCE.getTabGroupByApp(windowUnderPoint);
                         // The window under drop point is a tab group
                         if (tabGroupUnderPoint) {
@@ -357,17 +353,7 @@ export class SnapService {
                         }
                     }
                 }
-
-                // TODO WRAP EVERYTHING IN THIS CAUSE THIS METHOD CANNOT RETURN OUT :(
             }
-
-            // Window will be tabbed if center of the dragged window overlaps with an initialized tabbable window.
-            // TabService.INSTANCE.isPointOverTabGroup(activeState.center.x, activeState.center.y).then((tabTarget) => {
-            //     if (tabTarget) {
-            //         console.log('Tabbing to target: ' + tabTarget.tabs);
-            //         tabTarget.addTab({tabID: activeGroup.windows[0].getIdentity()});
-            //     }
-            // });
         }
 
         // Reset view

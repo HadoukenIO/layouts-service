@@ -3,7 +3,7 @@ import {Client as ServiceClient} from 'hadouken-js-adapter/out/types/src/api/ser
 import * as Mousetrap from 'mousetrap';
 
 import {TabAPI, TabAPIActions} from './APITypes';
-import {Layout, LayoutApp, LayoutName, TabClientConfig, TabProperties} from './types';
+import {Layout, LayoutApp, LayoutName, TabProperties, TabWindowOptions} from './types';
 
 export {AppApi} from './AppApi';
 export {TabbingApi} from './TabbingApi';
@@ -215,8 +215,8 @@ export async function getTabs(window: Identity = getId()): Promise<Identity[]|nu
  * If a custom tab-strip UI is being used - this sets the URL for the tab-strip.
  * This binding happens on the application level.  An application cannot have different windows using different tabbing UI.
  */
-export async function setTabClient(url: string, config: TabClientConfig): Promise<void> {
-    if (!config || isNaN(config.height)) {
+export async function setTabClient(url: string, config: TabWindowOptions): Promise<void> {
+    if (!config || isNaN(config.height!)) {
         return Promise.reject('Invalid config height provided');
     }
 

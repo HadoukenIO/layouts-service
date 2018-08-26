@@ -54,6 +54,9 @@ export class TabWindow extends AsyncWindow {
      * deinitializes the async methods required for the TabWindow class.
      */
     public async deInit(): Promise<void> {
+        const bounds = await this.getWindowBounds();
+        await this._window.resizeTo(bounds.width, bounds.height + this._tabGroup.window.initialWindowOptions.height!, 'bottom-left');
+
         // @ts-ignore resizeRegion.sides is valid.  Its not in the type file.
         return this.updateWindowOptions({showTaskbarIcon: true, frame: true, resizeRegion: {sides: {top: true}}});
     }

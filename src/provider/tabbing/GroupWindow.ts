@@ -74,8 +74,9 @@ export class GroupWindow extends AsyncWindow {
         const bounds = await app.getWindowBounds();
 
         const resizeTo = this._window.resizeTo(bounds.width!, this._initialWindowOptions.height!, 'top-left');
+        await app.resizeTo(bounds.width, bounds.height - this._initialWindowOptions.height!, 'bottom-left');
 
-        const moveTo = this._window.moveTo(bounds.left!, bounds.top! - this._initialWindowOptions.height!);
+        const moveTo = this._window.moveTo(bounds.left!, bounds.top!);
 
         await Promise.all([resizeTo, moveTo]);
         win.joinGroup(this._window!);

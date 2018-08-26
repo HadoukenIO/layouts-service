@@ -44,7 +44,7 @@ export class TabGroup {
      * Initializes the async methods required for the TabGroup Class.
      */
     private async init(): Promise<void> {
-        await this._window.init();
+        // await this._window.init();
     }
 
     /**
@@ -52,10 +52,9 @@ export class TabGroup {
      */
     private async _initializeTabGroup() {
         await this._window.init();
-        // await this._redressTabsInGroup(true);
+        await this._redressTabsInGroup(true);
         if (!this.window.initialWindowOptions.screenX && !this.window.initialWindowOptions.screenY) await this._window.alignPositionToApp(this._tabs[0].window);
         this._window.show(false);
-        await this._redressTabsInGroup(true);
         if (!this.window.initialWindowOptions.screenX && !this.window.initialWindowOptions.screenY) this.realignApps();
     }
 
@@ -65,13 +64,14 @@ export class TabGroup {
      * @param {boolean} goingToShow Are we about to show the group window?
      */
     private async _redressTabsInGroup(goingToShow: boolean) {
+        console.log('in redress');
         // we are preparing to show the tab group;
         if (goingToShow) {
-            return Promise.all(this._tabs.map((tab) => {
+            await Promise.all(this._tabs.map((tab) => {
                 tab.init();
             }));
         } else {
-            return Promise.all(this._tabs.map((tab) => {
+            await Promise.all(this._tabs.map((tab) => {
                 tab.deInit();
             }));
         }
@@ -118,14 +118,14 @@ export class TabGroup {
             }
         }
 
-        await tab.init();
-
         if (this._tabs.length > 1) {
             tab.window.hide();
         }
 
         if (this._tabs.length === 2) {
             await this._initializeTabGroup();
+        } else if (this._tabs.length > 2) {
+            await tab.init();
         }
 
         // Moves the app window to the tab group window or viseversa.  If handleAlignment is false this must be handled externally

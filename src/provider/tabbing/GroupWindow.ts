@@ -4,6 +4,8 @@ import {TabGroup} from './TabGroup';
 import {TabService} from './TabService';
 import {TabWindow} from './TabWindow';
 
+export const DEFAULT_UI_URL = 'http://localhost:1337/provider/tabbing/tabstrip/tabstrip.html';
+
 /**
  * Handles the window for the Tab-Set
  */
@@ -43,7 +45,7 @@ export class GroupWindow extends AsyncWindow {
         this._tabGroup = tabGroup;
 
         const windowOptionsSanitized: TabWindowOptions = {
-            url: windowOptions.url || 'http://localhost:1337/provider/tabbing/tabstrip/tabstrip.html',
+            url: windowOptions.url || undefined,
             width: windowOptions.width && !isNaN(windowOptions.width) ? windowOptions.width : undefined,
             height: windowOptions.height && !isNaN(windowOptions.height) ? windowOptions.height : 62,
             screenX: windowOptions.screenX && !isNaN(windowOptions.screenX) ? windowOptions.screenX : undefined,
@@ -174,6 +176,10 @@ export class GroupWindow extends AsyncWindow {
         this._isMaximized = maximized;
     }
 
+
+    public updateInitialWindowOptions(update: TabWindowOptions) {
+        this._initialWindowOptions = Object.assign(this._initialWindowOptions, update);
+    }
     /**
      * Creates the tab set window using the window options passed in during initialization.
      */
@@ -183,7 +189,7 @@ export class GroupWindow extends AsyncWindow {
             const win = new fin.desktop.Window(
                 {
                     name: this._tabGroup.ID,
-                    url: this._initialWindowOptions.url,
+                    url: this._initialWindowOptions.url || DEFAULT_UI_URL,
                     autoShow: false,
                     frame: false,
                     maximizable: false,

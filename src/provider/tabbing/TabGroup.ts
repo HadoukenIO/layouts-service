@@ -77,6 +77,16 @@ export class TabGroup {
             this._tabs.push(tab);
         }
 
+        if (this.tabs.length === 1) {
+            const firstTabConfig = TabService.INSTANCE.getAppUIConfig(tab.ID.uuid);
+
+            if (firstTabConfig) {
+                if (!this._window.initialWindowOptions.url) {
+                    this._window.updateInitialWindowOptions({url: firstTabConfig.url, height: firstTabConfig.height});
+                }
+            }
+        }
+
         await tab.init();
 
         if (this._tabs.length > 1) {

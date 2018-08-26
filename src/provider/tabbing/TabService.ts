@@ -163,6 +163,7 @@ export class TabService {
         }
 
         const group = await this.addTabGroup({});
+
         await group.addTab({tabID: firstTab});
 
         for (const tab of tabs) {

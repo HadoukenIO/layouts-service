@@ -45,11 +45,17 @@ export class TabWindow extends AsyncWindow {
      */
     public async init(): Promise<void> {
         [this._initialWindowOptions, this._initialWindowBounds] = await Promise.all([this.getWindowOptions(), this.getWindowBounds()]);
-
-        // @ts-ignore resizeRegion.sides is valid.  Its not in the type file.
-        this.updateWindowOptions({showTaskbarIcon: false, frame: false, resizeRegion: {sides: {top: false}}});
-
         this._createWindowEventListeners();
+        // @ts-ignore resizeRegion.sides is valid.  Its not in the type file.
+        return this.updateWindowOptions({showTaskbarIcon: false, frame: false, resizeRegion: {sides: {top: false}}});
+    }
+
+    /**
+     * deinitializes the async methods required for the TabWindow class.
+     */
+    public async deInit(): Promise<void> {
+        // @ts-ignore resizeRegion.sides is valid.  Its not in the type file.
+        return this.updateWindowOptions({showTaskbarIcon: true, frame: true, resizeRegion: {sides: {top: true}}});
     }
 
     /**

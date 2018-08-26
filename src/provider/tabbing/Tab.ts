@@ -67,11 +67,12 @@ export class Tab {
         this._tabWindow.leaveGroup();
 
         if (closeApp) {
-            await this._tabWindow.close(false);
+            return this._tabWindow.close(false);
+        } else {
+            fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, this._tabGroup.ID, TabApiEvents.TABREMOVED, this._tabID);
+            fin.desktop.InterApplicationBus.send(this.ID.uuid, this.ID.name, AppApiEvents.UNTABBED, {tabGroupID: this._tabGroup.ID});
+            return this._tabWindow.deInit();
         }
-
-        fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, this._tabGroup.ID, TabApiEvents.TABREMOVED, this._tabID);
-        fin.desktop.InterApplicationBus.send(this.ID.uuid, this.ID.name, AppApiEvents.UNTABBED, {tabGroupID: this._tabGroup.ID});
     }
 
     /**

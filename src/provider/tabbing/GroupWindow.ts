@@ -44,15 +44,17 @@ export class GroupWindow extends AsyncWindow {
         super();
         this._tabGroup = tabGroup;
 
-        const windowOptionsSanitized: TabWindowOptions = {
+        this._initialWindowOptions = this._sanitizeTabWindowOptions(windowOptions);
+    }
+
+    private _sanitizeTabWindowOptions(windowOptions: TabWindowOptions) {
+        return {
             url: windowOptions.url || undefined,
             width: windowOptions.width && !isNaN(windowOptions.width) ? windowOptions.width : undefined,
             height: windowOptions.height && !isNaN(windowOptions.height) ? windowOptions.height : 62,
             screenX: windowOptions.screenX && !isNaN(windowOptions.screenX) ? windowOptions.screenX : undefined,
             screenY: windowOptions.screenY && !isNaN(windowOptions.screenY) ? windowOptions.screenY : undefined
         };
-
-        this._initialWindowOptions = windowOptionsSanitized;
     }
 
     /**
@@ -178,7 +180,7 @@ export class GroupWindow extends AsyncWindow {
 
 
     public updateInitialWindowOptions(update: TabWindowOptions) {
-        this._initialWindowOptions = Object.assign(this._initialWindowOptions, update);
+        this._initialWindowOptions = Object.assign(this._initialWindowOptions, this._sanitizeTabWindowOptions(update));
     }
     /**
      * Creates the tab set window using the window options passed in during initialization.
@@ -200,7 +202,8 @@ export class GroupWindow extends AsyncWindow {
                     defaultTop: this._initialWindowOptions.screenY,
                     defaultCentered: !this._initialWindowOptions.screenX && !this._initialWindowOptions.screenY,
                     saveWindowState: false,
-                    taskbarIconGroup: this._tabGroup.ID
+                    taskbarIconGroup: this._tabGroup.ID,
+                    waitForPageLoad: false
                 },
                 () => {
                     res(win);

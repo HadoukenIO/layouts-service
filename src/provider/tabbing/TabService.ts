@@ -88,7 +88,7 @@ export class TabService {
      */
     public async addTabGroup(windowOptions: TabWindowOptions): Promise<TabGroup> {
         const group = new TabGroup(windowOptions);
-        await group.init();
+        // await group.init();
 
         this._tabGroups.push(group);
 

@@ -27,7 +27,7 @@ import {ZIndexer} from './ZIndexer';
  * @param tabService The service itself which holds the tab groups
  * @param message Application or tab to be ejected
  */
-export async function ejectTab(tabService: TabService, message: TabIdentifier&TabWindowOptions, tabGroup?: TabGroup|undefined): Promise<void> {
+export async function ejectTab(tabService: TabService, message: TabIdentifier&TabWindowOptions, tabGroup?: TabGroup|undefined) {
     // Get the tab that was ejected.
     const ejectedTab: Tab|undefined =
         tabGroup ? tabGroup.getTab({name: message.name, uuid: message.uuid}) : tabService.getTab({uuid: message.uuid, name: message.name});
@@ -38,78 +38,38 @@ export async function ejectTab(tabService: TabService, message: TabIdentifier&Ta
     }
 
     // Default result is null (no window)
-    let isOverTabWindowResult: TabGroup|null = null;
+    let isOverTabWindowResult: TabIdentifier|null = null;
 
     // If we have a screenX & screenY we check if there is a tab group + tab window underneath
     if (message.screenX && message.screenY) {
-        isOverTabWindowResult = await tabService.isPointOverTabGroup(message.screenX, message.screenY);
+        isOverTabWindowResult =
+            getWindowAt(message.screenX, message.screenY, ejectedTab.ID);  // await tabService.isPointOverTabGroup(message.screenX, message.screenY);
     }
 
     // If there is a window underneath our point
     if (isOverTabWindowResult) {
-        // If the window underneath our point is not the group we're ejecting from.
-        if (isOverTabWindowResult !== ejectedTab.tabGroup) {
-            // If the window underneath our point has the same URL as the ejecting group
-            if (isOverTabWindowResult.window.initialWindowOptions.url === ejectedTab.tabGroup.window.initialWindowOptions.url) {
-                // Remove the tab from the ejecting group
-                await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true);
-
-                // Add the tab to the window underneath our point
-                const tab = await isOverTabWindowResult.addTab({tabID: ejectedTab.ID});
-
-                if (!tab) {
-                    console.error('Tab was not added');
+        const isOverTabGroup = TabService.INSTANCE.getTabGroupByApp(isOverTabWindowResult);
+        if (compareTabGroupUIs(isOverTabWindowResult.uuid, ejectedTab.ID.uuid)) {
+            if (isOverTabGroup) {
+                if (isOverTabGroup.ID !== ejectedTab.tabGroup.ID) {
+                    await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true);
+                    await isOverTabGroup.addTab({tabID: ejectedTab.ID});
                     return;
                 }
-
-                // Align the app window to the new tab group (window underneath)
-                await tab.window.alignPositionToTabGroup();
-
-                // Switch to the added tab in the new group to show the proper window
-                isOverTabWindowResult.switchTab(ejectedTab.ID);
             } else {
-                // If we the two group URLs dont match then we dont allow tabbing!
-                console.warn('Cannot tab - mismatched group Urls!');
+                await TabService.INSTANCE.createTabGroupWithTabs([isOverTabWindowResult, ejectedTab.ID]);
+                return;
             }
         }
     } else {
-        // If we have no window underneath our point...
+        await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true);
 
-        // Get the original options for the ejecting group (URL, height, etc) to be used for the new tab group.
-        const originalOptions = ejectedTab.tabGroup.window.initialWindowOptions;
-
-        // Get the bounds of the ejecting tabgroup
-        const [tabGroupBounds] = await Promise.all([ejectedTab.tabGroup.window.getWindowBounds()]);
-
-        // If we have a screenX & screen (but no window undearneath, obviously)
         if (message.screenX && message.screenY) {
-            // If our ejecting tab is the last one in the tab group
-            if (ejectedTab.tabGroup.tabs.length === 1) {
-                // We just move the window instead of reinitializing
-                ejectedTab.tabGroup.window.moveTo(message.screenX, message.screenY);
-            } else {
-                // If there are other tabs in the ejecting tab group
-
-                // Remove the tab
-                await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true);
-
-                // Reinitialize a new tab group + tab using the ejecting groups options
-                initializeTabbing(
-                    {url: originalOptions.url, height: originalOptions.height, width: tabGroupBounds.width, screenX: message.screenX, screenY: message.screenY},
-                    ejectedTab.ID.uuid,
-                    ejectedTab.ID.name,
-                    tabService);
-            }
-        } else {
-            // If we have no screenX & screenY and no window underneath (obviously...)
-
-            // Remove the tab from the ejecting group
-            await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true);
-
-            // Reinitialize the tab at the app windows existing location
-            initializeTabbing(
-                {url: originalOptions.url, height: originalOptions.height, width: tabGroupBounds.width}, ejectedTab.ID.uuid, ejectedTab.ID.name, tabService);
+            return ejectedTab.window.moveTo(message.screenX!, message.screenY!);
         }
+
+        const bounds = await ejectedTab.window.getWindowBounds();
+        return ejectedTab.window.moveTo(bounds.left, bounds.top);
     }
 }
 
@@ -224,4 +184,11 @@ export function getWindowAt(x: number, y: number, exclude?: Identity) {
     const sortedWindows: TabIdentifier[]|null = ZIndexer.INSTANCE.getTop(windowsAtPoint.map(window => window.getIdentity()));
 
     return (sortedWindows && sortedWindows[0]) || null;
+}
+
+export function compareTabGroupUIs(uuid1: string, uuid2: string) {
+    const uuid1Config = TabService.INSTANCE.getAppUIConfig(uuid1);
+    const uuid2Config = TabService.INSTANCE.getAppUIConfig(uuid2);
+
+    return ((uuid1Config && uuid2Config && uuid1Config.url === uuid2Config.url) || (!uuid1Config && !uuid2Config));
 }

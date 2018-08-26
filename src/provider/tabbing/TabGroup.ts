@@ -201,13 +201,18 @@ export class TabGroup {
         const tab = this._tabs[index];
         this._tabs.splice(index, 1);
 
-        if (switchTab && this._tabs.length > 1 && this.activeTab.ID.uuid === tab.ID.uuid && this.activeTab.ID.name === tab.ID.name) {
+        if (switchTab && this._tabs.length > 0 && this.activeTab.ID.uuid === tab.ID.uuid && this.activeTab.ID.name === tab.ID.name) {
             const nextTab: TabIdentifier = this._tabs[index] ? this._tabs[index].ID : this._tabs[index - 1].ID;
 
             await this.switchTab(nextTab);
         }
 
         await tab.remove(closeApp);
+
+        if (!closeApp) {
+            tab.deInit();
+            tab.window.show();
+        }
 
         if (closeGroupWindowCheck) {
             if (this._tabs.length === 1) {

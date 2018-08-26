@@ -1,5 +1,6 @@
 /*tslint:disable:no-any*/
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
+import {TabWindow} from '../provider/tabbing/TabWindow';
 
 export interface Url {
     url: string;
@@ -166,4 +167,9 @@ export interface TabBlob {
 
 export interface TabAPIReorderMessage extends TabAPIMessage {
     tabOrder: TabIdentifier[];
+}
+
+export interface ApplicationUIConfig {
+    uuid: string;
+    config: TabWindowOptions;
 }

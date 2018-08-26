@@ -1,4 +1,4 @@
-import {Bounds, TabIdentifier, TabPackage, TabWindowOptions} from '../../client/types';
+import {ApplicationUIConfig, Bounds, TabIdentifier, TabPackage, TabWindowOptions} from '../../client/types';
 
 import {DragWindowManager} from './DragWindowManager';
 import {EventHandler} from './EventHandler';
@@ -45,12 +45,15 @@ export class TabService {
      */
     private _zIndexer: ZIndexer = new ZIndexer();
 
+    private _applicationUIConfigurations: ApplicationUIConfig[];
+
 
     /**
      * Constructor of the TabService Class.
      */
     constructor() {
         this._tabGroups = [];
+        this._applicationUIConfigurations = [];
         this._dragWindowManager = new DragWindowManager();
         this._dragWindowManager.init();
 
@@ -60,6 +63,22 @@ export class TabService {
         this.mTabApiEventHandler.init();
 
         TabService.INSTANCE = this;
+    }
+
+    public getAppUIConfig(uuid: string) {
+        const conf = this._applicationUIConfigurations.find(config => config.uuid === uuid);
+
+        if (conf) {
+            return conf.config;
+        }
+
+        return;
+    }
+
+    public addAppUIConfig(uuid: string, config: TabWindowOptions) {
+        if (!this.getAppUIConfig(uuid)) {
+            this._applicationUIConfigurations.push({uuid, config});
+        }
     }
 
     /**
@@ -128,6 +147,26 @@ export class TabService {
 
         if (group) {
             return group.getTab(ID);
+        }
+
+        return;
+    }
+
+    public async createTabGroupWithTabs(tabs: TabIdentifier[]) {
+        if (tabs.length === 0) {
+            return Promise.reject('Must provide at least 1 Tab Identifier');
+        }
+        const firstTab = tabs.shift();
+
+        if (!firstTab) {
+            return Promise.reject('Must provide at least 1 Tab Identifier');
+        }
+
+        const group = await this.addTabGroup({});
+        await group.addTab({tabID: firstTab});
+
+        for (const tab of tabs) {
+            await group.addTab({tabID: tab});
         }
 
         return;

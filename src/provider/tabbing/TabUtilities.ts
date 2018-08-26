@@ -1,8 +1,15 @@
+import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
+
 import {TabBlob, TabIdentifier, TabWindowOptions} from '../../client/types';
+import {SnapService} from '../snapanddock/SnapService';
+import {SnapWindow, WindowState} from '../snapanddock/SnapWindow';
+import {Point} from '../snapanddock/utils/PointUtils';
+import {RectUtils} from '../snapanddock/utils/RectUtils';
 
 import {Tab} from './Tab';
 import {TabGroup} from './TabGroup';
 import {TabService} from './TabService';
+import {ZIndexer} from './ZIndexer';
 
 /**
  * Ejects or moves a tab/tab group based criteria passed in.
@@ -202,4 +209,19 @@ export async function createTabGroupsFromMultipleWindows(tabBlob: TabBlob[]): Pr
 export function uuidv4(): string {
     //@ts-ignore Black Magic
     return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16));
+}
+
+
+export function getWindowAt(x: number, y: number, exclude?: Identity) {
+    const point: Point = {x, y};
+    const id = exclude ? `${exclude.uuid}/${exclude.name}` : null;
+    const windows: SnapWindow[] = (window as Window & {snapService: SnapService}).snapService['windows'];
+    const windowsAtPoint: SnapWindow[] = windows.filter((window: SnapWindow) => {
+        const state: WindowState = window.getState();
+        return window.getId() !== id && RectUtils.isPointInRect(state.center, state.halfSize, point);
+    });
+
+    const sortedWindows: TabIdentifier[]|null = ZIndexer.INSTANCE.getTop(windowsAtPoint.map(window => window.getIdentity()));
+
+    return (sortedWindows && sortedWindows[0]) || null;
 }

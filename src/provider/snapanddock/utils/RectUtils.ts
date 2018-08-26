@@ -92,4 +92,8 @@ export class RectUtils {
 
         return new MeasureResult(distanceX, distanceY);
     }
+
+    public static isPointInRect(center: Point, halfSize: Point, point: Point): boolean {
+        return Math.abs(center.x - point.x) <= halfSize.x && Math.abs(center.y - point.y) < halfSize.y;
+    }
 }

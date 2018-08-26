@@ -1,6 +1,6 @@
 import {Api} from './Api';
 import {AppApiEvents} from './APITypes';
-import {ServiceIABTopics, TabIdentifier, TabServiceID, TabWindowOptions} from './types';
+import {TabIdentifier, TabServiceID, TabWindowOptions} from './types';
 
 export class AppApi extends Api {
     private _ID: TabIdentifier;
@@ -17,7 +17,7 @@ export class AppApi extends Api {
      * @param url The url for the custom tab
      */
     public setTabClient(url: string, height?: number): void {
-        fin.desktop.InterApplicationBus.send(TabServiceID.UUID, TabServiceID.NAME, ServiceIABTopics.CLIENTINIT, {url, height});
+        fin.desktop.InterApplicationBus.send(TabServiceID.UUID, TabServiceID.NAME, AppApiEvents.SETTABCLIENT, { url, height });
 
         // Give the frame back if our service dies
         fin.desktop.Window.wrap(TabServiceID.UUID, TabServiceID.NAME).addEventListener('closed', () => {

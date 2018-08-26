@@ -206,7 +206,7 @@ export async function createTabGroupsFromMultipleWindows(tabBlob: TabBlob[]): Pr
 
         // Create new tabgroup
         const group: TabGroup = await TabService.INSTANCE.addTabGroup(newTabWindowOptions);
-
+        await group.init();
         for (const tab of blob.tabs) {
             const existingTab: Tab|undefined = TabService.INSTANCE.getTab({uuid: tab.uuid, name: tab.name});
 

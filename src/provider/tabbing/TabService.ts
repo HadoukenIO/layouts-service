@@ -13,6 +13,7 @@ import {Tab} from './Tab';
 import {TabAPIActionProcessor} from './TabAPIActionProcessor';
 import {TabGroup} from './TabGroup';
 import {ZIndexer} from './ZIndexer';
+import { getTabSaveInfo, restoreTabs } from './SaveAndRestoreAPI';
 
 interface GroupTabBounds extends Bounds {
     group: TabGroup;
@@ -283,3 +284,6 @@ export class TabService {
         return this._tabGroups;
     }
 }
+
+(window as Window & { getTabSaveInfo: Function }).getTabSaveInfo = getTabSaveInfo;
+(window as Window & { restoreTabs: Function }).restoreTabs = restoreTabs;

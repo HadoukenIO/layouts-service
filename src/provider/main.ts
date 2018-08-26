@@ -1,3 +1,8 @@
+import {Provider} from 'hadouken-js-adapter/out/types/src/api/services/provider';
+import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
+
+import {TabAPI} from '../client/APITypes';
+
 import {SnapGroup} from './snapanddock/SnapGroup';
 import {SnapService} from './snapanddock/SnapService';
 import {SnapWindow, WindowIdentity} from './snapanddock/SnapWindow';
@@ -7,13 +12,14 @@ import {saveCurrentLayout, saveLayoutObject} from './workspaces/create';
 import {getAppToRestore, restoreApplication, restoreLayout} from './workspaces/restore';
 import {getAllLayoutNames, getLayout} from './workspaces/storage';
 
-import {Provider} from 'hadouken-js-adapter/out/types/src/api/services/provider';
-import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
-
 export let snapService: SnapService;
 export let tabService: TabService;
 export let providerChannel: Provider;
-declare const window: Window & {providerChannel: Provider; snapService: SnapService; tabService: TabService;};
+declare const window: Window&{
+    providerChannel: Provider;
+    snapService: SnapService;
+    tabService: TabService;
+};
 
 fin.desktop.main(main);
 
@@ -24,6 +30,7 @@ async function registerService() {
     });
     providerChannel.register('deregister', (identity: WindowIdentity) => {
         snapService.deregister(identity);
+        tabService.apiHandler.deregister(identity);
     });
     providerChannel.register('undockGroup', (identity: WindowIdentity) => {
         snapService.explodeGroup(identity);
@@ -56,6 +63,18 @@ async function registerService() {
         sendWindowServiceMessage(GroupEventType.LEAVE_SNAP_GROUP, window, providerChannel);
     });
 
+    providerChannel.register(TabAPI.CLOSETABGROUP, tabService.apiHandler.closeTabGroup);
+    providerChannel.register(TabAPI.CREATETABGROUP, tabService.apiHandler.createTabGroup);
+    providerChannel.register(TabAPI.ENDDRAG, tabService.apiHandler.endDrag);
+    providerChannel.register(TabAPI.GETTABS, tabService.apiHandler.getTabs);
+    providerChannel.register(TabAPI.MAXIMIZETABGROUP, tabService.apiHandler.maximizeTabGroup);
+    providerChannel.register(TabAPI.MINIMIZETABGROUP, tabService.apiHandler.minimizeTabGroup);
+    providerChannel.register(TabAPI.REMOVETAB, tabService.apiHandler.removeTab);
+    providerChannel.register(TabAPI.REORDERTABS, tabService.apiHandler.reorderTabs);
+    providerChannel.register(TabAPI.RESTORETABGROUP, tabService.apiHandler.restoreTabGroup);
+    providerChannel.register(TabAPI.SETACTIVETAB, tabService.apiHandler.setActiveTab);
+    providerChannel.register(TabAPI.SETTABCLIENT, tabService.apiHandler.setTabClient);
+
     return providerChannel;
 }
 
@@ -82,5 +101,7 @@ function sendWindowServiceMessage(action: GroupEventType, window: SnapWindow, pr
  */
 export enum GroupEventType {
     JOIN_SNAP_GROUP = 'join-snap-group',
-    LEAVE_SNAP_GROUP = 'leave-snap-group'
+    LEAVE_SNAP_GROUP = 'leave-snap-group',
+    JOIN_TAB_GROUP = 'join-tab-group',
+    LEAVE_TAB_GROUP = 'leave-tab-group'
 }

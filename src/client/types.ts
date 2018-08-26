@@ -168,7 +168,7 @@ export interface TabAPIReorderMessage extends TabAPIMessage {
     tabOrder: TabIdentifier[];
 }
 
-
-export interface TabClientConfig {
-    height: number;
+export interface ApplicationUIConfig {
+    uuid: string;
+    config: TabWindowOptions;
 }

@@ -43,7 +43,7 @@ export class TabGroup {
     /**
      * Initializes the async methods required for the TabGroup Class.
      */
-    public async init(): Promise<void> {
+    private async init(): Promise<void> {
         await this._window.init();
     }
 
@@ -52,11 +52,10 @@ export class TabGroup {
      */
     private async _initializeTabGroup() {
         await this._window.init();
-        await this._redressTabsInGroup(true);
-
+        // await this._redressTabsInGroup(true);
         if (!this.window.initialWindowOptions.screenX && !this.window.initialWindowOptions.screenY) await this._window.alignPositionToApp(this._tabs[0].window);
-
         this._window.show(false);
+        await this._redressTabsInGroup(true);
         if (!this.window.initialWindowOptions.screenX && !this.window.initialWindowOptions.screenY) this.realignApps();
     }
 

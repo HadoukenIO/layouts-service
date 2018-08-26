@@ -42,6 +42,7 @@ export const groupWindow = async (win: WindowState) => {
         const windowToGroup = await fin.Window.wrap({ uuid: w.uuid, name: w.name });
 
         if (windowToGroup){
+            console.log("[Workspace][groupWindow] - joinGroup");
             // Add the window to the same group as the target window
             await windowToGroup.joinGroup(ofWin);
         } else {

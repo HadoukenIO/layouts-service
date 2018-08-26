@@ -1,4 +1,4 @@
-import {TabBlob, TabIdentifier, TabWindowOptions} from '../../client/types';
+import {TabBlob, TabIdentifier, TabPackage, TabWindowOptions} from '../../client/types';
 
 import {Tab} from './Tab';
 import {TabGroup} from './TabGroup';
@@ -31,11 +31,26 @@ export async function ejectTab(tabService: TabService, message: TabIdentifier&Ta
     }
 
     // Default result is null (no window)
-    let isOverTabWindowResult: TabGroup|null = null;
+    let isOverTabWindowResult: TabGroup|undefined = undefined;
 
     // If we have a screenX & screenY we check if there is a tab group + tab window underneath
     if (message.screenX && message.screenY) {
-        isOverTabWindowResult = await tabService.isPointOverTabGroup(message.screenX, message.screenY);
+        const windowOverIdentifier: TabIdentifier|null = await tabService.getWindowAt(message.screenX, message.screenY);
+
+        if (windowOverIdentifier) {
+            const overWindowTabGroup: TabGroup|undefined = tabService.getTabGroupByApp(windowOverIdentifier);
+
+            if (!overWindowTabGroup) {
+                isOverTabWindowResult = await tabService.addTabGroup({});
+                await isOverTabWindowResult.init();
+
+                const windowOverTabToCreate: TabPackage = {tabID: windowOverIdentifier};
+
+                await isOverTabWindowResult!.addTab(windowOverTabToCreate);
+            } else {
+                isOverTabWindowResult = overWindowTabGroup;
+            }
+        }
     }
 
     // If there is a window underneath our point
@@ -46,7 +61,7 @@ export async function ejectTab(tabService: TabService, message: TabIdentifier&Ta
             if (isOverTabWindowResult.window.initialWindowOptions.url === ejectedTab.tabGroup.window.initialWindowOptions.url) {
                 // Remove the tab from the ejecting group
                 await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true);
-
+                isOverTabWindowResult.tabs[0].window.updateWindowOptions({frame: false});
                 // Add the tab to the window underneath our point
                 const tab = await isOverTabWindowResult.addTab({tabID: ejectedTab.ID});
 
@@ -60,6 +75,7 @@ export async function ejectTab(tabService: TabService, message: TabIdentifier&Ta
 
                 // Switch to the added tab in the new group to show the proper window
                 isOverTabWindowResult.switchTab(ejectedTab.ID);
+                isOverTabWindowResult.window.finWindow.show();
             } else {
                 // If we the two group URLs dont match then we dont allow tabbing!
                 console.warn('Cannot tab - mismatched group Urls!');
@@ -84,14 +100,22 @@ export async function ejectTab(tabService: TabService, message: TabIdentifier&Ta
                 // If there are other tabs in the ejecting tab group
 
                 // Remove the tab
+                const ejectedTabGroup: TabGroup = ejectedTab.tabGroup;
                 await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true);
 
                 // Reinitialize a new tab group + tab using the ejecting groups options
                 initializeTabbing(
-                    {url: originalOptions.url, height: originalOptions.height, width: tabGroupBounds.width, screenX: message.screenX, screenY: message.screenY},
+                    {
+                        url: originalOptions.url,
+                        height: originalOptions.height,
+                        width: tabGroupBounds.width,
+                        screenX: message.screenX,
+                        screenY: message.screenY - ejectedTabGroup.window.initialWindowOptions.height!
+                    },
                     ejectedTab.ID.uuid,
                     ejectedTab.ID.name,
-                    tabService);
+                    tabService,
+                    true);
             }
         } else {
             // If we have no screenX & screenY and no window underneath (obviously...)
@@ -101,8 +125,17 @@ export async function ejectTab(tabService: TabService, message: TabIdentifier&Ta
 
             // Reinitialize the tab at the app windows existing location
             initializeTabbing(
-                {url: originalOptions.url, height: originalOptions.height, width: tabGroupBounds.width}, ejectedTab.ID.uuid, ejectedTab.ID.name, tabService);
+                {url: originalOptions.url, height: originalOptions.height, width: tabGroupBounds.width},
+                ejectedTab.ID.uuid,
+                ejectedTab.ID.name,
+                tabService,
+                true);
         }
+    }
+
+    if (tabGroup && tabGroup.tabs.length === 1) {
+        tabGroup.window.finWindow.hide();
+        tabGroup.tabs[0].window.updateWindowOptions({frame: true});
     }
 }
 
@@ -113,18 +146,30 @@ export async function ejectTab(tabService: TabService, message: TabIdentifier&Ta
  * @param name the name of the application to add as a tab
  * @param tabService The tab service
  */
-export async function initializeTabbing(message: TabWindowOptions, uuid: string, name: string, tabService: TabService): Promise<void> {
+export async function initializeTabbing(message: TabWindowOptions, uuid: string, name: string, tabService: TabService, ejected?: boolean): Promise<void> {
     if (tabService.getTabGroupByApp({name, uuid})) {
         console.error('This window has already been initialised with a tab', {name, uuid});
         return;
     }
 
-    const group: TabGroup = await tabService.addTabGroup(message);
+    let group: TabGroup|undefined = await tabService.getTabGroupByApp({uuid, name});
+
+    if (!group) {
+        group = await tabService.addTabGroup(message);
+    }
+
+    // Shows the group and attaches listeners to the tab group window
+    await group.init();
+
     const tab: Tab|undefined = await group.addTab({tabID: {uuid, name}}, false, false);
 
     if (!tab) {
         console.error('No tab was added');
         return;
+    }
+
+    if (ejected) {
+        tab.window.updateWindowOptions({frame: true});
     }
 
     if (message.screenX && message.screenY) {
@@ -134,9 +179,6 @@ export async function initializeTabbing(message: TabWindowOptions, uuid: string,
         // if no coords then its safe to assume we need to move group window to app window.
         await group.window.alignPositionToApp(tab.window);
     }
-
-    // shows the tab group window because it is default hidden
-    group.window.finWindow.show();
 
     // Switch tab on group to make our added tab the active one
     group.switchTab({uuid, name});
@@ -164,7 +206,7 @@ export async function createTabGroupsFromMultipleWindows(tabBlob: TabBlob[]): Pr
 
         // Create new tabgroup
         const group: TabGroup = await TabService.INSTANCE.addTabGroup(newTabWindowOptions);
-
+        await group.init();
         for (const tab of blob.tabs) {
             const existingTab: Tab|undefined = TabService.INSTANCE.getTab({uuid: tab.uuid, name: tab.name});
 

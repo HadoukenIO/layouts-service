@@ -1,3 +1,5 @@
+import {Tab} from '../tabbing/Tab';
+import {TabGroup} from '../tabbing/TabGroup';
 import {TabService} from '../tabbing/TabService';
 
 import {eSnapValidity, Resolver, SnapTarget} from './Resolver';
@@ -115,6 +117,7 @@ export class SnapService {
         });
 
         if (window) {
+            console.log('[SnapAndDock][deregister] - leaveGroup');
             window.getWindow().leaveGroup();
             window.onClose.emit(window);
         }
@@ -328,17 +331,23 @@ export class SnapService {
                     'Expected group to have been removed, but still exists (' + activeGroup.id + ': ' + activeGroup.windows.map(w => w.getId()).join() + ')');
             }
             // TAB WINDOWS
-        } else if (activeGroup.length === 1 && !TabService.INSTANCE.getTabGroupByApp(activeGroup.windows[0].getIdentity())) {
+        } else if (activeGroup.length === 1) {
+            const currentDragWindowIdentity: WindowIdentity = activeGroup.windows[0].getIdentity();
             // If a single untabbed window is being dragged, it is possible to create a tabset
             const activeState = activeGroup.windows[0].getState();
 
-            // Window will be tabbed if center of the dragged window overlaps with an initialized tabbable window.
-            TabService.INSTANCE.isPointOverTabGroup(activeState.center.x, activeState.center.y).then((tabTarget) => {
-                if (tabTarget) {
-                    console.log('Tabbing to target: ' + tabTarget.tabs);
-                    tabTarget.addTab({tabID: activeGroup.windows[0].getIdentity()});
-                }
-            });
+            // Window will be tabbed if center of the dragged window overlaps with a tabbable window.
+            const activeTabSet = TabService.INSTANCE.getTabGroupByApp(currentDragWindowIdentity);
+            if (!activeTabSet || activeTabSet.tabs.length < 2) {
+                TabService.INSTANCE.getOrCreateTabGroupAt(activeState.center.x, activeState.center.y, currentDragWindowIdentity)
+                    .then((tabTarget: TabGroup|null) => {
+                        if (tabTarget && !tabTarget.getTab(currentDragWindowIdentity)) {
+                            console.log('Tabbing to target: ' + tabTarget.tabs);
+                            tabTarget.addTab({tabID: currentDragWindowIdentity});
+                            tabTarget.window.finWindow.show();
+                        }
+                    });
+            }
         }
 
         // Reset view

@@ -56,6 +56,7 @@ async function onAppRes(layoutApp: LayoutApp): Promise<LayoutApp> {
             await ofWin.setBounds(win).catch((e: Error) => console.log('Setbounds error:', e));
         } else {
             const ofWin = await fin.Window.wrap(win);
+            console.log("[Tabbing][alignPositionToApp] - leaveGroup");
             await ofWin.leaveGroup();
             await ofWin.setBounds(win).catch((e: Error) => console.log('Setbounds error:', e));
         }

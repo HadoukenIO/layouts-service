@@ -20,6 +20,7 @@ export const isClientConnection = (identity: LayoutApp|Identity) => {
 export const positionWindow = async (win: WindowState) => {
     try {
         const ofWin = await fin.Window.wrap(win);
+        console.log("[workspace][positionWindow] - leaveGroup");
         await ofWin.leaveGroup();
         await ofWin.setBounds(win);
 

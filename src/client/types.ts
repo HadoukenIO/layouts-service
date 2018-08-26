@@ -27,6 +27,7 @@ export interface WindowState extends Bounds {
 
 export interface LayoutApp {
     manifestUrl?: string;
+    manifest?: any;
     parentUuid?: string;
     initialOptions?: any;
     launchMode?: string;
@@ -95,6 +96,7 @@ export interface TabOptions {
 }
 
 export enum ServiceIABTopics {
+    SETTABCLIENT = 'SETTABCLIENT',
     CLIENTINIT = 'CLIENTINIT',
     TABEJECTED = 'TABEJECTED',
     UPDATETABPROPERTIES = 'UPDATETABPROPERTIES'
@@ -144,6 +146,7 @@ export interface TabAPIDragMessage extends TabAPIMessage {
 export interface TabbedEventPayload {
     tabGroupID: string;
 }
+
 
 export interface Dimensions {
     x: number;

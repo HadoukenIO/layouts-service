@@ -64,6 +64,7 @@ export class Tab {
      * @param closeApp Flag if we should close the tabs window.
      */
     public async remove(closeApp: boolean) {
+        console.log('[Tabbing][remove] - leaveGroup');
         this._tabWindow.leaveGroup();
 
         if (closeApp) {

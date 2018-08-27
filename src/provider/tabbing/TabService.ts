@@ -167,19 +167,21 @@ export class TabService {
         if (tabs.length === 0) {
             return Promise.reject('Must provide at least 1 Tab Identifier');
         }
-        const firstTab = tabs.shift();
+        // const firstTab = tabs.shift();
 
-        if (!firstTab) {
-            return Promise.reject('Must provide at least 1 Tab Identifier');
-        }
+        // if (!firstTab) {
+        //     return Promise.reject('Must provide at least 1 Tab Identifier');
+        // }
 
         const group = await this.addTabGroup({});
 
-        await group.addTab({tabID: firstTab});
+        // await group.addTab({tabID: firstTab});
 
         for (const tab of tabs) {
             await group.addTab({tabID: tab});
         }
+
+        group.realignApps();
 
         return;
     }

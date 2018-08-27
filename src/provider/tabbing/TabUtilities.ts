@@ -144,14 +144,13 @@ export function getWindowAt(x: number, y: number, exclude?: Identity) {
     const windows: SnapWindow[] = (window as Window & {snapService: SnapService}).snapService['windows'];
     const windowsAtPoint: SnapWindow[] = windows.filter((window: SnapWindow) => {
         const state: WindowState = window.getState();
-        return window.getId() !== id && RectUtils.isPointInRect(state.center, state.halfSize, point);
+        return window.getId() !== id && !window.getState().hidden && RectUtils.isPointInRect(state.center, state.halfSize, point);
     });
 
     const sortedWindows: TabIdentifier[]|null = ZIndexer.INSTANCE.getTop(windowsAtPoint.map(window => window.getIdentity()));
 
     return (sortedWindows && sortedWindows[0]) || null;
 }
-
 /**
  * Checks and Compares two UUIDs to see if they have compatible UIs for tabbing.
  * @param uuid1 First UUID to Compare

@@ -47,11 +47,6 @@ export interface AppToRestore {
     layoutApp: LayoutApp;
 }
 
-export interface Workspace {
-    id: string;
-    layout: Layout;
-}
-
 /* Workflows
 
 Setting A Layout

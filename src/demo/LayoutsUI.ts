@@ -2,9 +2,14 @@ import * as Layouts from '../client/main';
 import { Application } from 'hadouken-js-adapter';
 import { ServiceIdentity } from 'hadouken-js-adapter/out/types/src/api/services/channel';
 import { _Window } from 'hadouken-js-adapter/out/types/src/api/window/window';
-import { LayoutApp } from '../client/types';
+import { LayoutApp, Layout } from '../client/types';
 import { positionWindow } from '../provider/workspaces/utils';
 import * as Storage from './storage';
+
+export interface Workspace {
+    id: string;
+    layout: Layout;
+}
 
 //tslint:disable-next-line:no-any
 declare var fin: any;

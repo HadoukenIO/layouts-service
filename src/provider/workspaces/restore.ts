@@ -6,7 +6,6 @@ import {Layout, LayoutApp, LayoutName, WindowState} from '../../client/types';
 
 import {regroupLayout} from './group';
 import {providerChannel} from '../main';
-import {flexibleGetLayout} from './storage';
 import {createAppPlaceholders, isClientConnection, positionWindow, wasCreatedProgrammatically} from './utils';
 
 /*tslint:disable-next-line:no-any*/
@@ -41,8 +40,8 @@ export const restoreApplication = async(layoutApp: LayoutApp, resolve: Function)
     appsToRestore.delete(uuid);
 };
 
-export const restoreLayout = async(payload: LayoutName|Layout, identity: Identity): Promise<Layout> => {
-    const layout = await flexibleGetLayout(payload);
+export const restoreLayout = async(payload: Layout, identity: Identity): Promise<Layout> => {
+    const layout = payload;
     const startupApps: Promise<LayoutApp>[] = [];
     console.log('Restoring layout:', layout);
     const apps = await promiseMap(layout.apps, async(app: LayoutApp): Promise<LayoutApp> => {
@@ -86,7 +85,7 @@ export const restoreLayout = async(payload: LayoutName|Layout, identity: Identit
                     // v2 api broken - below is messy but should be replaced with v2 (can just await create and run below w/ v2)
 
                     // ofApp = await fin.Application.createFromManifest(manifestUrl);
-                    // SHOULD PROBABLY TRY TO CERATE AND RUN FIRST, THEN TRY TO RUN IF GET ERROR
+                    // SHOULD PROBABLY TRY TO CREATE AND RUN FIRST, THEN TRY TO RUN IF GET ERROR
                     const v1App = fin.desktop.Application.wrap(app.uuid);
                     const runV1 = (v1App: fin.OpenFinApplication, errCb?: Function) => {
                         const defaultErrCb = () => console.error('App Run error');

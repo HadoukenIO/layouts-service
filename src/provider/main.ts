@@ -8,9 +8,8 @@ import {SnapService} from './snapanddock/SnapService';
 import {SnapWindow, WindowIdentity} from './snapanddock/SnapWindow';
 import {win10Check} from './snapanddock/utils/platform';
 import {TabService} from './tabbing/TabService';
-import {saveCurrentLayout, saveLayoutObject} from './workspaces/create';
+import {generateLayout} from './workspaces/create';
 import {getAppToRestore, restoreApplication, restoreLayout} from './workspaces/restore';
-import {getAllLayoutNames, getLayout} from './workspaces/storage';
 
 export let snapService: SnapService;
 export let tabService: TabService;
@@ -35,11 +34,8 @@ async function registerService() {
     providerChannel.register('undockGroup', (identity: WindowIdentity) => {
         snapService.explodeGroup(identity);
     });
-    providerChannel.register('saveCurrentLayout', saveCurrentLayout);
-    providerChannel.register('saveLayoutObject', saveLayoutObject);
-    providerChannel.register('getLayout', getLayout);
+    providerChannel.register('generateLayout', generateLayout);
     providerChannel.register('restoreLayout', restoreLayout);
-    providerChannel.register('getAllLayoutNames', getAllLayoutNames);
     providerChannel.register('appReady', (payload: void, identity: Identity) => {
         const {uuid} = identity;
         const appToRestore = getAppToRestore(uuid);

@@ -1,6 +1,6 @@
-import {Layout, LayoutName} from '../../client/types';
+import {Layout, LayoutName} from '../client/types';
+import { Workspace } from './LayoutsUI';
 
-import {providerChannel} from '../main';
 /*tslint:disable:no-any*/
 
 // STORAGE - TODO: use indexedDB?
@@ -23,20 +23,19 @@ class Storage {
     }
 }
 
-export const getLayout = (layoutName: LayoutName): string /* Layout */ => {
+export const getLayout = (layoutName: LayoutName): Workspace /* Layout */ => {
     return layouts.get(layoutName);
 };
 
-export const saveLayout = (layout: Layout) => {
-    providerChannel.publish('layout-saved', layout);
-    layouts.set(layout.name, layout);
+export const saveLayout = (layout: Workspace) => {
+    layouts.set(layout.id, layout);
 };
 
-export const flexibleGetLayout = async(input: Layout|LayoutName): Promise<Layout> => {
+export const flexibleGetLayout = async(input: LayoutName): Promise<Workspace> => {
     if (typeof input === 'string') {
-        const layout = getLayout(input);
-        if (layout && typeof layout === 'object') {
-            return layout;
+        const workspace = getLayout(input);
+        if (workspace && typeof workspace === 'object') {
+            return workspace;
         }
     } else if (typeof input === 'object') {
         // some validation here?
@@ -45,7 +44,7 @@ export const flexibleGetLayout = async(input: Layout|LayoutName): Promise<Layout
     throw new Error('layout not found');
 };
 
-export const getAllLayoutNames = (): string[] => {
+export const getAllLayoutIDs = (): string[] => {
     return Object.keys(localStorage);
 };
 

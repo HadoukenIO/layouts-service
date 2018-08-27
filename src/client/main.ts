@@ -8,11 +8,19 @@ import {Layout, LayoutApp, LayoutName, TabProperties, TabWindowOptions} from './
 export {AppApi} from './AppApi';
 export {TabbingApi} from './TabbingApi';
 
+/**
+ * The version of the NPM package.
+ * 
+ * Webpack replaces any instances of this constant with a hard-coded string at build time.
+ */
+declare const PACKAGE_VERSION: string;
+
 const IDENTITY = {
     uuid: 'Layout-Manager',
     name: 'Layout-Manager'
 };
-const VERSION = '0.0.1';
+const VERSION = PACKAGE_VERSION;
+
 
 // tslint:disable-next-line:no-any
 declare var fin: any;

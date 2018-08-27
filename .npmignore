@@ -9,6 +9,6 @@ node_modules/
 
 # override above and  files
 
-!module_dist/*
-!module_dist/**/*
+!build/client/*
+!build/client/**/*
 !package.json

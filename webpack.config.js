@@ -1,12 +1,18 @@
 const path = require('path');
+const webpack = require('webpack');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
+
+const version = require("./package.json").version;
 
 const outputDir = path.resolve(__dirname, './build');
 
 function createConfig(component, entryPoint, isLibrary, ...plugins) {
     const config = {
         entry: entryPoint,
+        optimization: {
+            minimize: component !== 'client'
+        },
         output: {
             path: outputDir + '/' + component,
             filename: '[name]-bundle.js'
@@ -50,7 +56,11 @@ function prepConfig(config) {
 }
 
 module.exports = [
-    createConfig('client', './src/client/main.ts', false),
+    createConfig('client', './src/client/main.ts', false,
+        new webpack.DefinePlugin({
+            PACKAGE_VERSION: `'${version}'`
+        })
+    ),
     createConfig('provider', './src/provider/main.ts', false, 
         new CopyWebpackPlugin([{ from: './res/provider/provider.html' }]),
         new CopyWebpackPlugin([{ from: './res/provider/tabbing/', to: './tabbing' }]),

@@ -21,15 +21,12 @@ export interface WindowState extends Bounds {
     state: string;
     info: any;  // getinfo call...
     windowGroup: Identity[];
-    contextGroups: string[];
     customData?: any;  // applications can add any context or other necessary data here
 }
 
 export interface LayoutApp {
     manifestUrl?: string;
-    parentUuid?: string;
     initialOptions?: any;
-    launchMode?: string;
     uuid: string;
     mainWindow: WindowState;
     childWindows: WindowState[];
@@ -41,17 +38,18 @@ export type LayoutName = string;
 
 export interface Layout {
     monitorInfo: any;  // saving but not using yet
-    type: string;      // not using yet
-    name: LayoutName;
     customData?: any;
-    systemStartup?: boolean;  // not using yet
-    bounds?: Bounds;          // not using yet
     apps: LayoutApp[];
 }
 
 export interface AppToRestore {
     resolve: Function;
     layoutApp: LayoutApp;
+}
+
+export interface Workspace {
+    id: string;
+    layout: Layout;
 }
 
 /* Workflows

@@ -18,45 +18,45 @@ const forgetWindows: ServiceIdentity[] = [];
 window.forgetMe = forgetMe;
 
 export async function setLayout() {
-    const name = (document.getElementById('layoutName') as HTMLTextAreaElement).value;
+    const id = (document.getElementById('layoutName') as HTMLTextAreaElement).value;
     const layoutSelect = document.getElementById('layoutSelect') as HTMLSelectElement;
     const layout = await Layouts.generateLayout();
-    layout.name = name;
+    const workspace = { id, layout };
 
     if (layoutSelect) {
         let optionPresent = false;
         for (let idx = 0; idx < layoutSelect.options.length;  idx++) { // looping over the options
-            if (layoutSelect.options[idx].value === name) {
+            if (layoutSelect.options[idx].value === id) {
                 optionPresent = true;
                 return;
             }
         }
 
         if (!optionPresent) {
-            const option = createOptionElement(name);
+            const option = createOptionElement(id);
             layoutSelect.appendChild(option);
         }
     }
 
-    Storage.saveLayout(layout);
+    Storage.saveLayout(workspace);
     document.getElementById('showLayout')!.innerHTML = JSON.stringify(layout, null, 2);
 }
 
 export async function getLayout() {
-    const name = (document.getElementById('layoutSelect') as HTMLSelectElement).value;
-    const layout = Storage.getLayout(name);
-    document.getElementById('showLayout')!.innerHTML = JSON.stringify(layout, null, 2);
+    const id = (document.getElementById('layoutSelect') as HTMLSelectElement).value;
+    const workspace = Storage.getLayout(id);
+    document.getElementById('showLayout')!.innerHTML = JSON.stringify(workspace, null, 2);
 }
 
 export async function getAllLayouts() {
-    const layoutNames = Storage.getAllLayoutNames();
-    document.getElementById('showLayout')!.innerHTML = JSON.stringify(layoutNames, null, 2);
+    const layoutIDs = Storage.getAllLayoutIDs();
+    document.getElementById('showLayout')!.innerHTML = JSON.stringify(layoutIDs, null, 2);
 }
 
 export async function restoreLayout() {
-    const name = (document.getElementById('layoutSelect') as HTMLSelectElement).value;
-    const layout = Storage.getLayout(name);
-    const afterLayout = await Layouts.restoreLayout(layout);
+    const id = (document.getElementById('layoutSelect') as HTMLSelectElement).value;
+    const workspace = Storage.getLayout(id);
+    const afterLayout = await Layouts.restoreLayout(workspace.layout);
     document.getElementById('showLayout')!.innerHTML = JSON.stringify(afterLayout, null, 2);
 }
 
@@ -200,20 +200,20 @@ function removeForgetWins(window: ServiceIdentity) {
 }
 
 function addLayoutNamesToDropdown() {
-    const names = Storage.getAllLayoutNames();
+    const ids = Storage.getAllLayoutIDs();
     const layoutSelect = document.getElementById('layoutSelect');
-    names.forEach((name) => {
-        const option = createOptionElement(name);
+    ids.forEach((id) => {
+        const option = createOptionElement(id);
         if (layoutSelect) {
             layoutSelect.appendChild(option);
         }
     });
 }
 
-function createOptionElement(name: string) {
+function createOptionElement(id: string) {
     const option = document.createElement('option');
-    option.value = name;
-    option.innerHTML = name;
+    option.value = id;
+    option.innerHTML = id;
     return option;
 }
 

@@ -11,7 +11,6 @@ import {isClientConnection, showingWindowInApp, wasCreatedFromManifest, wasCreat
 
 // tslint:disable-next-line:no-any
 declare var fin: any;
-let layoutId = 1;
 
 export const getCurrentLayout = async(): Promise<Layout> => {
     console.log('get current layout');
@@ -70,8 +69,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
     layoutApps = layoutApps.filter(a => !!a);
     console.log('Pre-Layout Save Apps:', apps);
 
-    const layoutName = 'layout' + layoutId++;
-    const layoutObject = {type: 'layout', name: layoutName, apps: layoutApps, monitorInfo};
+    const layoutObject = {type: 'layout', apps: layoutApps, monitorInfo};
     return layoutObject;
 };
 
@@ -105,5 +103,5 @@ const getLayoutWindowData = async (ofWin: Window) => {
     const {uuid} = ofWin.identity;
     const info = await ofWin.getInfo();
     const windowGroup = await getGroup(ofWin.identity);
-    return {contextGroups: [], info, uuid, windowGroup};
+    return { info, uuid, windowGroup };
 };

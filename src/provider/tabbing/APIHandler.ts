@@ -31,7 +31,7 @@ export class APIHandler {
             return Promise.reject('Configuration already set!');
         }
 
-        return this.mTabService.addAppUIConfig(id.uuid, payload);
+        return this.mTabService.addAppUIConfig(id.uuid, payload.config);
     }
 
     /**

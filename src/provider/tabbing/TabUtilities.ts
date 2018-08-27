@@ -54,11 +54,9 @@ export async function ejectTab(tabService: TabService, message: TabIdentifier&Ta
                 if (isOverTabGroup.ID !== ejectedTab.tabGroup.ID) {
                     await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true);
                     await isOverTabGroup.addTab({tabID: ejectedTab.ID});
-                    return;
                 }
             } else {
                 await TabService.INSTANCE.createTabGroupWithTabs([isOverTabWindowResult, ejectedTab.ID]);
-                return;
             }
         }
     } else {
@@ -76,6 +74,8 @@ export async function ejectTab(tabService: TabService, message: TabIdentifier&Ta
         ejectedTab.window.show();
         return;
     }
+
+    return;
 }
 
 

@@ -27,11 +27,6 @@ export class TabService {
     public apiHandler: APIHandler;
 
     /**
-     * Reference to any application UI configurations set via setTabClient API
-     */
-    private _applicationUIConfigs: ApplicationUIConfig[];
-
-    /**
      * Contains all the tabsets of this service.
      */
     private _tabGroups: TabGroup[];
@@ -105,27 +100,6 @@ export class TabService {
         this._tabGroups.push(group);
 
         return group;
-    }
-
-    /**
-     * Finds an applications UI Configuration, if present.
-     * @param {string} uuid The UUID of the application we are searching for.
-     */
-    public getAppUIConfig(uuid: string) {
-        return this._applicationUIConfigs.find((config) => {
-            return config.uuid === uuid;
-        });
-    }
-
-    /**
-     * Adds a custom UI configuration for an applications tab strip.
-     * @param uuid UUID of the application to add.
-     * @param config Configuration of the applications UI
-     */
-    public addAppUIConfig(uuid: string, config: ApplicationUIConfig) {
-        if (!this.getAppUIConfig(uuid)) {
-            this._applicationUIConfigs.push(config);
-        }
     }
 
     /**

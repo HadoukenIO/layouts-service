@@ -341,7 +341,7 @@ export class SnapService {
 
                 // There is a window under our drop point
                 if (windowUnderPoint) {
-                    if (compareTabGroupUIs(windowUnderPoint.uuid, currentDragWindowIdentity.uuid)) {
+                    if (TabService.INSTANCE.applicationConfigManager.compareConfigBetweenApplications(windowUnderPoint.uuid, currentDragWindowIdentity.uuid)) {
                         const tabGroupUnderPoint = TabService.INSTANCE.getTabGroupByApp(windowUnderPoint);
                         // The window under drop point is a tab group
                         if (tabGroupUnderPoint) {

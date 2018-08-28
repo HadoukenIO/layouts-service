@@ -27,7 +27,9 @@ import {ZIndexer} from './ZIndexer';
  * @param tabService The service itself which holds the tab groups
  * @param message Application or tab to be ejected
  */
-export async function ejectTab(tabService: TabService, message: TabIdentifier&TabWindowOptions, tabGroup?: TabGroup|undefined) {
+export async function ejectTab(message: TabIdentifier&TabWindowOptions, tabGroup?: TabGroup|undefined) {
+    const tabService: TabService = TabService.INSTANCE;
+
     // Get the tab that was ejected.
     const ejectedTab: Tab|undefined =
         tabGroup ? tabGroup.getTab({name: message.name, uuid: message.uuid}) : tabService.getTab({uuid: message.uuid, name: message.name});
@@ -51,34 +53,29 @@ export async function ejectTab(tabService: TabService, message: TabIdentifier&Ta
         // If the window under our point is in the same group as the one being dragged, we do nothing
         return;
     } else if (isOverTabWindowResult) {
-        const isOverTabGroup = TabService.INSTANCE.getTabGroupByApp(isOverTabWindowResult);
-        if (compareTabGroupUIs(isOverTabWindowResult.uuid, ejectedTab.ID.uuid)) {
+        const isOverTabGroup = tabService.getTabGroupByApp(isOverTabWindowResult);
+        if (tabService.applicationConfigManager.compareConfigBetweenApplications(isOverTabWindowResult.uuid, ejectedTab.ID.uuid)) {
             if (isOverTabGroup) {
                 if (isOverTabGroup.ID !== ejectedTab.tabGroup.ID) {
                     await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true, true, false);
-                    console.log('removing tab to add to existing group.');
                     const tab = await new Tab({tabID: ejectedTab.ID}).init();
                     await isOverTabGroup.addTab(tab);
                 }
             } else {
                 await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true, true, false);
                 await TabService.INSTANCE.createTabGroupWithTabs([isOverTabWindowResult, ejectedTab.ID]);
-                console.log('making a new group.');
             }
         }
     } else {
         await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true, true, true);
-        console.log('removed tab in not over a window');
 
         if (message.screenX && message.screenY) {
-            console.log('moving with x,y');
             ejectedTab.window.moveTo(message.screenX!, message.screenY!);
             ejectedTab.window.show();
             return;
         }
 
         const bounds = await ejectedTab.window.getWindowBounds();
-        console.log('moving to current spot');
         ejectedTab.window.moveTo(bounds.left, bounds.top);
         ejectedTab.window.show();
         return;
@@ -169,15 +166,4 @@ export function getWindowAt(x: number, y: number, exclude?: Identity) {
     const sortedWindows: TabIdentifier[]|null = ZIndexer.INSTANCE.getTop(windowsAtPoint.map(window => window.getIdentity()));
 
     return (sortedWindows && sortedWindows[0]) || null;
-}
-/**
- * Checks and Compares two UUIDs to see if they have compatible UIs for tabbing.
- * @param uuid1 First UUID to Compare
- * @param uuid2 Second UUId to Compare
- */
-export function compareTabGroupUIs(uuid1: string, uuid2: string) {
-    const uuid1Config = TabService.INSTANCE.getAppUIConfig(uuid1);
-    const uuid2Config = TabService.INSTANCE.getAppUIConfig(uuid2);
-
-    return ((uuid1Config && uuid2Config && uuid1Config.url === uuid2Config.url) || (!uuid1Config && !uuid2Config));
 }

@@ -78,8 +78,8 @@ export class TabGroup {
             this._tabs.push(tab);
         }
 
-        if (this._tabs.length === 1 && !this.isWindowInitialized) {
-            const firstTabConfig = TabService.INSTANCE.getAppUIConfig(tab.ID.uuid) || {};
+        if (this._tabs.length === 1) {
+            const firstTabConfig = TabService.INSTANCE.applicationConfigManager.getApplicationUIConfig(tab.ID.uuid) || {};
 
             const bounds = await tab.window.getWindowBounds();
             this._window.updateInitialWindowOptions(

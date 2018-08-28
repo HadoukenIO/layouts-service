@@ -4,13 +4,13 @@ import * as robot from 'robotjs';
 import { Window, Fin, Application } from 'hadouken-js-adapter';
 import { getConnection } from '../../provider/utils/connect';
 import { getWindow } from '../../provider/utils/getWindow';
-import { createTabGroupsFromMultipleWindows } from '../../../src/provider/tabbing/TabUtilities';
+import { createTabGroupsFromTabBlob } from '../../../src/provider/tabbing/TabUtilities';
 import { TabBlob } from '../../../src/client/types';
 import { TabService } from '../../../src/provider/tabbing/TabService';
 import { executeJavascriptOnService } from '../utils/executeJavascriptOnService';
 import { setTimeout } from 'timers';
 
-let win1: Window
+let win1: Window;
 let win2: Window;
 let fin: Fin;
 
@@ -57,13 +57,13 @@ test("Create tab group from 2 windows", async (assert) => {
 
 
     // Act
-    const scriptToExecute: string = `createTabGroupsFromMultipleWindows(${JSON.stringify(tabBlobs)})`;
+    const scriptToExecute = `createTabGroupsFromTabBlob(${JSON.stringify(tabBlobs)})`;
     await executeJavascriptOnService(scriptToExecute);
 
     // Tab group should have been created
     const serviceChildWindows: Window[] = await serviceApplication.getChildWindows();
 
-    var uuidTestPattern = new RegExp('^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$', 'i');
+    let uuidTestPattern = new RegExp('^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$', 'i');
 
     const newTabGroupWindow: Window | undefined = serviceChildWindows.find((window: Window) => {
         return window.identity.uuid == "Layout-Manager" && uuidTestPattern.test(window.identity.name!);

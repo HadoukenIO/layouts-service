@@ -1,4 +1,4 @@
-const Layouts = require('openfin-layouts');
+import * as Layouts from '../client/main';
 
 //Build HTML
 const colors =

@@ -23,4 +23,7 @@ module.exports = [
         }]
     )),
     utils.createConfig(`${outputDir}/provider`, {tabStrip: './staging/provider/tabbing/tabstrip/TabStrip.js'}, false),
+    utils.createConfig(`${outputDir}/demo`, {LayoutsUI: './src/demo/LayoutsUI.ts'}, true, new CopyWebpackPlugin( [{ from: './res/demo' }]) ),
+    utils.createConfig(`${outputDir}/demo`, {Snappable: './src/demo/Snappable.ts'}, true),
+    utils.createConfig(`${outputDir}/demo`, {tabapp: './src/demo/tabapp.ts'}, true)
 ];

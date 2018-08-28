@@ -13,7 +13,7 @@ const IDENTITY = {
     name: 'layouts-service'
 };
 
-const VERSION = require('./version');
+import {version} from './version';
 
 // tslint:disable-next-line:no-any
 declare var fin: any;
@@ -35,8 +35,8 @@ const getId = (() => {
     };
 })();
 
-const servicePromise: Promise<ServiceClient> = fin.desktop.Service.connect({...IDENTITY, payload: {version: VERSION}}).then((service: ServiceClient) => {
-    console.log('client connected to service: ' + VERSION);
+const servicePromise: Promise<ServiceClient> = fin.desktop.Service.connect({...IDENTITY, payload: {version}}).then((service: ServiceClient) => {
+    console.log('client connected to service: ' + version);
     // Map undocking keybind
     Mousetrap.bind('mod+shift+u', () => {
         service.dispatch('undockWindow', getId());

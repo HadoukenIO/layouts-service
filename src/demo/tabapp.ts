@@ -1,19 +1,19 @@
-const Layouts = require('openfin-layouts');
+import * as Layouts from '../client/main';
 
 const randomColor = () => {
-    return "#"+((1<<24)*Math.random()|0).toString(16);
+    return '#' + ((1 << 24) * Math.random() | 0).toString(16);
 };
 
 document.addEventListener('DOMContentLoaded', () => {
     document.body.style.backgroundColor = randomColor();
 });
 
-fin.desktop.main(()=>{
-    Layouts.addEventListener("TABBED", (e:any) => {
-        console.log("TABBED: ", e);
+fin.desktop.main(() => {
+    Layouts.addEventListener('join-tab-group', () => {
+        console.log('TABBED: ');
     });
 
-    Layouts.addEventListener("UNTABBED", (e:any) => {
-        console.log("UNTABBED: ", e);
+    Layouts.addEventListener('leave-tab-group', () => {
+        console.log('UNTABBED: ');
     });
 });

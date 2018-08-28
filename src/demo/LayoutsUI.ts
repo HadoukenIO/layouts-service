@@ -10,7 +10,7 @@ export interface Workspace {
     layout: Layout;
 }
 
-const Layouts = require('openfin-layouts');
+import * as Layouts from '../client/main';
 
 //tslint:disable-next-line:no-any
 declare var fin: any;

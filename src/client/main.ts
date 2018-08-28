@@ -114,9 +114,10 @@ export async function addEventListener(
 /**
  * Decide which parts of this you will implement, alter LayoutApp object to reflect this then send it back
  */
-export async function onWillSaveAppLayout(layoutDecorator: (layoutApp: LayoutApp) => LayoutApp | false | Promise<LayoutApp|false>): Promise<boolean> {
+// tslint:disable-next-line:no-any
+export async function onWillSaveAppLayout(customDataDecorator: () => any): Promise<boolean> {
     const service: ServiceClient = await servicePromise;
-    return service.register('savingLayout', layoutDecorator);
+    return service.register('savingLayout', customDataDecorator);
 }
 
 /**
@@ -162,7 +163,9 @@ export async function restoreLayout(payload: Layout): Promise<Layout> {
  * Send this to the service when you have registered all routes after registration
  */
 export async function ready(): Promise<Layout> {
+    console.log("READY CALLED");
     const service: ServiceClient = await servicePromise;
+    console.log("READY CALLED2");
 
     return service.dispatch('appReady');
 }

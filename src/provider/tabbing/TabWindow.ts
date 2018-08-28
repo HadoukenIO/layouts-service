@@ -85,6 +85,7 @@ export class TabWindow extends AsyncWindow {
      * Aligns the position of this tab window to the position of the tab set group window.
      */
     public async alignPositionToTabGroup(): Promise<void> {
+        this._window.leaveGroup();
         const groupWindow = this._tab.tabGroup.window;
         const groupActiveTab = this._tab.tabGroup.activeTab;
 
@@ -121,7 +122,8 @@ export class TabWindow extends AsyncWindow {
         // this._window.addEventListener("focused", this._onFocus.bind(this));
 
         //@ts-ignore
-        this._window.addEventListener('end-user-bounds-changing', () => {
+        this._window.addEventListener('end-user-bounds-changing', async () => {
+            await this.alignPositionToTabGroup();
             this._tabGroup.realignApps();
         });
     }

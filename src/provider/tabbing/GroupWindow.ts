@@ -70,6 +70,7 @@ export class GroupWindow extends AsyncWindow {
      * @param app Window to align this tab set window to.
      */
     public async alignPositionToApp(app: TabWindow): Promise<void> {
+        this.leaveGroup();
         const win: fin.OpenFinWindow = app.finWindow;
         const bounds = await app.getWindowBounds();
 

@@ -3,6 +3,7 @@ import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {ApplicationUIConfig, TabIdentifier, TabProperties} from '../../client/types';
 
+import {Tab} from './Tab';
 import {TabService} from './TabService';
 import {ejectTab} from './TabUtilities';
 
@@ -27,11 +28,11 @@ export class APIHandler {
      * This binding happens on the application level.  An application cannot have different windows using different tabbing UI.
      */
     public setTabClient(payload: ApplicationUIConfig, id: Identity) {
-        if (this.mTabService.getAppUIConfig(id.uuid)) {
+        if (this.mTabService.applicationConfigManager.exists(id.uuid)) {
             return Promise.reject('Configuration already set!');
         }
 
-        return this.mTabService.addAppUIConfig(id.uuid, payload);
+        return this.mTabService.applicationConfigManager.addApplicationUIConfig(id.uuid, payload.config);
     }
 
     /**
@@ -70,10 +71,10 @@ export class APIHandler {
      * will be used as the seed for the tab UI properties.
      */
     public async createTabGroup(windows: TabIdentifier[]) {
-        const group = await this.mTabService.getTabGroupByApp(windows[0]);
-        return Promise.all(windows.map(async (window) => {
-            group!.addTab({tabID: window});
-        }));
+        // const group = await this.mTabService.getTabGroupByApp(windows[0]);
+        // return Promise.all(windows.map(async (window) => {
+        //     group!.addTab({tabID: window});
+        // }));
     }
 
     /**
@@ -83,14 +84,15 @@ export class APIHandler {
      *
      * The added tab will be brought into focus.
      */
-    public addTab(payload: {targetWindow: TabIdentifier, windowToAdd: TabIdentifier}) {
+    public async addTab(payload: {targetWindow: TabIdentifier, windowToAdd: TabIdentifier}) {
         const group = this.mTabService.getTabGroupByApp(payload.targetWindow);
 
         if (group!.getTab(payload.targetWindow)) {
             return Promise.reject('Tab already exists in group');
         }
 
-        return group!.addTab({tabID: payload.windowToAdd});
+
+        return group!.addTab(await new Tab({tabID: payload.windowToAdd}).init());
     }
 
     /**
@@ -98,7 +100,7 @@ export class APIHandler {
      * Uses current window context by default
      */
     public removeTab(window: TabIdentifier): Promise<void> {
-        return ejectTab(this.mTabService, {name: window.name, uuid: window.uuid});
+        return ejectTab({name: window.name, uuid: window.uuid});
     }
 
     /**
@@ -210,6 +212,6 @@ export class APIHandler {
     public async endDrag(payload: {event: DragEvent, window: TabIdentifier}) {
         this.mTabService.dragWindowManager.hideWindow();
 
-        ejectTab(this.mTabService, {uuid: payload.window.uuid, name: payload.window.name, screenX: payload.event.screenX, screenY: payload.event.screenY});
+        ejectTab({uuid: payload.window.uuid, name: payload.window.name, screenX: payload.event.screenX, screenY: payload.event.screenY});
     }
 }

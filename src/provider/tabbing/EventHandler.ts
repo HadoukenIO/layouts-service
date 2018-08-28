@@ -2,7 +2,6 @@ import {AppApiEvents} from '../../client/APITypes';
 import {TabWindowOptions} from '../../client/types';
 import {TabGroup} from './TabGroup';
 import {TabService} from './TabService';
-import {initializeTabbing} from './TabUtilities';
 
 /**
  * @class Handles events coming from the application
@@ -49,7 +48,9 @@ export class EventHandler {
      * @param name The name of the application to initialise tabbing on
      */
     private async _onClientInit(message: TabWindowOptions, uuid: string, name: string): Promise<void> {
-        initializeTabbing(message, uuid, name, this._service);
+        if (message.url) {
+            this._service.applicationConfigManager.addApplicationUIConfig(uuid, message);
+        }
     }
 
     /**

@@ -2,7 +2,7 @@ import {TabBlob, TabIdentifier} from '../../client/types';
 import {Tab} from './Tab';
 import {TabGroup} from './TabGroup';
 import {TabService} from './TabService';
-import {createTabGroupsFromMultipleWindows} from './TabUtilities';
+import {createTabGroupsFromTabBlob} from './TabUtilities';
 
 /**
  * Gathers information from tab sets and their tabs, and returns as a JSON object back to the requesting application/window.
@@ -53,9 +53,9 @@ export async function swapTab(add: TabIdentifier, swapWith: TabIdentifier) {
 
     const tabIndex = group.getTabIndex(swapWith);
 
-    let tab: Tab|undefined;
-
-    tab = await group.addTab({tabID: add}, false, true, tabIndex);
+    const tab: Tab = new Tab({tabID: add});
+    await tab.init();
+    await group.addTab(tab, false, true, tabIndex);
 
     // remove swap with tab, dont close app, dont switch tabs, dont close group window
     await group.removeTab(swapWith, false, false, false);
@@ -80,5 +80,5 @@ export function restoreTabs(tabBlob: TabBlob[]): Promise<void> {
         return Promise.reject('No Tab Service!');
     }
 
-    return createTabGroupsFromMultipleWindows(tabBlob);
+    return createTabGroupsFromTabBlob(tabBlob);
 }

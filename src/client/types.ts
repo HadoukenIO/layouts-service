@@ -162,6 +162,5 @@ export interface TabAPIReorderMessage extends TabAPIMessage {
 }
 
 export interface ApplicationUIConfig {
-    uuid: string;
-    config: TabWindowOptions;
+    [uuid: string]: TabWindowOptions;
 }

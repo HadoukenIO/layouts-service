@@ -34,6 +34,7 @@ export class TabGroup {
      * Constructor for the TabGroup Class.
      * @param {TabWindowOptions} windowOptions
      */
+
     constructor(windowOptions: TabWindowOptions) {
         this.ID = uuidv4();
         this._tabs = [];
@@ -41,34 +42,25 @@ export class TabGroup {
     }
 
     /**
-     * Initializes the async methods required for the TabGroup Class.
+     * Initializes the tab group window.  This will initalize tabs in the group, show the window, and handle alignment.
      */
-    public async init(): Promise<void> {
+    private async _initializeTabGroup() {
         await this._window.init();
+        await this._window.alignPositionToApp(this._tabs[0].window);
     }
 
-    /**
-     * Adds a Tab to the tabset.
-     * @param {TabPackage} tabPackage The package containing uuid, name, tabProperties of the tab to be added.
-     * @param {boolean} handleTabSwitch Flag to let us know if we should handle switching the tab.  Default true.
-     * @param {boolean} handleAlignment Flag to let us know if we should handle aligning the tab group to tab.  Default true;
-     * @param {number} index Where should we insert the tab?  -1 defaults to the end of the order.
-     * @returns {Tab} The created tab.
-     */
-    public async addTab(tabPackage: TabPackage, handleTabSwitch = true, handleAlignment = true, index = -1): Promise<Tab|undefined> {
-        const existingTab = TabService.INSTANCE.getTab({uuid: tabPackage.tabID.uuid, name: tabPackage.tabID.name});
+    public async addTab(tab: Tab, handleTabSwitch = true, handleAlignment = true, index = -1) {
+        if (!(tab instanceof Tab)) {
+            return Promise.reject(`${tab} is not a Tab...`);
+        }
+        const existingTab = TabService.INSTANCE.getTab(tab.ID);
 
         if (existingTab) {
-            if (existingTab.tabGroup.window.initialWindowOptions.url !== this.window.initialWindowOptions.url) {
-                return Promise.reject('Cannot tab - mismatched group Urls!');
-            }
-
             console.info('Existing tab attempting to be added.  Removing the first instance...');
-
-            await existingTab.tabGroup.removeTab(existingTab.ID, false, true);
+            await existingTab.tabGroup.removeTab(existingTab.ID, false, true, true);
         }
 
-        const tab = new Tab(tabPackage, this);
+        tab.tabGroup = this;
 
         if (index > -1 && index <= this.tabs.length) {
             this._tabs.splice(index, 0, tab);
@@ -76,27 +68,28 @@ export class TabGroup {
             this._tabs.push(tab);
         }
 
-        await tab.init();
+        if (this._tabs.length === 1) {
+            const firstTabConfig = TabService.INSTANCE.applicationConfigManager.getApplicationUIConfig(tab.ID.uuid) || {};
 
-        if (this._tabs.length > 1) {
-            tab.window.hideWindow();
-        } else {
-            tab.window.showWindow();
+            const bounds = await tab.window.getWindowBounds();
+            this._window.updateInitialWindowOptions(
+                Object.assign({}, firstTabConfig as object, {width: bounds.width, screenX: bounds.left, screenY: bounds.top}));
+            await this._initializeTabGroup();
         }
 
-        if (handleAlignment) {
-            if (this._tabs.length > 1) {
-                tab.window.alignPositionToTabGroup();
-            } else {
-                this._window.alignPositionToApp(tab.window);
-            }
+        if (handleAlignment && this._tabs.length > 1) {
+            await tab.window.alignPositionToTabGroup();
         }
+
+        tab.sendTabbedEvent();
 
         if (handleTabSwitch) {
             await this.switchTab(tab.ID);
+        } else {
+            await tab.window.hide();
         }
 
-        return tab;
+        return;
     }
 
     /**
@@ -104,9 +97,11 @@ export class TabGroup {
      */
     public realignApps() {
         return Promise.all(this._tabs.map(tab => {
+            tab.window.leaveGroup();
             tab.window.alignPositionToTabGroup();
         }));
     }
+
 
     /**
      * Reorders the tab structure to match what is present in the UI.
@@ -152,26 +147,40 @@ export class TabGroup {
      * @param {boolean} closeApp Flag to force close the tab window or not.
      * @param {boolean} closeGroupWindowCheck Flag to check if we should close the tab set window if there are no more tabs.
      */
-    public async removeTab(tabID: TabIdentifier, closeApp: boolean, closeGroupWindowCheck = false, switchTab = true): Promise<void> {
+    public async removeTab(tabID: TabIdentifier, closeApp: boolean, closeGroupWindowCheck = false, switchTab = true, removeFrame = true): Promise<void> {
         const index: number = this.getTabIndex(tabID);
 
         if (index === -1) {
             return;
         }
+
+
         const tab = this._tabs[index];
         this._tabs.splice(index, 1);
 
         if (switchTab && this._tabs.length > 0 && this.activeTab.ID.uuid === tab.ID.uuid && this.activeTab.ID.name === tab.ID.name) {
             const nextTab: TabIdentifier = this._tabs[index] ? this._tabs[index].ID : this._tabs[index - 1].ID;
 
-            await this.switchTab(nextTab);
+            if (this.tabs.length === 1) {
+                this.tabs[0].window.show();
+            } else {
+                await this.switchTab(nextTab);
+            }
         }
 
         await tab.remove(closeApp);
+        if (removeFrame) {
+            tab.deInit();
+        }
 
         if (closeGroupWindowCheck) {
-            if (this._tabs.length === 0) {
-                await TabService.INSTANCE.removeTabGroup(this.ID, true);
+            if (this._tabs.length === 1) {
+                await Promise.all(this._tabs.map((tab) => {
+                    tab.deInit();
+                    tab.window.show();
+                }));
+
+                await TabService.INSTANCE.removeTabGroup(this.ID, false);
                 return;
             }
         }
@@ -184,7 +193,6 @@ export class TabGroup {
      */
     public async switchTab(ID: TabIdentifier, hideActiveTab = true): Promise<void> {
         const tab = this.getTab(ID);
-
         if (tab && tab !== this._activeTab) {
             await tab.window.showWindow();
             tab.window.finWindow.bringToFront();
@@ -195,6 +203,16 @@ export class TabGroup {
         }
     }
 
+
+    public async hideAllTabsMinusActiveTab() {
+        return Promise.all(this.tabs.map((tab) => {
+            if (tab.ID.name !== this.activeTab.ID.name && tab.ID.uuid !== this.activeTab.ID.uuid) {
+                return tab.window.hide();
+            }
+            return;
+        }));
+    }
+
     /**
      * Removes all tabs from this tab set.
      * @param closeApp Flag if we should close the tab windows.
@@ -202,7 +220,7 @@ export class TabGroup {
     public removeAllTabs(closeApp: boolean): Promise<void[]> {
         const refArray = this._tabs.slice();
         const refArrayMap = refArray.map(tab => {
-            this.removeTab(tab.ID, closeApp, true);
+            this.removeTab(tab.ID, closeApp, true, false, false);
         });
 
         return Promise.all(refArrayMap);

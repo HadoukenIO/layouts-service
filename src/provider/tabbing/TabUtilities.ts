@@ -166,14 +166,3 @@ export function getWindowAt(x: number, y: number, exclude?: Identity) {
 
     return (sortedWindows && sortedWindows[0]) || null;
 }
-/**
- * Checks and Compares two UUIDs to see if they have compatible UIs for tabbing.
- * @param uuid1 First UUID to Compare
- * @param uuid2 Second UUId to Compare
- */
-export function compareTabGroupUIs(uuid1: string, uuid2: string): boolean {
-    const uuid1Config = TabService.INSTANCE.applicationConfigManager.getApplicationUIConfig(uuid1);
-    const uuid2Config = TabService.INSTANCE.applicationConfigManager.getApplicationUIConfig(uuid2);
-
-    return ((uuid1Config && uuid2Config && uuid1Config.url === uuid2Config.url) || (!uuid1Config && !uuid2Config));
-}

@@ -570,10 +570,14 @@ declare namespace fin {
          * Registers an event listener on the specified event.
          */
         addEventListener(
-            type: 'application-created'|'application-started', listener: (event: SystemBaseEvent) => void, callback?: () => void, errorCallback?: (reason: string) => void): void;
+            type: 'application-created'|'application-started', listener: (event: SystemBaseEvent) => void, callback?: () => void,
+            errorCallback?: (reason: string) => void): void;
+        addEventListener(type: 'window-created', listener: (event: WindowBaseEvent) => void, callback?: () => void, errorCallback?: (reason: string) => void):
+            void;
         addEventListener(
             type: OpenFinSystemEventType,
-            listener: (event: SystemBaseEvent|DesktopIconClickedEvent|IdleStateChangedEvent|MonitorInfoChangedEvent|SessionChangedEvent) => void,
+            listener: (event: SystemBaseEvent|DesktopIconClickedEvent|IdleStateChangedEvent|MonitorInfoChangedEvent|SessionChangedEvent|
+                       WindowBaseEvent) => void,
             callback?: () => void, errorCallback?: (reason: string) => void): void;
         /**
          * Clears cached data containing window state/positions, application resource files (images, HTML, JavaScript files), cookies, and items stored in the
@@ -1588,7 +1592,7 @@ declare namespace fin {
     type OpenFinExternalApplicationEventType = 'connected'|'disconnected';
 
     type OpenFinSystemEventType = 'application-closed'|'application-crashed'|'application-created'|'application-started'|'desktop-icon-clicked'|
-        'idle-state-changed'|'monitor-info-changed'|'session-changed';
+        'idle-state-changed'|'monitor-info-changed'|'session-changed'|'window-created';
 
     type OpenFinWindowEventType = 'auth-requested'|'blurred'|'bounds-changed'|'bounds-changing'|'close-requested'|'closed'|'disabled-frame-bounds-changed'|
         'disabled-frame-bounds-changing'|'embedded'|'external-process-exited'|'external-process-started'|'focused'|'frame-disabled'|'frame-enabled'|

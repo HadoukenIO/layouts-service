@@ -1,10 +1,11 @@
+import {TabService} from '../tabbing/TabService';
+
 import {SNAP_DISTANCE} from './Config';
 import {Projector} from './Projector';
 import {SnapGroup} from './SnapGroup';
-import {SnapWindow, WindowState, WindowIdentity} from './SnapWindow';
+import {SnapWindow, WindowIdentity, WindowState} from './SnapWindow';
 import {Point, PointUtils} from './utils/PointUtils';
 import {RectUtils} from './utils/RectUtils';
-import { TabService } from '../tabbing/TabService';
 
 export enum eSnapValidity {
     /**
@@ -124,7 +125,8 @@ export class Resolver {
                         const activeState: WindowState = activeWindow.getState();
 
                         // Only do the next loop if there's a chance that this window can intersect with the other group
-                        if (this.isSnappable(activeWindow.getIdentity(), activeState) && RectUtils.distance(candidateGroup, activeState).within(SNAP_DISTANCE)) {
+                        if (this.isSnappable(activeWindow.getIdentity(), activeState) &&
+                            RectUtils.distance(candidateGroup, activeState).within(SNAP_DISTANCE)) {
                             candidateGroup.windows.forEach(candidateWindow => {
                                 const candidateState: WindowState = candidateWindow.getState();
 

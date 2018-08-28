@@ -121,7 +121,7 @@ export class TabAPIActionProcessor {
         }
         this.mTabService.dragWindowManager.hideWindow();
 
-        ejectTab(this.mTabService, {uuid: message.uuid, name: message.name, screenX: message.event.screenX, screenY: message.event.screenY}, group);
+        ejectTab({uuid: message.uuid, name: message.name, screenX: message.event.screenX, screenY: message.event.screenY}, group);
     }
 
     /**
@@ -175,7 +175,7 @@ export class TabAPIActionProcessor {
             return;
         }
 
-        ejectTab(this.mTabService, {name: applicationToEject.name, uuid: applicationToEject.uuid}, tabGroup);
+        ejectTab({name: applicationToEject.name, uuid: applicationToEject.uuid}, tabGroup);
     }
 
     /**

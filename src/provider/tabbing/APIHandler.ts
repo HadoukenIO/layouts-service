@@ -100,7 +100,7 @@ export class APIHandler {
      * Uses current window context by default
      */
     public removeTab(window: TabIdentifier): Promise<void> {
-        return ejectTab(this.mTabService, {name: window.name, uuid: window.uuid});
+        return ejectTab({name: window.name, uuid: window.uuid});
     }
 
     /**
@@ -212,6 +212,6 @@ export class APIHandler {
     public async endDrag(payload: {event: DragEvent, window: TabIdentifier}) {
         this.mTabService.dragWindowManager.hideWindow();
 
-        ejectTab(this.mTabService, {uuid: payload.window.uuid, name: payload.window.name, screenX: payload.event.screenX, screenY: payload.event.screenY});
+        ejectTab({uuid: payload.window.uuid, name: payload.window.name, screenX: payload.event.screenX, screenY: payload.event.screenY});
     }
 }

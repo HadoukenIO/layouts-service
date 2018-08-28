@@ -61,12 +61,8 @@ export class GroupWindow extends AsyncWindow {
      * Initialized Async methods for the GroupWindow class.
      */
     public async init(): Promise<void> {
-        if (this._tabGroup.isWindowInitialized) {
-            return;
-        }
         this._window = await this._createTabWindow();
         this._createWindowEventListeners();
-        this._tabGroup.isWindowInitialized = true;
     }
 
     /**

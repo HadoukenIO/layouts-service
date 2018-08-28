@@ -115,7 +115,7 @@ export async function addEventListener(
  * Decide which parts of this you will implement, alter LayoutApp object to reflect this then send it back
  */
 // tslint:disable-next-line:no-any
-export async function onWillSaveAppLayout(customDataDecorator: () => any): Promise<boolean> {
+export async function onApplicationSave(customDataDecorator: () => any): Promise<boolean> {
     const service: ServiceClient = await servicePromise;
     return service.register('savingLayout', customDataDecorator);
 }

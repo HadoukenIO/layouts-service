@@ -226,7 +226,7 @@ function createOptionElement(id: string) {
 Layouts.deregister();
 
 //Allow layouts service to save and restore this application
-Layouts.onWillSaveAppLayout(() => {
+Layouts.onApplicationSave(() => {
     return {test: true};
 });
 Layouts.onAppRestore(onAppRes);

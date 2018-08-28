@@ -176,6 +176,7 @@ export class TabService {
         if (firstTab) {
             const bounds = await firstTab.window.getWindowBounds();
             tabsP.forEach(tab => tab.window.finWindow.setBounds(bounds.left, bounds.top, bounds.width, bounds.height));
+            tabsP[tabsP.length - 1].window.finWindow.bringToFront();
             await group.addTab(firstTab, false);
         }
 

@@ -123,7 +123,7 @@ export class TabWindow extends AsyncWindow {
 
         //@ts-ignore
         this._window.addEventListener('end-user-bounds-changing', async () => {
-            await this.alignPositionToTabGroup();
+            await this._tabGroup.window.alignPositionToApp(this);
             this._tabGroup.realignApps();
         });
     }

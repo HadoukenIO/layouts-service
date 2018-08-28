@@ -27,7 +27,9 @@ import {ZIndexer} from './ZIndexer';
  * @param tabService The service itself which holds the tab groups
  * @param message Application or tab to be ejected
  */
-export async function ejectTab(tabService: TabService, message: TabIdentifier&TabWindowOptions, tabGroup?: TabGroup|undefined) {
+export async function ejectTab(message: TabIdentifier & TabWindowOptions, tabGroup?: TabGroup | undefined) {
+    const tabService: TabService = TabService.INSTANCE;
+
     // Get the tab that was ejected.
     const ejectedTab: Tab|undefined =
         tabGroup ? tabGroup.getTab({name: message.name, uuid: message.uuid}) : tabService.getTab({uuid: message.uuid, name: message.name});
@@ -51,15 +53,15 @@ export async function ejectTab(tabService: TabService, message: TabIdentifier&Ta
         // If the window under our point is in the same group as the one being dragged, we do nothing
         return;
     } else if (isOverTabWindowResult) {
-        const isOverTabGroup = TabService.INSTANCE.getTabGroupByApp(isOverTabWindowResult);
-        if (compareTabGroupUIs(isOverTabWindowResult.uuid, ejectedTab.ID.uuid)) {
+        const isOverTabGroup = tabService.getTabGroupByApp(isOverTabWindowResult);
+        if (tabService.applicationConfigManager.compareConfigBetweenApplications(isOverTabWindowResult.uuid, ejectedTab.ID.uuid)) {
             if (isOverTabGroup) {
                 if (isOverTabGroup.ID !== ejectedTab.tabGroup.ID) {
                     await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true);
                     await isOverTabGroup.addTab({tabID: ejectedTab.ID});
                 }
             } else {
-                await TabService.INSTANCE.createTabGroupWithTabs([isOverTabWindowResult, ejectedTab.ID]);
+                await tabService.createTabGroupWithTabs([isOverTabWindowResult, ejectedTab.ID]);
             }
         }
     } else {
@@ -163,15 +165,4 @@ export function getWindowAt(x: number, y: number, exclude?: Identity) {
     const sortedWindows: TabIdentifier[]|null = ZIndexer.INSTANCE.getTop(windowsAtPoint.map(window => window.getIdentity()));
 
     return (sortedWindows && sortedWindows[0]) || null;
-}
-/**
- * Checks and Compares two UUIDs to see if they have compatible UIs for tabbing.
- * @param uuid1 First UUID to Compare
- * @param uuid2 Second UUId to Compare
- */
-export function compareTabGroupUIs(uuid1: string, uuid2: string) {
-    const uuid1Config = TabService.INSTANCE.getAppUIConfig(uuid1);
-    const uuid2Config = TabService.INSTANCE.getAppUIConfig(uuid2);
-
-    return ((uuid1Config && uuid2Config && uuid1Config.url === uuid2Config.url) || (!uuid1Config && !uuid2Config));
 }

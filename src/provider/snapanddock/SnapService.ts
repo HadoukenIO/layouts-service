@@ -70,16 +70,26 @@ export class SnapService {
 
         const serviceId: string = fin.desktop.Application.getCurrent().uuid;
 
-        fin.desktop.System.addEventListener('application-created', (event: fin.SystemBaseEvent) => {
-            console.log('New application created: ' + event.uuid);
-            this.registerApplication(event.uuid);
+        // Listen for any new windows created and register them with the service
+        fin.desktop.System.addEventListener('window-created', (event: fin.WindowBaseEvent) => {
+            // Ignore child windows of the service itself (e.g. preview windows)
+            if (event.uuid !== fin.desktop.Window.getCurrent().uuid) {
+                this.registerWindow(event.uuid, event.name);
+            }
         });
-        fin.desktop.System.getAllApplications((apps: fin.ApplicationInfo[]) => {
-            console.log('Registering existing applications: ' + apps.map(app => app.uuid).join(', '));
 
-            apps.forEach((app: fin.ApplicationInfo) => {
-                if (app.uuid !== serviceId) {
-                    this.registerApplication(app.uuid);
+        // Register all existing windows
+        fin.desktop.System.getAllWindows((windows: fin.WindowDetails[]) => {
+            windows.forEach((app: fin.WindowDetails) => {
+                // Ignore the main service window and all of it's children
+                if (app.uuid !== fin.desktop.Window.getCurrent().uuid) {
+                    // Register the main window
+                    this.registerWindow(app.uuid, app.mainWindow.name);
+
+                    // Register all of the child windows
+                    app.childWindows.forEach((child: fin.WindowInfo) => {
+                        this.registerWindow(app.uuid, child.name);
+                    });
                 }
             });
         });
@@ -156,23 +166,16 @@ export class SnapService {
         }
     }
 
-    private registerApplication(uuid: string): void {
-        const app: fin.OpenFinApplication = fin.desktop.Application.wrap(uuid);
+    private registerWindow(uuid: string, name: string): void {
+        const newOFWindow: fin.OpenFinWindow = fin.desktop.Window.wrap(uuid, name);
 
-        // Register main window
-        this.addWindow(app.getWindow()).then(window => console.log('Registered app window: ' + window.getId()));
-
-        // Register child windows
-        app.getChildWindows((children: fin.OpenFinWindow[]) => {
-            children.forEach((child: fin.OpenFinWindow) => {
-                this.addWindow(child).then(window => console.log('Registered child window: ' + window.getId()));
-            });
-        });
-
-        // Listen for future windows
-        app.addEventListener('window-created', (event: fin.WindowEvent) => {
-            this.addWindow(fin.desktop.Window.wrap(event.uuid, event.name)).then(window => console.log('App created new window: ' + window.getId()));
-        });
+        // Check that the service does not already have a matching window
+        const existingSnapWindow = this.getSnapWindow(newOFWindow);
+        if (!existingSnapWindow) {
+            this.addWindow(newOFWindow).then((win: SnapWindow) => console.log('Registered window: ' + win.getId()));
+        } else {
+            console.warn('Attempted to register an already existing window: ', existingSnapWindow.getId());
+        }
     }
 
     private addWindow(window: fin.OpenFinWindow): Promise<SnapWindow> {

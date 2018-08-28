@@ -43,11 +43,14 @@ export async function ejectTab(tabService: TabService, message: TabIdentifier&Ta
     // If we have a screenX & screenY we check if there is a tab group + tab window underneath
     if (message.screenX && message.screenY) {
         isOverTabWindowResult =
-            getWindowAt(message.screenX, message.screenY, ejectedTab.ID);  // await tabService.isPointOverTabGroup(message.screenX, message.screenY);
+            getWindowAt(message.screenX, message.screenY /*, ejectedTab.ID*/);  // await tabService.isPointOverTabGroup(message.screenX, message.screenY);
     }
 
     // If there is a window underneath our point
-    if (isOverTabWindowResult) {
+    if (isOverTabWindowResult && tabService.getTabGroupByApp(isOverTabWindowResult) === tabGroup) {
+        // If the window under our point is in the same group as the one being dragged, we do nothing
+        return;
+    } else if (isOverTabWindowResult) {
         const isOverTabGroup = TabService.INSTANCE.getTabGroupByApp(isOverTabWindowResult);
         if (compareTabGroupUIs(isOverTabWindowResult.uuid, ejectedTab.ID.uuid)) {
             if (isOverTabGroup) {
@@ -144,8 +147,18 @@ export function getWindowAt(x: number, y: number, exclude?: Identity) {
     const windows: SnapWindow[] = (window as Window & {snapService: SnapService}).snapService['windows'];
     const windowsAtPoint: SnapWindow[] = windows.filter((window: SnapWindow) => {
         const state: WindowState = window.getState();
+
+        // Hack to deal with tabstrips being unknown to the snapservice
+        const tabGroup = TabService.INSTANCE.getTabGroupByApp(window.getIdentity());
+        if (tabGroup) {
+            state.center = {x: state.center.x, y: state.center.y - 30};
+            state.halfSize = {x: state.halfSize.x, y: state.halfSize.y + 15};
+        }
+
         return window.getId() !== id && !window.getState().hidden && RectUtils.isPointInRect(state.center, state.halfSize, point);
     });
+
+
 
     const sortedWindows: TabIdentifier[]|null = ZIndexer.INSTANCE.getTop(windowsAtPoint.map(window => window.getIdentity()));
 

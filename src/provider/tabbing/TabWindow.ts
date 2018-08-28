@@ -87,7 +87,7 @@ export class TabWindow extends AsyncWindow {
     public async alignPositionToTabGroup(): Promise<void> {
         this._window.leaveGroup();
         const groupWindow = this._tab.tabGroup.window;
-        const groupActiveTab = this._tab.tabGroup.activeTab;
+        const groupActiveTab = this._tab.tabGroup.activeTab || this._tabGroup.tabs[0];
 
         const tabGroupBoundsP = groupWindow.getWindowBounds();
         const tabBoundsP = groupActiveTab ? groupActiveTab.window.getWindowBounds() : this.getWindowBounds();

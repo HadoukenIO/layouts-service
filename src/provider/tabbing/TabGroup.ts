@@ -35,19 +35,10 @@ export class TabGroup {
      * @param {TabWindowOptions} windowOptions
      */
 
-    public isWindowInitialized = false;
-
     constructor(windowOptions: TabWindowOptions) {
         this.ID = uuidv4();
         this._tabs = [];
         this._window = new GroupWindow(windowOptions, this);
-    }
-
-    /**
-     * Initializes the async methods required for the TabGroup Class.
-     */
-    private async init(): Promise<void> {
-        // await this._window.init();
     }
 
     /**
@@ -56,7 +47,6 @@ export class TabGroup {
     private async _initializeTabGroup() {
         await this._window.init();
         await this._window.alignPositionToApp(this._tabs[0].window);
-        // this._window.show(false);
     }
 
     public async addTab(tab: Tab, handleTabSwitch = true, handleAlignment = true, index = -1) {

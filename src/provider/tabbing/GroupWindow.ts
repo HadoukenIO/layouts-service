@@ -122,7 +122,7 @@ export class GroupWindow extends AsyncWindow {
                 return Promise.all([resize, moveto]);
             }
         } else {
-            await Promise.all(this._tabGroup.tabs.map(tab => tab.window.restore()));  // this._tabGroup.activeTab.window.restore();
+            await Promise.all(this._tabGroup.tabs.map(tab => tab.window.restore()));
             return this._tabGroup.hideAllTabsMinusActiveTab();
         }
     }

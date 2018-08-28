@@ -1,14 +1,15 @@
+import {Application} from 'hadouken-js-adapter';
+
 import {ApplicationUIConfig, Bounds, TabIdentifier, TabPackage, TabWindowOptions} from '../../client/types';
 
 import {APIHandler} from './APIHandler';
+import {ApplicationConfigManager} from './components/ApplicationConfigManager';
 import {DragWindowManager} from './DragWindowManager';
 import {EventHandler} from './EventHandler';
 import {Tab} from './Tab';
 import {TabAPIActionProcessor} from './TabAPIActionProcessor';
 import {TabGroup} from './TabGroup';
-import { ZIndexer } from './ZIndexer';
-import { ApplicationConfigManager } from './components/ApplicationConfigManager';
-import { Application } from 'hadouken-js-adapter';
+import {ZIndexer} from './ZIndexer';
 
 interface GroupTabBounds extends Bounds {
     group: TabGroup;
@@ -75,7 +76,6 @@ export class TabService {
         this.mApplicationConfigManager = new ApplicationConfigManager();
 
         TabService.INSTANCE = this;
-
     }
 
     /**
@@ -85,8 +85,6 @@ export class TabService {
      */
     public addTabGroup(windowOptions: TabWindowOptions): TabGroup {
         const group = new TabGroup(windowOptions);
-        // await group.init();
-
         this._tabGroups.push(group);
 
         return group;
@@ -172,12 +170,8 @@ export class TabService {
 
         await Promise.all(tabsP.map(tab => group.addTab(tab, false)));
 
-        // for (const tabIDs of tabs) {
-        //     await group.addTab(tab);
-        // }
         await group.switchTab(tabs[tabs.length - 1]);
         await group.hideAllTabsMinusActiveTab();
-        // group.realignApps();
 
         return;
     }

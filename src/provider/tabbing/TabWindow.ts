@@ -40,7 +40,6 @@ export class TabWindow extends AsyncWindow {
     public async init(): Promise<void> {
         [this._initialWindowOptions, this._initialWindowBounds] = await Promise.all([this.getWindowOptions(), this.getWindowBounds()]);
         this._createWindowEventListeners();
-        // this.hide();
         // @ts-ignore resizeRegion.sides is valid.  Its not in the type file.
         return this.updateWindowOptions({showTaskbarIcon: false, frame: false, resizeRegion: {sides: {top: false}}});
     }
@@ -110,11 +109,7 @@ export class TabWindow extends AsyncWindow {
 
         this._window.addEventListener('maximized', this._onMaximize.bind(this));
 
-        // this._window.addEventListener("restored", this._onRestore.bind(this));
-
         this._window.addEventListener('closed', this._onClose.bind(this));
-
-        // this._window.addEventListener("focused", this._onFocus.bind(this));
     }
 
     /**

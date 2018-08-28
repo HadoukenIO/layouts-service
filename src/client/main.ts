@@ -163,9 +163,7 @@ export async function restoreLayout(payload: Layout): Promise<Layout> {
  * Send this to the service when you have registered all routes after registration
  */
 export async function ready(): Promise<Layout> {
-    console.log("READY CALLED");
     const service: ServiceClient = await servicePromise;
-    console.log("READY CALLED2");
 
     return service.dispatch('appReady');
 }

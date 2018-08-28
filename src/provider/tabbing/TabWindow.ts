@@ -120,12 +120,6 @@ export class TabWindow extends AsyncWindow {
         this._window.addEventListener('closed', this._onClose.bind(this));
 
         // this._window.addEventListener("focused", this._onFocus.bind(this));
-
-        //@ts-ignore
-        this._window.addEventListener('end-user-bounds-changing', async () => {
-            await this._tabGroup.window.alignPositionToApp(this);
-            this._tabGroup.realignApps();
-        });
     }
 
     /**

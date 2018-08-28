@@ -56,7 +56,7 @@ test('Tabset on dragover - tearout dropped window', async t => {
 
     await delay(1000);
 
-    await Promise.all([assertAloneInTab(win1, t), assertAloneInTab(win2, t)]);
+    await Promise.all([assertNotTabbed(win1, t), assertNotTabbed(win2, t)]);
 
 });
 
@@ -82,7 +82,7 @@ test('Tabset on dragover - drop on torn-out dropped window', async t => {
     await delay(1000);
 
     // Check that the two windows are now in seperate tabgroups
-    await Promise.all([assertAloneInTab(win1, t), assertAloneInTab(win2, t)]);
+    await Promise.all([assertNotTabbed(win1, t), assertNotTabbed(win2, t)]);
 
     // Spawn a third window
     win3 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window.html', frame: false });
@@ -113,16 +113,12 @@ async function assertTabbed(win1: Window, win2: Window, t:GenericTestContext<Any
     t.deepEqual(bounds1, bounds2, 'Tabbed windows do not have the same bounds');
 }
 
-async function assertAloneInTab(win: Window, t: GenericTestContext<AnyContext>):Promise<void> {
+async function assertNotTabbed(win: Window, t: GenericTestContext<AnyContext>):Promise<void> {
     // TODO: Determine if the window is tabbed on the service side.
 
     // Window is native grouped only to the tabstrip
     const nativeGroup = await win.getGroup();
-    const otherGroupedWindows = nativeGroup.filter(w => w.identity.name !== win.identity.name || w.identity.uuid !== win.identity.uuid);
 
-    // Only one other window in group
-    t.is(otherGroupedWindows.length, 1);
-    // Window's name is in the correct format for our auto-generated tabstrips
-    t.regex(otherGroupedWindows[0].identity.name as string, /^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}$/);
-
+    // Not grouped to any other windows
+    t.is(nativeGroup.length, 0);
 }

@@ -36,7 +36,7 @@ declare namespace fin {
          * Creates a new Application.
          * An object representing an application. Allows the developer to create, execute, show/close an application as well as listen to application events.
          */
-        new(options: ApplicationOptions, callback?: (successObj: { httpResponseCode: number }) => void,
+        new(options: ApplicationOptions, callback?: (successObj: {httpResponseCode: number}) => void,
             errorCallback?: (reason: string, errorObj: NetworkErrorInfo) => void): OpenFinApplication;
         /**
          * Returns an Application object that represents an existing application.
@@ -68,8 +68,8 @@ declare namespace fin {
         addEventListener(type: 'window-created', listener: (event: WindowEvent) => void, callback?: () => void, errorCallback?: (reason: string) => void): void;
         addEventListener(
             type: OpenFinApplicationEventType,
-            listener: (event: ApplicationBaseEvent | TrayIconClickedEvent | WindowEvent | WindowAlertRequestedEvent | WindowAuthRequested | WindowNavigationRejectedEvent |
-                WindowEndLoadEvent) => void,
+            listener: (event: ApplicationBaseEvent|TrayIconClickedEvent|WindowEvent|WindowAlertRequestedEvent|WindowAuthRequested|WindowNavigationRejectedEvent|
+                       WindowEndLoadEvent) => void,
             callback?: () => void, errorCallback?: (reason: string) => void): void;
         /**
          * Closes the application and any child windows created by the application.
@@ -109,8 +109,8 @@ declare namespace fin {
          */
         removeEventListener(
             type: OpenFinApplicationEventType,
-            previouslyRegisteredListener: (event: ApplicationBaseEvent | TrayIconClickedEvent | WindowEvent | WindowAlertRequestedEvent | WindowAuthRequested |
-                WindowNavigationRejectedEvent | WindowEndLoadEvent) => any,
+            previouslyRegisteredListener: (event: ApplicationBaseEvent|TrayIconClickedEvent|WindowEvent|WindowAlertRequestedEvent|WindowAuthRequested|
+                                           WindowNavigationRejectedEvent|WindowEndLoadEvent) => any,
             callback?: () => void, errorCallback?: (reason: string) => void): void;
         /**
          * Removes the application's icon from the tray.
@@ -204,7 +204,7 @@ declare namespace fin {
         /**
          * Enable keyboard shortcuts for devtools and zoom. Default: false for both.
          */
-        accelerator?: { devtools?: boolean, zoom?: boolean };
+        accelerator?: {devtools?: boolean, zoom?: boolean};
         /**
          * A flag to always position the window at the top of the window stack. Default: false.
          */
@@ -220,7 +220,7 @@ declare namespace fin {
         /**
          * This defines and applies rounded corners for a frameless window. Default for both width and height: 0.
          */
-        cornerRounding?: { width?: number; height?: number; };
+        cornerRounding?: {width?: number; height?: number;};
         /**
          * A field that the user can attach serializable data to to be ferried around with the window options. Default: ''.
          */
@@ -330,7 +330,7 @@ declare namespace fin {
         /**
          * A string that sets the window to be "minimized", "maximized", or "normal" on creation. Default: "normal".
          */
-        state?: 'normal' | 'minimized' | 'maximized';
+        state?: 'normal'|'minimized'|'maximized';
         /**
          * The URL of the window. Default: "about:blank".
          */
@@ -350,35 +350,35 @@ declare namespace fin {
         /**
          * Reads available formats for the clipboard type
          */
-        availableFormats(type: string | null, callback?: (formats: string[]) => void, errorCallback?: (reason: string, error: ErrorInfo) => void): void;
+        availableFormats(type: string|null, callback?: (formats: string[]) => void, errorCallback?: (reason: string, error: ErrorInfo) => void): void;
         /**
          * Reads available formats for the clipboard type
          */
-        readHtml(type: string | null, callback?: (html: string) => void, errorCallback?: (reason: string, error: ErrorInfo) => void): void;
+        readHtml(type: string|null, callback?: (html: string) => void, errorCallback?: (reason: string, error: ErrorInfo) => void): void;
         /**
          * Read the content of the clipboard as Rtf
          */
-        readRtf(type: string | null, callback?: (rtf: string) => void, errorCallback?: (reason: string, error: ErrorInfo) => void): void;
+        readRtf(type: string|null, callback?: (rtf: string) => void, errorCallback?: (reason: string, error: ErrorInfo) => void): void;
         /**
          * Read the content of the clipboard as plain text
          */
-        readText(type: string | null, callback?: (text: string) => void, errorCallback?: (reason: string, error: ErrorInfo) => void): void;
+        readText(type: string|null, callback?: (text: string) => void, errorCallback?: (reason: string, error: ErrorInfo) => void): void;
         /**
          * Writes data into the clipboard
          */
-        write(data: any, type: string | null, callback?: () => void, errorCallback?: (reason: string, error: ErrorInfo) => void): void;
+        write(data: any, type: string|null, callback?: () => void, errorCallback?: (reason: string, error: ErrorInfo) => void): void;
         /**
          * Writes data into the clipboard as Html
          */
-        writeHtml(data: string, type: string | null, callback?: () => void, errorCallback?: (reason: string, error: ErrorInfo) => void): void;
+        writeHtml(data: string, type: string|null, callback?: () => void, errorCallback?: (reason: string, error: ErrorInfo) => void): void;
         /**
          * Writes data into the clipboard as Rtf
          */
-        writeRtf(data: string, type: string | null, callback?: () => void, errorCallback?: (reason: string, error: ErrorInfo) => void): void;
+        writeRtf(data: string, type: string|null, callback?: () => void, errorCallback?: (reason: string, error: ErrorInfo) => void): void;
         /**
          * Writes data into the clipboard as plain text
          */
-        writeText(data: string, type: string | null, callback?: () => void, errorCallback?: (reason: string, error: ErrorInfo) => void): void;
+        writeText(data: string, type: string|null, callback?: () => void, errorCallback?: (reason: string, error: ErrorInfo) => void): void;
     }
 
     interface OpenFinExternalApplicationStatic {
@@ -503,7 +503,7 @@ declare namespace fin {
         /**
          * The timeout for displaying a notification.Can be in milliseconds or "never".
          */
-        duration?: number | 'never';
+        duration?: number|'never';
         /**
          * The url of the notification
          */
@@ -540,7 +540,7 @@ declare namespace fin {
 
     interface OpenFinService {
         register: () => Promise<OpenFinServiceProvider>;
-        connect: (connectionObj: { uuid: string, name: string, payload?: any }) => Promise<OpenFinServiceClient>;
+        connect: (connectionObj: {uuid: string, name: string, payload?: any}) => Promise<OpenFinServiceClient>;
     }
 
     interface OpenFinServiceClient {
@@ -570,12 +570,14 @@ declare namespace fin {
          * Registers an event listener on the specified event.
          */
         addEventListener(
-            type: 'application-created' | 'application-started', listener: (event: SystemBaseEvent) => void, callback?: () => void, errorCallback?: (reason: string) => void): void;
-        addEventListener(
-            type: 'window-created', listener: (event: WindowBaseEvent) => void, callback?: () => void, errorCallback?: (reason: string) => void): void;
+            type: 'application-created'|'application-started', listener: (event: SystemBaseEvent) => void, callback?: () => void,
+            errorCallback?: (reason: string) => void): void;
+        addEventListener(type: 'window-created', listener: (event: WindowBaseEvent) => void, callback?: () => void, errorCallback?: (reason: string) => void):
+            void;
         addEventListener(
             type: OpenFinSystemEventType,
-            listener: (event: SystemBaseEvent | DesktopIconClickedEvent | IdleStateChangedEvent | MonitorInfoChangedEvent | SessionChangedEvent | WindowBaseEvent) => void,
+            listener: (event: SystemBaseEvent|DesktopIconClickedEvent|IdleStateChangedEvent|MonitorInfoChangedEvent|SessionChangedEvent|
+                       WindowBaseEvent) => void,
             callback?: () => void, errorCallback?: (reason: string) => void): void;
         /**
          * Clears cached data containing window state/positions, application resource files (images, HTML, JavaScript files), cookies, and items stored in the
@@ -590,8 +592,8 @@ declare namespace fin {
          * Downloads the given application asset
          */
         downloadAsset(
-            assetObj: AppAssetInfo, progressListener?: (progress: { downloadedBytes: number, totalBytes: number }) => void,
-            callback?: (successObj: { path: string }) => void, errorCallback?: (reason: string, errorObj: NetworkErrorInfo) => void): void;
+            assetObj: AppAssetInfo, progressListener?: (progress: {downloadedBytes: number, totalBytes: number}) => void,
+            callback?: (successObj: {path: string}) => void, errorCallback?: (reason: string, errorObj: NetworkErrorInfo) => void): void;
         /**
          * Exits the Runtime.
          */
@@ -660,15 +662,15 @@ declare namespace fin {
         /**
          * Runs an executable or batch file.
          */
-        launchExternalProcess(options: ExternalProcessLaunchInfo, callback?: (payload: { uuid: string }) => void, errorCallback?: (reason: string) => void): void;
+        launchExternalProcess(options: ExternalProcessLaunchInfo, callback?: (payload: {uuid: string}) => void, errorCallback?: (reason: string) => void): void;
         /**
          * Writes the passed message into both the log file and the console.
          */
-        log(level: 'debug' | 'info' | 'warn' | 'error', message: string, callback?: () => void, errorCallback?: (reason: string) => void): void;
+        log(level: 'debug'|'info'|'warn'|'error', message: string, callback?: () => void, errorCallback?: (reason: string) => void): void;
         /**
          * Monitors a running process.
          */
-        monitorExternalProcess(options: ExternalProcessInfo, callback?: (payload: { uuid: string }) => void, errorCallback?: (reason: string) => void): void;
+        monitorExternalProcess(options: ExternalProcessInfo, callback?: (payload: {uuid: string}) => void, errorCallback?: (reason: string) => void): void;
         /**
          * Opens the passed URL in the default web browser.
          */
@@ -678,15 +680,15 @@ declare namespace fin {
          */
         registerExternalConnection(
             uuid: string, callback?: (detail: {
-                /**
-                 * this will be unique each time
-                 */
-                token: string;
-                /**
-                 * "remote-connection-uuid"
-                 */
-                uuid: string;
-            }) => void,
+                              /**
+                               * this will be unique each time
+                               */
+                              token: string;
+                              /**
+                               * "remote-connection-uuid"
+                               */
+                              uuid: string;
+                          }) => void,
             errorCallback?: (reason: string) => void): void;
         /**
          * Removes the process entry for the passed UUID obtained from a prior call of fin.desktop.System.launchExternalProcess().
@@ -697,7 +699,7 @@ declare namespace fin {
          */
         removeEventListener(
             type: OpenFinSystemEventType,
-            listener: (event: SystemBaseEvent | DesktopIconClickedEvent | IdleStateChangedEvent | MonitorInfoChangedEvent | SessionChangedEvent) => void,
+            listener: (event: SystemBaseEvent|DesktopIconClickedEvent|IdleStateChangedEvent|MonitorInfoChangedEvent|SessionChangedEvent) => void,
             callback?: () => void, errorCallback?: (reason: string) => void): void;
         /**
          * Shows the Chrome Developer Tools for the specified window.
@@ -707,10 +709,10 @@ declare namespace fin {
          * Attempt to close an external process. The process will be terminated if it has not closed after the elapsed timeout in milliseconds.
          */
         terminateExternalProcess(
-            processUuid: string, timeout: number, killTree: boolean, callback?: (info: { result: 'clean' | 'terminated' | 'failed' }) => void,
+            processUuid: string, timeout: number, killTree: boolean, callback?: (info: {result: 'clean'|'terminated'|'failed'}) => void,
             errorCallback?: (reason: string) => void): void;
         terminateExternalProcess(
-            processUuid: string, timeout: number, callback?: (info: { result: 'clean' | 'terminated' | 'failed' }) => void,
+            processUuid: string, timeout: number, callback?: (info: {result: 'clean'|'terminated'|'failed'}) => void,
             errorCallback?: (reason: string) => void): void;
         /**
          * Update the OpenFin Runtime Proxy settings.
@@ -1014,7 +1016,7 @@ declare namespace fin {
          * @param [callback] - Called if the window creation was successful
          * @param [callback.successObj] - httpResponseCode
          */
-        new(options: WindowOptions, callback?: (successObj: { httpResponseCode: number }) => void,
+        new(options: WindowOptions, callback?: (successObj: {httpResponseCode: number}) => void,
             errorCallback?: (reason: string, errorObj: NetworkErrorInfo) => void): OpenFinWindow;
         /**
          * Returns an instance of the current window.
@@ -1060,12 +1062,12 @@ declare namespace fin {
          * Registers an event listener on the specified event.
          */
         addEventListener(
-            type: 'bounds-changed' | 'bounds-changing', listener: (event: WindowBoundsEvent) => void, callback?: () => void,
+            type: 'bounds-changed'|'bounds-changing', listener: (event: WindowBoundsEvent) => void, callback?: () => void,
             errorCallback?: (reason: string) => void): void;
         addEventListener(
             type: OpenFinWindowEventType,
-            listener: (event: WindowBaseEvent | WindowAuthRequestedEvent | WindowBoundsEvent | WindowExternalProcessStartedEvent | WindowExternalProcessExited |
-                WindowGroupChangedEvent | WindowHiddenEvent | Window_NavigationRejectedEvent) => void,
+            listener: (event: WindowBaseEvent|WindowAuthRequestedEvent|WindowBoundsEvent|WindowExternalProcessStartedEvent|WindowExternalProcessExited|
+                       WindowGroupChangedEvent|WindowHiddenEvent|Window_NavigationRejectedEvent) => void,
             callback?: () => void, errorCallback?: (reason: string) => void): void;
         /**
          * Performs the specified window transitions
@@ -1132,7 +1134,7 @@ declare namespace fin {
         /**
          * Gets the current state ("minimized", "maximized", or "restored") of the window.
          */
-        getState(callback?: (state: 'minimized' | 'maximized' | 'restored') => void, errorCallback?: (reason: string) => void): void;
+        getState(callback?: (state: 'minimized'|'maximized'|'restored') => void, errorCallback?: (reason: string) => void): void;
         /**
          * Returns the zoom level of the window.
          */
@@ -1178,8 +1180,8 @@ declare namespace fin {
          */
         removeEventListener(
             type: OpenFinWindowEventType,
-            listener: (event: WindowBaseEvent | WindowAuthRequestedEvent | WindowBoundsEvent | WindowExternalProcessStartedEvent | WindowExternalProcessExited |
-                WindowGroupChangedEvent | WindowHiddenEvent | Window_NavigationRejectedEvent) => void,
+            listener: (event: WindowBaseEvent|WindowAuthRequestedEvent|WindowBoundsEvent|WindowExternalProcessStartedEvent|WindowExternalProcessExited|
+                       WindowGroupChangedEvent|WindowHiddenEvent|Window_NavigationRejectedEvent) => void,
             callback?: () => void, errorCallback?: (reason: string) => void): void;
         /**
          * Resizes the window by a specified amount.
@@ -1248,7 +1250,7 @@ declare namespace fin {
     }
 
     interface WindowAuthRequested extends WindowEvent {
-        authInfo: { host: string; isProxy: boolean; port: number; realm: string; scheme: string; };
+        authInfo: {host: string; isProxy: boolean; port: number; realm: string; scheme: string;};
     }
 
     interface WindowNavigationRejectedEvent extends WindowEvent {
@@ -1270,7 +1272,7 @@ declare namespace fin {
         nonPrimaryMonitors: MonitorInfoDetail[];
         primaryMonitor: MonitorInfoDetail;
         reason: string;
-        taskbar: { edge: 'left' | 'right' | 'top' | 'bottom', rect: MontiorCoordinates };
+        taskbar: {edge: 'left'|'right'|'top'|'bottom', rect: MontiorCoordinates};
         topic: 'system';
         type: 'monitor-info-changed';
         virtualScreen: MontiorCoordinates;
@@ -1354,7 +1356,7 @@ declare namespace fin {
     }
 
     interface WindowAuthRequestedEvent extends WindowBaseEvent {
-        authInfo: { host: string; isProxy: boolean; port: number; realm: string; scheme: string; };
+        authInfo: {host: string; isProxy: boolean; port: number; realm: string; scheme: string;};
     }
 
     interface WindowBoundsEvent extends WindowBaseEvent {
@@ -1381,7 +1383,7 @@ declare namespace fin {
          * the top-most coordinate of the window.
          */
         top: number;
-        type: 'bounds-changed' | 'bounds-changing' | 'disabled-frame-bounds-changed' | 'disabled-frame-bounds-changing';
+        type: 'bounds-changed'|'bounds-changing'|'disabled-frame-bounds-changed'|'disabled-frame-bounds-changing';
         /**
          * the new width of the window.
          */
@@ -1415,7 +1417,7 @@ declare namespace fin {
          * 'target' The window is included in targetGroup.
          * 'nothing' The window is not included in sourceGroup nor targetGroup.
          */
-        memberOf: 'source' | 'target' | 'nothing';
+        memberOf: 'source'|'target'|'nothing';
         /**
          * The reason this event was triggered.
          * 'leave' A window has left the group due to a leave or merge with group.
@@ -1423,7 +1425,7 @@ declare namespace fin {
          * 'merge' Two groups have been merged together.
          * 'disband' There are no other windows in the group.
          */
-        reason: 'leave' | 'join' | 'merge' | 'disband';
+        reason: 'leave'|'join'|'merge'|'disband';
         /**
          * All the windows in the group the sourceWindow originated from.
          */
@@ -1467,7 +1469,7 @@ declare namespace fin {
          * What action prompted the close.
          * The reasons are: "hide", "hide-on-close"
          */
-        reason: 'hide' | 'hide-on-close';
+        reason: 'hide'|'hide-on-close';
         type: 'hidden';
     }
 
@@ -1575,26 +1577,26 @@ declare namespace fin {
         /**
          * the action that triggered this event:
          */
-        reason: 'lock' | 'unlock' | 'remote-connect' | 'remote-disconnect' | 'unknown';
+        reason: 'lock'|'unlock'|'remote-connect'|'remote-disconnect'|'unknown';
         topic: 'system';
         type: 'session-changed';
     }
 
-    type OpenFinTweenType = 'linear' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'ease-in-quad' | 'ease-out-quad' | 'ease-in-out-quad' | 'ease-in-cubic' | 'ease-out-cubic' |
-        'ease-in-out-cubic' | 'ease-out-bounce' | 'ease-in-back' | 'ease-out-back' | 'ease-in-out-back' | 'ease-in-elastic' | 'ease-out-elastic' | 'ease-in-out-elastic';
+    type OpenFinTweenType = 'linear'|'ease-in'|'ease-out'|'ease-in-out'|'ease-in-quad'|'ease-out-quad'|'ease-in-out-quad'|'ease-in-cubic'|'ease-out-cubic'|
+        'ease-in-out-cubic'|'ease-out-bounce'|'ease-in-back'|'ease-out-back'|'ease-in-out-back'|'ease-in-elastic'|'ease-out-elastic'|'ease-in-out-elastic';
 
-    type OpenFinApplicationEventType = 'closed' | 'connected' | 'crashed' | 'initialized' | 'manifest-changed' | 'not-responding' | 'out-of-memory' | 'responding' |
-        'run-requested' | 'started' | 'tray-icon-clicked' | 'window-alert-requested' | 'window-auth-requested' | 'window-closed' | 'window-created' | 'window-end-load' |
-        'window-navigation-rejected' | 'window-show-requested' | 'window-start-load';
+    type OpenFinApplicationEventType = 'closed'|'connected'|'crashed'|'initialized'|'manifest-changed'|'not-responding'|'out-of-memory'|'responding'|
+        'run-requested'|'started'|'tray-icon-clicked'|'window-alert-requested'|'window-auth-requested'|'window-closed'|'window-created'|'window-end-load'|
+        'window-navigation-rejected'|'window-show-requested'|'window-start-load';
 
-    type OpenFinExternalApplicationEventType = 'connected' | 'disconnected';
+    type OpenFinExternalApplicationEventType = 'connected'|'disconnected';
 
-    type OpenFinSystemEventType = 'application-closed' | 'application-crashed' | 'application-created' | 'application-started' | 'desktop-icon-clicked' |
-        'idle-state-changed' | 'monitor-info-changed' | 'session-changed' | 'window-created';
+    type OpenFinSystemEventType = 'application-closed'|'application-crashed'|'application-created'|'application-started'|'desktop-icon-clicked'|
+        'idle-state-changed'|'monitor-info-changed'|'session-changed'|'window-created';
 
-    type OpenFinWindowEventType = 'auth-requested' | 'blurred' | 'bounds-changed' | 'bounds-changing' | 'close-requested' | 'closed' | 'disabled-frame-bounds-changed' |
-        'disabled-frame-bounds-changing' | 'embedded' | 'external-process-exited' | 'external-process-started' | 'focused' | 'frame-disabled' | 'frame-enabled' |
-        'group-changed' | 'hidden' | 'initialized' | 'maximized' | 'minimized' | 'navigation-rejected' | 'restored' | 'show-requested' | 'shown';
+    type OpenFinWindowEventType = 'auth-requested'|'blurred'|'bounds-changed'|'bounds-changing'|'close-requested'|'closed'|'disabled-frame-bounds-changed'|
+        'disabled-frame-bounds-changing'|'embedded'|'external-process-exited'|'external-process-started'|'focused'|'frame-disabled'|'frame-enabled'|
+        'group-changed'|'hidden'|'initialized'|'maximized'|'minimized'|'navigation-rejected'|'restored'|'show-requested'|'shown';
 
-    type OpenFinAnchor = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+    type OpenFinAnchor = 'top-left'|'top-right'|'bottom-left'|'bottom-right';
 }

@@ -27,11 +27,11 @@ export class APIHandler {
      * This binding happens on the application level.  An application cannot have different windows using different tabbing UI.
      */
     public setTabClient(payload: ApplicationUIConfig, id: Identity) {
-        if (this.mTabService.getAppUIConfig(id.uuid)) {
+        if (this.mTabService.applicationConfigManager.exists(id.uuid)) {
             return Promise.reject('Configuration already set!');
         }
 
-        return this.mTabService.addAppUIConfig(id.uuid, payload.config);
+        return this.mTabService.applicationConfigManager.addApplicationUIConfig(id.uuid, payload.config);
     }
 
     /**

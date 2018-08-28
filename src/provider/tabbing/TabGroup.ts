@@ -104,7 +104,7 @@ export class TabGroup {
 
         // Set the Custom UI if we are the first tab added.
         if (this._tabs.length === 1) {
-            const firstTabConfig = TabService.INSTANCE.getAppUIConfig(tab.ID.uuid);
+            const firstTabConfig = TabService.INSTANCE.applicationConfigManager.getApplicationUIConfig(tab.ID.uuid);
 
             if (firstTabConfig) {
                 if (!this._window.initialWindowOptions.url) {
@@ -305,7 +305,7 @@ export class TabGroup {
         return this._activeTab;
     }
 
-    /**
+    /**      
      * Returns the tab sets window.
      * @returns {GroupWindow} The group window.
      */

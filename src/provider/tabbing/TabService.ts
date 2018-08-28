@@ -6,7 +6,9 @@ import {EventHandler} from './EventHandler';
 import {Tab} from './Tab';
 import {TabAPIActionProcessor} from './TabAPIActionProcessor';
 import {TabGroup} from './TabGroup';
-import {ZIndexer} from './ZIndexer';
+import { ZIndexer } from './ZIndexer';
+import { ApplicationConfigManager } from './components/ApplicationConfigManager';
+import { Application } from 'hadouken-js-adapter';
 
 interface GroupTabBounds extends Bounds {
     group: TabGroup;
@@ -51,15 +53,16 @@ export class TabService {
      */
     private _zIndexer: ZIndexer = new ZIndexer();
 
-    private _applicationUIConfigurations: ApplicationUIConfig[];
-
+    /**
+     * Handles the application ui configs
+     */
+    private mApplicationConfigManager: ApplicationConfigManager;
 
     /**
      * Constructor of the TabService Class.
      */
     constructor() {
         this._tabGroups = [];
-        this._applicationUIConfigurations = [];
         this._dragWindowManager = new DragWindowManager();
         this._dragWindowManager.init();
 
@@ -69,23 +72,10 @@ export class TabService {
         this.mTabApiEventHandler = new TabAPIActionProcessor(this);
         this.mTabApiEventHandler.init();
 
+        this.mApplicationConfigManager = new ApplicationConfigManager();
+
         TabService.INSTANCE = this;
-    }
 
-    public getAppUIConfig(uuid: string) {
-        const conf = this._applicationUIConfigurations.find(config => config.uuid === uuid);
-
-        if (conf) {
-            return conf.config;
-        }
-
-        return;
-    }
-
-    public addAppUIConfig(uuid: string, config: TabWindowOptions) {
-        if (!this.getAppUIConfig(uuid)) {
-            this._applicationUIConfigurations.push({uuid, config});
-        }
     }
 
     /**
@@ -252,5 +242,13 @@ export class TabService {
      */
     public get tabGroups(): TabGroup[] {
         return this._tabGroups;
+    }
+
+    /**
+     * Returns the application config manager
+     * @returns {ApplicationConfigManager} The container that holds the tab window options bound to the
+     */
+    public get applicationConfigManager(): ApplicationConfigManager {
+        return this.mApplicationConfigManager;
     }
 }

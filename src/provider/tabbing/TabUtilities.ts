@@ -55,24 +55,30 @@ export async function ejectTab(tabService: TabService, message: TabIdentifier&Ta
         if (compareTabGroupUIs(isOverTabWindowResult.uuid, ejectedTab.ID.uuid)) {
             if (isOverTabGroup) {
                 if (isOverTabGroup.ID !== ejectedTab.tabGroup.ID) {
-                    await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true);
-                    await isOverTabGroup.addTab({tabID: ejectedTab.ID});
+                    await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true, true, false);
+                    console.log('removing tab to add to existing group.');
+                    const tab = await new Tab({tabID: ejectedTab.ID}).init();
+                    await isOverTabGroup.addTab(tab);
                 }
             } else {
+                await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true, true, false);
                 await TabService.INSTANCE.createTabGroupWithTabs([isOverTabWindowResult, ejectedTab.ID]);
+                console.log('making a new group.');
             }
         }
     } else {
-        await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true);
+        await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true, true, true);
+        console.log('removed tab in not over a window');
 
         if (message.screenX && message.screenY) {
+            console.log('moving with x,y');
             ejectedTab.window.moveTo(message.screenX!, message.screenY!);
             ejectedTab.window.show();
             return;
         }
 
         const bounds = await ejectedTab.window.getWindowBounds();
-
+        console.log('moving to current spot');
         ejectedTab.window.moveTo(bounds.left, bounds.top);
         ejectedTab.window.show();
         return;
@@ -107,11 +113,11 @@ export async function createTabGroupsFromTabBlob(tabBlob: TabBlob[]): Promise<vo
         for (const tab of blob.tabs) {
             const existingTab: Tab|undefined = TabService.INSTANCE.getTab({uuid: tab.uuid, name: tab.name});
 
-            if (existingTab) {
-                await existingTab.tabGroup.removeTab(existingTab.ID, false, true);
-            }
+            // if (existingTab) {
+            //     await existingTab.tabGroup.removeTab(existingTab.ID, false, true);
+            // }
 
-            const newTab: Tab|undefined = await group.addTab({tabID: {uuid: tab.uuid, name: tab.name}}, false, false);
+            const newTab: Tab|undefined = await group.addTab(existingTab || await new Tab({tabID: tab}).init(), false, false);
 
             if (!newTab) {
                 console.error('No tab was added');
@@ -146,7 +152,7 @@ export function getWindowAt(x: number, y: number, exclude?: Identity) {
     const id = exclude ? `${exclude.uuid}/${exclude.name}` : null;
     const windows: SnapWindow[] = (window as Window & {snapService: SnapService}).snapService['windows'];
     const windowsAtPoint: SnapWindow[] = windows.filter((window: SnapWindow) => {
-        const state: WindowState = window.getState();
+        const state: WindowState = Object.assign({}, window.getState());
 
         // Hack to deal with tabstrips being unknown to the snapservice
         const tabGroup = TabService.INSTANCE.getTabGroupByApp(window.getIdentity());

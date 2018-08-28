@@ -153,7 +153,10 @@ export class TabAPIActionProcessor {
             await existingTab.tabGroup.removeTab({uuid: tabPackage.tabID.uuid, name: tabPackage.tabID.name}, false, true);
         }
 
-        await tabGroup.addTab(tabPackage);
+        const tab = new Tab(tabPackage);
+        await tab.init();
+
+        await tabGroup.addTab(tab);
     }
 
     /**

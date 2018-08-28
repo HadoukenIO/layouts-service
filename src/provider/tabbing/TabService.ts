@@ -93,7 +93,7 @@ export class TabService {
      * @param {TabWindowOptions} WindowOptions Window Options used to create the tab group window (positions, dimensions, url, etc...)
      * @returns {TabGroup} TabGroup
      */
-    public async addTabGroup(windowOptions: TabWindowOptions): Promise<TabGroup> {
+    public addTabGroup(windowOptions: TabWindowOptions): TabGroup {
         const group = new TabGroup(windowOptions);
         // await group.init();
 
@@ -164,21 +164,32 @@ export class TabService {
      * @param tabs An array of Identities to add to a group.
      */
     public async createTabGroupWithTabs(tabs: TabIdentifier[]) {
-        if (tabs.length === 0) {
-            return Promise.reject('Must provide at least 1 Tab Identifier');
+        if (tabs.length < 2) {
+            return Promise.reject('Must provide at least 2 Tab Identifiers! ');
         }
-        const group = await this.addTabGroup({});
+        const group = this.addTabGroup({});
 
+        const tabsP = await Promise.all(tabs.map(async ID => await new Tab({tabID: ID}).init()));
 
-        for (const tab of tabs) {
-            await group.addTab({tabID: tab});
+        const firstTab = tabsP.shift();
+
+        if (firstTab) {
+            const bounds = await firstTab.window.getWindowBounds();
+            tabsP.forEach(tab => tab.window.finWindow.setBounds(bounds.left, bounds.top, bounds.width, bounds.height));
+            await group.addTab(firstTab, false);
         }
 
-        group.realignApps();
+        await Promise.all(tabsP.map(tab => group.addTab(tab, false)));
+
+        // for (const tabIDs of tabs) {
+        //     await group.addTab(tab);
+        // }
+        await group.switchTab(tabs[tabs.length - 1]);
+        await group.hideAllTabsMinusActiveTab();
+        // group.realignApps();
 
         return;
     }
-
     /**
      * Checks for any windows that is under a specific point.
      * @param {number} x X Coordinate

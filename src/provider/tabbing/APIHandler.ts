@@ -3,6 +3,7 @@ import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {ApplicationUIConfig, TabIdentifier, TabProperties} from '../../client/types';
 
+import {Tab} from './Tab';
 import {TabService} from './TabService';
 import {ejectTab} from './TabUtilities';
 
@@ -70,10 +71,10 @@ export class APIHandler {
      * will be used as the seed for the tab UI properties.
      */
     public async createTabGroup(windows: TabIdentifier[]) {
-        const group = await this.mTabService.getTabGroupByApp(windows[0]);
-        return Promise.all(windows.map(async (window) => {
-            group!.addTab({tabID: window});
-        }));
+        // const group = await this.mTabService.getTabGroupByApp(windows[0]);
+        // return Promise.all(windows.map(async (window) => {
+        //     group!.addTab({tabID: window});
+        // }));
     }
 
     /**
@@ -83,14 +84,15 @@ export class APIHandler {
      *
      * The added tab will be brought into focus.
      */
-    public addTab(payload: {targetWindow: TabIdentifier, windowToAdd: TabIdentifier}) {
+    public async addTab(payload: {targetWindow: TabIdentifier, windowToAdd: TabIdentifier}) {
         const group = this.mTabService.getTabGroupByApp(payload.targetWindow);
 
         if (group!.getTab(payload.targetWindow)) {
             return Promise.reject('Tab already exists in group');
         }
 
-        return group!.addTab({tabID: payload.windowToAdd});
+
+        return group!.addTab(await new Tab({tabID: payload.windowToAdd}).init());
     }
 
     /**

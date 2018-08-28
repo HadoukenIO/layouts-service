@@ -15,7 +15,7 @@ export class Tab {
     /**
      * Handle to the tab group that this tab belongs to.
      */
-    private readonly _tabGroup: TabGroup;
+    private _tabGroup: TabGroup|null = null;
 
     /**
      * The properties (title, icon) for the tab.
@@ -32,9 +32,8 @@ export class Tab {
      * @param {TabPackage} tabPackage The tab package contains the uuid, name, and any properties for the tab.
      * @param {TabGroup} tabGroup The tab group to which this tab belongs.
      */
-    constructor(tabPackage: TabPackage, tabGroup: TabGroup) {
+    constructor(tabPackage: TabPackage) {
         this._tabID = tabPackage.tabID;
-        this._tabGroup = tabGroup;
 
         if (tabPackage.tabProps) {
             this._tabProperties = tabPackage.tabProps;
@@ -51,12 +50,17 @@ export class Tab {
 
         this._tabProperties = this._loadTabProperties();
 
+        return this;
+    }
+
+
+    public async sendTabbedEvent() {
         fin.desktop.InterApplicationBus.send(
             fin.desktop.Application.getCurrent().uuid,
-            this._tabGroup.ID,
+            this.tabGroup.ID,
             TabApiEvents.TABADDED,
             {tabID: this.ID, tabProps: this._tabProperties, index: this.tabGroup.getTabIndex(this._tabID)});
-        fin.desktop.InterApplicationBus.send(this.ID.uuid, this.ID.name, AppApiEvents.TABBED, {tabGroupID: this._tabGroup.ID});
+        fin.desktop.InterApplicationBus.send(this.ID.uuid, this.ID.name, AppApiEvents.TABBED, {tabGroupID: this.tabGroup.ID});
     }
 
     /**
@@ -73,8 +77,8 @@ export class Tab {
     public async remove(closeApp: boolean) {
         this._tabWindow.leaveGroup();
 
-        fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, this._tabGroup.ID, TabApiEvents.TABREMOVED, this._tabID);
-        fin.desktop.InterApplicationBus.send(this.ID.uuid, this.ID.name, AppApiEvents.UNTABBED, {tabGroupID: this._tabGroup.ID});
+        fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, this.tabGroup.ID, TabApiEvents.TABREMOVED, this._tabID);
+        fin.desktop.InterApplicationBus.send(this.ID.uuid, this.ID.name, AppApiEvents.UNTABBED, {tabGroupID: this.tabGroup.ID});
 
         if (closeApp) {
             return this._tabWindow.close(false);
@@ -88,7 +92,7 @@ export class Tab {
     public updateTabProperties(props: TabProperties) {
         this._tabProperties = {...this._tabProperties, ...props};
         fin.desktop.InterApplicationBus.send(
-            fin.desktop.Application.getCurrent().uuid, this._tabGroup.ID, TabApiEvents.PROPERTIESUPDATED, {tabID: this.ID, tabProps: props});
+            fin.desktop.Application.getCurrent().uuid, this.tabGroup.ID, TabApiEvents.PROPERTIESUPDATED, {tabID: this.ID, tabProps: props});
 
         this._saveTabProperties();
     }
@@ -136,7 +140,11 @@ export class Tab {
      * @returns {TabGroup} TabGroup
      */
     public get tabGroup(): TabGroup {
-        return this._tabGroup;
+        if (this._tabGroup) {
+            return this._tabGroup;
+        } else {
+            throw new Error('Call attempted on tab with no group!');
+        }
     }
 
     /**
@@ -153,5 +161,9 @@ export class Tab {
      */
     public get ID(): TabIdentifier {
         return this._tabID;
+    }
+
+    public set tabGroup(group: TabGroup) {
+        this._tabGroup = group;
     }
 }

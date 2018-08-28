@@ -346,7 +346,14 @@ export class SnapService {
                         // The window under drop point is a tab group
                         if (tabGroupUnderPoint) {
                             // Add Tab
-                            tabGroupUnderPoint.addTab({tabID: currentDragWindowIdentity});
+                            const tab = new Tab({tabID: currentDragWindowIdentity});
+                            tab.init()
+                                .then(() => {
+                                    tabGroupUnderPoint.addTab(tab);
+                                })
+                                .catch((e) => {
+                                    console.error(e);
+                                });
                         } else {
                             // If not a tab group then create a group with the 2 tabs.
                             TabService.INSTANCE.createTabGroupWithTabs([windowUnderPoint, currentDragWindowIdentity]);

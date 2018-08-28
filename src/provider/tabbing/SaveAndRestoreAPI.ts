@@ -53,9 +53,9 @@ export async function swapTab(add: TabIdentifier, swapWith: TabIdentifier) {
 
     const tabIndex = group.getTabIndex(swapWith);
 
-    let tab: Tab|undefined;
-
-    tab = await group.addTab({tabID: add}, false, true, tabIndex);
+    const tab: Tab = new Tab({tabID: add});
+    await tab.init();
+    await group.addTab(tab, false, true, tabIndex);
 
     // remove swap with tab, dont close app, dont switch tabs, dont close group window
     await group.removeTab(swapWith, false, false, false);

@@ -61,8 +61,12 @@ export class GroupWindow extends AsyncWindow {
      * Initialized Async methods for the GroupWindow class.
      */
     public async init(): Promise<void> {
+        if (this._tabGroup.isWindowInitialized) {
+            return;
+        }
         this._window = await this._createTabWindow();
         this._createWindowEventListeners();
+        this._tabGroup.isWindowInitialized = true;
     }
 
     /**
@@ -200,7 +204,7 @@ export class GroupWindow extends AsyncWindow {
                 {
                     name: this._tabGroup.ID,
                     url: this._initialWindowOptions.url || DEFAULT_UI_URL,
-                    autoShow: false,
+                    autoShow: true,
                     frame: false,
                     maximizable: false,
                     resizable: false,
@@ -210,7 +214,8 @@ export class GroupWindow extends AsyncWindow {
                     defaultTop: this._initialWindowOptions.screenY,
                     defaultCentered: !this._initialWindowOptions.screenX && !this._initialWindowOptions.screenY,
                     saveWindowState: false,
-                    taskbarIconGroup: this._tabGroup.ID
+                    taskbarIconGroup: this._tabGroup.ID,
+                    waitForPageLoad: true
                 },
                 () => {
                     res(win);

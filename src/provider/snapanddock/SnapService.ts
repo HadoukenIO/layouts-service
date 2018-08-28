@@ -68,12 +68,12 @@ export class SnapService {
         this.resolver = new Resolver();
         this.view = new SnapView();
 
-        const serviceId: string = fin.desktop.Application.getCurrent().uuid;
+        const serviceUUID: string = fin.desktop.Application.getCurrent().uuid;
 
         // Listen for any new windows created and register them with the service
         fin.desktop.System.addEventListener('window-created', (event: fin.WindowBaseEvent) => {
             // Ignore child windows of the service itself (e.g. preview windows)
-            if (event.uuid !== fin.desktop.Window.getCurrent().uuid) {
+            if (event.uuid !== serviceUUID) {
                 this.registerWindow(event.uuid, event.name);
             }
         });
@@ -82,7 +82,7 @@ export class SnapService {
         fin.desktop.System.getAllWindows((windows: fin.WindowDetails[]) => {
             windows.forEach((app: fin.WindowDetails) => {
                 // Ignore the main service window and all of it's children
-                if (app.uuid !== fin.desktop.Window.getCurrent().uuid) {
+                if (app.uuid !== serviceUUID) {
                     // Register the main window
                     this.registerWindow(app.uuid, app.mainWindow.name);
 
@@ -176,12 +176,7 @@ export class SnapService {
         // window-created event for a registered window, it implies that our internal state is stale
         // and should be updated accordingly.
         if (existingSnapWindow) {
-            const index = this.windows.indexOf(existingSnapWindow);
-
-            // Remove the old window from the service
-            this.windows.splice(index, 1);
-            existingSnapWindow.onClose.remove(this.onWindowClosed, this);
-            this.validateGroup(existingSnapWindow.getGroup(), existingSnapWindow);
+            existingSnapWindow.onClose.emit(existingSnapWindow);
         }
 
         // In either case, we will add the new window to the service.

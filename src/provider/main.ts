@@ -59,17 +59,17 @@ async function registerService() {
         sendWindowServiceMessage(GroupEventType.LEAVE_SNAP_GROUP, window, providerChannel);
     });
 
-    providerChannel.register(TabAPI.CLOSETABGROUP, tabService.apiHandler.closeTabGroup);
-    providerChannel.register(TabAPI.CREATETABGROUP, tabService.apiHandler.createTabGroup);
-    providerChannel.register(TabAPI.ENDDRAG, tabService.apiHandler.endDrag);
-    providerChannel.register(TabAPI.GETTABS, tabService.apiHandler.getTabs);
-    providerChannel.register(TabAPI.MAXIMIZETABGROUP, tabService.apiHandler.maximizeTabGroup);
-    providerChannel.register(TabAPI.MINIMIZETABGROUP, tabService.apiHandler.minimizeTabGroup);
-    providerChannel.register(TabAPI.REMOVETAB, tabService.apiHandler.removeTab);
-    providerChannel.register(TabAPI.REORDERTABS, tabService.apiHandler.reorderTabs);
-    providerChannel.register(TabAPI.RESTORETABGROUP, tabService.apiHandler.restoreTabGroup);
-    providerChannel.register(TabAPI.SETACTIVETAB, tabService.apiHandler.setActiveTab);
-    providerChannel.register(TabAPI.SETTABCLIENT, tabService.apiHandler.setTabClient);
+    providerChannel.register(TabAPI.CLOSETABGROUP, tabService.apiHandler.closeTabGroup.bind(tabService.apiHandler));
+    providerChannel.register(TabAPI.CREATETABGROUP, tabService.apiHandler.createTabGroup.bind(tabService.apiHandler));
+    providerChannel.register(TabAPI.ENDDRAG, tabService.apiHandler.endDrag.bind(tabService.apiHandler));
+    providerChannel.register(TabAPI.GETTABS, tabService.apiHandler.getTabs.bind(tabService.apiHandler));
+    providerChannel.register(TabAPI.MAXIMIZETABGROUP, tabService.apiHandler.maximizeTabGroup.bind(tabService.apiHandler));
+    providerChannel.register(TabAPI.MINIMIZETABGROUP, tabService.apiHandler.minimizeTabGroup.bind(tabService.apiHandler));
+    providerChannel.register(TabAPI.REMOVETAB, tabService.apiHandler.removeTab.bind(tabService.apiHandler));
+    providerChannel.register(TabAPI.REORDERTABS, tabService.apiHandler.reorderTabs.bind(tabService.apiHandler));
+    providerChannel.register(TabAPI.RESTORETABGROUP, tabService.apiHandler.restoreTabGroup.bind(tabService.apiHandler));
+    providerChannel.register(TabAPI.SETACTIVETAB, tabService.apiHandler.setActiveTab.bind(tabService.apiHandler));
+    providerChannel.register(TabAPI.SETTABCLIENT, tabService.apiHandler.setTabClient.bind(tabService.apiHandler));
 
     return providerChannel;
 }

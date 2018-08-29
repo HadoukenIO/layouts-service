@@ -1,4 +1,4 @@
-import { ApplicationUIConfig, TabWindowOptions } from "../../../client/types";
+import {ApplicationUIConfig, TabWindowOptions} from '../../../client/types';
 
 /**
  * Class that handles which application configuration to use for the app and all its child windows
@@ -22,9 +22,9 @@ export class ApplicationConfigManager {
      * Retrieves the ui config given the Uuid
      * @param {string} uuid The uuid of the application to bind the window options to
      */
-    public getApplicationUIConfig(uuid: string): TabWindowOptions | undefined {
+    public getApplicationUIConfig(uuid: string): TabWindowOptions|undefined {
         if (!this.exists(uuid)) {
-            console.error("No application config found");
+            console.error('No application config found');
             return;
         }
 
@@ -56,8 +56,8 @@ export class ApplicationConfigManager {
      * @param {string} otherUuid THe other uuid to compare
      */
     public compareConfigBetweenApplications(uuid: string, otherUuid: string): boolean {
-        const config: TabWindowOptions | undefined = this.getApplicationUIConfig(uuid);
-        const otherConfig: TabWindowOptions | undefined = this.getApplicationUIConfig(otherUuid);
+        const config: TabWindowOptions|undefined = this.getApplicationUIConfig(uuid);
+        const otherConfig: TabWindowOptions|undefined = this.getApplicationUIConfig(otherUuid);
 
         return ((config && otherConfig && config.url === otherConfig.url) || (!config && !otherConfig));
     }

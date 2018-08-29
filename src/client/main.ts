@@ -9,8 +9,8 @@ export { AppApi } from './AppApi';
 export { TabbingApi } from './TabbingApi';
 
 const IDENTITY = {
-    uuid: 'Layout-Manager',
-    name: 'Layout-Manager'
+    uuid: 'layouts-service',
+    name: 'layouts-service'
 };
 const VERSION = '0.0.1';
 

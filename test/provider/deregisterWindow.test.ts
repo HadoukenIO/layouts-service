@@ -124,7 +124,7 @@ test('deregister snapped window', async t => {
 
 test('no preview when deregistered - dragging registered', async t => {
     // Wrap the pre-spawned preview window
-    const previewWin = await getWindow({ name: 'previewWindow-', uuid: 'Layout-Manager' });
+    const previewWin = await getWindow({ name: 'previewWindow-', uuid: 'layouts-service' });
 
     // Spawn two child windows (one of them deregistered)
     win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window.html', frame: false });
@@ -144,7 +144,7 @@ test('no preview when deregistered - dragging registered', async t => {
 
 test('no preview when deregistered - dragging deregistered', async t => {
     // Wrap the pre-spawned preview window
-    const previewWin = await getWindow({ name: 'previewWindow-', uuid: 'Layout-Manager' });
+    const previewWin = await getWindow({ name: 'previewWindow-', uuid: 'layouts-service' });
 
     // Spawn two child windows (one of them deregistered)
     win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window-deregistered.html', frame: false });

@@ -34,7 +34,7 @@ const run = (...args) => {
  */
 async function build() {
     await run('npm', ['run', 'clean']);
-    await run('npm', ['run', 'build:dev']);
+    await run('npm', ['run', 'build']);
     await run('tsc', ['-p', 'test', '--skipLibCheck']);
 }
 

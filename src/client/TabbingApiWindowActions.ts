@@ -1,6 +1,7 @@
 import { TabAPIWindowActions } from "./APITypes";
 import { TabAPIMessage } from "./types";
 import { Api } from "./Api";
+import * as Layouts from '../client/main';
 
 /**
  * @class Handles window actions for the tab strip
@@ -48,7 +49,7 @@ export class TabbingApiWindowActions extends Api {
 	 * @public
 	 * @function close Closes the tab client window.
 	 */
-	public close(): void {
+    public close(): void {
 		const payload: TabAPIMessage = { action: TabAPIWindowActions.CLOSE };
 
         super.sendAction(payload);

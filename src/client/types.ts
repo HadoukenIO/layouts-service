@@ -170,9 +170,12 @@ export interface DropPosition {
     screenY: number
 }
 
-export interface JoinTabGroupPayload {
+export interface TabGroupEventPayload {
     tabGroupId: string,
     tabID: TabIdentifier,
+}
+
+export interface JoinTabGroupPayload extends TabGroupEventPayload {
     tabProps: TabProperties,
     index: number
 }

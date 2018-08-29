@@ -1,14 +1,16 @@
-import {Identity} from 'hadouken-js-adapter';
-import {Client as ServiceClient} from 'hadouken-js-adapter/out/types/src/api/services/client';
+import { Identity } from 'hadouken-js-adapter';
+import { Client as ServiceClient } from 'hadouken-js-adapter/out/types/src/api/services/client';
 import * as Mousetrap from 'mousetrap';
 
-import {TabAPI, TabAPIActions, AppApiEvents} from './APITypes';
-import {Layout, LayoutApp, LayoutName, TabProperties, TabWindowOptions, DropPosition, JoinTabGroupPayload} from './types';
+import { TabAPI, TabAPIActions } from './APITypes';
+import { Layout, LayoutApp, LayoutName, TabProperties, TabWindowOptions, JoinTabGroupPayload, TabGroupEventPayload, DropPosition } from './types';
 
-export {AppApi} from './AppApi';
-export {TabbingApi} from './TabbingApi';
+export { AppApi } from './AppApi';
+export { TabbingApi } from './TabbingApi';
 
-const IDENTITY = {name: 'Layout-Manager'
+const IDENTITY = {
+    uuid: 'Layout-Manager',
+    name: 'Layout-Manager'
 };
 const VERSION = '0.0.1';
 
@@ -26,11 +28,13 @@ const getId = (() => {
             return id;
         }
         fin.Window.getCurrent();
+        const { uuid, name } = fin.desktop.Window.getCurrent();
+        id = { uuid, name };
         return id;
     };
 })();
 
-const servicePromise: Promise<ServiceClient> = fin.desktop.Service.connect({...IDENTITY, payload: VERSION}).then((service: ServiceClient) => {
+const servicePromise: Promise<ServiceClient> = fin.desktop.Service.connect({ ...IDENTITY, payload: VERSION }).then((service: ServiceClient) => {
     // Map undocking keybind
     Mousetrap.bind('mod+shift+u', () => {
         service.dispatch('undockWindow', getId());
@@ -45,12 +49,13 @@ const servicePromise: Promise<ServiceClient> = fin.desktop.Service.connect({...I
     service.register('leave-snap-group', () => {
         window.dispatchEvent(new Event('leave-snap-group'));
     });
-    service.register('join-tab-group', () => {
-        window.dispatchEvent(new Event('join-tab-group'));
+    service.register('join-tab-group', (payload: JoinTabGroupPayload) => {
+
+        window.dispatchEvent(new CustomEvent<JoinTabGroupPayload>('join-tab-group', { detail: payload }));
     });
 
-    service.register('leave-tab-group', () => {
-        window.dispatchEvent(new Event('leave-tab-group'));
+    service.register('leave-tab-group', (payload: TabGroupEventPayload) => {
+        window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('leave-tab-group'));
     });
 
     // Any unregistered action will simply return false
@@ -98,33 +103,22 @@ export async function deregister(identity: Identity = getId()): Promise<void> {
 }
 
 /**
- * Registers an event listener for layouts-service events
+ * Registers an event listener for grouping events
  * @param {string} eventType Event to be subscribed to. Valid options are 'join-snap-group' and 'leave-snap-group'
  * @param {() => void} callback Function to be executed on event firing. Takes no arguments and returns void.
  */
-export function addEventListener(
-    eventType: 'join-snap-group'|'leave-snap-group'|'join-tab-group'|'leave-tab-group', callback: (payload: any) => void): void {
+//export async function addEventListener(eventType: 'join-tab-group' | 'leave-tab-group', callback: (customEvent: TabEvent) => void): Promise<void>;
+export async function addEventListener(
+    eventType: 'join-snap-group' | 'leave-snap-group' | 'join-tab-group' | 'leave-tab-group', callback: (customEvent: Event | CustomEvent<TabGroupEventPayload>) => void): Promise<void> {
     // Use native js event system to pass internal events around.
     // Without this we would need to handle multiple registration ourselves.
     window.addEventListener(eventType, callback);
 }
 
 /**
- * Removes an event listener from the service
- * @param {string} eventType Event to be subscribed to. Valid options are 'join-snap-group' and 'leave-snap-group'
- * @param {() => void} callback Function to be removed from this event
- */
-export function removeEventListener(
-    eventType: 'join-snap-group'|'leave-snap-group'|'join-tab-group'|'leave-tab-group', callback: () => void): void {
-    // Use native js event system to pass internal events around.
-    // Without this we would need to handle multiple registration ourselves.
-    window.removeEventListener(eventType, callback);
-}
-
-/**
  * Decide which parts of this you will implement, alter LayoutApp object to reflect this then send it back
  */
-export async function onWillSaveAppLayout(layoutDecorator: (layoutApp: LayoutApp) => LayoutApp | false | Promise<LayoutApp|false>): Promise<boolean> {
+export async function onWillSaveAppLayout(layoutDecorator: (layoutApp: LayoutApp) => LayoutApp | false | Promise<LayoutApp | false>): Promise<boolean> {
     const service: ServiceClient = await servicePromise;
     return service.register('savingLayout', layoutDecorator);
 }
@@ -132,7 +126,7 @@ export async function onWillSaveAppLayout(layoutDecorator: (layoutApp: LayoutApp
 /**
  * Get the layoutApp object, implement, then return implemented LayoutApp object (minus anything not implemented)
  */
-export async function onAppRestore(layoutDecorator: (layoutApp: LayoutApp) => LayoutApp | false | Promise<LayoutApp|false>): Promise<boolean> {
+export async function onAppRestore(layoutDecorator: (layoutApp: LayoutApp) => LayoutApp | false | Promise<LayoutApp | false>): Promise<boolean> {
     const service: ServiceClient = await servicePromise;
     return service.register('restoreApp', layoutDecorator);
 }
@@ -184,7 +178,10 @@ export async function ready(): Promise<Layout> {
  *
  * If there is no tab group associated with the window context, will resolve to null.
  */
-export async function getTabs(window: Identity = getId()): Promise<Identity[]|null> {
+export async function getTabs(window: Identity = getId()): Promise<Identity[] | null> {
+    if (!window || !window.name || !window.uuid) {
+        return Promise.reject('Invalid window provided');
+    }
     const service: ServiceClient = await servicePromise;
 
     return service.dispatch(TabAPI.GETTABS, window);
@@ -207,7 +204,7 @@ export async function setTabClient(url: string, config: TabWindowOptions): Promi
     }
     const service: ServiceClient = await servicePromise;
 
-    return service.dispatch(TabAPI.SETTABCLIENT, {url, config});
+    return service.dispatch(TabAPI.SETTABCLIENT, { url, config });
 }
 
 /**
@@ -231,9 +228,15 @@ export async function createTabGroup(windows: Identity[]): Promise<void> {
  * The added tab will be brought into focus.
  */
 export async function addTab(targetWindow: Identity, windowToAdd: Identity = getId()): Promise<void> {
+    if (!targetWindow || !targetWindow.uuid || !targetWindow.name) {
+        return Promise.reject('Invalid targetWindow provided');
+    }
+    if (!windowToAdd || !windowToAdd.name || !windowToAdd.uuid) {
+        return Promise.reject('Invalid window provided');
+    }
     const service: ServiceClient = await servicePromise;
 
-    return service.dispatch(TabAPI.ADDTAB, {targetWindow, windowToAdd});
+    return service.dispatch(TabAPI.ADDTAB, { targetWindow, windowToAdd });
 }
 
 /**
@@ -241,6 +244,9 @@ export async function addTab(targetWindow: Identity, windowToAdd: Identity = get
  * Uses current window context by default
  */
 export async function removeTab(window: Identity = getId()): Promise<void> {
+    if (!window || !window.name || !window.uuid) {
+        return Promise.reject('Invalid window provided');
+    }
     const service: ServiceClient = await servicePromise;
 
     return service.dispatch(TabAPI.REMOVETAB, window);
@@ -250,6 +256,9 @@ export async function removeTab(window: Identity = getId()): Promise<void> {
  * Brings the specified tab to the front of the set.
  */
 export async function setActiveTab(window: Identity): Promise<void> {
+    if (!window || !window.name || !window.uuid) {
+        return Promise.reject('Invalid window provided');
+    }
     const service: ServiceClient = await servicePromise;
 
     return service.dispatch(TabAPI.SETACTIVETAB, window);
@@ -259,15 +268,21 @@ export async function setActiveTab(window: Identity): Promise<void> {
  * Closes the tab for the window context and removes it from the associated tab group.
  */
 export async function closeTab(window: Identity): Promise<void> {
+    if (!window || !window.name || !window.uuid) {
+        return Promise.reject('Invalid window provided');
+    }
     const service: ServiceClient = await servicePromise;
 
-    return service.dispatch(TabAPI.CLOSETAB, window);
+    return service.dispatch(TabAPI.SETACTIVETAB, window);
 }
 
 /**
  * Minimizes the tab group for the window context.
  */
 export async function minimizeTabGroup(window: Identity): Promise<void> {
+    if (!window || !window.name || !window.uuid) {
+        return Promise.reject('Invalid window provided');
+    }
     const service: ServiceClient = await servicePromise;
 
     return service.dispatch(TabAPI.MINIMIZETABGROUP, window);
@@ -277,6 +292,9 @@ export async function minimizeTabGroup(window: Identity): Promise<void> {
  * Maximizes the tab group for the window context.
  */
 export async function maximizeTabGroup(window: Identity): Promise<void> {
+    if (!window || !window.name || !window.uuid) {
+        return Promise.reject('Invalid window provided');
+    }
     const service: ServiceClient = await servicePromise;
 
     return service.dispatch(TabAPI.MAXIMIZETABGROUP, window);
@@ -286,6 +304,9 @@ export async function maximizeTabGroup(window: Identity): Promise<void> {
  * Closes the tab group for the window context.
  */
 export async function closeTabGroup(window: Identity): Promise<void> {
+    if (!window || !window.name || !window.uuid) {
+        return Promise.reject('Invalid window provided');
+    }
     const service: ServiceClient = await servicePromise;
 
     return service.dispatch(TabAPI.CLOSETABGROUP, window);
@@ -295,6 +316,9 @@ export async function closeTabGroup(window: Identity): Promise<void> {
  * Restores the tab group for the window context to its normal state.
  */
 export async function restoreTabGroup(window: Identity): Promise<void> {
+    if (!window || !window.name || !window.uuid) {
+        return Promise.reject('Invalid window provided');
+    }
     const service: ServiceClient = await servicePromise;
 
     return service.dispatch(TabAPI.RESTORETABGROUP, window);
@@ -323,7 +347,7 @@ export const tabStrip = {
         }
         const service: ServiceClient = await servicePromise;
 
-        return service.dispatch(TabAPI.UPDATETABPROPERTIES, {window, properties});
+        return service.dispatch(TabAPI.UPDATETABPROPERTIES, { window, properties });
     },
 
     /**
@@ -344,6 +368,11 @@ export const tabStrip = {
         }
         const service: ServiceClient = await servicePromise;
 
-        return service.dispatch(TabAPI.ENDDRAG, {event, window});
+        const dropPoint: DropPosition = {
+            screenX: event.screenX,
+            screenY: event.screenY
+        };
+
+        return service.dispatch(TabAPI.ENDDRAG, { event: dropPoint, window });
     }
 };

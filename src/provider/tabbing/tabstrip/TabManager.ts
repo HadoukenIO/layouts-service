@@ -2,11 +2,12 @@ import Sortable from 'sortablejs';
 
 import {TabApiEvents} from '../../../client/APITypes';
 import {TabbingApi} from '../../../client/TabbingApi';
-import {TabIdentifier, TabPackage, TabProperties, JoinTabGroupPayload} from '../../../client/types';
+import {TabIdentifier, TabPackage, TabProperties, JoinTabGroupPayload, TabGroupEventPayload} from '../../../client/types';
 
 import { Tab } from './TabItem';
 import * as Layouts from '../../../client/main';
 import { p } from '../../snapanddock/utils/async';
+import { TabGroup } from '../TabGroup';
 
 /**
  * Handles the management of tabs and some of their functionality.
@@ -143,9 +144,16 @@ export class TabManager {
      * Creates listeners for various IAB + Window Events.
      */
     private _setupListeners(): void {
-        TabManager.tabAPI.addEventListener(TabApiEvents.TABADDED, (tabInfo: TabPackage) => {
-            console.log('join-snap-group', tabInfo);
+        Layouts.addEventListener('join-tab-group', (event: CustomEvent<TabGroupEventPayload> | Event) => {
+            const customEvent: CustomEvent<JoinTabGroupPayload> = event as CustomEvent<JoinTabGroupPayload>;
+            const tabInfo: JoinTabGroupPayload = customEvent.detail;
             this.addTab(tabInfo.tabID, tabInfo.tabProps!, tabInfo.index!);
+        });
+
+        Layouts.addEventListener('leave-tab-group', (event: CustomEvent<TabGroupEventPayload> | Event) => {
+            const customEvent: CustomEvent<TabGroupEventPayload> = event as CustomEvent<TabGroupEventPayload>;
+            const tabInfo: TabGroupEventPayload = customEvent.detail;
+            this.removeTab(tabInfo.tabID);
         });
 
         TabManager.tabAPI.addEventListener(TabApiEvents.TABREMOVED, (tabInfo: TabIdentifier) => {

@@ -4,7 +4,7 @@ import {TabGroup} from './TabGroup';
 import {TabService} from './TabService';
 import {TabWindow} from './TabWindow';
 
-export const DEFAULT_UI_URL = 'http://localhost:1337/provider/tabbing/tabstrip/tabstrip.html';
+export const DEFAULT_UI_URL = window.location.href.replace('provider.html', 'tabbing/tabstrip/tabstrip.html');
 
 /**
  * Handles the window for the Tab-Set

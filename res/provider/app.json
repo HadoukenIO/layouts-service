@@ -9,18 +9,13 @@
         "showTaskbarIcon": true,
         "defaultHeight": 300,
         "defaultWidth": 400,
-        "_experimental": {
-            "v2Api": true
+        "enableAppLogging": true,
+        "logManagement": {
+            "enabled": true
         }
     },
-    "exports": {
-        "name": "layoutsManager",
-        "supportedVersions": [
-            "0.0.1"
-        ]
-    },
     "runtime": {
-        "arguments": "--v=1 --enable-crash-reporting --enable-aggressive-domstorage-flushing",
+        "arguments": "--enable-aggressive-domstorage-flushing",
         "version": "9.61.33.32"
     }
 }

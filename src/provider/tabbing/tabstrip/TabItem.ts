@@ -1,5 +1,7 @@
 import {TabIdentifier, TabProperties} from '../../../client/types';
-import {TabManager} from './TabManager';
+import { TabManager } from './TabManager';
+import  * as Layouts from '../../../client/main';
+import { Identity } from 'hadouken-js-adapter';
 
 export class Tab {
     /**
@@ -31,6 +33,7 @@ export class Tab {
         this._ID = tabID;
         this._properties = tabProperties;
         this._tabManager = tabManager;
+
     }
 
     /**
@@ -88,7 +91,6 @@ export class Tab {
      */
     private _onDragStart(e: DragEvent): boolean {
         e.dataTransfer.effectAllowed = 'move';
-
         TabManager.tabAPI.startDrag();
         return true;
     }
@@ -98,8 +100,7 @@ export class Tab {
      * @param {DragEvent} e DragEvent
      */
     private _onDragEnd(e: DragEvent): void {
-        // @ts-ignore
-        TabManager.tabAPI.endDrag(e, this._ID.uuid, this._ID.name);
+        Layouts.tabStrip.endDrag(e, { uuid: this._ID.uuid, name: this._ID.name });
     }
 
     /**
@@ -126,7 +127,8 @@ export class Tab {
      */
     private _onMouseDownHandler(e: MouseEvent): void {
         this.setActive();
-        TabManager.tabAPI.activateTab(this._ID.uuid, this._ID.name);
+        //TabManager.tabAPI.activateTab(this._ID.uuid, this._ID.name);
+        Layouts.setActiveTab({ uuid: this._ID.uuid, name: this._ID.uuid });
     }
 
 
@@ -137,11 +139,11 @@ export class Tab {
     private _onClickHandler(e: MouseEvent): void {
         switch ((e.target as Element).className) {
             case 'tab-exit': {
-                TabManager.tabAPI.closeTab(this._ID.uuid, this._ID.name);
+                Layouts.closeTab({ uuid: this._ID.uuid, name: this._ID.name });
 
                 break;
             }
-            default: { TabManager.tabAPI.activateTab(this._ID.uuid, this._ID.name); }
+            default: { Layouts.setActiveTab({ uuid: this._ID.uuid, name: this._ID.uuid }); }
         }
     }
 
@@ -203,7 +205,7 @@ export class Tab {
             try {
                 inputNode.remove();
                 // @ts-ignore
-                TabManager.tabAPI.updateTabProperties(this._ID.uuid, this._ID.name, {title: inputNode.value});
+                Layouts.tabStrip.updateTabProperties({ uuid: this._ID.uuid, name: this._ID.name }, { title: inputNode.value });
             } catch (e) {
             }
         }

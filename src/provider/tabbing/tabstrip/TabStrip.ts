@@ -19,7 +19,14 @@ fin.desktop.main(() => {
         };
 
         maximizeElem!.onclick = () => {
-            Layouts.maximizeTabGroup(id);
+            if (!tabManager.isMaximized) {
+                Layouts.maximizeTabGroup(id);
+                tabManager.isMaximized = true;
+            } else {
+                Layouts.restoreTabGroup(id);
+                tabManager.isMaximized = false;
+            }
+            
         };
 
         closeElem!.onclick = () => {

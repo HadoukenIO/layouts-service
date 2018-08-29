@@ -1,7 +1,9 @@
 import {AppApiEvents, TabApiEvents} from '../../client/APITypes';
-import {TabIdentifier, TabPackage, TabProperties} from '../../client/types';
+import { TabIdentifier, TabPackage, TabProperties, TabServiceID, JoinTabGroupPayload} from '../../client/types';
 import {TabGroup} from './TabGroup';
 import {TabWindow} from './TabWindow';
+import { Client } from '../../../node_modules/hadouken-js-adapter/out/types/src/api/services/client';
+import { Provider } from '../../../node_modules/hadouken-js-adapter/out/types/src/api/services/provider';
 
 /**
  * The Tab class handles functionality related to the tab itself.
@@ -55,12 +57,16 @@ export class Tab {
 
 
     public async sendTabbedEvent() {
-        fin.desktop.InterApplicationBus.send(
-            fin.desktop.Application.getCurrent().uuid,
-            this.tabGroup.ID,
-            TabApiEvents.TABADDED,
-            {tabID: this.ID, tabProps: this._tabProperties, index: this.tabGroup.getTabIndex(this._tabID)});
-        fin.desktop.InterApplicationBus.send(this.ID.uuid, this.ID.name, AppApiEvents.TABBED, {tabGroupID: this.tabGroup.ID});
+        //fin.desktop.InterApplicationBus.send(
+        //    fin.desktop.Application.getCurrent().uuid,
+        //    this.tabGroup.ID,
+        //    TabApiEvents.TABADDED,
+        //    {tabID: this.ID, tabProps: this._tabProperties, index: this.tabGroup.getTabIndex(this._tabID)});
+        //fin.desktop.InterApplicationBus.send(this.ID.uuid, this.ID.name, AppApiEvents.TABBED, {tabGroupID: this.tabGroup.ID});
+
+        const service: Provider = (window as Window & { providerChannel: Provider }).providerChannel;
+        service.dispatch(this.ID, 'join-tab-group', { tabGroupID: this.tabGroup.ID, tabID: this.ID, tabProps: this._tabProperties, index: this.tabGroup.getTabIndex(this._tabID) });
+        service.dispatch({ uuid: TabServiceID.UUID, name: this.tabGroup.ID }, 'join-tab-group', {tabID: this.ID, tabProps: this._tabProperties, index: this.tabGroup.getTabIndex(this._tabID)});
     }
 
     /**

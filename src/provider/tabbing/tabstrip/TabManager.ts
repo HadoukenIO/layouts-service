@@ -2,9 +2,11 @@ import Sortable from 'sortablejs';
 
 import {TabApiEvents} from '../../../client/APITypes';
 import {TabbingApi} from '../../../client/TabbingApi';
-import {TabIdentifier, TabPackage, TabProperties} from '../../../client/types';
+import {TabIdentifier, TabPackage, TabProperties, JoinTabGroupPayload} from '../../../client/types';
 
-import {Tab} from './TabItem';
+import { Tab } from './TabItem';
+import * as Layouts from '../../../client/main';
+import { p } from '../../snapanddock/utils/async';
 
 /**
  * Handles the management of tabs and some of their functionality.
@@ -37,11 +39,14 @@ export class TabManager {
 
     private dragDropManager: Sortable;
 
+    private maximized: boolean;
+
     /**
      * Constructs the TabManager class.
      */
     constructor() {
         TabManager.tabContainer = document.getElementById('tabs')!;
+        this.maximized = false; 
         this._setupListeners();
 
         this.dragDropManager = Sortable.create(TabManager.tabContainer, {
@@ -54,7 +59,8 @@ export class TabManager {
                     return {uuid: el.dataset.uuid as string, name: el.dataset.name as string};
                 });
                 // Sends the new order to the service to update the cache
-                TabManager.tabAPI.sendTabOrder(orderedTabList);
+                //TabManager.tabAPI.sendTabOrder(orderedTabList);
+                Layouts.reorderTabs(orderedTabList);
             }
         });
     }
@@ -138,7 +144,7 @@ export class TabManager {
      */
     private _setupListeners(): void {
         TabManager.tabAPI.addEventListener(TabApiEvents.TABADDED, (tabInfo: TabPackage) => {
-            console.log('TABADDED', tabInfo);
+            console.log('join-snap-group', tabInfo);
             this.addTab(tabInfo.tabID, tabInfo.tabProps!, tabInfo.index!);
         });
 
@@ -199,5 +205,13 @@ export class TabManager {
      */
     public get getActiveTab(): Tab {
         return this.activeTab;
+    }
+
+    public get isMaximized(): boolean {
+        return this.maximized;
+    }
+
+    public set isMaximized(max: boolean) {
+        this.maximized = max;
     }
 }

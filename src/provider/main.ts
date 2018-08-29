@@ -61,15 +61,18 @@ async function registerService() {
 
     providerChannel.register(TabAPI.CLOSETABGROUP, tabService.apiHandler.closeTabGroup.bind(tabService.apiHandler));
     providerChannel.register(TabAPI.CREATETABGROUP, tabService.apiHandler.createTabGroup.bind(tabService.apiHandler));
+    providerChannel.register(TabAPI.STARTDRAG, tabService.apiHandler.startDrag.bind(tabService.apiHandler));
     providerChannel.register(TabAPI.ENDDRAG, tabService.apiHandler.endDrag.bind(tabService.apiHandler));
     providerChannel.register(TabAPI.GETTABS, tabService.apiHandler.getTabs.bind(tabService.apiHandler));
     providerChannel.register(TabAPI.MAXIMIZETABGROUP, tabService.apiHandler.maximizeTabGroup.bind(tabService.apiHandler));
     providerChannel.register(TabAPI.MINIMIZETABGROUP, tabService.apiHandler.minimizeTabGroup.bind(tabService.apiHandler));
     providerChannel.register(TabAPI.REMOVETAB, tabService.apiHandler.removeTab.bind(tabService.apiHandler));
+    providerChannel.register(TabAPI.CLOSETAB, tabService.apiHandler.closeTab.bind(tabService.apiHandler));
     providerChannel.register(TabAPI.REORDERTABS, tabService.apiHandler.reorderTabs.bind(tabService.apiHandler));
     providerChannel.register(TabAPI.RESTORETABGROUP, tabService.apiHandler.restoreTabGroup.bind(tabService.apiHandler));
     providerChannel.register(TabAPI.SETACTIVETAB, tabService.apiHandler.setActiveTab.bind(tabService.apiHandler));
     providerChannel.register(TabAPI.SETTABCLIENT, tabService.apiHandler.setTabClient.bind(tabService.apiHandler));
+    providerChannel.register(TabAPI.UPDATETABPROPERTIES, tabService.apiHandler.updateTabProperties.bind(tabService.apiHandler));
 
     return providerChannel;
 }

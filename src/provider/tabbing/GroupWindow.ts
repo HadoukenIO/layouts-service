@@ -7,12 +7,12 @@ import {TabWindow} from './TabWindow';
 export const DEFAULT_UI_URL = (() => {
     let providerLocation = window.location.href;
 
-    if (providerLocation.indexOf("http://localhost") === 0) {
-        //Work-around for fake provider used within test runner
+    if (providerLocation.indexOf('http://localhost') === 0) {
+        // Work-around for fake provider used within test runner
         providerLocation = providerLocation.replace('/test', '/provider');
     }
 
-    //Locate the default tabstrip HTML page, relative to the location of the provider
+    // Locate the default tabstrip HTML page, relative to the location of the provider
     return providerLocation.replace('provider.html', 'tabbing/tabstrip/tabstrip.html');
 })();
 

@@ -23,7 +23,7 @@ test.afterEach.always(async () => {
     fin.InterApplicationBus.removeAllListeners();
 });
 
-test.failing("Create tab group from 2 windows", async (assert) => {
+test("Create tab group from 2 windows", async (assert) => {
     // Arrange
     const app1: Application = await createTabbingWindow('default', 'App0', 200);
     const app2: Application = await createTabbingWindow('default', 'App1', 500);
@@ -57,13 +57,13 @@ test.failing("Create tab group from 2 windows", async (assert) => {
 
 
     // Act
-    const scriptToExecute = `createTabGroupsFromMultipleWindows(${JSON.stringify(tabBlobs)})`;
+    const scriptToExecute = `createTabGroupsFromTabBlob(${JSON.stringify(tabBlobs)})`;
     await executeJavascriptOnService(scriptToExecute);
 
     // Tab group should have been created
     const serviceChildWindows: Window[] = await serviceApplication.getChildWindows();
 
-    let uuidTestPattern = new RegExp('^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$', 'i');
+    const uuidTestPattern = new RegExp('^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$', 'i');
 
     const newTabGroupWindow: Window | undefined = serviceChildWindows.find((window: Window) => {
         return window.identity.uuid == "layouts-service" && uuidTestPattern.test(window.identity.name!);

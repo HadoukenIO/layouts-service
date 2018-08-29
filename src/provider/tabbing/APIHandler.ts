@@ -126,7 +126,7 @@ export class APIHandler {
             return Promise.reject('No group found');
         }
 
-        return group.removeTab(window, true);
+        return group.removeTab(window, true, true);
     }
     /**
      * Minimizes the tab group for the window context.

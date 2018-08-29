@@ -140,7 +140,6 @@ export class Tab {
         switch ((e.target as Element).className) {
             case 'tab-exit': {
                 Layouts.closeTab({ uuid: this._ID.uuid, name: this._ID.name });
-
                 break;
             }
             default: { Layouts.setActiveTab({ uuid: this._ID.uuid, name: this._ID.uuid }); }

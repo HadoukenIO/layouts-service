@@ -53,9 +53,11 @@ const servicePromise: Promise<ServiceClient> = fin.desktop.Service.connect({ ...
 
         window.dispatchEvent(new CustomEvent<JoinTabGroupPayload>('join-tab-group', { detail: payload }));
     });
-
     service.register('leave-tab-group', (payload: TabGroupEventPayload) => {
         window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('leave-tab-group', { detail: payload }));
+    });
+    service.register('tab-activated', (payload: TabGroupEventPayload) => {
+        window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('tab-activated', { detail: payload }));
     });
 
     // Any unregistered action will simply return false
@@ -109,7 +111,7 @@ export async function deregister(identity: Identity = getId()): Promise<void> {
  */
 //export async function addEventListener(eventType: 'join-tab-group' | 'leave-tab-group', callback: (customEvent: TabEvent) => void): Promise<void>;
 export async function addEventListener(
-    eventType: 'join-snap-group' | 'leave-snap-group' | 'join-tab-group' | 'leave-tab-group', callback: (customEvent: Event | CustomEvent<TabGroupEventPayload>) => void): Promise<void> {
+    eventType: 'join-snap-group' | 'leave-snap-group' | 'join-tab-group' | 'leave-tab-group' | 'tab-activated', callback: (customEvent: Event | CustomEvent<TabGroupEventPayload>) => void): Promise<void> {
     // Use native js event system to pass internal events around.
     // Without this we would need to handle multiple registration ourselves.
     window.addEventListener(eventType, callback);

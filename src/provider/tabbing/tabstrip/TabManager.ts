@@ -156,23 +156,15 @@ export class TabManager {
             this.removeTab(tabInfo.tabID);
         });
 
-        TabManager.tabAPI.addEventListener(TabApiEvents.TABACTIVATED, (tabInfo: TabIdentifier) => {
-            console.log('TABACTIVATED', tabInfo);
+        Layouts.addEventListener('tab-activated', (event: CustomEvent<TabGroupEventPayload> | Event) => {
+            const customEvent: CustomEvent<TabGroupEventPayload> = event as CustomEvent<TabGroupEventPayload>
+            const tabInfo: TabIdentifier = customEvent.detail.tabID;
             this.setActiveTab(tabInfo);
         });
 
-        TabManager.tabAPI.addEventListener(TabApiEvents.PROPERTIESUPDATED, (tabInfo: TabPackage) => {
-            console.log('TABPROPERTIESUPDATED', tabInfo);
-            const tab = this.getTab(tabInfo.tabID);
-            if (tab && tabInfo.tabProps) {
-                if (tabInfo.tabProps.icon) {
-                    tab.updateIcon(tabInfo.tabProps.icon);
-                }
-
-                if (tabInfo.tabProps.title) {
-                    tab.updateText(tabInfo.tabProps.title);
-                }
-            }
+        TabManager.tabAPI.addEventListener(TabApiEvents.TABACTIVATED, (tabInfo: TabIdentifier) => {
+            console.log('TABACTIVATED', tabInfo);
+            this.setActiveTab(tabInfo);
         });
     }
 

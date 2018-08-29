@@ -199,10 +199,11 @@ export class Tab {
         const inputNode: HTMLInputElement = document.createElement('input');
 
         inputNode.value = textNodeValue || '';
-
+        const that = this;
         function _onBlur(): void {
             try {
                 inputNode.remove();
+                that.updateText(inputNode.value);
                 // @ts-ignore
                 Layouts.tabStrip.updateTabProperties({ uuid: this._ID.uuid, name: this._ID.name }, { title: inputNode.value });
             } catch (e) {

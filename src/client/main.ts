@@ -3,7 +3,7 @@ import {Client as ServiceClient} from 'hadouken-js-adapter/out/types/src/api/ser
 import * as Mousetrap from 'mousetrap';
 
 import {TabAPI, TabAPIActions} from './APITypes';
-import {Layout, LayoutApp, LayoutName, TabProperties, TabWindowOptions, CustomData} from './types';
+import {CustomData, Layout, LayoutApp, LayoutName, TabProperties, TabWindowOptions} from './types';
 
 export {AppApi} from './AppApi';
 export {TabbingApi} from './TabbingApi';

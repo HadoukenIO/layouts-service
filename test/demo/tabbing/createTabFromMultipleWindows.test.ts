@@ -53,7 +53,7 @@ test.failing("Create tab group from 2 windows", async (assert) => {
     }];
 
     // Get the service window in order to be able to find the tabgroup window
-    const serviceApplication: Application = await fin.Application.wrap({ uuid: "Layout-Manager", name: "Layout-Manager" });    
+    const serviceApplication: Application = await fin.Application.wrap({ uuid: "layouts-service", name: "layouts-service" });    
 
 
     // Act
@@ -66,7 +66,7 @@ test.failing("Create tab group from 2 windows", async (assert) => {
     let uuidTestPattern = new RegExp('^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$', 'i');
 
     const newTabGroupWindow: Window | undefined = serviceChildWindows.find((window: Window) => {
-        return window.identity.uuid == "Layout-Manager" && uuidTestPattern.test(window.identity.name!);
+        return window.identity.uuid == "layouts-service" && uuidTestPattern.test(window.identity.name!);
     });
     
 

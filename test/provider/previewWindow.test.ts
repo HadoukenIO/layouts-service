@@ -9,7 +9,7 @@ let previewWin: _Window;
 
 test.beforeEach(async () => {
     const fin = await getConnection();
-    previewWin = await fin.Window.wrap({ name: 'previewWindow-', uuid: 'Layout-Manager' });
+    previewWin = await fin.Window.wrap({ name: 'previewWindow-', uuid: 'layouts-service' });
 });
 
 test('preview on right side', async t => {

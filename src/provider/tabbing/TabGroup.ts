@@ -154,7 +154,7 @@ export class TabGroup {
      * @param {boolean} closeApp Flag to force close the tab window or not.
      * @param {boolean} closeGroupWindowCheck Flag to check if we should close the tab set window if there are no more tabs.
      */
-    public async removeTab(tabID: TabIdentifier, closeApp: boolean, closeGroupWindowCheck = false, switchTab = true, removeFrame = true): Promise<void> {
+    public async removeTab(tabID: TabIdentifier, closeApp: boolean, closeGroupWindowCheck = false, switchTab = true, restoreWindowState = true): Promise<void> {
         const index: number = this.getTabIndex(tabID);
 
         if (index === -1) {
@@ -176,7 +176,7 @@ export class TabGroup {
         }
 
         await tab.remove(closeApp);
-        if (removeFrame) {
+        if (restoreWindowState) {
             tab.deInit();
         }
 

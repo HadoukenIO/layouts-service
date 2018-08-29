@@ -226,9 +226,8 @@ function createOptionElement(id: string) {
 Layouts.deregister();
 
 //Allow layouts service to save and restore this application
-Layouts.onWillSaveAppLayout(layoutApp => {
-    layoutApp.childWindows = layoutApp.childWindows.filter(removeForgetWins);
-    return layoutApp;
+Layouts.onApplicationSave(() => {
+    return {test: true};
 });
 Layouts.onAppRestore(onAppRes);
 Layouts.ready();

@@ -1,12 +1,18 @@
 const path = require('path');
+const webpack = require('webpack');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
+
+const version = require("./package.json").version;
 
 const outputDir = path.resolve(__dirname, './build');
 
 function createConfig(component, entryPoint, isLibrary, ...plugins) {
     const config = {
         entry: entryPoint,
+        optimization: {
+            minimize: component !== 'client'
+        },
         output: {
             path: outputDir + '/' + component,
             filename: '[name]-bundle.js'
@@ -49,8 +55,12 @@ function prepConfig(config) {
     return newConf;
 }
 
+const versionPlugin = new webpack.DefinePlugin({
+    PACKAGE_VERSION: `'${version}'`
+});
+
 module.exports = [
-    createConfig('client', './src/client/main.ts', false),
+    createConfig('client', './src/client/main.ts', false, versionPlugin),
     createConfig('provider', './src/provider/main.ts', false, 
         new CopyWebpackPlugin([{ from: './res/provider/provider.html' }]),
         new CopyWebpackPlugin([{ from: './res/provider/tabbing/', to: './tabbing' }]),
@@ -68,6 +78,6 @@ module.exports = [
         }]
     )),
     createConfig('provider', {tabStrip: './src/provider/tabbing/tabstrip/TabStrip.ts'}, false),
-    createConfig('demo', {LayoutsUI: './src/demo/LayoutsUI.ts'}, true, new CopyWebpackPlugin( [{ from: './res/demo' }]) ),
-    createConfig('demo', {Snappable: './src/demo/Snappable.ts'}, true)
+    createConfig('demo', {LayoutsUI: './src/demo/LayoutsUI.ts'}, true, new CopyWebpackPlugin( [{ from: './res/demo' }]), versionPlugin),
+    createConfig('demo', {Snappable: './src/demo/Snappable.ts'}, true, versionPlugin)
 ];

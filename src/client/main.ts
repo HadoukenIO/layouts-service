@@ -3,7 +3,7 @@ import {Client as ServiceClient} from 'hadouken-js-adapter/out/types/src/api/ser
 import * as Mousetrap from 'mousetrap';
 
 import {TabAPI, TabAPIActions} from './APITypes';
-import {Layout, LayoutApp, LayoutName, TabProperties, TabWindowOptions, CustomData} from './types';
+import {CustomData, Layout, LayoutApp, LayoutName, TabProperties, TabWindowOptions} from './types';
 
 export {AppApi} from './AppApi';
 export {TabbingApi} from './TabbingApi';
@@ -12,7 +12,8 @@ const IDENTITY = {
     uuid: 'layouts-service',
     name: 'layouts-service'
 };
-const VERSION = '0.0.1';
+
+import {version} from './version';
 
 // tslint:disable-next-line:no-any
 declare var fin: any;
@@ -34,7 +35,8 @@ const getId = (() => {
     };
 })();
 
-const servicePromise: Promise<ServiceClient> = fin.desktop.Service.connect({...IDENTITY, payload: VERSION}).then((service: ServiceClient) => {
+const servicePromise: Promise<ServiceClient> = fin.desktop.Service.connect({...IDENTITY, payload: {version}}).then((service: ServiceClient) => {
+    console.log('client connected to service: ' + version);
     // Map undocking keybind
     Mousetrap.bind('mod+shift+u', () => {
         service.dispatch('undockWindow', getId());

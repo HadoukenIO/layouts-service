@@ -153,12 +153,12 @@ export class APIHandler {
      * Closes the tab group for the window context.
      */
     public closeTabGroup(window: TabIdentifier) {
-        const group = this.mTabService.getTabGroupByApp(window);
+        const group = this.mTabService.getTabGroup(window.name);
         if (!group) {
             return Promise.reject('No group found');
         }
 
-        return group.removeAllTabs(true);
+        return this.mTabService.removeTabGroup(window.name, true);
     }
     /**
      * Restores the tab group for the window context to its normal state.

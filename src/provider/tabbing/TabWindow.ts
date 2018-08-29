@@ -1,4 +1,7 @@
 import {TabIdentifier, TabWindowOptions} from '../../client/types';
+import {SnapService} from '../snapanddock/SnapService';
+import {SnapWindow} from '../snapanddock/SnapWindow';
+
 import {AsyncWindow} from './asyncWindow';
 import {Tab} from './Tab';
 import {TabGroup} from './TabGroup';
@@ -51,8 +54,15 @@ export class TabWindow extends AsyncWindow {
         const bounds = await this.getWindowBounds();
         await this._window.resizeTo(bounds.width, bounds.height + this._tab.tabGroup.window.initialWindowOptions.height!, 'bottom-left');
 
+        // Check if the window should have a frame
+        const identity: TabIdentifier = this._tab.ID;
+        const id = `${identity.uuid}/${identity.name}`;
+        const windows: SnapWindow[] = (window as Window & {snapService: SnapService}).snapService['windows'];
+        const snapWindow: SnapWindow|undefined = windows.find(window => window.getId() === id);
+        const hasFrame: boolean = !snapWindow || snapWindow.getState().frame;  // If can't find the window (shouldn't be possible), assume window had a frame
+
         // @ts-ignore resizeRegion.sides is valid.  Its not in the type file.
-        return this.updateWindowOptions({showTaskbarIcon: true, frame: true, resizeRegion: {sides: {top: true}}});
+        return this.updateWindowOptions({showTaskbarIcon: true, frame: hasFrame, resizeRegion: {sides: {top: true}}});
     }
 
     /**

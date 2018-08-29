@@ -30,6 +30,8 @@ export class TabGroup {
      */
     private _activeTab!: Tab;
 
+    private _isRestored = false;
+
     /**
      * Constructor for the TabGroup Class.
      * @param {TabWindowOptions} windowOptions
@@ -46,7 +48,9 @@ export class TabGroup {
      */
     private async _initializeTabGroup() {
         await this._window.init();
-        await this._window.alignPositionToApp(this._tabs[0].window);
+        if (!this._isRestored) {
+            await this._window.alignPositionToApp(this._tabs[0].window);
+        }
     }
 
     public async addTab(tab: Tab, handleTabSwitch = true, handleAlignment = true, index = -1) {
@@ -69,15 +73,18 @@ export class TabGroup {
         }
 
         if (this._tabs.length === 1) {
-            const firstTabConfig = TabService.INSTANCE.applicationConfigManager.getApplicationUIConfig(tab.ID.uuid) || {};
+            if (!this._isRestored) {
+                const firstTabConfig = TabService.INSTANCE.applicationConfigManager.getApplicationUIConfig(tab.ID.uuid) || {};
 
-            const bounds = await tab.window.getWindowBounds();
-            this._window.updateInitialWindowOptions(
-                Object.assign({}, firstTabConfig as object, {width: bounds.width, screenX: bounds.left, screenY: bounds.top}));
+                const bounds = await tab.window.getWindowBounds();
+                this._window.updateInitialWindowOptions(
+                    Object.assign({}, firstTabConfig as object, {width: bounds.width, screenX: bounds.left, screenY: bounds.top}));
+            }
+
             await this._initializeTabGroup();
         }
 
-        if (handleAlignment && this._tabs.length > 1) {
+        if (handleAlignment && this._tabs.length || this._isRestored) {
             await tab.window.alignPositionToTabGroup();
         }
 
@@ -89,7 +96,7 @@ export class TabGroup {
             await tab.window.hide();
         }
 
-        return;
+        return tab;
     }
 
     /**
@@ -278,5 +285,9 @@ export class TabGroup {
      */
     public get tabs(): Tab[] {
         return this._tabs;
+    }
+
+    public set isRestored(isRestored: boolean) {
+        this._isRestored = isRestored;
     }
 }

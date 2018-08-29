@@ -6,9 +6,11 @@ import {APIHandler} from './APIHandler';
 import {ApplicationConfigManager} from './components/ApplicationConfigManager';
 import {DragWindowManager} from './DragWindowManager';
 import {EventHandler} from './EventHandler';
+import {getTabSaveInfo} from './SaveAndRestoreAPI';
 import {Tab} from './Tab';
 import {TabAPIActionProcessor} from './TabAPIActionProcessor';
 import {TabGroup} from './TabGroup';
+import {createTabGroupsFromTabBlob} from './TabUtilities';
 import {ZIndexer} from './ZIndexer';
 
 interface GroupTabBounds extends Bounds {
@@ -58,6 +60,7 @@ export class TabService {
      * Handles the application ui configs
      */
     private mApplicationConfigManager: ApplicationConfigManager;
+
 
     /**
      * Constructor of the TabService Class.

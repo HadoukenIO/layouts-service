@@ -107,10 +107,12 @@ export async function createTabGroupsFromTabBlob(tabBlob: TabBlob[]): Promise<vo
         // Create new tabgroup
         const group: TabGroup = await TabService.INSTANCE.addTabGroup(newTabWindowOptions);
 
-        for (const tab of blob.tabs) {
-            const existingTab: Tab|undefined = TabService.INSTANCE.getTab({uuid: tab.uuid, name: tab.name});
+        group.isRestored = true;
 
-            const newTab: Tab|undefined = await group.addTab(existingTab || await new Tab({tabID: tab}).init(), false, false);
+        for (const tab of blob.tabs) {
+            // const existingTab: Tab|undefined = TabService.INSTANCE.getTab({uuid: tab.uuid, name: tab.name});
+
+            const newTab: Tab|undefined = await group.addTab(await new Tab({tabID: tab}).init(), false, true);
 
             if (!newTab) {
                 console.error('No tab was added');

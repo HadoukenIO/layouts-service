@@ -156,11 +156,6 @@ export class TabManager {
             this.removeTab(tabInfo.tabID);
         });
 
-        TabManager.tabAPI.addEventListener(TabApiEvents.TABREMOVED, (tabInfo: TabIdentifier) => {
-            console.log('TABREMOVED', tabInfo);
-            this.removeTab(tabInfo);
-        });
-
         TabManager.tabAPI.addEventListener(TabApiEvents.TABACTIVATED, (tabInfo: TabIdentifier) => {
             console.log('TABACTIVATED', tabInfo);
             this.setActiveTab(tabInfo);

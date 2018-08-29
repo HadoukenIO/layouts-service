@@ -55,7 +55,7 @@ const servicePromise: Promise<ServiceClient> = fin.desktop.Service.connect({ ...
     });
 
     service.register('leave-tab-group', (payload: TabGroupEventPayload) => {
-        window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('leave-tab-group'));
+        window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('leave-tab-group', { detail: payload }));
     });
 
     // Any unregistered action will simply return false

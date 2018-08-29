@@ -14,8 +14,14 @@ fin.desktop.main(() => {
     
 
     if (TabManager.tabAPI && TabManager.tabAPI.windowActions) {
-        minimizeElem!.onclick = TabManager.tabAPI.windowActions.minimize;
-        maximizeElem!.onclick = TabManager.tabAPI.windowActions.toggleMaximize;
+        minimizeElem!.onclick = () => {
+            Layouts.minimizeTabGroup(id);
+        };
+
+        maximizeElem!.onclick = () => {
+            Layouts.maximizeTabGroup(id);
+        };
+
         closeElem!.onclick = () => {
             Layouts.closeTabGroup(id);
         };

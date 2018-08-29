@@ -131,7 +131,7 @@ export class APIHandler {
      * Minimizes the tab group for the window context.
      */
     public minimizeTabGroup(window: TabIdentifier) {
-        const group = this.mTabService.getTabGroupByApp(window);
+        const group = this.mTabService.getTabGroup(window.name);
         if (!group) {
             return Promise.reject('No group found');
         }

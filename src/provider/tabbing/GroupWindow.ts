@@ -4,7 +4,17 @@ import {TabGroup} from './TabGroup';
 import {TabService} from './TabService';
 import {TabWindow} from './TabWindow';
 
-export const DEFAULT_UI_URL = 'http://localhost:1337/provider/tabbing/tabstrip/tabstrip.html';
+export const DEFAULT_UI_URL = (() => {
+    let providerLocation = window.location.href;
+
+    if (providerLocation.indexOf('http://localhost') === 0) {
+        // Work-around for fake provider used within test runner
+        providerLocation = providerLocation.replace('/test', '/provider');
+    }
+
+    // Locate the default tabstrip HTML page, relative to the location of the provider
+    return providerLocation.replace('provider.html', 'tabbing/tabstrip/tabstrip.html');
+})();
 
 /**
  * Handles the window for the Tab-Set

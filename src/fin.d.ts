@@ -1175,6 +1175,11 @@ declare namespace fin {
          * Moves the window to a specified location.
          */
         moveTo(left: number, top: number, callback?: () => void, errorCallback?: (reason: string) => void): void;
+
+        removeEventListener(
+            type: 'bounds-changed'|'bounds-changing', 
+            listener: (event: WindowBoundsEvent) => void, callback?: () => void,
+            errorCallback?: (reason: string) => void): void;
         /**
          * Removes a previously registered event listener from the specified event.
          */

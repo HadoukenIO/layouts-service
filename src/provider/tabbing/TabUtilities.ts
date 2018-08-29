@@ -147,6 +147,11 @@ export function getWindowAt(x: number, y: number, exclude?: Identity) {
     const windowsAtPoint: SnapWindow[] = windows.filter((window: SnapWindow) => {
         const state: WindowState = Object.assign({}, window.getState());
 
+        // Ignore any windows that are snapped (temporary solution - see SERVICE-230/SERVICE-200)
+        if (window.getGroup().length > 1) {
+            return false;
+        }
+
         // Hack to deal with tabstrips being unknown to the snapservice
         const tabGroup = TabService.INSTANCE.getTabGroupByApp(window.getIdentity());
         if (tabGroup) {

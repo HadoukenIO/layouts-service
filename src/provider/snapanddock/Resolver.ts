@@ -1,7 +1,9 @@
+import {TabService} from '../tabbing/TabService';
+
 import {SNAP_DISTANCE} from './Config';
 import {Projector} from './Projector';
 import {SnapGroup} from './SnapGroup';
-import {SnapWindow, WindowState} from './SnapWindow';
+import {SnapWindow, WindowIdentity, WindowState} from './SnapWindow';
 import {Point, PointUtils} from './utils/PointUtils';
 import {RectUtils} from './utils/RectUtils';
 
@@ -123,11 +125,12 @@ export class Resolver {
                         const activeState: WindowState = activeWindow.getState();
 
                         // Only do the next loop if there's a chance that this window can intersect with the other group
-                        if (this.isSnappable(activeState) && RectUtils.distance(candidateGroup, activeState).within(SNAP_DISTANCE)) {
+                        if (this.isSnappable(activeWindow.getIdentity(), activeState) &&
+                            RectUtils.distance(candidateGroup, activeState).within(SNAP_DISTANCE)) {
                             candidateGroup.windows.forEach(candidateWindow => {
                                 const candidateState: WindowState = candidateWindow.getState();
 
-                                if (this.isSnappable(candidateState)) {
+                                if (this.isSnappable(candidateWindow.getIdentity(), candidateState)) {
                                     projector.project(activeState, candidateState);
                                 }
                             });
@@ -182,9 +185,10 @@ export class Resolver {
      *
      * If this check fails, we shouldn't be doing any bounds-checking or creating and snap targets for this window.
      *
+     * @param identity Handle to the window we are considering for snapping
      * @param windowState State of the window object we are considering for snapping
      */
-    private isSnappable(windowState: WindowState): boolean {
-        return !windowState.hidden && windowState.opacity > 0 && windowState.state === 'normal';
+    private isSnappable(identity: WindowIdentity, windowState: WindowState): boolean {
+        return !windowState.hidden && windowState.opacity > 0 && windowState.state === 'normal' && TabService.INSTANCE.getTab(identity) === undefined;
     }
 }

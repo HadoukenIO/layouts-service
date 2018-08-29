@@ -134,67 +134,19 @@ export class SnapWindow {
         group.addWindow(this);
 
         // Add listeners
-        window.addEventListener('bounds-changed', (event: fin.WindowBoundsEvent) => {
-            this.window.updateOptions({opacity: 1.0});
-            const bounds: fin.WindowBounds = this.checkBounds(event);
-            const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
-            const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
+        window.addEventListener('bounds-changed', this.handleBoundsChanged);
+        window.addEventListener('frame-disabled', this.handleFrameDisabled);
+        window.addEventListener('frame-enabled', this.handleFrameEnabled);
+        window.addEventListener('maximized', this.handleMaximized);
+        window.addEventListener('minimized', this.handleMinimized);
+        window.addEventListener('restored', this.handleRestored);
+        window.addEventListener('hidden', this.handleHidden);
+        window.addEventListener('shown', this.handleShown);
+        window.addEventListener('closed', this.handleClosed);
+        window.addEventListener('bounds-changing', this.handleBoundsChanging);
 
-            this.updateState({center, halfSize});
-            if (this.boundsChangeCountSinceLastCommit > 1) {
-                this.onCommit.emit(this);
-            } else {
-                this.onModified.emit(this);
-            }
-            this.boundsChangeCountSinceLastCommit = 0;
-        });
-        window.addEventListener('frame-disabled', () => {
-            this.updateState({frame: false});
-            this.onModified.emit(this);
-        });
-        window.addEventListener('frame-enabled', () => {
-            this.updateState({frame: true});
-            this.onModified.emit(this);
-        });
-        window.addEventListener('maximized', () => {
-            this.updateState({state: 'maximized'});
-            this.onModified.emit(this);
-        });
-        window.addEventListener('minimized', () => {
-            this.updateState({state: 'minimized'});
-            this.onModified.emit(this);
-        });
-        window.addEventListener('restored', () => {
-            this.updateState({state: 'normal'});
-            // this.onModified.emit(this);
-        });
-        window.addEventListener('hidden', () => {
-            this.updateState({hidden: true});
-            this.onModified.emit(this);
-        });
-        window.addEventListener('shown', () => {
-            this.updateState({hidden: false});
-            // this.onModified.emit(this);
-        });
-        window.addEventListener('closed', () => {
-            this.onClose.emit(this);
-        });
-        window.addEventListener('bounds-changing', async (event: fin.WindowBoundsEvent) => {
-            this.window.updateOptions({opacity: 0.8});
-            const bounds: fin.WindowBounds = this.checkBounds(event);
-            const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
-            const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
-
-            // Convert 'changeType' into our enum type
-            const type: Mask<eTransformType> = event.changeType + 1;
-
-            this.updateState({center, halfSize});
-            this.boundsChangeCountSinceLastCommit++;
-
-            if (this.boundsChangeCountSinceLastCommit > 1) {
-                this.onTransform.emit(this, type);
-            }
-        });
+        // When the window's onClose signal is emitted, we cleanup all of the listeners
+        this.onClose.add(this.cleanupListeners);
     }
 
     public getId(): string {
@@ -390,4 +342,84 @@ export class SnapWindow {
             return bounds;
         }
     }
+
+    private cleanupListeners = (snapWindow: SnapWindow):
+        void => {
+            console.log('OnClose recieved for window ', this.getId());
+            this.window.removeEventListener('bounds-changed', this.handleBoundsChanged);
+            this.window.removeEventListener('frame-disabled', this.handleFrameDisabled);
+            this.window.removeEventListener('frame-enabled', this.handleFrameEnabled);
+            this.window.removeEventListener('maximized', this.handleMaximized);
+            this.window.removeEventListener('minimized', this.handleMinimized);
+            this.window.removeEventListener('restored', this.handleRestored);
+            this.window.removeEventListener('hidden', this.handleHidden);
+            this.window.removeEventListener('shown', this.handleShown);
+            this.window.removeEventListener('closed', this.handleClosed);
+            this.window.removeEventListener('bounds-changing', this.handleBoundsChanging);
+
+            this.onClose.remove(this.cleanupListeners);
+        }
+
+    /* ===== Event Handlers ===== */
+    private handleBoundsChanged = (event: fin.WindowBoundsEvent) => {
+        this.window.updateOptions({opacity: 1.0});
+        const bounds: fin.WindowBounds = this.checkBounds(event);
+        const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
+        const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
+
+        this.updateState({center, halfSize});
+        if (this.boundsChangeCountSinceLastCommit > 1) {
+            this.onCommit.emit(this);
+        } else {
+            this.onModified.emit(this);
+        }
+        this.boundsChangeCountSinceLastCommit = 0;
+    };
+    private handleFrameDisabled = () => {
+        this.updateState({frame: false});
+        this.onModified.emit(this);
+    };
+    private handleFrameEnabled = () => {
+        this.updateState({frame: true});
+        this.onModified.emit(this);
+    };
+    private handleMaximized = () => {
+        this.updateState({state: 'maximized'});
+        this.onModified.emit(this);
+    };
+    private handleMinimized = () => {
+        this.updateState({state: 'minimized'});
+        this.onModified.emit(this);
+    };
+    private handleRestored = () => {
+        this.updateState({state: 'normal'});
+        // this.onModified.emit(this);
+    };
+    private handleHidden = () => {
+        this.updateState({hidden: true});
+        this.onModified.emit(this);
+    };
+    private handleShown = () => {
+        this.updateState({hidden: false});
+        // this.onModified.emit(this);
+    };
+    private handleClosed = () => {
+        this.onClose.emit(this);
+    };
+    private handleBoundsChanging = async (event: fin.WindowBoundsEvent) => {
+        this.window.updateOptions({opacity: 0.8});
+        const bounds: fin.WindowBounds = this.checkBounds(event);
+        const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
+        const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
+
+        // Convert 'changeType' into our enum type
+        const type: Mask<eTransformType> = event.changeType + 1;
+
+        this.updateState({center, halfSize});
+        this.boundsChangeCountSinceLastCommit++;
+
+        if (this.boundsChangeCountSinceLastCommit > 1) {
+            this.onTransform.emit(this, type);
+        }
+    };
 }

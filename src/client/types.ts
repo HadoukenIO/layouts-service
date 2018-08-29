@@ -14,6 +14,8 @@ export interface Bounds {
     bottom?: number;
 }
 
+export type CustomData = any;
+
 export interface WindowState extends Bounds {
     uuid: string;
     name: string;
@@ -21,7 +23,7 @@ export interface WindowState extends Bounds {
     state: string;
     info: any;  // getinfo call...
     windowGroup: Identity[];
-    customData?: any;  // applications can add any context or other necessary data here
+    customData?: CustomData;  // applications can add any context or other necessary data here
 }
 
 export interface LayoutApp {

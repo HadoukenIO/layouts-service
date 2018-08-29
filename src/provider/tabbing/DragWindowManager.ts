@@ -2,6 +2,18 @@ import {TabIdentifier} from '../../client/types';
 
 import {AsyncWindow} from './asyncWindow';
 
+const DRAG_WINDOW_URL = (() => {
+    let providerLocation = window.location.href;
+
+    if (providerLocation.indexOf('http://localhost') === 0) {
+        // Work-around for fake provider used within test runner
+        providerLocation = providerLocation.replace('/test', '/provider');
+    }
+
+    // Locate the default tabstrip HTML page, relative to the location of the provider
+    return providerLocation.replace('provider.html', 'tabbing/drag.html');
+})();
+
 /**
  * Handles the Drag Window which appears when API drag and drop is initialized.
  */
@@ -52,7 +64,7 @@ export class DragWindowManager extends AsyncWindow {
             this._window = new fin.desktop.Window(
                 {
                     name: 'TabbingDragWindow',
-                    url: 'http://localhost:1337/provider/tabbing/drag.html',
+                    url: DRAG_WINDOW_URL,
                     defaultHeight: 1,
                     defaultWidth: 1,
                     defaultLeft: 0,

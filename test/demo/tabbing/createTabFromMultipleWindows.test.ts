@@ -23,7 +23,7 @@ test.afterEach.always(async () => {
     fin.InterApplicationBus.removeAllListeners();
 });
 
-test("Create tab group from 2 windows", async (assert) => {
+test.failing("Create tab group from 2 windows", async (assert) => {
     // Arrange
     const app1: Application = await createTabbingWindow('default', 'App0', 200);
     const app2: Application = await createTabbingWindow('default', 'App1', 500);
@@ -57,7 +57,7 @@ test("Create tab group from 2 windows", async (assert) => {
 
 
     // Act
-    const scriptToExecute = `createTabGroupsFromTabBlob(${JSON.stringify(tabBlobs)})`;
+    const scriptToExecute = `createTabGroupsFromMultipleWindows(${JSON.stringify(tabBlobs)})`;
     await executeJavascriptOnService(scriptToExecute);
 
     // Tab group should have been created

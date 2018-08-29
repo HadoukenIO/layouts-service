@@ -343,7 +343,8 @@ export class SnapWindow {
         }
     }
 
-    private cleanupListeners = (snapWindow: SnapWindow): void => {
+    private cleanupListeners = (snapWindow: SnapWindow):
+        void => {
             console.log('OnClose recieved for window ', this.getId());
             this.window.removeEventListener('bounds-changed', this.handleBoundsChanged);
             this.window.removeEventListener('frame-disabled', this.handleFrameDisabled);

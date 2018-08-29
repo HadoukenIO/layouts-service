@@ -346,16 +346,16 @@ export class SnapWindow {
     private cleanupListeners = (snapWindow: SnapWindow):
         void => {
             console.log('OnClose recieved for window ', this.getId());
-            this.window.removeEventListener('bounds-changed', this.handleBoundsChanged, console.log, console.warn);
-            this.window.removeEventListener('frame-disabled', this.handleFrameDisabled, console.log, console.warn);
-            this.window.removeEventListener('frame-enabled', this.handleFrameEnabled, console.log, console.warn);
-            this.window.removeEventListener('maximized', this.handleMaximized, console.log, console.warn);
-            this.window.removeEventListener('minimized', this.handleMinimized, console.log, console.warn);
-            this.window.removeEventListener('restored', this.handleRestored, console.log, console.warn);
-            this.window.removeEventListener('hidden', this.handleHidden, console.log, console.warn);
-            this.window.removeEventListener('shown', this.handleShown, console.log, console.warn);
-            this.window.removeEventListener('closed', this.handleClosed, console.log, console.warn);
-            this.window.removeEventListener('bounds-changing', this.handleBoundsChanging, console.log, console.warn);
+            this.window.removeEventListener('bounds-changed', this.handleBoundsChanged);
+            this.window.removeEventListener('frame-disabled', this.handleFrameDisabled);
+            this.window.removeEventListener('frame-enabled', this.handleFrameEnabled);
+            this.window.removeEventListener('maximized', this.handleMaximized);
+            this.window.removeEventListener('minimized', this.handleMinimized);
+            this.window.removeEventListener('restored', this.handleRestored);
+            this.window.removeEventListener('hidden', this.handleHidden);
+            this.window.removeEventListener('shown', this.handleShown);
+            this.window.removeEventListener('closed', this.handleClosed);
+            this.window.removeEventListener('bounds-changing', this.handleBoundsChanging);
         }
 
     /* ===== Event Handlers ===== */

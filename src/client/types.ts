@@ -77,8 +77,8 @@ export interface TabIdentifier {
 }
 
 export enum TabServiceID {
-    NAME = 'Layout-Manager',
-    UUID = 'Layout-Manager'
+    NAME = 'layouts-service',
+    UUID = 'layouts-service'
 }
 
 export interface TabOptions {

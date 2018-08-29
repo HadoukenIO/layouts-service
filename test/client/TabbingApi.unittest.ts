@@ -58,7 +58,7 @@ describe.skip('Tests for tab api', () => {
                 tabbingApi.addTab(expectedClientUuid, expectedClientName);
 
                 // Assert
-                expect(fin.desktop.InterApplicationBus.send).toBeCalledWith('Layout-Manager', 'tab-api', expectedPayload);
+                expect(fin.desktop.InterApplicationBus.send).toBeCalledWith('layouts-service', 'tab-api', expectedPayload);
             });
         });
     });
@@ -107,7 +107,7 @@ describe.skip('Tests for tab api', () => {
                 tabbingApi.ejectTab(uuid, name);
 
                 // Assert
-                expect(fin.desktop.InterApplicationBus.send).toBeCalledWith('Layout-Manager', 'tab-api', expectedPayload);
+                expect(fin.desktop.InterApplicationBus.send).toBeCalledWith('layouts-service', 'tab-api', expectedPayload);
             });
         });
     });
@@ -160,7 +160,7 @@ describe.skip('Tests for tab api', () => {
                 tabbingApi.activateTab(uuid, name);
 
                 // Assert
-                expect(fin.desktop.InterApplicationBus.send).toBeCalledWith('Layout-Manager', 'tab-api', expectedPayload);
+                expect(fin.desktop.InterApplicationBus.send).toBeCalledWith('layouts-service', 'tab-api', expectedPayload);
             });
         });
     });
@@ -213,7 +213,7 @@ describe.skip('Tests for tab api', () => {
                 tabbingApi.closeTab(uuid, name);
 
                 // Assert
-                expect(fin.desktop.InterApplicationBus.send).toBeCalledWith('Layout-Manager', 'tab-api', expectedPayload);
+                expect(fin.desktop.InterApplicationBus.send).toBeCalledWith('layouts-service', 'tab-api', expectedPayload);
             });
         });
     });
@@ -286,7 +286,7 @@ describe.skip('Tests for tab api', () => {
                 tabbingApi.updateTabProperties(uuid, name, tabProperties);
 
                 // Assert
-                expect(fin.desktop.InterApplicationBus.send).toBeCalledWith('Layout-Manager', 'tab-api', expectedPayload);
+                expect(fin.desktop.InterApplicationBus.send).toBeCalledWith('layouts-service', 'tab-api', expectedPayload);
             });
         });
     });
@@ -303,7 +303,7 @@ describe.skip('Tests for tab api', () => {
                 tabbingApi.startDrag();
 
                 // Assert
-                expect(fin.desktop.InterApplicationBus.send).toBeCalledWith('Layout-Manager', 'tab-api', expectedPayload);
+                expect(fin.desktop.InterApplicationBus.send).toBeCalledWith('layouts-service', 'tab-api', expectedPayload);
             });
         });
     });
@@ -402,7 +402,7 @@ describe.skip('Tests for tab api', () => {
                 tabbingApi.endDrag(mockDragEvent as DragEvent, uuid, name);
 
                 // Assert
-                expect(fin.desktop.InterApplicationBus.send).toBeCalledWith('Layout-Manager', 'tab-api', expectedPayload);
+                expect(fin.desktop.InterApplicationBus.send).toBeCalledWith('layouts-service', 'tab-api', expectedPayload);
             });
         });
     });

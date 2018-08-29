@@ -104,13 +104,21 @@ export async function createTabGroupsFromTabBlob(tabBlob: TabBlob[]): Promise<vo
             width: blob.groupInfo.dimensions.width,
         };
 
+
         // Create new tabgroup
         const group: TabGroup = await TabService.INSTANCE.addTabGroup(newTabWindowOptions);
 
-        for (const tab of blob.tabs) {
-            const existingTab: Tab|undefined = TabService.INSTANCE.getTab({uuid: tab.uuid, name: tab.name});
+        group.isRestored = true;
 
-            const newTab: Tab|undefined = await group.addTab(existingTab || await new Tab({tabID: tab}).init(), false, false);
+        await new Promise((res, rej) => {
+            const win = fin.desktop.Window.wrap(blob.tabs[0].uuid, blob.tabs[0].name);
+            win.resizeTo(blob.groupInfo.dimensions.width!, blob.groupInfo.dimensions.appHeight, 'top-left', res, rej);
+        });
+
+        for (const tab of blob.tabs) {
+            let newTab = await new Tab({tabID: tab}).init();
+
+            newTab = await group.addTab(newTab, false, true);
 
             if (!newTab) {
                 console.error('No tab was added');
@@ -123,7 +131,7 @@ export async function createTabGroupsFromTabBlob(tabBlob: TabBlob[]): Promise<vo
     }
 }
 
-(window as Window & {createTabGroupsFromMultipleWindows: Function}).createTabGroupsFromMultipleWindows = createTabGroupsFromTabBlob;
+(window as Window & {createTabGroupsFromTabBlob: Function}).createTabGroupsFromTabBlob = createTabGroupsFromTabBlob;
 
 /**
  * Creates a UUIDv4() ID

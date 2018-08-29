@@ -58,7 +58,7 @@ export async function swapTab(add: TabIdentifier, swapWith: TabIdentifier) {
     await group.addTab(tab, false, true, tabIndex);
 
     // remove swap with tab, dont close app, dont switch tabs, dont close group window
-    await group.removeTab(swapWith, false, false, false);
+    await group.removeTab(swapWith, false, false, false, true);
 
     if (group.activeTab && group.activeTab.ID.uuid === swapWith.uuid && group.activeTab.ID.name === swapWith.name) {
         // if the switchedwith tab was the active one, we make the added tab active

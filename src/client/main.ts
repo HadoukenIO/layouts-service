@@ -273,7 +273,7 @@ export async function closeTab(window: Identity): Promise<void> {
     }
     const service: ServiceClient = await servicePromise;
 
-    return service.dispatch(TabAPI.SETACTIVETAB, window);
+    return service.dispatch(TabAPI.CLOSETAB, window);
 }
 
 /**

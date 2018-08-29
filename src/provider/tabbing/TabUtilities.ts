@@ -131,7 +131,7 @@ export async function createTabGroupsFromTabBlob(tabBlob: TabBlob[]): Promise<vo
     }
 }
 
-(window as Window & {createTabGroupsFromMultipleWindows: Function}).createTabGroupsFromMultipleWindows = createTabGroupsFromTabBlob;
+(window as Window & {createTabGroupsFromTabBlob: Function}).createTabGroupsFromTabBlob = createTabGroupsFromTabBlob;
 
 /**
  * Creates a UUIDv4() ID

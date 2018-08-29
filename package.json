@@ -22,7 +22,7 @@
     "watch:ts": "concurrently \"tsc -w -p tsconfig.provider.json\" \"tsc -w -p tsconfig.client.json\"",
     "watch:wp": "webpack --watch --mode development",
     "watch:wp:demo": "cd ./src/demo && webpack --watch --mode development",
-    "dev": "npm run build:dev && npm run start",
+    "dev": "npm run build && npm run start",
     "start": "node server.js"
   },
   "keywords": [],

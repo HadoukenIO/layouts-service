@@ -1,10 +1,10 @@
 {
     "devtools_port": 9091,
     "startup_app": {
-        "name": "Layout-Manager",
+        "name": "layouts-service",
         "description": "OpenFin Layouts Managing Service",
         "url": "https://cdn.openfin.co/services/openfin/layouts/stable/index.html",
-        "uuid": "Layout-Manager",
+        "uuid": "layouts-service",
         "autoShow": true,
         "showTaskbarIcon": true,
         "defaultHeight": 300,

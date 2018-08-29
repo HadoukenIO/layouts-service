@@ -121,10 +121,7 @@ export class SnapService {
     }
 
     public deregister(target: {uuid: string; name: string}): void {
-        const window: SnapWindow|undefined = this.windows.find((w) => {
-            const identity = w.getIdentity();
-            return target.uuid === identity.uuid && target.name === identity.name;
-        });
+        const window: SnapWindow|undefined = this.getSnapWindow(target);
 
         if (window) {
             window.getWindow().leaveGroup();

@@ -14,15 +14,12 @@ import { getTabSaveInfo } from '../tabbing/SaveAndRestoreAPI';
 declare var fin: any;
 
 export const getCurrentLayout = async(): Promise<Layout> => {
-    console.log('get current layout');
 
     // Not yet using monitor info
     const monitorInfo = await fin.System.getMonitorInfo() || {};
     const tabGroups = await getTabSaveInfo();
-    console.log("tabGroups", tabGroups);
 
     const apps = await fin.System.getAllWindows();
-    console.log('Apps:', apps);
     let layoutApps = await promiseMap(apps, async (app: LayoutApp) => {
         try {
             const {uuid} = app;

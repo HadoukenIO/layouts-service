@@ -160,7 +160,7 @@ export class Tab {
             }
             default: {
                 // @ts-ignore
-                setActiveTab({ uuid: this._ID.uuid, name: this._ID.name });
+                setActiveTab({uuid: this._ID.uuid, name: this._ID.name});
             }
         }
     }

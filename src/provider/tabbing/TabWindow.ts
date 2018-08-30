@@ -115,10 +115,6 @@ export class TabWindow extends AsyncWindow {
      * Initializes event listeners for this windows events.
      */
     protected _createWindowEventListeners(): void {
-        this._window.addEventListener('minimized', this._onMinimize.bind(this));
-
-        this._window.addEventListener('maximized', this._onMaximize.bind(this));
-
         this._window.addEventListener('closed', this._onClose.bind(this));
     }
 

@@ -20,10 +20,11 @@ module.exports = [
                 const newConfig = utils.prepConfig(config, 'http://localhost:1337/provider/provider.html');
                 return JSON.stringify(newConfig, null, 4);
             }
-        }]
+            }]
     )),
     utils.createConfig(`${outputDir}/provider`, {tabStrip: './staging/provider/tabbing/tabstrip/TabStrip.js'}, false),
     utils.createConfig(`${outputDir}/demo`, {LayoutsUI: './src/demo/LayoutsUI.ts'}, true, new CopyWebpackPlugin( [{ from: './res/demo' }]) ),
     utils.createConfig(`${outputDir}/demo`, {Snappable: './src/demo/Snappable.ts'}, true),
-    utils.createConfig(`${outputDir}/demo`, {tabapp: './src/demo/tabapp.ts'}, true)
+    utils.createConfig(`${outputDir}/demo`, { tabapp1: './src/demo/tabapp1.ts' }, true),
+    utils.createConfig(`${outputDir}/demo`, { tabapp2: './src/demo/tabapp2.ts' }, true)
 ];

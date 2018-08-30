@@ -1,11 +1,10 @@
 import Sortable from 'sortablejs';
 
 import {TabApiEvents} from '../../../client/APITypes';
-import {TabbingApi} from '../../../client/TabbingApi';
 import {TabIdentifier, TabPackage, TabProperties, JoinTabGroupPayload, TabGroupEventPayload} from '../../../client/types';
 
 import { Tab } from './TabItem';
-import * as Layouts from '../../../client/main';
+import { reorderTabs, addEventListener } from '../../../client/main';
 import { p } from '../../snapanddock/utils/async';
 import { TabGroup } from '../TabGroup';
 
@@ -17,12 +16,6 @@ export class TabManager {
      *  The HTML Element container for the tabs.
      */
     public static tabContainer: HTMLElement = document.getElementById('tabs')!;
-
-    /**
-     * Handle to the Tabbing API
-     */
-    public static tabAPI: TabbingApi = new TabbingApi();
-
     /**
      * An array of the tabs present in the window.
      */
@@ -61,7 +54,7 @@ export class TabManager {
                 });
                 // Sends the new order to the service to update the cache
                 //TabManager.tabAPI.sendTabOrder(orderedTabList);
-                Layouts.reorderTabs(orderedTabList);
+                reorderTabs(orderedTabList);
             }
         });
     }
@@ -144,19 +137,19 @@ export class TabManager {
      * Creates listeners for various IAB + Window Events.
      */
     private _setupListeners(): void {
-        Layouts.addEventListener('join-tab-group', (event: CustomEvent<TabGroupEventPayload> | Event) => {
+        addEventListener('join-tab-group', (event: CustomEvent<TabGroupEventPayload> | Event) => {
             const customEvent: CustomEvent<JoinTabGroupPayload> = event as CustomEvent<JoinTabGroupPayload>;
             const tabInfo: JoinTabGroupPayload = customEvent.detail;
             this.addTab(tabInfo.tabID, tabInfo.tabProps!, tabInfo.index!);
         });
 
-        Layouts.addEventListener('leave-tab-group', (event: CustomEvent<TabGroupEventPayload> | Event) => {
+        addEventListener('leave-tab-group', (event: CustomEvent<TabGroupEventPayload> | Event) => {
             const customEvent: CustomEvent<TabGroupEventPayload> = event as CustomEvent<TabGroupEventPayload>;
             const tabInfo: TabGroupEventPayload = customEvent.detail;
             this.removeTab(tabInfo.tabID);
         });
 
-        Layouts.addEventListener('tab-activated', (event: CustomEvent<TabGroupEventPayload> | Event) => {
+        addEventListener('tab-activated', (event: CustomEvent<TabGroupEventPayload> | Event) => {
             const customEvent: CustomEvent<TabGroupEventPayload> = event as CustomEvent<TabGroupEventPayload>
             const tabInfo: TabIdentifier = customEvent.detail.tabID;
             this.setActiveTab(tabInfo);

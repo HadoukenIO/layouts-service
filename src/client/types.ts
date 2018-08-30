@@ -168,16 +168,16 @@ export interface ApplicationUIConfig {
 }
 
 export interface DropPosition {
-    screenX: number,
-    screenY: number
+    screenX: number;
+    screenY: number;
 }
 
 export interface TabGroupEventPayload {
-    tabGroupId: string,
-    tabID: TabIdentifier,
+    tabGroupId: string;
+    tabID: TabIdentifier;
 }
 
 export interface JoinTabGroupPayload extends TabGroupEventPayload {
-    tabProps: TabProperties,
-    index: number
+    tabProps: TabProperties;
+    index: number;
 }

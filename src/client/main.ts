@@ -1,18 +1,16 @@
-import { Identity } from 'hadouken-js-adapter';
-import { Client as ServiceClient } from 'hadouken-js-adapter/out/types/src/api/services/client';
+import {Identity} from 'hadouken-js-adapter';
+import {Client as ServiceClient} from 'hadouken-js-adapter/out/types/src/api/services/client';
 import * as Mousetrap from 'mousetrap';
 
-import { TabAPI, TabAPIActions } from './APITypes';
-import { Layout, LayoutApp, LayoutName, TabProperties, TabWindowOptions, JoinTabGroupPayload, TabGroupEventPayload, DropPosition, ApplicationUIConfig, CustomData } from './types';
-
-export { AppApi } from './AppApi';
-export { TabbingApi } from './TabbingApi';
+import {TabAPI, TabAPIActions} from './APITypes';
+import {ApplicationUIConfig, CustomData, DropPosition, JoinTabGroupPayload, Layout, LayoutApp, LayoutName, TabGroupEventPayload, TabProperties, TabWindowOptions} from './types';
 
 const IDENTITY = {
     uuid: 'layouts-service',
     name: 'layouts-service'
 };
-const VERSION = '0.0.1';
+
+import {version} from './version';
 
 // tslint:disable-next-line:no-any
 declare var fin: any;
@@ -28,13 +26,13 @@ const getId = (() => {
             return id;
         }
         fin.Window.getCurrent();
-        const { uuid, name } = fin.desktop.Window.getCurrent();
-        id = { uuid, name };
+        const {uuid, name} = fin.desktop.Window.getCurrent();
+        id = {uuid, name};
         return id;
     };
 })();
 
-const servicePromise: Promise<ServiceClient> = fin.desktop.Service.connect({ ...IDENTITY, payload: VERSION }).then((service: ServiceClient) => {
+const servicePromise: Promise<ServiceClient> = fin.desktop.Service.connect({...IDENTITY, payload: {version}}).then((service: ServiceClient) => {
     // Map undocking keybind
     Mousetrap.bind('mod+shift+u', () => {
         service.dispatch('undockWindow', getId());
@@ -50,14 +48,13 @@ const servicePromise: Promise<ServiceClient> = fin.desktop.Service.connect({ ...
         window.dispatchEvent(new Event('leave-snap-group'));
     });
     service.register('join-tab-group', (payload: JoinTabGroupPayload) => {
-
-        window.dispatchEvent(new CustomEvent<JoinTabGroupPayload>('join-tab-group', { detail: payload }));
+        window.dispatchEvent(new CustomEvent<JoinTabGroupPayload>('join-tab-group', {detail: payload}));
     });
     service.register('leave-tab-group', (payload: TabGroupEventPayload) => {
-        window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('leave-tab-group', { detail: payload }));
+        window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('leave-tab-group', {detail: payload}));
     });
     service.register('tab-activated', (payload: TabGroupEventPayload) => {
-        window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('tab-activated', { detail: payload }));
+        window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('tab-activated', {detail: payload}));
     });
 
     // Any unregistered action will simply return false
@@ -65,8 +62,6 @@ const servicePromise: Promise<ServiceClient> = fin.desktop.Service.connect({ ...
 
     return service;
 });
-
-(window as any).p = servicePromise;
 
 /**
  * Undocks a window from any group it currently belongs to.
@@ -109,9 +104,10 @@ export async function deregister(identity: Identity = getId()): Promise<void> {
  * @param {string} eventType Event to be subscribed to. Valid options are 'join-snap-group' and 'leave-snap-group'
  * @param {() => void} callback Function to be executed on event firing. Takes no arguments and returns void.
  */
-//export async function addEventListener(eventType: 'join-tab-group' | 'leave-tab-group', callback: (customEvent: TabEvent) => void): Promise<void>;
+// export async function addEventListener(eventType: 'join-tab-group' | 'leave-tab-group', callback: (customEvent: TabEvent) => void): Promise<void>;
 export async function addEventListener(
-    eventType: 'join-snap-group' | 'leave-snap-group' | 'join-tab-group' | 'leave-tab-group' | 'tab-activated', callback: (customEvent: Event | CustomEvent<TabGroupEventPayload>) => void): Promise<void> {
+    eventType: 'join-snap-group'|'leave-snap-group'|'join-tab-group'|'leave-tab-group'|'tab-activated',
+    callback: (customEvent: Event|CustomEvent<TabGroupEventPayload>) => void): Promise<void> {
     // Use native js event system to pass internal events around.
     // Without this we would need to handle multiple registration ourselves.
     window.addEventListener(eventType, callback);
@@ -120,7 +116,7 @@ export async function addEventListener(
 /**
  * Decide which parts of this you will implement, alter LayoutApp object to reflect this then send it back
  */
-export async function onApplicationSave(customDataDecorator: () => any): Promise<boolean> {
+export async function onApplicationSave(customDataDecorator: () => CustomData): Promise<boolean> {
     const service: ServiceClient = await servicePromise;
     return service.register('savingLayout', customDataDecorator);
 }
@@ -128,7 +124,7 @@ export async function onApplicationSave(customDataDecorator: () => any): Promise
 /**
  * Get the layoutApp object, implement, then return implemented LayoutApp object (minus anything not implemented)
  */
-export async function onAppRestore(layoutDecorator: (layoutApp: LayoutApp) => LayoutApp | false | Promise<LayoutApp | false>): Promise<boolean> {
+export async function onAppRestore(layoutDecorator: (layoutApp: LayoutApp) => LayoutApp | false | Promise<LayoutApp|false>): Promise<boolean> {
     const service: ServiceClient = await servicePromise;
     return service.register('restoreApp', layoutDecorator);
 }
@@ -180,7 +176,7 @@ export async function ready(): Promise<Layout> {
  *
  * If there is no tab group associated with the window context, will resolve to null.
  */
-export async function getTabs(window: Identity = getId()): Promise<Identity[] | null> {
+export async function getTabs(window: Identity = getId()): Promise<Identity[]|null> {
     if (!window || !window.name || !window.uuid) {
         return Promise.reject('Invalid window provided');
     }
@@ -207,7 +203,7 @@ export async function setTabClient(url: string, config: TabWindowOptions): Promi
     const service: ServiceClient = await servicePromise;
     config.url = url;
 
-    return service.dispatch(TabAPI.SETTABCLIENT, { config, id: getId() });
+    return service.dispatch(TabAPI.SETTABCLIENT, {config, id: getId()});
 }
 
 /**
@@ -239,7 +235,7 @@ export async function addTab(targetWindow: Identity, windowToAdd: Identity = get
     }
     const service: ServiceClient = await servicePromise;
 
-    return service.dispatch(TabAPI.ADDTAB, { targetWindow, windowToAdd });
+    return service.dispatch(TabAPI.ADDTAB, {targetWindow, windowToAdd});
 }
 
 /**
@@ -350,7 +346,7 @@ export const tabStrip = {
         }
         const service: ServiceClient = await servicePromise;
 
-        return service.dispatch(TabAPI.UPDATETABPROPERTIES, { window, properties });
+        return service.dispatch(TabAPI.UPDATETABPROPERTIES, {window, properties});
     },
 
     /**
@@ -371,13 +367,8 @@ export const tabStrip = {
         }
         const service: ServiceClient = await servicePromise;
 
-        const dropPoint: DropPosition = {
-            screenX: event.screenX,
-            screenY: event.screenY
-        };
+        const dropPoint: DropPosition = {screenX: event.screenX, screenY: event.screenY};
 
-        return service.dispatch(TabAPI.ENDDRAG, { event: dropPoint, window });
+        return service.dispatch(TabAPI.ENDDRAG, {event: dropPoint, window});
     }
 };
-
-(window as Window & { setTabClient: Function }).setTabClient = setTabClient;

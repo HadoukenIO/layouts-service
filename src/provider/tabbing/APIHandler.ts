@@ -1,12 +1,12 @@
 
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
-import {ApplicationUIConfig, TabIdentifier, TabProperties, DropPosition, TabWindowOptions} from '../../client/types';
+import {ApplicationUIConfig, DropPosition, TabIdentifier, TabProperties, TabWindowOptions} from '../../client/types';
 
 import {Tab} from './Tab';
+import {TabGroup} from './TabGroup';
 import {TabService} from './TabService';
 import {ejectTab} from './TabUtilities';
-import { TabGroup } from './TabGroup';
 
 /**
  * Handles all calls from tab api to service
@@ -28,7 +28,7 @@ export class APIHandler {
      * If a custom tab-strip UI is being used - this sets the URL for the tab-strip.
      * This binding happens on the application level.  An application cannot have different windows using different tabbing UI.
      */
-    public setTabClient(payload: { config: TabWindowOptions, id: Identity }) {
+    public setTabClient(payload: {config: TabWindowOptions, id: Identity}) {
         if (this.mTabService.applicationConfigManager.exists(payload.id.uuid)) {
             return Promise.reject('Configuration already set!');
         }
@@ -132,7 +132,7 @@ export class APIHandler {
      * Minimizes the tab group for the window context.
      */
     public minimizeTabGroup(window: TabIdentifier) {
-        const group = this.mTabService.getTabGroup(window.name);
+        const group = this.mTabService.getTabGroupByApp(window);
         if (!group) {
             return Promise.reject('No group found');
         }
@@ -143,7 +143,7 @@ export class APIHandler {
      * Maximizes the tab group for the window context.
      */
     public maximizeTabGroup(window: TabIdentifier) {
-        const group = this.mTabService.getTabGroup(window.name);
+        const group = this.mTabService.getTabGroupByApp(window);
         if (!group) {
             return Promise.reject('No group found');
         }
@@ -154,18 +154,18 @@ export class APIHandler {
      * Closes the tab group for the window context.
      */
     public closeTabGroup(window: TabIdentifier) {
-        const group = this.mTabService.getTabGroup(window.name);
+        const group = this.mTabService.getTabGroupByApp(window);
         if (!group) {
             return Promise.reject('No group found');
         }
 
-        return this.mTabService.removeTabGroup(window.name, true);
+        return this.mTabService.removeTabGroup(group.ID, true);
     }
     /**
      * Restores the tab group for the window context to its normal state.
      */
     public restoreTabGroup(window: TabIdentifier) {
-        const group = this.mTabService.getTabGroup(window.name);
+        const group = this.mTabService.getTabGroupByApp(window);
         if (!group) {
             return Promise.reject('No group found');
         }
@@ -210,15 +210,15 @@ export class APIHandler {
     /**
      * Ends the HTML5 Dragging Sequence.
      */
-    public async endDrag(payload: { event: DropPosition, window: TabIdentifier }) {
-        const tabGroup: TabGroup | undefined = this.mTabService.getTabGroupByApp(payload.window);
+    public async endDrag(payload: {event: DropPosition, window: TabIdentifier}) {
+        const tabGroup: TabGroup|undefined = this.mTabService.getTabGroupByApp(payload.window);
 
         if (!tabGroup) {
-            return Promise.reject("No group found");
+            return Promise.reject('No group found');
         }
 
         this.mTabService.dragWindowManager.hideWindow();
 
-        return ejectTab({ uuid: payload.window.uuid, name: payload.window.name, screenX: payload.event.screenX, screenY: payload.event.screenY }, tabGroup);
+        return ejectTab({uuid: payload.window.uuid, name: payload.window.name, screenX: payload.event.screenX, screenY: payload.event.screenY}, tabGroup);
     }
 }

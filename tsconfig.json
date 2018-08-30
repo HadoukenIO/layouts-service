@@ -1,23 +1,16 @@
 {
-  "extends": "./node_modules/gts/tsconfig-google.json",
-  "compilerOptions": {
-    "rootDir": ".",
-    "outDir": "build",
-    "target": "es2017",
-    "module": "commonjs",
-    "sourceMap": true,
-    "lib": [
-      "dom",
-      "es2017"
-    ],
-    "declaration": false
-  },
-  "include": [
-    "src/fin.d.ts",
-    "src/provider/snapanddock/**/*.ts",
-    "src/provider/tabbing/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+    "extends": "./node_modules/gts/tsconfig-google.json",
+    "compilerOptions": {
+        "target": "es2017",
+        "outDir": "build",
+        "rootDir": "src",
+        "lib": ["dom", "es2017"],
+        "types": ["node", "jest"]
+    },
+    "include": [
+        "src/fin.d.ts",
+        "src/provider/snapanddock/**/*.ts",
+        "src/provider/tabbing/**/*.ts",
+        "src/client/main.ts"
+    ]
 }

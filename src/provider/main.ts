@@ -24,6 +24,13 @@ fin.desktop.main(main);
 
 async function registerService() {
     providerChannel = window.providerChannel = (await fin.desktop.Service.register()) as Provider;
+    providerChannel.onConnection((app, payload) => {
+        if (payload && payload.version && payload.version.length > 0) {
+            console.log(`connection from client: ${app.name}, version: ${payload.version}`);
+        } else {
+            console.log(`connection from client: ${app.name}, unable to determine version`);
+        }
+    });
     providerChannel.register('undockWindow', (identity: WindowIdentity) => {
         snapService.undock(identity);
     });

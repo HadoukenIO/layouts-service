@@ -78,18 +78,18 @@ export const generateLayout = async(payload: null, identity: Identity): Promise<
     const preLayout = await getCurrentLayout();
 
     const apps = await promiseMap(preLayout.apps, async (app: LayoutApp) => {
-        const defaultResponse = {...app, childWindows: []};
+        const defaultResponse = {...app};
         if (isClientConnection(app)) {
             console.log('Connected application', app.uuid);
 
             // HOW TO DEAL WITH HUNG REQUEST HERE? RESHAPE IF GET NOTHING BACK?
-            let updatedAppOptions = await providerChannel.dispatch({uuid: app.uuid, name: app.uuid}, 'savingLayout', app);
-            if (!updatedAppOptions) {
-                // How to not be included in layout???
-                updatedAppOptions = defaultResponse;
+            let customData = await providerChannel.dispatch({uuid: app.uuid, name: app.uuid}, 'savingLayout', app);
+            if (!customData) {
+                customData = null;
             }
-            updatedAppOptions.confirmed = true;
-            return updatedAppOptions;
+            defaultResponse.customData = customData;
+            defaultResponse.confirmed = true;
+            return defaultResponse;
         } else {
             return defaultResponse;
         }

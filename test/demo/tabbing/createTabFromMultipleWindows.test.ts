@@ -1,14 +1,15 @@
-import { test } from 'ava';
-import { getBounds, NormalizedBounds } from '../../provider/utils/getBounds';
+import {test} from 'ava';
+import {Application, Fin, Window} from 'hadouken-js-adapter';
 import * as robot from 'robotjs';
-import { Window, Fin, Application } from 'hadouken-js-adapter';
-import { getConnection } from '../../provider/utils/connect';
-import { getWindow } from '../../provider/utils/getWindow';
-import { createTabGroupsFromTabBlob } from '../../../src/provider/tabbing/TabUtilities';
-import { TabBlob } from '../../../src/client/types';
-import { TabService } from '../../../src/provider/tabbing/TabService';
-import { executeJavascriptOnService } from '../utils/executeJavascriptOnService';
-import { setTimeout } from 'timers';
+import {setTimeout} from 'timers';
+
+import {TabBlob} from '../../../src/client/types';
+import {TabService} from '../../../src/provider/tabbing/TabService';
+import {createTabGroupsFromTabBlob} from '../../../src/provider/tabbing/TabUtilities';
+import {getConnection} from '../../provider/utils/connect';
+import {getBounds, NormalizedBounds} from '../../provider/utils/getBounds';
+import {getWindow} from '../../provider/utils/getWindow';
+import {executeJavascriptOnService} from '../utils/executeJavascriptOnService';
 
 let win1: Window;
 let win2: Window;
@@ -23,7 +24,7 @@ test.afterEach.always(async () => {
     fin.InterApplicationBus.removeAllListeners();
 });
 
-test.failing("Create tab group from 2 windows", async (assert) => {
+test('Create tab group from 2 windows', async (assert) => {
     // Arrange
     const app1: Application = await createTabbingWindow('default', 'App0', 200);
     const app2: Application = await createTabbingWindow('default', 'App1', 500);
@@ -36,39 +37,33 @@ test.failing("Create tab group from 2 windows", async (assert) => {
 
     const tabBlobs: TabBlob[] = [{
         groupInfo: {
-            url: "",
-            active: { uuid: win2.identity.uuid, name: win2.identity.name! },
-            dimensions: {
-                x: 100,
-                y: 100,
-                width: preWin2Bounds.width,
-                tabGroupHeight: 100,
-                appHeight: preWin2Bounds.height
-            }
+            url: '',
+            active: {uuid: win2.identity.uuid, name: win2.identity.name!},
+            dimensions: {x: 100, y: 100, width: preWin2Bounds.width, tabGroupHeight: 100, appHeight: preWin2Bounds.height}
         },
         tabs: [
-            { uuid: app1.identity.uuid, name: win1.identity.name! },
-            { uuid: app2.identity.uuid, name: win2.identity.name! },
+            {uuid: app1.identity.uuid, name: win1.identity.name!},
+            {uuid: app2.identity.uuid, name: win2.identity.name!},
         ]
     }];
 
     // Get the service window in order to be able to find the tabgroup window
-    const serviceApplication: Application = await fin.Application.wrap({ uuid: "layouts-service", name: "layouts-service" });    
+    const serviceApplication: Application = await fin.Application.wrap({uuid: 'layouts-service', name: 'layouts-service'});
 
 
     // Act
-    const scriptToExecute = `createTabGroupsFromMultipleWindows(${JSON.stringify(tabBlobs)})`;
+    const scriptToExecute = `createTabGroupsFromTabBlob(${JSON.stringify(tabBlobs)})`;
     await executeJavascriptOnService(scriptToExecute);
 
     // Tab group should have been created
     const serviceChildWindows: Window[] = await serviceApplication.getChildWindows();
 
-    let uuidTestPattern = new RegExp('^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$', 'i');
+    const uuidTestPattern = new RegExp('^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$', 'i');
 
-    const newTabGroupWindow: Window | undefined = serviceChildWindows.find((window: Window) => {
-        return window.identity.uuid == "layouts-service" && uuidTestPattern.test(window.identity.name!);
+    const newTabGroupWindow: Window|undefined = serviceChildWindows.find((window: Window) => {
+        return window.identity.uuid === 'layouts-service' && uuidTestPattern.test(window.identity.name!);
     });
-    
+
 
     // Assert
     const win1Bounds: NormalizedBounds = await getBounds(win1);
@@ -84,7 +79,7 @@ test.failing("Create tab group from 2 windows", async (assert) => {
     assert.is(win2Bounds.width, win1Bounds.width);
     assert.is(win2Bounds.top, (tabBlobs[0].groupInfo.dimensions.y + tabBlobs[0].groupInfo.dimensions.tabGroupHeight));
     assert.is(win2Bounds.left, tabBlobs[0].groupInfo.dimensions.x);
-    
+
 
     // TabGroup existence check
     assert.is(tabGroupBounds.bottom, win2Bounds.top);

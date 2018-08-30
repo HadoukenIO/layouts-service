@@ -1,8 +1,7 @@
 <html>
 
 <head>
-    <script src="../../../client/main-bundle.js"></script>
-    <script src="../../CustomUI-bundle.js"></script>
+    <script src="../../tabapp-bundle.js"></script>
     <title></title>
     <style>
         body {
@@ -17,13 +16,8 @@
 
 <body>
     <script>
-        var randomColor = "#"+((1<<24)*Math.random()|0).toString(16); 
-    
-        document.body.style.backgroundColor = randomColor;
-
-        fin.desktop.main(() => {
-            //window.TabClient.init("http://localhost:1337/demo/tabbing/UI/UI1.html");
-            window.setTabClient("http://localhost:1337/demo/tabbing/UI/UI1.html", {height: 62});
+        fin.desktop.main(()=>{
+            window.setTabClient("http://localhost:1337/demo/tabbing/UI/UI1.html");
         })
     </script>
 </body>

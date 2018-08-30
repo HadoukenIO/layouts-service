@@ -41,11 +41,13 @@ export class APIHandler {
     public async deregister(window: TabIdentifier) {
         const group = this.mTabService.getTabGroupByApp(window);
 
-        if (!group) {
-            return Promise.reject('No tab group found!');
+        if (group) {
+            try {
+                return await group.removeTab(window, false, true);
+            } catch (error) {
+                throw new Error(`Unexpected error when deregistering: ${error}`);
+            }
         }
-
-        return await group.removeTab(window, false, true);
     }
 
 

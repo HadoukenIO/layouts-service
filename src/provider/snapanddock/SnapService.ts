@@ -98,25 +98,29 @@ export class SnapService {
     }
 
     public undock(target: {uuid: string; name: string}): void {
-        const window: SnapWindow|undefined = this.windows.find((w) => {
-            const identity = w.getIdentity();
-            return target.uuid === identity.uuid && target.name === identity.name;
-        });
+        const window: SnapWindow|undefined = this.getSnapWindow(target);
 
         if (window) {
-            const group: SnapGroup = window.getGroup();
+            try {
+                const group: SnapGroup = window.getGroup();
 
-            // Only do anything if the window is actually grouped
-            if (group.length > 1) {
-                let offset = this.calculateUndockMoveDirection(window);
+                // Only do anything if the window is actually grouped
+                if (group.length > 1) {
+                    let offset = this.calculateUndockMoveDirection(window);
 
-                window.setGroup(this.addGroup());
+                    window.setGroup(this.addGroup());
 
-                if (!offset.x && !offset.y) {
-                    offset = {x: 1, y: 1};
+                    if (!offset.x && !offset.y) {
+                        offset = {x: 1, y: 1};
+                    }
+                    window.offsetBy({x: Math.sign(offset.x) * UNDOCK_MOVE_DISTANCE, y: Math.sign(offset.y) * UNDOCK_MOVE_DISTANCE});
                 }
-                window.offsetBy({x: Math.sign(offset.x) * UNDOCK_MOVE_DISTANCE, y: Math.sign(offset.y) * UNDOCK_MOVE_DISTANCE});
+            } catch (error) {
+                throw new Error(`Unexpected error when undocking window: ${error}`);
             }
+
+        } else {
+            throw new Error(`Unable to undock - no window found with identity "${target.uuid}/${target.name}"`);
         }
     }
 
@@ -124,8 +128,14 @@ export class SnapService {
         const window: SnapWindow|undefined = this.getSnapWindow(target);
 
         if (window) {
-            window.getWindow().leaveGroup();
-            window.onClose.emit(window);
+            try {
+                window.getWindow().leaveGroup();
+                window.onClose.emit(window);
+            } catch (error) {
+                throw new Error(`Unexpected error when deregistering: ${error}`);
+            }
+        } else {
+            throw new Error(`Unable to deregister from Snap&Dock - no window is registered with identity "${target.uuid}/${target.name}"`);
         }
     }
 
@@ -143,25 +153,33 @@ export class SnapService {
             return g.windows.findIndex(w => w.getIdentity().uuid === targetWindow.uuid && w.getIdentity().name === targetWindow.name) >= 0;
         });
 
-        // Exploding only makes sense if there is more than one window in the group.
-        if (group && group.length > 1) {
-            const windows = group.windows;
-            // Determine the offset for each window before modifying and window state
-            const offsets: Point[] = [];
-            // group.center is recalculated on each call, so we assign it here once and use the value.
-            const groupCenter = group.center;
-            for (let i = 0; i < windows.length; i++) {
-                const windowState = windows[i].getState();
-                offsets[i] = PointUtils.scale(PointUtils.difference(groupCenter, windowState.center), EXPLODE_MOVE_SCALE);
-            }
+        if (!group) {
+            throw new Error(`Unable to undock - no group found for window with identity "${targetWindow.uuid}/${targetWindow.name}"`);
+        }
 
-            for (let i = 0; i < windows.length; i++) {
-                const window = windows[i];
-                // Undock the windows
-                window.setGroup(this.addGroup());
-                // Apply previously calculated offset
-                window.offsetBy(offsets[i]);
+        try {
+            // Exploding only makes sense if there is more than one window in the group.
+            if (group && group.length > 1) {
+                const windows = group.windows;
+                // Determine the offset for each window before modifying and window state
+                const offsets: Point[] = [];
+                // group.center is recalculated on each call, so we assign it here once and use the value.
+                const groupCenter = group.center;
+                for (let i = 0; i < windows.length; i++) {
+                    const windowState = windows[i].getState();
+                    offsets[i] = PointUtils.scale(PointUtils.difference(groupCenter, windowState.center), EXPLODE_MOVE_SCALE);
+                }
+
+                for (let i = 0; i < windows.length; i++) {
+                    const window = windows[i];
+                    // Undock the windows
+                    window.setGroup(this.addGroup());
+                    // Apply previously calculated offset
+                    window.offsetBy(offsets[i]);
+                }
             }
+        } catch (error) {
+            throw new Error(`Unexpected error when undocking group: ${error}`);
         }
     }
 

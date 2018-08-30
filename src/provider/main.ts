@@ -32,7 +32,7 @@ async function registerService() {
         }
     });
     providerChannel.register('undockWindow', (identity: WindowIdentity) => {
-        snapService.undock(identity);
+            snapService.undock(identity); 
     });
     providerChannel.register('deregister', (identity: WindowIdentity) => {
         snapService.deregister(identity);

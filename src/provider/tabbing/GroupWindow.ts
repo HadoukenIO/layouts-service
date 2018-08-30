@@ -221,7 +221,9 @@ export class GroupWindow extends AsyncWindow {
                     defaultCentered: !this._initialWindowOptions.screenX && !this._initialWindowOptions.screenY,
                     saveWindowState: false,
                     taskbarIconGroup: this._tabGroup.ID,
-                    waitForPageLoad: true
+                    //@ts-ignore
+                    backgroundThrottling: true,
+                    waitForPageLoad: false
                 },
                 () => {
                     res(win);

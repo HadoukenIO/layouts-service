@@ -379,3 +379,5 @@ export const tabStrip = {
         return service.dispatch(TabAPI.ENDDRAG, { event: dropPoint, window });
     }
 };
+
+(window as Window & { setTabClient: Function }).setTabClient = setTabClient;

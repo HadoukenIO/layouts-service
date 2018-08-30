@@ -1,6 +1,6 @@
 import {Identity} from 'hadouken-js-adapter';
 
-import { tabStrip, setActiveTab, closeTab } from '../../../client/main';
+import {closeTab, setActiveTab, tabStrip} from '../../../client/main';
 import {TabIdentifier, TabProperties} from '../../../client/types';
 
 import {TabManager} from './TabManager';

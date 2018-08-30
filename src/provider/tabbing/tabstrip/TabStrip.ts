@@ -1,8 +1,10 @@
-import { minimizeTabGroup, maximizeTabGroup, restoreTabGroup, closeTabGroup } from '../../../client/main';
+import {Identity} from 'hadouken-js-adapter';
+
+import {closeTabGroup, maximizeTabGroup, minimizeTabGroup, restoreTabGroup} from '../../../client/main';
+import {TabIdentifier} from '../../../client/types';
 
 import {TabManager} from './TabManager';
-import { Identity } from 'hadouken-js-adapter';
-import { TabIdentifier } from '../../../client/types';
+
 export {tabStrip} from '../../../client/main';
 
 fin.desktop.main(() => {
@@ -12,7 +14,7 @@ fin.desktop.main(() => {
     (window as Window & {tabManager: TabManager}).tabManager = tabManager;
     const minimizeElem: HTMLElement|null = document.getElementById('window-button-minimize');
     const maximizeElem: HTMLElement|null = document.getElementById('window-button-maximize');
-    const closeElem: HTMLElement | null = document.getElementById('window-button-exit');
+    const closeElem: HTMLElement|null = document.getElementById('window-button-exit');
 
     minimizeElem!.onclick = () => {
         minimizeTabGroup(tabManager.getTabs[0].ID);

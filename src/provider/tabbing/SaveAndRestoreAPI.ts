@@ -86,8 +86,8 @@ export async function removeTab(tabID: TabIdentifier) {
         return;
     }
 
-    // remove swap with tab, dont close app, dont switch tabs, dont close group window
-    await group.removeTab(tabID, false, false, true, true);
+    // remove tab, dont close app, close tab strip when empty, switch tab to other tab, restore window state when leaving.
+    await group.removeTab(tabID, false, true, false, true);
 
     return;
 }

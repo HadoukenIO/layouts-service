@@ -199,14 +199,21 @@ export class TabGroup {
      * @param {boolean} hideActiveTab Flag if we should hide the current active tab.
      */
     public async switchTab(ID: TabIdentifier, hideActiveTab = true): Promise<void> {
+        console.log("ID", ID);
         const tab = this.getTab(ID);
+        console.log("tab", tab);
         if (tab && tab !== this._activeTab) {
+            console.log("IN IF");
             await tab.window.showWindow();
+            console.log("After show window");
             tab.window.finWindow.bringToFront();
+            console.log("After bring to front");
             if (this._activeTab) {
+                console.log("in if activeTab", this._activeTab);
                 await this._activeTab.window.hideWindow();
             }
             this.setActiveTab(tab);
+            console.log("after set active tab", this._activeTab);
         }
     }
 

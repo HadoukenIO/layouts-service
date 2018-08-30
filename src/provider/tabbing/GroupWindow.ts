@@ -162,6 +162,8 @@ export class GroupWindow extends AsyncWindow {
      */
     protected _createWindowEventListeners(): void {
         this._window.addEventListener('focused', () => {
+            console.log("TABGROUP SHIT", this._tabGroup);
+            console.log("TABGROUP SHIT", this._tabGroup.activeTab);
             this._tabGroup.activeTab.window.finWindow.bringToFront();
         });
 

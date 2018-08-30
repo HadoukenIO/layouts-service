@@ -6,7 +6,9 @@ import {Layout, LayoutApp, LayoutName, WindowState} from '../../client/types';
 
 import {regroupLayout} from './group';
 import {providerChannel} from '../main';
-import { createAppPlaceholders, createTabPlaceholder, createNormalPlaceholder, isClientConnection, positionWindow, wasCreatedProgrammatically} from './utils';
+import {createAppPlaceholders, createTabPlaceholder, createNormalPlaceholder, isClientConnection, positionWindow, wasCreatedProgrammatically} from './utils';
+
+import {createTabGroupsFromTabBlob} from '../tabbing/TabUtilities';
 
 /*tslint:disable-next-line:no-any*/
 declare var fin: any;
@@ -54,30 +56,40 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
     /*tslint:disable-next-line:no-any*/
     const tabbedPlaceholdersToWindows: any = {};
 
-    function inTabbedWindowsObject(win: WindowState) {
+    function inTabbedWindowsObject(win: {uuid: string, name: string}) {
         if (tabbedWindows[win.uuid]) {
             if (tabbedWindows[win.uuid][win.name]) {
                 return true;
             }
         }
+        return false;
+    }
 
+    function inTabbedPlaceholdersToWindowsObject(win: {uuid: string, name: string}) {
+        if (tabbedPlaceholdersToWindows[win.uuid]) {
+            if (tabbedPlaceholdersToWindows[win.uuid][win.name]) {
+                return true;
+            }
+        }
         return false;
     }
 
     async function createTabbedPlaceholder(win: WindowState) {
         console.log("THIS SHOULD BE IN A TAB PLACEHOLDER", win);
         const tabPlaceholder = await createTabPlaceholder(win);
-        tabbedPlaceholdersToWindows[win.uuid] = { [win.name]: tabPlaceholder };
+        tabbedPlaceholdersToWindows[win.uuid] = { [win.name]: {name: tabPlaceholder.name, uuid: tabPlaceholder.uuid} };
     }
 
-    function childWindowPlaceholderCheck(app: LayoutApp) {
-        app.childWindows.forEach(async (win: WindowState) => {
+    async function childWindowPlaceholderCheck(app: LayoutApp) {
+        // app.childWindows.forEach(async (win: WindowState) => {
+        for (const win of app.childWindows) {
+
             if (inTabbedWindowsObject(win)) {
                 await createTabbedPlaceholder(win);
             } else {
                 await createNormalPlaceholder(win);
             }
-        });
+        }
     }
 
     // Create tabbedWindows list so we don't have to iterate over all of the tabGroup/TabBlob arrays. 
@@ -94,32 +106,55 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
     // Iterate over apps in layout.
     // Check if we need to make tabbed vs. normal placeholders for both main windows and child windows.
     // Push those placeholder windows into tabbedPlaceholdersToWindows object
-    payload.apps.forEach(async (app: LayoutApp) => {
-        const { uuid } = app;
-        const ofApp = await fin.Application.wrap({ uuid });
-        const isRunning = await ofApp.isRunning();
-        if (isRunning) {
-            console.log("IS RUNNING");
-            // Should de-tab here.
-            // Need to check its child windows here, if confirmed.
-            if (app.confirmed) {
-                await childWindowPlaceholderCheck(app);
-            }
-        } else {
-            console.log("ISN'T RUNNING. MAKE PLACEHOLDER");
-            if (inTabbedWindowsObject(app.mainWindow)) {
-                await createTabbedPlaceholder(app.mainWindow);
-                // Need to check its child windows here.
-                await childWindowPlaceholderCheck(app);
+    async function createPlaceholderWindows() {
+        // payload.apps.forEach(async (app: LayoutApp) => {
+        for (const app of payload.apps) {
+            const { uuid } = app;
+            const ofApp = await fin.Application.wrap({ uuid });
+            const isRunning = await ofApp.isRunning();
+            if (isRunning) {
+                console.log("IS RUNNING");
+                // Should de-tab here.
+                // Need to check its child windows here, if confirmed.
+                if (app.confirmed) {
+                    await childWindowPlaceholderCheck(app);
+                }
             } else {
-                await createNormalPlaceholder(app.mainWindow);
-                // Need to check its child windows here.
-                await childWindowPlaceholderCheck(app);
+                console.log("ISN'T RUNNING. MAKE PLACEHOLDER");
+                if (inTabbedWindowsObject(app.mainWindow)) {
+                    await createTabbedPlaceholder(app.mainWindow);
+                    // Need to check its child windows here.
+                    await childWindowPlaceholderCheck(app);
+                } else {
+                    await createNormalPlaceholder(app.mainWindow);
+                    // Need to check its child windows here.
+                    await childWindowPlaceholderCheck(app);
+                }
             }
         }
-    });
+    }
+
+    await createPlaceholderWindows();
+
 
     console.log('tabbedPlaceholdersToWindows', tabbedPlaceholdersToWindows);
+
+    console.log("tabGroups before", payload.tabGroups);
+    if (payload.tabGroups) {
+        payload.tabGroups.forEach((tabBlob) => {
+            const activeWindow = tabBlob.groupInfo.active;
+            tabBlob.groupInfo.active = tabbedPlaceholdersToWindows[activeWindow.uuid][activeWindow.name];
+
+            tabBlob.tabs.forEach((tabWindow, windowIdx) => {
+                if (inTabbedPlaceholdersToWindowsObject(tabWindow)) {
+                    tabBlob.tabs[windowIdx] = tabbedPlaceholdersToWindows[tabWindow.uuid][tabWindow.name];
+                }
+            });
+        });
+
+        console.log("tabGroups after", payload.tabGroups);
+        createTabGroupsFromTabBlob(payload.tabGroups);
+    }
 
     await delay(99999999999);
 

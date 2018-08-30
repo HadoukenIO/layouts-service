@@ -123,8 +123,10 @@ export class GroupWindow extends AsyncWindow {
      */
     public async restoreGroup(): Promise<void|void[]> {
         if (this._isMaximized) {
-            if ((await this.getState()) === 'minimized') {
-                return this._tabGroup.activeTab.window.restore();
+            if (await this._tabGroup.activeTab.window.getState()) {
+                this._isMaximized = false;
+                Promise.all(this._tabGroup.tabs.map(tab => tab.window.restore()));
+                return this._tabGroup.hideAllTabsMinusActiveTab();
             } else {
                 const resize = this._tabGroup.activeTab.window.resizeTo(this._beforeMaximizeBounds.width!, this._beforeMaximizeBounds.height!, 'top-left');
                 const moveto = this._tabGroup.window.moveTo(this._beforeMaximizeBounds.left!, this._beforeMaximizeBounds.top!);

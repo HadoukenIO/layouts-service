@@ -164,12 +164,18 @@ export class TabService {
 
         const firstTab = tabsP.shift();
 
-        if (firstTab) {
-            const bounds = await firstTab.window.getWindowBounds();
-            tabsP.forEach(tab => tab.window.finWindow.setBounds(bounds.left, bounds.top, bounds.width, bounds.height));
-            tabsP[tabsP.length - 1].window.finWindow.bringToFront();
-            await group.addTab(firstTab, false);
+        if (!firstTab) {
+            return Promise.reject('Something is wrong...');
         }
+
+        const [bounds, state] = await Promise.all([firstTab.window.getWindowBounds(), firstTab.window.getState()]);
+        tabsP.forEach(tab => tab.window.finWindow.setBounds(bounds.left, bounds.top, bounds.width, bounds.height));
+        tabsP[tabsP.length - 1].window.finWindow.bringToFront();
+        await group.addTab(firstTab, false);
+        if (state === 'maximized') {
+            group.window.maximizeGroup();
+        }
+
 
         await Promise.all(tabsP.map(tab => group.addTab(tab, false)));
 

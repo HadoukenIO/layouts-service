@@ -3,7 +3,7 @@ import { Client as ServiceClient } from 'hadouken-js-adapter/out/types/src/api/s
 import * as Mousetrap from 'mousetrap';
 
 import { TabAPI, TabAPIActions } from './APITypes';
-import { Layout, LayoutApp, LayoutName, TabProperties, TabWindowOptions, JoinTabGroupPayload, TabGroupEventPayload, DropPosition, ApplicationUIConfig } from './types';
+import { Layout, LayoutApp, LayoutName, TabProperties, TabWindowOptions, JoinTabGroupPayload, TabGroupEventPayload, DropPosition, ApplicationUIConfig, CustomData } from './types';
 
 export { AppApi } from './AppApi';
 export { TabbingApi } from './TabbingApi';
@@ -120,9 +120,9 @@ export async function addEventListener(
 /**
  * Decide which parts of this you will implement, alter LayoutApp object to reflect this then send it back
  */
-export async function onWillSaveAppLayout(layoutDecorator: (layoutApp: LayoutApp) => LayoutApp | false | Promise<LayoutApp | false>): Promise<boolean> {
+export async function onApplicationSave(customDataDecorator: () => any): Promise<boolean> {
     const service: ServiceClient = await servicePromise;
-    return service.register('savingLayout', layoutDecorator);
+    return service.register('savingLayout', customDataDecorator);
 }
 
 /**

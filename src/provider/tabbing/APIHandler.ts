@@ -42,11 +42,11 @@ export class APIHandler {
     public async deregister(window: TabIdentifier) {
         const group = this.mTabService.getTabGroupByApp(window);
 
-        if (!group) {
-            return Promise.reject('No tab group found!');
+        if (group) {
+            return await group.removeTab(window, false, true);
         }
 
-        return await group.removeTab(window, false, true);
+        return false;
     }
 
 
@@ -72,28 +72,7 @@ export class APIHandler {
      * will be used as the seed for the tab UI properties.
      */
     public async createTabGroup(windows: TabIdentifier[]) {
-        if (windows.length < 2) {
-            return Promise.reject('Must provide at least 2 Tab Identifiers! ');
-        }
-        const group = this.mTabService.addTabGroup({});
-
-        const tabsP = await Promise.all(windows.map(async (ID: TabIdentifier) => await new Tab({tabID: ID}).init()));
-
-        const firstTab = tabsP.shift();
-
-        if (firstTab) {
-            const bounds = await firstTab.window.getWindowBounds();
-            tabsP.forEach(tab => tab.window.finWindow.setBounds(bounds.left, bounds.top, bounds.width, bounds.height));
-            tabsP[tabsP.length - 1].window.finWindow.bringToFront();
-            await group.addTab(firstTab, false);
-        }
-
-        await Promise.all(tabsP.map(tab => group.addTab(tab, false)));
-
-        await group.switchTab(windows[windows.length - 1]);
-        await group.hideAllTabsMinusActiveTab();
-
-        return;
+        return this.mTabService.createTabGroupWithTabs(windows);
     }
 
     /**

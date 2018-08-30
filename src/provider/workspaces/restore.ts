@@ -147,7 +147,7 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
             console.log("IS RUNNING");
             // Should de-tab here.
 
-            removeTab(app.mainWindow);
+            await removeTab(app.mainWindow);
             // Need to check its child windows here, if confirmed.
             await childWindowPlaceholderCheckRunningApp(app);
         } else {
@@ -169,7 +169,9 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
     if (payload.tabGroups) {
         payload.tabGroups.forEach((tabBlob) => {
             const activeWindow = tabBlob.groupInfo.active;
-            tabBlob.groupInfo.active = tabbedPlaceholdersToWindows[activeWindow.uuid][activeWindow.name];
+            if (inTabbedPlaceholdersToWindowsObject(activeWindow)) {
+                tabBlob.groupInfo.active = tabbedPlaceholdersToWindows[activeWindow.uuid][activeWindow.name];
+            }
 
             tabBlob.tabs.forEach((tabWindow, windowIdx) => {
                 if (inTabbedPlaceholdersToWindowsObject(tabWindow)) {

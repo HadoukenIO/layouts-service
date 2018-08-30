@@ -36,7 +36,7 @@ export async function setLayout() {
         for (let idx = 0; idx < layoutSelect.options.length; idx++) {  // looping over the options
             if (layoutSelect.options[idx].value === id) {
                 optionPresent = true;
-                return;
+                break;
             }
         }
 

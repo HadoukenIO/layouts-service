@@ -7,7 +7,8 @@ import {Layout, LayoutApp, WindowState} from '../../client/types';
 
 import {getGroup} from './group';
 import {providerChannel} from '../main';
-import {isClientConnection, showingWindowInApp, wasCreatedFromManifest, wasCreatedProgrammatically} from './utils';
+import {isClientConnection, wasCreatedFromManifest, wasCreatedProgrammatically} from './utils';
+import { getTabSaveInfo } from '../tabbing/SaveAndRestoreAPI';
 
 // tslint:disable-next-line:no-any
 declare var fin: any;
@@ -17,6 +18,8 @@ export const getCurrentLayout = async(): Promise<Layout> => {
 
     // Not yet using monitor info
     const monitorInfo = await fin.System.getMonitorInfo() || {};
+    const tabGroups = await getTabSaveInfo();
+    console.log("tabGroups", tabGroups);
 
     const apps = await fin.System.getAllWindows();
     console.log('Apps:', apps);
@@ -29,8 +32,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
             const isRunning = await ofApp.isRunning();
             const hasMainWindow = !!app.mainWindow.name;
             const isService = app.uuid === fin.desktop.Application.getCurrent().uuid;
-            const isShowing = await showingWindowInApp(app);
-            if (!hasMainWindow || !isRunning || isService || !isShowing) {
+            if (!hasMainWindow || !isRunning || isService) {
                 return null;
             }
 
@@ -69,7 +71,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
     layoutApps = layoutApps.filter(a => !!a);
     console.log('Pre-Layout Save Apps:', apps);
 
-    const layoutObject = {type: 'layout', apps: layoutApps, monitorInfo};
+    const layoutObject = {type: 'layout', apps: layoutApps, monitorInfo, tabGroups};
     return layoutObject;
 };
 

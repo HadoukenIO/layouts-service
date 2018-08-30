@@ -43,13 +43,13 @@ export const positionWindow = async (win: WindowState) => {
 };
 
 export const createAppPlaceholders = async (app: LayoutApp) => {
-    createPlaceholder(app.mainWindow);
+    createNormalPlaceholder(app.mainWindow);
     app.childWindows.forEach((win: WindowState) => {
-        createPlaceholder(win);
+        createNormalPlaceholder(win);
     });
 };
 
-const createPlaceholder = async (win: WindowState) => {
+export const createNormalPlaceholder = async (win: WindowState) => {
     if (!win.isShowing || win.state === 'minimized') {
         return;
     }
@@ -63,10 +63,43 @@ const createPlaceholder = async (win: WindowState) => {
             placeholder.nativeWindow.document.bgColor = "D3D3D3";
         });
 
+    console.log("Normal - Before actualWindow await", win);
+    console.log("Normal - Before actualWindow await", placeholder);
+    
     const actualWindow = await fin.Window.wrap({uuid, name});
+    console.log("Normal - After actualWindow await", win);
+    console.log("Normal - After actualWindow await", placeholder);
+    console.log("Normal - After actualWindow await", actualWindow);
     actualWindow.on('shown', () => {
         placeholder.close();
     });
+
+    return placeholder;
+};
+
+export const createTabPlaceholder = async (win: WindowState) => {
+    const {name, height, width, left, top, uuid} = win;
+
+    const placeholderName = "Placeholder-" + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+    const placeholder = new fin.desktop.Window(
+        { name: placeholderName, autoShow: true, defaultHeight: height, defaultWidth: width, defaultLeft: left, defaultTop: top, saveWindowState: false, opacity: 0.6, backgroundColor: '#D3D3D3'}, () => {
+            placeholder.nativeWindow.document.body.style.overflow = 'hidden';
+            placeholder.nativeWindow.document.bgColor = "D3D3D3";
+        });
+
+    console.log("Tab - Before actualWindow await", win);
+    console.log("Tab - Before actualWindow await", placeholder);
+    
+    const actualWindow = await fin.Window.wrap({uuid, name});
+    console.log("Tab - After actualWindow await", win);
+    console.log("Tab - After actualWindow await", placeholder);
+    console.log("Tab - After actualWindow await", actualWindow);
+    actualWindow.on('shown', () => {
+        placeholder.close();
+    });
+
+    return placeholder;
 };
 
 export const wasCreatedProgrammatically = (app: LayoutApp) => {

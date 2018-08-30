@@ -6,7 +6,7 @@ import {Layout, LayoutApp, LayoutName, WindowState} from '../../client/types';
 
 import {regroupLayout} from './group';
 import {providerChannel} from '../main';
-import {createAppPlaceholders, isClientConnection, positionWindow, wasCreatedProgrammatically} from './utils';
+import { createAppPlaceholders, createTabPlaceholder, createNormalPlaceholder, isClientConnection, positionWindow, wasCreatedProgrammatically} from './utils';
 
 /*tslint:disable-next-line:no-any*/
 declare var fin: any;
@@ -40,9 +40,89 @@ export const restoreApplication = async(layoutApp: LayoutApp, resolve: Function)
     appsToRestore.delete(uuid);
 };
 
+export async function delay(milliseconds: number) {
+    return new Promise<void>(r => setTimeout(r, milliseconds));
+}
+
 export const restoreLayout = async(payload: Layout, identity: Identity): Promise<Layout> => {
+    console.log("PAYLOAD", payload);
+
     const layout = payload;
     const startupApps: Promise<LayoutApp>[] = [];
+    /*tslint:disable-next-line:no-any*/
+    const tabbedWindows: any = {};
+    /*tslint:disable-next-line:no-any*/
+    const tabbedPlaceholdersToWindows: any = {};
+
+    function inTabbedWindowsObject(win: WindowState) {
+        if (tabbedWindows[win.uuid]) {
+            if (tabbedWindows[win.uuid][win.name]) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    async function createTabbedPlaceholder(win: WindowState) {
+        console.log("THIS SHOULD BE IN A TAB PLACEHOLDER", win);
+        const tabPlaceholder = await createTabPlaceholder(win);
+        tabbedPlaceholdersToWindows[win.uuid] = { [win.name]: tabPlaceholder };
+    }
+
+    function childWindowPlaceholderCheck(app: LayoutApp) {
+        app.childWindows.forEach(async (win: WindowState) => {
+            if (inTabbedWindowsObject(win)) {
+                await createTabbedPlaceholder(win);
+            } else {
+                await createNormalPlaceholder(win);
+            }
+        });
+    }
+
+    // Create tabbedWindows list so we don't have to iterate over all of the tabGroup/TabBlob arrays. 
+    if (payload.tabGroups) {
+        payload.tabGroups.forEach((tabGroup) => {
+            tabGroup.tabs.forEach(tabWindow => {
+                tabbedWindows[tabWindow.uuid] = {[tabWindow.name]: true};
+            });
+        });
+    }
+
+    console.log('tabbedWindows', tabbedWindows);
+
+    // Iterate over apps in layout.
+    // Check if we need to make tabbed vs. normal placeholders for both main windows and child windows.
+    // Push those placeholder windows into tabbedPlaceholdersToWindows object
+    payload.apps.forEach(async (app: LayoutApp) => {
+        const { uuid } = app;
+        const ofApp = await fin.Application.wrap({ uuid });
+        const isRunning = await ofApp.isRunning();
+        if (isRunning) {
+            console.log("IS RUNNING");
+            // Should de-tab here.
+            // Need to check its child windows here, if confirmed.
+            if (app.confirmed) {
+                await childWindowPlaceholderCheck(app);
+            }
+        } else {
+            console.log("ISN'T RUNNING. MAKE PLACEHOLDER");
+            if (inTabbedWindowsObject(app.mainWindow)) {
+                await createTabbedPlaceholder(app.mainWindow);
+                // Need to check its child windows here.
+                await childWindowPlaceholderCheck(app);
+            } else {
+                await createNormalPlaceholder(app.mainWindow);
+                // Need to check its child windows here.
+                await childWindowPlaceholderCheck(app);
+            }
+        }
+    });
+
+    console.log('tabbedPlaceholdersToWindows', tabbedPlaceholdersToWindows);
+
+    await delay(99999999999);
+
     console.log('Restoring layout:', layout);
     const apps = await promiseMap(layout.apps, async(app: LayoutApp): Promise<LayoutApp> => {
         // Get rid of childWindows for default response (anything else?)
@@ -69,7 +149,7 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
             } else {
                 let ofApp: undefined|Application;
                 console.log('App is not running:', app);
-                await createAppPlaceholders(app);
+                // await createAppPlaceholders(app);
 
                 // App is not running - setup communication to fire once app is started
                 if (app.confirmed) {

@@ -77,7 +77,7 @@ export class APIHandler {
         }
         const group = this.mTabService.addTabGroup({});
 
-        const tabsP = await Promise.all(windows.map(async (ID: TabIdentifier) => await new Tab({ tabID: ID }).init()));
+        const tabsP = await Promise.all(windows.map(async (ID: TabIdentifier) => await new Tab({tabID: ID}).init()));
 
         const firstTab = tabsP.shift();
 

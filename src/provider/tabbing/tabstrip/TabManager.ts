@@ -161,11 +161,6 @@ export class TabManager {
             const tabInfo: TabIdentifier = customEvent.detail.tabID;
             this.setActiveTab(tabInfo);
         });
-
-        TabManager.tabAPI.addEventListener(TabApiEvents.TABACTIVATED, (tabInfo: TabIdentifier) => {
-            console.log('TABACTIVATED', tabInfo);
-            this.setActiveTab(tabInfo);
-        });
     }
 
     /**
@@ -201,11 +196,18 @@ export class TabManager {
     public get getActiveTab(): Tab {
         return this.activeTab;
     }
-
+    
+    /**
+     * Returns the state of whether or not the tab group is maximised.
+     * @returns {boolean} Maximised state
+     */
     public get isMaximized(): boolean {
         return this.maximized;
     }
 
+    /**
+     * Sets whether or not the tab group is maximised.
+     */
     public set isMaximized(max: boolean) {
         this.maximized = max;
     }

@@ -3,7 +3,7 @@ import { Client as ServiceClient } from 'hadouken-js-adapter/out/types/src/api/s
 import * as Mousetrap from 'mousetrap';
 
 import { TabAPI, TabAPIActions } from './APITypes';
-import { Layout, LayoutApp, LayoutName, TabProperties, TabWindowOptions, JoinTabGroupPayload, TabGroupEventPayload, DropPosition } from './types';
+import { Layout, LayoutApp, LayoutName, TabProperties, TabWindowOptions, JoinTabGroupPayload, TabGroupEventPayload, DropPosition, ApplicationUIConfig } from './types';
 
 export { AppApi } from './AppApi';
 export { TabbingApi } from './TabbingApi';
@@ -205,8 +205,9 @@ export async function setTabClient(url: string, config: TabWindowOptions): Promi
         return Promise.reject(e);
     }
     const service: ServiceClient = await servicePromise;
+    config.url = url;
 
-    return service.dispatch(TabAPI.SETTABCLIENT, { url, config });
+    return service.dispatch(TabAPI.SETTABCLIENT, { config, id: getId() });
 }
 
 /**

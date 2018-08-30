@@ -1,7 +1,7 @@
 
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
-import {ApplicationUIConfig, TabIdentifier, TabProperties, DropPosition} from '../../client/types';
+import {ApplicationUIConfig, TabIdentifier, TabProperties, DropPosition, TabWindowOptions} from '../../client/types';
 
 import {Tab} from './Tab';
 import {TabService} from './TabService';
@@ -28,12 +28,12 @@ export class APIHandler {
      * If a custom tab-strip UI is being used - this sets the URL for the tab-strip.
      * This binding happens on the application level.  An application cannot have different windows using different tabbing UI.
      */
-    public setTabClient(payload: ApplicationUIConfig, id: Identity) {
-        if (this.mTabService.applicationConfigManager.exists(id.uuid)) {
+    public setTabClient(payload: { config: TabWindowOptions, id: Identity }) {
+        if (this.mTabService.applicationConfigManager.exists(payload.id.uuid)) {
             return Promise.reject('Configuration already set!');
         }
 
-        return this.mTabService.applicationConfigManager.addApplicationUIConfig(id.uuid, payload.config);
+        return this.mTabService.applicationConfigManager.addApplicationUIConfig(payload.id.uuid, payload.config);
     }
 
     /**

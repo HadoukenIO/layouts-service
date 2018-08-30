@@ -2,6 +2,7 @@
 
 <head>
     <script src="../../../client/main-bundle.js"></script>
+    <script src="../../CustomUI-bundle.js"></script>
     <title></title>
     <style>
         body {
@@ -21,15 +22,7 @@
         document.body.style.backgroundColor = randomColor;
 
         fin.desktop.main(()=>{
-            window.TabClient.init("http://localhost:1337/demo/tabbing/UI/UI2.html");
-
-            window.TabClient.addEventListener("TABBED", (e) => {
-                console.log("TABBED: ", e);
-            });
-
-            window.TabClient.addEventListener("UNTABBED", (e) => {
-                console.log("UNTABBED: ", e);
-            });
+            window.setTabClient("http://localhost:1337/demo/tabbing/UI/UI2.html", { height: 62 });
         })
     </script>
 </body>

@@ -69,5 +69,6 @@ module.exports = [
     )),
     createConfig('provider', {tabStrip: './src/provider/tabbing/tabstrip/TabStrip.ts'}, true),
     createConfig('demo', {LayoutsUI: './src/demo/LayoutsUI.ts'}, true, new CopyWebpackPlugin( [{ from: './res/demo' }]) ),
-    createConfig('demo', {Snappable: './src/demo/Snappable.ts'}, true)
+    createConfig('demo', { Snappable: './src/demo/Snappable.ts' }, true),
+    createConfig('demo', { CustomUI: './src/demo/tabbing/app/CustomUI.ts' }, false, new CopyWebpackPlugin([{from: './res/demo'}]))
 ];

@@ -2,6 +2,7 @@
 
 <head>
     <script src="../../../client/main-bundle.js"></script>
+    <script src="../../CustomUI-bundle.js"></script>
     <title></title>
     <style>
         body {
@@ -19,18 +20,6 @@
         var randomColor = "#"+((1<<24)*Math.random()|0).toString(16); 
     
         document.body.style.backgroundColor = randomColor;
-
-        fin.desktop.main(()=>{
-            window.TabClient.init();
-
-                       window.TabClient.addEventListener("TABBED", (e) => {
-                console.log("TABBED: ", e);
-            });
-
-            window.TabClient.addEventListener("UNTABBED", (e) => {
-                console.log("UNTABBED: ", e);
-            });
-        })
     </script>
 </body>
 

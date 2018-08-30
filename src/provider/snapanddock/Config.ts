@@ -1,7 +1,7 @@
 /**
  * The maximum distance at which two windows will snap together.
  */
-export const SNAP_DISTANCE = 35;
+export const SNAP_DISTANCE = 15;
 
 /**
  * If two window corners would snap to a distance less than this threshold, the active window will be snapped to the

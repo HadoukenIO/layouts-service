@@ -185,24 +185,25 @@ body {
 	align-items: center;
 	justify-content: center;
 	background-repeat: no-repeat;
-	background-size: 100% 107%;
-}
-
-#window-button-wrap #window-button-maximize {
-	background-size: 100% 60%;
+	background-size: 25% 45%;
 	background-position: center;
+
 }
 
 #window-button-wrap #window-button-exit {
-	background-image: url("./image/exit.svg");
+	background-image: url("./image/close.png");
 }
 
 #window-button-wrap #window-button-minimize {
-	background-image: url("./image/minimize.svg");
+	background-image: url("./image/minimize.png");
+}
+
+#window-button-wrap #window-button-maximize.restore{
+	background-image: url("./image/restore.png") !important;
 }
 
 #window-button-wrap #window-button-maximize {
-	background-image: url("./image/maximize.svg");
+	background-image: url("./image/maximise.png");
 }
 
 #window-button-wrap div img {

@@ -1,5 +1,4 @@
 import * as Layouts from '../client/main';
-
 const randomColor = () => {
     return '#' + ((1 << 24) * Math.random() | 0).toString(16);
 };
@@ -9,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 fin.desktop.main(() => {
+    Layouts.setTabClient("http://localhost:1337/demo/tabbing/UI/UI2.html", { height: 62 });
     Layouts.addEventListener('join-tab-group', () => {
         console.log('TABBED: ');
     });

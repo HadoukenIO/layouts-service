@@ -72,6 +72,27 @@ export async function swapTab(add: TabIdentifier, swapWith: TabIdentifier) {
 }
 
 /**
+ * Removes a tab from a tab group.
+ * @param {TabIdentifier} tabID The identity of the tab to remove.
+ */
+export async function removeTab(tabID: TabIdentifier) {
+    if (!TabService.INSTANCE) {
+        return Promise.reject('No Tab Service!');
+    }
+
+    const group = TabService.INSTANCE.getTabGroupByApp(tabID);
+
+    if (!group) {
+        return;
+    }
+
+    // remove swap with tab, dont close app, dont switch tabs, dont close group window
+    await group.removeTab(tabID, false, false, true, true);
+
+    return;
+}
+
+/**
  * Restores tabs and tab groups using the given tab blob information.
  * @param {TabBlob[]} tabBlob Array of TabBlobs
  */

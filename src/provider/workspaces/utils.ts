@@ -4,6 +4,7 @@ import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/system/appl
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {LayoutApp, WindowState} from '../../client/types';
+import { swapTab } from '../tabbing/SaveAndRestoreAPI';
 
 // tslint:disable-next-line:no-any
 declare var fin: any;
@@ -62,14 +63,8 @@ export const createNormalPlaceholder = async (win: WindowState) => {
             placeholder.nativeWindow.document.body.style.overflow = 'hidden';
             placeholder.nativeWindow.document.bgColor = "D3D3D3";
         });
-
-    console.log("Normal - Before actualWindow await", win);
-    console.log("Normal - Before actualWindow await", placeholder);
     
     const actualWindow = await fin.Window.wrap({uuid, name});
-    console.log("Normal - After actualWindow await", win);
-    console.log("Normal - After actualWindow await", placeholder);
-    console.log("Normal - After actualWindow await", actualWindow);
     actualWindow.on('shown', () => {
         placeholder.close();
     });
@@ -87,15 +82,12 @@ export const createTabPlaceholder = async (win: WindowState) => {
             placeholder.nativeWindow.document.body.style.overflow = 'hidden';
             placeholder.nativeWindow.document.bgColor = "D3D3D3";
         });
-
-    console.log("Tab - Before actualWindow await", win);
-    console.log("Tab - Before actualWindow await", placeholder);
     
     const actualWindow = await fin.Window.wrap({uuid, name});
-    console.log("Tab - After actualWindow await", win);
-    console.log("Tab - After actualWindow await", placeholder);
-    console.log("Tab - After actualWindow await", actualWindow);
-    actualWindow.on('shown', () => {
+    actualWindow.on('initialized', async () => {
+        console.log("IN SHOWN", actualWindow);
+        await swapTab(actualWindow.identity, placeholder);
+        console.log("AFTER SWAP TAB", actualWindow);
         placeholder.close();
     });
 

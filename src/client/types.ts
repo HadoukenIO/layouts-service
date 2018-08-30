@@ -166,3 +166,18 @@ export interface TabAPIReorderMessage extends TabAPIMessage {
 export interface ApplicationUIConfig {
     [uuid: string]: TabWindowOptions;
 }
+
+export interface DropPosition {
+    screenX: number;
+    screenY: number;
+}
+
+export interface TabGroupEventPayload {
+    tabGroupId: string;
+    tabID: TabIdentifier;
+}
+
+export interface JoinTabGroupPayload extends TabGroupEventPayload {
+    tabProps: TabProperties;
+    index: number;
+}

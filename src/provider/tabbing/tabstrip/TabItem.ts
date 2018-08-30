@@ -1,4 +1,8 @@
+import {Identity} from 'hadouken-js-adapter';
+
+import {closeTab, setActiveTab, tabStrip} from '../../../client/main';
 import {TabIdentifier, TabProperties} from '../../../client/types';
+
 import {TabManager} from './TabManager';
 
 export class Tab {
@@ -88,8 +92,7 @@ export class Tab {
      */
     private _onDragStart(e: DragEvent): boolean {
         e.dataTransfer.effectAllowed = 'move';
-
-        TabManager.tabAPI.startDrag();
+        tabStrip.startDrag();
         return true;
     }
 
@@ -98,8 +101,7 @@ export class Tab {
      * @param {DragEvent} e DragEvent
      */
     private _onDragEnd(e: DragEvent): void {
-        // @ts-ignore
-        TabManager.tabAPI.endDrag(e, this._ID.uuid, this._ID.name);
+        tabStrip.endDrag(e, {uuid: this._ID.uuid, name: this._ID.name});
     }
 
     /**
@@ -126,7 +128,8 @@ export class Tab {
      */
     private _onMouseDownHandler(e: MouseEvent): void {
         this.setActive();
-        TabManager.tabAPI.activateTab(this._ID.uuid, this._ID.name);
+        // TabManager.tabAPI.activateTab(this._ID.uuid, this._ID.name);
+        setActiveTab({uuid: this._ID.uuid, name: this._ID.name});
     }
 
 
@@ -137,11 +140,10 @@ export class Tab {
     private _onClickHandler(e: MouseEvent): void {
         switch ((e.target as Element).className) {
             case 'tab-exit': {
-                TabManager.tabAPI.closeTab(this._ID.uuid, this._ID.name);
-
+                closeTab({uuid: this._ID.uuid, name: this._ID.name});
                 break;
             }
-            default: { TabManager.tabAPI.activateTab(this._ID.uuid, this._ID.name); }
+            default: { setActiveTab({uuid: this._ID.uuid, name: this._ID.name}); }
         }
     }
 
@@ -158,7 +160,7 @@ export class Tab {
             }
             default: {
                 // @ts-ignore
-                window.Tab.activateTab(this._ID.uuid, this._ID.name);
+                setActiveTab({ uuid: this._ID.uuid, name: this._ID.name });
             }
         }
     }
@@ -198,12 +200,13 @@ export class Tab {
         const inputNode: HTMLInputElement = document.createElement('input');
 
         inputNode.value = textNodeValue || '';
-
+        const that = this;
         function _onBlur(): void {
             try {
                 inputNode.remove();
+                that.updateText(inputNode.value);
                 // @ts-ignore
-                TabManager.tabAPI.updateTabProperties(this._ID.uuid, this._ID.name, {title: inputNode.value});
+                tabStrip.updateTabProperties({uuid: this._ID.uuid, name: this._ID.name}, {title: inputNode.value});
             } catch (e) {
             }
         }

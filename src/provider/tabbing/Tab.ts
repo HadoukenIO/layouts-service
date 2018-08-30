@@ -1,5 +1,8 @@
+import {Client} from '../../../node_modules/hadouken-js-adapter/out/types/src/api/services/client';
+import {Provider} from '../../../node_modules/hadouken-js-adapter/out/types/src/api/services/provider';
 import {AppApiEvents, TabApiEvents} from '../../client/APITypes';
-import {TabIdentifier, TabPackage, TabProperties} from '../../client/types';
+import {JoinTabGroupPayload, TabGroupEventPayload, TabIdentifier, TabPackage, TabProperties, TabServiceID} from '../../client/types';
+
 import {TabGroup} from './TabGroup';
 import {TabWindow} from './TabWindow';
 
@@ -28,6 +31,11 @@ export class Tab {
     private _tabWindow: TabWindow;
 
     /**
+     * Handle to the service provider
+     */
+    private mService: Provider;
+
+    /**
      * Constructor for the Tab Class.
      * @param {TabPackage} tabPackage The tab package contains the uuid, name, and any properties for the tab.
      * @param {TabGroup} tabGroup The tab group to which this tab belongs.
@@ -40,6 +48,7 @@ export class Tab {
         }
 
         this._tabWindow = new TabWindow(this, tabPackage.tabID);
+        this.mService = (window as Window & {providerChannel: Provider}).providerChannel;
     }
 
     /**
@@ -55,12 +64,14 @@ export class Tab {
 
 
     public async sendTabbedEvent() {
-        fin.desktop.InterApplicationBus.send(
-            fin.desktop.Application.getCurrent().uuid,
-            this.tabGroup.ID,
-            TabApiEvents.TABADDED,
-            {tabID: this.ID, tabProps: this._tabProperties, index: this.tabGroup.getTabIndex(this._tabID)});
-        fin.desktop.InterApplicationBus.send(this.ID.uuid, this.ID.name, AppApiEvents.TABBED, {tabGroupID: this.tabGroup.ID});
+        this.mService.dispatch(
+            this.ID,
+            'join-tab-group',
+            {tabGroupID: this.tabGroup.ID, tabID: this.ID, tabProps: this._tabProperties, index: this.tabGroup.getTabIndex(this._tabID)});
+        this.mService.dispatch(
+            {uuid: TabServiceID.UUID, name: this.tabGroup.ID},
+            'join-tab-group',
+            {tabGroupID: this.tabGroup.ID, tabID: this.ID, tabProps: this._tabProperties, index: this.tabGroup.getTabIndex(this._tabID)});
     }
 
     /**
@@ -77,8 +88,10 @@ export class Tab {
     public async remove(closeApp: boolean) {
         this._tabWindow.leaveGroup();
 
-        fin.desktop.InterApplicationBus.send(fin.desktop.Application.getCurrent().uuid, this.tabGroup.ID, TabApiEvents.TABREMOVED, this._tabID);
-        fin.desktop.InterApplicationBus.send(this.ID.uuid, this.ID.name, AppApiEvents.UNTABBED, {tabGroupID: this.tabGroup.ID});
+        const payload: TabGroupEventPayload = {tabGroupId: this.tabGroup.ID, tabID: this.ID};
+
+        this.mService.dispatch(this.ID, 'leave-tab-group', payload);
+        this.mService.dispatch({uuid: TabServiceID.UUID, name: this.tabGroup.ID}, 'leave-tab-group', payload);
 
         if (closeApp) {
             return this._tabWindow.close(false);

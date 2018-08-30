@@ -77,7 +77,7 @@ export class APIHandler {
         }
         const group = this.mTabService.addTabGroup({});
 
-        const tabsP = await Promise.all(windows.map(async (ID: TabIdentifier) => await new Tab({ tabID: ID }).init()));
+        const tabsP = await Promise.all(windows.map(async (ID: TabIdentifier) => await new Tab({tabID: ID}).init()));
 
         const firstTab = tabsP.shift();
 
@@ -161,7 +161,7 @@ export class APIHandler {
      * Maximizes the tab group for the window context.
      */
     public maximizeTabGroup(window: TabIdentifier) {
-        const group = this.mTabService.getTabGroupByApp(window);
+        const group = this.mTabService.getTabGroup(window.name);
         if (!group) {
             return Promise.reject('No group found');
         }
@@ -172,7 +172,7 @@ export class APIHandler {
      * Closes the tab group for the window context.
      */
     public closeTabGroup(window: TabIdentifier) {
-        const group = this.mTabService.getTabGroupByApp(window);
+        const group = this.mTabService.getTabGroup(window.name);
         if (!group) {
             return Promise.reject('No group found');
         }

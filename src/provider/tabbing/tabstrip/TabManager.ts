@@ -41,6 +41,15 @@ export class TabManager {
     constructor() {
         TabManager.tabContainer = document.getElementById('tabs')!;
         this.maximized = false;
+
+        fin.desktop.Window.getCurrent().getState((state) => {
+            if (state === 'maximized') {
+                this.maximized = true;
+                const maximizeElem: HTMLElement|null = document.getElementById('window-button-maximize');
+                maximizeElem!.classList.add('restored');
+            }
+        });
+
         this._setupListeners();
 
         this.dragDropManager = Sortable.create(TabManager.tabContainer, {

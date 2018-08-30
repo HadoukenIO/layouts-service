@@ -23,10 +23,15 @@ fin.desktop.main(() => {
     maximizeElem!.onclick = () => {
         if (!tabManager.isMaximized) {
             maximizeTabGroup(tabManager.getTabs[0].ID);
+            maximizeElem!.classList.add('restore');
             tabManager.isMaximized = true;
         } else {
             restoreTabGroup(tabManager.getTabs[0].ID);
             tabManager.isMaximized = false;
+
+            if (maximizeElem!.classList.contains('restore')) {
+                maximizeElem!.classList.remove('restore');
+            }
         }
     };
 

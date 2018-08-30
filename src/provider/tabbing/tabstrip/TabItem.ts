@@ -129,7 +129,7 @@ export class Tab {
     private _onMouseDownHandler(e: MouseEvent): void {
         this.setActive();
         // TabManager.tabAPI.activateTab(this._ID.uuid, this._ID.name);
-        setActiveTab({uuid: this._ID.uuid, name: this._ID.uuid});
+        setActiveTab({uuid: this._ID.uuid, name: this._ID.name});
     }
 
 
@@ -143,7 +143,7 @@ export class Tab {
                 closeTab({uuid: this._ID.uuid, name: this._ID.name});
                 break;
             }
-            default: { setActiveTab({uuid: this._ID.uuid, name: this._ID.uuid}); }
+            default: { setActiveTab({uuid: this._ID.uuid, name: this._ID.name}); }
         }
     }
 
@@ -160,7 +160,7 @@ export class Tab {
             }
             default: {
                 // @ts-ignore
-                window.Tab.activateTab(this._ID.uuid, this._ID.name);
+                setActiveTab({ uuid: this._ID.uuid, name: this._ID.name });
             }
         }
     }

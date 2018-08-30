@@ -51,7 +51,9 @@ export class SnapPreview {
             this.tempWindowIsActive = true;
 
             this.setWindowSize(this.tempWindow, groupHalfSize).then(() => {
-                this.tempWindow.window.show();
+                if (this.tempWindowIsActive) {
+                    this.tempWindow.window.show();
+                }
             });
         }
 

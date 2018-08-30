@@ -1,8 +1,10 @@
 import Sortable from 'sortablejs';
 
 import {TabApiEvents} from '../../../client/APITypes';
-import {TabbingApi} from '../../../client/TabbingApi';
-import {TabIdentifier, TabPackage, TabProperties} from '../../../client/types';
+import {addEventListener, reorderTabs} from '../../../client/main';
+import {JoinTabGroupPayload, TabGroupEventPayload, TabIdentifier, TabPackage, TabProperties} from '../../../client/types';
+import {p} from '../../snapanddock/utils/async';
+import {TabGroup} from '../TabGroup';
 
 import {Tab} from './TabItem';
 
@@ -14,12 +16,6 @@ export class TabManager {
      *  The HTML Element container for the tabs.
      */
     public static tabContainer: HTMLElement = document.getElementById('tabs')!;
-
-    /**
-     * Handle to the Tabbing API
-     */
-    public static tabAPI: TabbingApi = new TabbingApi();
-
     /**
      * An array of the tabs present in the window.
      */
@@ -37,11 +33,14 @@ export class TabManager {
 
     private dragDropManager: Sortable;
 
+    private maximized: boolean;
+
     /**
      * Constructs the TabManager class.
      */
     constructor() {
         TabManager.tabContainer = document.getElementById('tabs')!;
+        this.maximized = false;
         this._setupListeners();
 
         this.dragDropManager = Sortable.create(TabManager.tabContainer, {
@@ -54,7 +53,8 @@ export class TabManager {
                     return {uuid: el.dataset.uuid as string, name: el.dataset.name as string};
                 });
                 // Sends the new order to the service to update the cache
-                TabManager.tabAPI.sendTabOrder(orderedTabList);
+                // TabManager.tabAPI.sendTabOrder(orderedTabList);
+                reorderTabs(orderedTabList);
             }
         });
     }
@@ -137,33 +137,22 @@ export class TabManager {
      * Creates listeners for various IAB + Window Events.
      */
     private _setupListeners(): void {
-        TabManager.tabAPI.addEventListener(TabApiEvents.TABADDED, (tabInfo: TabPackage) => {
-            console.log('TABADDED', tabInfo);
+        addEventListener('join-tab-group', (event: CustomEvent<TabGroupEventPayload>|Event) => {
+            const customEvent: CustomEvent<JoinTabGroupPayload> = event as CustomEvent<JoinTabGroupPayload>;
+            const tabInfo: JoinTabGroupPayload = customEvent.detail;
             this.addTab(tabInfo.tabID, tabInfo.tabProps!, tabInfo.index!);
         });
 
-        TabManager.tabAPI.addEventListener(TabApiEvents.TABREMOVED, (tabInfo: TabIdentifier) => {
-            console.log('TABREMOVED', tabInfo);
-            this.removeTab(tabInfo);
+        addEventListener('leave-tab-group', (event: CustomEvent<TabGroupEventPayload>|Event) => {
+            const customEvent: CustomEvent<TabGroupEventPayload> = event as CustomEvent<TabGroupEventPayload>;
+            const tabInfo: TabGroupEventPayload = customEvent.detail;
+            this.removeTab(tabInfo.tabID);
         });
 
-        TabManager.tabAPI.addEventListener(TabApiEvents.TABACTIVATED, (tabInfo: TabIdentifier) => {
-            console.log('TABACTIVATED', tabInfo);
+        addEventListener('tab-activated', (event: CustomEvent<TabGroupEventPayload>|Event) => {
+            const customEvent: CustomEvent<TabGroupEventPayload> = event as CustomEvent<TabGroupEventPayload>;
+            const tabInfo: TabIdentifier = customEvent.detail.tabID;
             this.setActiveTab(tabInfo);
-        });
-
-        TabManager.tabAPI.addEventListener(TabApiEvents.PROPERTIESUPDATED, (tabInfo: TabPackage) => {
-            console.log('TABPROPERTIESUPDATED', tabInfo);
-            const tab = this.getTab(tabInfo.tabID);
-            if (tab && tabInfo.tabProps) {
-                if (tabInfo.tabProps.icon) {
-                    tab.updateIcon(tabInfo.tabProps.icon);
-                }
-
-                if (tabInfo.tabProps.title) {
-                    tab.updateText(tabInfo.tabProps.title);
-                }
-            }
         });
     }
 
@@ -199,5 +188,20 @@ export class TabManager {
      */
     public get getActiveTab(): Tab {
         return this.activeTab;
+    }
+
+    /**
+     * Returns the state of whether or not the tab group is maximised.
+     * @returns {boolean} Maximised state
+     */
+    public get isMaximized(): boolean {
+        return this.maximized;
+    }
+
+    /**
+     * Sets whether or not the tab group is maximised.
+     */
+    public set isMaximized(max: boolean) {
+        this.maximized = max;
     }
 }

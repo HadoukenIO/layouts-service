@@ -117,7 +117,7 @@ export async function createTabGroupsFromTabBlob(tabBlob: TabBlob[]): Promise<vo
 
         for (const tab of blob.tabs) {
             let newTab = await new Tab({tabID: tab}).init();
-            
+
             newTab = await group.addTab(newTab, false, true);
 
             if (!newTab) {

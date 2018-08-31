@@ -2,19 +2,18 @@ import {Window} from 'hadouken-js-adapter';
 import Fin from 'hadouken-js-adapter/out/types/src/api/fin';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
-import {promiseMap} from '../snapanddock/utils/async';
 import {Layout, LayoutApp, WindowState} from '../../client/types';
+import {providerChannel} from '../main';
+import {promiseMap} from '../snapanddock/utils/async';
+import {getTabSaveInfo} from '../tabbing/SaveAndRestoreAPI';
 
 import {getGroup} from './group';
-import {providerChannel} from '../main';
 import {isClientConnection, wasCreatedFromManifest, wasCreatedProgrammatically} from './utils';
-import { getTabSaveInfo } from '../tabbing/SaveAndRestoreAPI';
 
 // tslint:disable-next-line:no-any
 declare var fin: any;
 
 export const getCurrentLayout = async(): Promise<Layout> => {
-
     // Not yet using monitor info
     const monitorInfo = await fin.System.getMonitorInfo() || {};
     const tabGroups = await getTabSaveInfo();
@@ -51,11 +50,11 @@ export const getCurrentLayout = async(): Promise<Layout> => {
             });
             if (wasCreatedFromManifest(appInfo, uuid)) {
                 delete appInfo.manifest;
-                return { ...app, ...appInfo, uuid, confirmed: false };
+                return {...app, ...appInfo, uuid, confirmed: false};
             } else if (wasCreatedProgrammatically(appInfo)) {
                 delete appInfo.manifest;
                 delete appInfo.manifestUrl;
-                return { ...app, ...appInfo, uuid, confirmed: false };
+                return {...app, ...appInfo, uuid, confirmed: false};
             } else {
                 console.error('Not saving app, cannot restore:', app);
                 return null;
@@ -102,5 +101,5 @@ const getLayoutWindowData = async (ofWin: Window) => {
     const {uuid} = ofWin.identity;
     const info = await ofWin.getInfo();
     const windowGroup = await getGroup(ofWin.identity);
-    return { info, uuid, windowGroup };
+    return {info, uuid, windowGroup};
 };

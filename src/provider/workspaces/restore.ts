@@ -1,16 +1,15 @@
 import {Application} from 'hadouken-js-adapter/out/types/src/api/application/application';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
-import {promiseMap} from '../snapanddock/utils/async';
 import {Layout, LayoutApp, LayoutName, WindowState} from '../../client/types';
+import {providerChannel} from '../main';
+import {promiseMap} from '../snapanddock/utils/async';
+import {removeTab} from '../tabbing/SaveAndRestoreAPI';
+import {TabService} from '../tabbing/TabService';
+import {createTabGroupsFromTabBlob} from '../tabbing/TabUtilities';
 
 import {regroupLayout} from './group';
-import {providerChannel} from '../main';
-import {createAppPlaceholders, createTabPlaceholder, createNormalPlaceholder, isClientConnection, positionWindow, wasCreatedProgrammatically} from './utils';
-
-import {createTabGroupsFromTabBlob} from '../tabbing/TabUtilities';
-import { TabService } from '../tabbing/TabService';
-import { removeTab } from '../tabbing/SaveAndRestoreAPI';
+import {createAppPlaceholders, createNormalPlaceholder, createTabPlaceholder, isClientConnection, positionWindow, wasCreatedProgrammatically} from './utils';
 
 
 
@@ -77,7 +76,7 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
     // Creates a tabbing placeholder and records the information for its corresponding window.
     async function createTabbedPlaceholderAndRecord(win: WindowState) {
         const tabPlaceholder = await createTabPlaceholder(win);
-        tabbedPlaceholdersToWindows[win.uuid] = { [win.name]: {name: tabPlaceholder.name, uuid: tabPlaceholder.uuid} };
+        tabbedPlaceholdersToWindows[win.uuid] = {[win.name]: {name: tabPlaceholder.name, uuid: tabPlaceholder.uuid}};
     }
 
     // Helper function to determine what type of placeholder window to open.
@@ -132,8 +131,8 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
     // Push those placeholder windows into tabbedPlaceholdersToWindows object
     // If an app is running, we need to check which of its child windows are open.
     for (const app of payload.apps) {
-        const { uuid } = app;
-        const ofApp = await fin.Application.wrap({ uuid });
+        const {uuid} = app;
+        const ofApp = await fin.Application.wrap({uuid});
         const isRunning = await ofApp.isRunning();
         if (isRunning) {
             // Should de-tab here.
@@ -151,7 +150,8 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
         }
     }
 
-    // Edit the tabGroups object with the placeholder window names/uuids, so we can create a Tab Group with a combination of open applications and placeholder windows.
+    // Edit the tabGroups object with the placeholder window names/uuids, so we can create a Tab Group with a combination of open applications and placeholder
+    // windows.
     if (payload.tabGroups) {
         payload.tabGroups.forEach((tabBlob) => {
             const activeWindow = tabBlob.groupInfo.active;

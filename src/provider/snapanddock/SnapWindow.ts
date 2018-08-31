@@ -425,24 +425,23 @@ export class SnapWindow {
         }
     };
     private handleFocused = async () => {
-        // Loop through all windows in the same group as the focused window and set them all to 
+        // Loop through all windows in the same group as the focused window and set them all to
         // alwaysOnTop: true, then set them all to alwaysOnTop: false. This will bring them to front
         // without triggerig further events, thereby avoiding an event loop.
-           this.window.getGroup(async (group: fin.OpenFinWindow[]) => {
-               const numWindows = group.length;
-               // Set always on top (brings windows to front without triggering another event)
-               for (let i = 0; i < numWindows; i++) {
-                   await new Promise((res, rej) => {
-                      group[i].updateOptions({alwaysOnTop: true}, res, rej);
-                   });
-               }
-               // Remove always on top (windows stays on top) 
-               for (let i = 0; i < numWindows; i++) {
-                   await new Promise((res, rej) => {
-                      group[i].updateOptions({alwaysOnTop: false}, res, rej);
-                   });
-               }
-           });
-        
+        this.window.getGroup(async (group: fin.OpenFinWindow[]) => {
+            const numWindows = group.length;
+            // Set always on top (brings windows to front without triggering another event)
+            for (let i = 0; i < numWindows; i++) {
+                await new Promise((res, rej) => {
+                    group[i].updateOptions({alwaysOnTop: true}, res, rej);
+                });
+            }
+            // Remove always on top (windows stays on top)
+            for (let i = 0; i < numWindows; i++) {
+                await new Promise((res, rej) => {
+                    group[i].updateOptions({alwaysOnTop: false}, res, rej);
+                });
+            }
+        });
     }
 }

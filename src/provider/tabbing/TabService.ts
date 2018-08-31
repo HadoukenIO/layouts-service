@@ -5,10 +5,8 @@ import {ApplicationUIConfig, Bounds, TabIdentifier, TabPackage, TabWindowOptions
 import {APIHandler} from './APIHandler';
 import {ApplicationConfigManager} from './components/ApplicationConfigManager';
 import {DragWindowManager} from './DragWindowManager';
-import {EventHandler} from './EventHandler';
 import {getTabSaveInfo} from './SaveAndRestoreAPI';
 import {Tab} from './Tab';
-import {TabAPIActionProcessor} from './TabAPIActionProcessor';
 import {TabGroup} from './TabGroup';
 import {createTabGroupsFromTabBlob} from './TabUtilities';
 import {ZIndexer} from './ZIndexer';
@@ -37,16 +35,6 @@ export class TabService {
     private _tabGroups: TabGroup[];
 
     /**
-     * Handle to the AppApi Handler.
-     */
-    private _eventHandler: EventHandler;
-
-    /**
-     * Handle to the TabAPIActionProcessor
-     */
-    private mTabApiEventHandler: TabAPIActionProcessor;
-
-    /**
      * Handle to the DragWindowManager
      */
     private _dragWindowManager: DragWindowManager;
@@ -69,12 +57,7 @@ export class TabService {
         this._tabGroups = [];
         this._dragWindowManager = new DragWindowManager();
         this._dragWindowManager.init();
-
-        this._eventHandler = new EventHandler(this);
         this.apiHandler = new APIHandler(this);
-
-        this.mTabApiEventHandler = new TabAPIActionProcessor(this);
-        this.mTabApiEventHandler.init();
 
         this.mApplicationConfigManager = new ApplicationConfigManager();
 

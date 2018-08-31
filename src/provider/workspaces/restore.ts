@@ -47,8 +47,6 @@ export const restoreApplication = async(layoutApp: LayoutApp, resolve: Function)
 };
 
 export const restoreLayout = async(payload: Layout, identity: Identity): Promise<Layout> => {
-    console.log("PAYLOAD", payload);
-
     const layout = payload;
     const startupApps: Promise<LayoutApp>[] = [];
     /*tslint:disable-next-line:no-any*/
@@ -129,8 +127,6 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
         });
     }
 
-    console.log('tabbedWindows', tabbedWindows);
-
     // Iterate over apps in layout.
     // Check if we need to make tabbed vs. normal placeholders for both main windows and child windows.
     // Push those placeholder windows into tabbedPlaceholdersToWindows object
@@ -155,10 +151,6 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
         }
     }
 
-
-    console.log('tabbedPlaceholdersToWindows', tabbedPlaceholdersToWindows);
-
-    console.log("tabGroups before", payload.tabGroups);
     // Edit the tabGroups object with the placeholder window names/uuids, so we can create a Tab Group with a combination of open applications and placeholder windows.
     if (payload.tabGroups) {
         payload.tabGroups.forEach((tabBlob) => {
@@ -175,11 +167,9 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
             });
         });
 
-        console.log("tabGroups after", payload.tabGroups);
         await createTabGroupsFromTabBlob(payload.tabGroups);
     }
 
-    console.log('Restoring layout:', layout);
     const apps = await promiseMap(layout.apps, async(app: LayoutApp): Promise<LayoutApp> => {
         // Get rid of childWindows for default response (anything else?)
         const defaultResponse = {...app, childWindows: []};
@@ -205,7 +195,6 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
             } else {
                 let ofApp: undefined|Application;
                 console.log('App is not running:', app);
-                // await createAppPlaceholders(app);
 
                 // App is not running - setup communication to fire once app is started
                 if (app.confirmed) {

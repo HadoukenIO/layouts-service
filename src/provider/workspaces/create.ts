@@ -16,7 +16,11 @@ declare var fin: any;
 export const getCurrentLayout = async(): Promise<Layout> => {
     // Not yet using monitor info
     const monitorInfo = await fin.System.getMonitorInfo() || {};
-    const tabGroups = await getTabSaveInfo();
+    let tabGroups = await getTabSaveInfo();
+    
+    if (tabGroups === undefined) {
+        tabGroups = [];
+    }
 
     const apps = await fin.System.getAllWindows();
     let layoutApps = await promiseMap(apps, async (app: LayoutApp) => {

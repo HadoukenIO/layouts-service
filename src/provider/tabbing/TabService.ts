@@ -172,16 +172,15 @@ export class TabService {
         tabsP.forEach(tab => tab.window.finWindow.setBounds(bounds.left, bounds.top, bounds.width, bounds.height));
         tabsP[tabsP.length - 1].window.finWindow.bringToFront();
         await group.addTab(firstTab, false);
-        if (state === 'maximized') {
-            group.window.maximizeGroup();
-        }
-
 
         await Promise.all(tabsP.map(tab => group.addTab(tab, false)));
-
         await group.switchTab(tabs[tabs.length - 1]);
         await group.hideAllTabsMinusActiveTab();
 
+
+        if (state === 'maximized') {
+            group.window.maximizeGroup();
+        }
         return;
     }
     /**

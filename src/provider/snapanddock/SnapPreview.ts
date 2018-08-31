@@ -114,7 +114,7 @@ export class SnapPreview {
             frame: false,
             state: 'normal',
             autoShow: false,
-            alwaysOnTop: true
+            alwaysOnTop: false
         };
 
         const preview: PreviewWindow = {

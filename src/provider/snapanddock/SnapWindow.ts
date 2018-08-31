@@ -144,6 +144,7 @@ export class SnapWindow {
         window.addEventListener('shown', this.handleShown);
         window.addEventListener('closed', this.handleClosed);
         window.addEventListener('bounds-changing', this.handleBoundsChanging);
+        window.addEventListener('focused', this.handleFocused);
 
         // When the window's onClose signal is emitted, we cleanup all of the listeners
         this.onClose.add(this.cleanupListeners);
@@ -356,6 +357,7 @@ export class SnapWindow {
             this.window.removeEventListener('shown', this.handleShown);
             this.window.removeEventListener('closed', this.handleClosed);
             this.window.removeEventListener('bounds-changing', this.handleBoundsChanging);
+            this.window.removeEventListener('focused', this.handleFocused);
 
             this.onClose.remove(this.cleanupListeners);
         }
@@ -422,4 +424,25 @@ export class SnapWindow {
             this.onTransform.emit(this, type);
         }
     };
+    private handleFocused = async () => {
+        // Loop through all windows in the same group as the focused window and set them all to 
+        // alwaysOnTop: true, then set them all to alwaysOnTop: false. This will bring them to front
+        // without triggerig further events, thereby avoiding an event loop.
+           this.window.getGroup(async (group: fin.OpenFinWindow[]) => {
+               const numWindows = group.length;
+               // Set always on top (brings windows to front without triggering another event)
+               for (let i = 0; i < numWindows; i++) {
+                   await new Promise((res, rej) => {
+                      group[i].updateOptions({alwaysOnTop: true}, res, rej);
+                   });
+               }
+               // Remove always on top (windows stays on top) 
+               for (let i = 0; i < numWindows; i++) {
+                   await new Promise((res, rej) => {
+                      group[i].updateOptions({alwaysOnTop: false}, res, rej);
+                   });
+               }
+           });
+        
+    }
 }

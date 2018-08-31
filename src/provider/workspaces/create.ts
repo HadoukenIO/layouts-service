@@ -17,7 +17,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
     // Not yet using monitor info
     const monitorInfo = await fin.System.getMonitorInfo() || {};
     let tabGroups = await getTabSaveInfo();
-    
+
     if (tabGroups === undefined) {
         tabGroups = [];
     }

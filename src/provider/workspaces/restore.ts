@@ -3,6 +3,7 @@ import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {Layout, LayoutApp, LayoutName, WindowState} from '../../client/types';
 import {providerChannel} from '../main';
+import {WindowIdentity} from '../snapanddock/SnapWindow';
 import {promiseMap} from '../snapanddock/utils/async';
 import {removeTab} from '../tabbing/SaveAndRestoreAPI';
 import {TabService} from '../tabbing/TabService';
@@ -48,10 +49,8 @@ export const restoreApplication = async(layoutApp: LayoutApp, resolve: Function)
 export const restoreLayout = async(payload: Layout, identity: Identity): Promise<Layout> => {
     const layout = payload;
     const startupApps: Promise<LayoutApp>[] = [];
-    /*tslint:disable-next-line:no-any*/
-    const tabbedWindows: any = {};
-    /*tslint:disable-next-line:no-any*/
-    const tabbedPlaceholdersToWindows: any = {};
+    const tabbedWindows: {[uuid: string]: {[name: string]: boolean}} = {};
+    const tabbedPlaceholdersToWindows: {[uuid: string]: {[name: string]: WindowIdentity}} = {};
 
     // Helper function to determine if a window is tabbed.
     function inTabbedWindowsObject(win: {uuid: string, name: string}) {

@@ -254,7 +254,7 @@ export async function removeTab(window: Identity = getId()): Promise<void> {
 /**
  * Brings the specified tab to the front of the set.
  */
-export async function setActiveTab(window: Identity): Promise<void> {
+export async function setActiveTab(window: Identity = getId()): Promise<void> {
     if (!window || !window.name || !window.uuid) {
         return Promise.reject('Invalid window provided');
     }
@@ -266,7 +266,7 @@ export async function setActiveTab(window: Identity): Promise<void> {
 /**
  * Closes the tab for the window context and removes it from the associated tab group.
  */
-export async function closeTab(window: Identity): Promise<void> {
+export async function closeTab(window: Identity = getId()): Promise<void> {
     if (!window || !window.name || !window.uuid) {
         return Promise.reject('Invalid window provided');
     }
@@ -278,7 +278,7 @@ export async function closeTab(window: Identity): Promise<void> {
 /**
  * Minimizes the tab group for the window context.
  */
-export async function minimizeTabGroup(window: Identity): Promise<void> {
+export async function minimizeTabGroup(window: Identity = getId()): Promise<void> {
     if (!window || !window.name || !window.uuid) {
         return Promise.reject('Invalid window provided');
     }
@@ -290,7 +290,7 @@ export async function minimizeTabGroup(window: Identity): Promise<void> {
 /**
  * Maximizes the tab group for the window context.
  */
-export async function maximizeTabGroup(window: Identity): Promise<void> {
+export async function maximizeTabGroup(window: Identity = getId()): Promise<void> {
     if (!window || !window.name || !window.uuid) {
         return Promise.reject('Invalid window provided');
     }
@@ -302,7 +302,7 @@ export async function maximizeTabGroup(window: Identity): Promise<void> {
 /**
  * Closes the tab group for the window context.
  */
-export async function closeTabGroup(window: Identity): Promise<void> {
+export async function closeTabGroup(window: Identity = getId()): Promise<void> {
     if (!window || !window.name || !window.uuid) {
         return Promise.reject('Invalid window provided');
     }
@@ -314,7 +314,7 @@ export async function closeTabGroup(window: Identity): Promise<void> {
 /**
  * Restores the tab group for the window context to its normal state.
  */
-export async function restoreTabGroup(window: Identity): Promise<void> {
+export async function restoreTabGroup(window: Identity = getId()): Promise<void> {
     if (!window || !window.name || !window.uuid) {
         return Promise.reject('Invalid window provided');
     }

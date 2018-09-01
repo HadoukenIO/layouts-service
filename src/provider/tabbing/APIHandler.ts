@@ -85,14 +85,14 @@ export class APIHandler {
     public async addTab(payload: {targetWindow: TabIdentifier, windowToAdd: TabIdentifier}) {
         const group = this.mTabService.getTabGroupByApp(payload.targetWindow);
 
-        if(!group){
-            return Promise.reject("Target Window not in a group.  Try createTabGroup instead.");
+        if (!group) {
+            return Promise.reject('Target Window not in a group.  Try createTabGroup instead.');
         }
 
-        if(this.mTabService.applicationConfigManager.compareConfigBetweenApplications(payload.targetWindow.uuid, payload.windowToAdd.uuid)){
+        if (this.mTabService.applicationConfigManager.compareConfigBetweenApplications(payload.targetWindow.uuid, payload.windowToAdd.uuid)) {
             return group.addTab(await new Tab({tabID: payload.windowToAdd}).init());
         } else {
-            return Promise.reject("Rejected: Tabs are of different URLs!");
+            return Promise.reject('Rejected: Tabs are of different URLs!');
         }
     }
 
@@ -170,7 +170,7 @@ export class APIHandler {
             return Promise.reject('No group found');
         }
 
-        if(await group.window.getState() === 'minimized'){
+        if (await group.window.getState() === 'minimized') {
             return group.window.restore();
         } else {
             return group.window.restoreGroup();

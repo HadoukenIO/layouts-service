@@ -162,7 +162,7 @@ export class TabService {
 
         const tabsP = await Promise.all(tabs.map(async ID => await new Tab({tabID: ID}).init()));
 
-        const firstTab:Tab = tabsP.shift() as Tab;
+        const firstTab: Tab = tabsP.shift() as Tab;
 
         const [bounds, state] = await Promise.all([firstTab.window.getWindowBounds(), firstTab.window.getState()]);
         tabsP.forEach(tab => tab.window.finWindow.setBounds(bounds.left, bounds.top, bounds.width, bounds.height));

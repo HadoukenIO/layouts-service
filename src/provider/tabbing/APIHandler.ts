@@ -7,7 +7,6 @@ import {Tab} from './Tab';
 import {TabGroup} from './TabGroup';
 import {TabService} from './TabService';
 import {ejectTab} from './TabUtilities';
-import { promiseMap } from '../snapanddock/utils/async';
 
 /**
  * Handles all calls from tab api to service

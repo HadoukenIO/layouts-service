@@ -1,7 +1,7 @@
 import Sortable from 'sortablejs';
 
 import {TabApiEvents} from '../../../client/APITypes';
-import {addEventListener, reorderTabs} from '../../../client/main';
+import {addEventListener, tabStrip} from '../../../client/main';
 import {JoinTabGroupPayload, TabGroupEventPayload, TabIdentifier, TabPackage, TabProperties} from '../../../client/types';
 import {p} from '../../snapanddock/utils/async';
 import {TabGroup} from '../TabGroup';
@@ -63,7 +63,7 @@ export class TabManager {
                 });
                 // Sends the new order to the service to update the cache
                 // TabManager.tabAPI.sendTabOrder(orderedTabList);
-                reorderTabs(orderedTabList);
+                tabStrip.reorderTabs(orderedTabList);
             }
         });
     }

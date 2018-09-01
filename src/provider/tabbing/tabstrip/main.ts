@@ -3,33 +3,26 @@ import {JoinTabGroupPayload, TabGroupEventPayload, TabIdentifier} from '../../..
 
 import {TabManager} from './TabManager';
 
-let tabManager: TabManager;
-
-// When Openfin is ready
-fin.desktop.main(() => {
-    tabManager = new TabManager();
-    createLayoutsEventListeners();
-    createWindowUIListeners();
-});
+let tabManager: TabManager = new TabManager();
 
 
 /**
  * Creates event listeners for events fired from the openfin layouts service.
  */
 const createLayoutsEventListeners = () => {
-    addEventListener('join-tab-group', (event: CustomEvent<TabGroupEventPayload>|Event) => {
+    layouts.addEventListener('join-tab-group', (event: CustomEvent<TabGroupEventPayload>|Event) => {
         const customEvent: CustomEvent<JoinTabGroupPayload> = event as CustomEvent<JoinTabGroupPayload>;
         const tabInfo: JoinTabGroupPayload = customEvent.detail;
         tabManager.addTab(tabInfo.tabID, tabInfo.tabProps!, tabInfo.index!);
     });
 
-    addEventListener('leave-tab-group', (event: CustomEvent<TabGroupEventPayload>|Event) => {
+    layouts.addEventListener('leave-tab-group', (event: CustomEvent<TabGroupEventPayload>|Event) => {
         const customEvent: CustomEvent<TabGroupEventPayload> = event as CustomEvent<TabGroupEventPayload>;
         const tabInfo: TabGroupEventPayload = customEvent.detail;
         tabManager.removeTab(tabInfo.tabID);
     });
 
-    addEventListener('tab-activated', (event: CustomEvent<TabGroupEventPayload>|Event) => {
+    layouts.addEventListener('tab-activated', (event: CustomEvent<TabGroupEventPayload>|Event) => {
         const customEvent: CustomEvent<TabGroupEventPayload> = event as CustomEvent<TabGroupEventPayload>;
         const tabInfo: TabIdentifier = customEvent.detail.tabID;
         tabManager.setActiveTab(tabInfo);
@@ -72,3 +65,8 @@ const createWindowUIListeners = () => {
         layouts.closeTabGroup(tabManager.getTabs[0].ID);
     };
 };
+
+
+createLayoutsEventListeners();
+createWindowUIListeners();
+

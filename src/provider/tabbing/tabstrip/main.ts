@@ -3,8 +3,7 @@ import {JoinTabGroupPayload, TabGroupEventPayload, TabIdentifier} from '../../..
 
 import {TabManager} from './TabManager';
 
-let tabManager: TabManager = new TabManager();
-
+const tabManager: TabManager = new TabManager();
 
 /**
  * Creates event listeners for events fired from the openfin layouts service.
@@ -69,4 +68,3 @@ const createWindowUIListeners = () => {
 
 createLayoutsEventListeners();
 createWindowUIListeners();
-

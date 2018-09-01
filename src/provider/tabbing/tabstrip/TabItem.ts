@@ -1,8 +1,7 @@
-import {Identity} from 'hadouken-js-adapter';
 
-import {closeTab, setActiveTab, tabStrip} from '../../../client/main';
+import * as layouts from '../../../client/main';  //The equivalent of 'openfin-layouts' NPM package outside of this project.
+
 import {TabIdentifier, TabProperties} from '../../../client/types';
-
 import {TabManager} from './TabManager';
 
 export class Tab {
@@ -92,7 +91,7 @@ export class Tab {
      */
     private _onDragStart(e: DragEvent): boolean {
         e.dataTransfer.effectAllowed = 'move';
-        tabStrip.startDrag();
+        layouts.tabStrip.startDrag();
         return true;
     }
 
@@ -101,7 +100,7 @@ export class Tab {
      * @param {DragEvent} e DragEvent
      */
     private _onDragEnd(e: DragEvent): void {
-        tabStrip.endDrag(e, {uuid: this._ID.uuid, name: this._ID.name});
+        layouts.tabStrip.endDrag(e, {uuid: this._ID.uuid, name: this._ID.name});
     }
 
     /**
@@ -128,8 +127,8 @@ export class Tab {
      */
     private _onMouseDownHandler(e: MouseEvent): void {
         this.setActive();
-        // TabManager.tabAPI.activateTab(this._ID.uuid, this._ID.name);
-        setActiveTab({uuid: this._ID.uuid, name: this._ID.name});
+
+        layouts.setActiveTab({uuid: this._ID.uuid, name: this._ID.name});
     }
 
 
@@ -140,10 +139,10 @@ export class Tab {
     private _onClickHandler(e: MouseEvent): void {
         switch ((e.target as Element).className) {
             case 'tab-exit': {
-                closeTab({uuid: this._ID.uuid, name: this._ID.name});
+                layouts.closeTab({uuid: this._ID.uuid, name: this._ID.name});
                 break;
             }
-            default: { setActiveTab({uuid: this._ID.uuid, name: this._ID.name}); }
+            default: { layouts.setActiveTab({uuid: this._ID.uuid, name: this._ID.name}); }
         }
     }
 
@@ -158,10 +157,7 @@ export class Tab {
                 this._handlePropertiesInput();
                 break;
             }
-            default: {
-                // @ts-ignore
-                setActiveTab({uuid: this._ID.uuid, name: this._ID.name});
-            }
+            default: { layouts.setActiveTab({uuid: this._ID.uuid, name: this._ID.name}); }
         }
     }
 

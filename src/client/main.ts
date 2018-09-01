@@ -323,18 +323,6 @@ export async function restoreTabGroup(window: Identity = getId()): Promise<void>
     return service.dispatch(TabAPI.RESTORETABGROUP, window);
 }
 
-/**
- * Resets the tabs to the order provided.  The length of tabs Identity array must match the current number of tabs, and each current tab must appear in the
- * array exactly once to be valid.  If the input isn’t valid, the call will reject and no change will be made.
- */
-export async function reorderTabs(newOrdering: Identity[]): Promise<void> {
-    if (!newOrdering || newOrdering.length === 0) {
-        return Promise.reject('Invalid new Order array');
-    }
-    const service: ServiceClient = await servicePromise;
-
-    return service.dispatch(TabAPI.REORDERTABS, newOrdering);
-}
 
 export const tabStrip = {
     /**
@@ -370,5 +358,18 @@ export const tabStrip = {
         const dropPoint: DropPosition = {screenX: event.screenX, screenY: event.screenY};
 
         return service.dispatch(TabAPI.ENDDRAG, {event: dropPoint, window});
+    },
+
+    /**
+     * Resets the tabs to the order provided.  The length of tabs Identity array must match the current number of tabs, and each current tab must appear in the
+     * array exactly once to be valid.  If the input isn’t valid, the call will reject and no change will be made.
+     */
+    async reorderTabs(newOrdering: Identity[]): Promise<void> {
+        if (!newOrdering || newOrdering.length === 0) {
+            return Promise.reject('Invalid new Order array');
+        }
+        const service: ServiceClient = await servicePromise;
+
+        return service.dispatch(TabAPI.REORDERTABS, newOrdering);
     }
 };

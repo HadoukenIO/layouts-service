@@ -115,11 +115,11 @@ export class TabWindow extends AsyncWindow {
      * Initializes event listeners for this windows events.
      */
     protected _createWindowEventListeners(): void {
-        this._window.addEventListener('minimized', this._onMinimize.bind(this));
+        this._window.addEventListener('closed', this._onClose);
+    }
 
-        this._window.addEventListener('maximized', this._onMaximize.bind(this));
-
-        this._window.addEventListener('closed', this._onClose.bind(this));
+    public removeEventListeners(): void {
+        this._window.removeEventListener('closed', this._onClose);
     }
 
     /**
@@ -154,9 +154,10 @@ export class TabWindow extends AsyncWindow {
     /**
      * Handles when the window is closed.  This will remove it from the tab group.
      */
-    private _onClose(): void {
-        this._tab.tabGroup.removeTab(this._tab.ID, false, true);
-    }
+    private _onClose =
+        () => {
+            this._tab.tabGroup.removeTab(this._tab.ID, false, true);
+        }
 
     /**
      * Handles when the window is focused.  If we are not the active window we will set the window being focused to be the active.

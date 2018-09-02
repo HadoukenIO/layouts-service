@@ -115,17 +115,24 @@ export class TabWindow extends AsyncWindow {
      * Initializes event listeners for this windows events.
      */
     protected _createWindowEventListeners(): void {
-        this._window.addEventListener('minimized', this._onMinimize.bind(this));
+        this._window.addEventListener('minimized', this._onMinimize);
 
-        this._window.addEventListener('maximized', this._onMaximize.bind(this));
+        this._window.addEventListener('maximized', this._onMaximize);
 
-        this._window.addEventListener('closed', this._onClose.bind(this));
+        this._window.addEventListener('closed', this._onClose);
+    }
+
+    public removeEventListeners() {
+        this._window.removeEventListener('minimized', this._onMinimize);
+        this._window.removeEventListener('maximized', this._onMaximize);
+        this._window.removeEventListener('closed', this._onClose);
+        this._window.removeEventListener('focused', this._onFocus);
     }
 
     /**
      * Handles when the window is minimized.  If the window being minimized is the active tab, we will minimize the tab group as well.
      */
-    private _onMinimize(): void {
+    private _onMinimize = () => {
         if (this._tab === this._tab.tabGroup.activeTab) {
             this._tab.tabGroup.window.minimizeGroup();
         }
@@ -134,7 +141,7 @@ export class TabWindow extends AsyncWindow {
     /**
      * Handles when the window is maximized. This will maximize the tab group.
      */
-    private _onMaximize(): void {
+    private _onMaximize = () =>{
         this._tab.tabGroup.window.maximizeGroup();
     }
 
@@ -154,18 +161,14 @@ export class TabWindow extends AsyncWindow {
     /**
      * Handles when the window is closed.  This will remove it from the tab group.
      */
-    private _onClose(): void {
+    private _onClose = () => {
         this._tab.tabGroup.removeTab(this._tab.ID, false, true);
     }
 
     /**
      * Handles when the window is focused.  If we are not the active window we will set the window being focused to be the active.
      */
-    private _onFocus() {
-        if (this._tab !== this._tab.tabGroup.activeTab) {
-            this._tab.tabGroup.switchTab(this._tab.ID);
-        }
-
+    private _onFocus = () => {
         this._tab.tabGroup.window.finWindow.bringToFront();
     }
 

@@ -3,7 +3,10 @@ import {JoinTabGroupPayload, TabGroupEventPayload, TabIdentifier} from '../../..
 
 import {TabManager} from './TabManager';
 
-const tabManager: TabManager = new TabManager();
+let tabManager: TabManager;
+
+tabManager = new TabManager();
+
 
 /**
  * Creates event listeners for events fired from the openfin layouts service.
@@ -13,12 +16,17 @@ const createLayoutsEventListeners = () => {
         const customEvent: CustomEvent<JoinTabGroupPayload> = event as CustomEvent<JoinTabGroupPayload>;
         const tabInfo: JoinTabGroupPayload = customEvent.detail;
         tabManager.addTab(tabInfo.tabID, tabInfo.tabProps!, tabInfo.index!);
+
+        document.title = tabManager.getTabs.map(tab => tab.ID.name).join(', ');
     });
 
-    layouts.addEventListener('leave-tab-group', (event: CustomEvent<TabGroupEventPayload>|Event) => {
+    layouts.addEventListener('leave-tab-group',(event: CustomEvent<TabGroupEventPayload>|Event) => {
         const customEvent: CustomEvent<TabGroupEventPayload> = event as CustomEvent<TabGroupEventPayload>;
         const tabInfo: TabGroupEventPayload = customEvent.detail;
         tabManager.removeTab(tabInfo.tabID);
+
+        document.title = tabManager.getTabs.map(tab => tab.ID.name).join(', ');
+
     });
 
     layouts.addEventListener('tab-activated', (event: CustomEvent<TabGroupEventPayload>|Event) => {

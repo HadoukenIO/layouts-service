@@ -70,10 +70,10 @@ export class TabManager {
      * @param {TabIdentifier} tabID An object containing the uuid, name for the external application/window.
      * @param {tabProps} tabProps An object containing Tab Properties (icon, title,etc)
      */
-    public async addTab(tabID: TabIdentifier, tabProps: TabProperties, index: number) {
+    public addTab(tabID: TabIdentifier, tabProps: TabProperties, index: number) {
         if (this._getTabIndex(tabID) === -1) {
             const tab = new Tab(tabID, tabProps, this);
-            await tab.init(index);
+            tab.init(index);
 
             if (index > this.tabs.length) {
                 this.tabs.push(tab);

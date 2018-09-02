@@ -108,14 +108,17 @@ export class GroupWindow extends AsyncWindow {
      * Maximizes the tab set window.  This will resize the tab window to as large as possible with the tab set window on top.
      */
     public async maximizeGroup(): Promise<void> {
-        this._beforeMaximizeBounds = await this._tabGroup.activeTab.window.getWindowBounds();
+        if (!this._isMaximized) {
+            this._beforeMaximizeBounds = await this._tabGroup.activeTab.window.getWindowBounds();
 
-        const moveto = this.moveTo(0, 0);
-        const tabresizeto = this._tabGroup.activeTab.window.resizeTo(screen.availWidth, screen.availHeight - this._initialWindowOptions.height!, 'top-left');
+            const moveto = this.moveTo(0, 0);
+            const tabresizeto =
+                this._tabGroup.activeTab.window.resizeTo(screen.availWidth, screen.availHeight - this._initialWindowOptions.height!, 'top-left');
 
-        await Promise.all([moveto, tabresizeto]);
+            await Promise.all([moveto, tabresizeto]);
 
-        this._isMaximized = true;
+            this._isMaximized = true;
+        }
     }
 
     /**
@@ -123,9 +126,8 @@ export class GroupWindow extends AsyncWindow {
      */
     public async restoreGroup(): Promise<void|void[]> {
         if (this._isMaximized) {
-            if (await this._tabGroup.activeTab.window.getState() === 'maximized') {
-                this._isMaximized = false;
-                Promise.all(this._tabGroup.tabs.map(tab => tab.window.restore()));
+            if (await this._tabGroup.activeTab.window.getState() === 'minimized') {
+                await Promise.all(this._tabGroup.tabs.map(tab => tab.window.restore()));
                 return this._tabGroup.hideAllTabsMinusActiveTab();
             } else {
                 const resize = this._tabGroup.activeTab.window.resizeTo(this._beforeMaximizeBounds.width!, this._beforeMaximizeBounds.height!, 'top-left');

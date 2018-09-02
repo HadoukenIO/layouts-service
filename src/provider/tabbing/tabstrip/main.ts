@@ -20,13 +20,12 @@ const createLayoutsEventListeners = () => {
         document.title = tabManager.getTabs.map(tab => tab.ID.name).join(', ');
     });
 
-    layouts.addEventListener('leave-tab-group',(event: CustomEvent<TabGroupEventPayload>|Event) => {
+    layouts.addEventListener('leave-tab-group', (event: CustomEvent<TabGroupEventPayload>|Event) => {
         const customEvent: CustomEvent<TabGroupEventPayload> = event as CustomEvent<TabGroupEventPayload>;
         const tabInfo: TabGroupEventPayload = customEvent.detail;
         tabManager.removeTab(tabInfo.tabID);
 
         document.title = tabManager.getTabs.map(tab => tab.ID.name).join(', ');
-
     });
 
     layouts.addEventListener('tab-activated', (event: CustomEvent<TabGroupEventPayload>|Event) => {

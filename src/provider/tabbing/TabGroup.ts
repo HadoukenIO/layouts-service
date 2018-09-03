@@ -222,10 +222,11 @@ export class TabGroup {
 
     public async hideAllTabsMinusActiveTab() {
         return Promise.all(this.tabs.map((tab) => {
-            if (tab.ID.name !== this.activeTab.ID.name && tab.ID.uuid !== this.activeTab.ID.uuid) {
+            if (tab.ID.name === this.activeTab.ID.name && tab.ID.uuid === this.activeTab.ID.uuid) {
+                return;
+            } else {
                 return tab.window.hide();
             }
-            return;
         }));
     }
 

@@ -433,13 +433,7 @@ export class SnapWindow {
             // Set always on top (brings windows to front without triggering another event)
             for (let i = 0; i < numWindows; i++) {
                 await new Promise((res, rej) => {
-                    group[i].updateOptions({alwaysOnTop: true}, res, rej);
-                });
-            }
-            // Remove always on top (windows stays on top)
-            for (let i = 0; i < numWindows; i++) {
-                await new Promise((res, rej) => {
-                    group[i].updateOptions({alwaysOnTop: false}, res, rej);
+                    group[i].bringToFront(res, rej);
                 });
             }
         });

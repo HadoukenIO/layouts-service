@@ -24,6 +24,9 @@ export const positionWindow = async (win: WindowState) => {
         await ofWin.leaveGroup();
         await ofWin.setBounds(win);
 
+        await ofWin.updateOptions({frame: win.frame});
+
+
         // COMMENTED OUT FOR DEMO
         if (win.state === 'normal') {
             await ofWin.restore();

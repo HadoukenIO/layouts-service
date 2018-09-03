@@ -1,5 +1,6 @@
 .vscode
 dist
+docs
 node_modules
 build
 staging

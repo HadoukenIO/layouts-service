@@ -143,7 +143,7 @@ export class APIHandler {
      * Maximizes the tab group for the window context.
      */
     public maximizeTabGroup(window: TabIdentifier) {
-        const group = this.mTabService.getTabGroup(window.name);
+        const group = this.mTabService.getTabGroupByApp(window);
         if (!group) {
             return Promise.reject('No group found');
         }
@@ -154,7 +154,7 @@ export class APIHandler {
      * Closes the tab group for the window context.
      */
     public closeTabGroup(window: TabIdentifier) {
-        const group = this.mTabService.getTabGroup(window.name);
+        const group = this.mTabService.getTabGroupByApp(window);
         if (!group) {
             return Promise.reject('No group found');
         }

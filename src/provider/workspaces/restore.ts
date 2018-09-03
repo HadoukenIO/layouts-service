@@ -75,7 +75,8 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
     // Creates a tabbing placeholder and records the information for its corresponding window.
     async function createTabbedPlaceholderAndRecord(win: WindowState) {
         const tabPlaceholder = await createTabPlaceholder(win);
-        tabbedPlaceholdersToWindows[win.uuid] = {[win.name]: {name: tabPlaceholder.name, uuid: tabPlaceholder.uuid}};
+        tabbedPlaceholdersToWindows[win.uuid] =
+            Object.assign({}, tabbedPlaceholdersToWindows[win.uuid], {[win.name]: {name: tabPlaceholder.name, uuid: tabPlaceholder.uuid}});
     }
 
     // Helper function to determine what type of placeholder window to open.
@@ -119,7 +120,7 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
     // Create tabbedWindows list so we don't have to iterate over all of the tabGroup/TabBlob arrays.
     payload.tabGroups.forEach((tabGroup) => {
         tabGroup.tabs.forEach(tabWindow => {
-            tabbedWindows[tabWindow.uuid] = {[tabWindow.name]: true};
+            tabbedWindows[tabWindow.uuid] = Object.assign({}, tabbedWindows[tabWindow.uuid], {[tabWindow.name]: true});
         });
     });
 

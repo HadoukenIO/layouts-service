@@ -14,7 +14,6 @@ describe("Tests for save and restore API methods", () => {
         describe("Request to get tab info with tabbing no service", () => {
             it("should return undefined", async () => {
                 const tabBlob = await getTabSaveInfo();
-
                 expect(tabBlob).toBeUndefined();
             });
         });

@@ -1,16 +1,16 @@
-import { Identity } from 'hadouken-js-adapter';
-import { Client as ServiceClient } from 'hadouken-js-adapter/out/types/src/api/services/client';
+import {Identity} from 'hadouken-js-adapter';
+import {Client as ServiceClient} from 'hadouken-js-adapter/out/types/src/api/services/client';
 import * as Mousetrap from 'mousetrap';
 
-import { TabAPI, TabAPIActions } from './APITypes';
-import { ApplicationUIConfig, CustomData, DropPosition, JoinTabGroupPayload, Layout, LayoutApp, LayoutName, TabGroupEventPayload, TabProperties, TabWindowOptions } from './types';
+import {TabAPI, TabAPIActions} from './APITypes';
+import {AddTabPayload, ApplicationUIConfig, CustomData, DropPosition, EndDragPayload, JoinTabGroupPayload, Layout, LayoutApp, LayoutName, SetTabClientPayload, TabGroupEventPayload, TabProperties, TabWindowOptions, UpdateTabPropertiesPayload} from './types';
 
 const IDENTITY = {
     uuid: 'layouts-service',
     name: 'layouts-service'
 };
 
-import { version } from './version';
+import {version} from './version';
 
 // tslint:disable-next-line:no-any
 declare var fin: any;
@@ -26,13 +26,13 @@ const getId = (() => {
             return id;
         }
         fin.Window.getCurrent();
-        const { uuid, name } = fin.desktop.Window.getCurrent();
-        id = { uuid, name };
+        const {uuid, name} = fin.desktop.Window.getCurrent();
+        id = {uuid, name};
         return id;
     };
 })();
 
-const servicePromise: Promise<ServiceClient> = fin.desktop.Service.connect({ ...IDENTITY, payload: { version } }).then((service: ServiceClient) => {
+const servicePromise: Promise<ServiceClient> = fin.desktop.Service.connect({...IDENTITY, payload: {version}}).then((service: ServiceClient) => {
     // Map undocking keybind
     Mousetrap.bind('mod+shift+u', () => {
         service.dispatch('undockWindow', getId());
@@ -48,13 +48,13 @@ const servicePromise: Promise<ServiceClient> = fin.desktop.Service.connect({ ...
         window.dispatchEvent(new Event('leave-snap-group'));
     });
     service.register('join-tab-group', (payload: JoinTabGroupPayload) => {
-        window.dispatchEvent(new CustomEvent<JoinTabGroupPayload>('join-tab-group', { detail: payload }));
+        window.dispatchEvent(new CustomEvent<JoinTabGroupPayload>('join-tab-group', {detail: payload}));
     });
     service.register('leave-tab-group', (payload: TabGroupEventPayload) => {
-        window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('leave-tab-group', { detail: payload }));
+        window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('leave-tab-group', {detail: payload}));
     });
     service.register('tab-activated', (payload: TabGroupEventPayload) => {
-        window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('tab-activated', { detail: payload }));
+        window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('tab-activated', {detail: payload}));
     });
 
     // Any unregistered action will simply return false
@@ -72,7 +72,7 @@ const servicePromise: Promise<ServiceClient> = fin.desktop.Service.connect({ ...
  */
 export async function undockWindow(identity: Identity = getId()): Promise<void> {
     const service: ServiceClient = await servicePromise;
-    return service.dispatch('undockWindow', identity);
+    return tryServiceDispatch<Identity, void>(service, 'undockWindow', identity);
 }
 
 /**
@@ -86,7 +86,7 @@ export async function undockWindow(identity: Identity = getId()): Promise<void> 
  */
 export async function undockGroup(identity: Identity = getId()): Promise<void> {
     const service: ServiceClient = await servicePromise;
-    return service.dispatch('undockGroup', identity);
+    return tryServiceDispatch<Identity, void>(service, 'undockGroup', identity);
 }
 
 /**
@@ -96,7 +96,7 @@ export async function undockGroup(identity: Identity = getId()): Promise<void> {
  */
 export async function deregister(identity: Identity = getId()): Promise<void> {
     const service: ServiceClient = await servicePromise;
-    return service.dispatch('deregister', identity);
+    return tryServiceDispatch<Identity, void>(service, 'deregister', identity);
 }
 
 /**
@@ -106,8 +106,8 @@ export async function deregister(identity: Identity = getId()): Promise<void> {
  */
 // export async function addEventListener(eventType: 'join-tab-group' | 'leave-tab-group', callback: (customEvent: TabEvent) => void): Promise<void>;
 export async function addEventListener(
-    eventType: 'join-snap-group' | 'leave-snap-group' | 'join-tab-group' | 'leave-tab-group' | 'tab-activated',
-    callback: (customEvent: Event | CustomEvent<TabGroupEventPayload>) => void): Promise<void> {
+    eventType: 'join-snap-group'|'leave-snap-group'|'join-tab-group'|'leave-tab-group'|'tab-activated',
+    callback: (customEvent: Event|CustomEvent<TabGroupEventPayload>) => void): Promise<void> {
     // Use native js event system to pass internal events around.
     // Without this we would need to handle multiple registration ourselves.
     window.addEventListener(eventType, callback);
@@ -124,7 +124,7 @@ export async function onApplicationSave(customDataDecorator: () => CustomData): 
 /**
  * Get the layoutApp object, implement, then return implemented LayoutApp object (minus anything not implemented)
  */
-export async function onAppRestore(layoutDecorator: (layoutApp: LayoutApp) => LayoutApp | false | Promise<LayoutApp | false>): Promise<boolean> {
+export async function onAppRestore(layoutDecorator: (layoutApp: LayoutApp) => LayoutApp | false | Promise<LayoutApp|false>): Promise<boolean> {
     const service: ServiceClient = await servicePromise;
     return service.register('restoreApp', layoutDecorator);
 }
@@ -149,7 +149,7 @@ export async function onLayoutRestore(listener: (layoutApp: LayoutApp) => void):
  */
 export async function generateLayout(): Promise<Layout> {
     const service: ServiceClient = await servicePromise;
-    return service.dispatch('generateLayout');
+    return tryServiceDispatch<undefined, Layout>(service, 'generateLayout');
 }
 
 /**
@@ -157,7 +157,7 @@ export async function generateLayout(): Promise<Layout> {
  */
 export async function restoreLayout(payload: Layout): Promise<Layout> {
     const service: ServiceClient = await servicePromise;
-    return service.dispatch('restoreLayout', payload);
+    return tryServiceDispatch<Layout, Layout>(service, 'restoreLayout', payload);
 }
 
 /**
@@ -166,7 +166,7 @@ export async function restoreLayout(payload: Layout): Promise<Layout> {
 export async function ready(): Promise<Layout> {
     const service: ServiceClient = await servicePromise;
 
-    return service.dispatch('appReady');
+    return tryServiceDispatch<undefined, Layout>(service, 'appReady');
 }
 
 /**
@@ -176,7 +176,7 @@ export async function ready(): Promise<Layout> {
  *
  * If there is no tab group associated with the window context, will resolve to null.
  */
-export async function getTabs(window: Identity = getId()): Promise<Identity[] | null> {
+export async function getTabs(window: Identity = getId()): Promise<Identity[]|null> {
     if (!window || !window.name || !window.uuid) {
         return Promise.reject('Invalid window provided');
     }
@@ -203,12 +203,7 @@ export async function setTabClient(url: string, config: TabWindowOptions): Promi
     const service: ServiceClient = await servicePromise;
     config.url = url;
 
-
-    try {
-        return await service.dispatch(TabAPI.SETTABCLIENT, { config, id: getId() });
-    } catch (error) {
-        return Promise.reject('Error sending API message to provider: ' + error);
-    }
+    return tryServiceDispatch<SetTabClientPayload, void>(service, TabAPI.SETTABCLIENT, {config, id: getId()});
 }
 
 /**
@@ -221,11 +216,7 @@ export async function createTabGroup(windows: Identity[]): Promise<void> {
     }
     const service: ServiceClient = await servicePromise;
 
-    try {
-        return await service.dispatch(TabAPI.CREATETABGROUP, windows);
-    } catch (error) {
-        return Promise.reject('Error sending API message to provider: ' + error);
-    }
+    return tryServiceDispatch<Identity[], void>(service, TabAPI.CREATETABGROUP, windows);
 }
 
 /**
@@ -244,7 +235,7 @@ export async function addTab(targetWindow: Identity, windowToAdd: Identity = get
     }
     const service: ServiceClient = await servicePromise;
 
-    return service.dispatch(TabAPI.ADDTAB, { targetWindow, windowToAdd });
+    return tryServiceDispatch<AddTabPayload, void>(service, TabAPI.ADDTAB, {targetWindow, windowToAdd});
 }
 
 /**
@@ -257,7 +248,7 @@ export async function removeTab(window: Identity = getId()): Promise<void> {
     }
     const service: ServiceClient = await servicePromise;
 
-    return service.dispatch(TabAPI.REMOVETAB, window);
+    return tryServiceDispatch<Identity, void>(service, TabAPI.REMOVETAB, window);
 }
 
 /**
@@ -269,7 +260,7 @@ export async function setActiveTab(window: Identity = getId()): Promise<void> {
     }
     const service: ServiceClient = await servicePromise;
 
-    return service.dispatch(TabAPI.SETACTIVETAB, window);
+    return tryServiceDispatch<Identity, void>(service, TabAPI.SETACTIVETAB, window);
 }
 
 /**
@@ -281,7 +272,7 @@ export async function closeTab(window: Identity = getId()): Promise<void> {
     }
     const service: ServiceClient = await servicePromise;
 
-    return service.dispatch(TabAPI.CLOSETAB, window);
+    return tryServiceDispatch<Identity, void>(service, TabAPI.CLOSETAB, window);
 }
 
 /**
@@ -293,7 +284,7 @@ export async function minimizeTabGroup(window: Identity = getId()): Promise<void
     }
     const service: ServiceClient = await servicePromise;
 
-    return service.dispatch(TabAPI.MINIMIZETABGROUP, window);
+    return tryServiceDispatch<Identity, void>(service, TabAPI.MINIMIZETABGROUP, window);
 }
 
 /**
@@ -305,7 +296,7 @@ export async function maximizeTabGroup(window: Identity = getId()): Promise<void
     }
     const service: ServiceClient = await servicePromise;
 
-    return service.dispatch(TabAPI.MAXIMIZETABGROUP, window);
+    return tryServiceDispatch<Identity, void>(service, TabAPI.MAXIMIZETABGROUP, window);
 }
 
 /**
@@ -317,7 +308,7 @@ export async function closeTabGroup(window: Identity = getId()): Promise<void> {
     }
     const service: ServiceClient = await servicePromise;
 
-    return service.dispatch(TabAPI.CLOSETABGROUP, window);
+    return tryServiceDispatch<Identity, void>(service, TabAPI.CLOSETABGROUP, window);
 }
 
 /**
@@ -329,7 +320,7 @@ export async function restoreTabGroup(window: Identity = getId()): Promise<void>
     }
     const service: ServiceClient = await servicePromise;
 
-    return service.dispatch(TabAPI.RESTORETABGROUP, window);
+    return tryServiceDispatch<Identity, void>(service, TabAPI.RESTORETABGROUP, window);
 }
 
 
@@ -343,7 +334,7 @@ export const tabStrip = {
         }
         const service: ServiceClient = await servicePromise;
 
-        return service.dispatch(TabAPI.UPDATETABPROPERTIES, { window, properties });
+        return tryServiceDispatch<UpdateTabPropertiesPayload, void>(service, TabAPI.UPDATETABPROPERTIES, {window, properties});
     },
 
     /**
@@ -352,7 +343,7 @@ export const tabStrip = {
     async startDrag() {
         const service: ServiceClient = await servicePromise;
 
-        return service.dispatch(TabAPI.STARTDRAG);
+        return tryServiceDispatch<undefined, void>(service, TabAPI.STARTDRAG);
     },
 
     /**
@@ -364,9 +355,9 @@ export const tabStrip = {
         }
         const service: ServiceClient = await servicePromise;
 
-        const dropPoint: DropPosition = { screenX: event.screenX, screenY: event.screenY };
+        const dropPoint: DropPosition = {screenX: event.screenX, screenY: event.screenY};
 
-        return service.dispatch(TabAPI.ENDDRAG, { event: dropPoint, window });
+        return tryServiceDispatch<EndDragPayload, void>(service, TabAPI.ENDDRAG, {event: dropPoint, window});
     },
 
     /**
@@ -379,15 +370,24 @@ export const tabStrip = {
         }
         const service: ServiceClient = await servicePromise;
 
-        return service.dispatch(TabAPI.REORDERTABS, newOrdering);
+        return tryServiceDispatch<Identity[], void>(service, TabAPI.REORDERTABS, newOrdering);
     }
 };
 
-// Unexported internal helper
-const tryServiceDispatch = async <T, R>(service: ServiceClient, action: string, payload?: T): Promise<R> => {
+/**
+ * Handles the case of the provider code returning a promise type. Due to the nature of the service bus, this
+ * will be wrapped in another promise. Here we unwrap the nested promise if neccesary and return the intended value.
+ */
+const tryServiceDispatch = async<T, R>(service: ServiceClient, action: string, payload?: T): Promise<R> => {
+    let serviceResponse: R|Promise<R>;
     try {
-        return await service.dispatch(action, payload);
+        serviceResponse = await service.dispatch(action, payload);
     } catch (error) {
         return Promise.reject('Error sending API message to provider: ' + error);
+    }
+    if (serviceResponse && serviceResponse instanceof Promise) {
+        return await serviceResponse;
+    } else {
+        return serviceResponse;
     }
 };

@@ -181,3 +181,23 @@ export interface JoinTabGroupPayload extends TabGroupEventPayload {
     tabProps: TabProperties;
     index: number;
 }
+
+export interface SetTabClientPayload {
+    config: TabWindowOptions;
+    id: Identity;
+}
+
+export interface AddTabPayload {
+    targetWindow: Identity;
+    windowToAdd: Identity;
+}
+
+export interface UpdateTabPropertiesPayload {
+    window: Identity;
+    properties: TabProperties;
+}
+
+export interface EndDragPayload {
+    event: DropPosition;
+    window: Identity;
+}

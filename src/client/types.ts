@@ -43,6 +43,7 @@ export interface Layout {
     monitorInfo: any;  // saving but not using yet
     customData?: any;
     apps: LayoutApp[];
+    tabGroups: TabBlob[];
 }
 
 export interface AppToRestore {

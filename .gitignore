@@ -1,5 +1,6 @@
 .vscode
 dist
+docs
 node_modules
 build
 staging
@@ -10,3 +11,4 @@ npm-debug.log
 /.vs
 /test/coverage
 src/client/version.ts
+/module_dist

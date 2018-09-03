@@ -36,7 +36,7 @@ export async function setLayout() {
         for (let idx = 0; idx < layoutSelect.options.length; idx++) {  // looping over the options
             if (layoutSelect.options[idx].value === id) {
                 optionPresent = true;
-                return;
+                break;
             }
         }
 
@@ -68,8 +68,8 @@ export async function restoreLayout() {
     document.getElementById('showLayout')!.innerHTML = JSON.stringify(afterLayout, null, 2);
 }
 
-export async function createChild() {
-    openChild('win' + numChildren, numChildren);
+export async function createChild(parentWindowName: string): Promise<void> {
+    openChild(parentWindowName + ' -  win' + numChildren, numChildren);
     numChildren++;
 }
 

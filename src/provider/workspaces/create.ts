@@ -5,21 +5,24 @@ import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 import {Layout, LayoutApp, WindowState} from '../../client/types';
 import {providerChannel} from '../main';
 import {promiseMap} from '../snapanddock/utils/async';
+import {getTabSaveInfo} from '../tabbing/SaveAndRestoreAPI';
 
 import {getGroup} from './group';
-import {isClientConnection, showingWindowInApp, wasCreatedFromManifest, wasCreatedProgrammatically} from './utils';
+import {isClientConnection, wasCreatedFromManifest, wasCreatedProgrammatically} from './utils';
 
 // tslint:disable-next-line:no-any
 declare var fin: any;
 
 export const getCurrentLayout = async(): Promise<Layout> => {
-    console.log('get current layout');
-
     // Not yet using monitor info
     const monitorInfo = await fin.System.getMonitorInfo() || {};
+    let tabGroups = await getTabSaveInfo();
+
+    if (tabGroups === undefined) {
+        tabGroups = [];
+    }
 
     const apps = await fin.System.getAllWindows();
-    console.log('Apps:', apps);
     let layoutApps = await promiseMap(apps, async (app: LayoutApp) => {
         try {
             const {uuid} = app;
@@ -29,8 +32,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
             const isRunning = await ofApp.isRunning();
             const hasMainWindow = !!app.mainWindow.name;
             const isService = app.uuid === fin.desktop.Application.getCurrent().uuid;
-            const isShowing = await showingWindowInApp(app);
-            if (!hasMainWindow || !isRunning || isService || !isShowing) {
+            if (!hasMainWindow || !isRunning || isService) {
                 return null;
             }
 
@@ -69,7 +71,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
     layoutApps = layoutApps.filter(a => !!a);
     console.log('Pre-Layout Save Apps:', apps);
 
-    const layoutObject = {type: 'layout', apps: layoutApps, monitorInfo};
+    const layoutObject = {type: 'layout', apps: layoutApps, monitorInfo, tabGroups};
     return layoutObject;
 };
 
@@ -103,6 +105,5 @@ const getLayoutWindowData = async (ofWin: Window) => {
     const {uuid} = ofWin.identity;
     const info = await ofWin.getInfo();
     const windowGroup = await getGroup(ofWin.identity);
-    const frame: boolean = (await ofWin.getOptions()).frame;
-    return {info, uuid, windowGroup, frame};
+    return {info, uuid, windowGroup};
 };

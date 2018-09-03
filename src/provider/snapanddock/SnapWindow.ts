@@ -144,6 +144,7 @@ export class SnapWindow {
         window.addEventListener('shown', this.handleShown);
         window.addEventListener('closed', this.handleClosed);
         window.addEventListener('bounds-changing', this.handleBoundsChanging);
+        window.addEventListener('focused', this.handleFocused);
 
         // When the window's onClose signal is emitted, we cleanup all of the listeners
         this.onClose.add(this.cleanupListeners);
@@ -356,6 +357,7 @@ export class SnapWindow {
             this.window.removeEventListener('shown', this.handleShown);
             this.window.removeEventListener('closed', this.handleClosed);
             this.window.removeEventListener('bounds-changing', this.handleBoundsChanging);
+            this.window.removeEventListener('focused', this.handleFocused);
 
             this.onClose.remove(this.cleanupListeners);
         }
@@ -422,4 +424,18 @@ export class SnapWindow {
             this.onTransform.emit(this, type);
         }
     };
+    private handleFocused = async () => {
+        // Loop through all windows in the same group as the focused window and bring them
+        // all to front
+        this.window.getGroup(async (group: fin.OpenFinWindow[]) => {
+            const promises: Promise<void>[] = [];
+            for (let i = 0; i < group.length; i++) {
+                promises[i] = new Promise<void>((res, rej) => {
+                    group[i].bringToFront(res, rej);
+                });
+            }
+
+            await Promise.all(promises);
+        });
+    }
 }

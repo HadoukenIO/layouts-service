@@ -24,7 +24,6 @@ export class ApplicationConfigManager {
      */
     public getApplicationUIConfig(uuid: string): TabWindowOptions|undefined {
         if (!this.exists(uuid)) {
-            console.error('No application config found');
             return;
         }
 

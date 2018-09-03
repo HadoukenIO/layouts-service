@@ -42,11 +42,11 @@ export class APIHandler {
     public async deregister(window: TabIdentifier) {
         const group = this.mTabService.getTabGroupByApp(window);
 
-        if (!group) {
-            return Promise.reject('No tab group found!');
+        if (group) {
+            return await group.removeTab(window, false, true);
         }
 
-        return await group.removeTab(window, false, true);
+        return false;
     }
 
 
@@ -72,28 +72,7 @@ export class APIHandler {
      * will be used as the seed for the tab UI properties.
      */
     public async createTabGroup(windows: TabIdentifier[]) {
-        if (windows.length < 2) {
-            return Promise.reject('Must provide at least 2 Tab Identifiers! ');
-        }
-        const group = this.mTabService.addTabGroup({});
-
-        const tabsP = await Promise.all(windows.map(async (ID: TabIdentifier) => await new Tab({ tabID: ID }).init()));
-
-        const firstTab = tabsP.shift();
-
-        if (firstTab) {
-            const bounds = await firstTab.window.getWindowBounds();
-            tabsP.forEach(tab => tab.window.finWindow.setBounds(bounds.left, bounds.top, bounds.width, bounds.height));
-            tabsP[tabsP.length - 1].window.finWindow.bringToFront();
-            await group.addTab(firstTab, false);
-        }
-
-        await Promise.all(tabsP.map(tab => group.addTab(tab, false)));
-
-        await group.switchTab(windows[windows.length - 1]);
-        await group.hideAllTabsMinusActiveTab();
-
-        return;
+        return this.mTabService.createTabGroupWithTabs(windows);
     }
 
     /**
@@ -106,12 +85,15 @@ export class APIHandler {
     public async addTab(payload: {targetWindow: TabIdentifier, windowToAdd: TabIdentifier}) {
         const group = this.mTabService.getTabGroupByApp(payload.targetWindow);
 
-        if (group!.getTab(payload.targetWindow)) {
-            return Promise.reject('Tab already exists in group');
+        if (!group) {
+            return Promise.reject('Target Window not in a group.  Try createTabGroup instead.');
         }
 
-
-        return group!.addTab(await new Tab({tabID: payload.windowToAdd}).init());
+        if (this.mTabService.applicationConfigManager.compareConfigBetweenApplications(payload.targetWindow.uuid, payload.windowToAdd.uuid)) {
+            return group.addTab(await new Tab({tabID: payload.windowToAdd}).init());
+        } else {
+            return Promise.reject('Rejected: Tabs are of different URLs!');
+        }
     }
 
     /**
@@ -182,13 +164,17 @@ export class APIHandler {
     /**
      * Restores the tab group for the window context to its normal state.
      */
-    public restoreTabGroup(window: TabIdentifier) {
+    public async restoreTabGroup(window: TabIdentifier) {
         const group = this.mTabService.getTabGroupByApp(window);
         if (!group) {
             return Promise.reject('No group found');
         }
 
-        return group.window.restoreGroup();
+        if (await group.window.getState() === 'minimized') {
+            return group.window.restore();
+        } else {
+            return group.window.restoreGroup();
+        }
     }
     /**
      * Resets the tabs to the order provided.  The length of tabs Identity array must match the current number of tabs, and each current tab must appear in the
@@ -220,7 +206,7 @@ export class APIHandler {
     /**
      * Starts the HTML5 Dragging Sequence
      */
-    public startDrag({}, id: TabIdentifier) {
+    public startDrag(payload: {}, id: TabIdentifier) {
         // TODO assign uuid, name from provider
         this.mTabService.dragWindowManager.showWindow(id);
     }

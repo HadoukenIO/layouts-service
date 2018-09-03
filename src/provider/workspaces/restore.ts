@@ -123,6 +123,8 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
                     } else {
                         await createNormalPlaceholder(win);
                     }
+                } else {
+                    await removeTab(win);
                 }
             }
         } else {

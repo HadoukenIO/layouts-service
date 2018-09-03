@@ -80,7 +80,7 @@ async function registerService() {
     providerChannel.register(TabAPI.SETACTIVETAB, tabService.apiHandler.setActiveTab.bind(tabService.apiHandler));
     providerChannel.register(TabAPI.SETTABCLIENT, tabService.apiHandler.setTabClient.bind(tabService.apiHandler));
     providerChannel.register(TabAPI.UPDATETABPROPERTIES, tabService.apiHandler.updateTabProperties.bind(tabService.apiHandler));
-
+    providerChannel.register(TabAPI.ADDTAB, tabService.apiHandler.addTab.bind(tabService.apiHandler));
     return providerChannel;
 }
 

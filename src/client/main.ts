@@ -254,7 +254,7 @@ export async function removeTab(window: Identity = getId()): Promise<void> {
 /**
  * Brings the specified tab to the front of the set.
  */
-export async function setActiveTab(window: Identity): Promise<void> {
+export async function setActiveTab(window: Identity = getId()): Promise<void> {
     if (!window || !window.name || !window.uuid) {
         return Promise.reject('Invalid window provided');
     }
@@ -266,7 +266,7 @@ export async function setActiveTab(window: Identity): Promise<void> {
 /**
  * Closes the tab for the window context and removes it from the associated tab group.
  */
-export async function closeTab(window: Identity): Promise<void> {
+export async function closeTab(window: Identity = getId()): Promise<void> {
     if (!window || !window.name || !window.uuid) {
         return Promise.reject('Invalid window provided');
     }
@@ -278,7 +278,7 @@ export async function closeTab(window: Identity): Promise<void> {
 /**
  * Minimizes the tab group for the window context.
  */
-export async function minimizeTabGroup(window: Identity): Promise<void> {
+export async function minimizeTabGroup(window: Identity = getId()): Promise<void> {
     if (!window || !window.name || !window.uuid) {
         return Promise.reject('Invalid window provided');
     }
@@ -290,7 +290,7 @@ export async function minimizeTabGroup(window: Identity): Promise<void> {
 /**
  * Maximizes the tab group for the window context.
  */
-export async function maximizeTabGroup(window: Identity): Promise<void> {
+export async function maximizeTabGroup(window: Identity = getId()): Promise<void> {
     if (!window || !window.name || !window.uuid) {
         return Promise.reject('Invalid window provided');
     }
@@ -302,7 +302,7 @@ export async function maximizeTabGroup(window: Identity): Promise<void> {
 /**
  * Closes the tab group for the window context.
  */
-export async function closeTabGroup(window: Identity): Promise<void> {
+export async function closeTabGroup(window: Identity = getId()): Promise<void> {
     if (!window || !window.name || !window.uuid) {
         return Promise.reject('Invalid window provided');
     }
@@ -314,7 +314,7 @@ export async function closeTabGroup(window: Identity): Promise<void> {
 /**
  * Restores the tab group for the window context to its normal state.
  */
-export async function restoreTabGroup(window: Identity): Promise<void> {
+export async function restoreTabGroup(window: Identity = getId()): Promise<void> {
     if (!window || !window.name || !window.uuid) {
         return Promise.reject('Invalid window provided');
     }
@@ -323,18 +323,6 @@ export async function restoreTabGroup(window: Identity): Promise<void> {
     return service.dispatch(TabAPI.RESTORETABGROUP, window);
 }
 
-/**
- * Resets the tabs to the order provided.  The length of tabs Identity array must match the current number of tabs, and each current tab must appear in the
- * array exactly once to be valid.  If the input isn’t valid, the call will reject and no change will be made.
- */
-export async function reorderTabs(newOrdering: Identity[]): Promise<void> {
-    if (!newOrdering || newOrdering.length === 0) {
-        return Promise.reject('Invalid new Order array');
-    }
-    const service: ServiceClient = await servicePromise;
-
-    return service.dispatch(TabAPI.REORDERTABS, newOrdering);
-}
 
 export const tabStrip = {
     /**
@@ -370,5 +358,18 @@ export const tabStrip = {
         const dropPoint: DropPosition = {screenX: event.screenX, screenY: event.screenY};
 
         return service.dispatch(TabAPI.ENDDRAG, {event: dropPoint, window});
+    },
+
+    /**
+     * Resets the tabs to the order provided.  The length of tabs Identity array must match the current number of tabs, and each current tab must appear in the
+     * array exactly once to be valid.  If the input isn’t valid, the call will reject and no change will be made.
+     */
+    async reorderTabs(newOrdering: Identity[]): Promise<void> {
+        if (!newOrdering || newOrdering.length === 0) {
+            return Promise.reject('Invalid new Order array');
+        }
+        const service: ServiceClient = await servicePromise;
+
+        return service.dispatch(TabAPI.REORDERTABS, newOrdering);
     }
 };

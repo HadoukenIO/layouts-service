@@ -103,6 +103,8 @@ export class TabGroup {
             await tab.window.hide();
         }
 
+        this.window.finWindow.bringToFront();
+
         return tab;
     }
 

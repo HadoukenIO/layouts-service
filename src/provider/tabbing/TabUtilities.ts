@@ -129,7 +129,7 @@ export async function createTabGroupsFromTabBlob(tabBlob: TabBlob[]): Promise<vo
         }
 
         await group.realignApps();
-        await group.switchTab({uuid: blob.groupInfo.active.uuid, name: blob.groupInfo.active.uuid});
+        await group.switchTab({uuid: blob.groupInfo.active.uuid, name: blob.groupInfo.active.name});
     }
 }
 

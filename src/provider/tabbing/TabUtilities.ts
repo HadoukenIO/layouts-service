@@ -133,6 +133,8 @@ export async function createTabGroupsFromTabBlob(tabBlob: TabBlob[]): Promise<vo
         await group.realignApps();
         await group.switchTab({uuid: blob.groupInfo.active.uuid, name: blob.groupInfo.active.name});
     }
+
+    TabService.INSTANCE.tabGroups.forEach(group => group.realignApps());
 }
 
 (window as Window & {createTabGroupsFromTabBlob: Function}).createTabGroupsFromTabBlob = createTabGroupsFromTabBlob;

@@ -139,6 +139,7 @@ export class TabService {
      */
     public async createTabGroupWithTabs(tabs: TabIdentifier[]) {
         if (tabs.length < 2) {
+            console.error('createTabGroup called fewer than 2 tab identifiers');
             throw new Error('Must provide at least 2 Tab Identifiers');
         }
         const group = this.addTabGroup({});

@@ -30,6 +30,7 @@ export class APIHandler {
      */
     public setTabClient(payload: {config: TabWindowOptions, id: Identity}) {
         if (this.mTabService.applicationConfigManager.exists(payload.id.uuid)) {
+            console.error('Window already configured for tabbing');
             throw new Error('Window already configured for tabbing');
         }
 
@@ -46,6 +47,7 @@ export class APIHandler {
             try {
                 return await group.removeTab(window, false, true);
             } catch (error) {
+                console.error(error);
                 throw new Error(`Unexpected error when deregistering: ${error}`);
             }
         }
@@ -88,12 +90,14 @@ export class APIHandler {
         const group = this.mTabService.getTabGroupByApp(payload.targetWindow);
 
         if (!group) {
-            throw new Error('Target Window not in a group.  Try createTabGroup instead.');
+            console.error('Target Window not in a group. Try createTabGroup instead.');
+            throw new Error('Target Window not in a group. Try createTabGroup instead.');
         }
 
         if (this.mTabService.applicationConfigManager.compareConfigBetweenApplications(payload.targetWindow.uuid, payload.windowToAdd.uuid)) {
             return group.addTab(await new Tab({tabID: payload.windowToAdd}).init());
         } else {
+            console.error('The tabs provided have incompatible tabstrip URLs');
             throw new Error('The tabs provided have incompatible tabstrip URLs');
         }
     }
@@ -113,6 +117,7 @@ export class APIHandler {
         const group = this.mTabService.getTabGroupByApp(window);
 
         if (!group) {
+            console.error('No tab group found for window');
             throw new Error('No tab group found for window');
         }
 
@@ -125,6 +130,7 @@ export class APIHandler {
         const group = this.mTabService.getTabGroupByApp(window);
 
         if (!group) {
+            console.error('No tab group found for window');
             throw new Error('No tab group found for window');
         }
 
@@ -136,6 +142,7 @@ export class APIHandler {
     public minimizeTabGroup(window: TabIdentifier) {
         const group = this.mTabService.getTabGroupByApp(window);
         if (!group) {
+            console.error('No tab group found for window');
             throw new Error('No tab group found for window');
         }
 
@@ -147,6 +154,7 @@ export class APIHandler {
     public maximizeTabGroup(window: TabIdentifier) {
         const group = this.mTabService.getTabGroupByApp(window);
         if (!group) {
+            console.error('No tab group found for window');
             throw new Error('No tab group found for window');
         }
 
@@ -158,6 +166,7 @@ export class APIHandler {
     public closeTabGroup(window: TabIdentifier) {
         const group = this.mTabService.getTabGroupByApp(window);
         if (!group) {
+            console.error('No tab group found for window');
             throw new Error('No tab group found for window');
         }
 
@@ -169,6 +178,7 @@ export class APIHandler {
     public async restoreTabGroup(window: TabIdentifier) {
         const group = this.mTabService.getTabGroupByApp(window);
         if (!group) {
+            console.error('No tab group found for window');
             throw new Error('No tab group found for window');
         }
 
@@ -186,6 +196,7 @@ export class APIHandler {
         const group = this.mTabService.getTabGroupByApp(id as TabIdentifier) || this.mTabService.getTabGroup(id.name!);
 
         if (!group) {
+            console.error('No tab group found for window');
             throw new Error('No tab group found for window');
         }
 
@@ -199,7 +210,8 @@ export class APIHandler {
         const tab = this.mTabService.getTab(payload.window);
 
         if (!tab) {
-            throw new Error('No tab group found for window');
+            console.error('No tab found for window');
+            throw new Error('No tab found for window');
         }
 
         return tab.updateTabProperties(payload.properties);
@@ -220,6 +232,7 @@ export class APIHandler {
         const tabGroup: TabGroup|undefined = this.mTabService.getTabGroupByApp(payload.window);
 
         if (!tabGroup) {
+            console.error('Window is not registered for tabbing');
             throw new Error('Window is not registered for tabbing');
         }
 

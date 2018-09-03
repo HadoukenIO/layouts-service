@@ -36,6 +36,7 @@ export async function ejectTab(message: TabIdentifier&TabWindowOptions, tabGroup
 
     // if the tab is not valid then return out of here!
     if (!ejectedTab) {
+        console.error('Attempted to eject tab which is not in a tabgroup');
         throw new Error('Specified window is not in a tabGroup.');
     }
 
@@ -92,6 +93,7 @@ export async function ejectTab(message: TabIdentifier&TabWindowOptions, tabGroup
  */
 export async function createTabGroupsFromTabBlob(tabBlob: TabBlob[]): Promise<void> {
     if (!tabBlob) {
+        console.error('Unable to create tabgroup - no blob supplied');
         throw new Error('Unable to create tabgroup - no blob supplied');
     }
 

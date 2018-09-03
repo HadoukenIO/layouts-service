@@ -116,10 +116,12 @@ export class SnapService {
                     window.offsetBy({x: Math.sign(offset.x) * UNDOCK_MOVE_DISTANCE, y: Math.sign(offset.y) * UNDOCK_MOVE_DISTANCE});
                 }
             } catch (error) {
+                console.error(`Unexpected error when undocking window: ${error}`);
                 throw new Error(`Unexpected error when undocking window: ${error}`);
             }
 
         } else {
+            console.error(`Unable to undock - no window found with identity "${target.uuid}/${target.name}"`);
             throw new Error(`Unable to undock - no window found with identity "${target.uuid}/${target.name}"`);
         }
     }
@@ -132,9 +134,11 @@ export class SnapService {
                 window.getWindow().leaveGroup();
                 window.onClose.emit(window);
             } catch (error) {
+                console.error(`Unexpected error when deregistering: ${error}`);
                 throw new Error(`Unexpected error when deregistering: ${error}`);
             }
         } else {
+            console.error(`Unable to deregister from Snap&Dock - no window is registered with identity "${target.uuid}/${target.name}"`);
             throw new Error(`Unable to deregister from Snap&Dock - no window is registered with identity "${target.uuid}/${target.name}"`);
         }
     }
@@ -154,6 +158,7 @@ export class SnapService {
         });
 
         if (!group) {
+            console.error(`Unable to undock - no group found for window with identity "${targetWindow.uuid}/${targetWindow.name}"`);
             throw new Error(`Unable to undock - no group found for window with identity "${targetWindow.uuid}/${targetWindow.name}"`);
         }
 
@@ -179,6 +184,7 @@ export class SnapService {
                 }
             }
         } catch (error) {
+            console.error(`Unexpected error when undocking group: ${error}`);
             throw new Error(`Unexpected error when undocking group: ${error}`);
         }
     }

@@ -378,16 +378,16 @@ export const tabStrip = {
  * Handles the case of the provider code returning a promise type. Due to the nature of the service bus, this
  * will be wrapped in another promise. Here we unwrap the nested promise if neccesary and return the intended value.
  */
-const tryServiceDispatch = async<T, R>(service: ServiceClient, action: string, payload?: T): Promise<R> => {
-    let serviceResponse: R|Promise<R>;
-    try {
-        serviceResponse = await service.dispatch(action, payload);
-    } catch (error) {
-        return Promise.reject('Error sending API message to provider: ' + error);
-    }
-    if (serviceResponse && serviceResponse instanceof Promise) {
-        return await serviceResponse;
-    } else {
-        return serviceResponse;
-    }
+const tryServiceDispatch = async<T, R>(service: ServiceClient, action: string, payload?: T): Promise<R>|never => {
+    return service.dispatch(action, payload).then(async (response: R|Promise<R>) => {
+        if (response instanceof Promise) {
+            try {
+                return await response;
+            } catch (error) {
+                throw error;
+            }
+        } else {
+            return response;
+        }
+    });
 };

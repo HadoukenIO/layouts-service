@@ -62,7 +62,7 @@ export class TabGroup {
 
     public async addTab(tab: Tab, handleTabSwitch = true, handleAlignment = true, index = -1) {
         if (!(tab instanceof Tab)) {
-            return Promise.reject(`${tab} is not a Tab...`);
+            throw new Error(`${tab} is not a valid Tab object`);
         }
         const existingTab = TabService.INSTANCE.getTab(tab.ID);
 

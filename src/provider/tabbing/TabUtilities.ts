@@ -78,7 +78,7 @@ export async function ejectTab(message: TabIdentifier&TabWindowOptions, tabGroup
             ejectedTab.window.show();
         }
 
-        if(ejectedTab.tabGroup.tabs.length === 1){
+        if (ejectedTab.tabGroup.tabs.length === 1) {
             tabService.removeTabGroup(ejectedTab.tabGroup.ID, false);
         }
     }

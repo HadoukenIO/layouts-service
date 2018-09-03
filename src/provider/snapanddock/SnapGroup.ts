@@ -204,6 +204,8 @@ export class SnapGroup {
     }
 
     private onWindowModified(window: SnapWindow): void {
+        this._origin.markStale();
+        this._halfSize.markStale();
         this.onModified.emit(this, window);
     }
 

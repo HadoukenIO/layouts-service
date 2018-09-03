@@ -201,8 +201,7 @@ export class Tab {
             try {
                 inputNode.remove();
                 that.updateText(inputNode.value);
-                // @ts-ignore
-                tabStrip.updateTabProperties({uuid: this._ID.uuid, name: this._ID.name}, {title: inputNode.value});
+                layouts.tabStrip.updateTabProperties({uuid: that._ID.uuid, name: that._ID.name}, {title: inputNode.value});
             } catch (e) {
             }
         }

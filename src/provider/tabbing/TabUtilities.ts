@@ -68,18 +68,20 @@ export async function ejectTab(message: TabIdentifier&TabWindowOptions, tabGroup
             }
         }
     } else {
-        await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true, true, true);
+        await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, false, true, true);
 
         if (message.screenX && message.screenY) {
-            ejectedTab.window.moveTo(message.screenX!, message.screenY!);
+            ejectedTab.window.moveTo(message.screenX!, message.screenY! + ejectedTab.tabGroup.window.initialWindowOptions.height!);
             ejectedTab.window.show();
-            return;
+        } else {
+            const bounds = await ejectedTab.window.getWindowBounds();
+            ejectedTab.window.moveTo(bounds.left, bounds.top);
+            ejectedTab.window.show();
         }
 
-        const bounds = await ejectedTab.window.getWindowBounds();
-        ejectedTab.window.moveTo(bounds.left, bounds.top);
-        ejectedTab.window.show();
-        return;
+        if (ejectedTab.tabGroup.tabs.length === 1) {
+            tabService.removeTabGroup(ejectedTab.tabGroup.ID, false);
+        }
     }
 
     return;

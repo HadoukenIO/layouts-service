@@ -4,6 +4,7 @@ import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/system/appl
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {LayoutApp, WindowState} from '../../client/types';
+import {swapTab} from '../tabbing/SaveAndRestoreAPI';
 
 // tslint:disable-next-line:no-any
 declare var fin: any;
@@ -43,30 +44,74 @@ export const positionWindow = async (win: WindowState) => {
 };
 
 export const createAppPlaceholders = async (app: LayoutApp) => {
-    createPlaceholder(app.mainWindow);
+    createNormalPlaceholder(app.mainWindow);
     app.childWindows.forEach((win: WindowState) => {
-        createPlaceholder(win);
+        createNormalPlaceholder(win);
     });
 };
 
-const createPlaceholder = async (win: WindowState) => {
+export const createNormalPlaceholder = async (win: WindowState) => {
     if (!win.isShowing || win.state === 'minimized') {
         return;
     }
     const {name, height, width, left, top, uuid} = win;
 
-    const placeholderName = "Placeholder-" + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const placeholderName = 'Placeholder-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
     const placeholder = new fin.desktop.Window(
-        { name: placeholderName, autoShow: true, defaultHeight: height, defaultWidth: width, defaultLeft: left, defaultTop: top, saveWindowState: false, opacity: 0.6, backgroundColor: '#D3D3D3'}, () => {
+        {
+            name: placeholderName,
+            autoShow: true,
+            defaultHeight: height,
+            defaultWidth: width,
+            defaultLeft: left,
+            defaultTop: top,
+            saveWindowState: false,
+            opacity: 0.6,
+            backgroundColor: '#D3D3D3'
+        },
+        () => {
             placeholder.nativeWindow.document.body.style.overflow = 'hidden';
-            placeholder.nativeWindow.document.bgColor = "D3D3D3";
+            placeholder.nativeWindow.document.bgColor = 'D3D3D3';
         });
 
     const actualWindow = await fin.Window.wrap({uuid, name});
     actualWindow.on('shown', () => {
         placeholder.close();
     });
+
+    return placeholder;
+};
+
+export const createTabPlaceholder = async (win: WindowState) => {
+    const {name, height, width, left, top, uuid} = win;
+
+    const placeholderName = 'Placeholder-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+    const placeholder = new fin.desktop.Window(
+        {
+            name: placeholderName,
+            autoShow: true,
+            defaultHeight: height,
+            defaultWidth: width,
+            defaultLeft: left,
+            defaultTop: top,
+            saveWindowState: false,
+            opacity: 0.6,
+            backgroundColor: '#D3D3D3'
+        },
+        () => {
+            placeholder.nativeWindow.document.body.style.overflow = 'hidden';
+            placeholder.nativeWindow.document.bgColor = 'D3D3D3';
+        });
+
+    const actualWindow = await fin.Window.wrap({uuid, name});
+    actualWindow.on('initialized', async () => {
+        await swapTab(actualWindow.identity, placeholder);
+        placeholder.close();
+    });
+
+    return placeholder;
 };
 
 export const wasCreatedProgrammatically = (app: LayoutApp) => {
@@ -74,11 +119,7 @@ export const wasCreatedProgrammatically = (app: LayoutApp) => {
 };
 
 interface AppInfo {
-    manifest: {
-        startup_app: { 
-            uuid: string;
-        };
-    };
+    manifest: {startup_app: {uuid: string;};};
     manifestUrl: string;
     uuid: string;
 }

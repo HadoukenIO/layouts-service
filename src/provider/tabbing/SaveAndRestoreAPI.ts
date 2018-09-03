@@ -58,7 +58,7 @@ export async function swapTab(add: TabIdentifier, swapWith: TabIdentifier) {
     await group.addTab(tab, false, true, tabIndex);
 
     // remove swap with tab, dont close app, dont switch tabs, dont close group window
-    await group.removeTab(swapWith, false, false, false, true);
+    await group.removeTab(swapWith, false, false, false, false);
 
     if (group.activeTab && group.activeTab.ID.uuid === swapWith.uuid && group.activeTab.ID.name === swapWith.name) {
         // if the switchedwith tab was the active one, we make the added tab active
@@ -67,6 +67,27 @@ export async function swapTab(add: TabIdentifier, swapWith: TabIdentifier) {
         // else we hide it because the added tab might be visible.
         tab!.window.hide();
     }
+
+    return;
+}
+
+/**
+ * Removes a tab from a tab group.
+ * @param {TabIdentifier} tabID The identity of the tab to remove.
+ */
+export async function removeTab(tabID: TabIdentifier) {
+    if (!TabService.INSTANCE) {
+        return Promise.reject('No Tab Service!');
+    }
+
+    const group = TabService.INSTANCE.getTabGroupByApp(tabID);
+
+    if (!group) {
+        return;
+    }
+
+    // remove tab, dont close app, close tab strip when empty, switch tab to other tab, restore window state when leaving.
+    await group.removeTab(tabID, false, true, false, true);
 
     return;
 }

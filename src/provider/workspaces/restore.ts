@@ -47,6 +47,19 @@ export const restoreApplication = async(layoutApp: LayoutApp, resolve: Function)
 };
 
 export const restoreLayout = async(payload: Layout, identity: Identity): Promise<Layout> => {
+    
+    // Guards against invalid layout objects (since we are receiving them over the service bus, this is in theory possible)
+    // These allow us to return sensible error messages back to the consumer
+    if (!payload) { 
+        throw new Error ('Received invalid layout object');
+    }
+    if (!payload.apps) {
+        throw new Error('Received invalid layout object: layout.apps is undefined');
+    }
+    if (!payload.monitorInfo) {
+        throw new Error('Received invalid layout object: layout.monitorInfo is undefined');
+    }
+
     const layout = payload;
     const startupApps: Promise<LayoutApp>[] = [];
     const tabbedWindows: {[uuid: string]: {[name: string]: boolean}} = {};

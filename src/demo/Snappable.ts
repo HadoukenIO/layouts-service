@@ -30,6 +30,14 @@ Layouts.addEventListener('leave-snap-group', () => {
 });
 
 //Allow window to de-register from layouts at a time of its choosing
-export async function deregister() {
-    Layouts.deregister();
+export async function deregister(identity = fin.desktop.Window.getCurrent()) {
+    return Layouts.deregister(identity);
+}
+
+export async function undockWindow(identity = fin.desktop.Window.getCurrent()) {
+    return Layouts.undockWindow(identity);
+}
+
+export async function undockGroup(identity = fin.desktop.Window.getCurrent()) {
+    return Layouts.undockGroup(identity);
 }

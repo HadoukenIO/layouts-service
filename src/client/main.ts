@@ -3,7 +3,7 @@ import {Client as ServiceClient} from 'hadouken-js-adapter/out/types/src/api/ser
 import * as Mousetrap from 'mousetrap';
 
 import {TabAPI, TabAPIActions} from './APITypes';
-import {ApplicationUIConfig, CustomData, DropPosition, JoinTabGroupPayload, Layout, LayoutApp, LayoutName, TabGroupEventPayload, TabProperties, TabWindowOptions} from './types';
+import {AddTabPayload, ApplicationUIConfig, CustomData, DropPosition, EndDragPayload, JoinTabGroupPayload, Layout, LayoutApp, LayoutName, SetTabClientPayload, TabGroupEventPayload, TabProperties, TabWindowOptions, UpdateTabPropertiesPayload} from './types';
 
 const IDENTITY = {
     uuid: 'layouts-service',
@@ -72,7 +72,7 @@ const servicePromise: Promise<ServiceClient> = fin.desktop.Service.connect({...I
  */
 export async function undockWindow(identity: Identity = getId()): Promise<void> {
     const service: ServiceClient = await servicePromise;
-    return service.dispatch('undockWindow', identity);
+    return tryServiceDispatch<Identity, void>(service, 'undockWindow', identity);
 }
 
 /**
@@ -86,7 +86,7 @@ export async function undockWindow(identity: Identity = getId()): Promise<void> 
  */
 export async function undockGroup(identity: Identity = getId()): Promise<void> {
     const service: ServiceClient = await servicePromise;
-    return service.dispatch('undockGroup', identity);
+    return tryServiceDispatch<Identity, void>(service, 'undockGroup', identity);
 }
 
 /**
@@ -96,7 +96,7 @@ export async function undockGroup(identity: Identity = getId()): Promise<void> {
  */
 export async function deregister(identity: Identity = getId()): Promise<void> {
     const service: ServiceClient = await servicePromise;
-    return service.dispatch('deregister', identity);
+    return tryServiceDispatch<Identity, void>(service, 'deregister', identity);
 }
 
 /**
@@ -149,7 +149,7 @@ export async function onLayoutRestore(listener: (layoutApp: LayoutApp) => void):
  */
 export async function generateLayout(): Promise<Layout> {
     const service: ServiceClient = await servicePromise;
-    return service.dispatch('generateLayout');
+    return tryServiceDispatch<undefined, Layout>(service, 'generateLayout');
 }
 
 /**
@@ -157,7 +157,7 @@ export async function generateLayout(): Promise<Layout> {
  */
 export async function restoreLayout(payload: Layout): Promise<Layout> {
     const service: ServiceClient = await servicePromise;
-    return service.dispatch('restoreLayout', payload);
+    return tryServiceDispatch<Layout, Layout>(service, 'restoreLayout', payload);
 }
 
 /**
@@ -166,7 +166,7 @@ export async function restoreLayout(payload: Layout): Promise<Layout> {
 export async function ready(): Promise<Layout> {
     const service: ServiceClient = await servicePromise;
 
-    return service.dispatch('appReady');
+    return tryServiceDispatch<undefined, Layout>(service, 'appReady');
 }
 
 /**
@@ -182,7 +182,7 @@ export async function getTabs(window: Identity = getId()): Promise<Identity[]|nu
     }
     const service: ServiceClient = await servicePromise;
 
-    return service.dispatch(TabAPI.GETTABS, window);
+    return tryServiceDispatch<Identity, Identity[]|null>(service, TabAPI.GETTABS, window);
 }
 
 /**
@@ -203,7 +203,7 @@ export async function setTabClient(url: string, config: TabWindowOptions): Promi
     const service: ServiceClient = await servicePromise;
     config.url = url;
 
-    return service.dispatch(TabAPI.SETTABCLIENT, {config, id: getId()});
+    return tryServiceDispatch<SetTabClientPayload, void>(service, TabAPI.SETTABCLIENT, {config, id: getId()});
 }
 
 /**
@@ -216,7 +216,7 @@ export async function createTabGroup(windows: Identity[]): Promise<void> {
     }
     const service: ServiceClient = await servicePromise;
 
-    return service.dispatch(TabAPI.CREATETABGROUP, windows);
+    return tryServiceDispatch<Identity[], void>(service, TabAPI.CREATETABGROUP, windows);
 }
 
 /**
@@ -235,7 +235,7 @@ export async function addTab(targetWindow: Identity, windowToAdd: Identity = get
     }
     const service: ServiceClient = await servicePromise;
 
-    return service.dispatch(TabAPI.ADDTAB, {targetWindow, windowToAdd});
+    return tryServiceDispatch<AddTabPayload, void>(service, TabAPI.ADDTAB, {targetWindow, windowToAdd});
 }
 
 /**
@@ -248,7 +248,7 @@ export async function removeTab(window: Identity = getId()): Promise<void> {
     }
     const service: ServiceClient = await servicePromise;
 
-    return service.dispatch(TabAPI.REMOVETAB, window);
+    return tryServiceDispatch<Identity, void>(service, TabAPI.REMOVETAB, window);
 }
 
 /**
@@ -260,7 +260,7 @@ export async function setActiveTab(window: Identity = getId()): Promise<void> {
     }
     const service: ServiceClient = await servicePromise;
 
-    return service.dispatch(TabAPI.SETACTIVETAB, window);
+    return tryServiceDispatch<Identity, void>(service, TabAPI.SETACTIVETAB, window);
 }
 
 /**
@@ -272,7 +272,7 @@ export async function closeTab(window: Identity = getId()): Promise<void> {
     }
     const service: ServiceClient = await servicePromise;
 
-    return service.dispatch(TabAPI.CLOSETAB, window);
+    return tryServiceDispatch<Identity, void>(service, TabAPI.CLOSETAB, window);
 }
 
 /**
@@ -284,7 +284,7 @@ export async function minimizeTabGroup(window: Identity = getId()): Promise<void
     }
     const service: ServiceClient = await servicePromise;
 
-    return service.dispatch(TabAPI.MINIMIZETABGROUP, window);
+    return tryServiceDispatch<Identity, void>(service, TabAPI.MINIMIZETABGROUP, window);
 }
 
 /**
@@ -296,7 +296,7 @@ export async function maximizeTabGroup(window: Identity = getId()): Promise<void
     }
     const service: ServiceClient = await servicePromise;
 
-    return service.dispatch(TabAPI.MAXIMIZETABGROUP, window);
+    return tryServiceDispatch<Identity, void>(service, TabAPI.MAXIMIZETABGROUP, window);
 }
 
 /**
@@ -308,7 +308,7 @@ export async function closeTabGroup(window: Identity = getId()): Promise<void> {
     }
     const service: ServiceClient = await servicePromise;
 
-    return service.dispatch(TabAPI.CLOSETABGROUP, window);
+    return tryServiceDispatch<Identity, void>(service, TabAPI.CLOSETABGROUP, window);
 }
 
 /**
@@ -320,7 +320,7 @@ export async function restoreTabGroup(window: Identity = getId()): Promise<void>
     }
     const service: ServiceClient = await servicePromise;
 
-    return service.dispatch(TabAPI.RESTORETABGROUP, window);
+    return tryServiceDispatch<Identity, void>(service, TabAPI.RESTORETABGROUP, window);
 }
 
 
@@ -334,7 +334,7 @@ export const tabStrip = {
         }
         const service: ServiceClient = await servicePromise;
 
-        return service.dispatch(TabAPI.UPDATETABPROPERTIES, {window, properties});
+        return tryServiceDispatch<UpdateTabPropertiesPayload, void>(service, TabAPI.UPDATETABPROPERTIES, {window, properties});
     },
 
     /**
@@ -343,7 +343,7 @@ export const tabStrip = {
     async startDrag() {
         const service: ServiceClient = await servicePromise;
 
-        return service.dispatch(TabAPI.STARTDRAG);
+        return tryServiceDispatch<undefined, void>(service, TabAPI.STARTDRAG);
     },
 
     /**
@@ -357,7 +357,7 @@ export const tabStrip = {
 
         const dropPoint: DropPosition = {screenX: event.screenX, screenY: event.screenY};
 
-        return service.dispatch(TabAPI.ENDDRAG, {event: dropPoint, window});
+        return tryServiceDispatch<EndDragPayload, void>(service, TabAPI.ENDDRAG, {event: dropPoint, window});
     },
 
     /**
@@ -370,6 +370,13 @@ export const tabStrip = {
         }
         const service: ServiceClient = await servicePromise;
 
-        return service.dispatch(TabAPI.REORDERTABS, newOrdering);
+        return tryServiceDispatch<Identity[], void>(service, TabAPI.REORDERTABS, newOrdering);
     }
+};
+
+/**
+ * Wrapper around service.dispatch to help with type checking
+ */
+const tryServiceDispatch = async<T, R>(service: ServiceClient, action: string, payload?: T): Promise<R> => {
+    return service.dispatch(action, payload);
 };

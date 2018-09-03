@@ -42,13 +42,15 @@ export async function getTabSaveInfo(): Promise<TabBlob[]|undefined> {
  */
 export async function swapTab(add: TabIdentifier, swapWith: TabIdentifier) {
     if (!TabService.INSTANCE) {
-        return Promise.reject('No Tab Service!');
+        console.error('No running instance of TabService found');
+        throw new Error('No running instance of TabService found');
     }
 
     const group = TabService.INSTANCE.getTabGroupByApp(swapWith);
 
     if (!group) {
-        return Promise.reject(`No tab group found for ${swapWith}`);
+        console.error(`No tab group found for ${swapWith}`);
+        throw new Error(`No tab group found for ${swapWith}`);
     }
 
     const tabIndex = group.getTabIndex(swapWith);
@@ -98,7 +100,8 @@ export async function removeTab(tabID: TabIdentifier) {
  */
 export function restoreTabs(tabBlob: TabBlob[]): Promise<void> {
     if (!TabService.INSTANCE) {
-        return Promise.reject('No Tab Service!');
+        console.error('No running instance of TabService found');
+        throw new Error('No running instance of TabService found');
     }
 
     return createTabGroupsFromTabBlob(tabBlob);

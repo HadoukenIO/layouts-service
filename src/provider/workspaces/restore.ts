@@ -1,11 +1,11 @@
 import {Application} from 'hadouken-js-adapter/out/types/src/api/application/application';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
-import {promiseMap} from '../snapanddock/utils/async';
 import {Layout, LayoutApp, LayoutName, WindowState} from '../../client/types';
+import {providerChannel} from '../main';
+import {promiseMap} from '../snapanddock/utils/async';
 
 import {regroupLayout} from './group';
-import {providerChannel} from '../main';
 import {createAppPlaceholders, isClientConnection, positionWindow, wasCreatedProgrammatically} from './utils';
 
 /*tslint:disable-next-line:no-any*/

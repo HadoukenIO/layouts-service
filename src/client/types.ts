@@ -21,6 +21,7 @@ export interface WindowState extends Bounds {
     name: string;
     isShowing: boolean;
     state: string;
+    frame: boolean;
     info: any;  // getinfo call...
     windowGroup: Identity[];
     customData?: CustomData;  // applications can add any context or other necessary data here

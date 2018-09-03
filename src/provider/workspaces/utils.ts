@@ -23,6 +23,9 @@ export const positionWindow = async (win: WindowState) => {
         await ofWin.leaveGroup();
         await ofWin.setBounds(win);
 
+        await ofWin.updateOptions({frame: win.frame});
+
+
         // COMMENTED OUT FOR DEMO
         if (win.state === 'normal') {
             await ofWin.restore();
@@ -55,12 +58,23 @@ const createPlaceholder = async (win: WindowState) => {
     }
     const {name, height, width, left, top, uuid} = win;
 
-    const placeholderName = "Placeholder-" + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const placeholderName = 'Placeholder-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
     const placeholder = new fin.desktop.Window(
-        { name: placeholderName, autoShow: true, defaultHeight: height, defaultWidth: width, defaultLeft: left, defaultTop: top, saveWindowState: false, opacity: 0.6, backgroundColor: '#D3D3D3'}, () => {
+        {
+            name: placeholderName,
+            autoShow: true,
+            defaultHeight: height,
+            defaultWidth: width,
+            defaultLeft: left,
+            defaultTop: top,
+            saveWindowState: false,
+            opacity: 0.6,
+            backgroundColor: '#D3D3D3'
+        },
+        () => {
             placeholder.nativeWindow.document.body.style.overflow = 'hidden';
-            placeholder.nativeWindow.document.bgColor = "D3D3D3";
+            placeholder.nativeWindow.document.bgColor = 'D3D3D3';
         });
 
     const actualWindow = await fin.Window.wrap({uuid, name});
@@ -74,11 +88,7 @@ export const wasCreatedProgrammatically = (app: LayoutApp) => {
 };
 
 interface AppInfo {
-    manifest: {
-        startup_app: { 
-            uuid: string;
-        };
-    };
+    manifest: {startup_app: {uuid: string;};};
     manifestUrl: string;
     uuid: string;
 }

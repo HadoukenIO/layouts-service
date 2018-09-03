@@ -131,7 +131,8 @@ export class GroupWindow extends AsyncWindow {
                 return this._tabGroup.hideAllTabsMinusActiveTab();
             } else {
                 const resize = this._tabGroup.activeTab.window.resizeTo(this._beforeMaximizeBounds.width!, this._beforeMaximizeBounds.height!, 'top-left');
-                const moveto = this._tabGroup.window.moveTo(this._beforeMaximizeBounds.left!, this._beforeMaximizeBounds.top! - (this._tabGroup.window._initialWindowOptions.height || 62));
+                const moveto = this._tabGroup.window.moveTo(
+                    this._beforeMaximizeBounds.left!, this._beforeMaximizeBounds.top! - (this._tabGroup.window._initialWindowOptions.height || 62));
                 this._isMaximized = false;
                 return Promise.all([resize, moveto]);
             }

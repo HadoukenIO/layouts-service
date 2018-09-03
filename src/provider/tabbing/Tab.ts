@@ -88,7 +88,7 @@ export class Tab {
     public async remove(closeApp: boolean) {
         this._tabWindow.leaveGroup();
         this._tabWindow.removeEventListeners();
-        
+
         const payload: TabGroupEventPayload = {tabGroupId: this.tabGroup.ID, tabID: this.ID};
 
         this.mService.dispatch(this.ID, 'leave-tab-group', payload);

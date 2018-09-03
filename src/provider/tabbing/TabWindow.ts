@@ -120,6 +120,7 @@ export class TabWindow extends AsyncWindow {
         this._window.addEventListener('maximized', this._onMaximize);
 
         this._window.addEventListener('closed', this._onClose);
+        this._window.addEventListener('focused', this._onFocus);
     }
 
     public removeEventListeners() {
@@ -161,9 +162,10 @@ export class TabWindow extends AsyncWindow {
     /**
      * Handles when the window is closed.  This will remove it from the tab group.
      */
-    private _onClose = () => {
-        this._tab.tabGroup.removeTab(this._tab.ID, false, true);
-    }
+    private _onClose =
+        () => {
+            this._tab.tabGroup.removeTab(this._tab.ID, false, true);
+        }
 
     /**
      * Handles when the window is focused.  If we are not the active window we will set the window being focused to be the active.

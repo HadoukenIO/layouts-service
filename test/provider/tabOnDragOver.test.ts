@@ -26,7 +26,7 @@ test.afterEach.always(async () => {
     win1 = win2 = win3 = {} as Window;
 });
 
-test('Tabset on dragover - basic drop', async t => {
+test.skip('Tabset on dragover - basic drop', async t => {
 
     // Drag win1 over win2 to make a tabset
     await dragWindowToOtherWindow(win1,'top-left', win2, 'top-left', {x:-20, y:-20});

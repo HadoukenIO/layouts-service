@@ -9,6 +9,7 @@
       "dom",
       "es6"
     ],
+    "types": ["openfin"],
     "declaration": false
   },
   "include": [

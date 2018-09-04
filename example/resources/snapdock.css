@@ -1,0 +1,68 @@
+@font-face {
+    font-family: AkkuratPro;
+		font-weight: normal;
+		font-style: normal;
+    src: url("/fonts/AkkuratPro/AkkRg_Pro_1.otf") format("opentype");
+}
+
+@font-face {
+    font-family: AkkuratProBold;
+		font-weight: bold;
+		font-style: normal;
+    src: url("/fonts/AkkuratPro/AkkBd_Pro_1.otf") format("opentype");
+}
+
+@font-face {
+    font-family: AkkuratProLight;
+		font-weight: lighter;
+		font-style: normal;
+    src: url("/fonts/AkkuratPro/AkkLg_Pro_1.otf") format("opentype");
+}
+
+:root {
+  --main-bg-color: #1F1E24;
+  --border-color: #2A2A30;
+  --highlight-color: #0E00A0;
+}
+
+::-webkit-scrollbar { 
+  display: none; 
+}
+
+body {
+    font-family: 'AkkuratPro', 'Roboto', arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    height: 80vh;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+h1 {
+  color: #ffffff;
+}
+
+button {
+  width: 120px;
+  height: 30px;
+  box-sizing: border-box;
+  border-radius: 5px;
+  border: 3px solid var(--border-color);
+  padding: 2px;
+  margin: 3px;
+  box-shadow: 0.5px 0.5px 0px 0 #1b1b2b;
+  background-color: var(--main-bg-color);
+  color: #FFFFFF;
+  text-align: center;
+}
+
+button:hover {
+  cursor: pointer;
+  background-color: var(--border-color);
+}
+
+button:active {
+  background-color: #6D6A82;
+}

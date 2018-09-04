@@ -73,7 +73,7 @@ export async function createChild(parentWindowName: string): Promise<void> {
     numChildren++;
 }
 
-export function openChild(name: string, i: number, url?: string) {
+export function openChild(name: string, i: number, frame = true, url?: string) {
     const win = fin.Window.create({
         url: url || `${launchDir}/demo-window.html`,
         autoShow: true,
@@ -82,6 +82,7 @@ export function openChild(name: string, i: number, url?: string) {
         defaultLeft: 320 * (i % 3),
         defaultTop: i > 2 ? 400 : 50,
         saveWindowState: false,
+        frame,
         name
     });
     return win;
@@ -181,7 +182,7 @@ async function onAppRes(layoutApp: LayoutApp): Promise<LayoutApp> {
     const openWindows = await ofApp.getChildWindows();
     const openAndPosition = layoutApp.childWindows.map(async (win, index) => {
         if (!openWindows.some((w: Application) => w.identity.name === win.name)) {
-            const ofWin = await openChild(win.name, index, win.info.url);
+            const ofWin = await openChild(win.name, index, win.frame, win.info.url);
             await positionWindow(win);
         } else {
             await positionWindow(win);

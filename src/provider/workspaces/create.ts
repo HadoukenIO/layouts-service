@@ -105,5 +105,6 @@ const getLayoutWindowData = async (ofWin: Window) => {
     const {uuid} = ofWin.identity;
     const info = await ofWin.getInfo();
     const windowGroup = await getGroup(ofWin.identity);
-    return {info, uuid, windowGroup};
+    const frame: boolean = (await ofWin.getOptions()).frame;
+    return {info, uuid, windowGroup, frame};
 };

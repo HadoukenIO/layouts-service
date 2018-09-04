@@ -7,12 +7,12 @@ OpenFin Layouts delivers window management and layout user experience across the
 OpenFin Layouts uses the new Services framework to expose its API to consuming applications.  You can see the documentation for these APIs here:  http://cdn.openfin.co/jsdocs/alpha/fin.desktop.Service.html.
 
 This project consist of 3 parts:
-1. The Layouts Service, which manages the state of windows.
-2. The Layouts Client, which exposes calls to undock and opt-out of snapping behavior.
+1. The Layouts Service, which manages the state of windows, tabs and layouts
+2. The Layouts Client, which exposes calls to programatically control snap/dock, tabbing and save/restore.
 3. Layout Service Demo app, demonstrating the different features of OpenFin Layout
 
 ### Dependencies
-- OpenFin version for applications using Layouts >= 9.61.33.32
+- OpenFin version for applications using Layouts = 9.61.33.32
 - OpenFin version used in the Layouts Service = 9.61.33.32
 - RVM >=  4.4.1.1
 
@@ -27,17 +27,16 @@ This project consist of 3 parts:
    - Dropping a window ontop of another window will create tabbed windows with a tabstrip on top
    - Tabs can be reorder and renamed.
    - Minimize / maximize / restore / close on the tabstrip affects the whole tabgroup (tabstrip and tabbed windows)
-   - Customers can provide their own tabstrip - simply by hosting a templated html, initiated on application startup
-   - The service comes with a win10 like default tabstrip if no custom tabstrip is defined
+   - Application developers can provide their own tabstrip - simply by hosting a templated html, initiated on application startup
+   - The service comes with a win10 like default tabstrip that will used if no custom tabstrip is defined
 - Save and restore
-   - The service has API's for getting and restoring a layout
-   - The provided demo showcases how a layout manager application could use the API's to manage layouts
+   - The service has APIs for getting and restoring layouts
+   - The provided demo showcases how a layout manager application could use the APIs to manage layouts
 - APIs
    - API available to undock, ungroup, tab / untab , save / restore a layout or opt-out of tabbing and snapping.
 - Hosting
    - The lastest production version OpenFin Layouts will by default be served from OpenFin's CDN
-   - For testing / dev purposes, a customers can specify an absolute version/location of a the service by providing the full URL in the services section of the app manifest (se getting started below)
-   - RVM  >= 4.4.2.19 (alpha - http://cdn.openfin.co/release/rvm-alpha/4.4.2.19) allow you to specify service location/version in the DesktopOwnerSettings (https://openfin.co/documentation/group-policy/#DesktopOwnerSettings)
+   - For testing / dev purposes, a customers can specify an absolute version/location of a the service by providing the full URL in the services section of the app manifest (se Manifest declaration below)
 
 ### Run Locally
 - Windows support only. 
@@ -61,6 +60,17 @@ To ensure the service is running, you must declare it in your application config
 [
    {
    "name":"layouts"
+   }
+]
+```
+Optionally you can add a URL for specifying a custom location or a specific version:
+
+```
+"services" :
+[
+   {
+   "name":"layouts",
+   "manifestUrl": "https://custom-location/0.9/app.json"
    }
 ]
 ```

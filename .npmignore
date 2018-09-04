@@ -1,13 +1,14 @@
+# standard ignores
+
+node_modules/
+
 # ignore everything
 
 *
 */**
 
-# except the dist dir where we've staged all the npm stuff
+# override above and  files
 
-!dist/*
-!dist/**/*
-
-# ensure we don't upload the mocked package.json (in case the demo was built)
-
-dist/package.json
+!module_dist/*
+!module_dist/**/*
+!package.json

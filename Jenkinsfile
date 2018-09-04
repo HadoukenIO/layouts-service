@@ -54,6 +54,7 @@ pipeline {
                 sh "GIT_SHORT_SHA=${GIT_SHORT_SHA} npm run build"
                 sh "echo ${GIT_SHORT_SHA} > ./build/SHA.txt"
                 sh "aws s3 cp ./build/provider ${S3_LOC}/ --recursive"
+                sh "aws s3 cp ./build/docs ${S3_LOC}/docs/ --recursive"
                 sh "aws s3 cp ./build/provider/app.json ${PROD_JSON}"
                 echo "publishing to npm, version: " + VERSION
                 withCredentials([string(credentialsId: "NPM_TOKEN_WRITE", variable: 'NPM_TOKEN')]) {

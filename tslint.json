@@ -1,0 +1,7 @@
+{
+    "extends": "./node_modules/gts/tslint.json",
+    "rules": {
+        "array-type": [true, "array"],
+        "member-access": true
+    }
+}

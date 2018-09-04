@@ -25,7 +25,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
 
     tabGroups.forEach((tabGroup) => {
         tabGroup.tabs.forEach(tabWindow => {
-            tabbedWindows[tabWindow.uuid] = Object.assign({}, tabbedWindows[tabWindow.uuid], { [tabWindow.name]: true });
+            tabbedWindows[tabWindow.uuid] = Object.assign({}, tabbedWindows[tabWindow.uuid], {[tabWindow.name]: true});
         });
     });
 
@@ -129,7 +129,7 @@ const getLayoutWindowData = async (ofWin: Window, tabbedWindows: {[uuid: string]
     if (inTabbedWindowsObject(ofWin.identity, tabbedWindows)) {
         isTabbed = true;
     }
-  
+
     const frame: boolean = (await ofWin.getOptions()).frame;
     return {info, uuid, windowGroup, frame, isTabbed};
 };

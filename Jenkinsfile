@@ -26,9 +26,9 @@ pipeline {
                     STAGING_JSON = env.DSERVICE_S3_ROOT + "layouts/" + "app.staging.json"
                 }
                 sh "GIT_SHORT_SHA=${GIT_SHORT_SHA} npm run build"
-                sh "npm run docs"
                 sh "echo ${GIT_SHORT_SHA} > ./build/SHA.txt"
                 sh "aws s3 cp ./build/provider ${S3_LOC}/ --recursive"
+                sh "aws s3 cp ./build/docs ${S3_LOC}/docs/ --recursive"
                 sh "aws s3 cp ./build/provider/app.json ${STAGING_JSON}"
                 echo "publishing pre-release version to npm: " + PREREL_VERSION
                 withCredentials([string(credentialsId: "NPM_TOKEN_WRITE", variable: 'NPM_TOKEN')]) {
@@ -45,6 +45,7 @@ pipeline {
             when { branch "master" }
             steps {
                 sh "npm i --ignore-scripts"
+                sh "npm run docs"
                 script {
                     GIT_SHORT_SHA = sh ( script: "git rev-parse --short HEAD", returnStdout: true ).trim()
                     VERSION = sh ( script: "node -pe \"require('./package.json').version\"", returnStdout: true ).trim()

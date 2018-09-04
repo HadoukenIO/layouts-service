@@ -12,7 +12,7 @@
     "compile": "npm run compile:client && npm run compile:provider",
     "compile:client": "genversion --es6 --semi src/client/version.ts && tsc -p tsconfig.client.json",
     "compile:provider": "tsc -p tsconfig.provider.json",
-    "docs": "typedoc --out docs --excludeNotExported --tsconfig tsconfig.client.json --readme none",
+    "docs": "typedoc --name \"OpenFin Layouts\" --out ./build/docs --excludeNotExported --excludePrivate --excludeProtected --hideGenerator --tsconfig tsconfig.client.json --readme none",
     "fix": "gts fix",
     "prepare": "npm run compile",
     "pretest": "npm run compile",

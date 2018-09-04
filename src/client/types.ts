@@ -25,6 +25,7 @@ export interface WindowState extends Bounds {
     info: any;  // getinfo call...
     windowGroup: Identity[];
     customData?: CustomData;  // applications can add any context or other necessary data here
+    isTabbed: boolean;
 }
 
 export interface LayoutApp {

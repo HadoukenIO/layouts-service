@@ -17,10 +17,17 @@ export const getCurrentLayout = async(): Promise<Layout> => {
     // Not yet using monitor info
     const monitorInfo = await fin.System.getMonitorInfo() || {};
     let tabGroups = await getTabSaveInfo();
+    const tabbedWindows: {[uuid: string]: {[name: string]: boolean}} = {};
 
     if (tabGroups === undefined) {
         tabGroups = [];
     }
+
+    tabGroups.forEach((tabGroup) => {
+        tabGroup.tabs.forEach(tabWindow => {
+            tabbedWindows[tabWindow.uuid] = Object.assign({}, tabbedWindows[tabWindow.uuid], { [tabWindow.name]: true });
+        });
+    });
 
     const apps = await fin.System.getAllWindows();
     let layoutApps = await promiseMap(apps, async (app: LayoutApp) => {
@@ -42,13 +49,13 @@ export const getCurrentLayout = async(): Promise<Layout> => {
             });
 
             const mainOfWin = await ofApp.getWindow();
-            const mainWindowLayoutData = await getLayoutWindowData(mainOfWin);
+            const mainWindowLayoutData = await getLayoutWindowData(mainOfWin, tabbedWindows);
 
             app.mainWindow = {...app.mainWindow, ...mainWindowLayoutData};
             app.childWindows = await promiseMap(app.childWindows, async (win: WindowState) => {
                 const {name} = win;
                 const ofWin = await fin.Window.wrap({uuid, name});
-                const windowLayoutData = await getLayoutWindowData(ofWin);
+                const windowLayoutData = await getLayoutWindowData(ofWin, tabbedWindows);
 
                 return {...win, ...windowLayoutData};
             });
@@ -101,10 +108,28 @@ export const generateLayout = async(payload: null, identity: Identity): Promise<
     return confirmedLayout;
 };
 
-const getLayoutWindowData = async (ofWin: Window) => {
+
+function inTabbedWindowsObject(win: Identity, tabbedWindows: {[uuid: string]: {[name: string]: boolean}}) {
+    if (win.name) {
+        if (tabbedWindows[win.uuid]) {
+            if (tabbedWindows[win.uuid][win.name]) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+const getLayoutWindowData = async (ofWin: Window, tabbedWindows: {[uuid: string]: {[name: string]: boolean}}) => {
     const {uuid} = ofWin.identity;
     const info = await ofWin.getInfo();
     const windowGroup = await getGroup(ofWin.identity);
+    let isTabbed = false;
+    if (inTabbedWindowsObject(ofWin.identity, tabbedWindows)) {
+        isTabbed = true;
+    }
+  
     const frame: boolean = (await ofWin.getOptions()).frame;
-    return {info, uuid, windowGroup, frame};
+    return {info, uuid, windowGroup, frame, isTabbed};
 };

@@ -1,9 +1,0 @@
-{
-    "devtools_port": 9090,
-    "runtime": {
-        "arguments": "--v=1 --enable-crash-reporting",
-        "version": "canary"
-    },
-    "services":[{"name": "layouts", "manifestUrl": "http://localhost:1337/SnapDockService/app.json"}],
-    "startup_app": null
-}

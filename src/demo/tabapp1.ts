@@ -16,4 +16,9 @@ fin.desktop.main(() => {
     Layouts.addEventListener('leave-tab-group', () => {
         console.log('UNTABBED: ');
     });
+
+    // Workaround for issue with snapping/S&R integration
+    Layouts.onAppRestore((payload) => Promise.resolve(payload));
+    Layouts.ready();
+    
 });

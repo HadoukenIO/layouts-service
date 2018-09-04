@@ -89,8 +89,7 @@ export class TabWindow extends AsyncWindow {
      * Aligns the position of this tab window to the position of the tab set group window.
      */
     public async alignPositionToTabGroup(): Promise<void> {
-        
-        await new Promise((res, rej)=> this._window.leaveGroup(res, rej));
+        await new Promise((res, rej) => this._window.leaveGroup(res, rej));
         const groupWindow = this._tab.tabGroup.window;
         const groupActiveTab = this._tab.tabGroup.activeTab || this._tab.tabGroup.tabs[0];
 
@@ -109,7 +108,9 @@ export class TabWindow extends AsyncWindow {
 
         await Promise.all([resize, moveTo]);
 
-        await new Promise((res, rej)=>{this._window.joinGroup(groupWindow.finWindow, res, rej)});
+        await new Promise((res, rej) => {
+            this._window.joinGroup(groupWindow.finWindow, res, rej);
+        });
     }
 
     /**

@@ -50,6 +50,25 @@ export async function setLayout() {
     document.getElementById('showLayout')!.innerHTML = JSON.stringify(layout, null, 2);
 }
 
+export async function killAllWindows() {
+    fin.desktop.System.getAllApplications((apps: {uuid: string, name: string}[]) => {
+        apps.forEach((app) =>{
+            if(app.uuid !== 'layouts-service') {
+                const wrappedApp = fin.desktop.Application.wrap(app.uuid);
+                //@ts-ignore no types
+                wrappedApp.getChildWindows((win) =>{
+                    //@ts-ignore no types
+                    win.forEach(w => w.close(true));
+                });
+
+                if(app.uuid !== 'Layouts-Manager') {
+                    wrappedApp.close(true);
+                }
+            }
+        })
+    })
+}
+
 export async function getLayout() {
     const id = (document.getElementById('layoutSelect') as HTMLSelectElement).value;
     const workspace = Storage.getLayout(id);

@@ -272,6 +272,6 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
     // Regroup the windows
     await regroupLayout(allAppResponses).catch(console.log);
     // send the layout back to the requester of the restore
-    TabService.INSTANCE.tabGroups.forEach(group => group.realignApps());
+    await TabService.INSTANCE.tabGroups.map(group => group.realignApps());
     return layout;
 };

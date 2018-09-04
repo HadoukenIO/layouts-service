@@ -113,8 +113,7 @@ export class TabGroup {
      */
     public realignApps() {
         return Promise.all(this._tabs.map(tab => {
-            tab.window.leaveGroup();
-            tab.window.alignPositionToTabGroup();
+            return tab.window.alignPositionToTabGroup();
         }));
     }
 

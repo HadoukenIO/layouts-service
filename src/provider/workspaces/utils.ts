@@ -21,7 +21,9 @@ export const isClientConnection = (identity: LayoutApp|Identity) => {
 export const positionWindow = async (win: WindowState) => {
     try {
         const ofWin = await fin.Window.wrap(win);
-        await ofWin.leaveGroup();
+        if (!win.isTabbed) {
+            await ofWin.leaveGroup();
+        }
         await ofWin.setBounds(win);
 
         await ofWin.updateOptions({frame: win.frame});

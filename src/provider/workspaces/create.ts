@@ -129,5 +129,7 @@ const getLayoutWindowData = async (ofWin: Window, tabbedWindows: {[uuid: string]
     if (inTabbedWindowsObject(ofWin.identity, tabbedWindows)) {
         isTabbed = true;
     }
-    return {info, uuid, windowGroup, isTabbed};
+  
+    const frame: boolean = (await ofWin.getOptions()).frame;
+    return {info, uuid, windowGroup, frame, isTabbed};
 };

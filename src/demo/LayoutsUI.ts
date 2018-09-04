@@ -1,4 +1,4 @@
-import {Application, Fin} from 'hadouken-js-adapter';
+import {Application} from 'hadouken-js-adapter';
 import {ServiceIdentity} from 'hadouken-js-adapter/out/types/src/api/services/channel';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 

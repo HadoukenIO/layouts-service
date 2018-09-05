@@ -25,10 +25,10 @@ const forgetWindows: ServiceIdentity[] = [];
 
 window.forgetMe = forgetMe;
 
-export async function setLayout() {
+export async function setLayout(layoutParam?: Layout) {
     const id = (document.getElementById('layoutName') as HTMLTextAreaElement).value;
     const layoutSelect = document.getElementById('layoutSelect') as HTMLSelectElement;
-    const layout = await Layouts.generateLayout();
+    const layout = layoutParam || await Layouts.generateLayout();
     const workspace = {id, layout};
 
     if (layoutSelect) {
@@ -231,6 +231,12 @@ function createOptionElement(id: string) {
     option.value = id;
     option.innerHTML = id;
     return option;
+}
+
+export function importLayout(){
+    const textfield = document.getElementById('showLayout')! as HTMLTextAreaElement;
+    const layout = JSON.parse(textfield.value);
+    setLayout(layout.layout || layout);
 }
 
 // Do not snap to other windows

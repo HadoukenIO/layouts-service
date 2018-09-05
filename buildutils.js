@@ -54,11 +54,9 @@ function createConfig(outPath, entryPoint, isLibrary, ...plugins) {
 // allows for overriding the startup_app.url based on env vars
 function prepConfig(config, defaultUrl) {
     const newConf = Object.assign({}, config);
-    if (typeof process.env.GIT_SHORT_SHA != 'undefined' && process.env.GIT_SHORT_SHA != "" ) {
-        newConf.startup_app.url = 'https://cdn.openfin.co/services/openfin/layouts/' + process.env.GIT_SHORT_SHA + '/provider.html';
+    if (typeof process.env.SERVICE_VERSION != 'undefined' && process.env.SERVICE_VERSION != "" ) {
+        newConf.startup_app.url = 'https://cdn.openfin.co/services/openfin/layouts/' + process.env.SERVICE_VERSION + '/provider.html';
         newConf.startup_app.autoShow = false;
-    } else if (typeof process.env.CDN_ROOT_URL != 'undefined' && process.env.CDN_ROOT_URL != "" ) {
-        newConf.startup_app.url = process.env.CDN_ROOT_URL + '/provider.html';
     } else if (typeof defaultUrl != 'undefined' && defaultUrl != "" ) {
         newConf.startup_app.url = defaultUrl;
     }

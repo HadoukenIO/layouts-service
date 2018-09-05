@@ -33,12 +33,6 @@ const getId = (() => {
 })();
 
 const servicePromise: Promise<ServiceClient> = fin.desktop.Service.connect({...IDENTITY, payload: {version}}).then((service: ServiceClient) => {
-    // Map undocking keybind
-    Mousetrap.bind('mod+shift+u', () => {
-        service.dispatch('undockWindow', getId());
-        console.log('Window un-docked via keyboard shortcut');
-    });
-
     // Register service listeners
     service.register('WARN', (payload: any) => console.warn(payload));  // tslint:disable-line:no-any
     service.register('join-snap-group', () => {

@@ -413,7 +413,7 @@ export class SnapService {
         return totalOffset;
     }
 
-    private getSnapWindow(finWindow: WindowIdentity) {
+    public getSnapWindow(finWindow: WindowIdentity) {
         return this.windows.find(w => w.getIdentity().uuid === finWindow.uuid && w.getIdentity().name === finWindow.name);
     }
 }

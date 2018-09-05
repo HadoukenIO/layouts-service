@@ -87,6 +87,23 @@ async function registerService() {
 export async function main() {
     snapService = window.snapService = new SnapService();
     tabService = window.tabService = new TabService();
+
+    // Register global undock hotkey listener
+    // @ts-ignore - v2api types missing
+    fin.GlobalHotkey
+        .register(
+            'CommandOrControl+Shift+U',
+            () => {
+                // @ts-ignore - v2api types missing
+                fin.System.getFocusedWindow().then(w => {
+                    if (w !== null && snapService.getSnapWindow(w)) {
+                        console.log('Global hotkey invoked on window', w);
+                        snapService.undock(w);
+                    }
+                });
+            })
+        .catch(console.error);
+
     await win10Check;
     return await registerService();
 }

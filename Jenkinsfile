@@ -52,14 +52,12 @@ pipeline {
                     VERSION = sh ( script: "node -pe \"require('./package.json').version\"", returnStdout: true ).trim()
                     S3_LOC = env.DSERVICE_S3_ROOT + "layouts/" + VERSION
                     PROD_JSON = env.DSERVICE_S3_ROOT + "layouts/app.json"
-                    PROD_VERSIONED_JSON = env.DSERVICE_S3_ROOT + "layouts/app-" + VERSION + ".json"
                 }
                 sh "SERVICE_VERSION=${VERSION} npm run build"
                 sh "echo ${GIT_SHORT_SHA} > ./build/SHA.txt"
                 sh "aws s3 cp ./build/provider ${S3_LOC}/ --recursive"
                 sh "aws s3 cp ./build/docs ${S3_LOC}/docs/ --recursive"
                 sh "aws s3 cp ./build/provider/app.json ${PROD_JSON}"
-                sh "aws s3 cp ./build/provider/app.json ${PROD_VERSIONED_JSON}"
                 withCredentials([string(credentialsId: "NPM_TOKEN_WRITE", variable: 'NPM_TOKEN')]) {
                     sh "echo //registry.npmjs.org/:_authToken=$NPM_TOKEN > $WORKSPACE/.npmrc"
                 }

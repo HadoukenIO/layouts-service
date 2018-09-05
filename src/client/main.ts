@@ -1,6 +1,5 @@
 import {Identity} from 'hadouken-js-adapter';
 import {Client as ServiceClient} from 'hadouken-js-adapter/out/types/src/api/services/client';
-import * as Mousetrap from 'mousetrap';
 
 import {TabAPI, TabAPIActions} from './APITypes';
 import {AddTabPayload, ApplicationUIConfig, CustomData, DropPosition, EndDragPayload, JoinTabGroupPayload, Layout, LayoutApp, LayoutName, SetTabClientPayload, TabGroupEventPayload, TabProperties, TabWindowOptions, UpdateTabPropertiesPayload} from './types';

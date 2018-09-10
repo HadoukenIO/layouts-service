@@ -1,17 +1,16 @@
 import {Window} from 'hadouken-js-adapter';
 import Fin from 'hadouken-js-adapter/out/types/src/api/fin';
-import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
 import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/system/application';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {LayoutApp, TabIdentifier, WindowState} from '../../client/types';
 import {swapTab} from '../tabbing/SaveAndRestoreAPI';
 
-declare var providerChannel: ChannelProvider;
-
 export const isClientConnection = (identity: LayoutApp|Identity) => {
     // i want to access connections....
     const {uuid} = identity;
+
+    // @ts-ignore  
     return providerChannel.connections.some((conn: Identity) => {
         return identity.uuid === conn.uuid;
     });
@@ -21,6 +20,7 @@ export const getClientConnection = (identity: Identity) => {
     const {uuid} = identity;
     const name = identity.name ? identity.name : uuid;
 
+    // @ts-ignore
     return providerChannel.connections.find((conn) => {
         return conn.uuid === uuid && conn.name === name;
     });

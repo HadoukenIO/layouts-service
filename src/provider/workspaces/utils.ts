@@ -10,7 +10,7 @@ export const isClientConnection = (identity: LayoutApp|Identity) => {
     // i want to access connections....
     const {uuid} = identity;
 
-    // @ts-ignore  
+    // @ts-ignore
     return providerChannel.connections.some((conn: Identity) => {
         return identity.uuid === conn.uuid;
     });

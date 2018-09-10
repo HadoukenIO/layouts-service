@@ -206,7 +206,7 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
                     return defaultResponse;
                 }
             } else {
-                let ofApp: undefined|Application;
+                let ofAppNotRunning: undefined|Application;
                 console.log('App is not running:', app);
 
                 // App is not running - setup communication to fire once app is started
@@ -217,42 +217,28 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
                 }
                 // Start App
                 if (app.manifestUrl) {
+                    // If app created by manifest
                     const {manifestUrl} = app;
-                    // Started from manifest
                     console.log('App has manifestUrl:', app);
-                    // v2 api broken - below is messy but should be replaced with v2 (can just await create and run below w/ v2)
-
-                    // ofApp = await fin.Application.createFromManifest(manifestUrl);
-                    // SHOULD PROBABLY TRY TO CREATE AND RUN FIRST, THEN TRY TO RUN IF GET ERROR
-                    const v1App = fin.desktop.Application.wrap(app.uuid);
-                    const runV1 = (v1App: fin.OpenFinApplication, errCb?: Function) => {
-                        const defaultErrCb = () => console.error('App Run error');
-                        const errorCallback = errCb || defaultErrCb;
-                        v1App.run(() => {
-                            console.log('Running App created from manifest:', app);
-                            positionWindow(app.mainWindow);
-                        }, () => errorCallback(app));
-                    };
-
-                    const notInCoreState = (app: LayoutApp) => {
-                        fin.desktop.Application.createFromManifest(app.manifestUrl!, (v1App: fin.OpenFinApplication) => {
-                            console.log('Created from manifest:', v1App);
-                            runV1(v1App);
-                        }, (e: Error) => console.error('Create from manifest error:', e));
-                    };
-
-                    runV1(v1App, notInCoreState);
+                    ofAppNotRunning = await fin.Application.createFromManifest(manifestUrl);
                 } else {
-                    // Application created programmatically
+                    // If application created programmatically
                     if (wasCreatedProgrammatically(app)) {
                         console.warn('App created programmatically, app may not restart again:', app);
-                        ofApp = await fin.Application.create(app.initialOptions);
+                        ofAppNotRunning = await fin.Application.create(app.initialOptions);
                     } else {
                         console.error('Unable to restart programmatically launched app:', app);
                     }
                 }
-                if (ofApp) {
-                    await ofApp.run().catch(console.log);
+                if (ofAppNotRunning) {
+                    const ofAppNRWindow = await ofAppNotRunning.getWindow();
+                    const updateOptionsAndShow = async () => {
+                        console.log("IN SHOW REQUESTED");
+                        await ofAppNRWindow.showAt(app.mainWindow.left, app.mainWindow.top, true);
+                        await ofAppNRWindow.removeListener('show-requested', updateOptionsAndShow);
+                    };
+                    await ofAppNRWindow.addListener('show-requested', updateOptionsAndShow);
+                    await ofAppNotRunning.run().catch(console.log);
                     await positionWindow(app.mainWindow);
                 }
                 // SHOULD WE RETURN DEFAULT RESPONSE HERE?!?

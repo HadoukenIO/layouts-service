@@ -1,9 +1,8 @@
-import {Application} from 'hadouken-js-adapter';
-import {ServiceIdentity} from 'hadouken-js-adapter/out/types/src/api/services/channel';
-import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
+import { Application, Identity } from 'hadouken-js-adapter';
+import { _Window } from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import {Layout, LayoutApp} from '../client/types';
-import {positionWindow} from '../provider/workspaces/utils';
+import { Layout, LayoutApp } from '../client/types';
+import { positionWindow } from '../provider/workspaces/utils';
 
 import * as Storage from './storage';
 
@@ -14,14 +13,12 @@ export interface Workspace {
 
 import * as Layouts from '../client/main';
 
-// tslint:disable-next-line:no-any
-declare var fin: any;
-declare var window: _Window&{forgetMe: (identity: ServiceIdentity) => void};
+declare var window: _Window & { forgetMe: (identity: Identity) => void };
 
 let numChildren = 0;
 let numTabbedWindows = 0;
 const launchDir = location.href.slice(0, location.href.lastIndexOf('/'));
-const forgetWindows: ServiceIdentity[] = [];
+const forgetWindows: Identity[] = [];
 
 window.forgetMe = forgetMe;
 
@@ -29,7 +26,7 @@ export async function setLayout(layoutParam?: Layout) {
     const id = (document.getElementById('layoutName') as HTMLTextAreaElement).value;
     const layoutSelect = document.getElementById('layoutSelect') as HTMLSelectElement;
     const layout = layoutParam || await Layouts.generateLayout();
-    const workspace = {id, layout};
+    const workspace = { id, layout };
 
     if (layoutSelect) {
         let optionPresent = false;
@@ -51,22 +48,20 @@ export async function setLayout(layoutParam?: Layout) {
 }
 
 export async function killAllWindows() {
-    fin.desktop.System.getAllApplications((apps: {uuid: string, name: string}[]) => {
-        apps.forEach((app) =>{
-            if(app.uuid !== 'layouts-service') {
+    fin.desktop.System.getAllApplications((apps: fin.ApplicationInfo[]) => {
+        apps.forEach((app) => {
+            if (app.uuid !== 'layouts-service') {
                 const wrappedApp = fin.desktop.Application.wrap(app.uuid);
-                //@ts-ignore no types
-                wrappedApp.getChildWindows((win) =>{
-                    //@ts-ignore no types
+                wrappedApp.getChildWindows((win) => {
                     win.forEach(w => w.close(true));
                 });
 
-                if(app.uuid !== 'Layouts-Manager') {
+                if (app.uuid !== 'Layouts-Manager') {
                     wrappedApp.close(true);
                 }
             }
-        })
-    })
+        });
+    });
 }
 
 export async function getLayout() {
@@ -83,6 +78,7 @@ export async function getAllLayouts() {
 export async function restoreLayout() {
     const id = (document.getElementById('layoutSelect') as HTMLSelectElement).value;
     const workspace = Storage.getLayout(id);
+    console.log('Restoring layout');
     const afterLayout = await Layouts.restoreLayout(workspace.layout);
     document.getElementById('showLayout')!.innerHTML = JSON.stringify(afterLayout, null, 2);
 }
@@ -110,7 +106,7 @@ export function openChild(name: string, i: number, frame = true, url?: string) {
 export async function createAppFromManifest2() {
     const appUrl = `${launchDir}/app2.json`;
     console.log('appurl', appUrl);
-    fin.desktop.Application.createFromManifest(appUrl, (a: Application) => a.run(), (e: Error) => {
+    fin.desktop.Application.createFromManifest(appUrl, (a: fin.OpenFinApplication) => a.run(), (e: Error) => {
         throw e;
     });
     // v2 api broken for createfromman / run
@@ -120,7 +116,7 @@ export async function createAppFromManifest2() {
 export async function createAppFromManifest3() {
     const appUrl = `${launchDir}/app3.json`;
     console.log('appurl', appUrl);
-    fin.desktop.Application.createFromManifest(appUrl, (a: Application) => a.run(), (e: Error) => {
+    fin.desktop.Application.createFromManifest(appUrl, (a: fin.OpenFinApplication) => a.run(), (e: Error) => {
         throw e;
     });
     // v2 api broken for createfromman / run
@@ -134,7 +130,7 @@ export async function createAppProgrammatically4() {
             url: `http://localhost:1337/demo/app4.html`,
             uuid: 'App-4',
             name: 'App-4',
-            mainWindowOptions: {defaultWidth: 400, defaultHeight: 300, saveWindowState: false, autoShow: true, defaultCentered: true}
+            mainWindowOptions: { defaultWidth: 400, defaultHeight: 300, saveWindowState: false, autoShow: true, defaultCentered: true }
         },
         () => {
             app.run();
@@ -147,14 +143,14 @@ export async function createAppProgrammatically5() {
             url: `http://localhost:1337/demo/app5.html`,
             uuid: 'App-5',
             name: 'App-5',
-            mainWindowOptions: {defaultWidth: 300, defaultHeight: 400, saveWindowState: false, autoShow: true, defaultCentered: true}
+            mainWindowOptions: { defaultWidth: 300, defaultHeight: 400, saveWindowState: false, autoShow: true, defaultCentered: true }
         },
         () => {
             app.run();
         });
 }
 
-export function forgetMe(identity: ServiceIdentity) {
+export function forgetMe(identity: Identity) {
     forgetWindows.push(identity);
 }
 
@@ -187,7 +183,7 @@ export function createTabbedWindow(page: string) {
             url: `http://localhost:1337/demo/tabbing/App/${page}.html`,
             uuid,
             name: uuid,
-            mainWindowOptions: {defaultWidth: 400, defaultHeight: 300, saveWindowState: false, autoShow: true, defaultCentered: true}
+            mainWindowOptions: { defaultWidth: 400, defaultHeight: 300, saveWindowState: false, autoShow: true, defaultCentered: true }
         },
         () => {
             app.run();
@@ -197,8 +193,10 @@ export function createTabbedWindow(page: string) {
 
 async function onAppRes(layoutApp: LayoutApp): Promise<LayoutApp> {
     console.log('Apprestore called:', layoutApp);
-    const ofApp = await fin.Application.getCurrent();
-    const openWindows = await ofApp.getChildWindows();
+    // We use the v1 version of Application.getCurrent() due to an event-loop bug
+    // when calling the v2 version inside a channel callback. Due for fix in v35
+    const ofApp = fin.desktop.Application.getCurrent();
+    const openWindows = await new Promise<any[]>(res => ofApp.getChildWindows(res));
     const openAndPosition = layoutApp.childWindows.map(async (win, index) => {
         if (!openWindows.some((w: Application) => w.identity.name === win.name)) {
             const ofWin = await openChild(win.name, index, win.frame, win.info.url);
@@ -211,7 +209,7 @@ async function onAppRes(layoutApp: LayoutApp): Promise<LayoutApp> {
     return layoutApp;
 }
 
-function removeForgetWins(window: ServiceIdentity) {
+function removeForgetWins(window: Identity) {
     return !forgetWindows.some(w => w.name === window.name);
 }
 
@@ -233,7 +231,7 @@ function createOptionElement(id: string) {
     return option;
 }
 
-export function importLayout(){
+export function importLayout() {
     const textfield = document.getElementById('showLayout')! as HTMLTextAreaElement;
     const layout = JSON.parse(textfield.value);
     setLayout(layout.layout || layout);
@@ -244,7 +242,7 @@ Layouts.deregister();
 
 // Allow layouts service to save and restore this application
 Layouts.onApplicationSave(() => {
-    return {test: true};
+    return { test: true };
 });
 Layouts.onAppRestore(onAppRes);
 Layouts.ready();

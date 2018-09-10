@@ -92,7 +92,13 @@ export const generateLayout = async(payload: null, identity: Identity): Promise<
             console.log('Connected application', app.uuid);
 
             // HOW TO DEAL WITH HUNG REQUEST HERE? RESHAPE IF GET NOTHING BACK?
-            let customData = await providerChannel.dispatch({uuid: app.uuid, name: app.uuid}, 'savingLayout', app);
+            // tslint:disable-next-line:no-any
+            let customData: any = undefined;
+            const appConnection = providerChannel.connections.find(conn => conn.uuid === app.uuid && conn.name === app.uuid);
+            if (appConnection) {
+                customData = await providerChannel.dispatch(appConnection, 'savingLayout', app);
+            } 
+
             if (!customData) {
                 customData = null;
             }

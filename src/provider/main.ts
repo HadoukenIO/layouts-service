@@ -1,4 +1,3 @@
-import {Provider} from 'hadouken-js-adapter/out/types/src/api/services/provider';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {TabAPI} from '../client/APITypes';
@@ -10,12 +9,14 @@ import {win10Check} from './snapanddock/utils/platform';
 import {TabService} from './tabbing/TabService';
 import {generateLayout} from './workspaces/create';
 import {getAppToRestore, restoreApplication, restoreLayout} from './workspaces/restore';
+import { ChannelProvider } from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
+import { ProviderIdentity } from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/channel';
 
 export let snapService: SnapService;
 export let tabService: TabService;
-export let providerChannel: Provider;
+export let providerChannel: ChannelProvider;
 declare const window: Window&{
-    providerChannel: Provider;
+    providerChannel: ChannelProvider;
     snapService: SnapService;
     tabService: TabService;
 };
@@ -23,7 +24,7 @@ declare const window: Window&{
 fin.desktop.main(main);
 
 async function registerService() {
-    providerChannel = window.providerChannel = (await fin.desktop.Service.register()) as Provider;
+    providerChannel = window.providerChannel = await fin.InterApplicationBus.Channel.create();
     providerChannel.onConnection((app, payload) => {
         if (payload && payload.version && payload.version.length > 0) {
             console.log(`connection from client: ${app.name}, version: ${payload.version}`);
@@ -97,9 +98,13 @@ export async function main() {
  * @param {SnapWindow} window The target to which the message will be sent
  * @param {fin.OpenFinServiceProvider} provider Provider object wrapping an instance of the openfin layouts service
  */
-function sendWindowServiceMessage(action: GroupEventType, window: SnapWindow, provider: fin.OpenFinServiceProvider) {
-    console.log('Dispatching window message: ', action, 'to window: ', window.getIdentity());
-    provider.dispatch(window.getIdentity(), action, {});
+function sendWindowServiceMessage(action: GroupEventType, window: SnapWindow, provider: ChannelProvider) {
+    const {uuid, name} = window.getIdentity();
+    const to: ProviderIdentity | undefined = provider.connections.find(conn => conn.uuid === uuid && conn.name === name);
+    if (to) {
+        console.log('Dispatching window message: ', action, 'to window: ', window.getIdentity());
+        provider.dispatch(to, action, {});
+    }
 }
 
 /**

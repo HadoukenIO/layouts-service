@@ -1,5 +1,6 @@
-import {Client} from '../../../node_modules/hadouken-js-adapter/out/types/src/api/services/client';
-import {Provider} from '../../../node_modules/hadouken-js-adapter/out/types/src/api/services/provider';
+import {ProviderIdentity} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/channel';
+import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
+
 import {AppApiEvents, TabApiEvents} from '../../client/APITypes';
 import {JoinTabGroupPayload, TabGroupEventPayload, TabIdentifier, TabPackage, TabProperties, TabServiceID} from '../../client/types';
 
@@ -33,7 +34,7 @@ export class Tab {
     /**
      * Handle to the service provider
      */
-    private mService: Provider;
+    private mService: ChannelProvider;
 
     /**
      * Constructor for the Tab Class.
@@ -48,7 +49,7 @@ export class Tab {
         }
 
         this._tabWindow = new TabWindow(this, tabPackage.tabID);
-        this.mService = (window as Window & {providerChannel: Provider}).providerChannel;
+        this.mService = (window as Window & {providerChannel: ChannelProvider}).providerChannel;
     }
 
     /**
@@ -64,14 +65,21 @@ export class Tab {
 
 
     public async sendTabbedEvent() {
-        this.mService.dispatch(
-            this.ID,
-            'join-tab-group',
-            {tabGroupID: this.tabGroup.ID, tabID: this.ID, tabProps: this._tabProperties, index: this.tabGroup.getTabIndex(this._tabID)});
-        this.mService.dispatch(
-            {uuid: TabServiceID.UUID, name: this.tabGroup.ID},
-            'join-tab-group',
-            {tabGroupID: this.tabGroup.ID, tabID: this.ID, tabProps: this._tabProperties, index: this.tabGroup.getTabIndex(this._tabID)});
+        const tabConnection: ProviderIdentity|undefined = this.mService.connections.find(conn => conn.uuid === this.ID.uuid && conn.name === this.ID.name);
+        if (tabConnection) {
+            this.mService.dispatch(
+                tabConnection,
+                'join-tab-group',
+                {tabGroupID: this.tabGroup.ID, tabID: this.ID, tabProps: this._tabProperties, index: this.tabGroup.getTabIndex(this._tabID)});
+        }
+        const tabStripConnection: ProviderIdentity|undefined =
+            this.mService.connections.find(conn => conn.uuid === TabServiceID.UUID && conn.name === this.tabGroup.ID);
+        if (tabStripConnection) {
+            this.mService.dispatch(
+                tabStripConnection,
+                'join-tab-group',
+                {tabGroupID: this.tabGroup.ID, tabID: this.ID, tabProps: this._tabProperties, index: this.tabGroup.getTabIndex(this._tabID)});
+        }
     }
 
     /**
@@ -91,8 +99,16 @@ export class Tab {
 
         const payload: TabGroupEventPayload = {tabGroupId: this.tabGroup.ID, tabID: this.ID};
 
-        this.mService.dispatch(this.ID, 'leave-tab-group', payload);
-        this.mService.dispatch({uuid: TabServiceID.UUID, name: this.tabGroup.ID}, 'leave-tab-group', payload);
+        const tabConnection: ProviderIdentity|undefined = this.mService.connections.find(conn => conn.uuid === this.ID.uuid && conn.name === this.ID.name);
+        if (tabConnection) {
+            this.mService.dispatch(tabConnection, 'leave-tab-group', payload);
+        }
+
+        const tabStripConnection: ProviderIdentity|undefined =
+            this.mService.connections.find(conn => conn.uuid === TabServiceID.UUID && conn.name === this.tabGroup.ID);
+        if (tabStripConnection) {
+            this.mService.dispatch(tabStripConnection, 'leave-tab-group', payload);
+        }
 
         if (closeApp) {
             return this._tabWindow.close(false);

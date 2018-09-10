@@ -1,5 +1,4 @@
 import {Identity} from 'hadouken-js-adapter';
-import {Client as ServiceClient} from 'hadouken-js-adapter/out/types/src/api/services/client';
 
 import {TabAPI, TabAPIActions} from './APITypes';
 import {AddTabPayload, ApplicationUIConfig, CustomData, DropPosition, EndDragPayload, JoinTabGroupPayload, Layout, LayoutApp, LayoutName, SetTabClientPayload, TabGroupEventPayload, TabProperties, TabWindowOptions, UpdateTabPropertiesPayload} from './types';
@@ -10,9 +9,7 @@ const IDENTITY = {
 };
 
 import {version} from './version';
-
-// tslint:disable-next-line:no-any
-declare var fin: any;
+import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
 if (typeof fin === 'undefined') {
     throw new Error('fin is not defined, This module is only intended for use in an OpenFin application.');
@@ -24,36 +21,35 @@ const getId = (() => {
         if (id) {
             return id;
         }
-        fin.Window.getCurrent();
-        const {uuid, name} = fin.desktop.Window.getCurrent();
+        const {uuid, name} = fin.Window.me;
         id = {uuid, name};
         return id;
     };
 })();
 
-const servicePromise: Promise<ServiceClient> = fin.desktop.Service.connect({...IDENTITY, payload: {version}}).then((service: ServiceClient) => {
+const channelPromise: Promise<ChannelClient> = fin.InterApplicationBus.Channel.connect({...IDENTITY, payload: {version}}).then((channel: ChannelClient) => {
     // Register service listeners
-    service.register('WARN', (payload: any) => console.warn(payload));  // tslint:disable-line:no-any
-    service.register('join-snap-group', () => {
+    channel.register('WARN', (payload: any) => console.warn(payload));  // tslint:disable-line:no-any
+    channel.register('join-snap-group', () => {
         window.dispatchEvent(new Event('join-snap-group'));
     });
-    service.register('leave-snap-group', () => {
+    channel.register('leave-snap-group', () => {
         window.dispatchEvent(new Event('leave-snap-group'));
     });
-    service.register('join-tab-group', (payload: JoinTabGroupPayload) => {
+    channel.register('join-tab-group', (payload: JoinTabGroupPayload) => {
         window.dispatchEvent(new CustomEvent<JoinTabGroupPayload>('join-tab-group', {detail: payload}));
     });
-    service.register('leave-tab-group', (payload: TabGroupEventPayload) => {
+    channel.register('leave-tab-group', (payload: TabGroupEventPayload) => {
         window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('leave-tab-group', {detail: payload}));
     });
-    service.register('tab-activated', (payload: TabGroupEventPayload) => {
+    channel.register('tab-activated', (payload: TabGroupEventPayload) => {
         window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('tab-activated', {detail: payload}));
     });
 
     // Any unregistered action will simply return false
-    service.setDefaultAction(() => false);
+    channel.setDefaultAction(() => false);
 
-    return service;
+    return channel;
 });
 
 /**
@@ -64,8 +60,8 @@ const servicePromise: Promise<ServiceClient> = fin.desktop.Service.connect({...I
  * @param identity The window to undock, defaults to the current window
  */
 export async function undockWindow(identity: Identity = getId()): Promise<void> {
-    const service: ServiceClient = await servicePromise;
-    return tryServiceDispatch<Identity, void>(service, 'undockWindow', identity);
+    const channel: ChannelClient = await channelPromise;
+    return tryServiceDispatch<Identity, void>(channel, 'undockWindow', identity);
 }
 
 /**
@@ -78,8 +74,8 @@ export async function undockWindow(identity: Identity = getId()): Promise<void> 
  * @param identity A window belonging to the group that should be disbanded, defaults to the current window/group
  */
 export async function undockGroup(identity: Identity = getId()): Promise<void> {
-    const service: ServiceClient = await servicePromise;
-    return tryServiceDispatch<Identity, void>(service, 'undockGroup', identity);
+    const channel: ChannelClient = await channelPromise;
+    return tryServiceDispatch<Identity, void>(channel, 'undockGroup', identity);
 }
 
 /**
@@ -88,8 +84,8 @@ export async function undockGroup(identity: Identity = getId()): Promise<void> {
  * @param identity The window to deregister, defaults to the current window
  */
 export async function deregister(identity: Identity = getId()): Promise<void> {
-    const service: ServiceClient = await servicePromise;
-    return tryServiceDispatch<Identity, void>(service, 'deregister', identity);
+    const channel: ChannelClient = await channelPromise;
+    return tryServiceDispatch<Identity, void>(channel, 'deregister', identity);
 }
 
 /**
@@ -110,56 +106,56 @@ export async function addEventListener(
  * Decide which parts of this you will implement, alter LayoutApp object to reflect this then send it back
  */
 export async function onApplicationSave(customDataDecorator: () => CustomData): Promise<boolean> {
-    const service: ServiceClient = await servicePromise;
-    return service.register('savingLayout', customDataDecorator);
+    const channel: ChannelClient = await channelPromise;
+    return channel.register('savingLayout', customDataDecorator);
 }
 
 /**
  * Get the layoutApp object, implement, then return implemented LayoutApp object (minus anything not implemented)
  */
 export async function onAppRestore(layoutDecorator: (layoutApp: LayoutApp) => LayoutApp | false | Promise<LayoutApp|false>): Promise<boolean> {
-    const service: ServiceClient = await servicePromise;
-    return service.register('restoreApp', layoutDecorator);
+    const channel: ChannelClient = await channelPromise;
+    return channel.register('restoreApp', layoutDecorator);
 }
 
 /**
  * Any time the service saves a layout locally, it also sends to this route (could use own service here)
  */
 export async function onLayoutSave(listener: (layout: Layout) => void): Promise<boolean> {
-    const service: ServiceClient = await servicePromise;
-    return service.register('layoutSaved', listener);
+    const channel: ChannelClient = await channelPromise;
+    return channel.register('layoutSaved', listener);
 }
 
 /**
  * Service will send out the restored layout with any changes from client connections
  */
 export async function onLayoutRestore(listener: (layoutApp: LayoutApp) => void): Promise<boolean> {
-    const service: ServiceClient = await servicePromise;
-    return service.register('layoutRestored', listener);
+    const channel: ChannelClient = await channelPromise;
+    return channel.register('layoutRestored', listener);
 }
 /**
  * Generate the Layout object for the current Layout
  */
 export async function generateLayout(): Promise<Layout> {
-    const service: ServiceClient = await servicePromise;
-    return tryServiceDispatch<undefined, Layout>(service, 'generateLayout');
+    const channel: ChannelClient = await channelPromise;
+    return tryServiceDispatch<undefined, Layout>(channel, 'generateLayout');
 }
 
 /**
  * Restore a layout from a Layout object
  */
 export async function restoreLayout(payload: Layout): Promise<Layout> {
-    const service: ServiceClient = await servicePromise;
-    return tryServiceDispatch<Layout, Layout>(service, 'restoreLayout', payload);
+    const channel: ChannelClient = await channelPromise;
+    return tryServiceDispatch<Layout, Layout>(channel, 'restoreLayout', payload);
 }
 
 /**
  * Send this to the service when you have registered all routes after registration
  */
 export async function ready(): Promise<Layout> {
-    const service: ServiceClient = await servicePromise;
+    const channel: ChannelClient = await channelPromise;
 
-    return tryServiceDispatch<undefined, Layout>(service, 'appReady');
+    return tryServiceDispatch<undefined, Layout>(channel, 'appReady');
 }
 
 /**
@@ -173,9 +169,9 @@ export async function getTabs(window: Identity = getId()): Promise<Identity[]|nu
     if (!window || !window.name || !window.uuid) {
         return Promise.reject('Invalid window provided');
     }
-    const service: ServiceClient = await servicePromise;
+    const channel: ChannelClient = await channelPromise;
 
-    return tryServiceDispatch<Identity, Identity[]|null>(service, TabAPI.GETTABS, window);
+    return tryServiceDispatch<Identity, Identity[]|null>(channel, TabAPI.GETTABS, window);
 }
 
 /**
@@ -193,10 +189,10 @@ export async function setTabClient(url: string, config: TabWindowOptions): Promi
     } catch (e) {
         return Promise.reject(e);
     }
-    const service: ServiceClient = await servicePromise;
+    const channel: ChannelClient = await channelPromise;
     config.url = url;
 
-    return tryServiceDispatch<SetTabClientPayload, void>(service, TabAPI.SETTABCLIENT, {config, id: getId()});
+    return tryServiceDispatch<SetTabClientPayload, void>(channel, TabAPI.SETTABCLIENT, {config, id: getId()});
 }
 
 /**
@@ -207,9 +203,9 @@ export async function createTabGroup(windows: Identity[]): Promise<void> {
     if (!windows || windows.length === 0) {
         return Promise.reject('Invalid window identity array');
     }
-    const service: ServiceClient = await servicePromise;
+    const channel: ChannelClient = await channelPromise;
 
-    return tryServiceDispatch<Identity[], void>(service, TabAPI.CREATETABGROUP, windows);
+    return tryServiceDispatch<Identity[], void>(channel, TabAPI.CREATETABGROUP, windows);
 }
 
 /**
@@ -226,9 +222,9 @@ export async function addTab(targetWindow: Identity, windowToAdd: Identity = get
     if (!windowToAdd || !windowToAdd.name || !windowToAdd.uuid) {
         return Promise.reject('Invalid window provided');
     }
-    const service: ServiceClient = await servicePromise;
+    const channel: ChannelClient = await channelPromise;
 
-    return tryServiceDispatch<AddTabPayload, void>(service, TabAPI.ADDTAB, {targetWindow, windowToAdd});
+    return tryServiceDispatch<AddTabPayload, void>(channel, TabAPI.ADDTAB, {targetWindow, windowToAdd});
 }
 
 /**
@@ -239,9 +235,9 @@ export async function removeTab(window: Identity = getId()): Promise<void> {
     if (!window || !window.name || !window.uuid) {
         return Promise.reject('Invalid window provided');
     }
-    const service: ServiceClient = await servicePromise;
+    const channel: ChannelClient = await channelPromise;
 
-    return tryServiceDispatch<Identity, void>(service, TabAPI.REMOVETAB, window);
+    return tryServiceDispatch<Identity, void>(channel, TabAPI.REMOVETAB, window);
 }
 
 /**
@@ -251,9 +247,9 @@ export async function setActiveTab(window: Identity = getId()): Promise<void> {
     if (!window || !window.name || !window.uuid) {
         return Promise.reject('Invalid window provided');
     }
-    const service: ServiceClient = await servicePromise;
+    const channel: ChannelClient = await channelPromise;
 
-    return tryServiceDispatch<Identity, void>(service, TabAPI.SETACTIVETAB, window);
+    return tryServiceDispatch<Identity, void>(channel, TabAPI.SETACTIVETAB, window);
 }
 
 /**
@@ -263,9 +259,9 @@ export async function closeTab(window: Identity = getId()): Promise<void> {
     if (!window || !window.name || !window.uuid) {
         return Promise.reject('Invalid window provided');
     }
-    const service: ServiceClient = await servicePromise;
+    const channel: ChannelClient = await channelPromise;
 
-    return tryServiceDispatch<Identity, void>(service, TabAPI.CLOSETAB, window);
+    return tryServiceDispatch<Identity, void>(channel, TabAPI.CLOSETAB, window);
 }
 
 /**
@@ -275,9 +271,9 @@ export async function minimizeTabGroup(window: Identity = getId()): Promise<void
     if (!window || !window.name || !window.uuid) {
         return Promise.reject('Invalid window provided');
     }
-    const service: ServiceClient = await servicePromise;
+    const channel: ChannelClient = await channelPromise;
 
-    return tryServiceDispatch<Identity, void>(service, TabAPI.MINIMIZETABGROUP, window);
+    return tryServiceDispatch<Identity, void>(channel, TabAPI.MINIMIZETABGROUP, window);
 }
 
 /**
@@ -287,9 +283,9 @@ export async function maximizeTabGroup(window: Identity = getId()): Promise<void
     if (!window || !window.name || !window.uuid) {
         return Promise.reject('Invalid window provided');
     }
-    const service: ServiceClient = await servicePromise;
+    const channel: ChannelClient = await channelPromise;
 
-    return tryServiceDispatch<Identity, void>(service, TabAPI.MAXIMIZETABGROUP, window);
+    return tryServiceDispatch<Identity, void>(channel, TabAPI.MAXIMIZETABGROUP, window);
 }
 
 /**
@@ -299,9 +295,9 @@ export async function closeTabGroup(window: Identity = getId()): Promise<void> {
     if (!window || !window.name || !window.uuid) {
         return Promise.reject('Invalid window provided');
     }
-    const service: ServiceClient = await servicePromise;
+    const channel: ChannelClient = await channelPromise;
 
-    return tryServiceDispatch<Identity, void>(service, TabAPI.CLOSETABGROUP, window);
+    return tryServiceDispatch<Identity, void>(channel, TabAPI.CLOSETABGROUP, window);
 }
 
 /**
@@ -311,9 +307,9 @@ export async function restoreTabGroup(window: Identity = getId()): Promise<void>
     if (!window || !window.name || !window.uuid) {
         return Promise.reject('Invalid window provided');
     }
-    const service: ServiceClient = await servicePromise;
+    const channel: ChannelClient = await channelPromise;
 
-    return tryServiceDispatch<Identity, void>(service, TabAPI.RESTORETABGROUP, window);
+    return tryServiceDispatch<Identity, void>(channel, TabAPI.RESTORETABGROUP, window);
 }
 
 
@@ -325,18 +321,18 @@ export const tabStrip = {
         if (!window || !window.name || !window.uuid) {
             return Promise.reject('Invalid window provided');
         }
-        const service: ServiceClient = await servicePromise;
+        const channel: ChannelClient = await channelPromise;
 
-        return tryServiceDispatch<UpdateTabPropertiesPayload, void>(service, TabAPI.UPDATETABPROPERTIES, {window, properties});
+        return tryServiceDispatch<UpdateTabPropertiesPayload, void>(channel, TabAPI.UPDATETABPROPERTIES, {window, properties});
     },
 
     /**
      * Starts the HTML5 Dragging Sequence
      */
     async startDrag() {
-        const service: ServiceClient = await servicePromise;
+        const channel: ChannelClient = await channelPromise;
 
-        return tryServiceDispatch<undefined, void>(service, TabAPI.STARTDRAG);
+        return tryServiceDispatch<undefined, void>(channel, TabAPI.STARTDRAG);
     },
 
     /**
@@ -346,11 +342,11 @@ export const tabStrip = {
         if (!window || !window.name || !window.uuid) {
             return Promise.reject('Invalid window provided');
         }
-        const service: ServiceClient = await servicePromise;
+        const channel: ChannelClient = await channelPromise;
 
         const dropPoint: DropPosition = {screenX: event.screenX, screenY: event.screenY};
 
-        return tryServiceDispatch<EndDragPayload, void>(service, TabAPI.ENDDRAG, {event: dropPoint, window});
+        return tryServiceDispatch<EndDragPayload, void>(channel, TabAPI.ENDDRAG, {event: dropPoint, window});
     },
 
     /**
@@ -361,15 +357,15 @@ export const tabStrip = {
         if (!newOrdering || newOrdering.length === 0) {
             return Promise.reject('Invalid new Order array');
         }
-        const service: ServiceClient = await servicePromise;
+        const channel: ChannelClient = await channelPromise;
 
-        return tryServiceDispatch<Identity[], void>(service, TabAPI.REORDERTABS, newOrdering);
+        return tryServiceDispatch<Identity[], void>(channel, TabAPI.REORDERTABS, newOrdering);
     }
 };
 
 /**
  * Wrapper around service.dispatch to help with type checking
  */
-const tryServiceDispatch = async<T, R>(service: ServiceClient, action: string, payload?: T): Promise<R> => {
-    return service.dispatch(action, payload);
+const tryServiceDispatch = async<T, R>(channel: ChannelClient, action: string, payload?: T): Promise<R> => {
+    return channel.dispatch(action, payload) as Promise<R>;
 };

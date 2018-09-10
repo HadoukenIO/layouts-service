@@ -1,5 +1,3 @@
-import {Provider} from 'hadouken-js-adapter/out/types/src/api/services/provider';
-
 import {TabApiEvents} from '../../client/APITypes';
 import {TabGroupEventPayload, TabIdentifier, TabPackage, TabWindowOptions} from '../../client/types';
 
@@ -7,6 +5,7 @@ import {GroupWindow} from './GroupWindow';
 import {Tab} from './Tab';
 import {TabService} from './TabService';
 import {uuidv4} from './TabUtilities';
+import { ChannelProvider } from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
 
 /**
  * Handles functionality for the TabSet
@@ -37,7 +36,7 @@ export class TabGroup {
     /**
      * Handle to the service provider
      */
-    private mService: Provider;
+    private mService: ChannelProvider;
 
     /**
      * Constructor for the TabGroup Class.
@@ -47,7 +46,7 @@ export class TabGroup {
         this.ID = uuidv4();
         this._tabs = [];
         this._window = new GroupWindow(windowOptions, this);
-        this.mService = (window as Window & {providerChannel: Provider}).providerChannel;
+        this.mService = (window as Window & {providerChannel: ChannelProvider}).providerChannel;
     }
 
     /**
@@ -259,7 +258,10 @@ export class TabGroup {
     public setActiveTab(tab: Tab): void {
         this._activeTab = tab;
         const payload: TabGroupEventPayload = {tabGroupId: this.ID, tabID: tab.ID};
-        this.mService.dispatch({uuid: fin.desktop.Application.getCurrent().uuid, name: this.ID}, 'tab-activated', payload);
+        const tabStripConnection = this.mService.connections.find(conn => conn.uuid === fin.Application.me.uuid && conn.name === this.ID);
+        if (tabStripConnection) {
+            this.mService.dispatch(tabStripConnection, 'tab-activated', payload);
+        }
     }
 
     /**

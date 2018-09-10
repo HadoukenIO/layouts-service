@@ -1,10 +1,11 @@
 import {TabIdentifier, TabWindowOptions} from '../../client/types';
+import {DesktopModel} from '../model/DesktopModel';
+import {DesktopTabGroup} from '../model/DesktopTabGroup';
+import {DesktopWindow} from '../model/DesktopWindow';
 import {SnapService} from '../snapanddock/SnapService';
-import {SnapWindow} from '../snapanddock/SnapWindow';
 
 import {AsyncWindow} from './asyncWindow';
 import {Tab} from './Tab';
-import {TabGroup} from './TabGroup';
 
 /**
  * Handles the window for the Tab
@@ -57,8 +58,8 @@ export class TabWindow extends AsyncWindow {
         // Check if the window should have a frame
         const identity: TabIdentifier = this._tab.ID;
         const id = `${identity.uuid}/${identity.name}`;
-        const windows: SnapWindow[] = (window as Window & {snapService: SnapService}).snapService['windows'];
-        const snapWindow: SnapWindow|undefined = windows.find(window => window.getId() === id);
+        const windows: DesktopWindow[] = (window as Window & {model: DesktopModel}).model['windows'];
+        const snapWindow: DesktopWindow|undefined = windows.find(window => window.getId() === id);
         const hasFrame: boolean = !snapWindow || snapWindow.getState().frame;  // If can't find the window (shouldn't be possible), assume window had a frame
 
         // @ts-ignore resizeRegion.sides is valid.  Its not in the type file.

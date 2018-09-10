@@ -1,9 +1,9 @@
-import {Signal1, Signal2} from './Signal';
-import {SnapGroup} from './SnapGroup';
-import {p} from './utils/async';
-import {isWin10} from './utils/platform';
-import {Point, PointUtils} from './utils/PointUtils';
-import {Rectangle} from './utils/RectUtils';
+import {Signal1, Signal2} from '../Signal';
+import {p} from '../snapanddock/utils/async';
+import {isWin10} from '../snapanddock/utils/platform';
+import {Point, PointUtils} from '../snapanddock/utils/PointUtils';
+import {Rectangle} from '../snapanddock/utils/RectUtils';
+import {DesktopSnapGroup} from './DesktopSnapGroup';
 
 export interface WindowState extends Rectangle {
     center: Point;
@@ -40,7 +40,10 @@ export enum eTransformType {
     RESIZE = 1 << 1
 }
 
-export class SnapWindow {
+export class DesktopWindow {
+    public static readonly onCreated: Signal1<DesktopWindow> = new Signal1();
+    public static readonly onDestroyed: Signal1<DesktopWindow> = new Signal1();
+
     public static async getWindowState(window: fin.OpenFinWindow): Promise<WindowState> {
         return Promise
             .all([
@@ -81,46 +84,46 @@ export class SnapWindow {
      *
      * The service should validate the window, to ensure it's current grouping is still valid.
      *
-     * Arguments: (window: SnapWindow)
+     * Arguments: (window: DesktopWindow)
      */
-    public readonly onModified: Signal1<SnapWindow> = new Signal1();
+    public readonly onModified: Signal1<DesktopWindow> = new Signal1();
 
     /**
      * Window is being moved/resized, need to check for any snap targets.
      *
-     * Arguments: (window: SnapWindow, type: Mask<eTransformType>)
+     * Arguments: (window: DesktopWindow, type: Mask<eTransformType>)
      */
-    public readonly onTransform: Signal2<SnapWindow, Mask<eTransformType>> = new Signal2();
+    public readonly onTransform: Signal2<DesktopWindow, Mask<eTransformType>> = new Signal2();
 
     /**
      * The move/resize operation (that was signalled through onTransform) has been completed.
      *
      * Any active snap target can now be applied.
      *
-     * Arguments: (window: SnapWindow)
+     * Arguments: (window: DesktopWindow)
      */
-    public readonly onCommit: Signal1<SnapWindow> = new Signal1();
+    public readonly onCommit: Signal1<DesktopWindow> = new Signal1();
 
     /**
      * Window was closed. Need to remove this window from any groups, and the service as a whole.
      *
-     * Arguments: (window: SnapWindow)
+     * Arguments: (window: DesktopWindow)
      */
-    public readonly onClose: Signal1<SnapWindow> = new Signal1();
+    public readonly onClose: Signal1<DesktopWindow> = new Signal1();
 
     private window: fin.OpenFinWindow;
     private state: WindowState;
 
     private identity: WindowIdentity;
     private id: string;  // Created from window uuid and name
-    private group: SnapGroup;
-    private prevGroup: SnapGroup|null;
+    private group: DesktopSnapGroup;
+    private prevGroup: DesktopSnapGroup|null;
     private registered: boolean;
 
     // State tracking for "synth move" detection
     private boundsChangeCountSinceLastCommit: number;
 
-    constructor(group: SnapGroup, window: fin.OpenFinWindow, initialState: WindowState) {
+    constructor(group: DesktopSnapGroup, window: fin.OpenFinWindow, initialState: WindowState) {
         this.window = window;
         this.state = initialState;
 
@@ -148,6 +151,12 @@ export class SnapWindow {
 
         // When the window's onClose signal is emitted, we cleanup all of the listeners
         this.onClose.add(this.cleanupListeners);
+
+        DesktopWindow.onCreated.emit(this);
+    }
+
+    public get[Symbol.toStringTag]() {
+        return this.id;
     }
 
     public getId(): string {
@@ -164,11 +173,11 @@ export class SnapWindow {
      * Windows and groups have a bi-directional relationship. You will also find this window within the group's list
      * of windows.
      */
-    public getGroup(): SnapGroup {
+    public getGroup(): DesktopSnapGroup {
         return this.group;
     }
 
-    public getPrevGroup(): SnapGroup|null {
+    public getPrevGroup(): DesktopSnapGroup|null {
         return this.prevGroup;
     }
 
@@ -187,7 +196,7 @@ export class SnapWindow {
      * @param newHalfSize Can also simultaneously change the size of the window
      * @param synthetic Signifies that the setGroup has been triggered by a native group event. Will disable native group changes that would normally occur
      */
-    public setGroup(group: SnapGroup, offset?: Point, newHalfSize?: Point, synthetic?: boolean): void {
+    public setGroup(group: DesktopSnapGroup, offset?: Point, newHalfSize?: Point, synthetic?: boolean): void {
         if (group !== this.group) {
             this.prevGroup = this.group;
             this.group = group;
@@ -235,7 +244,7 @@ export class SnapWindow {
     }
 
     private snap(): void {
-        const windows: SnapWindow[] = this.group.windows;
+        const windows: DesktopWindow[] = this.group.windows;
         const count = windows.length;
         const index = windows.indexOf(this);
 
@@ -243,7 +252,7 @@ export class SnapWindow {
             this.window.joinGroup(windows[index === 0 ? 1 : 0].window);
 
             // Bring other windows in group to front
-            windows.forEach((groupWindow: SnapWindow) => {
+            windows.forEach((groupWindow: DesktopWindow) => {
                 if (groupWindow !== this) {
                     groupWindow.window.bringToFront();
                 }
@@ -344,9 +353,12 @@ export class SnapWindow {
         }
     }
 
-    private cleanupListeners = (snapWindow: SnapWindow):
+    private cleanupListeners = (window: DesktopWindow):
         void => {
             console.log('OnClose recieved for window ', this.getId());
+
+            DesktopWindow.onDestroyed.emit(this);
+
             this.window.removeEventListener('bounds-changed', this.handleBoundsChanged);
             this.window.removeEventListener('frame-disabled', this.handleFrameDisabled);
             this.window.removeEventListener('frame-enabled', this.handleFrameEnabled);

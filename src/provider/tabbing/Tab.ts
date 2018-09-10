@@ -3,7 +3,7 @@ import {Provider} from '../../../node_modules/hadouken-js-adapter/out/types/src/
 import {AppApiEvents, TabApiEvents} from '../../client/APITypes';
 import {JoinTabGroupPayload, TabGroupEventPayload, TabIdentifier, TabPackage, TabProperties, TabServiceID} from '../../client/types';
 
-import {TabGroup} from './TabGroup';
+import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {TabWindow} from './TabWindow';
 
 /**
@@ -18,7 +18,7 @@ export class Tab {
     /**
      * Handle to the tab group that this tab belongs to.
      */
-    private _tabGroup: TabGroup|null = null;
+    private _tabGroup: DesktopTabGroup|null = null;
 
     /**
      * The properties (title, icon) for the tab.
@@ -38,7 +38,7 @@ export class Tab {
     /**
      * Constructor for the Tab Class.
      * @param {TabPackage} tabPackage The tab package contains the uuid, name, and any properties for the tab.
-     * @param {TabGroup} tabGroup The tab group to which this tab belongs.
+     * @param {DesktopTabGroup} tabGroup The tab group to which this tab belongs.
      */
     constructor(tabPackage: TabPackage) {
         this._tabID = tabPackage.tabID;
@@ -151,9 +151,9 @@ export class Tab {
 
     /**
      * Returns this Tabs Tab Set.
-     * @returns {TabGroup} TabGroup
+     * @returns {DesktopTabGroup} TabGroup
      */
-    public get tabGroup(): TabGroup {
+    public get tabGroup(): DesktopTabGroup {
         if (this._tabGroup) {
             return this._tabGroup;
         } else {
@@ -177,7 +177,7 @@ export class Tab {
         return this._tabID;
     }
 
-    public set tabGroup(group: TabGroup) {
+    public set tabGroup(group: DesktopTabGroup) {
         this._tabGroup = group;
     }
 }

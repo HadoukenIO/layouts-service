@@ -1,6 +1,7 @@
 import {TabBlob, TabIdentifier} from '../../client/types';
+import {DesktopTabGroup} from '../model/DesktopTabGroup';
+
 import {Tab} from './Tab';
-import {TabGroup} from './TabGroup';
 import {TabService} from './TabService';
 import {createTabGroupsFromTabBlob} from './TabUtilities';
 
@@ -16,7 +17,7 @@ export async function getTabSaveInfo(): Promise<TabBlob[]|undefined> {
         return;
     }
 
-    return Promise.all(TabService.INSTANCE.tabGroups.map(async (group: TabGroup) => {
+    return Promise.all(TabService.INSTANCE.tabGroups.map(async (group: DesktopTabGroup) => {
         const tabs: TabIdentifier[] = group.tabs.map((tab: Tab) => {
             return tab.ID;
         });

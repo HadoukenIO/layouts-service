@@ -1,9 +1,8 @@
+import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
+import {DesktopWindow, WindowIdentity, WindowState} from '../model/DesktopWindow';
 import {TabService} from '../tabbing/TabService';
-
 import {SNAP_DISTANCE} from './Config';
 import {Projector} from './Projector';
-import {SnapGroup} from './SnapGroup';
-import {SnapWindow, WindowIdentity, WindowState} from './SnapWindow';
 import {Point, PointUtils} from './utils/PointUtils';
 import {RectUtils} from './utils/RectUtils';
 
@@ -58,12 +57,12 @@ export interface SnapTarget {
      * This is not the group that the user is currently dragging, it is the group that has been selected as the snap
      * target.
      */
-    group: SnapGroup;
+    group: DesktopSnapGroup;
 
     /**
      * The window within the active group that was used to find this candidate
      */
-    activeWindow: SnapWindow;
+    activeWindow: DesktopWindow;
 
     /**
      * The offset that will be applied to the active group, in order to correctly align it with this target.
@@ -104,7 +103,7 @@ export class Resolver {
      * @param groups A list of all groups within the system
      * @param activeGroup The group that is currently being moved
      */
-    public getSnapTarget(groups: SnapGroup[], activeGroup: SnapGroup): SnapTarget|null {
+    public getSnapTarget(groups: DesktopSnapGroup[], activeGroup: DesktopSnapGroup): SnapTarget|null {
         const projector: Projector = this.projector;
         const targets: SnapTarget[] = [];
 
@@ -114,7 +113,7 @@ export class Resolver {
         }
 
         // Find any groups that are close to a window in activeGroup
-        groups.forEach((candidateGroup: SnapGroup) => {
+        groups.forEach((candidateGroup: DesktopSnapGroup) => {
             if (candidateGroup !== activeGroup) {
                 // Before checking any windows, make sure the bounding boxes of each group overlaps
                 if (RectUtils.distance(activeGroup, candidateGroup).within(SNAP_DISTANCE)) {

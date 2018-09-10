@@ -2,9 +2,9 @@
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {ApplicationUIConfig, DropPosition, TabIdentifier, TabProperties, TabWindowOptions} from '../../client/types';
+import {DesktopTabGroup} from '../model/DesktopTabGroup';
 
 import {Tab} from './Tab';
-import {TabGroup} from './TabGroup';
 import {TabService} from './TabService';
 import {ejectTab} from './TabUtilities';
 
@@ -229,7 +229,7 @@ export class APIHandler {
      * Ends the HTML5 Dragging Sequence.
      */
     public async endDrag(payload: {event: DropPosition, window: TabIdentifier}) {
-        const tabGroup: TabGroup|undefined = this.mTabService.getTabGroupByApp(payload.window);
+        const tabGroup: DesktopTabGroup|undefined = this.mTabService.getTabGroupByApp(payload.window);
 
         if (!tabGroup) {
             console.error('Window is not registered for tabbing');

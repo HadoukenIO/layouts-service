@@ -1,12 +1,12 @@
+import {DesktopModel} from '../model/DesktopModel';
+import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
+import {DesktopWindow, eTransformType, Mask, WindowIdentity} from '../model/DesktopWindow';
+import {Signal2} from '../Signal';
 import {Tab} from '../tabbing/Tab';
 import {TabService} from '../tabbing/TabService';
 import {getWindowAt} from '../tabbing/TabUtilities';
-
 import {eSnapValidity, Resolver, SnapTarget} from './Resolver';
-import {Signal2} from './Signal';
-import {SnapGroup} from './SnapGroup';
 import {SnapView} from './SnapView';
-import {eTransformType, Mask, SnapWindow, WindowIdentity, WindowState} from './SnapWindow';
 import {Point, PointUtils} from './utils/PointUtils';
 import {MeasureResult, RectUtils} from './utils/RectUtils';
 
@@ -28,7 +28,7 @@ export interface SnapState {
      * Only set when user is actually dragging a window, otherwise null. When this is null, other values within this
      * interface do not apply.
      */
-    activeGroup: SnapWindow|null;
+    activeGroup: DesktopWindow|null;
 
     /**
      * The current candidate for the snapping action. The group to which 'activeGroup' will be snapped to if the user
@@ -40,8 +40,7 @@ export interface SnapState {
 }
 
 export class SnapService {
-    private windows: SnapWindow[];
-    private groups: SnapGroup[];
+    private model: DesktopModel;
 
     private resolver: Resolver;
     private view: SnapView;
@@ -53,7 +52,7 @@ export class SnapService {
      *
      * Arguments: (group: SnapGroup, window: SnapWindow)
      */
-    public readonly onWindowAdded: Signal2<SnapGroup, SnapWindow> = new Signal2();
+    public readonly onWindowAdded: Signal2<DesktopSnapGroup, DesktopWindow> = new Signal2();
 
     /**
      * A window has been removed from a group.
@@ -62,39 +61,21 @@ export class SnapService {
      *
      * Arguments: (group: SnapGroup, window: SnapWindow)
      */
-    public readonly onWindowRemoved: Signal2<SnapGroup, SnapWindow> = new Signal2();
+    public readonly onWindowRemoved: Signal2<DesktopSnapGroup, DesktopWindow> = new Signal2();
 
-    constructor() {
-        this.windows = [];
-        this.groups = [];
+    constructor(model: DesktopModel) {
+        this.model = model;
         this.resolver = new Resolver();
         this.view = new SnapView();
 
-        const serviceUUID: string = fin.desktop.Application.getCurrent().uuid;
+        // Bind callbacks
+        this.onWindowGroupChanged = this.onWindowGroupChanged.bind(this);
 
-        // Listen for any new windows created and register them with the service
-        fin.desktop.System.addEventListener('window-created', (event: fin.WindowBaseEvent) => {
-            // Ignore child windows of the service itself (e.g. preview windows)
-            if (event.uuid !== serviceUUID) {
-                this.registerWindow(event.uuid, event.name);
-            }
-        });
-
-        // Register all existing windows
-        fin.desktop.System.getAllWindows((windows: fin.WindowDetails[]) => {
-            windows.forEach((app: fin.WindowDetails) => {
-                // Ignore the main service window and all of it's children
-                if (app.uuid !== serviceUUID) {
-                    // Register the main window
-                    this.registerWindow(app.uuid, app.mainWindow.name);
-
-                    // Register all of the child windows
-                    app.childWindows.forEach((child: fin.WindowInfo) => {
-                        this.registerWindow(app.uuid, child.name);
-                    });
-                }
-            });
-        });
+        // Register lifecycle listeners
+        DesktopWindow.onCreated.add(this.onWindowCreated, this);
+        DesktopWindow.onDestroyed.add(this.onWindowDestroyed, this);
+        DesktopSnapGroup.onCreated.add(this.onSnapGroupCreated, this);
+        DesktopSnapGroup.onDestroyed.add(this.onSnapGroupDestroyed, this);
 
         // Register global undock hotkey listener
         // @ts-ignore - v2api types missing
@@ -104,7 +85,7 @@ export class SnapService {
                 () => {
                     // @ts-ignore - v2api types missing
                     fin.System.getFocusedWindow().then(focusedWindow => {
-                        if (focusedWindow !== null && this.getSnapWindow(focusedWindow)) {
+                        if (focusedWindow !== null && model.getWindow(focusedWindow)) {
                             console.log('Global hotkey invoked on window', focusedWindow);
                             this.undock(focusedWindow);
                         }
@@ -114,17 +95,17 @@ export class SnapService {
     }
 
     public undock(target: {uuid: string; name: string}): void {
-        const window: SnapWindow|undefined = this.getSnapWindow(target);
+        const window: DesktopWindow|null = this.model.getWindow(target);
 
         if (window) {
             try {
-                const group: SnapGroup = window.getGroup();
+                const group: DesktopSnapGroup = window.getGroup();
 
                 // Only do anything if the window is actually grouped
                 if (group.length > 1) {
                     let offset = this.calculateUndockMoveDirection(window);
 
-                    window.setGroup(this.addGroup());
+                    window.setGroup(new DesktopSnapGroup());
 
                     if (!offset.x && !offset.y) {
                         offset = {x: 1, y: 1};
@@ -143,7 +124,7 @@ export class SnapService {
     }
 
     public deregister(target: {uuid: string; name: string}): void {
-        const window: SnapWindow|undefined = this.getSnapWindow(target);
+        const window: DesktopWindow|null = this.model.getWindow(target);
 
         if (window) {
             try {
@@ -169,7 +150,8 @@ export class SnapService {
         // identifying groups, this can be changed
 
         // Get the group containing the targetWindow
-        const group: SnapGroup|undefined = this.groups.find((g) => {
+        const groups: ReadonlyArray<DesktopSnapGroup> = this.model.getSnapGroups();
+        const group: DesktopSnapGroup|undefined = groups.find((g) => {
             return g.windows.findIndex(w => w.getIdentity().uuid === targetWindow.uuid && w.getIdentity().name === targetWindow.name) >= 0;
         });
 
@@ -194,7 +176,7 @@ export class SnapService {
                 for (let i = 0; i < windows.length; i++) {
                     const window = windows[i];
                     // Undock the windows
-                    window.setGroup(this.addGroup());
+                    window.setGroup(new DesktopSnapGroup());
                     // Apply previously calculated offset
                     window.offsetBy(offsets[i]);
                 }
@@ -205,60 +187,33 @@ export class SnapService {
         }
     }
 
-    private registerWindow(uuid: string, name: string): void {
-        const newOFWindow: fin.OpenFinWindow = fin.desktop.Window.wrap(uuid, name);
+    private onWindowCreated(window: DesktopWindow): void {
+        window.onClose.add(this.onWindowClosed, this);
 
-        // Check that the service does not already have a matching window
-        const existingSnapWindow = this.getSnapWindow(newOFWindow);
-
-        // The runtime will not allow multiple windows with the same uuid/name, so if we recieve a
-        // window-created event for a registered window, it implies that our internal state is stale
-        // and should be updated accordingly.
-        if (existingSnapWindow) {
-            existingSnapWindow.onClose.emit(existingSnapWindow);
-        }
-
-        // In either case, we will add the new window to the service.
-        this.addWindow(newOFWindow).then((win: SnapWindow) => console.log('Registered window: ' + win.getId()));
+        // TODO: Figure out encapsulation issues
+        window.getWindow().addEventListener('group-changed', this.onWindowGroupChanged);
     }
 
-    private addWindow(window: fin.OpenFinWindow): Promise<SnapWindow> {
-        return SnapWindow.getWindowState(window).then<SnapWindow>((state: WindowState): SnapWindow => {
-            const group: SnapGroup = this.addGroup();
-            const snapWindow: SnapWindow = new SnapWindow(group, window, state);
+    private onWindowDestroyed(window: DesktopWindow): void {
+        window.onClose.remove(this.onWindowClosed, this);
 
-            snapWindow.onClose.add(this.onWindowClosed, this);
-            this.windows.push(snapWindow);
-
-            window.addEventListener('group-changed', this.onWindowGroupChanged.bind(this));
-
-            return snapWindow;
-        });
+        window.getWindow().removeEventListener('group-changed', this.onWindowGroupChanged);
     }
 
-    private addGroup(): SnapGroup {
-        const group: SnapGroup = new SnapGroup();
+    private onSnapGroupCreated(group: DesktopSnapGroup): void {
         group.onModified.add(this.validateGroup, this);
         group.onTransform.add(this.snapGroup, this);
         group.onCommit.add(this.applySnapTarget, this);
         group.onWindowRemoved.add(this.onWindowRemovedFromGroup, this);
         group.onWindowAdded.add(this.sendWindowAddedMessage, this);
-        this.groups.push(group);
-        return group;
     }
 
-    private removeGroup(group: SnapGroup): void {
-        const index: number = this.groups.indexOf(group);
-
-        // Can only remove empty groups. Otherwise, things will break.
-        if (group.length === 0 && index >= 0) {
-            group.onModified.remove(this.validateGroup, this);
-            group.onTransform.remove(this.snapGroup, this);
-            group.onCommit.remove(this.applySnapTarget, this);
-            group.onWindowRemoved.remove(this.onWindowRemovedFromGroup, this);
-            group.onWindowAdded.remove(this.sendWindowAddedMessage, this);
-            this.groups.splice(index, 1);
-        }
+    private onSnapGroupDestroyed(group: DesktopSnapGroup): void {
+        group.onModified.remove(this.validateGroup, this);
+        group.onTransform.remove(this.snapGroup, this);
+        group.onCommit.remove(this.applySnapTarget, this);
+        group.onWindowRemoved.remove(this.onWindowRemovedFromGroup, this);
+        group.onWindowAdded.remove(this.sendWindowAddedMessage, this);
     }
 
     private onWindowGroupChanged(event: fin.WindowGroupChangedEvent) {
@@ -268,15 +223,14 @@ export class SnapService {
             return;
         }
 
-
         console.log('Revieved window group changed event: ', event);
-        const sourceWindow = this.getSnapWindow({uuid: event.sourceWindowAppUuid, name: event.sourceWindowName});
+        const sourceWindow: DesktopWindow|null = this.model.getWindow({uuid: event.sourceWindowAppUuid, name: event.sourceWindowName});
 
         if (sourceWindow) {
             if (event.reason === 'leave') {
-                sourceWindow.setGroup(this.addGroup(), undefined, undefined, true);
+                sourceWindow.setGroup(new DesktopSnapGroup(), undefined, undefined, true);
             } else {
-                const targetWindow = this.getSnapWindow({uuid: event.targetWindowAppUuid, name: event.targetWindowName});
+                const targetWindow: DesktopWindow|null = this.model.getWindow({uuid: event.targetWindowAppUuid, name: event.targetWindowName});
 
                 // Merge the groups
                 if (targetWindow) {
@@ -284,14 +238,14 @@ export class SnapService {
                         // Get array of SnapWindows from the native group window array
                         event.sourceGroup
                             .map(win => {
-                                return this.getSnapWindow({uuid: win.appUuid, name: win.windowName});
+                                return this.model.getWindow({uuid: win.appUuid, name: win.windowName});
                             })
                             // Add all windows from source group to the target group.
                             // Windows are synthetic snapped since they are
                             // already native grouped.
                             .forEach((snapWin) => {
                                 // Ignore any undefined results (i.e. windows unknown to the service)
-                                if (snapWin !== undefined) {
+                                if (snapWin !== null) {
                                     snapWin.setGroup(targetWindow.getGroup(), undefined, undefined, true);
                                 }
                             });
@@ -303,65 +257,59 @@ export class SnapService {
         }
     }
 
-    private onWindowClosed(snapWindow: SnapWindow): void {
-        const index: number = this.windows.indexOf(snapWindow);
-
+    private onWindowClosed(snapWindow: DesktopWindow): void {
         // NOTE: At this point, snapWindow will belong to a group.
         // SnapGroup also listens to 'onClose' of each of it's windows, and will remove the window from itself.
+        snapWindow.onClose.remove(this.onWindowClosed, this);
 
-        // Remove this window from the service
-        if (index >= 0) {
-            this.windows.splice(index, 1);
-
-            snapWindow.onClose.remove(this.onWindowClosed, this);
-
-            this.validateGroup(snapWindow.getGroup(), snapWindow);
-        }
+        this.validateGroup(snapWindow.getGroup(), snapWindow);
     }
 
-    private onWindowRemovedFromGroup(group: SnapGroup, window: SnapWindow): void {
-        if (group.length === 0) {
-            // Empty groups are not allowed
-            this.removeGroup(group);
-        }
+    private onWindowRemovedFromGroup(group: DesktopSnapGroup, window: DesktopWindow): void {
+        // if (group.length === 0) {
+        //     // Empty groups are not allowed
+        //     this.removeGroup(group);
+        // }
         // Raise event to client
         this.sendWindowRemovedMessage(group, window);
 
         this.validateGroup(group, window);
     }
 
-    private sendWindowAddedMessage(group: SnapGroup, window: SnapWindow) {
+    private sendWindowAddedMessage(group: DesktopSnapGroup, window: DesktopWindow) {
         const identity = window.getIdentity();
         console.log('Window with identity', identity, 'added to group', group);
         this.onWindowAdded.emit(group, window);
     }
 
-    private sendWindowRemovedMessage(group: SnapGroup, window: SnapWindow) {
+    private sendWindowRemovedMessage(group: DesktopSnapGroup, window: DesktopWindow) {
         const identity = window.getIdentity();
         console.log('Window with identity', identity, 'removed from group', group);
         this.onWindowRemoved.emit(group, window);
     }
 
-    private validateGroup(group: SnapGroup, modifiedWindow: SnapWindow): void {
+    private validateGroup(group: DesktopSnapGroup, modifiedWindow: DesktopWindow): void {
         // Ensure 'group' is still a valid, contiguous group.
         // NOTE: 'modifiedWindow' may no longer exist (if validation is being performed because a window was closed)
 
         // TODO (SERVICE-130)
     }
 
-    private snapGroup(activeGroup: SnapGroup, type: Mask<eTransformType>): void {
-        const snapTarget: SnapTarget|null = this.resolver.getSnapTarget(this.groups, activeGroup);
+    private snapGroup(activeGroup: DesktopSnapGroup, type: Mask<eTransformType>): void {
+        const groups: DesktopSnapGroup[] = this.model.getSnapGroups() as DesktopSnapGroup[];  // TODO: Make read-only?
+        const snapTarget: SnapTarget|null = this.resolver.getSnapTarget(groups, activeGroup);
 
         this.view.update(activeGroup, snapTarget);
     }
 
-    private applySnapTarget(activeGroup: SnapGroup): void {
-        const snapTarget: SnapTarget|null = this.resolver.getSnapTarget(this.groups, activeGroup);
+    private applySnapTarget(activeGroup: DesktopSnapGroup): void {
+        const groups: DesktopSnapGroup[] = this.model.getSnapGroups() as DesktopSnapGroup[];  // TODO: Make read-only?
+        const snapTarget: SnapTarget|null = this.resolver.getSnapTarget(groups, activeGroup);
 
         // SNAP WINDOWS
         if (snapTarget && snapTarget.validity === eSnapValidity.VALID && (!(window as Window & {foo: boolean}).foo)) {
             // Move all windows in activeGroup to snapTarget.group
-            activeGroup.windows.forEach((window: SnapWindow) => {
+            activeGroup.windows.forEach((window: DesktopWindow) => {
                 if (window === snapTarget.activeWindow && snapTarget.halfSize) {
                     window.setGroup(snapTarget.group, snapTarget.snapOffset, snapTarget.halfSize);
                 } else {
@@ -370,7 +318,7 @@ export class SnapService {
             });
 
             // The active group should now have been removed (since it is empty)
-            if (this.groups.indexOf(activeGroup) >= 0) {
+            if (groups.indexOf(activeGroup) >= 0) {
                 console.warn(
                     'Expected group to have been removed, but still exists (' + activeGroup.id + ': ' + activeGroup.windows.map(w => w.getId()).join() + ')');
             }
@@ -412,7 +360,7 @@ export class SnapService {
         this.view.update(null, null);
     }
 
-    private calculateUndockMoveDirection(window: SnapWindow): Point {
+    private calculateUndockMoveDirection(window: DesktopWindow): Point {
         const group = window.getGroup();
         const totalOffset: Point = {x: 0, y: 0};
         for (const groupedWindow of group.windows) {
@@ -427,9 +375,5 @@ export class SnapService {
             }
         }
         return totalOffset;
-    }
-
-    private getSnapWindow(finWindow: WindowIdentity) {
-        return this.windows.find(w => w.getIdentity().uuid === finWindow.uuid && w.getIdentity().name === finWindow.name);
     }
 }

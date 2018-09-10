@@ -1,18 +1,20 @@
 import {Application} from 'hadouken-js-adapter';
 
-import {ApplicationUIConfig, Bounds, TabIdentifier, TabPackage, TabWindowOptions} from '../../client/types';
+import {ApplicationUIConfig, Bounds, TabIdentifier, TabPackage, TabServiceID, TabWindowOptions} from '../../client/types';
+import {DesktopModel} from '../model/DesktopModel';
+import {DesktopTabGroup} from '../model/DesktopTabGroup';
+import {DesktopWindow, WindowIdentity} from '../model/DesktopWindow';
 
 import {APIHandler} from './APIHandler';
 import {ApplicationConfigManager} from './components/ApplicationConfigManager';
 import {DragWindowManager} from './DragWindowManager';
 import {getTabSaveInfo} from './SaveAndRestoreAPI';
 import {Tab} from './Tab';
-import {TabGroup} from './TabGroup';
 import {createTabGroupsFromTabBlob} from './TabUtilities';
 import {ZIndexer} from './ZIndexer';
 
 interface GroupTabBounds extends Bounds {
-    group: TabGroup;
+    group: DesktopTabGroup;
 }
 
 /**
@@ -29,20 +31,17 @@ export class TabService {
      */
     public apiHandler: APIHandler;
 
+    private model: DesktopModel;
+
     /**
      * Contains all the tabsets of this service.
      */
-    private _tabGroups: TabGroup[];
+    // private _tabGroups: TabGroup[];
 
     /**
      * Handle to the DragWindowManager
      */
     private _dragWindowManager: DragWindowManager;
-
-    /**
-     * Handle to the ZIndexer
-     */
-    private _zIndexer: ZIndexer = new ZIndexer();
 
     /**
      * Handles the application ui configs
@@ -53,8 +52,8 @@ export class TabService {
     /**
      * Constructor of the TabService Class.
      */
-    constructor() {
-        this._tabGroups = [];
+    constructor(model: DesktopModel) {
+        this.model = model;
         this._dragWindowManager = new DragWindowManager();
         this._dragWindowManager.init();
         this.apiHandler = new APIHandler(this);
@@ -65,13 +64,37 @@ export class TabService {
     }
 
     /**
+     * Returns the DragWindowManager instance.
+     * @returns {DragWindowManager} DragWindowManager
+     */
+    public get dragWindowManager(): DragWindowManager {
+        return this._dragWindowManager;
+    }
+
+    /**
+     * Returns the Tab Group Array
+     * @returns {DesktopTabGroup[]} Tab Groups Array
+     */
+    public get tabGroups(): DesktopTabGroup[] {
+        return this.model.getTabGroups() as DesktopTabGroup[];
+    }
+
+    /**
+     * Returns the application config manager
+     * @returns {ApplicationConfigManager} The container that holds the tab window options bound to the
+     */
+    public get applicationConfigManager(): ApplicationConfigManager {
+        return this.mApplicationConfigManager;
+    }
+
+    /**
      * Creates a new tab group
      * @param {TabWindowOptions} WindowOptions Window Options used to create the tab group window (positions, dimensions, url, etc...)
-     * @returns {TabGroup} TabGroup
+     * @returns {DesktopTabGroup} TabGroup
      */
-    public addTabGroup(windowOptions: TabWindowOptions): TabGroup {
-        const group = new TabGroup(windowOptions);
-        this._tabGroups.push(group);
+    public addTabGroup(windowOptions: TabWindowOptions): DesktopTabGroup {
+        const group = new DesktopTabGroup(windowOptions);
+        // this._tabGroups.push(group);
 
         return group;
     }
@@ -82,36 +105,31 @@ export class TabService {
      * @param closeApps Flag if we should close the groups tab windows.
      */
     public async removeTabGroup(ID: string, closeApps: boolean): Promise<void> {
-        const groupIndex = this._getGroupIndex(ID);
-
-        if (groupIndex !== -1) {
-            const group = this._tabGroups[groupIndex];
-
+        const group: DesktopTabGroup|null = this.model.getTabGroup(ID);
+        if (group) {
             await group.removeAllTabs(closeApps);
             await group.window.close(true);
-
-            this._tabGroups.splice(groupIndex, 1);
+        } else {
+            throw new Error('No tab group with ID ' + ID);
         }
     }
 
     /**
      * Returns a tab group searched by its ID.
      * @param ID ID of the tab group to find.
-     * @returns {TabGroup | undefined} TabGroup
+     * @returns {DesktopTabGroup | undefined} TabGroup
      */
-    public getTabGroup(ID: string): TabGroup|undefined {
-        return this._tabGroups.find((group: TabGroup) => {
-            return group.ID === ID;
-        });
+    public getTabGroup(ID: string): DesktopTabGroup|null {
+        return this.model.getTabGroup(ID);
     }
 
     /**
      * Returns a tab group searched by a tab it contains.
      * @param ID ID of the tab group to find.
-     * @returns {TabGroup | undefined} Tabgroup
+     * @returns {DesktopTabGroup | undefined} Tabgroup
      */
-    public getTabGroupByApp(ID: TabIdentifier): TabGroup|undefined {
-        return this._tabGroups.find((group: TabGroup) => {
+    public getTabGroupByApp(ID: TabIdentifier): DesktopTabGroup|undefined {
+        return this.model.getTabGroups().find((group: DesktopTabGroup) => {
             return group.tabs.some((tab: Tab) => {
                 const tabID = tab.ID;
                 return tabID.name === ID.name && tabID.uuid === ID.uuid;
@@ -167,82 +185,75 @@ export class TabService {
      * Checks for any windows that is under a specific point.
      * @param {number} x X Coordinate
      * @param {number} y Y Coordinate
-     * @returns {TabGroup | null}
+     * @returns {DesktopTabGroup | null}
      */
-    public async isPointOverTabGroup(x: number, y: number): Promise<TabGroup|null> {
-        const groupTabBounds = await Promise.all(this._tabGroups.map(async group => {
-            const activeTabBoundsP = group.activeTab.window.getWindowBounds();
-            const groupBoundsP = group.window.getWindowBounds();
-            const activeTabShowingP = group.activeTab.window.isShowing();
+    public async isPointOverTabGroup(x: number, y: number): Promise<DesktopTabGroup|null> {
+        const window: DesktopWindow|null = this.model.getWindowAt(x, y);
+        const tabGroups: ReadonlyArray<DesktopTabGroup> = this.model.getTabGroups();
 
-            const [activeTabBounds, groupBounds, activeTabShowing] = await Promise.all([activeTabBoundsP, groupBoundsP, activeTabShowingP]);
+        if (window) {
+            const identity: WindowIdentity = window.getIdentity();
 
-            if (!activeTabShowing) {
-                return;
+            if (window.getIdentity().uuid === TabServiceID.UUID) {
+                // Find tab group that has 'window' as its tabstrip
+                return tabGroups.find((group: DesktopTabGroup) => {
+                    const finWindow = group.window.finWindow;
+
+                    return finWindow.uuid === TabServiceID.UUID && finWindow.name === identity.name;
+                }) ||
+                    null;
+            } else {
+                // Find tab group that has 'window' as a tab
+                return tabGroups.find((group: DesktopTabGroup) => {
+                    return group.tabs.some((tab: Tab) => {
+                        const finWindow = tab.window.finWindow;
+                        return finWindow.uuid === identity.uuid && finWindow.name === identity.name;
+                    });
+                }) ||
+                    null;
             }
-
-            return {group, top: groupBounds.top!, left: groupBounds.left!, width: groupBounds.width!, height: groupBounds.height! + activeTabBounds.height!};
-        }));
-
-        const result: GroupTabBounds[] = groupTabBounds.filter((group): group is GroupTabBounds => {
-            if (!group) {
-                return false;
-            }
-
-            return x > group.left && x < group.width + group.left && y > group.top && y < group.top + group.height;
-        });
-
-        if (result) {
-            const topOrdered = this._zIndexer.getTop(result.map(group => {
-                return {uuid: group.group.activeTab.ID.uuid, name: group.group.activeTab.ID.name};
-            }));
-
-            if (topOrdered) {
-                const f = result.find(g => {
-                    return g.group.activeTab.ID.uuid === topOrdered[0].uuid && g.group.activeTab.ID.name === topOrdered[0].name;
-                });
-
-                if (f) {
-                    return f.group;
-                }
-            }
+        } else {
+            return null;
         }
 
-        return null;
-    }
+        // const groupTabBounds = await Promise.all(this._tabGroups.map(async group => {
+        //     const activeTabBoundsP = group.activeTab.window.getWindowBounds();
+        //     const groupBoundsP = group.window.getWindowBounds();
+        //     const activeTabShowingP = group.activeTab.window.isShowing();
 
-    /**
-     * Returns the array index of a tab group.
-     * @param ID ID of the tab group to search.
-     * @returns {number} Index number.
-     */
-    private _getGroupIndex(ID: string): number {
-        return this._tabGroups.findIndex((tab: TabGroup) => {
-            return tab.ID === ID;
-        });
-    }
+        //     const [activeTabBounds, groupBounds, activeTabShowing] = await Promise.all([activeTabBoundsP, groupBoundsP, activeTabShowingP]);
 
-    /**
-     * Returns the DragWindowManager instance.
-     * @returns {DragWindowManager} DragWindowManager
-     */
-    public get dragWindowManager(): DragWindowManager {
-        return this._dragWindowManager;
-    }
+        //     if (!activeTabShowing) {
+        //         return;
+        //     }
 
-    /**
-     * Returns the Tab Group Array
-     * @returns {TabGroup[]} Tab Groups Array
-     */
-    public get tabGroups(): TabGroup[] {
-        return this._tabGroups;
-    }
+        //     return {group, top: groupBounds.top!, left: groupBounds.left!, width: groupBounds.width!, height: groupBounds.height! + activeTabBounds.height!};
+        // }));
 
-    /**
-     * Returns the application config manager
-     * @returns {ApplicationConfigManager} The container that holds the tab window options bound to the
-     */
-    public get applicationConfigManager(): ApplicationConfigManager {
-        return this.mApplicationConfigManager;
+        // const result: GroupTabBounds[] = groupTabBounds.filter((group): group is GroupTabBounds => {
+        //     if (!group) {
+        //         return false;
+        //     }
+
+        //     return x > group.left && x < group.width + group.left && y > group.top && y < group.top + group.height;
+        // });
+
+        // if (result) {
+        //     const topOrdered = this._zIndexer.getTop(result.map(group => {
+        //         return {uuid: group.group.activeTab.ID.uuid, name: group.group.activeTab.ID.name};
+        //     }));
+
+        //     if (topOrdered) {
+        //         const f = result.find(g => {
+        //             return g.group.activeTab.ID.uuid === topOrdered[0].uuid && g.group.activeTab.ID.name === topOrdered[0].name;
+        //         });
+
+        //         if (f) {
+        //             return f.group;
+        //         }
+        //     }
+        // }
+
+        // return null;
     }
 }

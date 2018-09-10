@@ -1,7 +1,7 @@
-import {Signal1, Signal2} from './Signal';
-import {eTransformType, Mask, SnapWindow, WindowState} from './SnapWindow';
-import {CalculatedProperty} from './utils/CalculatedProperty';
-import {Point} from './utils/PointUtils';
+import {Signal1, Signal2} from '../Signal';
+import {CalculatedProperty} from '../snapanddock/utils/CalculatedProperty';
+import {Point} from '../snapanddock/utils/PointUtils';
+import {DesktopWindow, eTransformType, Mask, WindowState} from './DesktopWindow';
 
 /**
  * Key-value store for saving the state of each window before it was added to the tab group.
@@ -17,7 +17,7 @@ type TabData = {
 };
 
 interface TabState {
-    tabBar: SnapWindow;
+    tabBar: DesktopWindow;
 
     /**
      * Maps SnapWindow ID's to the cached state for that window.
@@ -28,8 +28,11 @@ interface TabState {
     previousState: TabData;
 }
 
-export class SnapGroup {
+export class DesktopSnapGroup {
     private static nextId = 1;
+
+    public static readonly onCreated: Signal1<DesktopSnapGroup> = new Signal1();
+    public static readonly onDestroyed: Signal1<DesktopSnapGroup> = new Signal1();
 
     /**
      * A window property has been changed that may snap the window out of any group that it it's currently in.
@@ -38,14 +41,14 @@ export class SnapGroup {
      *
      * Arguments: (group: SnapGroup, modifiedWindow: SnapWindow)
      */
-    public readonly onModified: Signal2<SnapGroup, SnapWindow> = new Signal2();
+    public readonly onModified: Signal2<DesktopSnapGroup, DesktopWindow> = new Signal2();
 
     /**
      * Window is being moved/resized, need to check for any snap targets.
      *
      * Arguments: (group: SnapGroup, type: Mask<eTransformType>)
      */
-    public readonly onTransform: Signal2<SnapGroup, Mask<eTransformType>> = new Signal2();
+    public readonly onTransform: Signal2<DesktopSnapGroup, Mask<eTransformType>> = new Signal2();
 
     /**
      * The move/resize operation (that was signalled through onTransform) has been completed.
@@ -54,7 +57,7 @@ export class SnapGroup {
      *
      * Arguments: (group: SnapGroup)
      */
-    public readonly onCommit: Signal1<SnapGroup> = new Signal1();
+    public readonly onCommit: Signal1<DesktopSnapGroup> = new Signal1();
 
     /**
      * A window has been added to this group.
@@ -63,7 +66,7 @@ export class SnapGroup {
      *
      * Arguments: (group: SnapGroup, window: SnapWindow)
      */
-    public readonly onWindowAdded: Signal2<SnapGroup, SnapWindow> = new Signal2();
+    public readonly onWindowAdded: Signal2<DesktopSnapGroup, DesktopWindow> = new Signal2();
 
     /**
      * A window has been removed from this group.
@@ -72,7 +75,7 @@ export class SnapGroup {
      *
      * Arguments: (group: SnapGroup, window: SnapWindow)
      */
-    public readonly onWindowRemoved: Signal2<SnapGroup, SnapWindow> = new Signal2();
+    public readonly onWindowRemoved: Signal2<DesktopSnapGroup, DesktopWindow> = new Signal2();
 
 
     // NOTE: The co-ordinates used by _origin and _halfSize use the center of the root window as the origin.
@@ -80,9 +83,9 @@ export class SnapGroup {
     private _halfSize: CalculatedProperty<Point>;
 
     private _id: number;
-    private _windows: SnapWindow[];
+    private _windows: DesktopWindow[];
 
-    private rootWindow: SnapWindow|null;
+    private rootWindow: DesktopWindow|null;
 
     /**
      * If this is non-null then the windows in this group are tabbed, and so have some special behaviour.
@@ -94,7 +97,7 @@ export class SnapGroup {
     private tabData: TabData|null;
 
     constructor() {
-        this._id = SnapGroup.nextId++;
+        this._id = DesktopSnapGroup.nextId++;
         this._windows = [];
         this.rootWindow = null;
         this.tabData = null;
@@ -102,6 +105,8 @@ export class SnapGroup {
         const refreshFunc = this.calculateProperties.bind(this);
         this._origin = new CalculatedProperty(refreshFunc);
         this._halfSize = new CalculatedProperty(refreshFunc);
+
+        DesktopSnapGroup.onCreated.emit(this);
     }
 
     public get id(): number {
@@ -135,11 +140,11 @@ export class SnapGroup {
         return this.tabData !== null;
     }
 
-    public get windows(): SnapWindow[] {
+    public get windows(): DesktopWindow[] {
         return this._windows.slice();
     }
 
-    public addWindow(window: SnapWindow): void {
+    public addWindow(window: DesktopWindow): void {
         if (!this._windows.includes(window)) {
             // Remove window from it's previous group
             const prevGroup = (window.getGroup() === this) ? window.getPrevGroup() : window.getGroup();
@@ -168,7 +173,7 @@ export class SnapGroup {
         }
     }
 
-    private removeWindow(window: SnapWindow): void {
+    private removeWindow(window: DesktopWindow): void {
         const index: number = this._windows.indexOf(window);
 
         if (index >= 0) {
@@ -186,6 +191,10 @@ export class SnapGroup {
             this._halfSize.markStale();
 
             this.onWindowRemoved.emit(this, window);
+
+            if (this._windows.length === 0) {
+                DesktopSnapGroup.onDestroyed.emit(this);
+            }
         }
     }
 
@@ -203,13 +212,13 @@ export class SnapGroup {
         }
     }
 
-    private onWindowModified(window: SnapWindow): void {
+    private onWindowModified(window: DesktopWindow): void {
         this._origin.markStale();
         this._halfSize.markStale();
         this.onModified.emit(this, window);
     }
 
-    private onWindowTransform(window: SnapWindow, type: Mask<eTransformType>): void {
+    private onWindowTransform(window: DesktopWindow, type: Mask<eTransformType>): void {
         if (type === eTransformType.MOVE) {
             // When a grouped window is moved, all windows in the group will fire a move event.
             // We want to filter these to ensure the group only fires onTransform once
@@ -229,16 +238,16 @@ export class SnapGroup {
         }
     }
 
-    private onWindowCommit(window: SnapWindow): void {
+    private onWindowCommit(window: DesktopWindow): void {
         this.onCommit.emit(this);
     }
 
-    private onWindowClosed(window: SnapWindow): void {
+    private onWindowClosed(window: DesktopWindow): void {
         this.removeWindow(window);
     }
 
     private calculateProperties(): void {
-        const windows: SnapWindow[] = this._windows;
+        const windows: DesktopWindow[] = this._windows;
         const numWindows: number = windows.length;
 
         if (numWindows === 0) {

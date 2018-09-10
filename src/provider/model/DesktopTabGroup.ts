@@ -1,17 +1,18 @@
 import {Provider} from 'hadouken-js-adapter/out/types/src/api/services/provider';
-
-import {TabApiEvents} from '../../client/APITypes';
-import {TabGroupEventPayload, TabIdentifier, TabPackage, TabWindowOptions} from '../../client/types';
-
-import {GroupWindow} from './GroupWindow';
-import {Tab} from './Tab';
-import {TabService} from './TabService';
-import {uuidv4} from './TabUtilities';
+import {TabGroupEventPayload, TabIdentifier, TabWindowOptions} from '../../client/types';
+import {Signal1} from '../Signal';
+import {GroupWindow} from '../tabbing/GroupWindow';
+import {Tab} from '../tabbing/Tab';
+import {TabService} from '../tabbing/TabService';
+import {uuidv4} from '../tabbing/TabUtilities';
 
 /**
  * Handles functionality for the TabSet
  */
-export class TabGroup {
+export class DesktopTabGroup {
+    public static readonly onCreated: Signal1<DesktopTabGroup> = new Signal1();
+    public static readonly onDestroyed: Signal1<DesktopTabGroup> = new Signal1();
+
     /**
      * The ID for the TabGroup.
      */
@@ -48,6 +49,36 @@ export class TabGroup {
         this._tabs = [];
         this._window = new GroupWindow(windowOptions, this);
         this.mService = (window as Window & {providerChannel: Provider}).providerChannel;
+
+        DesktopTabGroup.onCreated.emit(this);
+    }
+
+    /**
+     * Returns the current active tab of the tab set.
+     * @returns {Tab} The Active Tab
+     */
+    public get activeTab(): Tab {
+        return this._activeTab || this.tabs[0];
+    }
+
+    /**
+     * Returns the tab sets window.
+     * @returns {GroupWindow} The group window.
+     */
+    public get window(): GroupWindow {
+        return this._window;
+    }
+
+    /**
+     * Returns the tabs of this tab set.
+     * @returns {Tab[]} Array of tabs.
+     */
+    public get tabs(): Tab[] {
+        return this._tabs;
+    }
+
+    public set isRestored(isRestored: boolean) {
+        this._isRestored = isRestored;
     }
 
     /**
@@ -196,6 +227,7 @@ export class TabGroup {
                 }));
 
                 await TabService.INSTANCE.removeTabGroup(this.ID, false);
+                DesktopTabGroup.onDestroyed.emit(this);
                 return;
             }
         }
@@ -271,33 +303,5 @@ export class TabGroup {
         return this.tabs.findIndex((tab: Tab) => {
             return tab.ID.uuid === tabID.uuid && tab.ID.name === tabID.name;
         });
-    }
-
-    /**
-     * Returns the current active tab of the tab set.
-     * @returns {Tab} The Active Tab
-     */
-    public get activeTab(): Tab {
-        return this._activeTab || this.tabs[0];
-    }
-
-    /**
-     * Returns the tab sets window.
-     * @returns {GroupWindow} The group window.
-     */
-    public get window(): GroupWindow {
-        return this._window;
-    }
-
-    /**
-     * Returns the tabs of this tab set.
-     * @returns {Tab[]} Array of tabs.
-     */
-    public get tabs(): Tab[] {
-        return this._tabs;
-    }
-
-    public set isRestored(isRestored: boolean) {
-        this._isRestored = isRestored;
     }
 }

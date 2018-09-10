@@ -1,13 +1,14 @@
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {TabBlob, TabIdentifier, TabWindowOptions} from '../../client/types';
+import {DesktopModel} from '../model/DesktopModel';
+import {DesktopTabGroup} from '../model/DesktopTabGroup';
+import {DesktopWindow, WindowState} from '../model/DesktopWindow';
 import {SnapService} from '../snapanddock/SnapService';
-import {SnapWindow, WindowState} from '../snapanddock/SnapWindow';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {RectUtils} from '../snapanddock/utils/RectUtils';
 
 import {Tab} from './Tab';
-import {TabGroup} from './TabGroup';
 import {TabService} from './TabService';
 import {ZIndexer} from './ZIndexer';
 
@@ -27,7 +28,7 @@ import {ZIndexer} from './ZIndexer';
  * @param tabService The service itself which holds the tab groups
  * @param message Application or tab to be ejected
  */
-export async function ejectTab(message: TabIdentifier&TabWindowOptions, tabGroup?: TabGroup|undefined) {
+export async function ejectTab(message: TabIdentifier&TabWindowOptions, tabGroup?: DesktopTabGroup|undefined) {
     const tabService: TabService = TabService.INSTANCE;
 
     // Get the tab that was ejected.
@@ -110,7 +111,7 @@ export async function createTabGroupsFromTabBlob(tabBlob: TabBlob[]): Promise<vo
 
 
         // Create new tabgroup
-        const group: TabGroup = await TabService.INSTANCE.addTabGroup(newTabWindowOptions);
+        const group: DesktopTabGroup = await TabService.INSTANCE.addTabGroup(newTabWindowOptions);
 
         group.isRestored = true;
 
@@ -157,8 +158,8 @@ export function uuidv4(): string {
 export function getWindowAt(x: number, y: number, exclude?: Identity) {
     const point: Point = {x, y};
     const id = exclude ? `${exclude.uuid}/${exclude.name}` : null;
-    const windows: SnapWindow[] = (window as Window & {snapService: SnapService}).snapService['windows'];
-    const windowsAtPoint: SnapWindow[] = windows.filter((window: SnapWindow) => {
+    const windows: DesktopWindow[] = (window as Window & {model: DesktopModel}).model['windows'];
+    const windowsAtPoint: DesktopWindow[] = windows.filter((window: DesktopWindow) => {
         const state: WindowState = Object.assign({}, window.getState());
 
         // Ignore any windows that are snapped (temporary solution - see SERVICE-230/SERVICE-200)

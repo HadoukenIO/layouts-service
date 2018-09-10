@@ -1,20 +1,20 @@
 import {Provider} from 'hadouken-js-adapter/out/types/src/api/services/provider';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
-
 import {TabAPI} from '../client/APITypes';
-
-import {SnapGroup} from './snapanddock/SnapGroup';
+import {DesktopModel} from './model/DesktopModel';
+import {DesktopWindow, WindowIdentity} from './model/DesktopWindow';
 import {SnapService} from './snapanddock/SnapService';
-import {SnapWindow, WindowIdentity} from './snapanddock/SnapWindow';
 import {win10Check} from './snapanddock/utils/platform';
 import {TabService} from './tabbing/TabService';
 import {generateLayout} from './workspaces/create';
 import {getAppToRestore, restoreApplication, restoreLayout} from './workspaces/restore';
 
+export let model: DesktopModel;
 export let snapService: SnapService;
 export let tabService: TabService;
 export let providerChannel: Provider;
 declare const window: Window&{
+    model: DesktopModel;
     providerChannel: Provider;
     snapService: SnapService;
     tabService: TabService;
@@ -85,8 +85,9 @@ async function registerService() {
 }
 
 export async function main() {
-    snapService = window.snapService = new SnapService();
-    tabService = window.tabService = new TabService();
+    model = window.model = new DesktopModel();
+    snapService = window.snapService = new SnapService(model);
+    tabService = window.tabService = new TabService(model);
     await win10Check;
     return await registerService();
 }
@@ -94,10 +95,10 @@ export async function main() {
 /**
  * Sends a service message to the specified SnapWindow
  * @param {GroupEventType} action The type of event being raised. The client will listen based on this value.
- * @param {SnapWindow} window The target to which the message will be sent
+ * @param {DesktopWindow} window The target to which the message will be sent
  * @param {fin.OpenFinServiceProvider} provider Provider object wrapping an instance of the openfin layouts service
  */
-function sendWindowServiceMessage(action: GroupEventType, window: SnapWindow, provider: fin.OpenFinServiceProvider) {
+function sendWindowServiceMessage(action: GroupEventType, window: DesktopWindow, provider: fin.OpenFinServiceProvider) {
     console.log('Dispatching window message: ', action, 'to window: ', window.getIdentity());
     provider.dispatch(window.getIdentity(), action, {});
 }

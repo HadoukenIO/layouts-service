@@ -1,6 +1,7 @@
 import {TabWindowOptions} from '../../client/types';
+import {DesktopTabGroup} from '../model/DesktopTabGroup';
+
 import {AsyncWindow} from './asyncWindow';
-import {TabGroup} from './TabGroup';
 import {TabService} from './TabService';
 import {TabWindow} from './TabWindow';
 
@@ -33,7 +34,7 @@ export class GroupWindow extends AsyncWindow {
     /**
      * Handle to this windows tab group.
      */
-    private _tabGroup: TabGroup;
+    private _tabGroup: DesktopTabGroup;
 
     /**
      * Flag for if the window is maximized.
@@ -50,7 +51,7 @@ export class GroupWindow extends AsyncWindow {
      * @param windowOptions Window Options for creating the tab set.
      * @param tabGroup The tab group to which this window belongs.
      */
-    constructor(windowOptions: TabWindowOptions, tabGroup: TabGroup) {
+    constructor(windowOptions: TabWindowOptions, tabGroup: DesktopTabGroup) {
         super();
         this._tabGroup = tabGroup;
 

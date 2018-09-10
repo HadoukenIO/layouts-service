@@ -9,9 +9,7 @@
     },
     "include": [
         "src/fin.d.ts",
-        "src/provider/snapanddock/**/*.ts",
-        "src/provider/tabbing/**/*.ts",
-        "src/provider/workspaces/**/*.ts",
+        "src/provider/**/*.ts",
         "src/client/main.ts"
     ]
 }

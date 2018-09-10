@@ -1061,9 +1061,8 @@ declare namespace fin {
         /**
          * Registers an event listener on the specified event.
          */
-        addEventListener(
-            type: 'bounds-changed'|'bounds-changing', listener: (event: WindowBoundsEvent) => void, callback?: () => void,
-            errorCallback?: (reason: string) => void): void;
+        addEventListener(type: 'bounds-changed'|'bounds-changing', listener: (event: WindowBoundsEvent) => void, callback?: () => void, errorCallback?: (reason: string) => void): void;
+        addEventListener(type: 'group-changed', listener: (event: WindowGroupChangedEvent) => void, callback?: () => void, errorCallback?: (reason: string) => void): void;
         addEventListener(
             type: OpenFinWindowEventType,
             listener: (event: WindowBaseEvent|WindowAuthRequestedEvent|WindowBoundsEvent|WindowExternalProcessStartedEvent|WindowExternalProcessExited|
@@ -1176,10 +1175,8 @@ declare namespace fin {
          */
         moveTo(left: number, top: number, callback?: () => void, errorCallback?: (reason: string) => void): void;
 
-        removeEventListener(
-            type: 'bounds-changed'|'bounds-changing', 
-            listener: (event: WindowBoundsEvent) => void, callback?: () => void,
-            errorCallback?: (reason: string) => void): void;
+        removeEventListener(type: 'bounds-changed'|'bounds-changing', listener: (event: WindowBoundsEvent) => void, callback?: () => void,errorCallback?: (reason: string) => void): void;
+        removeEventListener(type: 'group-changed', listener: (event: WindowGroupChangedEvent) => void, callback?: () => void, errorCallback?: (reason: string) => void): void;
         /**
          * Removes a previously registered event listener from the specified event.
          */

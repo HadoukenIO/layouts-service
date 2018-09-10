@@ -1,8 +1,8 @@
-import { Application, Identity } from 'hadouken-js-adapter';
-import { _Window } from 'hadouken-js-adapter/out/types/src/api/window/window';
+import {Application, Identity} from 'hadouken-js-adapter';
+import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import { Layout, LayoutApp } from '../client/types';
-import { positionWindow } from '../provider/workspaces/utils';
+import {Layout, LayoutApp} from '../client/types';
+import {positionWindow} from '../provider/workspaces/utils';
 
 import * as Storage from './storage';
 
@@ -13,7 +13,7 @@ export interface Workspace {
 
 import * as Layouts from '../client/main';
 
-declare var window: _Window & { forgetMe: (identity: Identity) => void };
+declare var window: _Window&{forgetMe: (identity: Identity) => void};
 
 let numChildren = 0;
 let numTabbedWindows = 0;
@@ -26,7 +26,7 @@ export async function setLayout(layoutParam?: Layout) {
     const id = (document.getElementById('layoutName') as HTMLTextAreaElement).value;
     const layoutSelect = document.getElementById('layoutSelect') as HTMLSelectElement;
     const layout = layoutParam || await Layouts.generateLayout();
-    const workspace = { id, layout };
+    const workspace = {id, layout};
 
     if (layoutSelect) {
         let optionPresent = false;
@@ -130,7 +130,7 @@ export async function createAppProgrammatically4() {
             url: `http://localhost:1337/demo/app4.html`,
             uuid: 'App-4',
             name: 'App-4',
-            mainWindowOptions: { defaultWidth: 400, defaultHeight: 300, saveWindowState: false, autoShow: true, defaultCentered: true }
+            mainWindowOptions: {defaultWidth: 400, defaultHeight: 300, saveWindowState: false, autoShow: true, defaultCentered: true}
         },
         () => {
             app.run();
@@ -143,7 +143,7 @@ export async function createAppProgrammatically5() {
             url: `http://localhost:1337/demo/app5.html`,
             uuid: 'App-5',
             name: 'App-5',
-            mainWindowOptions: { defaultWidth: 300, defaultHeight: 400, saveWindowState: false, autoShow: true, defaultCentered: true }
+            mainWindowOptions: {defaultWidth: 300, defaultHeight: 400, saveWindowState: false, autoShow: true, defaultCentered: true}
         },
         () => {
             app.run();
@@ -183,7 +183,7 @@ export function createTabbedWindow(page: string) {
             url: `http://localhost:1337/demo/tabbing/App/${page}.html`,
             uuid,
             name: uuid,
-            mainWindowOptions: { defaultWidth: 400, defaultHeight: 300, saveWindowState: false, autoShow: true, defaultCentered: true }
+            mainWindowOptions: {defaultWidth: 400, defaultHeight: 300, saveWindowState: false, autoShow: true, defaultCentered: true}
         },
         () => {
             app.run();
@@ -196,9 +196,9 @@ async function onAppRes(layoutApp: LayoutApp): Promise<LayoutApp> {
     // We use the v1 version of Application.getCurrent() due to an event-loop bug
     // when calling the v2 version inside a channel callback. Due for fix in v35
     const ofApp = fin.desktop.Application.getCurrent();
-    const openWindows = await new Promise<any[]>(res => ofApp.getChildWindows(res));
+    const openWindows = await new Promise<fin.OpenFinWindow[]>(res => ofApp.getChildWindows(res));
     const openAndPosition = layoutApp.childWindows.map(async (win, index) => {
-        if (!openWindows.some((w: Application) => w.identity.name === win.name)) {
+        if (!openWindows.some((w: fin.OpenFinWindow) => w.name === win.name)) {
             const ofWin = await openChild(win.name, index, win.frame, win.info.url);
             await positionWindow(win);
         } else {
@@ -242,7 +242,7 @@ Layouts.deregister();
 
 // Allow layouts service to save and restore this application
 Layouts.onApplicationSave(() => {
-    return { test: true };
+    return {test: true};
 });
 Layouts.onAppRestore(onAppRes);
 Layouts.ready();

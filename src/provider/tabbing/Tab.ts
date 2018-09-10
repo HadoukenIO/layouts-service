@@ -3,6 +3,7 @@ import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus
 
 import {AppApiEvents, TabApiEvents} from '../../client/APITypes';
 import {JoinTabGroupPayload, TabGroupEventPayload, TabIdentifier, TabPackage, TabProperties, TabServiceID} from '../../client/types';
+import {getClientConnection} from '../workspaces/utils';
 
 import {TabGroup} from './TabGroup';
 import {TabWindow} from './TabWindow';
@@ -63,22 +64,16 @@ export class Tab {
         return this;
     }
 
-
     public async sendTabbedEvent() {
-        const tabConnection: ProviderIdentity|undefined = this.mService.connections.find(conn => conn.uuid === this.ID.uuid && conn.name === this.ID.name);
+        const payload = {tabGroupID: this.tabGroup.ID, tabID: this.ID, tabProps: this._tabProperties, index: this.tabGroup.getTabIndex(this._tabID)};
+
+        const tabConnection = getClientConnection(this.ID);
         if (tabConnection) {
-            this.mService.dispatch(
-                tabConnection,
-                'join-tab-group',
-                {tabGroupID: this.tabGroup.ID, tabID: this.ID, tabProps: this._tabProperties, index: this.tabGroup.getTabIndex(this._tabID)});
+            this.mService.dispatch(tabConnection, 'join-tab-group', payload);
         }
-        const tabStripConnection: ProviderIdentity|undefined =
-            this.mService.connections.find(conn => conn.uuid === TabServiceID.UUID && conn.name === this.tabGroup.ID);
+        const tabStripConnection = getClientConnection({uuid: TabServiceID.UUID, name: this.tabGroup.ID});
         if (tabStripConnection) {
-            this.mService.dispatch(
-                tabStripConnection,
-                'join-tab-group',
-                {tabGroupID: this.tabGroup.ID, tabID: this.ID, tabProps: this._tabProperties, index: this.tabGroup.getTabIndex(this._tabID)});
+            this.mService.dispatch(tabStripConnection, 'join-tab-group', payload);
         }
     }
 
@@ -99,13 +94,12 @@ export class Tab {
 
         const payload: TabGroupEventPayload = {tabGroupId: this.tabGroup.ID, tabID: this.ID};
 
-        const tabConnection: ProviderIdentity|undefined = this.mService.connections.find(conn => conn.uuid === this.ID.uuid && conn.name === this.ID.name);
+        const tabConnection = getClientConnection(this.ID);
         if (tabConnection) {
             this.mService.dispatch(tabConnection, 'leave-tab-group', payload);
         }
 
-        const tabStripConnection: ProviderIdentity|undefined =
-            this.mService.connections.find(conn => conn.uuid === TabServiceID.UUID && conn.name === this.tabGroup.ID);
+        const tabStripConnection = getClientConnection({uuid: TabServiceID.UUID, name: this.tabGroup.ID});
         if (tabStripConnection) {
             this.mService.dispatch(tabStripConnection, 'leave-tab-group', payload);
         }

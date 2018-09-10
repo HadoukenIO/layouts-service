@@ -8,7 +8,7 @@ import {promiseMap} from '../snapanddock/utils/async';
 import {getTabSaveInfo} from '../tabbing/SaveAndRestoreAPI';
 
 import {getGroup} from './group';
-import {isClientConnection, wasCreatedFromManifest, wasCreatedProgrammatically} from './utils';
+import {getClientConnection, isClientConnection, wasCreatedFromManifest, wasCreatedProgrammatically} from './utils';
 
 // tslint:disable-next-line:no-any
 declare var fin: any;
@@ -94,10 +94,10 @@ export const generateLayout = async(payload: null, identity: Identity): Promise<
             // HOW TO DEAL WITH HUNG REQUEST HERE? RESHAPE IF GET NOTHING BACK?
             // tslint:disable-next-line:no-any
             let customData: any = undefined;
-            const appConnection = providerChannel.connections.find(conn => conn.uuid === app.uuid && conn.name === app.uuid);
+            const appConnection = getClientConnection(app);
             if (appConnection) {
                 customData = await providerChannel.dispatch(appConnection, 'savingLayout', app);
-            } 
+            }
 
             if (!customData) {
                 customData = null;

@@ -4,6 +4,7 @@ import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 import {LayoutApp, TabIdentifier, WindowState} from '../../client/types';
 import {swapTab} from '../tabbing/SaveAndRestoreAPI';
 import { ChannelProvider } from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
+import { ApplicationInfo } from 'hadouken-js-adapter/out/types/src/api/application/application';
 
 declare var providerChannel: ChannelProvider;
 
@@ -133,8 +134,9 @@ export const createTabPlaceholder = async (win: WindowState) => {
     return placeholder;
 };
 
-export const wasCreatedProgrammatically = (app: LayoutApp) => {
-    return app && app.initialOptions && app.initialOptions.uuid && app.initialOptions.url;
+export const wasCreatedProgrammatically = (app: ApplicationInfo | LayoutApp) => {
+    const initialOptions = app.initialOptions as {uuid: string, url: string};
+    return app && app.initialOptions && initialOptions.uuid && initialOptions.url;
 };
 
 interface AppInfo {
@@ -144,9 +146,10 @@ interface AppInfo {
 }
 
 // Type here should be ApplicationInfo from the js-adapter (needs to be updated)
-export const wasCreatedFromManifest = (app: AppInfo, uuid?: string) => {
-    const {manifest, manifestUrl} = app;
-    const appUuid = uuid || app.uuid;
+export const wasCreatedFromManifest = (app: ApplicationInfo, uuid?: string) => {
+
+    const {manifest} = {...app, uuid} as AppInfo;
+    const appUuid = uuid || '';
     return typeof manifest === 'object' && manifest.startup_app && manifest.startup_app.uuid === appUuid;
 };
 

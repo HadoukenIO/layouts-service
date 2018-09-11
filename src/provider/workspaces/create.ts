@@ -9,9 +9,9 @@ import {getTabSaveInfo} from '../tabbing/SaveAndRestoreAPI';
 
 import {getGroup} from './group';
 import {getClientConnection, isClientConnection, wasCreatedFromManifest, wasCreatedProgrammatically, sendToClient} from './utils';
+import { WindowInfo } from 'hadouken-js-adapter/out/types/src/api/system/window';
+import { ApplicationInfo } from 'hadouken-js-adapter/out/types/src/api/application/application';
 
-// tslint:disable-next-line:no-any
-declare var fin: any;
 
 export const getCurrentLayout = async(): Promise<Layout> => {
     // Not yet using monitor info
@@ -30,9 +30,10 @@ export const getCurrentLayout = async(): Promise<Layout> => {
     });
 
     const apps = await fin.System.getAllWindows();
-    let layoutApps = await promiseMap(apps, async (app: LayoutApp) => {
+    let layoutApps = await promiseMap<WindowInfo, LayoutApp|null>(apps, async (windowInfo: WindowInfo) => {
+        const app = windowInfo as LayoutApp;
+        const {uuid} = app;
         try {
-            const {uuid} = app;
             const ofApp = await fin.Application.wrap({uuid});
 
             // If not running or showing, not part of layout
@@ -45,7 +46,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
 
             const appInfo = await ofApp.getInfo().catch((e: Error) => {
                 console.log('Appinfo Error', e);
-                return {};
+                return {} as ApplicationInfo;
             });
 
             const mainOfWin = await ofApp.getWindow();
@@ -65,7 +66,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
             } else if (wasCreatedProgrammatically(appInfo)) {
                 delete appInfo.manifest;
                 delete appInfo.manifestUrl;
-                return {...app, ...appInfo, uuid, confirmed: false};
+                return {...app, ...appInfo, uuid, confirmed: false} as LayoutApp;
             } else {
                 console.error('Not saving app, cannot restore:', app);
                 return null;
@@ -79,7 +80,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
     console.log('Pre-Layout Save Apps:', apps);
 
     const layoutObject = {type: 'layout', apps: layoutApps, monitorInfo, tabGroups};
-    return layoutObject;
+    return layoutObject as Layout;
 };
 
 // No payload. Just returns the current layout with child windows.

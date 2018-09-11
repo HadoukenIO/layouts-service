@@ -3,7 +3,9 @@ import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {LayoutApp, TabIdentifier, WindowState} from '../../client/types';
 import {swapTab} from '../tabbing/SaveAndRestoreAPI';
-import { providerChannel } from '../main';
+import { ChannelProvider } from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
+
+declare var providerChannel: ChannelProvider;
 
 export const isClientConnection = (identity: LayoutApp|Identity) => {
     // i want to access connections....

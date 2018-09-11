@@ -1,3 +1,5 @@
+import {ProviderIdentity} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/channel';
+import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {TabAPI} from '../client/APITypes';
@@ -9,8 +11,6 @@ import {win10Check} from './snapanddock/utils/platform';
 import {TabService} from './tabbing/TabService';
 import {generateLayout} from './workspaces/create';
 import {getAppToRestore, restoreApplication, restoreLayout} from './workspaces/restore';
-import { ChannelProvider } from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
-import { ProviderIdentity } from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/channel';
 
 export let snapService: SnapService;
 export let tabService: TabService;
@@ -100,7 +100,7 @@ export async function main() {
  */
 function sendWindowServiceMessage(action: GroupEventType, window: SnapWindow, provider: ChannelProvider) {
     const {uuid, name} = window.getIdentity();
-    const to: ProviderIdentity | undefined = provider.connections.find(conn => conn.uuid === uuid && conn.name === name);
+    const to: ProviderIdentity|undefined = provider.connections.find(conn => conn.uuid === uuid && conn.name === name);
     if (to) {
         console.log('Dispatching window message: ', action, 'to window: ', window.getIdentity());
         provider.dispatch(to, action, {});

@@ -11,6 +11,7 @@ import {createTabGroupsFromTabBlob} from '../tabbing/TabUtilities';
 
 import {regroupLayout} from './group';
 import {createAppPlaceholders, createNormalPlaceholder, createTabPlaceholder, getClientConnection, isClientConnection, positionWindow, wasCreatedProgrammatically} from './utils';
+import { _Window } from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 const appsToRestore = new Map();
 
@@ -112,8 +113,7 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
             const openChildWindows = await mainApp.getChildWindows();
             for (const win of app.childWindows) {
                 // Here we're checking if the incoming child window is already open or not.
-                /*tslint:disable-next-line:no-any*/
-                const windowIsOpen = openChildWindows.some((openWin: any) => openWin.identity.name === win.name);
+                const windowIsOpen = openChildWindows.some((openWin: _Window) => openWin.identity.name === win.name);
 
                 if (!windowIsOpen) {
                     if (inTabbedWindowsObject(win)) {

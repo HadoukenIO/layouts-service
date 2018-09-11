@@ -249,6 +249,10 @@ export class SnapService {
 
                 window.addEventListener('group-changed', this.onWindowGroupChanged.bind(this));
 
+                // Remove the window from pendingRegitrations
+                const pendingIndex = this.pendingRegistrations.findIndex(w => w.name === window.name && w.uuid === window.uuid);
+                this.pendingRegistrations.splice(pendingIndex, 1);
+
                 return snapWindow;
             }
         });

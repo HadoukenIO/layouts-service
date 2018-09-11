@@ -385,7 +385,7 @@ export class SnapService {
                 const windowUnderPoint = getWindowAt(activeState.center.x, activeState.center.y, currentDragWindowIdentity);
 
                 // There is a window under our drop point
-                if (windowUnderPoint) {
+                if (windowUnderPoint && this.getSnapWindow(windowUnderPoint)!.getState().state !== 'minimized') {
                     if (TabService.INSTANCE.applicationConfigManager.compareConfigBetweenApplications(windowUnderPoint.uuid, currentDragWindowIdentity.uuid)) {
                         const tabGroupUnderPoint = TabService.INSTANCE.getTabGroupByApp(windowUnderPoint);
                         // The window under drop point is a tab group

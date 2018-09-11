@@ -148,7 +148,7 @@ interface AppInfo {
 // Type here should be ApplicationInfo from the js-adapter (needs to be updated)
 export const wasCreatedFromManifest = (app: ApplicationInfo, uuid?: string) => {
     const {manifest} = {...app, uuid} as AppInfo;
-    const appUuid = uuid || '';
+    const appUuid = uuid || undefined;
     return typeof manifest === 'object' && manifest.startup_app && manifest.startup_app.uuid === appUuid;
 };
 

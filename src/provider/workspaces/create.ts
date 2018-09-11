@@ -1,5 +1,7 @@
 import {Window} from 'hadouken-js-adapter';
+import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/application/application';
 import Fin from 'hadouken-js-adapter/out/types/src/api/fin';
+import {WindowInfo} from 'hadouken-js-adapter/out/types/src/api/system/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {CustomData, Layout, LayoutApp, WindowState} from '../../client/types';
@@ -8,9 +10,7 @@ import {promiseMap} from '../snapanddock/utils/async';
 import {getTabSaveInfo} from '../tabbing/SaveAndRestoreAPI';
 
 import {getGroup} from './group';
-import {getClientConnection, isClientConnection, wasCreatedFromManifest, wasCreatedProgrammatically, sendToClient} from './utils';
-import { WindowInfo } from 'hadouken-js-adapter/out/types/src/api/system/window';
-import { ApplicationInfo } from 'hadouken-js-adapter/out/types/src/api/application/application';
+import {getClientConnection, isClientConnection, sendToClient, wasCreatedFromManifest, wasCreatedProgrammatically} from './utils';
 
 
 export const getCurrentLayout = async(): Promise<Layout> => {

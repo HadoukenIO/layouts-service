@@ -1,4 +1,5 @@
 import {Application} from 'hadouken-js-adapter/out/types/src/api/application/application';
+import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {Layout, LayoutApp, LayoutName, WindowState} from '../../client/types';
@@ -11,7 +12,6 @@ import {createTabGroupsFromTabBlob} from '../tabbing/TabUtilities';
 
 import {regroupLayout} from './group';
 import {createAppPlaceholders, createNormalPlaceholder, createTabPlaceholder, getClientConnection, isClientConnection, positionWindow, wasCreatedProgrammatically} from './utils';
-import { _Window } from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 const appsToRestore = new Map();
 

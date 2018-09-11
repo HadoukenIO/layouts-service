@@ -126,7 +126,8 @@ export const createTabPlaceholder = async (win: WindowState) => {
         });
 
     const actualWindow = await fin.Window.wrap({uuid, name});
-    actualWindow.on('initialized', async () => {
+    // @ts-ignore
+    actualWindow.on('shown', async () => {
         await swapTab(actualWindow.identity as TabIdentifier, placeholder);
         placeholder.close();
     });

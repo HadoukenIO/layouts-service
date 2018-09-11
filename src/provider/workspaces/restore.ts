@@ -11,7 +11,7 @@ import {TabService} from '../tabbing/TabService';
 import {createTabGroupsFromTabBlob} from '../tabbing/TabUtilities';
 
 import {regroupLayout} from './group';
-import {createAppPlaceholders, createNormalPlaceholder, createTabPlaceholder, getClientConnection, isClientConnection, positionWindow, wasCreatedProgrammatically} from './utils';
+import {childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, getClientConnection, inTabbedPlaceholdersToWindowsObject, inTabbedWindowsObject, positionWindow, TabbedPlaceholders, TabbedWindows, wasCreatedProgrammatically} from './utils';
 
 const appsToRestore = new Map();
 
@@ -61,74 +61,8 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
 
     const layout = payload;
     const startupApps: Promise<LayoutApp>[] = [];
-    const tabbedWindows: {[uuid: string]: {[name: string]: boolean}} = {};
-    const tabbedPlaceholdersToWindows: {[uuid: string]: {[name: string]: WindowIdentity}} = {};
-
-    // Helper function to determine if a window is tabbed.
-    function inTabbedWindowsObject(win: {uuid: string, name: string}) {
-        if (tabbedWindows[win.uuid]) {
-            if (tabbedWindows[win.uuid][win.name]) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // Helper function to determine if a window has a corresponding placeholder.
-    function inTabbedPlaceholdersToWindowsObject(win: {uuid: string, name: string}) {
-        if (tabbedPlaceholdersToWindows[win.uuid]) {
-            if (tabbedPlaceholdersToWindows[win.uuid][win.name]) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // Creates a tabbing placeholder and records the information for its corresponding window.
-    async function createTabbedPlaceholderAndRecord(win: WindowState) {
-        const tabPlaceholder = await createTabPlaceholder(win);
-        tabbedPlaceholdersToWindows[win.uuid] =
-            Object.assign({}, tabbedPlaceholdersToWindows[win.uuid], {[win.name]: {name: tabPlaceholder.name, uuid: tabPlaceholder.uuid}});
-    }
-
-    // Helper function to determine what type of placeholder window to open.
-    async function childWindowPlaceholderCheck(app: LayoutApp) {
-        if (app.confirmed) {
-            for (const win of app.childWindows) {
-                if (inTabbedWindowsObject(win)) {
-                    await createTabbedPlaceholderAndRecord(win);
-                } else {
-                    await createNormalPlaceholder(win);
-                }
-            }
-        } else {
-            return;
-        }
-    }
-
-    // Helper function to determine which placeholder windows to create for a running application's child windows.
-    async function childWindowPlaceholderCheckRunningApp(app: LayoutApp) {
-        if (app.confirmed) {
-            const mainApp = await fin.Application.wrap(app.mainWindow);
-            const openChildWindows = await mainApp.getChildWindows();
-            for (const win of app.childWindows) {
-                // Here we're checking if the incoming child window is already open or not.
-                const windowIsOpen = openChildWindows.some((openWin: _Window) => openWin.identity.name === win.name);
-
-                if (!windowIsOpen) {
-                    if (inTabbedWindowsObject(win)) {
-                        await createTabbedPlaceholderAndRecord(win);
-                    } else {
-                        await createNormalPlaceholder(win);
-                    }
-                } else {
-                    await removeTab(win);
-                }
-            }
-        } else {
-            return;
-        }
-    }
+    const tabbedWindows: TabbedWindows = {};
+    const tabbedPlaceholdersToWindows: TabbedPlaceholders = {};
 
     // Create tabbedWindows list so we don't have to iterate over all of the tabGroup/TabBlob arrays.
     payload.tabGroups.forEach((tabGroup) => {
@@ -151,37 +85,38 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
             await removeTab(app.mainWindow);
 
             // Need to check its child windows here, if confirmed.
-            await childWindowPlaceholderCheckRunningApp(app);
+            await childWindowPlaceholderCheckRunningApp(app, tabbedWindows, tabbedPlaceholdersToWindows);
         } else {
-            if (inTabbedWindowsObject(app.mainWindow)) {
-                await createTabbedPlaceholderAndRecord(app.mainWindow);
-                await childWindowPlaceholderCheck(app);
+            if (inTabbedWindowsObject(app.mainWindow, tabbedWindows)) {
+                await createTabbedPlaceholderAndRecord(app.mainWindow, tabbedPlaceholdersToWindows);
+                await childWindowPlaceholderCheck(app, tabbedWindows, tabbedPlaceholdersToWindows);
             } else {
                 await createNormalPlaceholder(app.mainWindow);
-                await childWindowPlaceholderCheck(app);
+                await childWindowPlaceholderCheck(app, tabbedWindows, tabbedPlaceholdersToWindows);
             }
         }
     }
 
-    await promiseMap(payload.apps, createAllPlaceholders);
+    // Kick off placeholder creation for all apps.
+    await promiseMap(layout.apps, createAllPlaceholders);
 
     // Edit the tabGroups object with the placeholder window names/uuids, so we can create a Tab Group with a combination of open applications and placeholder
     // windows.
-    payload.tabGroups.forEach((tabBlob) => {
+    layout.tabGroups.forEach((tabBlob) => {
         const activeWindow = tabBlob.groupInfo.active;
         // Active Window could be a placeholder window.
-        if (inTabbedPlaceholdersToWindowsObject(activeWindow)) {
+        if (inTabbedPlaceholdersToWindowsObject(activeWindow, tabbedPlaceholdersToWindows)) {
             tabBlob.groupInfo.active = tabbedPlaceholdersToWindows[activeWindow.uuid][activeWindow.name];
         }
 
         tabBlob.tabs.forEach((tabWindow, windowIdx) => {
-            if (inTabbedPlaceholdersToWindowsObject(tabWindow)) {
+            if (inTabbedPlaceholdersToWindowsObject(tabWindow, tabbedPlaceholdersToWindows)) {
                 tabBlob.tabs[windowIdx] = tabbedPlaceholdersToWindows[tabWindow.uuid][tabWindow.name];
             }
         });
     });
 
-    await createTabGroupsFromTabBlob(payload.tabGroups);
+    await createTabGroupsFromTabBlob(layout.tabGroups);
 
     const apps = await promiseMap(layout.apps, async(app: LayoutApp): Promise<LayoutApp> => {
         // Get rid of childWindows for default response (anything else?)
@@ -235,7 +170,6 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
                 if (ofAppNotRunning) {
                     const ofAppNRWindow = await ofAppNotRunning.getWindow();
                     const updateOptionsAndShow = async () => {
-                        console.log("IN SHOW REQUESTED");
                         await ofAppNRWindow.removeListener('show-requested', updateOptionsAndShow);
                         await ofAppNRWindow.showAt(app.mainWindow.left, app.mainWindow.top);
                     };

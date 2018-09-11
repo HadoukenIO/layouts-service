@@ -1,10 +1,12 @@
 import {Window} from 'hadouken-js-adapter';
 import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/application/application';
 import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
+import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {LayoutApp, TabIdentifier, WindowState} from '../../client/types';
-import {swapTab} from '../tabbing/SaveAndRestoreAPI';
+import {WindowIdentity} from '../snapanddock/SnapWindow';
+import {removeTab, swapTab} from '../tabbing/SaveAndRestoreAPI';
 
 declare var providerChannel: ChannelProvider;
 
@@ -34,6 +36,9 @@ export const sendToClient = async (identity: Identity, action: string, payload: 
     }
 };
 
+// Positions a window when it is restored.
+// If the window is supposed to be tabbed, makes it leave its group to avoid tab collision bugs
+// Also given to the client to use.
 export const positionWindow = async (win: WindowState) => {
     try {
         const ofWin = await fin.Window.wrap(win);
@@ -62,13 +67,7 @@ export const positionWindow = async (win: WindowState) => {
     }
 };
 
-export const createAppPlaceholders = async (app: LayoutApp) => {
-    createNormalPlaceholder(app.mainWindow);
-    app.childWindows.forEach((win: WindowState) => {
-        createNormalPlaceholder(win);
-    });
-};
-
+// Creates a placeholder for a normal, non-tabbed window.
 export const createNormalPlaceholder = async (win: WindowState) => {
     if (!win.isShowing || win.state === 'minimized') {
         return;
@@ -103,6 +102,8 @@ export const createNormalPlaceholder = async (win: WindowState) => {
     return placeholder;
 };
 
+// Creates a placeholder for a tabbed window.
+// When the window that is supposed to be tabbed comes up, swaps the placeholder tab with the real window tab and closes the placeholder.
 export const createTabPlaceholder = async (win: WindowState) => {
     const {name, height, width, left, top, uuid} = win;
 
@@ -135,6 +136,7 @@ export const createTabPlaceholder = async (win: WindowState) => {
     return placeholder;
 };
 
+// Check to see if an application was created programmatically.
 export const wasCreatedProgrammatically = (app: ApplicationInfo|LayoutApp) => {
     const initialOptions = app.initialOptions as {uuid: string, url: string};
     return app && app.initialOptions && initialOptions.uuid && initialOptions.url;
@@ -152,7 +154,6 @@ export const wasCreatedFromManifest = (app: ApplicationInfo, uuid?: string) => {
     const appUuid = uuid || undefined;
     return typeof manifest === 'object' && manifest.startup_app && manifest.startup_app.uuid === appUuid;
 };
-
 
 export const showingWindowInApp = async(app: LayoutApp): Promise<boolean> => {
     const {uuid, childWindows} = app;
@@ -177,3 +178,79 @@ const isShowingWindow = async(ofWin: Window): Promise<boolean> => {
     const isShowing = await ofWin.isShowing();
     return isShowing;
 };
+
+export interface TabbedWindows {
+    [uuid: string]: {[name: string]: boolean};
+}
+
+export interface TabbedPlaceholders {
+    [uuid: string]: {[name: string]: WindowIdentity};
+}
+
+// Helper function to determine if a window is supposed to be tabbed in an incoming layout.
+export function inTabbedWindowsObject(win: {uuid: string, name: string}, tabbedWindows: TabbedWindows) {
+    if (tabbedWindows[win.uuid]) {
+        if (tabbedWindows[win.uuid][win.name]) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Creates a tabbing placeholder and records the information for its corresponding window.
+export async function createTabbedPlaceholderAndRecord(win: WindowState, tabbedPlaceholdersToWindows: TabbedPlaceholders) {
+    const tabPlaceholder = await createTabPlaceholder(win);
+    tabbedPlaceholdersToWindows[win.uuid] =
+        Object.assign({}, tabbedPlaceholdersToWindows[win.uuid], {[win.name]: {name: tabPlaceholder.name, uuid: tabPlaceholder.uuid}});
+}
+
+// Helper function to determine if a window has a corresponding placeholder.
+export function inTabbedPlaceholdersToWindowsObject(win: WindowIdentity, tabbedPlaceholdersToWindows: TabbedPlaceholders) {
+    if (tabbedPlaceholdersToWindows[win.uuid]) {
+        if (tabbedPlaceholdersToWindows[win.uuid][win.name]) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Helper function to determine what type of placeholder window to open.
+export async function childWindowPlaceholderCheck(app: LayoutApp, tabbedWindows: TabbedWindows, tabbedPlaceholdersToWindows: TabbedPlaceholders) {
+    if (app.confirmed) {
+        for (const win of app.childWindows) {
+            if (inTabbedWindowsObject(win, tabbedWindows)) {
+                await createTabbedPlaceholderAndRecord(win, tabbedPlaceholdersToWindows);
+            } else {
+                await createNormalPlaceholder(win);
+            }
+        }
+    } else {
+        return;
+    }
+}
+
+
+// Helper function to determine which placeholder windows to create for a running application's child windows.
+// This differs from childWindowPlaceholderCheck because we need to check if child windows are open before we create their placeholders.
+export async function childWindowPlaceholderCheckRunningApp(app: LayoutApp, tabbedWindows: TabbedWindows, tabbedPlaceholdersToWindows: TabbedPlaceholders) {
+    if (app.confirmed) {
+        const mainApp = await fin.Application.wrap(app.mainWindow);
+        const openChildWindows = await mainApp.getChildWindows();
+        for (const win of app.childWindows) {
+            // Here we're checking if the incoming child window is already open or not.
+            const windowIsOpen = openChildWindows.some((openWin: _Window) => openWin.identity.name === win.name);
+
+            if (!windowIsOpen) {
+                if (inTabbedWindowsObject(win, tabbedWindows)) {
+                    await createTabbedPlaceholderAndRecord(win, tabbedPlaceholdersToWindows);
+                } else {
+                    await createNormalPlaceholder(win);
+                }
+            } else {
+                await removeTab(win);
+            }
+        }
+    } else {
+        return;
+    }
+}

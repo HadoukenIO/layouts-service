@@ -2,7 +2,7 @@ import {Window} from 'hadouken-js-adapter';
 import Fin from 'hadouken-js-adapter/out/types/src/api/fin';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
-import {Layout, LayoutApp, WindowState} from '../../client/types';
+import {CustomData, Layout, LayoutApp, WindowState} from '../../client/types';
 import {providerChannel} from '../main';
 import {promiseMap} from '../snapanddock/utils/async';
 import {getTabSaveInfo} from '../tabbing/SaveAndRestoreAPI';
@@ -92,8 +92,7 @@ export const generateLayout = async(payload: null, identity: Identity): Promise<
             console.log('Connected application', app.uuid);
 
             // HOW TO DEAL WITH HUNG REQUEST HERE? RESHAPE IF GET NOTHING BACK?
-            // tslint:disable-next-line:no-any
-            let customData: any = undefined;
+            let customData: CustomData = undefined;
             const appConnection = getClientConnection(app);
             if (appConnection) {
                 customData = await providerChannel.dispatch(appConnection, 'savingLayout', app);

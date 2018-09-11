@@ -141,7 +141,7 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
     // Check if we need to make tabbed vs. normal placeholders for both main windows and child windows.
     // Push those placeholder windows into tabbedPlaceholdersToWindows object
     // If an app is running, we need to check which of its child windows are open.
-    for (const app of payload.apps) {
+    async function createAllPlaceholders(app: LayoutApp) {
         // We use the v1 version of Application.wrap(...) due to an event-loop bug when
         // calling the v2 version inside a channel callback. Due for fix in v35
         const ofApp = fin.desktop.Application.wrap(app.uuid);
@@ -162,6 +162,8 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
             }
         }
     }
+
+    await promiseMap(payload.apps, createAllPlaceholders);
 
     // Edit the tabGroups object with the placeholder window names/uuids, so we can create a Tab Group with a combination of open applications and placeholder
     // windows.

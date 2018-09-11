@@ -1,6 +1,4 @@
 import {Window} from 'hadouken-js-adapter';
-import Fin from 'hadouken-js-adapter/out/types/src/api/fin';
-import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/system/application';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {LayoutApp, TabIdentifier, WindowState} from '../../client/types';
@@ -20,10 +18,19 @@ export const getClientConnection = (identity: Identity) => {
     const {uuid} = identity;
     const name = identity.name ? identity.name : uuid;
 
-    // @ts-ignore
+    //@ts-ignore
     return providerChannel.connections.find((conn) => {
         return conn.uuid === uuid && conn.name === name;
     });
+};
+
+// tslint:disable-next-line:no-any
+export const sendToClient = async (identity: Identity, action: string, payload: any) => {
+    const conn = await getClientConnection(identity);
+    if (conn){
+        //@ts-ignore
+        return providerChannel.dispatch(conn, action, payload);
+    }
 };
 
 export const positionWindow = async (win: WindowState) => {

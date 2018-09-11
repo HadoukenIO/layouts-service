@@ -97,7 +97,6 @@ export class SnapService {
         });
 
         // Register global undock hotkey listener
-        // @ts-ignore - v2api types missing
         fin.GlobalHotkey
             .register(
                 'CommandOrControl+Shift+U',

@@ -3,12 +3,12 @@ import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {LayoutApp, TabIdentifier, WindowState} from '../../client/types';
 import {swapTab} from '../tabbing/SaveAndRestoreAPI';
+import { providerChannel } from '../main';
 
 export const isClientConnection = (identity: LayoutApp|Identity) => {
     // i want to access connections....
     const {uuid} = identity;
 
-    // @ts-ignore
     return providerChannel.connections.some((conn: Identity) => {
         return identity.uuid === conn.uuid;
     });
@@ -18,7 +18,6 @@ export const getClientConnection = (identity: Identity) => {
     const {uuid} = identity;
     const name = identity.name ? identity.name : uuid;
 
-    //@ts-ignore
     return providerChannel.connections.find((conn) => {
         return conn.uuid === uuid && conn.name === name;
     });
@@ -28,7 +27,6 @@ export const getClientConnection = (identity: Identity) => {
 export const sendToClient = async (identity: Identity, action: string, payload: any) => {
     const conn = await getClientConnection(identity);
     if (conn){
-        //@ts-ignore
         return providerChannel.dispatch(conn, action, payload);
     }
 };
@@ -86,16 +84,15 @@ export const createNormalPlaceholder = async (win: WindowState) => {
             defaultTop: top,
             saveWindowState: false,
             opacity: 0.6,
-            // @ts-ignore Types file out of date. Is actually a valid option.
             backgroundColor: '#D3D3D3'
         },
         () => {
-            placeholder.nativeWindow.document.body.style.overflow = 'hidden';
-            placeholder.nativeWindow.document.bgColor = 'D3D3D3';
+            placeholder.getNativeWindow().document.body.style.overflow = 'hidden';
+            placeholder.getNativeWindow().document.bgColor = 'D3D3D3';
         });
 
     const actualWindow = await fin.Window.wrap({uuid, name});
-    // @ts-ignore
+    // @ts-ignore v2 types missing 'shown' event.
     actualWindow.on('shown', () => {
         placeholder.close();
     });
@@ -118,12 +115,11 @@ export const createTabPlaceholder = async (win: WindowState) => {
             defaultTop: top,
             saveWindowState: false,
             opacity: 0.6,
-            // @ts-ignore Types file out of date. Is actually a valid option.
             backgroundColor: '#D3D3D3'
         },
         () => {
-            placeholder.nativeWindow.document.body.style.overflow = 'hidden';
-            placeholder.nativeWindow.document.bgColor = 'D3D3D3';
+            placeholder.getNativeWindow().document.body.style.overflow = 'hidden';
+            placeholder.getNativeWindow().document.bgColor = 'D3D3D3';
         });
 
     const actualWindow = await fin.Window.wrap({uuid, name});

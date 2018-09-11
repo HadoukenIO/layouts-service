@@ -339,6 +339,12 @@ declare namespace fin {
          * white window. Default: true.
          */
         waitForPageLoad?: boolean;
+
+        smallWindow?: boolean;
+
+        backgroundThrottling?: boolean;
+
+        backgroundColor?: string;
     }
 
     /**

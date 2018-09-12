@@ -425,17 +425,26 @@ export class SnapWindow {
         }
     };
     private handleFocused = async () => {
-        // Loop through all windows in the same group as the focused window and bring them
-        // all to front
-        this.window.getGroup(async (group: fin.OpenFinWindow[]) => {
-            const promises: Promise<void>[] = [];
-            for (let i = 0; i < group.length; i++) {
-                promises[i] = new Promise<void>((res, rej) => {
-                    group[i].bringToFront(res, rej);
-                });
-            }
+        // If the window is maximised, we leave everything where it is
+        if (this.state.state !== 'maximized') {
+            // Loop through all windows in the same group as the focused window and bring them
+            // all to front
+            this.window.getGroup(async (group: fin.OpenFinWindow[]) => {
+                const promises: Promise<void>[] = [];
+                for (let i = 0; i < group.length; i++) {
+                    promises[i] = new Promise<void>(async (res, rej) => {
+                        group[i].getState(state => {
+                            if (state !== 'maximized') {
+                                group[i].bringToFront(res, rej);
+                            } else {
+                                res();
+                            }
+                        }, rej);
+                    });
+                }
 
-            await Promise.all(promises);
-        });
+                await Promise.all(promises);
+            });
+        }
     }
 }

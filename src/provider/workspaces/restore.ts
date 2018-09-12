@@ -1,21 +1,18 @@
 import {Application} from 'hadouken-js-adapter/out/types/src/api/application/application';
+import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {Layout, LayoutApp, LayoutName, WindowState} from '../../client/types';
 import {providerChannel} from '../main';
 import {WindowIdentity} from '../snapanddock/SnapWindow';
-import {promiseMap} from '../snapanddock/utils/async';
+import {p, promiseMap} from '../snapanddock/utils/async';
 import {removeTab} from '../tabbing/SaveAndRestoreAPI';
 import {TabService} from '../tabbing/TabService';
 import {createTabGroupsFromTabBlob} from '../tabbing/TabUtilities';
 
 import {regroupLayout} from './group';
-import {createAppPlaceholders, createNormalPlaceholder, createTabPlaceholder, isClientConnection, positionWindow, wasCreatedProgrammatically} from './utils';
+import {createAppPlaceholders, createNormalPlaceholder, createTabPlaceholder, getClientConnection, isClientConnection, positionWindow, wasCreatedProgrammatically} from './utils';
 
-
-
-/*tslint:disable-next-line:no-any*/
-declare var fin: any;
 const appsToRestore = new Map();
 
 interface AppToRestore {
@@ -35,15 +32,18 @@ export const getAppToRestore = (uuid: string): AppToRestore => {
 
 export const restoreApplication = async(layoutApp: LayoutApp, resolve: Function): Promise<void> => {
     const {uuid} = layoutApp;
+    const name = uuid;
     const defaultResponse: LayoutApp = {...layoutApp, childWindows: []};
-    const identity = {uuid, name: uuid};
-    const responseAppLayout: LayoutApp|false = await providerChannel.dispatch(identity, 'restoreApp', layoutApp);
-    if (responseAppLayout) {
-        resolve(responseAppLayout);
-    } else {
-        resolve(defaultResponse);
+    const appConnection = getClientConnection({uuid, name});
+    if (appConnection) {
+        const responseAppLayout: LayoutApp|false = await providerChannel.dispatch(appConnection, 'restoreApp', layoutApp);
+        if (responseAppLayout) {
+            resolve(responseAppLayout);
+        } else {
+            resolve(defaultResponse);
+        }
+        appsToRestore.delete(uuid);
     }
-    appsToRestore.delete(uuid);
 };
 
 export const restoreLayout = async(payload: Layout, identity: Identity): Promise<Layout> => {
@@ -113,8 +113,7 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
             const openChildWindows = await mainApp.getChildWindows();
             for (const win of app.childWindows) {
                 // Here we're checking if the incoming child window is already open or not.
-                /*tslint:disable-next-line:no-any*/
-                const windowIsOpen = openChildWindows.some((openWin: any) => openWin.identity.name === win.name);
+                const windowIsOpen = openChildWindows.some((openWin: _Window) => openWin.identity.name === win.name);
 
                 if (!windowIsOpen) {
                     if (inTabbedWindowsObject(win)) {
@@ -143,9 +142,10 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
     // Push those placeholder windows into tabbedPlaceholdersToWindows object
     // If an app is running, we need to check which of its child windows are open.
     for (const app of payload.apps) {
-        const {uuid} = app;
-        const ofApp = await fin.Application.wrap({uuid});
-        const isRunning = await ofApp.isRunning();
+        // We use the v1 version of Application.wrap(...) due to an event-loop bug when
+        // calling the v2 version inside a channel callback. Due for fix in v35
+        const ofApp = fin.desktop.Application.wrap(app.uuid);
+        const isRunning = await p<boolean>(ofApp.isRunning.bind(ofApp))();
         if (isRunning) {
             // Should de-tab here.
             await removeTab(app.mainWindow);
@@ -186,16 +186,18 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
         const defaultResponse = {...app, childWindows: []};
         try {
             const {uuid} = app;
+            const name = uuid;
             console.log('Restoring App:', app);
             const ofApp = await fin.Application.wrap({uuid});
             const isRunning = await ofApp.isRunning();
             if (isRunning) {
-                if (isClientConnection(app)) {
+                const appConnection = getClientConnection({uuid, name});
+                if (appConnection) {
                     // CREATE CHILD WINDOW PLACEHOLDER IMAGES???
                     await positionWindow(app.mainWindow);
                     console.log('App is running:', app);
                     // Send LayoutApp to connected application so it can handle child WIndows
-                    const response: LayoutApp|false = await providerChannel.dispatch({uuid, name: uuid}, 'restoreApp', app);
+                    const response: LayoutApp|false = await providerChannel.dispatch(appConnection, 'restoreApp', app);
                     console.log('Response from restore:', response);
                     return response ? response : defaultResponse;
                 } else {
@@ -233,7 +235,7 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
                     };
 
                     const notInCoreState = (app: LayoutApp) => {
-                        fin.desktop.Application.createFromManifest(app.manifestUrl, (v1App: fin.OpenFinApplication) => {
+                        fin.desktop.Application.createFromManifest(app.manifestUrl!, (v1App: fin.OpenFinApplication) => {
                             console.log('Created from manifest:', v1App);
                             runV1(v1App);
                         }, (e: Error) => console.error('Create from manifest error:', e));

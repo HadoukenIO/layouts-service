@@ -134,17 +134,17 @@ export class SnapWindow {
         group.addWindow(this);
 
         // Add listeners
-        window.addEventListener('bounds-changed', this.handleBoundsChanged);
-        window.addEventListener('frame-disabled', this.handleFrameDisabled);
-        window.addEventListener('frame-enabled', this.handleFrameEnabled);
-        window.addEventListener('maximized', this.handleMaximized);
-        window.addEventListener('minimized', this.handleMinimized);
-        window.addEventListener('restored', this.handleRestored);
-        window.addEventListener('hidden', this.handleHidden);
-        window.addEventListener('shown', this.handleShown);
-        window.addEventListener('closed', this.handleClosed);
-        window.addEventListener('bounds-changing', this.handleBoundsChanging);
-        window.addEventListener('focused', this.handleFocused);
+        this.registerListener('bounds-changed', this.handleBoundsChanged);
+        this.registerListener('frame-disabled', this.handleFrameDisabled);
+        this.registerListener('frame-enabled', this.handleFrameEnabled);
+        this.registerListener('maximized', this.handleMaximized);
+        this.registerListener('minimized', this.handleMinimized);
+        this.registerListener('restored', this.handleRestored);
+        this.registerListener('hidden', this.handleHidden);
+        this.registerListener('shown', this.handleShown);
+        this.registerListener('closed', this.handleClosed);
+        this.registerListener('bounds-changing', this.handleBoundsChanging);
+        this.registerListener('focused', this.handleFocused);
 
         // When the window's onClose signal is emitted, we cleanup all of the listeners
         this.onClose.add(this.cleanupListeners);
@@ -344,20 +344,20 @@ export class SnapWindow {
         }
     }
 
-    private cleanupListeners = (snapWindow: SnapWindow):
-        void => {
-            console.log('OnClose recieved for window ', this.getId());
-            this.window.removeEventListener('bounds-changed', this.handleBoundsChanged);
-            this.window.removeEventListener('frame-disabled', this.handleFrameDisabled);
-            this.window.removeEventListener('frame-enabled', this.handleFrameEnabled);
-            this.window.removeEventListener('maximized', this.handleMaximized);
-            this.window.removeEventListener('minimized', this.handleMinimized);
-            this.window.removeEventListener('restored', this.handleRestored);
-            this.window.removeEventListener('hidden', this.handleHidden);
-            this.window.removeEventListener('shown', this.handleShown);
-            this.window.removeEventListener('closed', this.handleClosed);
-            this.window.removeEventListener('bounds-changing', this.handleBoundsChanging);
-            this.window.removeEventListener('focused', this.handleFocused);
+    private registeredListeners: Map<keyof fin.OpenfinWindowEventMap, <K extends keyof fin.OpenfinWindowEventMap>(event: fin.OpenfinWindowEventMap[K]) => void> = new Map();
+
+    private registerListener<K extends keyof fin.OpenfinWindowEventMap>(eventType: K, handler: (event: fin.OpenfinWindowEventMap[K]) => void) {
+        this.window.addEventListener(eventType, handler);
+        this.registeredListeners.set(eventType, handler);
+    }
+
+    private cleanupListeners = (snapWindow: SnapWindow): void => {
+            console.log('OnClose recieved for window ', this.getId(), '. Removing listeners');
+            
+            for (const [key, listener] of new Map(this.registeredListeners)) {
+                this.window.removeEventListener(key, listener);
+                this.registeredListeners.delete(key);
+            }
 
             this.onClose.remove(this.cleanupListeners);
         }

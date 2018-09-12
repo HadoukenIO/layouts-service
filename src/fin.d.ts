@@ -1061,13 +1061,8 @@ declare namespace fin {
         /**
          * Registers an event listener on the specified event.
          */
-        addEventListener(
-            type: 'bounds-changed'|'bounds-changing', listener: (event: WindowBoundsEvent) => void, callback?: () => void,
-            errorCallback?: (reason: string) => void): void;
-        addEventListener(
-            type: OpenFinWindowEventType,
-            listener: (event: WindowBaseEvent|WindowAuthRequestedEvent|WindowBoundsEvent|WindowExternalProcessStartedEvent|WindowExternalProcessExited|
-                       WindowGroupChangedEvent|WindowHiddenEvent|Window_NavigationRejectedEvent) => void,
+        addEventListener<K extends keyof OpenfinWindowEventMap>(
+            type: K, listener: (event: OpenfinWindowEventMap[K]) => any,
             callback?: () => void, errorCallback?: (reason: string) => void): void;
         /**
          * Performs the specified window transitions
@@ -1176,17 +1171,11 @@ declare namespace fin {
          */
         moveTo(left: number, top: number, callback?: () => void, errorCallback?: (reason: string) => void): void;
 
-        removeEventListener(
-            type: 'bounds-changed'|'bounds-changing', 
-            listener: (event: WindowBoundsEvent) => void, callback?: () => void,
-            errorCallback?: (reason: string) => void): void;
         /**
          * Removes a previously registered event listener from the specified event.
          */
-        removeEventListener(
-            type: OpenFinWindowEventType,
-            listener: (event: WindowBaseEvent|WindowAuthRequestedEvent|WindowBoundsEvent|WindowExternalProcessStartedEvent|WindowExternalProcessExited|
-                       WindowGroupChangedEvent|WindowHiddenEvent|Window_NavigationRejectedEvent) => void,
+        removeEventListener<K extends keyof OpenfinWindowEventMap>(
+            type: K, listener: (event: OpenfinWindowEventMap[K]) => any,
             callback?: () => void, errorCallback?: (reason: string) => void): void;
         /**
          * Resizes the window by a specified amount.
@@ -1358,6 +1347,32 @@ declare namespace fin {
          * the UUID of the application the window belongs to
          */
         uuid: string;
+    }
+
+    interface OpenfinWindowEventMap {
+        'auth-requested': WindowAuthRequestedEvent;
+        'blurred': WindowBaseEvent;
+        'bounds-changed': WindowBoundsEvent;
+        'bounds-changing': WindowBoundsEvent;
+        'close-requested': WindowBaseEvent;
+        'closed': WindowBaseEvent;
+        'disabled-frame-bounds-changed': WindowBoundsEvent;
+        'disabled-frame-bounds-changing': WindowBoundsEvent;
+        'embedded': WindowBaseEvent;
+        'external-process-exited': WindowExternalProcessExited;
+        'external-process-started': WindowExternalProcessStartedEvent;
+        'focused': WindowBaseEvent;
+        'frame-disabled': WindowBaseEvent;
+        'frame-enabled': WindowBaseEvent;
+        'group-changed': WindowGroupChangedEvent; 
+        'hidden': WindowHiddenEvent;
+        'initialized': WindowBaseEvent;
+        'maximized': WindowBaseEvent;
+        'minimized': WindowBaseEvent;
+        'navigation-rejected': WindowBaseEvent;
+        'restored': WindowBaseEvent;
+        'show-requested': WindowBaseEvent;
+        'shown': WindowBaseEvent;
     }
 
     interface WindowAuthRequestedEvent extends WindowBaseEvent {
@@ -1599,9 +1614,7 @@ declare namespace fin {
     type OpenFinSystemEventType = 'application-closed'|'application-crashed'|'application-created'|'application-started'|'desktop-icon-clicked'|
         'idle-state-changed'|'monitor-info-changed'|'session-changed'|'window-created';
 
-    type OpenFinWindowEventType = 'auth-requested'|'blurred'|'bounds-changed'|'bounds-changing'|'close-requested'|'closed'|'disabled-frame-bounds-changed'|
-        'disabled-frame-bounds-changing'|'embedded'|'external-process-exited'|'external-process-started'|'focused'|'frame-disabled'|'frame-enabled'|
-        'group-changed'|'hidden'|'initialized'|'maximized'|'minimized'|'navigation-rejected'|'restored'|'show-requested'|'shown';
-
+    type OpenFinWindowEventType = keyof OpenfinWindowEventMap;
+    
     type OpenFinAnchor = 'top-left'|'top-right'|'bottom-left'|'bottom-right';
 }

@@ -1,16 +1,14 @@
 import {Window} from 'hadouken-js-adapter';
 import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/application/application';
-import Fin from 'hadouken-js-adapter/out/types/src/api/fin';
-import {WindowInfo} from 'hadouken-js-adapter/out/types/src/api/system/window';
+import {WindowInfo, WindowDetail} from 'hadouken-js-adapter/out/types/src/api/system/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
-import {CustomData, Layout, LayoutApp, WindowState} from '../../client/types';
-import {providerChannel} from '../main';
+import {CustomData, Layout, LayoutApp, WindowState, LayoutWindowData} from '../../client/types';
 import {promiseMap} from '../snapanddock/utils/async';
 import {getTabSaveInfo} from '../tabbing/SaveAndRestoreAPI';
 
 import {getGroup} from './group';
-import {getClientConnection, isClientConnection, sendToClient, wasCreatedFromManifest, wasCreatedProgrammatically} from './utils';
+import {isClientConnection, sendToClient, wasCreatedFromManifest, wasCreatedProgrammatically} from './utils';
 
 
 export const getCurrentLayout = async(): Promise<Layout> => {
@@ -30,30 +28,30 @@ export const getCurrentLayout = async(): Promise<Layout> => {
     });
 
     const apps = await fin.System.getAllWindows();
-    let layoutApps = await promiseMap<WindowInfo, LayoutApp|null>(apps, async (windowInfo: WindowInfo) => {
-        const app = windowInfo as LayoutApp;
-        const {uuid} = app;
+    const layoutApps = await promiseMap<WindowInfo, LayoutApp|null>(apps, async (windowInfo: WindowInfo) => {
         try {
+            const {uuid} = windowInfo;
             const ofApp = await fin.Application.wrap({uuid});
 
             // If not running or showing, not part of layout
             const isRunning = await ofApp.isRunning();
-            const hasMainWindow = !!app.mainWindow.name;
-            const isService = app.uuid === fin.desktop.Application.getCurrent().uuid;
+            const hasMainWindow = !!windowInfo.mainWindow.name;
+            const isService = uuid === fin.desktop.Application.getCurrent().uuid;
             if (!hasMainWindow || !isRunning || isService) {
+                // Not enough info returned for us to restore this app
                 return null;
             }
 
-            const appInfo = await ofApp.getInfo().catch((e: Error) => {
+            const appInfo: ApplicationInfo = await ofApp.getInfo().catch((e: Error) => {
                 console.log('Appinfo Error', e);
                 return {} as ApplicationInfo;
             });
 
-            const mainOfWin = await ofApp.getWindow();
+            const mainOfWin: Window = await ofApp.getWindow();
             const mainWindowLayoutData = await getLayoutWindowData(mainOfWin, tabbedWindows);
 
-            app.mainWindow = {...app.mainWindow, ...mainWindowLayoutData};
-            app.childWindows = await promiseMap(app.childWindows, async (win: WindowState) => {
+            const mainWindow: WindowState = {...windowInfo.mainWindow, ...mainWindowLayoutData};
+            const childWindows: WindowState[] = await promiseMap(windowInfo.childWindows, async (win: WindowDetail) => {
                 const {name} = win;
                 const ofWin = await fin.Window.wrap({uuid, name});
                 const windowLayoutData = await getLayoutWindowData(ofWin, tabbedWindows);
@@ -62,25 +60,25 @@ export const getCurrentLayout = async(): Promise<Layout> => {
             });
             if (wasCreatedFromManifest(appInfo, uuid)) {
                 delete appInfo.manifest;
-                return {...app, ...appInfo, uuid, confirmed: false};
+                return {mainWindow, childWindows, ...appInfo, uuid, confirmed: false};
             } else if (wasCreatedProgrammatically(appInfo)) {
                 delete appInfo.manifest;
                 delete appInfo.manifestUrl;
-                return {...app, ...appInfo, uuid, confirmed: false} as LayoutApp;
+                return {mainWindow, childWindows, ...appInfo, uuid, confirmed: false};
             } else {
-                console.error('Not saving app, cannot restore:', app);
+                console.error('Not saving app, cannot restore:', windowInfo);
                 return null;
             }
         } catch (e) {
-            console.error('Error adding app to layout', app, e);
+            console.error('Error adding app to layout', windowInfo, e);
             return null;
         }
     });
-    layoutApps = layoutApps.filter(a => !!a);
+    const validApps: LayoutApp[] = layoutApps.filter((a): a is LayoutApp => !!a);
     console.log('Pre-Layout Save Apps:', apps);
 
-    const layoutObject = {type: 'layout', apps: layoutApps, monitorInfo, tabGroups};
-    return layoutObject as Layout;
+    const layoutObject: Layout = {type: 'layout', apps: validApps, monitorInfo, tabGroups};
+    return layoutObject;
 };
 
 // No payload. Just returns the current layout with child windows.
@@ -124,7 +122,7 @@ function inTabbedWindowsObject(win: Identity, tabbedWindows: {[uuid: string]: {[
     return false;
 }
 
-const getLayoutWindowData = async (ofWin: Window, tabbedWindows: {[uuid: string]: {[name: string]: boolean}}) => {
+const getLayoutWindowData = async (ofWin: Window, tabbedWindows: {[uuid: string]: {[name: string]: boolean}}):Promise<LayoutWindowData> => {
     const {uuid} = ofWin.identity;
     const info = await ofWin.getInfo();
     const windowGroup = await getGroup(ofWin.identity);
@@ -133,6 +131,7 @@ const getLayoutWindowData = async (ofWin: Window, tabbedWindows: {[uuid: string]
         isTabbed = true;
     }
 
-    const frame: boolean = (await ofWin.getOptions()).frame;
-    return {info, uuid, windowGroup, frame, isTabbed};
+    const options = await ofWin.getOptions();
+    const isShowing: boolean = await ofWin.isShowing();
+    return {info, uuid, windowGroup, frame: options.frame, state: options.state, isTabbed, isShowing};
 };

@@ -1,9 +1,9 @@
 import {Window} from 'hadouken-js-adapter';
 import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/application/application';
-import {WindowInfo, WindowDetail} from 'hadouken-js-adapter/out/types/src/api/system/window';
+import {WindowDetail, WindowInfo} from 'hadouken-js-adapter/out/types/src/api/system/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
-import {CustomData, Layout, LayoutApp, WindowState, LayoutWindowData} from '../../client/types';
+import {CustomData, Layout, LayoutApp, LayoutWindowData, WindowState} from '../../client/types';
 import {promiseMap} from '../snapanddock/utils/async';
 import {getTabSaveInfo} from '../tabbing/SaveAndRestoreAPI';
 
@@ -122,7 +122,7 @@ function inTabbedWindowsObject(win: Identity, tabbedWindows: {[uuid: string]: {[
     return false;
 }
 
-const getLayoutWindowData = async (ofWin: Window, tabbedWindows: {[uuid: string]: {[name: string]: boolean}}):Promise<LayoutWindowData> => {
+const getLayoutWindowData = async(ofWin: Window, tabbedWindows: {[uuid: string]: {[name: string]: boolean}}): Promise<LayoutWindowData> => {
     const {uuid} = ofWin.identity;
     const info = await ofWin.getInfo();
     const windowGroup = await getGroup(ofWin.identity);

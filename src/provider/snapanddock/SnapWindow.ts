@@ -345,9 +345,9 @@ export class SnapWindow {
     }
 
     private registeredListeners:
-        Map<keyof fin.OpenfinWindowEventMap, <K extends keyof fin.OpenfinWindowEventMap>(event: fin.OpenfinWindowEventMap[K]) => void> = new Map();
+        Map<keyof fin.OpenFinWindowEventMap, <K extends keyof fin.OpenFinWindowEventMap>(event: fin.OpenFinWindowEventMap[K]) => void> = new Map();
 
-    private registerListener<K extends keyof fin.OpenfinWindowEventMap>(eventType: K, handler: (event: fin.OpenfinWindowEventMap[K]) => void) {
+    private registerListener<K extends keyof fin.OpenFinWindowEventMap>(eventType: K, handler: (event: fin.OpenFinWindowEventMap[K]) => void) {
         this.window.addEventListener(eventType, handler);
         this.registeredListeners.set(eventType, handler);
     }

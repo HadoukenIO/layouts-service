@@ -1054,8 +1054,8 @@ declare namespace fin {
         /**
          * Registers an event listener on the specified event.
          */
-        addEventListener<K extends keyof OpenfinWindowEventMap>(
-            type: K, listener: (event: OpenfinWindowEventMap[K]) => any, callback?: () => void, errorCallback?: (reason: string) => void): void;
+        addEventListener<K extends keyof OpenFinWindowEventMap>(
+            type: K, listener: (event: OpenFinWindowEventMap[K]) => any, callback?: () => void, errorCallback?: (reason: string) => void): void;
         /**
          * Performs the specified window transitions
          */
@@ -1166,8 +1166,8 @@ declare namespace fin {
         /**
          * Removes a previously registered event listener from the specified event.
          */
-        removeEventListener<K extends keyof OpenfinWindowEventMap>(
-            type: K, listener: (event: OpenfinWindowEventMap[K]) => any, callback?: () => void, errorCallback?: (reason: string) => void): void;
+        removeEventListener<K extends keyof OpenFinWindowEventMap>(
+            type: K, listener: (event: OpenFinWindowEventMap[K]) => any, callback?: () => void, errorCallback?: (reason: string) => void): void;
         /**
          * Resizes the window by a specified amount.
          */
@@ -1219,7 +1219,6 @@ declare namespace fin {
         'initialized': ApplicationBaseEvent;
         'manifest-changed': ApplicationBaseEvent;
         'not-responding': ApplicationBaseEvent;
-        'out-of-memory': ApplicationBaseEvent;
         'responding': ApplicationBaseEvent;
         'run-requested': ApplicationRunRequestedEvent;
         'started': ApplicationBaseEvent;
@@ -1231,9 +1230,29 @@ declare namespace fin {
         'window-closed': WindowEvent;
         'window-created': WindowEvent;
         'window-end-load': WindowEndLoadEvent;
-        'window-navigation-rejected': WindowNavigationRejectedEvent;
+        'window-focused': WindowEvent;
+        'window-navigation-rejected': WindowNavigationEvent;
+        'window-not-responding': WindowBaseEvent;
+        'window-reloaded': WindowNavigationEvent;
+        'window-responding': WindowEvent;
         'window-show-requested': WindowEvent;
         'window-start-load': WindowEvent;
+        'window-bounds-changed': OpenFinWindowEventMap['bounds-changed'];
+        'window-bounds-changing': OpenFinWindowEventMap['bounds-changing'];
+        'window-disabled-frame-bounds-changed': OpenFinWindowEventMap['disabled-frame-bounds-changed'];
+        'window-disabled-frame-bounds-changing': OpenFinWindowEventMap['disabled-frame-bounds-changing'];
+        'window-embedded': OpenFinWindowEventMap['embedded'];
+        'window-external-process-exited': OpenFinWindowEventMap['external-process-exited'];
+        'window-external-process-started': OpenFinWindowEventMap['external-process-started'];
+        'window-frame-disabled': OpenFinWindowEventMap['frame-disabled'];
+        'window-frame-enabled': OpenFinWindowEventMap['frame-enabled'];
+        'window-group-changed': OpenFinWindowEventMap['group-changed'];
+        'window-hidden': OpenFinWindowEventMap['hidden'];
+        'window-initialized': OpenFinWindowEventMap['initialized'];
+        'window-maximized': OpenFinWindowEventMap['maximized'];
+        'window-minimized': OpenFinWindowEventMap['minimized'];
+      'window-restored': OpenFinWindowEventMap['restored'];
+        'window-shown': OpenFinWindowEventMap['shown'];
     }
 
     interface ApplicationBaseEvent {
@@ -1313,6 +1332,46 @@ declare namespace fin {
         top: number;
     }
 
+    interface OpenFinSystemEventMap {
+        'application-closed': SystemBaseEvent;
+        'application-created': SystemBaseEvent;
+        'application-started': SystemBaseEvent;
+        'external-application-connected': SystemBaseEvent;
+        'external-application-disconnected': SystemBaseEvent;
+        'desktop-icon-clicked': DesktopIconClickedEvent;
+        'idle-state-changed': IdleStateChangedEvent;
+        'monitor-info-changed': MonitorInfoChangedEvent;
+        'session-changed': SessionChangedEvent;
+        'window-blurred': WindowBaseEvent;
+        'window-closed': WindowBaseEvent;
+        'window-crashed': WindowBaseEvent;
+        'window-created': WindowBaseEvent;
+        'window-focused': WindowBaseEvent;
+        'application-connected': OpenFinApplicationEventMap['connected'];
+        'application-initialized': OpenFinApplicationEventMap['initialized'];
+        'application-manifest-changed': OpenFinApplicationEventMap['manifest-changed'];
+        'application-not-responding': OpenFinApplicationEventMap['not-responding'];
+        'application-responding': OpenFinApplicationEventMap['responding'];
+        'application-run-requested': OpenFinApplicationEventMap['run-requested'];
+        'application-tray-icon-clicked': OpenFinApplicationEventMap['tray-icon-clicked'];
+        'window-bounds-changing': OpenFinWindowEventMap['bounds-changing'];
+        'window-bounds-changed': OpenFinWindowEventMap['bounds-changed'];
+        'window-disable-bounds-changing': OpenFinWindowEventMap['disabled-frame-bounds-changing'];
+        'window-disable-bounds-changed': OpenFinWindowEventMap['disabled-frame-bounds-changed'];
+        'window-embedded': OpenFinWindowEventMap['embedded'];
+        'window-external-process-exited': OpenFinWindowEventMap['external-process-exited'];
+        'window-external-process-started': OpenFinWindowEventMap['external-process-started'];
+        'window-frame-disabled': OpenFinWindowEventMap['frame-disabled'];
+        'window-frame-enabled': OpenFinWindowEventMap['frame-enabled'];
+        'window-group-changed': OpenFinWindowEventMap['group-changed'];
+        'window-hidden': OpenFinWindowEventMap['hidden'];
+        'window-initialized': OpenFinWindowEventMap['initialized'];
+        'window-maximized': OpenFinWindowEventMap['maximized'];
+        'window-minimized': OpenFinWindowEventMap['minimized'];
+        'window-navigation-rejected': OpenFinWindowEventMap['navigation-rejected'];
+    }
+
+
     interface SystemBaseEvent {
         topic: string;
         type: OpenFinSystemEventType;
@@ -1351,7 +1410,7 @@ declare namespace fin {
         type: 'idle-state-changed';
     }
 
-    interface OpenfinWindowEventMap {
+    interface OpenFinWindowEventMap {
         'auth-requested': WindowAuthRequestedEvent;
         'blurred': WindowBaseEvent;
         'bounds-changed': WindowBoundsEvent;
@@ -1371,7 +1430,7 @@ declare namespace fin {
         'initialized': WindowBaseEvent;
         'maximized': WindowBaseEvent;
         'minimized': WindowBaseEvent;
-        'navigation-rejected': WindowNavigationRejectedEvent;
+        'navigation-rejected': WindowNavigationEvent;
         'restored': WindowBaseEvent;
         'show-requested': WindowBaseEvent;
         'shown': WindowBaseEvent;
@@ -1514,13 +1573,13 @@ declare namespace fin {
         type: 'hidden';
     }
 
-    interface WindowNavigationRejectedEvent {
+    interface WindowNavigationEvent {
         name: string;
         /**
          * source of navigation window name
          */
         sourceName: string;
-        topic: 'navigation-rejected';
+        topic: 'window-navigation-rejected'|'window-reloaded';
         /**
          * Url that was not reached "http://blocked-content.url"
          */
@@ -1630,10 +1689,9 @@ declare namespace fin {
 
     type OpenFinExternalApplicationEventType = 'connected'|'disconnected';
 
-    type OpenFinSystemEventType = 'application-closed'|'application-crashed'|'application-created'|'application-started'|'desktop-icon-clicked'|
-        'idle-state-changed'|'monitor-info-changed'|'session-changed'|'window-created';
+    type OpenFinSystemEventType = keyof OpenFinSystemEventMap;
 
-    type OpenFinWindowEventType = keyof OpenfinWindowEventMap;
+    type OpenFinWindowEventType = keyof OpenFinWindowEventMap;
 
     type OpenFinAnchor = 'top-left'|'top-right'|'bottom-left'|'bottom-right';
 }

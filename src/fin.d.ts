@@ -65,12 +65,8 @@ declare namespace fin {
         /**
          * Registers an event listener on the specified event.
          */
-        addEventListener(type: 'window-created', listener: (event: WindowEvent) => void, callback?: () => void, errorCallback?: (reason: string) => void): void;
-        addEventListener(
-            type: OpenFinApplicationEventType,
-            listener: (event: ApplicationBaseEvent|TrayIconClickedEvent|WindowEvent|WindowAlertRequestedEvent|WindowAuthRequested|WindowNavigationRejectedEvent|
-                       WindowEndLoadEvent) => void,
-            callback?: () => void, errorCallback?: (reason: string) => void): void;
+        addEventListener<K extends keyof OpenFinApplicationEventMap>(
+            type: K, listener: (event: OpenFinApplicationEventMap[K]) => any, callback?: () => void, errorCallback?: (reason: string) => void): void;
         /**
          * Closes the application and any child windows created by the application.
          */
@@ -107,11 +103,8 @@ declare namespace fin {
         /**
          * Removes a previously registered event listener from the specified event.
          */
-        removeEventListener(
-            type: OpenFinApplicationEventType,
-            previouslyRegisteredListener: (event: ApplicationBaseEvent|TrayIconClickedEvent|WindowEvent|WindowAlertRequestedEvent|WindowAuthRequested|
-                                           WindowNavigationRejectedEvent|WindowEndLoadEvent) => any,
-            callback?: () => void, errorCallback?: (reason: string) => void): void;
+        removeEventListener<K extends keyof OpenFinApplicationEventMap>(
+            type: K, listener: (event: OpenFinApplicationEventMap[K]) => any, callback?: () => void, errorCallback?: (reason: string) => void): void;
         /**
          * Removes the application's icon from the tray.
          */
@@ -1062,8 +1055,7 @@ declare namespace fin {
          * Registers an event listener on the specified event.
          */
         addEventListener<K extends keyof OpenfinWindowEventMap>(
-            type: K, listener: (event: OpenfinWindowEventMap[K]) => any,
-            callback?: () => void, errorCallback?: (reason: string) => void): void;
+            type: K, listener: (event: OpenfinWindowEventMap[K]) => any, callback?: () => void, errorCallback?: (reason: string) => void): void;
         /**
          * Performs the specified window transitions
          */
@@ -1175,8 +1167,7 @@ declare namespace fin {
          * Removes a previously registered event listener from the specified event.
          */
         removeEventListener<K extends keyof OpenfinWindowEventMap>(
-            type: K, listener: (event: OpenfinWindowEventMap[K]) => any,
-            callback?: () => void, errorCallback?: (reason: string) => void): void;
+            type: K, listener: (event: OpenfinWindowEventMap[K]) => any, callback?: () => void, errorCallback?: (reason: string) => void): void;
         /**
          * Resizes the window by a specified amount.
          */
@@ -1221,6 +1212,30 @@ declare namespace fin {
         updateOptions(options: WindowOptions, callback?: () => void, errorCallback?: (reason: string) => void): void;
     }
 
+    interface OpenFinApplicationEventMap {
+        'closed': ApplicationBaseEvent;
+        'connected': ApplicationBaseEvent;
+        'crashed': ApplicationCrashedEvent;
+        'initialized': ApplicationBaseEvent;
+        'manifest-changed': ApplicationBaseEvent;
+        'not-responding': ApplicationBaseEvent;
+        'out-of-memory': ApplicationBaseEvent;
+        'responding': ApplicationBaseEvent;
+        'run-requested': ApplicationRunRequestedEvent;
+        'started': ApplicationBaseEvent;
+        'tray-icon-clicked': TrayIconClickedEvent;
+        'window-alert-requested': WindowAlertRequestedEvent;
+        'window-auth-requested': WindowAuthRequested;
+        'window-blurred': WindowEvent;
+        'window-closing': WindowEvent;
+        'window-closed': WindowEvent;
+        'window-created': WindowEvent;
+        'window-end-load': WindowEndLoadEvent;
+        'window-navigation-rejected': WindowNavigationRejectedEvent;
+        'window-show-requested': WindowEvent;
+        'window-start-load': WindowEvent;
+    }
+
     interface ApplicationBaseEvent {
         topic: string;
         type: OpenFinApplicationEventType;
@@ -1232,6 +1247,17 @@ declare namespace fin {
         monitorInfo: MonitorInfo;
         x: number;  // the cursor x coordinate
         y: number;  // the cursor y coordinate
+        type: 'tray-icon-clicked';
+    }
+
+    interface ApplicationCrashedEvent extends ApplicationBaseEvent {
+        reason: string;
+        type: 'crashed';
+    }
+
+    interface ApplicationRunRequestedEvent extends ApplicationBaseEvent {
+        userAppConfigArgs: any;
+        type: 'run-requested';
     }
 
     interface WindowEvent extends ApplicationBaseEvent {
@@ -1245,11 +1271,6 @@ declare namespace fin {
 
     interface WindowAuthRequested extends WindowEvent {
         authInfo: {host: string; isProxy: boolean; port: number; realm: string; scheme: string;};
-    }
-
-    interface WindowNavigationRejectedEvent extends WindowEvent {
-        sourceName: string;
-        url: string;
     }
 
     interface WindowEndLoadEvent extends WindowEvent {
@@ -1330,6 +1351,32 @@ declare namespace fin {
         type: 'idle-state-changed';
     }
 
+    interface OpenfinWindowEventMap {
+        'auth-requested': WindowAuthRequestedEvent;
+        'blurred': WindowBaseEvent;
+        'bounds-changed': WindowBoundsEvent;
+        'bounds-changing': WindowBoundsEvent;
+        'close-requested': WindowBaseEvent;
+        'closed': WindowBaseEvent;
+        'disabled-frame-bounds-changed': WindowBoundsEvent;
+        'disabled-frame-bounds-changing': WindowBoundsEvent;
+        'embedded': WindowBaseEvent;
+        'external-process-exited': WindowExternalProcessExited;
+        'external-process-started': WindowExternalProcessStartedEvent;
+        'focused': WindowBaseEvent;
+        'frame-disabled': WindowBaseEvent;
+        'frame-enabled': WindowBaseEvent;
+        'group-changed': WindowGroupChangedEvent;
+        'hidden': WindowHiddenEvent;
+        'initialized': WindowBaseEvent;
+        'maximized': WindowBaseEvent;
+        'minimized': WindowBaseEvent;
+        'navigation-rejected': WindowNavigationRejectedEvent;
+        'restored': WindowBaseEvent;
+        'show-requested': WindowBaseEvent;
+        'shown': WindowBaseEvent;
+    }
+
     interface WindowBaseEvent {
         /**
          * the name of the window
@@ -1347,32 +1394,6 @@ declare namespace fin {
          * the UUID of the application the window belongs to
          */
         uuid: string;
-    }
-
-    interface OpenfinWindowEventMap {
-        'auth-requested': WindowAuthRequestedEvent;
-        'blurred': WindowBaseEvent;
-        'bounds-changed': WindowBoundsEvent;
-        'bounds-changing': WindowBoundsEvent;
-        'close-requested': WindowBaseEvent;
-        'closed': WindowBaseEvent;
-        'disabled-frame-bounds-changed': WindowBoundsEvent;
-        'disabled-frame-bounds-changing': WindowBoundsEvent;
-        'embedded': WindowBaseEvent;
-        'external-process-exited': WindowExternalProcessExited;
-        'external-process-started': WindowExternalProcessStartedEvent;
-        'focused': WindowBaseEvent;
-        'frame-disabled': WindowBaseEvent;
-        'frame-enabled': WindowBaseEvent;
-        'group-changed': WindowGroupChangedEvent; 
-        'hidden': WindowHiddenEvent;
-        'initialized': WindowBaseEvent;
-        'maximized': WindowBaseEvent;
-        'minimized': WindowBaseEvent;
-        'navigation-rejected': WindowBaseEvent;
-        'restored': WindowBaseEvent;
-        'show-requested': WindowBaseEvent;
-        'shown': WindowBaseEvent;
     }
 
     interface WindowAuthRequestedEvent extends WindowBaseEvent {
@@ -1493,7 +1514,7 @@ declare namespace fin {
         type: 'hidden';
     }
 
-    interface Window_NavigationRejectedEvent {
+    interface WindowNavigationRejectedEvent {
         name: string;
         /**
          * source of navigation window name
@@ -1605,9 +1626,7 @@ declare namespace fin {
     type OpenFinTweenType = 'linear'|'ease-in'|'ease-out'|'ease-in-out'|'ease-in-quad'|'ease-out-quad'|'ease-in-out-quad'|'ease-in-cubic'|'ease-out-cubic'|
         'ease-in-out-cubic'|'ease-out-bounce'|'ease-in-back'|'ease-out-back'|'ease-in-out-back'|'ease-in-elastic'|'ease-out-elastic'|'ease-in-out-elastic';
 
-    type OpenFinApplicationEventType = 'closed'|'connected'|'crashed'|'initialized'|'manifest-changed'|'not-responding'|'out-of-memory'|'responding'|
-        'run-requested'|'started'|'tray-icon-clicked'|'window-alert-requested'|'window-auth-requested'|'window-closed'|'window-created'|'window-end-load'|
-        'window-navigation-rejected'|'window-show-requested'|'window-start-load';
+    type OpenFinApplicationEventType = keyof OpenFinApplicationEventMap;
 
     type OpenFinExternalApplicationEventType = 'connected'|'disconnected';
 
@@ -1615,6 +1634,6 @@ declare namespace fin {
         'idle-state-changed'|'monitor-info-changed'|'session-changed'|'window-created';
 
     type OpenFinWindowEventType = keyof OpenfinWindowEventMap;
-    
+
     type OpenFinAnchor = 'top-left'|'top-right'|'bottom-left'|'bottom-right';
 }

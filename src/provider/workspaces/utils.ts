@@ -179,7 +179,7 @@ const isShowingWindow = async(ofWin: Window): Promise<boolean> => {
     return isShowing;
 };
 
-export interface TabbedWindows {
+export interface WindowObject {
     [uuid: string]: {[name: string]: boolean};
 }
 
@@ -188,9 +188,9 @@ export interface TabbedPlaceholders {
 }
 
 // Helper function to determine if a window is supposed to be tabbed in an incoming layout.
-export function inTabbedWindowsObject(win: {uuid: string, name: string}, tabbedWindows: TabbedWindows) {
-    if (tabbedWindows[win.uuid]) {
-        if (tabbedWindows[win.uuid][win.name]) {
+export function inWindowObject(win: {uuid: string, name: string}, windowObject: WindowObject | TabbedPlaceholders) {
+    if (windowObject[win.uuid]) {
+        if (windowObject[win.uuid][win.name]) {
             return true;
         }
     }
@@ -204,21 +204,11 @@ export async function createTabbedPlaceholderAndRecord(win: WindowState, tabbedP
         Object.assign({}, tabbedPlaceholdersToWindows[win.uuid], {[win.name]: {name: tabPlaceholder.name, uuid: tabPlaceholder.uuid}});
 }
 
-// Helper function to determine if a window has a corresponding placeholder.
-export function inTabbedPlaceholdersToWindowsObject(win: WindowIdentity, tabbedPlaceholdersToWindows: TabbedPlaceholders) {
-    if (tabbedPlaceholdersToWindows[win.uuid]) {
-        if (tabbedPlaceholdersToWindows[win.uuid][win.name]) {
-            return true;
-        }
-    }
-    return false;
-}
-
 // Helper function to determine what type of placeholder window to open.
-export async function childWindowPlaceholderCheck(app: LayoutApp, tabbedWindows: TabbedWindows, tabbedPlaceholdersToWindows: TabbedPlaceholders) {
+export async function childWindowPlaceholderCheck(app: LayoutApp, tabbedWindows: WindowObject, tabbedPlaceholdersToWindows: TabbedPlaceholders) {
     if (app.confirmed) {
         for (const win of app.childWindows) {
-            if (inTabbedWindowsObject(win, tabbedWindows)) {
+            if (inWindowObject(win, tabbedWindows)) {
                 await createTabbedPlaceholderAndRecord(win, tabbedPlaceholdersToWindows);
             } else {
                 await createNormalPlaceholder(win);
@@ -229,19 +219,16 @@ export async function childWindowPlaceholderCheck(app: LayoutApp, tabbedWindows:
     }
 }
 
-
 // Helper function to determine which placeholder windows to create for a running application's child windows.
 // This differs from childWindowPlaceholderCheck because we need to check if child windows are open before we create their placeholders.
-export async function childWindowPlaceholderCheckRunningApp(app: LayoutApp, tabbedWindows: TabbedWindows, tabbedPlaceholdersToWindows: TabbedPlaceholders) {
+export async function childWindowPlaceholderCheckRunningApp(app: LayoutApp, tabbedWindows: WindowObject, tabbedPlaceholdersToWindows: TabbedPlaceholders, openWindows: WindowObject) {
     if (app.confirmed) {
-        const mainApp = await fin.Application.wrap(app.mainWindow);
-        const openChildWindows = await mainApp.getChildWindows();
         for (const win of app.childWindows) {
             // Here we're checking if the incoming child window is already open or not.
-            const windowIsOpen = openChildWindows.some((openWin: _Window) => openWin.identity.name === win.name);
+            const windowIsOpen = inWindowObject(win, openWindows);
 
             if (!windowIsOpen) {
-                if (inTabbedWindowsObject(win, tabbedWindows)) {
+                if (inWindowObject(win, tabbedWindows)) {
                     await createTabbedPlaceholderAndRecord(win, tabbedPlaceholdersToWindows);
                 } else {
                     await createNormalPlaceholder(win);

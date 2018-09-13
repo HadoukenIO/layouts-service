@@ -52,21 +52,21 @@ export async function setLayout(layoutParam?: Layout) {
 
 export async function killAllWindows() {
     fin.desktop.System.getAllApplications((apps: {uuid: string, name: string}[]) => {
-        apps.forEach((app) =>{
-            if(app.uuid !== 'layouts-service') {
+        apps.forEach((app) => {
+            if (app.uuid !== 'layouts-service') {
                 const wrappedApp = fin.desktop.Application.wrap(app.uuid);
                 //@ts-ignore no types
-                wrappedApp.getChildWindows((win) =>{
+                wrappedApp.getChildWindows((win) => {
                     //@ts-ignore no types
                     win.forEach(w => w.close(true));
                 });
 
-                if(app.uuid !== 'Layouts-Manager') {
+                if (app.uuid !== 'Layouts-Manager') {
                     wrappedApp.close(true);
                 }
             }
-        })
-    })
+        });
+    });
 }
 
 export async function getLayout() {
@@ -233,7 +233,7 @@ function createOptionElement(id: string) {
     return option;
 }
 
-export function importLayout(){
+export function importLayout() {
     const textfield = document.getElementById('showLayout')! as HTMLTextAreaElement;
     const layout = JSON.parse(textfield.value);
     setLayout(layout.layout || layout);

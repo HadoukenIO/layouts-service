@@ -344,16 +344,18 @@ export class SnapWindow {
         }
     }
 
-    private registeredListeners: Map<keyof fin.OpenfinWindowEventMap, <K extends keyof fin.OpenfinWindowEventMap>(event: fin.OpenfinWindowEventMap[K]) => void> = new Map();
+    private registeredListeners:
+        Map<keyof fin.OpenfinWindowEventMap, <K extends keyof fin.OpenfinWindowEventMap>(event: fin.OpenfinWindowEventMap[K]) => void> = new Map();
 
     private registerListener<K extends keyof fin.OpenfinWindowEventMap>(eventType: K, handler: (event: fin.OpenfinWindowEventMap[K]) => void) {
         this.window.addEventListener(eventType, handler);
         this.registeredListeners.set(eventType, handler);
     }
 
-    private cleanupListeners = (snapWindow: SnapWindow): void => {
+    private cleanupListeners = (snapWindow: SnapWindow):
+        void => {
             console.log('OnClose recieved for window ', this.getId(), '. Removing listeners');
-            
+
             for (const [key, listener] of new Map(this.registeredListeners)) {
                 this.window.removeEventListener(key, listener);
                 this.registeredListeners.delete(key);

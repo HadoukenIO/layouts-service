@@ -1,17 +1,14 @@
-import {Application} from 'hadouken-js-adapter';
-
-import {ApplicationUIConfig, Bounds, TabIdentifier, TabPackage, TabServiceID, TabWindowOptions} from '../../client/types';
+import {ApplicationUIConfig, Bounds, TabIdentifier, TabServiceID, TabWindowOptions} from '../../client/types';
 import {DesktopModel} from '../model/DesktopModel';
+import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {DesktopWindow, WindowIdentity} from '../model/DesktopWindow';
+import {Rectangle} from '../snapanddock/utils/RectUtils';
 
 import {APIHandler} from './APIHandler';
 import {ApplicationConfigManager} from './components/ApplicationConfigManager';
 import {DragWindowManager} from './DragWindowManager';
-import {getTabSaveInfo} from './SaveAndRestoreAPI';
 import {Tab} from './Tab';
-import {createTabGroupsFromTabBlob} from './TabUtilities';
-import {ZIndexer} from './ZIndexer';
 
 interface GroupTabBounds extends Bounds {
     group: DesktopTabGroup;
@@ -89,11 +86,11 @@ export class TabService {
 
     /**
      * Creates a new tab group
-     * @param {TabWindowOptions} WindowOptions Window Options used to create the tab group window (positions, dimensions, url, etc...)
+     * @param {ApplicationUIConfig} WindowOptions Window Options used to create the tab group window (positions, dimensions, url, etc...)
      * @returns {DesktopTabGroup} TabGroup
      */
-    public addTabGroup(windowOptions: TabWindowOptions): DesktopTabGroup {
-        const group = new DesktopTabGroup(windowOptions);
+    public addTabGroup(snapGroup: DesktopSnapGroup, windowOptions: TabWindowOptions): DesktopTabGroup {
+        const group = new DesktopTabGroup(snapGroup, windowOptions);
         // this._tabGroups.push(group);
 
         return group;
@@ -108,7 +105,7 @@ export class TabService {
         const group: DesktopTabGroup|null = this.model.getTabGroup(ID);
         if (group) {
             await group.removeAllTabs(closeApps);
-            await group.window.close(true);
+            await group.window.getWindow().close(true);
         } else {
             throw new Error('No tab group with ID ' + ID);
         }
@@ -128,13 +125,14 @@ export class TabService {
      * @param ID ID of the tab group to find.
      * @returns {DesktopTabGroup | undefined} Tabgroup
      */
-    public getTabGroupByApp(ID: TabIdentifier): DesktopTabGroup|undefined {
+    public getTabGroupByApp(ID: TabIdentifier): DesktopTabGroup|null {
         return this.model.getTabGroups().find((group: DesktopTabGroup) => {
             return group.tabs.some((tab: Tab) => {
                 const tabID = tab.ID;
                 return tabID.name === ID.name && tabID.uuid === ID.uuid;
             });
-        });
+        }) ||
+            null;
     }
 
     /**
@@ -160,7 +158,24 @@ export class TabService {
             console.error('createTabGroup called fewer than 2 tab identifiers');
             throw new Error('Must provide at least 2 Tab Identifiers');
         }
-        const group = this.addTabGroup({});
+
+        const firstWindow: DesktopWindow|null = this.model.getWindow(tabs[0]);
+        const firstWindowBounds: Rectangle = firstWindow ? firstWindow.getState() : {center: {x: 300, y: 300}, halfSize: {x: 300, y: 200}};
+        const config: ApplicationUIConfig = this.mApplicationConfigManager.getApplicationUIConfig(tabs[0].uuid);
+        const options: TabWindowOptions = {
+            ...config,
+            x: firstWindowBounds.center.x - firstWindowBounds.halfSize.x,
+            y: firstWindowBounds.center.y - firstWindowBounds.halfSize.y,
+            width: firstWindowBounds.halfSize.x * 2
+        };
+
+        const snapGroup: DesktopSnapGroup = new DesktopSnapGroup();
+        const group = this.addTabGroup(snapGroup, options);
+        const appBounds = {
+            center: {x: firstWindowBounds.center.x, y: firstWindowBounds.center.y + (config.height / 2)},
+            halfSize: {x: firstWindowBounds.halfSize.x, y: firstWindowBounds.halfSize.y - (config.height / 2)}
+        };
+        firstWindow!.applyProperties(appBounds);
 
         const tabsP = await Promise.all(tabs.map(async ID => await new Tab({tabID: ID}).init()));
 
@@ -169,16 +184,22 @@ export class TabService {
         const [bounds, state] = await Promise.all([firstTab.window.getWindowBounds(), firstTab.window.getState()]);
         tabsP.forEach(tab => tab.window.finWindow.setBounds(bounds.left, bounds.top, bounds.width, bounds.height));
         tabsP[tabsP.length - 1].window.finWindow.bringToFront();
+        console.log('A');
         await group.addTab(firstTab, false);
+        console.log('B');
 
         await Promise.all(tabsP.map(tab => group.addTab(tab, false)));
+        console.log('C');
         await group.switchTab(tabs[tabs.length - 1]);
+        console.log('D');
         await group.hideAllTabsMinusActiveTab();
+        console.log('E');
 
 
         if (state === 'maximized') {
-            group.window.maximizeGroup();
+            group.maximize();
         }
+        console.log('F');
         return;
     }
     /**
@@ -197,9 +218,8 @@ export class TabService {
             if (window.getIdentity().uuid === TabServiceID.UUID) {
                 // Find tab group that has 'window' as its tabstrip
                 return tabGroups.find((group: DesktopTabGroup) => {
-                    const finWindow = group.window.finWindow;
-
-                    return finWindow.uuid === TabServiceID.UUID && finWindow.name === identity.name;
+                    const identity = group.window.getIdentity();
+                    return identity.uuid === TabServiceID.UUID && identity.name === identity.name;
                 }) ||
                     null;
             } else {

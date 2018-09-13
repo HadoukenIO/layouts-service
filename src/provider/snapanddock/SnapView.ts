@@ -1,4 +1,6 @@
-import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
+import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
+import {DesktopWindow} from '../model/DesktopWindow';
+
 import {SnapTarget} from './Resolver';
 import {SnapPreview} from './SnapPreview';
 
@@ -24,25 +26,41 @@ export class SnapView {
      * original opacities once the active/target group(s) change or get reset.
      */
     public update(activeGroup: DesktopSnapGroup|null, target: SnapTarget|null): void {
-        if (activeGroup && target) {
-            if (!this.target || this.target.group !== target.group) {
-                this.setTargetOpacity(this.target, 1.0);
-                this.setTargetOpacity(target, 0.8);
-            }
-            this.preview.show(target);
-        } else {
-            this.setTargetOpacity(this.target, 1.0);
-            this.preview.hide();
+        // Handle change of active group
+        if (activeGroup !== this.activeGroup) {
+            this.setGroupOpacity(this.activeGroup, false);
+            this.activeGroup = activeGroup;
+            this.setGroupOpacity(this.activeGroup, true);
         }
 
+        // Detect change of target group
+        if ((this.target && this.target.group) !== (target && target.group)) {
+            // Restore opacity of previous target group (if any)
+            this.setGroupOpacity(this.target && this.target.group, false);
+
+            // Reduce opacity of new target group (if any)
+            this.setGroupOpacity(target && target.group, true);
+        }
+
+        // Update preview window
         this.target = target;
+        if (activeGroup && target) {
+            this.preview.show(target);
+        } else {
+            this.preview.hide();
+        }
     }
 
-    private setTargetOpacity(target: SnapTarget|null, opacity: number) {
-        if (target) {
-            for (let index = 0; index < target!.group.windows.length; index++) {
-                const groupWindow = target!.group.windows[index].getWindow();
-                groupWindow.updateOptions({opacity});
+    private setGroupOpacity(group: DesktopSnapGroup|null, transparent: boolean): void {
+        if (group) {
+            if (transparent) {
+                group.windows.forEach((window: Snappable) => {
+                    window.applyOverride('opacity', 0.8);
+                });
+            } else {
+                group.windows.forEach((window: Snappable) => {
+                    window.resetOverride('opacity');
+                });
             }
         }
     }

@@ -65,8 +65,8 @@ export async function killAllWindows() {
                     wrappedApp.close(true);
                 }
             }
-        })
-    })
+        });
+    });
 }
 
 export async function getLayout() {

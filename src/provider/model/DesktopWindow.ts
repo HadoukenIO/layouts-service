@@ -1,9 +1,17 @@
+import {Identity, Window} from 'hadouken-js-adapter';
+
+import {TabServiceID} from '../../client/types';
 import {Signal1, Signal2} from '../Signal';
-import {p} from '../snapanddock/utils/async';
+import {p, promiseMap} from '../snapanddock/utils/async';
 import {isWin10} from '../snapanddock/utils/platform';
-import {Point, PointUtils} from '../snapanddock/utils/PointUtils';
+import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle} from '../snapanddock/utils/RectUtils';
-import {DesktopSnapGroup} from './DesktopSnapGroup';
+
+import {DesktopEntity} from './DesktopEntity';
+import {DesktopSnapGroup, Snappable} from './DesktopSnapGroup';
+
+// tslint:disable-next-line:no-any
+declare var fin: any;
 
 export interface WindowState extends Rectangle {
     center: Point;
@@ -40,17 +48,40 @@ export enum eTransformType {
     RESIZE = 1 << 1
 }
 
-export class DesktopWindow {
+enum ActionOrigin {
+    /**
+     * A change made by the application itself.
+     *
+     * Service should still allow applications to use the OpenFin API's directly. In cases where the service needs to
+     * override the application's behaviour, it should always make an effort to restore the application's state
+     * afterward.
+     */
+    APPLICATION,
+
+    /**
+     * A change made by the service that is intended to be permenant or long-lived. These are changes that will either
+     * never be reverted, or only reverted once the service is done with the window.
+     *
+     * e.g: Resizing a window when it is dropped into a tab set.
+     */
+    SERVICE,
+
+    /**
+     * A change made by the service that is intended to be very short-lived, and will soon be reverted.
+     *
+     * These changes can be reverted using 'SnapWindow.revertProperty'
+     *
+     * e.g: Applying opacity effects when dragging windows and snap/tab previews.
+     */
+    SERVICE_TEMPORARY
+}
+
+export class DesktopWindow extends DesktopEntity {
     public static readonly onCreated: Signal1<DesktopWindow> = new Signal1();
     public static readonly onDestroyed: Signal1<DesktopWindow> = new Signal1();
 
-    public static async getWindowState(window: fin.OpenFinWindow): Promise<WindowState> {
-        return Promise
-            .all([
-                p<fin.WindowOptions>(window.getOptions.bind(window))(),
-                p<boolean>(window.isShowing.bind(window))(),
-                p<fin.WindowBounds>(window.getBounds.bind(window))()
-            ])
+    public static async getWindowState(window: Window): Promise<WindowState> {
+        return Promise.all([window.getOptions(), window.isShowing(), window.getBounds()])
             .then((results: [fin.WindowOptions, boolean, fin.WindowBounds]): WindowState => {
                 const options: fin.WindowOptions = results[0];
                 const bounds: fin.WindowBounds = results[2];
@@ -111,48 +142,79 @@ export class DesktopWindow {
      */
     public readonly onClose: Signal1<DesktopWindow> = new Signal1();
 
-    private window: fin.OpenFinWindow;
-    private state: WindowState;
+    private window?: Window;
+    private windowState: WindowState;
+    private applicationState: WindowState;
+    // private pendingState: Partial<WindowState>;
+    private modifiedState: Partial<WindowState>;
 
-    private identity: WindowIdentity;
-    private id: string;  // Created from window uuid and name
-    private group: DesktopSnapGroup;
     private prevGroup: DesktopSnapGroup|null;
-    private registered: boolean;
+    private initialised: boolean;
 
     // State tracking for "synth move" detection
     private boundsChangeCountSinceLastCommit: number;
 
-    constructor(group: DesktopSnapGroup, window: fin.OpenFinWindow, initialState: WindowState) {
-        this.window = window;
-        this.state = initialState;
+    constructor(group: DesktopSnapGroup, window: WindowIdentity|Window, initialState?: WindowState) {
+        super(group, (window.hasOwnProperty('uuid') ? window : (window as Window).identity) as WindowIdentity);
 
-        this.identity = {uuid: window.uuid, name: window.name};
-        this.id = `${window.uuid}/${window.name}`;
-        this.registered = true;
+        const isWindow: boolean = window !== this.identity;
+        const identity: WindowIdentity = (isWindow ? (window as Window).identity : window) as WindowIdentity;
+        this.initialised = false;
+
+        if (!isWindow) {
+            fin.Window.wrap(identity).then(async (window: Window) => {
+                this.window = window;
+                this.windowState = await DesktopWindow.getWindowState(window);
+                this.applicationState = {...this.windowState};
+                this.initialised = true;
+            });
+        } else if (!initialState) {
+            this.window = window as Window;
+            DesktopWindow.getWindowState(this.window).then((state: WindowState) => {
+                this.windowState = state;
+                this.applicationState = {...this.windowState};
+                this.initialised = true;
+            });
+        } else {
+            this.window = window as Window;
+            this.initialised = true;
+        }
+
+        if (!initialState) {
+            initialState = this.createTemporaryState();
+        }
+        this.windowState = {...initialState};
+        this.applicationState = {...initialState};
+        this.modifiedState = {};
         this.boundsChangeCountSinceLastCommit = 0;
 
         this.group = group;
         this.prevGroup = null;
         group.addWindow(this);
 
-        // Add listeners
-        window.addEventListener('bounds-changed', this.handleBoundsChanged);
-        window.addEventListener('frame-disabled', this.handleFrameDisabled);
-        window.addEventListener('frame-enabled', this.handleFrameEnabled);
-        window.addEventListener('maximized', this.handleMaximized);
-        window.addEventListener('minimized', this.handleMinimized);
-        window.addEventListener('restored', this.handleRestored);
-        window.addEventListener('hidden', this.handleHidden);
-        window.addEventListener('shown', this.handleShown);
-        window.addEventListener('closed', this.handleClosed);
-        window.addEventListener('bounds-changing', this.handleBoundsChanging);
-        window.addEventListener('focused', this.handleFocused);
+        if (this.initialised) {
+            this.addListeners();
+        }
 
         // When the window's onClose signal is emitted, we cleanup all of the listeners
-        this.onClose.add(this.cleanupListeners);
+        this.onClose.add(this.cleanupListeners, this);
 
         DesktopWindow.onCreated.emit(this);
+    }
+
+    private createTemporaryState(): WindowState {
+        return {
+            center: {x: 500, y: 300},
+            halfSize: {x: 200, y: 100},
+            frame: false,
+            hidden: false,
+            state: 'normal',
+            minWidth: -1,
+            maxWidth: -1,
+            minHeight: 0,
+            maxHeight: 0,
+            opacity: 1
+        };
     }
 
     public get[Symbol.toStringTag]() {
@@ -163,8 +225,8 @@ export class DesktopWindow {
         return this.id;
     }
 
-    public getWindow(): fin.OpenFinWindow {
-        return this.window;
+    public getWindow(): Window {
+        return this.window!;
     }
 
     /**
@@ -210,17 +272,18 @@ export class DesktopWindow {
                 const delta: Partial<WindowState> = {};
 
                 if (offset) {
-                    delta.center = {x: this.state.center.x + offset.x, y: this.state.center.y + offset.y};
+                    delta.center = {x: this.windowState.center.x + offset.x, y: this.windowState.center.y + offset.y};
                 }
                 if (newHalfSize) {
-                    delta.center = delta.center || {...this.state.center};
+                    delta.center = delta.center || {...this.windowState.center};
                     delta.halfSize = newHalfSize;
 
-                    delta.center.x += newHalfSize.x - this.state.halfSize.x;
-                    delta.center.y += newHalfSize.y - this.state.halfSize.y;
+                    delta.center.x += newHalfSize.x - this.windowState.halfSize.x;
+                    delta.center.y += newHalfSize.y - this.windowState.halfSize.y;
                 }
 
-                this.applyState(delta, () => {
+                // TODO: Make async
+                this.updateState(delta, ActionOrigin.SERVICE).then(() => {
                     if (!synthetic) {
                         this.snap();
                     }
@@ -232,29 +295,25 @@ export class DesktopWindow {
     }
 
     public getState(): WindowState {
-        return this.state;
+        return this.windowState;
     }
 
     public getIdentity(): WindowIdentity {
         return this.identity;
     }
 
-    public offsetBy(offset: Point): void {
-        this.window.moveBy(offset.x, offset.y);
-    }
-
     private snap(): void {
-        const windows: DesktopWindow[] = this.group.windows;
+        const windows: DesktopWindow[] = this.group.windows as DesktopWindow[];
         const count = windows.length;
         const index = windows.indexOf(this);
 
         if (count >= 2 && index >= 0) {
-            this.window.joinGroup(windows[index === 0 ? 1 : 0].window);
+            this.window!.joinGroup(windows[index === 0 ? 1 : 0].window!);
 
             // Bring other windows in group to front
             windows.forEach((groupWindow: DesktopWindow) => {
                 if (groupWindow !== this) {
-                    groupWindow.window.bringToFront();
+                    groupWindow.window!.bringToFront();
                 }
             });
         } else if (index === -1) {
@@ -265,78 +324,123 @@ export class DesktopWindow {
     }
 
     private unsnap(): void {
-        this.window.leaveGroup();
+        this.window!.leaveGroup();
     }
 
-    /**
-     * Updates our state cache to reflect user changes
-     */
-    private updateState(delta: Partial<WindowState>): void {
-        Object.assign(this.state, delta);
+    private refreshOptions(): void {
+        DesktopWindow.getWindowState(this.window!).then((state: WindowState) => {
+            // TODO: Filter to only properties that have changed?
+            this.updateState(state, ActionOrigin.APPLICATION);
+        });
     }
 
-    /**
-     * Same as updateState, but also checks if 'delta' actually made any modifications
-     */
-    private updateStateAndCheckForChanges(delta: Partial<WindowState>): boolean {
-        const state: WindowState = this.state;
-        let modified = false;
+    private async updateState(delta: Partial<WindowState>, origin: ActionOrigin): Promise<void> {
+        const actions: Promise<void>[] = [];
 
-        for (const key in delta) {
-            if (state[key as keyof WindowState] !== delta[key as keyof WindowState]) {
-                const member = key as keyof WindowState;
-                const value = delta[member]!, type = typeof value;
-
-                if (PointUtils.isPoint(value)) {
-                    const oldValue = state[member] as Point;
-                    if (value.x !== oldValue.x || value.y !== oldValue.y) {
-                        state[member] = value;
-                        modified = true;
-                    }
-                } else {
-                    state[member] = value;
-                    modified = true;
+        // Update state caches
+        if (origin === ActionOrigin.SERVICE_TEMPORARY) {
+            // Back-up existing values, so they can be restored later
+            Object.keys(delta).forEach((key: string) => {
+                const property: keyof WindowState = key as keyof WindowState;
+                if (!this.modifiedState.hasOwnProperty(property)) {
+                    this.modifiedState[property] = this.windowState[property];
                 }
-            }
+            });
+        } else {
+            // These changes will undo any temporary changes that have been applied
+            Object.keys(delta).forEach((property) => {
+                if (this.modifiedState.hasOwnProperty(property)) {
+                    delete this.modifiedState[property as keyof WindowState];
+                }
+            });
         }
+        Object.assign(this.windowState, delta);
 
-        return modified;
-    }
+        // Apply changes to the window (unless we're reacting to an external change that has already happened)
+        if (origin !== ActionOrigin.APPLICATION) {
+            const window = this.window!;
+            const {center, halfSize, hidden, ...options} = delta;
+            const optionsToChange: (keyof WindowState)[] = Object.keys(options) as (keyof WindowState)[];
 
-    /**
-     * Applies changes to both our state cache, and the actual window itself.
-     *
-     * Can optionally specify a callback which will be triggered once any position/size changes are applied (callback
-     * does not wait for non-transform related changes).
-     */
-    private applyState(delta: Partial<WindowState>, callback?: () => void): void {
-        const state: WindowState = this.state;
-        const window = this.window;
-
-        Object.assign(state, delta);
-        window.updateOptions(delta);
-
-        if (delta.center || delta.halfSize) {
-            let center = state.center, halfSize = state.halfSize;
-
-            if (isWin10() && state.frame) {
-                center = {x: center.x, y: center.y + 3.5};
-                halfSize = {x: halfSize.x + 7, y: halfSize.y + 3.5};
+            // Apply visibility
+            if (hidden !== undefined && hidden !== this.windowState.hidden) {
+                actions.push(hidden ? window.hide() : window.show());
             }
 
-            window.setBounds(center.x - halfSize.x, center.y - halfSize.y, halfSize.x * 2, halfSize.y * 2, callback);
-            // window.animate(
-            //     {
-            //         position: {left: center.x - halfSize.x, top: center.y - halfSize.y, duration: 100},
-            //         size: {width: halfSize.x * 2, height: halfSize.y * 2, duration: 100}
-            //     },
-            //     {interrupt: false},
-            //     callback
-            // );
-        } else if (callback) {
-            callback();
+            // Apply options
+            if (optionsToChange.length > 0) {
+                actions.push(window.updateOptions(options));
+            }
+
+            // Apply bounds
+            if (center || halfSize) {
+                const state: WindowState = this.windowState;
+                let newCenter = center || state.center, newHalfSize = halfSize || state.halfSize;
+
+                if (isWin10() && state.frame) {
+                    newCenter = {x: newCenter.x, y: newCenter.y + 3.5};
+                    newHalfSize = {x: newHalfSize.x + 7, y: newHalfSize.y + 3.5};
+                }
+
+                actions.push(window.setBounds(
+                    {left: newCenter.x - newHalfSize.x, top: newCenter.y - newHalfSize.y, width: newHalfSize.x * 2, height: newHalfSize.y * 2}));
+            }
+
+            // Track these changes
+            return this.addPendingActions(actions);
         }
     }
+
+    public async applyProperties(properties: Partial<WindowState>): Promise<void> {
+        this.updateState(properties, ActionOrigin.SERVICE);
+    }
+
+    public async applyProperty(property: keyof WindowState, value: any): Promise<void> {  // tslint:disable-line:no-any
+        if (value !== this.windowState[property]) {
+            this.modifiedState[property] = this.modifiedState[property] || this.windowState[property];
+            this.windowState[property] = value;
+
+            return this.updateState({[property]: value}, ActionOrigin.SERVICE_TEMPORARY);
+        }
+    }
+
+    public async applyOverride(property: keyof WindowState, value: any): Promise<void> {  // tslint:disable-line:no-any
+        if (value !== this.windowState[property]) {
+            this.modifiedState[property] = this.modifiedState[property] || this.windowState[property];
+            this.windowState[property] = value;
+
+            return this.updateState({[property]: value}, ActionOrigin.SERVICE_TEMPORARY);
+        }
+    }
+
+    public async resetOverride(property: keyof WindowState): Promise<void> {
+        if (this.modifiedState.hasOwnProperty(property)) {
+            const value = this.modifiedState[property]!;
+            this.windowState[property] = value;
+            return this.updateState({[property]: value}, ActionOrigin.SERVICE);  // TODO: Is this the right origin type?
+        }
+    }
+
+    private async applyOffset(offset?: Point, newHalfSize?: Point, synthetic?: boolean): Promise<void> {
+        if (offset || newHalfSize) {
+            const state: WindowState = this.windowState;
+            const delta: Partial<WindowState> = {};
+
+            if (offset) {
+                delta.center = {x: state.center.x + offset.x, y: state.center.y + offset.y};
+            }
+            if (newHalfSize) {  //} && !(this.isTabStrip() || this.tabSet)) {
+                delta.center = delta.center || {...state.center};
+                delta.halfSize = newHalfSize;
+
+                delta.center.x += newHalfSize.x - state.halfSize.x;
+                delta.center.y += newHalfSize.y - state.halfSize.y;
+            }
+
+            await this.updateState(delta, ActionOrigin.SERVICE);
+        }
+    }
+
 
     /**
      * Windows 10 has a border shadow, which needs to be accounted for in window dimensions.
@@ -346,42 +450,57 @@ export class DesktopWindow {
      * @param bounds Bounds that need to be validated
      */
     private checkBounds(bounds: fin.WindowBounds): fin.WindowBounds {
-        if (isWin10() && this.state.frame) {
+        if (isWin10() && this.windowState.frame) {
             return {left: bounds.left + 7, top: bounds.top, width: bounds.width - 14, height: bounds.height - 7};
         } else {
             return bounds;
         }
     }
 
-    private cleanupListeners = (window: DesktopWindow):
-        void => {
-            console.log('OnClose recieved for window ', this.getId());
+    private addListeners(): void {
+        const window: Window = this.window!;
 
-            DesktopWindow.onDestroyed.emit(this);
+        window.addListener('bounds-changed', this.handleBoundsChanged);
+        window.addListener('frame-disabled', this.handleFrameDisabled);
+        window.addListener('frame-enabled', this.handleFrameEnabled);
+        window.addListener('maximized', this.handleMaximized);
+        window.addListener('minimized', this.handleMinimized);
+        window.addListener('restored', this.handleRestored);
+        window.addListener('hidden', this.handleHidden);
+        window.addListener('shown', this.handleShown);
+        window.addListener('closed', this.handleClosed);
+        window.addListener('bounds-changing', this.handleBoundsChanging);
+        window.addListener('focused', this.handleFocused);
+    }
 
-            this.window.removeEventListener('bounds-changed', this.handleBoundsChanged);
-            this.window.removeEventListener('frame-disabled', this.handleFrameDisabled);
-            this.window.removeEventListener('frame-enabled', this.handleFrameEnabled);
-            this.window.removeEventListener('maximized', this.handleMaximized);
-            this.window.removeEventListener('minimized', this.handleMinimized);
-            this.window.removeEventListener('restored', this.handleRestored);
-            this.window.removeEventListener('hidden', this.handleHidden);
-            this.window.removeEventListener('shown', this.handleShown);
-            this.window.removeEventListener('closed', this.handleClosed);
-            this.window.removeEventListener('bounds-changing', this.handleBoundsChanging);
-            this.window.removeEventListener('focused', this.handleFocused);
+    private cleanupListeners(unused?: DesktopWindow): void {
+        console.log('OnClose recieved for window ', this.getId());
 
-            this.onClose.remove(this.cleanupListeners);
-        }
+        DesktopWindow.onDestroyed.emit(this);
+
+        const window: Window = this.window!;
+        window.removeListener('bounds-changed', this.handleBoundsChanged);
+        window.removeListener('frame-disabled', this.handleFrameDisabled);
+        window.removeListener('frame-enabled', this.handleFrameEnabled);
+        window.removeListener('maximized', this.handleMaximized);
+        window.removeListener('minimized', this.handleMinimized);
+        window.removeListener('restored', this.handleRestored);
+        window.removeListener('hidden', this.handleHidden);
+        window.removeListener('shown', this.handleShown);
+        window.removeListener('closed', this.handleClosed);
+        window.removeListener('bounds-changing', this.handleBoundsChanging);
+        window.removeListener('focused', this.handleFocused);
+
+        this.onClose.remove(this.cleanupListeners);
+    }
 
     /* ===== Event Handlers ===== */
     private handleBoundsChanged = (event: fin.WindowBoundsEvent) => {
-        this.window.updateOptions({opacity: 1.0});
         const bounds: fin.WindowBounds = this.checkBounds(event);
         const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
         const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
 
-        this.updateState({center, halfSize});
+        this.updateState({center, halfSize}, ActionOrigin.APPLICATION);
         if (this.boundsChangeCountSinceLastCommit > 1) {
             this.onCommit.emit(this);
         } else {
@@ -390,38 +509,37 @@ export class DesktopWindow {
         this.boundsChangeCountSinceLastCommit = 0;
     };
     private handleFrameDisabled = () => {
-        this.updateState({frame: false});
+        this.updateState({frame: false}, ActionOrigin.APPLICATION);
         this.onModified.emit(this);
     };
     private handleFrameEnabled = () => {
-        this.updateState({frame: true});
+        this.updateState({frame: true}, ActionOrigin.APPLICATION);
         this.onModified.emit(this);
     };
     private handleMaximized = () => {
-        this.updateState({state: 'maximized'});
+        this.updateState({state: 'maximized'}, ActionOrigin.APPLICATION);
         this.onModified.emit(this);
     };
     private handleMinimized = () => {
-        this.updateState({state: 'minimized'});
+        this.updateState({state: 'minimized'}, ActionOrigin.APPLICATION);
         this.onModified.emit(this);
     };
     private handleRestored = () => {
-        this.updateState({state: 'normal'});
+        this.updateState({state: 'normal'}, ActionOrigin.APPLICATION);
         // this.onModified.emit(this);
     };
     private handleHidden = () => {
-        this.updateState({hidden: true});
+        this.updateState({hidden: true}, ActionOrigin.APPLICATION);
         this.onModified.emit(this);
     };
     private handleShown = () => {
-        this.updateState({hidden: false});
+        this.updateState({hidden: false}, ActionOrigin.APPLICATION);
         // this.onModified.emit(this);
     };
     private handleClosed = () => {
         this.onClose.emit(this);
     };
     private handleBoundsChanging = async (event: fin.WindowBoundsEvent) => {
-        this.window.updateOptions({opacity: 0.8});
         const bounds: fin.WindowBounds = this.checkBounds(event);
         const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
         const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
@@ -429,7 +547,7 @@ export class DesktopWindow {
         // Convert 'changeType' into our enum type
         const type: Mask<eTransformType> = event.changeType + 1;
 
-        this.updateState({center, halfSize});
+        this.updateState({center, halfSize}, ActionOrigin.APPLICATION);
         this.boundsChangeCountSinceLastCommit++;
 
         if (this.boundsChangeCountSinceLastCommit > 1) {
@@ -439,15 +557,15 @@ export class DesktopWindow {
     private handleFocused = async () => {
         // Loop through all windows in the same group as the focused window and bring them
         // all to front
-        this.window.getGroup(async (group: fin.OpenFinWindow[]) => {
-            const promises: Promise<void>[] = [];
-            for (let i = 0; i < group.length; i++) {
-                promises[i] = new Promise<void>((res, rej) => {
-                    group[i].bringToFront(res, rej);
-                });
-            }
-
-            await Promise.all(promises);
+        const window: fin.OpenFinWindow = fin.desktop.Window.wrap(this.identity.uuid, this.identity.name);
+        const group: fin.OpenFinWindow[] = await p<fin.OpenFinWindow[]>(window.getGroup.bind(window))();
+        await promiseMap(group, async (window: fin.OpenFinWindow) => {
+            await p<never>(window.bringToFront.bind(window))();
         });
+
+        // V2 'getGroup' API has bug: https://appoji.jira.com/browse/RUN-4535
+        // await this.window.getGroup().then((group: Window[]) => {
+        //     return Promise.all(group.map((window: Window) => window.bringToFront()));
+        // });
     }
 }

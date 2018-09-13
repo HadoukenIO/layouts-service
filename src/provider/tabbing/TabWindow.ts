@@ -1,4 +1,4 @@
-import {TabIdentifier, TabWindowOptions} from '../../client/types';
+import {ApplicationUIConfig, TabIdentifier} from '../../client/types';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {DesktopWindow} from '../model/DesktopWindow';
@@ -53,7 +53,7 @@ export class TabWindow extends AsyncWindow {
      */
     public async deInit(): Promise<void> {
         const bounds = await this.getWindowBounds();
-        await this._window.resizeTo(bounds.width, bounds.height + this._tab.tabGroup.window.initialWindowOptions.height!, 'bottom-left');
+        await this._window.resizeTo(bounds.width, bounds.height + this._tab.tabGroup.config.height, 'bottom-left');
 
         // Check if the window should have a frame
         const identity: TabIdentifier = this._tab.ID;
@@ -94,7 +94,7 @@ export class TabWindow extends AsyncWindow {
         const groupWindow = this._tab.tabGroup.window;
         const groupActiveTab = this._tab.tabGroup.activeTab || this._tab.tabGroup.tabs[0];
 
-        const tabGroupBoundsP = groupWindow.getWindowBounds();
+        const tabGroupBoundsP = groupWindow.getWindow().getBounds();
         const tabBoundsP = groupActiveTab ? groupActiveTab.window.getWindowBounds() : this.getWindowBounds();
 
         const [tabGroupBounds, tabBounds] = await Promise.all([tabGroupBoundsP, tabBoundsP]);
@@ -110,7 +110,8 @@ export class TabWindow extends AsyncWindow {
         await Promise.all([resize, moveTo]);
 
         await new Promise((res, rej) => {
-            this._window.joinGroup(groupWindow.finWindow, res, rej);
+            const identity = groupWindow.getIdentity();
+            this._window.joinGroup(fin.desktop.Window.wrap(identity.uuid, identity.name), res, rej);
         });
     }
 
@@ -139,7 +140,7 @@ export class TabWindow extends AsyncWindow {
     private _onMinimize =
         () => {
             if (this._tab === this._tab.tabGroup.activeTab) {
-                this._tab.tabGroup.window.minimizeGroup();
+                this._tab.tabGroup.minimize();
             }
         }
 
@@ -148,7 +149,7 @@ export class TabWindow extends AsyncWindow {
      */
     private _onMaximize =
         () => {
-            this._tab.tabGroup.window.maximizeGroup();
+            this._tab.tabGroup.maximize();
         }
 
     /**
@@ -157,10 +158,10 @@ export class TabWindow extends AsyncWindow {
      */
     private _onRestore(): void {
         if (this._tab === this._tab.tabGroup.activeTab) {
-            this._tab.tabGroup.window.restoreGroup();
+            this._tab.tabGroup.restore();
         } else {
             this._tab.tabGroup.switchTab(this._tab.ID);
-            this._tab.tabGroup.window.restoreGroup();
+            this._tab.tabGroup.restore();
         }
     }
 
@@ -177,7 +178,7 @@ export class TabWindow extends AsyncWindow {
      */
     private _onFocus =
         () => {
-            this._tab.tabGroup.window.finWindow.bringToFront();
+            this._tab.tabGroup.window.getWindow().bringToFront();
         }
 
     /**
@@ -186,8 +187,8 @@ export class TabWindow extends AsyncWindow {
      */
     private _onBoundsChanged() {
         if (this._tab === this._tab.tabGroup.activeTab) {
-            if (this._tab.tabGroup.window.isMaximized) {
-                this._tab.tabGroup.window.restoreGroup();
+            if (this._tab.tabGroup.isMaximized) {
+                this._tab.tabGroup.restore();
             }
         }
     }

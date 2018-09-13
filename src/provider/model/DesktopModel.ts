@@ -1,8 +1,11 @@
+import {Fin, Window} from 'hadouken-js-adapter';
+
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {Signal2} from '../Signal';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {RectUtils} from '../snapanddock/utils/RectUtils';
 import {ZIndexer} from '../tabbing/ZIndexer';
+
 import {DesktopTabGroup} from './DesktopTabGroup';
 import {DesktopWindow, WindowIdentity, WindowState} from './DesktopWindow';
 
@@ -137,11 +140,11 @@ export class DesktopModel {
         }
     }
 
-    private registerWindow(uuid: string, name: string): void {
-        const newOFWindow: fin.OpenFinWindow = fin.desktop.Window.wrap(uuid, name);
+    private async registerWindow(uuid: string, name: string): Promise<void> {
+        const identity: WindowIdentity = {uuid, name};
 
         // Check that the service does not already have a matching window
-        const existingSnapWindow = this.getWindow(newOFWindow);
+        const existingSnapWindow = this.getWindow(identity);
 
         // The runtime will not allow multiple windows with the same uuid/name, so if we recieve a
         // window-created event for a registered window, it implies that our internal state is stale
@@ -151,20 +154,14 @@ export class DesktopModel {
         }
 
         // In either case, we will add the new window to the service.
-        this.addWindow(newOFWindow).then((win: DesktopWindow) => console.log('Registered window: ' + win.getId()));
+        const finv2: Fin = fin as any;  // tslint:disable-line:no-any
+        this.addWindow(await finv2.Window.wrap(identity)).then((win: DesktopWindow) => console.log('Registered window: ' + win.getId()));
     }
 
-    private addWindow(window: fin.OpenFinWindow): Promise<DesktopWindow> {
+    private addWindow(window: Window): Promise<DesktopWindow> {
         return DesktopWindow.getWindowState(window).then<DesktopWindow>((state: WindowState): DesktopWindow => {
-            const snapWindow: DesktopWindow = new DesktopWindow(new DesktopSnapGroup(), window, state);
-
-            // snapWindow.onClose.add(this.onWindowClosed, this);
-            this.windows.push(snapWindow);
-            this.windowLookup[snapWindow.getId()] = snapWindow;
-
-            // window.addEventListener('group-changed', this.onWindowGroupChanged.bind(this));
-
-            return snapWindow;
+            // Create new window object. Will get registered implicitly, due to signal within DesktopWindow constructor.
+            return new DesktopWindow(new DesktopSnapGroup(), window, state);
         });
     }
 

@@ -1,6 +1,8 @@
 import {TabBlob, TabIdentifier} from '../../client/types';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
+import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 
+import {DEFAULT_UI_URL} from './components/ApplicationConfigManager';
 import {Tab} from './Tab';
 import {TabService} from './TabService';
 import {createTabGroupsFromTabBlob} from './TabUtilities';
@@ -22,13 +24,23 @@ export async function getTabSaveInfo(): Promise<TabBlob[]|undefined> {
             return tab.ID;
         });
 
-        const [groupBounds, appBounds] = await Promise.all([group.window.getWindowBounds(), group.activeTab.window.getWindowBounds()]);
+        const appBounds: fin.WindowBounds = await group.activeTab.window.getWindowBounds();
+        const appRect: Rectangle = {
+            center: {x: appBounds.left + (appBounds.width / 2), y: appBounds.top + (appBounds.height / 2)},
+            halfSize: {x: appBounds.width / 2, y: appBounds.height / 2}
+        };
+        const groupRect: Rectangle = group.window.getState();
 
         const groupInfo = {
-            url: group.window.initialWindowOptions.url!,
+            url: group.config.url,
             active: group.activeTab.ID,
-            dimensions:
-                {x: groupBounds.left!, y: groupBounds.top!, width: groupBounds.width!, tabGroupHeight: groupBounds.height!, appHeight: appBounds.height!}
+            dimensions: {
+                x: groupRect.center.x - groupRect.halfSize.x,
+                y: groupRect.center.y - groupRect.halfSize.y,
+                width: groupRect.halfSize.x * 2,
+                tabGroupHeight: groupRect.halfSize.y * 2,
+                appHeight: appRect.halfSize.y * 2
+            }
         };
 
         return {tabs, groupInfo};

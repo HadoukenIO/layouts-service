@@ -1,4 +1,4 @@
-import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
+import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
 import {DesktopWindow, WindowState} from '../model/DesktopWindow';
 import {ANCHOR_DISTANCE, MIN_OVERLAP, SNAP_DISTANCE} from './Config';
 import {eSnapValidity, Orientation, SnapTarget} from './Resolver';
@@ -81,7 +81,7 @@ export class Projector {
      * @param candidateGroup The group that was used to build this projection
      * @param activeWindow The window that is being moved by the user
      */
-    public createTarget(candidateGroup: DesktopSnapGroup, activeWindow: DesktopWindow): SnapTarget|null {
+    public createTarget(candidateGroup: DesktopSnapGroup, activeWindow: Snappable): SnapTarget|null {
         const borders: BorderProjection[] = this.borders;
 
         if (!this.blocked) {

@@ -1,5 +1,7 @@
+import {Window} from 'hadouken-js-adapter';
+import {Fin} from 'hadouken-js-adapter';
 import {DesktopModel} from '../model/DesktopModel';
-import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
+import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
 import {DesktopWindow, eTransformType, Mask, WindowIdentity} from '../model/DesktopWindow';
 import {Signal2} from '../Signal';
 import {Tab} from '../tabbing/Tab';
@@ -99,19 +101,18 @@ export class SnapService {
 
         if (window) {
             try {
-                const group: DesktopSnapGroup = window.getGroup();
+                // Calculate undock offset
+                const offset = this.calculateUndockMoveDirection(window);
 
-                // Only do anything if the window is actually grouped
-                if (group.length > 1) {
-                    let offset = this.calculateUndockMoveDirection(window);
-
-                    window.setGroup(new DesktopSnapGroup());
-
-                    if (!offset.x && !offset.y) {
-                        offset = {x: 1, y: 1};
-                    }
-                    window.offsetBy({x: Math.sign(offset.x) * UNDOCK_MOVE_DISTANCE, y: Math.sign(offset.y) * UNDOCK_MOVE_DISTANCE});
+                if (offset.x || offset.y) {
+                    offset.x = Math.sign(offset.x) * UNDOCK_MOVE_DISTANCE;
+                    offset.y = Math.sign(offset.y) * UNDOCK_MOVE_DISTANCE;
+                } else {
+                    offset.x = offset.y = UNDOCK_MOVE_DISTANCE;
                 }
+
+                // Move window to it's own group, whilst applying offset
+                window.setGroup(new DesktopSnapGroup(), offset);
             } catch (error) {
                 console.error(`Unexpected error when undocking window: ${error}`);
                 throw new Error(`Unexpected error when undocking window: ${error}`);
@@ -175,10 +176,8 @@ export class SnapService {
 
                 for (let i = 0; i < windows.length; i++) {
                     const window = windows[i];
-                    // Undock the windows
-                    window.setGroup(new DesktopSnapGroup());
-                    // Apply previously calculated offset
-                    window.offsetBy(offsets[i]);
+                    // Undock the windows, applying previously calculated offset
+                    window.setGroup(new DesktopSnapGroup(), offsets[i]);
                 }
             }
         } catch (error) {
@@ -191,13 +190,16 @@ export class SnapService {
         window.onClose.add(this.onWindowClosed, this);
 
         // TODO: Figure out encapsulation issues
-        window.getWindow().addEventListener('group-changed', this.onWindowGroupChanged);
+        console.log('onWindowCreated: ' + window['initialised']);
+        window.sync().then(() => {
+            window.getWindow().addListener('group-changed', this.onWindowGroupChanged);
+        });
     }
 
     private onWindowDestroyed(window: DesktopWindow): void {
         window.onClose.remove(this.onWindowClosed, this);
 
-        window.getWindow().removeEventListener('group-changed', this.onWindowGroupChanged);
+        window.getWindow().removeListener('group-changed', this.onWindowGroupChanged);
     }
 
     private onSnapGroupCreated(group: DesktopSnapGroup): void {
@@ -307,9 +309,12 @@ export class SnapService {
         const snapTarget: SnapTarget|null = this.resolver.getSnapTarget(groups, activeGroup);
 
         // SNAP WINDOWS
-        if (snapTarget && snapTarget.validity === eSnapValidity.VALID && (!(window as Window & {foo: boolean}).foo)) {
+        if (snapTarget && snapTarget.validity === eSnapValidity.VALID) {
+            // Reset view (do this before moving windows out of active group, to ensure opacities are reset)
+            // this.view.update(null, null);
+
             // Move all windows in activeGroup to snapTarget.group
-            activeGroup.windows.forEach((window: DesktopWindow) => {
+            activeGroup.windows.forEach((window: Snappable) => {
                 if (window === snapTarget.activeWindow && snapTarget.halfSize) {
                     window.setGroup(snapTarget.group, snapTarget.snapOffset, snapTarget.halfSize);
                 } else {

@@ -1,8 +1,8 @@
 import {Identity} from 'hadouken-js-adapter';
 import {Client as ServiceClient} from 'hadouken-js-adapter/out/types/src/api/services/client';
 
-import {TabAPI, TabAPIActions} from './APITypes';
-import {AddTabPayload, ApplicationUIConfig, CustomData, DropPosition, EndDragPayload, JoinTabGroupPayload, Layout, LayoutApp, LayoutName, SetTabClientPayload, TabGroupEventPayload, TabProperties, TabWindowOptions, UpdateTabPropertiesPayload} from './types';
+import {TabAPI} from './APITypes';
+import {AddTabPayload, ApplicationUIConfig, CustomData, DropPosition, EndDragPayload, JoinTabGroupPayload, Layout, LayoutApp, LayoutName, SetTabClientPayload, TabGroupEventPayload, TabProperties, UpdateTabPropertiesPayload} from './types';
 
 const IDENTITY = {
     uuid: 'layouts-service',
@@ -182,7 +182,7 @@ export async function getTabs(window: Identity = getId()): Promise<Identity[]|nu
  * If a custom tab-strip UI is being used - this sets the URL for the tab-strip.
  * This binding happens on the application level.  An application cannot have different windows using different tabbing UI.
  */
-export async function setTabClient(url: string, config: TabWindowOptions): Promise<void> {
+export async function setTabClient(url: string, config: ApplicationUIConfig): Promise<void> {
     if (!config || isNaN(config.height!)) {
         return Promise.reject('Invalid config height provided');
     }

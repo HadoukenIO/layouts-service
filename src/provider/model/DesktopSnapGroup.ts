@@ -1,7 +1,9 @@
 import {Signal1, Signal2} from '../Signal';
 import {CalculatedProperty} from '../snapanddock/utils/CalculatedProperty';
 import {Point} from '../snapanddock/utils/PointUtils';
-import {DesktopWindow, eTransformType, Mask, WindowState} from './DesktopWindow';
+
+import {DesktopTabGroup} from './DesktopTabGroup';
+import {DesktopWindow, eTransformType, Mask, WindowIdentity, WindowState} from './DesktopWindow';
 
 /**
  * Key-value store for saving the state of each window before it was added to the tab group.
@@ -26,6 +28,18 @@ interface TabState {
      * map, as we won't ever need to "un-tab" or "restore" that window.
      */
     previousState: TabData;
+}
+
+export interface Snappable {
+    getId(): string;
+    getIdentity(): WindowIdentity;
+    getState(): WindowState;
+    getGroup(): DesktopSnapGroup;
+
+    // tslint:disable-next-line:no-any
+    applyOverride(property: keyof WindowState, value: any): Promise<void>;
+    resetOverride(property: keyof WindowState): Promise<void>;
+    setGroup(group: DesktopSnapGroup, offset?: Point, newHalfSize?: Point, synthetic?: boolean): void;
 }
 
 export class DesktopSnapGroup {
@@ -140,7 +154,7 @@ export class DesktopSnapGroup {
         return this.tabData !== null;
     }
 
-    public get windows(): DesktopWindow[] {
+    public get windows(): Snappable[] {
         return this._windows.slice();
     }
 

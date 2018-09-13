@@ -1,17 +1,49 @@
+import {Identity, Window as FinWindow} from 'hadouken-js-adapter';
 import {Provider} from 'hadouken-js-adapter/out/types/src/api/services/provider';
-import {TabGroupEventPayload, TabIdentifier, TabWindowOptions} from '../../client/types';
+import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
+
+import {ApplicationUIConfig, TabGroupEventPayload, TabIdentifier, TabServiceID, TabWindowOptions} from '../../client/types';
 import {Signal1} from '../Signal';
-import {GroupWindow} from '../tabbing/GroupWindow';
+import {DEFAULT_UI_URL} from '../tabbing/components/ApplicationConfigManager';
 import {Tab} from '../tabbing/Tab';
 import {TabService} from '../tabbing/TabService';
 import {uuidv4} from '../tabbing/TabUtilities';
+import {TabWindow} from '../tabbing/TabWindow';
+
+import {DesktopEntity} from './DesktopEntity';
+import {DesktopSnapGroup} from './DesktopSnapGroup';
+import {DesktopWindow, WindowIdentity, WindowState} from './DesktopWindow';
+
+// tslint:disable-next-line:no-any
+declare var fin: any;
+
 
 /**
  * Handles functionality for the TabSet
  */
-export class DesktopTabGroup {
+export class DesktopTabGroup extends DesktopEntity {
     public static readonly onCreated: Signal1<DesktopTabGroup> = new Signal1();
     public static readonly onDestroyed: Signal1<DesktopTabGroup> = new Signal1();
+
+    private static tabStripOptions: fin.WindowOptions = {url: DEFAULT_UI_URL, defaultHeight: 60, frame: false, maximizable: false};
+    // private static tabStripPool: FinWindow[] = (() => {
+    //     const pool: FinWindow[] = [];
+    //     console.log("A");
+    //     for(let i=0; i<5; i++) {
+    //         DesktopTabGroup.createTabStrip("X" + i + uuidv4());
+    //         console.log("C " + i);
+    //     }
+    //     return pool;
+    // })();
+
+    // private static createTabStrip(name: string): void {
+    //     console.log("B " + name);
+    //     //tslint:disable-next-line:no-debugger
+    //     debugger;
+    //     const identity: WindowIdentity = {uuid: 'layouts-service', name};
+    //     const options: fin.WindowOptions = {name: identity.name, ...DesktopTabGroup.tabStripOptions};
+    //     fin.Window.create(options).then((window: FinWindow) => DesktopTabGroup.tabStripPool.push(window));
+    // }
 
     /**
      * The ID for the TabGroup.
@@ -21,7 +53,7 @@ export class DesktopTabGroup {
     /**
      * Handle to this tabgroups window.
      */
-    private _window: GroupWindow;
+    private _window: DesktopWindow;
 
     /**
      * Tabs currently in this tab group.
@@ -33,24 +65,59 @@ export class DesktopTabGroup {
      */
     private _activeTab!: Tab;
 
-    private _isRestored = false;
+    private _isRestored: boolean;
+    private _isMaximized: boolean;
+    private _beforeMaximizeBounds: fin.WindowBounds|undefined;
 
     /**
      * Handle to the service provider
      */
     private mService: Provider;
 
+    private _config: ApplicationUIConfig;
+
     /**
      * Constructor for the TabGroup Class.
-     * @param {TabWindowOptions} windowOptions
+     * @param {ApplicationUIConfig} windowOptions
      */
-    constructor(windowOptions: TabWindowOptions) {
-        this.ID = uuidv4();
+    constructor(group: DesktopSnapGroup, options: TabWindowOptions) {
+        super(group, {uuid: TabServiceID.UUID, name: uuidv4()});
+
+        // if (DesktopTabGroup.tabStripPool.length > 0) {
+        //     const initialState: WindowState = {
+        //         center: {x: options.x + (options.width / 2), y: options.y + (options.height / 2)},
+        //         halfSize: {x: options.width / 2, y: options.height / 2},
+        //         frame: false,
+        //         hidden: false,
+        //         state: 'normal',
+        //         minWidth: -1,
+        //         maxWidth: -1,
+        //         minHeight: 0,
+        //         maxHeight: 0,
+        //         opacity: 1
+        //     };
+        //     const tabstrip = DesktopTabGroup.tabStripPool.pop()!;
+        //     tabstrip.updateOptions({minHeight: options.height});
+        //     tabstrip.show();
+        //     this._window = new DesktopWindow(group, tabstrip, initialState);
+        //     this.ID = tabstrip.identity.name!;
+        // } else {
+        this.ID = this.identity.name;
+        this.getTabStrip(this.identity.name, options);
+        this._window = new DesktopWindow(group, this.identity);
+        // }
         this._tabs = [];
-        this._window = new GroupWindow(windowOptions, this);
+        this._config = options;
+
+        this._isRestored = false;
+        this._isMaximized = false;
         this.mService = (window as Window & {providerChannel: Provider}).providerChannel;
 
         DesktopTabGroup.onCreated.emit(this);
+    }
+
+    public get config(): ApplicationUIConfig {
+        return this._config;
     }
 
     /**
@@ -63,10 +130,14 @@ export class DesktopTabGroup {
 
     /**
      * Returns the tab sets window.
-     * @returns {GroupWindow} The group window.
+     * @returns {DesktopWindow} The group window.
      */
-    public get window(): GroupWindow {
+    public get window(): DesktopWindow {
         return this._window;
+    }
+
+    public get snapGroup(): DesktopSnapGroup {
+        return this._window.getGroup();
     }
 
     /**
@@ -81,17 +152,147 @@ export class DesktopTabGroup {
         this._isRestored = isRestored;
     }
 
+    public get isMaximized(): boolean {
+        return this._isMaximized;
+    }
+
+    /**
+     * Toggles the window to a maximized state.  If the window is maximized we will restore it, if not we will maximize it.
+     */
+    public async toggleMaximize(): Promise<void|void[]> {
+        if (this._isMaximized) {
+            return this.restore();
+        } else {
+            return this.maximize();
+        }
+    }
+
+    /**
+     * Maximizes the tab set window.  This will resize the tab window to as large as possible with the tab set window on top.
+     */
+    public async maximize(): Promise<void> {
+        if (!this._isMaximized) {
+            this._beforeMaximizeBounds = await this.activeTab.window.getWindowBounds();
+
+            const moveto = this.window.getWindow().moveTo(0, 0);
+            const tabresizeto = this.activeTab.window.resizeTo(screen.availWidth, screen.availHeight - this._config.height!, 'top-left');
+
+            await Promise.all([moveto, tabresizeto]);
+
+            this._isMaximized = true;
+        }
+    }
+
+    /**
+     * Restores the tab set window.  If the tab set window is in a maximized state we will restore the window to its "before maximized" bounds.
+     */
+    public async restore(): Promise<void|void[]> {
+        if (this._isMaximized) {
+            if (await this.activeTab.window.getState() === 'minimized') {
+                await Promise.all(this.tabs.map(tab => tab.window.restore()));
+                return this.hideAllTabsMinusActiveTab();
+            } else if (this._beforeMaximizeBounds) {
+                const resize = this.activeTab.window.resizeTo(this._beforeMaximizeBounds.width, this._beforeMaximizeBounds.height, 'top-left');
+                const moveto = this.window.getWindow().moveTo(this._beforeMaximizeBounds.left, this._beforeMaximizeBounds.top - (this._config.height || 62));
+                this._isMaximized = false;
+                return Promise.all([resize, moveto]);
+            }
+        } else {
+            await Promise.all(this.tabs.map(tab => tab.window.restore()));
+            return this.hideAllTabsMinusActiveTab();
+        }
+    }
+
+    /**
+     * Minimizes the tab set window and all tab windows.
+     */
+    public async minimize() {
+        const minWins = this.tabs.map(tab => {
+            return tab.window.minimize();
+        });
+
+        const group = this._window.getWindow().minimize();
+
+        return Promise.all([minWins, group]);
+    }
+
+    /**
+     * Closes the tab set window and all its apps.
+     */
+    public async closeAll(): Promise<void> {
+        return this.removeAllTabs(true);
+    }
+
+    private async getTabStrip(name: string, options: TabWindowOptions): Promise<void> {  // Promise<DesktopWindow> {
+        const windowOptions: fin.WindowOptions = {
+            name,
+            url: options.url,
+            autoShow: true,
+            defaultLeft: options.x,
+            defaultTop: options.y,
+            defaultWidth: options.width,
+            defaultHeight: options.height,
+            minHeight: options.height,
+            maxHeight: options.height,
+            frame: false,
+            maximizable: false,
+            resizable: false,
+            saveWindowState: false,
+            taskbarIconGroup: name,
+            //@ts-ignore
+            backgroundThrottling: true,
+            waitForPageLoad: false
+        };
+        const tabstrip: FinWindow = /*DesktopTabGroup.tabStripPool.pop() ||*/ await fin.Window.create(windowOptions);
+
+        // const state: WindowState = {
+        //     center: {x: options.x + (options.width / 2), y: options.y + (options.height / 2)},
+        //     halfSize: {x: options.width / 2, y: options.height / 2},
+        //     frame: false,
+        //     hidden: false,
+        //     state: 'normal',
+        //     minWidth: -1,
+        //     maxWidth: -1,
+        //     minHeight: 0,
+        //     maxHeight: 0,
+        //     opacity: 1
+        // };
+        // const window: DesktopWindow = new DesktopWindow(new DesktopSnapGroup(), tabstrip!, state);
+        // await window.sync();
+
+        // return window;
+    }
+
     /**
      * Initializes the tab group window.  This will initalize tabs in the group, show the window, and handle alignment.
      */
     private async _initializeTabGroup() {
-        await this._window.init();
-        if (!this._isRestored) {
-            await this._window.alignPositionToApp(this._tabs[0].window);
-        }
+        // await this._window.init();
+        // if (!this._isRestored) {
+        //     await this.alignTabWindow(this._tabs[0]);
+        // }
+    }
+
+    private async alignTabWindow(tab: DesktopWindow): Promise<void> {
+        const tabstripWindow: FinWindow = this.window.getWindow();
+        const appWindow: FinWindow = tab.getWindow();
+
+        await tabstripWindow.leaveGroup();
+        const bounds = await appWindow.getBounds();
+
+        const state: WindowState = this.window.getState();
+        const resizeTo = tabstripWindow.resizeTo(bounds.width!, state.halfSize.y * 2, 'top-left');
+        await appWindow.resizeTo(bounds.width, bounds.height - state.halfSize.y * 2, 'bottom-left');
+
+        const moveTo = tabstripWindow.moveTo(bounds.left!, bounds.top!);
+
+        await Promise.all([resizeTo, moveTo]);
+        appWindow.joinGroup(tabstripWindow);
     }
 
     public async addTab(tab: Tab, handleTabSwitch = true, handleAlignment = true, index = -1) {
+        console.log('Add ' + tab.ID.name + ' to ' + this.ID);
+
         if (!(tab instanceof Tab)) {
             throw new Error(`${tab} is not a valid Tab object`);
         }
@@ -111,13 +312,13 @@ export class DesktopTabGroup {
         }
 
         if (this._tabs.length === 1) {
-            if (!this._isRestored) {
-                const firstTabConfig = TabService.INSTANCE.applicationConfigManager.getApplicationUIConfig(tab.ID.uuid) || {};
+            // if (!this._isRestored) {
+            //     const firstTabConfig = TabService.INSTANCE.applicationConfigManager.getApplicationUIConfig(tab.ID.uuid) || {};
 
-                const bounds = await tab.window.getWindowBounds();
-                this._window.updateInitialWindowOptions(
-                    Object.assign({}, firstTabConfig as object, {width: bounds.width, screenX: bounds.left, screenY: bounds.top}));
-            }
+            //     const bounds = await tab.window.getWindowBounds();
+            //     this._window.updateInitialWindowOptions(
+            //         Object.assign({}, firstTabConfig as object, {width: bounds.width, screenX: bounds.left, screenY: bounds.top}));
+            // }
 
             await this._initializeTabGroup();
         }
@@ -134,7 +335,7 @@ export class DesktopTabGroup {
             await tab.window.hide();
         }
 
-        this.window.finWindow.bringToFront();
+        this.window.getWindow().bringToFront();
 
         return tab;
     }
@@ -265,13 +466,13 @@ export class DesktopTabGroup {
      * Removes all tabs from this tab set.
      * @param closeApp Flag if we should close the tab windows.
      */
-    public removeAllTabs(closeApp: boolean): Promise<void[]> {
-        const refArray = this._tabs.slice();
-        const refArrayMap = refArray.map(tab => {
+    public removeAllTabs(closeApp: boolean): Promise<void> {
+        const tabs = this._tabs.slice();
+        const promises = tabs.map(tab => {
             this.removeTab(tab.ID, closeApp, true, false, !closeApp);
         });
 
-        return Promise.all(refArrayMap);
+        return Promise.all(promises).then(() => {});
     }
 
     /**

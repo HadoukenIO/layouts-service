@@ -1,4 +1,4 @@
-import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
+import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
 import {DesktopWindow, WindowIdentity, WindowState} from '../model/DesktopWindow';
 import {TabService} from '../tabbing/TabService';
 import {SNAP_DISTANCE} from './Config';
@@ -62,7 +62,7 @@ export interface SnapTarget {
     /**
      * The window within the active group that was used to find this candidate
      */
-    activeWindow: DesktopWindow;
+    activeWindow: Snappable;
 
     /**
      * The offset that will be applied to the active group, in order to correctly align it with this target.

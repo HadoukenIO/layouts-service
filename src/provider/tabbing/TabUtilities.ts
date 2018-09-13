@@ -1,7 +1,8 @@
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
-import {TabBlob, TabIdentifier, TabWindowOptions} from '../../client/types';
+import {ApplicationUIConfig, TabBlob, TabIdentifier, TabWindowOptions} from '../../client/types';
 import {DesktopModel} from '../model/DesktopModel';
+import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {DesktopWindow, WindowState} from '../model/DesktopWindow';
 import {SnapService} from '../snapanddock/SnapService';
@@ -28,7 +29,7 @@ import {ZIndexer} from './ZIndexer';
  * @param tabService The service itself which holds the tab groups
  * @param message Application or tab to be ejected
  */
-export async function ejectTab(message: TabIdentifier&TabWindowOptions, tabGroup?: DesktopTabGroup|undefined) {
+export async function ejectTab(message: TabIdentifier&Partial<TabWindowOptions>, tabGroup?: DesktopTabGroup|undefined) {
     const tabService: TabService = TabService.INSTANCE;
 
     // Get the tab that was ejected.
@@ -45,9 +46,9 @@ export async function ejectTab(message: TabIdentifier&TabWindowOptions, tabGroup
     let isOverTabWindowResult: TabIdentifier|null = null;
 
     // If we have a screenX & screenY we check if there is a tab group + tab window underneath
-    if (message.screenX && message.screenY) {
+    if (message.x && message.y) {
         isOverTabWindowResult =
-            getWindowAt(message.screenX, message.screenY /*, ejectedTab.ID*/);  // await tabService.isPointOverTabGroup(message.screenX, message.screenY);
+            getWindowAt(message.x, message.y /*, ejectedTab.ID*/);  // await tabService.isPointOverTabGroup(message.screenX, message.screenY);
     }
 
     // If there is a window underneath our point
@@ -71,8 +72,8 @@ export async function ejectTab(message: TabIdentifier&TabWindowOptions, tabGroup
     } else {
         await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, false, true, true);
 
-        if (message.screenX && message.screenY) {
-            ejectedTab.window.moveTo(message.screenX!, message.screenY! + ejectedTab.tabGroup.window.initialWindowOptions.height!);
+        if (message.x && message.y) {
+            ejectedTab.window.moveTo(message.x, message.y + ejectedTab.tabGroup.config.height);
             ejectedTab.window.show();
         } else {
             const bounds = await ejectedTab.window.getWindowBounds();
@@ -100,18 +101,21 @@ export async function createTabGroupsFromTabBlob(tabBlob: TabBlob[]): Promise<vo
         throw new Error('Unable to create tabgroup - no blob supplied');
     }
 
+    // Created tab set will be a stand-alone snap group
+    const snapGroup: DesktopSnapGroup = new DesktopSnapGroup();
+
     for (const blob of tabBlob) {
         const newTabWindowOptions: TabWindowOptions = {
             url: blob.groupInfo.url,
-            screenX: blob.groupInfo.dimensions.x,
-            screenY: blob.groupInfo.dimensions.y,
+            x: blob.groupInfo.dimensions.x,
+            y: blob.groupInfo.dimensions.y,
             height: blob.groupInfo.dimensions.tabGroupHeight,
             width: blob.groupInfo.dimensions.width,
         };
 
 
         // Create new tabgroup
-        const group: DesktopTabGroup = await TabService.INSTANCE.addTabGroup(newTabWindowOptions);
+        const group: DesktopTabGroup = await TabService.INSTANCE.addTabGroup(snapGroup, newTabWindowOptions);
 
         group.isRestored = true;
 

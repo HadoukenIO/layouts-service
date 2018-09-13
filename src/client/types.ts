@@ -103,12 +103,15 @@ export interface TabProperties {
     icon?: string;
 }
 
-export interface TabWindowOptions {
-    url?: string;
-    screenX?: number;
-    screenY?: number;
-    width?: number;
-    height?: number;
+export interface ApplicationUIConfig {
+    url: string;
+    height: number;
+}
+
+export interface TabWindowOptions extends ApplicationUIConfig {
+    x: number;
+    y: number;
+    width: number;
 }
 
 export interface TabPackage {
@@ -134,7 +137,7 @@ export interface TabAPIInteractionMessage extends TabAPIMessage {
 }
 
 export interface TabAPIDragMessage extends TabAPIMessage {
-    event: TabWindowOptions|null;
+    event: ApplicationUIConfig|null;
     uuid: string;
     name: string;
 }
@@ -166,10 +169,6 @@ export interface TabAPIReorderMessage extends TabAPIMessage {
     tabOrder: TabIdentifier[];
 }
 
-export interface ApplicationUIConfig {
-    [uuid: string]: TabWindowOptions;
-}
-
 export interface DropPosition {
     screenX: number;
     screenY: number;
@@ -186,7 +185,7 @@ export interface JoinTabGroupPayload extends TabGroupEventPayload {
 }
 
 export interface SetTabClientPayload {
-    config: TabWindowOptions;
+    config: ApplicationUIConfig;
     id: Identity;
 }
 

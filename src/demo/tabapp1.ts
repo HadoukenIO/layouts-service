@@ -8,7 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 fin.desktop.main(() => {
-    Layouts.setTabClient("http://localhost:1337/demo/tabbing/UI/UI1.html", { height: 62 });
+    // tslint:disable-next-line:no-any
+    Layouts.setTabClient("http://localhost:1337/demo/tabbing/UI/UI1.html", { height: 62 } as any);
     Layouts.addEventListener('join-tab-group', () => {
         console.log('TABBED: ');
     });

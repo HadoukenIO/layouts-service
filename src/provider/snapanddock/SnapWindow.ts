@@ -40,6 +40,8 @@ export enum eTransformType {
     RESIZE = 1 << 1
 }
 
+type OpenFinWindowEventHandler = <K extends keyof fin.OpenFinWindowEventMap>(event: fin.OpenFinWindowEventMap[K]) => void;
+
 export class SnapWindow {
     public static async getWindowState(window: fin.OpenFinWindow): Promise<WindowState> {
         return Promise
@@ -119,7 +121,7 @@ export class SnapWindow {
 
     // Tracks event listeners registered on the fin window for easier cleanup.
     private registeredListeners:
-        Map<keyof fin.OpenFinWindowEventMap, (<K extends keyof fin.OpenFinWindowEventMap>(event: fin.OpenFinWindowEventMap[K]) => void)[]> = new Map();
+        Map<keyof fin.OpenFinWindowEventMap, OpenFinWindowEventHandler[]> = new Map();
 
     // State tracking for "synth move" detection
     private boundsChangeCountSinceLastCommit: number;

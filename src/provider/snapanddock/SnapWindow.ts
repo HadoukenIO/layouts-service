@@ -1,5 +1,6 @@
 import {Signal1, Signal2} from './Signal';
 import {SnapGroup} from './SnapGroup';
+import * as ModuleWindow from './SnapWindow';
 import {p} from './utils/async';
 import {isWin10} from './utils/platform';
 import {Point, PointUtils} from './utils/PointUtils';
@@ -120,8 +121,7 @@ export class SnapWindow {
     private registered: boolean;
 
     // Tracks event listeners registered on the fin window for easier cleanup.
-    private registeredListeners:
-        Map<keyof fin.OpenFinWindowEventMap, OpenFinWindowEventHandler[]> = new Map();
+    private registeredListeners: Map<keyof fin.OpenFinWindowEventMap, OpenFinWindowEventHandler[]> = new Map();
 
     // State tracking for "synth move" detection
     private boundsChangeCountSinceLastCommit: number;
@@ -140,17 +140,17 @@ export class SnapWindow {
         group.addWindow(this);
 
         // Add listeners
-        this.registerListener('bounds-changed', this.handleBoundsChanged);
-        this.registerListener('frame-disabled', this.handleFrameDisabled);
-        this.registerListener('frame-enabled', this.handleFrameEnabled);
-        this.registerListener('maximized', this.handleMaximized);
-        this.registerListener('minimized', this.handleMinimized);
-        this.registerListener('restored', this.handleRestored);
-        this.registerListener('hidden', this.handleHidden);
-        this.registerListener('shown', this.handleShown);
-        this.registerListener('closed', this.handleClosed);
-        this.registerListener('bounds-changing', this.handleBoundsChanging);
-        this.registerListener('focused', this.handleFocused);
+        this.registerListener('bounds-changed', this.handleBoundsChanged.bind(this));
+        this.registerListener('frame-disabled', this.handleFrameDisabled.bind(this));
+        this.registerListener('frame-enabled', this.handleFrameEnabled.bind(this));
+        this.registerListener('maximized', this.handleMaximized.bind(this));
+        this.registerListener('minimized', this.handleMinimized.bind(this));
+        this.registerListener('restored', this.handleRestored.bind(this));
+        this.registerListener('hidden', this.handleHidden.bind(this));
+        this.registerListener('shown', this.handleShown.bind(this));
+        this.registerListener('closed', this.handleClosed.bind(this));
+        this.registerListener('bounds-changing', this.handleBoundsChanging.bind(this));
+        this.registerListener('focused', this.handleFocused.bind(this));
 
         // When the window's onClose signal is emitted, we cleanup all of the listeners
         this.onClose.add(this.cleanupListeners);
@@ -365,18 +365,18 @@ export class SnapWindow {
         void => {
             console.log('OnClose recieved for window ', this.getId(), '. Removing listeners');
 
-            for (const [key, listenerArray] of new Map(this.registeredListeners)) {
+            for (const [key, listenerArray] of this.registeredListeners) {
                 for (const listener of listenerArray) {
                     this.window.removeEventListener(key, listener);
                 }
-                this.registeredListeners.delete(key);
             }
+            this.registeredListeners.clear();
 
             this.onClose.remove(this.cleanupListeners);
         }
 
     /* ===== Event Handlers ===== */
-    private handleBoundsChanged = (event: fin.WindowBoundsEvent) => {
+    private handleBoundsChanged(event: fin.WindowBoundsEvent) {
         this.window.updateOptions({opacity: 1.0});
         const bounds: fin.WindowBounds = this.checkBounds(event);
         const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
@@ -389,39 +389,39 @@ export class SnapWindow {
             this.onModified.emit(this);
         }
         this.boundsChangeCountSinceLastCommit = 0;
-    };
-    private handleFrameDisabled = () => {
+    }
+    private handleFrameDisabled() {
         this.updateState({frame: false});
         this.onModified.emit(this);
-    };
-    private handleFrameEnabled = () => {
+    }
+    private handleFrameEnabled() {
         this.updateState({frame: true});
         this.onModified.emit(this);
-    };
-    private handleMaximized = () => {
+    }
+    private handleMaximized() {
         this.updateState({state: 'maximized'});
         this.onModified.emit(this);
-    };
-    private handleMinimized = () => {
+    }
+    private handleMinimized() {
         this.updateState({state: 'minimized'});
         this.onModified.emit(this);
-    };
-    private handleRestored = () => {
+    }
+    private handleRestored() {
         this.updateState({state: 'normal'});
         // this.onModified.emit(this);
-    };
-    private handleHidden = () => {
+    }
+    private handleHidden() {
         this.updateState({hidden: true});
         this.onModified.emit(this);
-    };
-    private handleShown = () => {
+    }
+    private handleShown() {
         this.updateState({hidden: false});
         // this.onModified.emit(this);
-    };
-    private handleClosed = () => {
+    }
+    private handleClosed() {
         this.onClose.emit(this);
-    };
-    private handleBoundsChanging = async (event: fin.WindowBoundsEvent) => {
+    }
+    private handleBoundsChanging(event: fin.WindowBoundsEvent) {
         this.window.updateOptions({opacity: 0.8});
         const bounds: fin.WindowBounds = this.checkBounds(event);
         const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
@@ -436,27 +436,20 @@ export class SnapWindow {
         if (this.boundsChangeCountSinceLastCommit > 1) {
             this.onTransform.emit(this, type);
         }
-    };
-    private handleFocused = async () => {
+    }
+    private handleFocused() {
         // If the window is maximised, we leave everything where it is
         if (this.state.state !== 'maximized') {
             // Loop through all windows in the same group as the focused window and bring them
             // all to front
-            this.window.getGroup(async (group: fin.OpenFinWindow[]) => {
-                const promises: Promise<void>[] = [];
-                for (let i = 0; i < group.length; i++) {
-                    promises[i] = new Promise<void>(async (res, rej) => {
-                        group[i].getState(state => {
-                            if (state !== 'maximized') {
-                                group[i].bringToFront(res, rej);
-                            } else {
-                                res();
-                            }
-                        }, rej);
+            this.window.getGroup((group: fin.OpenFinWindow[]): void => {
+                group.forEach((win: fin.OpenFinWindow) => {
+                    win.getState((state) => {
+                        if (state !== 'maximized') {
+                            win.bringToFront();
+                        }
                     });
-                }
-
-                await Promise.all(promises);
+                });
             });
         }
     }

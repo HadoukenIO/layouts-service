@@ -117,6 +117,10 @@ export class SnapWindow {
     private prevGroup: SnapGroup|null;
     private registered: boolean;
 
+    // Tracks event listeners registered on the fin window for easier cleanup.
+    private registeredListeners:
+        Map<keyof fin.OpenFinWindowEventMap, (<K extends keyof fin.OpenFinWindowEventMap>(event: fin.OpenFinWindowEventMap[K]) => void)[]> = new Map();
+
     // State tracking for "synth move" detection
     private boundsChangeCountSinceLastCommit: number;
 
@@ -344,20 +348,25 @@ export class SnapWindow {
         }
     }
 
-    private registeredListeners:
-        Map<keyof fin.OpenFinWindowEventMap, <K extends keyof fin.OpenFinWindowEventMap>(event: fin.OpenFinWindowEventMap[K]) => void> = new Map();
-
     private registerListener<K extends keyof fin.OpenFinWindowEventMap>(eventType: K, handler: (event: fin.OpenFinWindowEventMap[K]) => void) {
         this.window.addEventListener(eventType, handler);
-        this.registeredListeners.set(eventType, handler);
+        const currentListeners = this.registeredListeners.get(eventType);
+        if (currentListeners) {
+            currentListeners.push(handler);
+            this.registeredListeners.set(eventType, currentListeners);
+        } else {
+            this.registeredListeners.set(eventType, [handler]);
+        }
     }
 
     private cleanupListeners = (snapWindow: SnapWindow):
         void => {
             console.log('OnClose recieved for window ', this.getId(), '. Removing listeners');
 
-            for (const [key, listener] of new Map(this.registeredListeners)) {
-                this.window.removeEventListener(key, listener);
+            for (const [key, listenerArray] of new Map(this.registeredListeners)) {
+                for (const listener of listenerArray) {
+                    this.window.removeEventListener(key, listener);
+                }
                 this.registeredListeners.delete(key);
             }
 

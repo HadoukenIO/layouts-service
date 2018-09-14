@@ -188,7 +188,7 @@ export interface TabbedPlaceholders {
 }
 
 // Helper function to determine if a window is supposed to be tabbed in an incoming layout.
-export function inWindowObject(win: {uuid: string, name: string}, windowObject: WindowObject | TabbedPlaceholders) {
+export function inWindowObject(win: {uuid: string, name: string}, windowObject: WindowObject|TabbedPlaceholders) {
     if (windowObject[win.uuid]) {
         if (windowObject[win.uuid][win.name]) {
             return true;
@@ -221,7 +221,8 @@ export async function childWindowPlaceholderCheck(app: LayoutApp, tabbedWindows:
 
 // Helper function to determine which placeholder windows to create for a running application's child windows.
 // This differs from childWindowPlaceholderCheck because we need to check if child windows are open before we create their placeholders.
-export async function childWindowPlaceholderCheckRunningApp(app: LayoutApp, tabbedWindows: WindowObject, tabbedPlaceholdersToWindows: TabbedPlaceholders, openWindows: WindowObject) {
+export async function childWindowPlaceholderCheckRunningApp(
+    app: LayoutApp, tabbedWindows: WindowObject, tabbedPlaceholdersToWindows: TabbedPlaceholders, openWindows: WindowObject) {
     if (app.confirmed) {
         for (const win of app.childWindows) {
             // Here we're checking if the incoming child window is already open or not.

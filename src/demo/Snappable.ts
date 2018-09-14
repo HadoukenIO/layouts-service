@@ -10,14 +10,12 @@ document.body.appendChild(h1);
 const btn = document.createElement('button');
 btn.innerText = 'Undock Window';
 btn.onclick = () => Layouts.undockWindow();
-// tslint:disable-next-line:no-any
-(btn.style as any) = '-webkit-app-region: no-drag';
+btn.setAttribute('style', '-webkit-app-region: no-drag');
 document.body.appendChild(btn);
 const explodeBtn = document.createElement('button');
 explodeBtn.innerText = 'Undock Group';
 explodeBtn.onclick = () => Layouts.undockGroup();
-// tslint:disable-next-line:no-any
-(explodeBtn.style as any) = '-webkit-app-region: no-drag';
+explodeBtn.setAttribute('style', '-webkit-app-region: no-drag');
 document.body.appendChild(explodeBtn);
 
 // Add listeners

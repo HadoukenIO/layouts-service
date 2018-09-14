@@ -1,5 +1,6 @@
 /*tslint:disable:no-any*/
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
+import { WindowInfo } from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 export interface Url {
     url: string;
@@ -41,6 +42,7 @@ export interface LayoutApp {
 export type LayoutName = string;
 
 export interface Layout {
+    type: 'layout';
     monitorInfo: any;  // saving but not using yet
     customData?: any;
     apps: LayoutApp[];
@@ -50,6 +52,16 @@ export interface Layout {
 export interface AppToRestore {
     resolve: Function;
     layoutApp: LayoutApp;
+}
+
+export interface LayoutWindowData {
+    info: WindowInfo;
+    uuid: string;
+    windowGroup: Identity[];
+    frame: boolean;
+    state: 'normal' | 'minimized' | 'maximised';
+    isTabbed: boolean;
+    isShowing: boolean;
 }
 
 /* Workflows

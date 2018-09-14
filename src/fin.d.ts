@@ -26,7 +26,6 @@ declare namespace fin {
         ExternalApp: OpenFinExternalApplicationStatic;
         InterApplicationBus: OpenFinInterApplicationBus;
         Notification: OpenFinNotificationStatic;
-        Service: OpenFinService;
         System: OpenFinSystem;
         Window: OpenFinWindowStatic;
     }
@@ -333,6 +332,12 @@ declare namespace fin {
          * white window. Default: true.
          */
         waitForPageLoad?: boolean;
+
+        smallWindow?: boolean;
+
+        backgroundThrottling?: boolean;
+
+        backgroundColor?: string;
     }
 
     /**
@@ -711,6 +716,8 @@ declare namespace fin {
          * Update the OpenFin Runtime Proxy settings.
          */
         updateProxySettings(type: string, address: string, port: number, callback?: () => void, errorCallback?: (reason: string) => void): void;
+
+        getFocusedWindow(): Promise<{uuid: string, name: string} | null>;
     }
 
     interface CacheOptions {

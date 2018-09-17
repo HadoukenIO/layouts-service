@@ -61,6 +61,7 @@ export class TabWindow extends AsyncWindow {
         const snapWindow: SnapWindow|undefined = windows.find(window => window.getId() === id);
         const hasFrame: boolean = !snapWindow || snapWindow.getState().frame;  // If can't find the window (shouldn't be possible), assume window had a frame
 
+        this._window.bringToFront();
         // @ts-ignore resizeRegion.sides is valid.  Its not in the type file.
         return this.updateWindowOptions({showTaskbarIcon: true, frame: hasFrame, resizeRegion: {sides: {top: true}}});
     }

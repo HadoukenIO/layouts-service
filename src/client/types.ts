@@ -1,6 +1,6 @@
 /*tslint:disable:no-any*/
+import {WindowInfo} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
-import { WindowInfo } from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 export interface Url {
     url: string;
@@ -59,7 +59,7 @@ export interface LayoutWindowData {
     uuid: string;
     windowGroup: Identity[];
     frame: boolean;
-    state: 'normal' | 'minimized' | 'maximised';
+    state: 'normal'|'minimized'|'maximised';
     isTabbed: boolean;
     isShowing: boolean;
 }

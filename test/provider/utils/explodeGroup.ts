@@ -9,7 +9,7 @@ export interface WindowIdentity {
 
 const getClientConnection = async () => {
     const fin:Fin = await getConnection();
-    return fin.Service.connect({uuid: 'layouts-service'});
+    return fin.InterApplicationBus.Channel.connect({uuid: 'layouts-service'});
 };
 
 export async function explodeGroup(identity: WindowIdentity) {

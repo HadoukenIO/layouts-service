@@ -173,7 +173,8 @@ export function getWindowAt(x: number, y: number, exclude?: Identity) {
             state.halfSize = {x: state.halfSize.x, y: state.halfSize.y + 15};
         }
 
-        return window.getId() !== id && !window.getState().hidden && window.getState().state !== 'minimized' && RectUtils.isPointInRect(state.center, state.halfSize, point);
+        return window.getId() !== id && !window.getState().hidden && window.getState().state !== 'minimized' &&
+            RectUtils.isPointInRect(state.center, state.halfSize, point);
     });
 
 

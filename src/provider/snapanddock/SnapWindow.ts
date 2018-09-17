@@ -405,7 +405,7 @@ export class SnapWindow {
     private handleMinimized() {
         this.updateState({state: 'minimized'});
         this.group.windows.forEach(win => {
-                win.getWindow().minimize();
+            win.getWindow().minimize();
         });
         this.onModified.emit(this);
     }

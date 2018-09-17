@@ -6,6 +6,10 @@ const {launch} = require('hadouken-js-adapter');
 
 let port;
 
+let args = process.argv.slice(2);
+let testFileName = args.shift() || '*';
+let testNameFilter = args.shift();
+
 const cleanup = async res => {
     if (os.platform().match(/^win/)) {
         const cmd = 'taskkill /F /IM openfin.exe /T';
@@ -63,7 +67,7 @@ build()
     .catch(fail)
     //Had to restrict pattern to only include 'provider' as we now have a mix of ava and jest based tests.
     //Will need to port one to the other at some point - needs some discussion first.
-    //.then(OF_PORT => run('ava --serial', ['build/test/test/demo/**/*.test.js'], { env: { OF_PORT } }))
-    .then(OF_PORT => run('ava --serial', ['build/test/**/*.test.js'], { env: { OF_PORT } }))
+    .then(OF_PORT => run(`ava --serial build/test/**/${testFileName}.test.js ${testNameFilter? '--match ' + testNameFilter: ''}`, { env: { OF_PORT } }))
     .then(cleanup)
     .catch(cleanup);
+    

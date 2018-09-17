@@ -1,3 +1,15 @@
+/*
+ * Script accepts the following optional parameters:
+ * --file-path [String] : Specifies the name of the file containing the tests to run. 
+ *     Example: --file-path undock will run tests in the file undock.test.ts
+ * --filter [String] : Filters the tests that will be run. 
+ *     Valid filter syntax is described in the ava documentation: https://github.com/avajs/ava#running-tests-with-matching-titles.
+ *     Example: --filter *vertical* will run all tests containing the word 'vertical'
+ * Any other command line parameters will be passed through to ava as-is. 
+ *     A list of valid command line parameters can be found in the ava documentation: https://github.com/avajs/ava#cli
+ *     NOTE: --match is not supported, use --filter instead
+ */
+
 const execa = require('execa');
 const os = require('os');
 const express = require('express');
@@ -6,9 +18,22 @@ const {launch} = require('hadouken-js-adapter');
 
 let port;
 
-let args = process.argv.slice(2);
-let testFileName = args.shift() || '*';
-let testNameFilter = args.shift();
+let testFileName = '*';
+let testNameFilter;
+let args = process.argv.splice(2);
+
+let fileNameIndex = args.indexOf('--file-name')
+if (fileNameIndex > -1) {
+    testFileName = args[fileNameIndex + 1];
+    args.splice(fileNameIndex, 2);
+}
+let testFilterIndex = args.indexOf('--filter')
+if (testFilterIndex > -1) {
+    testNameFilter = args[testFilterIndex + 1];
+    args.splice(testFilterIndex, 2);
+}
+
+const testCommand = `ava --serial build/test/**/${testFileName}.test.js ${testNameFilter? '--match ' + testNameFilter: ''} ${args.join(' ')}`;
 
 const cleanup = async res => {
     if (os.platform().match(/^win/)) {
@@ -67,7 +92,7 @@ build()
     .catch(fail)
     //Had to restrict pattern to only include 'provider' as we now have a mix of ava and jest based tests.
     //Will need to port one to the other at some point - needs some discussion first.
-    .then(OF_PORT => run(`ava --serial build/test/**/${testFileName}.test.js ${testNameFilter? '--match ' + testNameFilter: ''}`, { env: { OF_PORT } }))
+    .then(OF_PORT => run(testCommand , { env: { OF_PORT } }))
     .then(cleanup)
     .catch(cleanup);
     

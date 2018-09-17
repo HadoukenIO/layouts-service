@@ -12,14 +12,12 @@ import {WindowIdentity, WindowState} from './DesktopWindow';
 export abstract class DesktopEntity /*implements Snappable*/ {  // Will eventually implement Snappable, still WIP.
     protected readonly identity: WindowIdentity;
     protected readonly id: string;  // Created from window uuid and name
-    protected group: DesktopSnapGroup;
 
     private pendingActions: Promise<void>[];
 
-    constructor(snapGroup: DesktopSnapGroup, identity: WindowIdentity) {
+    constructor(identity: WindowIdentity) {
         this.identity = identity;
         this.id = `${identity.uuid}/${identity.name!}`;
-        this.group = snapGroup;
         this.pendingActions = [];
     }
 
@@ -31,45 +29,49 @@ export abstract class DesktopEntity /*implements Snappable*/ {  // Will eventual
         return this.identity;
     }
 
-    public getGroup(): DesktopSnapGroup {
-        return this.group;
-    }
-
     public async sync(): Promise<void> {
         const MAX_AWAITS = 10;
         let awaitCount = 0;
 
-        console.log(`Sync: Started with ${this.pendingActions.length} actions`);
+        console.log(`Sync ${this.id}: Started with ${this.pendingActions.length} actions`);
         while (this.pendingActions.length > 0) {
             if (++awaitCount <= MAX_AWAITS) {
                 // Wait for pending operations to finish
-                console.log(`Sync: Awaiting ${this.pendingActions.length} actions`);
+                console.log(`Sync ${this.id}: Awaiting ${this.pendingActions.length} actions`);
                 await Promise.all(this.pendingActions);
             } else {
                 // If we've looped this many times, we're probably in some kind of deadlock scenario
-                return Promise.reject(`Couldn't resolve sync after ${awaitCount} attempts`);
+                return Promise.reject(`Couldn't sync ${this.id} after ${awaitCount} attempts`);
             }
         }
     }
 
-    protected async addPendingActions(actions: Promise<void>[]): Promise<void> {
-        actions.forEach((action: Promise<void>) => {
-            this.pendingActions.push(action);
-            action.then(() => {
-                const index = this.pendingActions.indexOf(action);
-                if (index >= 0) {
-                    this.pendingActions.splice(index, 1);
-                    console.log('Pending action complete. Now ' + this.pendingActions.length + ' actions');
-                } else {
-                    console.warn('Action completed but couldn\'t find it in pending action list');
-                }
+    protected async addPendingActions(actions: Promise<void>|Promise<void>[]): Promise<void> {
+        if (actions instanceof Array) {
+            this.pendingActions.push.apply(this.pendingActions, actions);
+            actions.forEach((action: Promise<void>) => {
+                action.then(this.onActionComplete.bind(this, action));
             });
-        });
 
-        if (actions.length > 1) {
-            return Promise.all(actions).then(() => {});
-        } else if (actions.length === 1) {
-            return actions[0];
+            if (actions.length > 1) {
+                return Promise.all(actions).then(() => {});
+            } else if (actions.length === 1) {
+                return actions[0];
+            }
+        } else {
+            this.pendingActions.push(actions);
+            actions.then(this.onActionComplete.bind(this, actions));
+            return actions;
+        }
+    }
+
+    private onActionComplete(action: Promise<void>): void {
+        const index = this.pendingActions.indexOf(action);
+        if (index >= 0) {
+            this.pendingActions.splice(index, 1);
+            console.log('Pending action complete. Now ' + this.pendingActions.length + ' actions');
+        } else {
+            console.warn('Action completed but couldn\'t find it in pending action list');
         }
     }
 }

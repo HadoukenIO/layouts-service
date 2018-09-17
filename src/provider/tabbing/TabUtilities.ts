@@ -9,7 +9,6 @@ import {SnapService} from '../snapanddock/SnapService';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {RectUtils} from '../snapanddock/utils/RectUtils';
 
-import {Tab} from './Tab';
 import {TabService} from './TabService';
 import {ZIndexer} from './ZIndexer';
 
@@ -29,15 +28,16 @@ import {ZIndexer} from './ZIndexer';
  * @param tabService The service itself which holds the tab groups
  * @param message Application or tab to be ejected
  */
-export async function ejectTab(message: TabIdentifier&Partial<TabWindowOptions>, tabGroup?: DesktopTabGroup|undefined) {
+export async function ejectTab(message: TabIdentifier&Partial<TabWindowOptions>, tabGroup?: DesktopTabGroup|null) {
     const tabService: TabService = TabService.INSTANCE;
 
     // Get the tab that was ejected.
-    const ejectedTab: Tab|undefined =
+    const ejectedTab: DesktopWindow|null =
         tabGroup ? tabGroup.getTab({name: message.name, uuid: message.uuid}) : tabService.getTab({uuid: message.uuid, name: message.name});
-
+    tabGroup = ejectedTab && ejectedTab.getTabGroup();
+    
     // if the tab is not valid then return out of here!
-    if (!ejectedTab) {
+    if (!ejectedTab || !tabGroup) {
         console.error('Attempted to eject tab which is not in a tabgroup');
         throw new Error('Specified window is not in a tabGroup.');
     }
@@ -57,32 +57,33 @@ export async function ejectTab(message: TabIdentifier&Partial<TabWindowOptions>,
         return;
     } else if (isOverTabWindowResult) {
         const isOverTabGroup = tabService.getTabGroupByApp(isOverTabWindowResult);
-        if (tabService.applicationConfigManager.compareConfigBetweenApplications(isOverTabWindowResult.uuid, ejectedTab.ID.uuid)) {
+        if (tabService.applicationConfigManager.compareConfigBetweenApplications(isOverTabWindowResult.uuid, ejectedTab.getIdentity().uuid)) {
             if (isOverTabGroup) {
-                if (isOverTabGroup.ID !== ejectedTab.tabGroup.ID) {
-                    await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true, true, false);
-                    const tab = await new Tab({tabID: ejectedTab.ID}).init();
+                if (isOverTabGroup.ID !== tabGroup.ID) {
+                    await tabGroup.removeTab(ejectedTab.getIdentity(), false, true, true, false);
+                    // const tab = await new Tab({tabID: ejectedTab.getIdentity()}).init();
+                    const tab = ejectedTab;
                     await isOverTabGroup.addTab(tab);
                 }
             } else {
-                await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, true, true, false);
-                await TabService.INSTANCE.createTabGroupWithTabs([isOverTabWindowResult, ejectedTab.ID]);
+                await tabGroup.removeTab(ejectedTab.getIdentity(), false, true, true, false);
+                await TabService.INSTANCE.createTabGroupWithTabs([isOverTabWindowResult, ejectedTab.getIdentity()]);
             }
         }
     } else {
-        await ejectedTab.tabGroup.removeTab(ejectedTab.ID, false, false, true, true);
+        await tabGroup.removeTab(ejectedTab.getIdentity(), false, false, true, true);
 
         if (message.x && message.y) {
-            ejectedTab.window.moveTo(message.x, message.y + ejectedTab.tabGroup.config.height);
-            ejectedTab.window.show();
+            ejectedTab.getWindow().moveTo(message.x, message.y + tabGroup.config.height);
+            ejectedTab.getWindow().show();
         } else {
-            const bounds = await ejectedTab.window.getWindowBounds();
-            ejectedTab.window.moveTo(bounds.left, bounds.top);
-            ejectedTab.window.show();
+            const bounds = await ejectedTab.getWindow().getBounds();
+            ejectedTab.getWindow().moveTo(bounds.left, bounds.top);
+            ejectedTab.getWindow().show();
         }
 
-        if (ejectedTab.tabGroup.tabs.length === 1) {
-            tabService.removeTabGroup(ejectedTab.tabGroup.ID, false);
+        if (tabGroup.tabs.length === 1) {
+            tabService.removeTabGroup(tabGroup.ID, false);
         }
     }
 
@@ -125,9 +126,9 @@ export async function createTabGroupsFromTabBlob(tabBlob: TabBlob[]): Promise<vo
         });
 
         for (const tab of blob.tabs) {
-            let newTab = await new Tab({tabID: tab}).init();
-
-            newTab = await group.addTab(newTab, false, true);
+            // let newTab = await new Tab({tabID: tab}).init();
+            let newTab: DesktopWindow = TabService.INSTANCE.desktopModel.getWindow(tab)!;
+            newTab = newTab && (await group.addTab(newTab, false, true));
 
             if (!newTab) {
                 console.error('No tab was added');
@@ -135,11 +136,11 @@ export async function createTabGroupsFromTabBlob(tabBlob: TabBlob[]): Promise<vo
             }
         }
 
-        await group.realignApps();
+        // await group.realignApps();
         await group.switchTab({uuid: blob.groupInfo.active.uuid, name: blob.groupInfo.active.name});
     }
 
-    TabService.INSTANCE.tabGroups.forEach(group => group.realignApps());
+    // TabService.INSTANCE.tabGroups.forEach(group => group.realignApps());
 }
 
 (window as Window & {createTabGroupsFromTabBlob: Function}).createTabGroupsFromTabBlob = createTabGroupsFromTabBlob;
@@ -167,7 +168,7 @@ export function getWindowAt(x: number, y: number, exclude?: Identity) {
         const state: WindowState = Object.assign({}, window.getState());
 
         // Ignore any windows that are snapped (temporary solution - see SERVICE-230/SERVICE-200)
-        if (window.getGroup().length > 1) {
+        if (window.getSnapGroup().length > 1) {
             return false;
         }
 

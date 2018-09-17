@@ -34,12 +34,13 @@ export interface Snappable {
     getId(): string;
     getIdentity(): WindowIdentity;
     getState(): WindowState;
-    getGroup(): DesktopSnapGroup;
+    getTabGroup(): DesktopTabGroup|null;
+    getSnapGroup(): DesktopSnapGroup;
 
     // tslint:disable-next-line:no-any
     applyOverride(property: keyof WindowState, value: any): Promise<void>;
     resetOverride(property: keyof WindowState): Promise<void>;
-    setGroup(group: DesktopSnapGroup, offset?: Point, newHalfSize?: Point, synthetic?: boolean): void;
+    setSnapGroup(group: DesktopSnapGroup, offset?: Point, newHalfSize?: Point, synthetic?: boolean): void;
 }
 
 export class DesktopSnapGroup {
@@ -161,7 +162,7 @@ export class DesktopSnapGroup {
     public addWindow(window: DesktopWindow): void {
         if (!this._windows.includes(window)) {
             // Remove window from it's previous group
-            const prevGroup = (window.getGroup() === this) ? window.getPrevGroup() : window.getGroup();
+            const prevGroup = (window.getSnapGroup() === this) ? window.getPrevGroup() : window.getSnapGroup();
             if (prevGroup) {
                 prevGroup.removeWindow(window);
             }
@@ -175,8 +176,8 @@ export class DesktopSnapGroup {
             // Setup hierarchy
             this._windows.push(window);
             this.checkRoot();
-            if (window.getGroup() !== this) {
-                window.setGroup(this);
+            if (window.getSnapGroup() !== this) {
+                window.setSnapGroup(this);
             }
 
             // Will need to re-calculate cached properties

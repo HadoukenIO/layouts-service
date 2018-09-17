@@ -2,13 +2,12 @@ import {ApplicationUIConfig, Bounds, TabIdentifier, TabServiceID, TabWindowOptio
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
-import {DesktopWindow, WindowIdentity} from '../model/DesktopWindow';
+import {DesktopWindow, WindowIdentity, WindowState} from '../model/DesktopWindow';
 import {Rectangle} from '../snapanddock/utils/RectUtils';
 
 import {APIHandler} from './APIHandler';
 import {ApplicationConfigManager} from './components/ApplicationConfigManager';
 import {DragWindowManager} from './DragWindowManager';
-import {Tab} from './Tab';
 
 interface GroupTabBounds extends Bounds {
     group: DesktopTabGroup;
@@ -53,7 +52,7 @@ export class TabService {
         this.model = model;
         this._dragWindowManager = new DragWindowManager();
         this._dragWindowManager.init();
-        this.apiHandler = new APIHandler(this);
+        this.apiHandler = new APIHandler(model, this);
 
         this.mApplicationConfigManager = new ApplicationConfigManager();
 
@@ -82,6 +81,11 @@ export class TabService {
      */
     public get applicationConfigManager(): ApplicationConfigManager {
         return this.mApplicationConfigManager;
+    }
+
+    public get desktopModel(): DesktopModel {
+        //Temporary. Until TabUtilities are moved into service.
+        return this.model;
     }
 
     /**
@@ -127,9 +131,9 @@ export class TabService {
      */
     public getTabGroupByApp(ID: TabIdentifier): DesktopTabGroup|null {
         return this.model.getTabGroups().find((group: DesktopTabGroup) => {
-            return group.tabs.some((tab: Tab) => {
-                const tabID = tab.ID;
-                return tabID.name === ID.name && tabID.uuid === ID.uuid;
+            return group.tabs.some((tab: DesktopWindow) => {
+                const identity: WindowIdentity = tab.getIdentity();
+                return identity.name === ID.name && identity.uuid === ID.uuid;
             });
         }) ||
             null;
@@ -139,29 +143,29 @@ export class TabService {
      * Returns an individual Tab.
      * @param ID ID of the tab to get.
      */
-    public getTab(ID: TabIdentifier): Tab|undefined {
+    public getTab(ID: TabIdentifier): DesktopWindow|null {
         const group = this.getTabGroupByApp(ID);
 
         if (group) {
             return group.getTab(ID);
         }
 
-        return;
+        return null;
     }
 
     /**
      * Creates a new tab group with provided tabs.  Will use the UI and position of the first Identity provided for positioning.
-     * @param tabs An array of Identities to add to a group.
+     * @param tabIdentities An array of Identities to add to a group.
      */
-    public async createTabGroupWithTabs(tabs: TabIdentifier[]) {
-        if (tabs.length < 2) {
+    public async createTabGroupWithTabs(tabIdentities: TabIdentifier[]) {
+        if (tabIdentities.length < 2) {
             console.error('createTabGroup called fewer than 2 tab identifiers');
             throw new Error('Must provide at least 2 Tab Identifiers');
         }
 
-        const firstWindow: DesktopWindow|null = this.model.getWindow(tabs[0]);
+        const firstWindow: DesktopWindow|null = this.model.getWindow(tabIdentities[0]);
         const firstWindowBounds: Rectangle = firstWindow ? firstWindow.getState() : {center: {x: 300, y: 300}, halfSize: {x: 300, y: 200}};
-        const config: ApplicationUIConfig = this.mApplicationConfigManager.getApplicationUIConfig(tabs[0].uuid);
+        const config: ApplicationUIConfig = this.mApplicationConfigManager.getApplicationUIConfig(tabIdentities[0].uuid);
         const options: TabWindowOptions = {
             ...config,
             x: firstWindowBounds.center.x - firstWindowBounds.halfSize.x,
@@ -171,36 +175,45 @@ export class TabService {
 
         const snapGroup: DesktopSnapGroup = new DesktopSnapGroup();
         const group = this.addTabGroup(snapGroup, options);
-        const appBounds = {
-            center: {x: firstWindowBounds.center.x, y: firstWindowBounds.center.y + (config.height / 2)},
-            halfSize: {x: firstWindowBounds.halfSize.x, y: firstWindowBounds.halfSize.y - (config.height / 2)}
-        };
-        firstWindow!.applyProperties(appBounds);
+        // const appBounds = {
+        //     center: {x: firstWindowBounds.center.x, y: firstWindowBounds.center.y + (config.height / 2)},
+        //     halfSize: {x: firstWindowBounds.halfSize.x, y: firstWindowBounds.halfSize.y - (config.height / 2)}
+        // };
+        // firstWindow!.applyProperties(appBounds);
 
-        const tabsP = await Promise.all(tabs.map(async ID => await new Tab({tabID: ID}).init()));
+        // const tabsP = await Promise.all(tabs.map(async ID => await new Tab({tabID: ID}).init()));
+        const tabs: DesktopWindow[] = tabIdentities.map((identity: WindowIdentity) => this.model.getWindow(identity))
+                                          .filter((tab: DesktopWindow|null): tab is DesktopWindow => tab !== null);
 
-        const firstTab: Tab = tabsP.shift() as Tab;
-
-        const [bounds, state] = await Promise.all([firstTab.window.getWindowBounds(), firstTab.window.getState()]);
-        tabsP.forEach(tab => tab.window.finWindow.setBounds(bounds.left, bounds.top, bounds.width, bounds.height));
-        tabsP[tabsP.length - 1].window.finWindow.bringToFront();
-        console.log('A');
+        if (tabs.length !== tabIdentities.length) {
+            if (tabs.length < 2) {
+                throw new Error(
+                    'Must have at least two valid tab identities to create a tab group: ' +
+                    tabIdentities.map(identity => `${identity.uuid}/${identity.name}`).join('\n'));
+            } else {
+                console.warn(
+                    'Tab list contained ' + (tabIdentities.length - tabs.length) + ' invalid identities', tabIdentities, tabs.map(tab => tab.getIdentity()));
+            }
+        }
+        
+        // const [bounds, state] = await Promise.all([firstTab.window.getWindowBounds(), firstTab.window.getState()]);
+        // tabs.forEach(tab => tab.getWindow().setBounds(bounds.left, bounds.top, bounds.width, bounds.height));
+        const firstTab: DesktopWindow = tabs.shift()!;
+        const state: WindowState = firstTab.getState();
+        const bounds: Partial<WindowState> = {center: state.center, halfSize: state.halfSize};
+        // tabs.forEach((tab: DesktopWindow) => {
+        //     tab.applyProperties(bounds);
+        // });
+        // tabs[tabs.length - 1].getWindow().bringToFront();
         await group.addTab(firstTab, false);
-        console.log('B');
 
-        await Promise.all(tabsP.map(tab => group.addTab(tab, false)));
-        console.log('C');
-        await group.switchTab(tabs[tabs.length - 1]);
-        console.log('D');
-        await group.hideAllTabsMinusActiveTab();
-        console.log('E');
+        await Promise.all(tabs.map(tab => group.addTab(tab, false)));
+        // await group.switchTab(tabs[tabs.length - 1].getIdentity());
+        // await group.hideAllTabsMinusActiveTab();
 
-
-        if (state === 'maximized') {
+        if (state.state === 'maximized') {
             group.maximize();
         }
-        console.log('F');
-        return;
     }
     /**
      * Checks for any windows that is under a specific point.
@@ -215,7 +228,7 @@ export class TabService {
         if (window) {
             const identity: WindowIdentity = window.getIdentity();
 
-            if (window.getIdentity().uuid === TabServiceID.UUID) {
+            if (identity.uuid === TabServiceID.UUID) {
                 // Find tab group that has 'window' as its tabstrip
                 return tabGroups.find((group: DesktopTabGroup) => {
                     const identity = group.window.getIdentity();
@@ -224,56 +237,14 @@ export class TabService {
                     null;
             } else {
                 // Find tab group that has 'window' as a tab
+                const id: string = window.getId();
                 return tabGroups.find((group: DesktopTabGroup) => {
-                    return group.tabs.some((tab: Tab) => {
-                        const finWindow = tab.window.finWindow;
-                        return finWindow.uuid === identity.uuid && finWindow.name === identity.name;
-                    });
+                    return group.tabs.some((tab: DesktopWindow) => tab.getId() === id);
                 }) ||
                     null;
             }
         } else {
             return null;
         }
-
-        // const groupTabBounds = await Promise.all(this._tabGroups.map(async group => {
-        //     const activeTabBoundsP = group.activeTab.window.getWindowBounds();
-        //     const groupBoundsP = group.window.getWindowBounds();
-        //     const activeTabShowingP = group.activeTab.window.isShowing();
-
-        //     const [activeTabBounds, groupBounds, activeTabShowing] = await Promise.all([activeTabBoundsP, groupBoundsP, activeTabShowingP]);
-
-        //     if (!activeTabShowing) {
-        //         return;
-        //     }
-
-        //     return {group, top: groupBounds.top!, left: groupBounds.left!, width: groupBounds.width!, height: groupBounds.height! + activeTabBounds.height!};
-        // }));
-
-        // const result: GroupTabBounds[] = groupTabBounds.filter((group): group is GroupTabBounds => {
-        //     if (!group) {
-        //         return false;
-        //     }
-
-        //     return x > group.left && x < group.width + group.left && y > group.top && y < group.top + group.height;
-        // });
-
-        // if (result) {
-        //     const topOrdered = this._zIndexer.getTop(result.map(group => {
-        //         return {uuid: group.group.activeTab.ID.uuid, name: group.group.activeTab.ID.name};
-        //     }));
-
-        //     if (topOrdered) {
-        //         const f = result.find(g => {
-        //             return g.group.activeTab.ID.uuid === topOrdered[0].uuid && g.group.activeTab.ID.name === topOrdered[0].name;
-        //         });
-
-        //         if (f) {
-        //             return f.group;
-        //         }
-        //     }
-        // }
-
-        // return null;
     }
 }

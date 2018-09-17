@@ -124,12 +124,12 @@ export class Resolver {
                         const activeState: WindowState = activeWindow.getState();
 
                         // Only do the next loop if there's a chance that this window can intersect with the other group
-                        if (this.isSnappable(activeWindow.getIdentity(), activeState) &&
+                        if (this.isSnappable(activeWindow, activeState) &&
                             RectUtils.distance(candidateGroup, activeState).within(SNAP_DISTANCE)) {
                             candidateGroup.windows.forEach(candidateWindow => {
                                 const candidateState: WindowState = candidateWindow.getState();
 
-                                if (this.isSnappable(candidateWindow.getIdentity(), candidateState)) {
+                                if (this.isSnappable(candidateWindow, candidateState)) {
                                     projector.project(activeState, candidateState);
                                 }
                             });
@@ -187,7 +187,7 @@ export class Resolver {
      * @param identity Handle to the window we are considering for snapping
      * @param windowState State of the window object we are considering for snapping
      */
-    private isSnappable(identity: WindowIdentity, windowState: WindowState): boolean {
-        return !windowState.hidden && windowState.opacity > 0 && windowState.state === 'normal' && TabService.INSTANCE.getTab(identity) === undefined;
+    private isSnappable(window: Snappable, windowState: WindowState): boolean {
+        return !windowState.hidden && windowState.opacity > 0 && windowState.state === 'normal' && !window.getTabGroup();
     }
 }

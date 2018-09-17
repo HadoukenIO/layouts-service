@@ -2,10 +2,9 @@ import {TabBlob, TabIdentifier} from '../../client/types';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 
-import {DEFAULT_UI_URL} from './components/ApplicationConfigManager';
-import {Tab} from './Tab';
 import {TabService} from './TabService';
 import {createTabGroupsFromTabBlob} from './TabUtilities';
+import { WindowIdentity, DesktopWindow } from '../model/DesktopWindow';
 
 /**
  * Gathers information from tab sets and their tabs, and returns as a JSON object back to the requesting application/window.
@@ -20,11 +19,11 @@ export async function getTabSaveInfo(): Promise<TabBlob[]|undefined> {
     }
 
     return Promise.all(TabService.INSTANCE.tabGroups.map(async (group: DesktopTabGroup) => {
-        const tabs: TabIdentifier[] = group.tabs.map((tab: Tab) => {
-            return tab.ID;
+        const tabs: TabIdentifier[] = group.tabs.map((tab: DesktopWindow) => {
+            return tab.getIdentity();
         });
 
-        const appBounds: fin.WindowBounds = await group.activeTab.window.getWindowBounds();
+        const appBounds: fin.WindowBounds = await group.activeTab.getWindow().getBounds();
         const appRect: Rectangle = {
             center: {x: appBounds.left + (appBounds.width / 2), y: appBounds.top + (appBounds.height / 2)},
             halfSize: {x: appBounds.width / 2, y: appBounds.height / 2}
@@ -33,7 +32,7 @@ export async function getTabSaveInfo(): Promise<TabBlob[]|undefined> {
 
         const groupInfo = {
             url: group.config.url,
-            active: group.activeTab.ID,
+            active: group.activeTab.getIdentity(),
             dimensions: {
                 x: groupRect.center.x - groupRect.halfSize.x,
                 y: groupRect.center.y - groupRect.halfSize.y,
@@ -68,19 +67,21 @@ export async function swapTab(add: TabIdentifier, swapWith: TabIdentifier) {
 
     const tabIndex = group.getTabIndex(swapWith);
 
-    const tab: Tab = new Tab({tabID: add});
-    await tab.init();
+    // const tab: Tab = new Tab({tabID: add});
+    // await tab.init();
+    const tab: DesktopWindow = TabService.INSTANCE.desktopModel.getWindow(add)!;
     await group.addTab(tab, false, true, tabIndex);
 
     // remove swap with tab, dont close app, dont switch tabs, dont close group window
     await group.removeTab(swapWith, false, false, false, false);
 
-    if (group.activeTab && group.activeTab.ID.uuid === swapWith.uuid && group.activeTab.ID.name === swapWith.name) {
+    const activeIdentity: WindowIdentity = group.activeTab.getIdentity();
+    if (group.activeTab && activeIdentity.uuid === swapWith.uuid && activeIdentity.name === swapWith.name) {
         // if the switchedwith tab was the active one, we make the added tab active
         group.switchTab(add);
     } else {
         // else we hide it because the added tab might be visible.
-        tab!.window.hide();
+        tab!.getWindow().hide();
     }
 
     return;

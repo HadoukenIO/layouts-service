@@ -96,11 +96,12 @@ export class DesktopModel {
         return this.windows.find(window => window.getId() === id) || null;
     }
 
-    public getWindowAt(x: number, y: number): DesktopWindow|null {
+    public getWindowAt(x: number, y: number, exclude?: WindowIdentity): DesktopWindow|null {
         const point: Point = {x, y};
+        const excludeId: string|undefined = exclude && this.getId(exclude);
         const windowsAtPoint: DesktopWindow[] = this.windows.filter((window: DesktopWindow) => {
             const state: WindowState = window.getState();
-            return RectUtils.isPointInRect(state.center, state.halfSize, point);
+            return window.getIsActive() && RectUtils.isPointInRect(state.center, state.halfSize, point) && window.getId() !== excludeId;
         });
 
         // TODO: Prioritise by z-index
@@ -223,44 +224,44 @@ export class DesktopModel {
     }
 
     private onWindowGroupChanged(event: fin.WindowGroupChangedEvent) {
-        // Each group operation will raise an event from every window involved. We should filter out to
-        // only receive the one from the window being moved.
-        if (event.name !== event.sourceWindowName || event.uuid !== event.sourceWindowAppUuid) {
-            return;
-        }
+        // // Each group operation will raise an event from every window involved. We should filter out to
+        // // only receive the one from the window being moved.
+        // if (event.name !== event.sourceWindowName || event.uuid !== event.sourceWindowAppUuid) {
+        //     return;
+        // }
 
-        console.log('Revieved window group changed event: ', event);
-        const sourceWindow = this.getWindow({uuid: event.sourceWindowAppUuid, name: event.sourceWindowName});
+        // console.log('Revieved window group changed event: ', event);
+        // const sourceWindow = this.getWindow({uuid: event.sourceWindowAppUuid, name: event.sourceWindowName});
 
-        if (sourceWindow) {
-            if (event.reason === 'leave') {
-                sourceWindow.setGroup(new DesktopSnapGroup(), undefined, undefined, true);
-            } else {
-                const targetWindow = this.getWindow({uuid: event.targetWindowAppUuid, name: event.targetWindowName});
+        // if (sourceWindow) {
+        //     if (event.reason === 'leave') {
+        //         sourceWindow.setSnapGroup(new DesktopSnapGroup(), undefined, undefined, true);
+        //     } else {
+        //         const targetWindow = this.getWindow({uuid: event.targetWindowAppUuid, name: event.targetWindowName});
 
-                // Merge the groups
-                if (targetWindow) {
-                    if (event.reason === 'merge') {
-                        // Get array of SnapWindows from the native group window array
-                        event.sourceGroup
-                            .map(win => {
-                                return this.getWindow({uuid: win.appUuid, name: win.windowName});
-                            })
-                            // Add all windows from source group to the target group.
-                            // Windows are synthetic snapped since they are
-                            // already native grouped.
-                            .forEach((snapWin) => {
-                                // Ignore any undefined results (i.e. windows unknown to the service)
-                                if (snapWin !== null) {
-                                    snapWin.setGroup(targetWindow.getGroup(), undefined, undefined, true);
-                                }
-                            });
-                    } else {
-                        sourceWindow.setGroup(targetWindow.getGroup(), undefined, undefined, true);
-                    }
-                }
-            }
-        }
+        //         // Merge the groups
+        //         if (targetWindow) {
+        //             if (event.reason === 'merge') {
+        //                 // Get array of SnapWindows from the native group window array
+        //                 event.sourceGroup
+        //                     .map(win => {
+        //                         return this.getWindow({uuid: win.appUuid, name: win.windowName});
+        //                     })
+        //                     // Add all windows from source group to the target group.
+        //                     // Windows are synthetic snapped since they are
+        //                     // already native grouped.
+        //                     .forEach((snapWin) => {
+        //                         // Ignore any undefined results (i.e. windows unknown to the service)
+        //                         if (snapWin !== null) {
+        //                             snapWin.setSnapGroup(targetWindow.getSnapGroup(), undefined, undefined, true);
+        //                         }
+        //                     });
+        //             } else {
+        //                 sourceWindow.setSnapGroup(targetWindow.getSnapGroup(), undefined, undefined, true);
+        //             }
+        //         }
+        //     }
+        // }
     }
 
     private sendWindowAddedMessage(group: DesktopSnapGroup, window: DesktopWindow) {

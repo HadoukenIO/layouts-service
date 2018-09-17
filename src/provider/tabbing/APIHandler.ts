@@ -1,26 +1,25 @@
-
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {ApplicationUIConfig, DropPosition, TabIdentifier, TabProperties} from '../../client/types';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
 
-import {Tab} from './Tab';
 import {TabService} from './TabService';
 import {ejectTab} from './TabUtilities';
+import { DesktopModel } from '../model/DesktopModel';
+import { DesktopWindow } from '../model/DesktopWindow';
 
 /**
  * Handles all calls from tab api to service
  */
 export class APIHandler {
-    /**
-     * The tab service itself
-     */
+    private mModel: DesktopModel;
     private mTabService: TabService;
 
     /**
      * @constructor Constructor for the TabAPIActionProcessor
      */
-    constructor(service: TabService) {
+    constructor(model: DesktopModel, service: TabService) {
+        this.mModel = model;
         this.mTabService = service;
     }
 
@@ -61,14 +60,14 @@ export class APIHandler {
      *
      * If there is no tab group associated with the window context, will resolve to null.
      */
-    public getTabs(window: TabIdentifier) {
+    public getTabs(window: TabIdentifier): TabIdentifier[]|null {
         const group = this.mTabService.getTabGroupByApp(window);
 
         if (!group) {
             return null;
         }
 
-        return group.tabs.map(tab => tab.ID);
+        return group.tabs.map(tab => tab.getIdentity());
     }
 
     /**
@@ -87,15 +86,21 @@ export class APIHandler {
      * The added tab will be brought into focus.
      */
     public async addTab(payload: {targetWindow: TabIdentifier, windowToAdd: TabIdentifier}) {
-        const group = this.mTabService.getTabGroupByApp(payload.targetWindow);
+        const group: DesktopTabGroup = this.mTabService.getTabGroupByApp(payload.targetWindow)!;
+        const tab: DesktopWindow = this.mModel.getWindow(payload.windowToAdd)!;
 
         if (!group) {
             console.error('Target Window not in a group. Try createTabGroup instead.');
             throw new Error('Target Window not in a group. Try createTabGroup instead.');
         }
+        if (!tab) {
+            console.error('Could not find \'windowToAdd\'.');
+            throw new Error('Could not find \'windowToAdd\'.');
+        }
 
         if (this.mTabService.applicationConfigManager.compareConfigBetweenApplications(payload.targetWindow.uuid, payload.windowToAdd.uuid)) {
-            return group.addTab(await new Tab({tabID: payload.windowToAdd}).init());
+            // return group.addTab(await new Tab({tabID: payload.windowToAdd}).init());
+            return group.addTab(tab);
         } else {
             console.error('The tabs provided have incompatible tabstrip URLs');
             throw new Error('The tabs provided have incompatible tabstrip URLs');
@@ -207,14 +212,15 @@ export class APIHandler {
      * Updates a Tabs Properties on the Tab strip.
      */
     public updateTabProperties(payload: {window: TabIdentifier, properties: TabProperties}) {
-        const tab = this.mTabService.getTab(payload.window);
+        const tab: DesktopWindow|null = this.mTabService.getTab(payload.window);
+        const tabGroup: DesktopTabGroup|null = tab && tab.getTabGroup();
 
-        if (!tab) {
+        if (!tabGroup) {
             console.error('No tab found for window');
             throw new Error('No tab found for window');
         }
 
-        return tab.updateTabProperties(payload.properties);
+        return tabGroup.updateTabProperties(tab!, payload.properties);
     }
 
     /**

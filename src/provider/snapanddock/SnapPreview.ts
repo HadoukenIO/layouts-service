@@ -44,7 +44,7 @@ export class SnapPreview {
      * argument to avoid having to re-create the rectangle objects on every call if the group hasn't changed.
      */
     public show(target: SnapTarget): void {
-        const activeGroup = target.activeWindow.getGroup();
+        const activeGroup = target.activeWindow.getSnapGroup();
         const groupHalfSize = activeGroup.halfSize;  // TODO: Will need to change once 'activeGroup' can have multiple windows (SERVICE-128)
 
         if (!this.tempWindowIsActive || this.activeGroup !== activeGroup) {

@@ -4,13 +4,14 @@ import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
 import {DesktopWindow, eTransformType, Mask, WindowIdentity} from '../model/DesktopWindow';
 import {Signal2} from '../Signal';
-import {Tab} from '../tabbing/Tab';
 import {TabService} from '../tabbing/TabService';
 import {getWindowAt} from '../tabbing/TabUtilities';
 import {eSnapValidity, Resolver, SnapTarget} from './Resolver';
 import {SnapView} from './SnapView';
 import {Point, PointUtils} from './utils/PointUtils';
 import {MeasureResult, RectUtils} from './utils/RectUtils';
+import { DesktopTabGroup } from '../model/DesktopTabGroup';
+import { ApplicationConfigManager } from '../tabbing/components/ApplicationConfigManager';
 
 // Defines the distance windows will be moved when undocked.
 const UNDOCK_MOVE_DISTANCE = 30;
@@ -70,9 +71,6 @@ export class SnapService {
         this.resolver = new Resolver();
         this.view = new SnapView();
 
-        // Bind callbacks
-        this.onWindowGroupChanged = this.onWindowGroupChanged.bind(this);
-
         // Register lifecycle listeners
         DesktopWindow.onCreated.add(this.onWindowCreated, this);
         DesktopWindow.onDestroyed.add(this.onWindowDestroyed, this);
@@ -112,7 +110,7 @@ export class SnapService {
                 }
 
                 // Move window to it's own group, whilst applying offset
-                window.setGroup(new DesktopSnapGroup(), offset);
+                window.setSnapGroup(new DesktopSnapGroup(), offset);
             } catch (error) {
                 console.error(`Unexpected error when undocking window: ${error}`);
                 throw new Error(`Unexpected error when undocking window: ${error}`);
@@ -177,7 +175,7 @@ export class SnapService {
                 for (let i = 0; i < windows.length; i++) {
                     const window = windows[i];
                     // Undock the windows, applying previously calculated offset
-                    window.setGroup(new DesktopSnapGroup(), offsets[i]);
+                    window.setSnapGroup(new DesktopSnapGroup(), offsets[i]);
                 }
             }
         } catch (error) {
@@ -188,18 +186,10 @@ export class SnapService {
 
     private onWindowCreated(window: DesktopWindow): void {
         window.onClose.add(this.onWindowClosed, this);
-
-        // TODO: Figure out encapsulation issues
-        console.log('onWindowCreated: ' + window['initialised']);
-        window.sync().then(() => {
-            window.getWindow().addListener('group-changed', this.onWindowGroupChanged);
-        });
     }
 
     private onWindowDestroyed(window: DesktopWindow): void {
         window.onClose.remove(this.onWindowClosed, this);
-
-        window.getWindow().removeListener('group-changed', this.onWindowGroupChanged);
     }
 
     private onSnapGroupCreated(group: DesktopSnapGroup): void {
@@ -218,53 +208,12 @@ export class SnapService {
         group.onWindowAdded.remove(this.sendWindowAddedMessage, this);
     }
 
-    private onWindowGroupChanged(event: fin.WindowGroupChangedEvent) {
-        // Each group operation will raise an event from every window involved. We should filter out to
-        // only receive the one from the window being moved.
-        if (event.name !== event.sourceWindowName || event.uuid !== event.sourceWindowAppUuid) {
-            return;
-        }
-
-        console.log('Revieved window group changed event: ', event);
-        const sourceWindow: DesktopWindow|null = this.model.getWindow({uuid: event.sourceWindowAppUuid, name: event.sourceWindowName});
-
-        if (sourceWindow) {
-            if (event.reason === 'leave') {
-                sourceWindow.setGroup(new DesktopSnapGroup(), undefined, undefined, true);
-            } else {
-                const targetWindow: DesktopWindow|null = this.model.getWindow({uuid: event.targetWindowAppUuid, name: event.targetWindowName});
-
-                // Merge the groups
-                if (targetWindow) {
-                    if (event.reason === 'merge') {
-                        // Get array of SnapWindows from the native group window array
-                        event.sourceGroup
-                            .map(win => {
-                                return this.model.getWindow({uuid: win.appUuid, name: win.windowName});
-                            })
-                            // Add all windows from source group to the target group.
-                            // Windows are synthetic snapped since they are
-                            // already native grouped.
-                            .forEach((snapWin) => {
-                                // Ignore any undefined results (i.e. windows unknown to the service)
-                                if (snapWin !== null) {
-                                    snapWin.setGroup(targetWindow.getGroup(), undefined, undefined, true);
-                                }
-                            });
-                    } else {
-                        sourceWindow.setGroup(targetWindow.getGroup(), undefined, undefined, true);
-                    }
-                }
-            }
-        }
-    }
-
     private onWindowClosed(snapWindow: DesktopWindow): void {
         // NOTE: At this point, snapWindow will belong to a group.
         // SnapGroup also listens to 'onClose' of each of it's windows, and will remove the window from itself.
         snapWindow.onClose.remove(this.onWindowClosed, this);
 
-        this.validateGroup(snapWindow.getGroup(), snapWindow);
+        this.validateGroup(snapWindow.getSnapGroup(), snapWindow);
     }
 
     private onWindowRemovedFromGroup(group: DesktopSnapGroup, window: DesktopWindow): void {
@@ -308,17 +257,16 @@ export class SnapService {
         const groups: DesktopSnapGroup[] = this.model.getSnapGroups() as DesktopSnapGroup[];  // TODO: Make read-only?
         const snapTarget: SnapTarget|null = this.resolver.getSnapTarget(groups, activeGroup);
 
-        // SNAP WINDOWS
-        if (snapTarget && snapTarget.validity === eSnapValidity.VALID) {
+        if (snapTarget && snapTarget.validity === eSnapValidity.VALID) {    // SNAP WINDOWS
             // Reset view (do this before moving windows out of active group, to ensure opacities are reset)
             // this.view.update(null, null);
 
             // Move all windows in activeGroup to snapTarget.group
             activeGroup.windows.forEach((window: Snappable) => {
                 if (window === snapTarget.activeWindow && snapTarget.halfSize) {
-                    window.setGroup(snapTarget.group, snapTarget.snapOffset, snapTarget.halfSize);
+                    window.setSnapGroup(snapTarget.group, snapTarget.snapOffset, snapTarget.halfSize);
                 } else {
-                    window.setGroup(snapTarget.group, snapTarget.snapOffset);
+                    window.setSnapGroup(snapTarget.group, snapTarget.snapOffset);
                 }
             });
 
@@ -327,34 +275,28 @@ export class SnapService {
                 console.warn(
                     'Expected group to have been removed, but still exists (' + activeGroup.id + ': ' + activeGroup.windows.map(w => w.getId()).join() + ')');
             }
-            // TAB WINDOWS
-        } else if (activeGroup.length === 1) {
-            const currentDragWindowIdentity: WindowIdentity = activeGroup.windows[0].getIdentity();
+        } else if (activeGroup.length === 1 && !activeGroup.windows[0].getTabGroup()) { // TAB WINDOWS
             // If a single untabbed window is being dragged, it is possible to create a tabset
+            const activeWindow: DesktopWindow = activeGroup.windows[0] as DesktopWindow;
+            const activeIdentity: WindowIdentity = activeWindow.getIdentity();
             const activeState = activeGroup.windows[0].getState();
 
             // Ignore if we are dragging around a tabset
-            if (!TabService.INSTANCE.getTabGroupByApp(currentDragWindowIdentity)) {
-                const windowUnderPoint = getWindowAt(activeState.center.x, activeState.center.y, currentDragWindowIdentity);
+            if (activeWindow instanceof DesktopWindow) {
+                const windowUnderPoint: DesktopWindow|null = this.model.getWindowAt(activeState.center.x, activeState.center.y, activeIdentity);
+                const appConfigMgr: ApplicationConfigManager = TabService.INSTANCE.applicationConfigManager;
 
                 // There is a window under our drop point
                 if (windowUnderPoint) {
-                    if (TabService.INSTANCE.applicationConfigManager.compareConfigBetweenApplications(windowUnderPoint.uuid, currentDragWindowIdentity.uuid)) {
-                        const tabGroupUnderPoint = TabService.INSTANCE.getTabGroupByApp(windowUnderPoint);
-                        // The window under drop point is a tab group
-                        if (tabGroupUnderPoint) {
-                            // Add Tab
-                            const tab = new Tab({tabID: currentDragWindowIdentity});
-                            tab.init()
-                                .then(() => {
-                                    tabGroupUnderPoint.addTab(tab);
-                                })
-                                .catch((e) => {
-                                    console.error(e);
-                                });
-                        } else {
+                    if (appConfigMgr.compareConfigBetweenApplications(windowUnderPoint.getIdentity().uuid, activeIdentity.uuid)) {
+                        const existingTabSet: DesktopTabGroup|null = windowUnderPoint.getTabGroup();
+
+                        if (existingTabSet) {
+                            // Add to existing tab group
+                            existingTabSet.addTab(activeWindow);
+                        } else if (windowUnderPoint instanceof DesktopWindow) {
                             // If not a tab group then create a group with the 2 tabs.
-                            TabService.INSTANCE.createTabGroupWithTabs([windowUnderPoint, currentDragWindowIdentity]);
+                            TabService.INSTANCE.createTabGroupWithTabs([windowUnderPoint.getIdentity(), activeIdentity]);
                         }
                     }
                 }
@@ -366,7 +308,7 @@ export class SnapService {
     }
 
     private calculateUndockMoveDirection(window: DesktopWindow): Point {
-        const group = window.getGroup();
+        const group = window.getSnapGroup();
         const totalOffset: Point = {x: 0, y: 0};
         for (const groupedWindow of group.windows) {
             // Exclude window being unsnapped

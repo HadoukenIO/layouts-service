@@ -1,6 +1,5 @@
 import {TabIdentifier} from '../../client/types';
-
-import {AsyncWindow} from './asyncWindow';
+import { Window } from 'hadouken-js-adapter';
 
 const DRAG_WINDOW_URL = (() => {
     let providerLocation = window.location.href;
@@ -17,13 +16,11 @@ const DRAG_WINDOW_URL = (() => {
 /**
  * Handles the Drag Window which appears when API drag and drop is initialized.
  */
-export class DragWindowManager extends AsyncWindow {
+export class DragWindowManager {
     // tslint:disable-next-line:no-any setTimout return Type is confused by VSC
     private _hideTimeout: any;
 
-    constructor() {
-        super();
-    }
+    private _window!: Window;
 
     /**
      * Initializes Async Methods required by this class.
@@ -44,7 +41,7 @@ export class DragWindowManager extends AsyncWindow {
 
 
         this._hideTimeout = setTimeout(() => {
-            this.hide();
+            this._window.hide();
         }, 15000);
     }
 

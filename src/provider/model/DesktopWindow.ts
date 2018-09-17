@@ -1,6 +1,5 @@
-import {Identity, Window} from 'hadouken-js-adapter';
+import {Window} from 'hadouken-js-adapter';
 
-import {TabServiceID} from '../../client/types';
 import {Signal1, Signal2} from '../Signal';
 import {p, promiseMap} from '../snapanddock/utils/async';
 import {isWin10} from '../snapanddock/utils/platform';
@@ -9,6 +8,9 @@ import {Rectangle} from '../snapanddock/utils/RectUtils';
 
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopSnapGroup, Snappable} from './DesktopSnapGroup';
+import { DesktopTabGroup } from './DesktopTabGroup';
+import { TabService } from '../tabbing/TabService';
+import { TabServiceID } from '../../client/types';
 
 // tslint:disable-next-line:no-any
 declare var fin: any;
@@ -20,6 +22,9 @@ export interface WindowState extends Rectangle {
     frame: boolean;
     hidden: boolean;
     state: 'normal'|'minimized'|'maximized';
+
+    icon: string;
+    title: string;
 
     minWidth: number;
     maxWidth: number;
@@ -101,6 +106,8 @@ export class DesktopWindow extends DesktopEntity {
                     frame: options.frame!,
                     hidden: !results[1],
                     state: options.state!,
+                    icon: options.icon!,
+                    title: options.name!,
                     minWidth: options.minWidth!,
                     maxWidth: options.maxWidth!,
                     minHeight: options.minHeight!,
@@ -108,6 +115,18 @@ export class DesktopWindow extends DesktopEntity {
                     opacity: options.opacity!
                 };
             });
+    }
+
+    private static isWindow(window: Window|fin.WindowOptions): window is Window {
+        return window.hasOwnProperty("identity");
+    }
+
+    private static getIdentity(window: Window|fin.WindowOptions): WindowIdentity {
+        if (this.isWindow(window)) {
+            return window.identity as WindowIdentity;
+        } else {
+            return {uuid: TabServiceID.UUID, name: window.name!};
+        }
     }
 
     /**
@@ -148,33 +167,34 @@ export class DesktopWindow extends DesktopEntity {
     // private pendingState: Partial<WindowState>;
     private modifiedState: Partial<WindowState>;
 
+    private snapGroup: DesktopSnapGroup;
+    private tabGroup: DesktopTabGroup|null;
     private prevGroup: DesktopSnapGroup|null;
     private initialised: boolean;
 
     // State tracking for "synth move" detection
     private boundsChangeCountSinceLastCommit: number;
 
-    constructor(group: DesktopSnapGroup, window: WindowIdentity|Window, initialState?: WindowState) {
-        super(group, (window.hasOwnProperty('uuid') ? window : (window as Window).identity) as WindowIdentity);
+    constructor(group: DesktopSnapGroup, window: fin.WindowOptions|Window, initialState?: WindowState) {
+        super(DesktopWindow.getIdentity(window));
 
-        const isWindow: boolean = window !== this.identity;
-        const identity: WindowIdentity = (isWindow ? (window as Window).identity : window) as WindowIdentity;
         this.initialised = false;
 
+        const isWindow: boolean = DesktopWindow.isWindow(window);
         if (!isWindow) {
-            fin.Window.wrap(identity).then(async (window: Window) => {
+            this.addPendingActions(fin.Window.create(window).then(async (window: Window) => {
                 this.window = window;
                 this.windowState = await DesktopWindow.getWindowState(window);
                 this.applicationState = {...this.windowState};
                 this.initialised = true;
-            });
+            }));
         } else if (!initialState) {
             this.window = window as Window;
-            DesktopWindow.getWindowState(this.window).then((state: WindowState) => {
+            this.addPendingActions(DesktopWindow.getWindowState(this.window).then((state: WindowState) => {
                 this.windowState = state;
                 this.applicationState = {...this.windowState};
                 this.initialised = true;
-            });
+            }));
         } else {
             this.window = window as Window;
             this.initialised = true;
@@ -188,9 +208,24 @@ export class DesktopWindow extends DesktopEntity {
         this.modifiedState = {};
         this.boundsChangeCountSinceLastCommit = 0;
 
-        this.group = group;
+        this.snapGroup = group;
+        this.tabGroup = null;
         this.prevGroup = null;
         group.addWindow(this);
+
+        //Bind listeners
+        this.handleBoundsChanged = this.handleBoundsChanged.bind(this);
+        this.handleBoundsChanging = this.handleBoundsChanging.bind(this);
+        this.handleClosed = this.handleClosed.bind(this);
+        this.handleFocused = this.handleFocused.bind(this);
+        this.handleFrameDisabled = this.handleFrameDisabled.bind(this);
+        this.handleFrameEnabled = this.handleFrameEnabled.bind(this);
+        this.handleGroupChanged = this.handleGroupChanged.bind(this);
+        this.handleHidden = this.handleHidden.bind(this);
+        this.handleMaximized = this.handleMaximized.bind(this);
+        this.handleMinimized = this.handleMinimized.bind(this);
+        this.handleRestored = this.handleRestored.bind(this);
+        this.handleShown = this.handleShown.bind(this);
 
         if (this.initialised) {
             this.addListeners();
@@ -209,6 +244,8 @@ export class DesktopWindow extends DesktopEntity {
             frame: false,
             hidden: false,
             state: 'normal',
+            icon: "",
+            title: "",
             minWidth: -1,
             maxWidth: -1,
             minHeight: 0,
@@ -235,8 +272,12 @@ export class DesktopWindow extends DesktopEntity {
      * Windows and groups have a bi-directional relationship. You will also find this window within the group's list
      * of windows.
      */
-    public getGroup(): DesktopSnapGroup {
-        return this.group;
+    public getSnapGroup(): DesktopSnapGroup {
+        return this.snapGroup;
+    }
+
+    public getTabGroup(): DesktopTabGroup|null {
+        return this.tabGroup;
     }
 
     public getPrevGroup(): DesktopSnapGroup|null {
@@ -256,16 +297,15 @@ export class DesktopWindow extends DesktopEntity {
      * @param group The group that this window should be added to
      * @param offset An offset to apply to this windows position (use this to enusre window is in correct position)
      * @param newHalfSize Can also simultaneously change the size of the window
-     * @param synthetic Signifies that the setGroup has been triggered by a native group event. Will disable native group changes that would normally occur
      */
-    public setGroup(group: DesktopSnapGroup, offset?: Point, newHalfSize?: Point, synthetic?: boolean): void {
-        if (group !== this.group) {
-            this.prevGroup = this.group;
-            this.group = group;
-            group.addWindow(this);
+    public setSnapGroup(group: DesktopSnapGroup, offset?: Point, newHalfSize?: Point): Promise<void> {
+        if (group !== this.snapGroup) {
 
-            if (!synthetic) {
-                this.unsnap();
+            this.addToSnapGroup(group);
+
+            //Leave previous snap group
+            if (this.snapGroup === group) {
+                this.addPendingActions([this.window!.leaveGroup()]);
             }
 
             if (offset || newHalfSize) {
@@ -282,15 +322,33 @@ export class DesktopWindow extends DesktopEntity {
                     delta.center.y += newHalfSize.y - this.windowState.halfSize.y;
                 }
 
-                // TODO: Make async
-                this.updateState(delta, ActionOrigin.SERVICE).then(() => {
-                    if (!synthetic) {
-                        this.snap();
+                return this.updateState(delta, ActionOrigin.SERVICE).then(async () => {
+                    if (group.windows.length >= 2) {
+                        await this.snap();
                     }
                 });
-            } else if (group.windows.length >= 2 && !synthetic) {
-                this.snap();
+            } else if (group.windows.length >= 2) {
+                return this.snap();
             }
+        }
+
+        return Promise.resolve();
+    }
+
+    public setTabGroup(group: DesktopTabGroup|null): void {
+        //TODO: Remove from existing tab group, apply window group, etc (TBD: here, in DesktopTabGroup, or in TabService?)
+        this.tabGroup = group;
+
+        if (group) {
+            console.log("Added " + this.id + " to " + group.ID);
+        } else {
+            console.log("Restoring tab state");
+            this.updateState({
+                center: this.applicationState.center,
+                halfSize: this.applicationState.halfSize,
+                frame: this.applicationState.frame,
+                hidden: this.applicationState.hidden
+            }, ActionOrigin.SERVICE);
         }
     }
 
@@ -302,29 +360,54 @@ export class DesktopWindow extends DesktopEntity {
         return this.identity;
     }
 
-    private snap(): void {
-        const windows: DesktopWindow[] = this.group.windows as DesktopWindow[];
+    public getIsActive(): boolean {
+        const state: WindowState = this.windowState;
+        return !state.hidden && state.opacity > 0 && state.state !== 'minimized';
+    }
+
+    private snap(): Promise<void> {
+        const group: DesktopSnapGroup = this.snapGroup;
+        const windows: DesktopWindow[] = this.snapGroup.windows as DesktopWindow[];
         const count = windows.length;
         const index = windows.indexOf(this);
 
         if (count >= 2 && index >= 0) {
-            this.window!.joinGroup(windows[index === 0 ? 1 : 0].window!);
+            // const actions: Promise<void>[] = [];
+            const other: DesktopWindow = windows[index === 0 ? 1 : 0];
 
-            // Bring other windows in group to front
-            windows.forEach((groupWindow: DesktopWindow) => {
-                if (groupWindow !== this) {
-                    groupWindow.window!.bringToFront();
-                }
+            // Merge window groups
+            return Promise.all([this.sync(), other.sync()]).then(() => {
+                this.addPendingActions((async (): Promise<void> => {
+                    if (group === this.snapGroup) {
+                        await this.window!.joinGroup(other.window!);
+
+                        //Re-fetch window list in case it has changed during sync
+                        const windows: DesktopWindow[] = this.snapGroup.windows as DesktopWindow[];
+
+                        // Bring other windows in group to front
+                        await windows.map(groupWindow => groupWindow.window!.bringToFront());
+                    }
+                })());
             });
+
+            // windows.forEach((groupWindow: DesktopWindow) => {
+            //     if (groupWindow !== this) {
+            //         actions.push(groupWindow.window!.bringToFront());
+            //     }
+            // });
+
+            // return this.addPendingActions(actions);
         } else if (index === -1) {
-            console.warn('Attempting to snap, but window isn\'t in the target group');
+            return Promise.reject('Attempting to snap, but window isn\'t in the target group');
         } else {
-            console.warn('Need at least 2 windows in group to snap');
+            return Promise.reject('Need at least 2 windows in group to snap');
         }
     }
 
-    private unsnap(): void {
-        this.window!.leaveGroup();
+    private addToSnapGroup(group: DesktopSnapGroup): void {
+        this.prevGroup = this.snapGroup;
+        this.snapGroup = group;
+        group.addWindow(this);
     }
 
     private refreshOptions(): void {
@@ -461,16 +544,17 @@ export class DesktopWindow extends DesktopEntity {
         const window: Window = this.window!;
 
         window.addListener('bounds-changed', this.handleBoundsChanged);
+        window.addListener('bounds-changing', this.handleBoundsChanging);
+        window.addListener('closed', this.handleClosed);
+        window.addListener('focused', this.handleFocused);
         window.addListener('frame-disabled', this.handleFrameDisabled);
         window.addListener('frame-enabled', this.handleFrameEnabled);
+        window.addListener('group-changed', this.handleGroupChanged);
+        window.addListener('hidden', this.handleHidden);
         window.addListener('maximized', this.handleMaximized);
         window.addListener('minimized', this.handleMinimized);
         window.addListener('restored', this.handleRestored);
-        window.addListener('hidden', this.handleHidden);
         window.addListener('shown', this.handleShown);
-        window.addListener('closed', this.handleClosed);
-        window.addListener('bounds-changing', this.handleBoundsChanging);
-        window.addListener('focused', this.handleFocused);
     }
 
     private cleanupListeners(unused?: DesktopWindow): void {
@@ -480,22 +564,22 @@ export class DesktopWindow extends DesktopEntity {
 
         const window: Window = this.window!;
         window.removeListener('bounds-changed', this.handleBoundsChanged);
+        window.removeListener('bounds-changing', this.handleBoundsChanging);
+        window.removeListener('closed', this.handleClosed);
+        window.removeListener('focused', this.handleFocused);
         window.removeListener('frame-disabled', this.handleFrameDisabled);
         window.removeListener('frame-enabled', this.handleFrameEnabled);
+        window.removeListener('group-changed', this.handleGroupChanged);
+        window.removeListener('hidden', this.handleHidden);
         window.removeListener('maximized', this.handleMaximized);
         window.removeListener('minimized', this.handleMinimized);
         window.removeListener('restored', this.handleRestored);
-        window.removeListener('hidden', this.handleHidden);
         window.removeListener('shown', this.handleShown);
-        window.removeListener('closed', this.handleClosed);
-        window.removeListener('bounds-changing', this.handleBoundsChanging);
-        window.removeListener('focused', this.handleFocused);
 
         this.onClose.remove(this.cleanupListeners);
     }
 
-    /* ===== Event Handlers ===== */
-    private handleBoundsChanged = (event: fin.WindowBoundsEvent) => {
+    private handleBoundsChanged(event: fin.WindowBoundsEvent): void {
         const bounds: fin.WindowBounds = this.checkBounds(event);
         const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
         const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
@@ -507,39 +591,9 @@ export class DesktopWindow extends DesktopEntity {
             this.onModified.emit(this);
         }
         this.boundsChangeCountSinceLastCommit = 0;
-    };
-    private handleFrameDisabled = () => {
-        this.updateState({frame: false}, ActionOrigin.APPLICATION);
-        this.onModified.emit(this);
-    };
-    private handleFrameEnabled = () => {
-        this.updateState({frame: true}, ActionOrigin.APPLICATION);
-        this.onModified.emit(this);
-    };
-    private handleMaximized = () => {
-        this.updateState({state: 'maximized'}, ActionOrigin.APPLICATION);
-        this.onModified.emit(this);
-    };
-    private handleMinimized = () => {
-        this.updateState({state: 'minimized'}, ActionOrigin.APPLICATION);
-        this.onModified.emit(this);
-    };
-    private handleRestored = () => {
-        this.updateState({state: 'normal'}, ActionOrigin.APPLICATION);
-        // this.onModified.emit(this);
-    };
-    private handleHidden = () => {
-        this.updateState({hidden: true}, ActionOrigin.APPLICATION);
-        this.onModified.emit(this);
-    };
-    private handleShown = () => {
-        this.updateState({hidden: false}, ActionOrigin.APPLICATION);
-        // this.onModified.emit(this);
-    };
-    private handleClosed = () => {
-        this.onClose.emit(this);
-    };
-    private handleBoundsChanging = async (event: fin.WindowBoundsEvent) => {
+    }
+
+    private handleBoundsChanging(event: fin.WindowBoundsEvent): void {
         const bounds: fin.WindowBounds = this.checkBounds(event);
         const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
         const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
@@ -553,8 +607,13 @@ export class DesktopWindow extends DesktopEntity {
         if (this.boundsChangeCountSinceLastCommit > 1) {
             this.onTransform.emit(this, type);
         }
-    };
-    private handleFocused = async () => {
+    }
+
+    private handleClosed(): void {
+        this.onClose.emit(this);
+    }
+
+    private async handleFocused(): Promise<void> {
         // Loop through all windows in the same group as the focused window and bring them
         // all to front
         const window: fin.OpenFinWindow = fin.desktop.Window.wrap(this.identity.uuid, this.identity.name);
@@ -567,5 +626,92 @@ export class DesktopWindow extends DesktopEntity {
         // await this.window.getGroup().then((group: Window[]) => {
         //     return Promise.all(group.map((window: Window) => window.bringToFront()));
         // });
+    }
+
+    private handleFrameDisabled(): void {
+        this.updateState({frame: false}, ActionOrigin.APPLICATION);
+        this.onModified.emit(this);
+    }
+
+    private handleFrameEnabled(): void {
+        this.updateState({frame: true}, ActionOrigin.APPLICATION);
+        this.onModified.emit(this);
+    }
+
+    private handleGroupChanged(event: fin.WindowGroupChangedEvent): void {
+        // Each group operation will raise an event from every window involved. We should filter out to
+        // only receive the one from the window being moved.
+        if (event.name !== event.sourceWindowName || event.uuid !== event.sourceWindowAppUuid) {
+            return;
+        }
+
+        console.log('Received window group changed event: ', event);
+
+        if (event.reason === 'leave') {
+            console.log(`Window ${this.id} left it's group`);
+            this.addToSnapGroup(new DesktopSnapGroup());
+        } else {
+            const model = TabService.INSTANCE.desktopModel;
+            const targetWindow: DesktopWindow|null = model.getWindow({uuid: event.targetWindowAppUuid, name: event.targetWindowName});
+
+            // Merge the groups
+            if (targetWindow) {
+                if (event.reason === 'merge') {
+                    console.log(`Window ${this.id} merged into ${targetWindow.id}`);
+                    
+                    this.addToSnapGroup(targetWindow.getSnapGroup());
+                    
+                    //When merging groups, only the window that triggered the merge will recieve the event, but we need to update all windows in that window's group
+                    // Get array of SnapWindows from the native group window array
+                    event.sourceGroup
+                        .map(win => {
+                            return model.getWindow({uuid: win.appUuid, name: win.windowName});
+                        })
+                        // Add all windows from source group to the target group.
+                        // Windows are synthetic snapped since they are
+                        // already native grouped.
+                        .forEach((snapWin) => {
+                            // Ignore any undefined results (i.e. windows unknown to the service)
+                            if (snapWin !== null) {
+                                snapWin.addToSnapGroup(targetWindow.getSnapGroup());
+                            }
+                        });
+                        
+                    const windowsInGroup: DesktopWindow[] = this.snapGroup.windows as DesktopWindow[];  //TODO: Test snap groups that contain tabs
+                    windowsInGroup.forEach((window: DesktopWindow) => {
+                        window.addToSnapGroup(targetWindow.getSnapGroup());
+                    });
+                } else {
+                    console.log(`Window ${this.id} joined group ${targetWindow.id}`);
+
+                    this.addToSnapGroup(targetWindow.getSnapGroup());
+                }
+            }
+        }
+    }
+
+    private handleHidden(): void {
+        this.updateState({hidden: true}, ActionOrigin.APPLICATION);
+        this.onModified.emit(this);
+    }
+
+    private handleMaximized(): void {
+        this.updateState({state: 'maximized'}, ActionOrigin.APPLICATION);
+        this.onModified.emit(this);
+    }
+
+    private handleMinimized(): void {
+        this.updateState({state: 'minimized'}, ActionOrigin.APPLICATION);
+        this.onModified.emit(this);
+    }
+
+    private handleRestored(): void {
+        this.updateState({state: 'normal'}, ActionOrigin.APPLICATION);
+        // this.onModified.emit(this);
+    }
+
+    private handleShown(): void {
+        this.updateState({hidden: false}, ActionOrigin.APPLICATION);
+        // this.onModified.emit(this);
     }
 }

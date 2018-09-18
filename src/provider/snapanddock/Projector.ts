@@ -1,5 +1,5 @@
 import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
-import {DesktopWindow, WindowState} from '../model/DesktopWindow';
+import {WindowState} from '../model/DesktopWindow';
 import {ANCHOR_DISTANCE, MIN_OVERLAP, SNAP_DISTANCE} from './Config';
 import {eSnapValidity, Orientation, SnapTarget} from './Resolver';
 import {Point, PointUtils} from './utils/PointUtils';

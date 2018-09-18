@@ -129,7 +129,6 @@ export class DesktopModel {
 
         if (window) {
             try {
-                window.getWindow().leaveGroup();
                 window.onClose.emit(window);
             } catch (error) {
                 console.error(`Unexpected error when deregistering: ${error}`);
@@ -162,7 +161,7 @@ export class DesktopModel {
     private addWindow(window: Window): Promise<DesktopWindow> {
         return DesktopWindow.getWindowState(window).then<DesktopWindow>((state: WindowState): DesktopWindow => {
             // Create new window object. Will get registered implicitly, due to signal within DesktopWindow constructor.
-            return new DesktopWindow(new DesktopSnapGroup(), window, state);
+            return new DesktopWindow(this, new DesktopSnapGroup(), window, state);
         });
     }
 

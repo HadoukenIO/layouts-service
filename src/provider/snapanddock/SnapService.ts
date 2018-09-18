@@ -1,17 +1,15 @@
-import {Window} from 'hadouken-js-adapter';
-import {Fin} from 'hadouken-js-adapter';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
+import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {DesktopWindow, eTransformType, Mask, WindowIdentity} from '../model/DesktopWindow';
 import {Signal2} from '../Signal';
+import {ApplicationConfigManager} from '../tabbing/components/ApplicationConfigManager';
 import {TabService} from '../tabbing/TabService';
-import {getWindowAt} from '../tabbing/TabUtilities';
+
 import {eSnapValidity, Resolver, SnapTarget} from './Resolver';
 import {SnapView} from './SnapView';
 import {Point, PointUtils} from './utils/PointUtils';
 import {MeasureResult, RectUtils} from './utils/RectUtils';
-import { DesktopTabGroup } from '../model/DesktopTabGroup';
-import { ApplicationConfigManager } from '../tabbing/components/ApplicationConfigManager';
 
 // Defines the distance windows will be moved when undocked.
 const UNDOCK_MOVE_DISTANCE = 30;
@@ -127,7 +125,6 @@ export class SnapService {
 
         if (window) {
             try {
-                window.getWindow().leaveGroup();
                 window.onClose.emit(window);
             } catch (error) {
                 console.error(`Unexpected error when deregistering: ${error}`);
@@ -257,7 +254,7 @@ export class SnapService {
         const groups: DesktopSnapGroup[] = this.model.getSnapGroups() as DesktopSnapGroup[];  // TODO: Make read-only?
         const snapTarget: SnapTarget|null = this.resolver.getSnapTarget(groups, activeGroup);
 
-        if (snapTarget && snapTarget.validity === eSnapValidity.VALID) {    // SNAP WINDOWS
+        if (snapTarget && snapTarget.validity === eSnapValidity.VALID) {  // SNAP WINDOWS
             // Reset view (do this before moving windows out of active group, to ensure opacities are reset)
             // this.view.update(null, null);
 
@@ -275,7 +272,7 @@ export class SnapService {
                 console.warn(
                     'Expected group to have been removed, but still exists (' + activeGroup.id + ': ' + activeGroup.windows.map(w => w.getId()).join() + ')');
             }
-        } else if (activeGroup.length === 1 && !activeGroup.windows[0].getTabGroup()) { // TAB WINDOWS
+        } else if (activeGroup.length === 1 && !activeGroup.windows[0].getTabGroup()) {  // TAB WINDOWS
             // If a single untabbed window is being dragged, it is possible to create a tabset
             const activeWindow: DesktopWindow = activeGroup.windows[0] as DesktopWindow;
             const activeIdentity: WindowIdentity = activeWindow.getIdentity();

@@ -1,18 +1,14 @@
 import {Application} from 'hadouken-js-adapter/out/types/src/api/application/application';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
-import {Layout, LayoutApp, LayoutName, WindowState} from '../../client/types';
+import {Layout, LayoutApp, WindowState} from '../../client/types';
 import {providerChannel} from '../main';
 import {WindowIdentity} from '../model/DesktopWindow';
 import {promiseMap} from '../snapanddock/utils/async';
-import {removeTab} from '../tabbing/SaveAndRestoreAPI';
 import {TabService} from '../tabbing/TabService';
-import {createTabGroupsFromTabBlob} from '../tabbing/TabUtilities';
 
 import {regroupLayout} from './group';
-import {createAppPlaceholders, createNormalPlaceholder, createTabPlaceholder, isClientConnection, positionWindow, wasCreatedProgrammatically} from './utils';
-
-
+import {createNormalPlaceholder, createTabPlaceholder, isClientConnection, positionWindow, wasCreatedProgrammatically} from './utils';
 
 /*tslint:disable-next-line:no-any*/
 declare var fin: any;
@@ -123,7 +119,7 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
                         await createNormalPlaceholder(win);
                     }
                 } else {
-                    await removeTab(win);
+                    await TabService.INSTANCE.removeTab(win);
                 }
             }
         } else {
@@ -148,7 +144,7 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
         const isRunning = await ofApp.isRunning();
         if (isRunning) {
             // Should de-tab here.
-            await removeTab(app.mainWindow);
+            await TabService.INSTANCE.removeTab(app.mainWindow);
 
             // Need to check its child windows here, if confirmed.
             await childWindowPlaceholderCheckRunningApp(app);
@@ -179,7 +175,7 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
         });
     });
 
-    await createTabGroupsFromTabBlob(payload.tabGroups);
+    await TabService.INSTANCE.createTabGroupsFromTabBlob(payload.tabGroups);
 
     const apps = await promiseMap(layout.apps, async(app: LayoutApp): Promise<LayoutApp> => {
         // Get rid of childWindows for default response (anything else?)

@@ -1,5 +1,4 @@
 import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
-import {DesktopWindow} from '../model/DesktopWindow';
 
 import {SnapTarget} from './Resolver';
 import {SnapPreview} from './SnapPreview';

@@ -1,7 +1,5 @@
-import {Point} from '../snapanddock/utils/PointUtils';
-
-import {DesktopSnapGroup, Snappable} from './DesktopSnapGroup';
-import {WindowIdentity, WindowState} from './DesktopWindow';
+import {DesktopModel} from './DesktopModel';
+import {WindowIdentity} from './DesktopWindow';
 
 /**
  * Base class for windows and tab sets. Represents any entity that should be considered as a single window for the
@@ -10,12 +8,14 @@ import {WindowIdentity, WindowState} from './DesktopWindow';
  * Also includes common functionality for tracking asynchronous changes to window objects.
  */
 export abstract class DesktopEntity /*implements Snappable*/ {  // Will eventually implement Snappable, still WIP.
+    protected readonly model: DesktopModel;
     protected readonly identity: WindowIdentity;
     protected readonly id: string;  // Created from window uuid and name
 
     private pendingActions: Promise<void>[];
 
-    constructor(identity: WindowIdentity) {
+    constructor(model: DesktopModel, identity: WindowIdentity) {
+        this.model = model;
         this.identity = identity;
         this.id = `${identity.uuid}/${identity.name!}`;
         this.pendingActions = [];

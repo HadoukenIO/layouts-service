@@ -4,7 +4,7 @@ import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/system/appl
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {LayoutApp, WindowState} from '../../client/types';
-import {swapTab} from '../tabbing/SaveAndRestoreAPI';
+import {TabService} from '../tabbing/TabService';
 
 // tslint:disable-next-line:no-any
 declare var fin: any;
@@ -110,7 +110,7 @@ export const createTabPlaceholder = async (win: WindowState) => {
 
     const actualWindow = await fin.Window.wrap({uuid, name});
     actualWindow.on('initialized', async () => {
-        await swapTab(actualWindow.identity, placeholder);
+        await TabService.INSTANCE.swapTab(actualWindow.identity, placeholder);
         placeholder.close();
     });
 

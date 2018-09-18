@@ -1,11 +1,10 @@
 import {Window} from 'hadouken-js-adapter';
-import Fin from 'hadouken-js-adapter/out/types/src/api/fin';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {Layout, LayoutApp, WindowState} from '../../client/types';
 import {providerChannel} from '../main';
 import {promiseMap} from '../snapanddock/utils/async';
-import {getTabSaveInfo} from '../tabbing/SaveAndRestoreAPI';
+import {TabService} from '../tabbing/TabService';
 
 import {getGroup} from './group';
 import {isClientConnection, wasCreatedFromManifest, wasCreatedProgrammatically} from './utils';
@@ -16,7 +15,7 @@ declare var fin: any;
 export const getCurrentLayout = async(): Promise<Layout> => {
     // Not yet using monitor info
     const monitorInfo = await fin.System.getMonitorInfo() || {};
-    let tabGroups = await getTabSaveInfo();
+    let tabGroups = await TabService.INSTANCE.getTabSaveInfo();
     const tabbedWindows: {[uuid: string]: {[name: string]: boolean}} = {};
 
     if (tabGroups === undefined) {

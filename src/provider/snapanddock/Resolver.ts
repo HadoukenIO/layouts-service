@@ -1,6 +1,5 @@
 import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
-import {DesktopWindow, WindowIdentity, WindowState} from '../model/DesktopWindow';
-import {TabService} from '../tabbing/TabService';
+import {WindowState} from '../model/DesktopWindow';
 import {SNAP_DISTANCE} from './Config';
 import {Projector} from './Projector';
 import {Point, PointUtils} from './utils/PointUtils';
@@ -124,8 +123,7 @@ export class Resolver {
                         const activeState: WindowState = activeWindow.getState();
 
                         // Only do the next loop if there's a chance that this window can intersect with the other group
-                        if (this.isSnappable(activeWindow, activeState) &&
-                            RectUtils.distance(candidateGroup, activeState).within(SNAP_DISTANCE)) {
+                        if (this.isSnappable(activeWindow, activeState) && RectUtils.distance(candidateGroup, activeState).within(SNAP_DISTANCE)) {
                             candidateGroup.windows.forEach(candidateWindow => {
                                 const candidateState: WindowState = candidateWindow.getState();
 

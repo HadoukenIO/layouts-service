@@ -1,5 +1,6 @@
+import {Window} from 'hadouken-js-adapter';
+
 import {TabIdentifier} from '../../client/types';
-import { Window } from 'hadouken-js-adapter';
 
 const DRAG_WINDOW_URL = (() => {
     let providerLocation = window.location.href;

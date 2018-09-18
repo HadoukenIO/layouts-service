@@ -74,7 +74,6 @@ export class DragWindowManager {
                     waitForPageLoad: false,
                     alwaysOnTop: false,
                     showTaskbarIcon: false,
-                    // @ts-ignore smallWidnow flag is valid
                     smallWindow: true
                 },
                 () => {

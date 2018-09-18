@@ -11,6 +11,8 @@ import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
 import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {DesktopWindow, WindowIdentity, WindowState} from './DesktopWindow';
+import { ChannelProvider } from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
+import { sendToClient } from '../workspaces/utils';
 
 // tslint:disable-next-line:no-any
 declare var fin: any;
@@ -62,11 +64,6 @@ export class DesktopTabGroup extends DesktopEntity {
     private _isMaximized: boolean;
     private _beforeMaximizeBounds: Rectangle|undefined;
 
-    /**
-     * Handle to the service provider
-     */
-    private mService: Provider;
-
     private _config: ApplicationUIConfig;
 
     /**
@@ -104,7 +101,6 @@ export class DesktopTabGroup extends DesktopEntity {
 
         this._isRestored = false;
         this._isMaximized = false;
-        this.mService = (window as Window & {providerChannel: Provider}).providerChannel;
 
         DesktopTabGroup.onCreated.emit(this);
     }
@@ -315,12 +311,12 @@ export class DesktopTabGroup extends DesktopEntity {
 
         // Send event to application
         tab.sync().then(() => {
-            this.mService.dispatch(tab.getIdentity(), event, payload);
+            sendToClient(tab.getIdentity(), event, payload);
         });
 
         // Send event to tabstrip
         Promise.all([this.sync(), this.window.sync()]).then(() => {
-            this.mService.dispatch({uuid: TabServiceID.UUID, name: this.ID}, event, payload);
+            sendToClient({uuid: TabServiceID.UUID, name: this.ID}, event, payload);
         });
     }
 
@@ -422,7 +418,7 @@ export class DesktopTabGroup extends DesktopEntity {
 
             await Promise.all([this.sync(), this.window!.sync(), tab.sync()]);
             const payload: TabGroupEventPayload = {tabGroupId: this.ID, tabID: tab.getIdentity()};
-            this.mService.dispatch({uuid: TabServiceID.UUID, name: this.ID}, 'tab-activated', payload);
+            sendToClient({uuid: TabServiceID.UUID, name: this.ID}, 'tab-activated', payload);
         }
     }
 

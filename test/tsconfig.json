@@ -13,7 +13,8 @@
     "include": [
       "provider/**/*.ts",
       "demo/**/*.ts",
-      "../src/fin.d.ts"
+      "../src/fin.d.ts",
+      "../src/finV2.d.ts"
     ],
     "exclude": [
       "../node_modules"

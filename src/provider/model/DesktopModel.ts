@@ -16,6 +16,8 @@ export class DesktopModel {
     private windowLookup: {[key: string]: DesktopWindow};
     private zIndexer: ZIndexer;
 
+    private pendingRegistrations: WindowIdentity[];
+
     /**
      * A window has been added to a group.
      *
@@ -40,6 +42,7 @@ export class DesktopModel {
         this.snapGroups = [];
         this.windowLookup = {};
         this.zIndexer = new ZIndexer();
+        this.pendingRegistrations = [];
 
         DesktopWindow.onCreated.add(this.onWindowCreated, this);
         DesktopWindow.onDestroyed.add(this.onWindowDestroyed, this);
@@ -125,18 +128,24 @@ export class DesktopModel {
     }
 
     public deregister(target: {uuid: string; name: string}): void {
-        const window: DesktopWindow|null = this.getWindow(target);
-
-        if (window) {
-            try {
-                window.onClose.emit(window);
-            } catch (error) {
-                console.error(`Unexpected error when deregistering: ${error}`);
-                throw new Error(`Unexpected error when deregistering: ${error}`);
-            }
+        // If the window is pending registration, remove it from the queue and return
+        const pendingIndex = this.pendingRegistrations.findIndex(w => w.name === target.name && w.uuid === target.uuid);
+        if (pendingIndex > -1) {
+            this.pendingRegistrations.splice(pendingIndex, 1);
         } else {
-            console.error(`Unable to deregister from Snap&Dock - no window is registered with identity "${target.uuid}/${target.name}"`);
-            throw new Error(`Unable to deregister from Snap&Dock - no window is registered with identity "${target.uuid}/${target.name}"`);
+            const window: DesktopWindow|null = this.getWindow(target);
+
+            if (window) {
+                try {
+                    window.onClose.emit(window);
+                } catch (error) {
+                    console.error(`Unexpected error when deregistering: ${error}`);
+                    throw new Error(`Unexpected error when deregistering: ${error}`);
+                }
+            } else {
+                console.error(`Unable to deregister from service - no window is registered with identity "${target.uuid}/${target.name}"`);
+                throw new Error(`Unable to deregister from service - no window is registered with identity "${target.uuid}/${target.name}"`);
+            }
         }
     }
 
@@ -154,14 +163,29 @@ export class DesktopModel {
         }
 
         // In either case, we will add the new window to the service.
-        const finv2: Fin = fin as any;  // tslint:disable-line:no-any
-        this.addWindow(await finv2.Window.wrap(identity)).then((win: DesktopWindow) => console.log('Registered window: ' + win.getId()));
+        this.addWindow(await fin.Window.wrap(identity)).then((win: DesktopWindow|null) =>{
+            if (win !== null) {
+                console.log('Registered window: ' + win.getId());
+            }
+        });
     }
 
-    private addWindow(window: Window): Promise<DesktopWindow> {
-        return DesktopWindow.getWindowState(window).then<DesktopWindow>((state: WindowState): DesktopWindow => {
-            // Create new window object. Will get registered implicitly, due to signal within DesktopWindow constructor.
-            return new DesktopWindow(this, new DesktopSnapGroup(), window, state);
+    private addWindow(window: Window): Promise<DesktopWindow|null> {
+        // Set the window as pending registration  (Fix for race condition between register/deregister)
+        this.pendingRegistrations.push(window);
+        return DesktopWindow.getWindowState(window).then<DesktopWindow|null>((state: WindowState): DesktopWindow|null => {
+            if (!this.pendingRegistrations.some(w => w.name === window.name && w.uuid === window.uuid)) {
+                // If pendingRegistrations does not contain the window, then deregister has been called on it
+                // and we should do nothing.
+                return null;
+            } else {
+                // Remove the window from pendingRegitrations
+                const pendingIndex = this.pendingRegistrations.findIndex(w => w.name === window.name && w.uuid === window.uuid);
+                this.pendingRegistrations.splice(pendingIndex, 1);
+
+                // Create new window object. Will get registered implicitly, due to signal within DesktopWindow constructor.
+                return new DesktopWindow(this, new DesktopSnapGroup(), window, state);
+            }
         });
     }
 

@@ -8,8 +8,6 @@
         "types": ["node", "jest"]
     },
     "include": [
-        "src/fin.d.ts",
-        "src/provider/**/*.ts",
-        "src/client/main.ts"
+        "src"
     ]
 }

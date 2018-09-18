@@ -46,6 +46,8 @@ export class SnapService {
     private resolver: Resolver;
     private view: SnapView;
 
+    private pendingRegistrations: WindowIdentity[] = [];
+
     /**
      * A window has been added to a group.
      *
@@ -76,14 +78,12 @@ export class SnapService {
         DesktopSnapGroup.onDestroyed.add(this.onSnapGroupDestroyed, this);
 
         // Register global undock hotkey listener
-        // @ts-ignore - v2api types missing
         fin.GlobalHotkey
             .register(
                 'CommandOrControl+Shift+U',
                 () => {
-                    // @ts-ignore - v2api types missing
-                    fin.System.getFocusedWindow().then(focusedWindow => {
-                        if (focusedWindow !== null && model.getWindow(focusedWindow)) {
+                    fin.desktop.System.getFocusedWindow().then(focusedWindow => {
+                        if (focusedWindow !== null && this.model.getWindow(focusedWindow)) {
                             console.log('Global hotkey invoked on window', focusedWindow);
                             this.undock(focusedWindow);
                         }
@@ -117,22 +117,6 @@ export class SnapService {
         } else {
             console.error(`Unable to undock - no window found with identity "${target.uuid}/${target.name}"`);
             throw new Error(`Unable to undock - no window found with identity "${target.uuid}/${target.name}"`);
-        }
-    }
-
-    public deregister(target: {uuid: string; name: string}): void {
-        const window: DesktopWindow|null = this.model.getWindow(target);
-
-        if (window) {
-            try {
-                window.onClose.emit(window);
-            } catch (error) {
-                console.error(`Unexpected error when deregistering: ${error}`);
-                throw new Error(`Unexpected error when deregistering: ${error}`);
-            }
-        } else {
-            console.error(`Unable to deregister from Snap&Dock - no window is registered with identity "${target.uuid}/${target.name}"`);
-            throw new Error(`Unable to deregister from Snap&Dock - no window is registered with identity "${target.uuid}/${target.name}"`);
         }
     }
 

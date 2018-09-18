@@ -1,21 +1,37 @@
 import {Window} from 'hadouken-js-adapter';
-import Fin from 'hadouken-js-adapter/out/types/src/api/fin';
-import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/system/application';
+import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/application/application';
+import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
-import {LayoutApp, WindowState} from '../../client/types';
+import {LayoutApp, WindowState, TabIdentifier} from '../../client/types';
 import {TabService} from '../tabbing/TabService';
 
-// tslint:disable-next-line:no-any
-declare var fin: any;
+declare var providerChannel: ChannelProvider;
 
 export const isClientConnection = (identity: LayoutApp|Identity) => {
     // i want to access connections....
     const {uuid} = identity;
-    //@ts-ignore
+
     return providerChannel.connections.some((conn: Identity) => {
         return identity.uuid === conn.uuid;
     });
+};
+
+export const getClientConnection = (identity: Identity) => {
+    const {uuid} = identity;
+    const name = identity.name ? identity.name : uuid;
+
+    return providerChannel.connections.find((conn) => {
+        return conn.uuid === uuid && conn.name === name;
+    });
+};
+
+// tslint:disable-next-line:no-any
+export const sendToClient = async (identity: Identity, action: string, payload: any) => {
+    const conn = await getClientConnection(identity);
+    if (conn) {
+        return providerChannel.dispatch(conn, action, payload);
+    }
 };
 
 export const positionWindow = async (win: WindowState) => {
@@ -74,11 +90,12 @@ export const createNormalPlaceholder = async (win: WindowState) => {
             backgroundColor: '#D3D3D3'
         },
         () => {
-            placeholder.nativeWindow.document.body.style.overflow = 'hidden';
-            placeholder.nativeWindow.document.bgColor = 'D3D3D3';
+            placeholder.getNativeWindow().document.body.style.overflow = 'hidden';
+            placeholder.getNativeWindow().document.bgColor = 'D3D3D3';
         });
 
     const actualWindow = await fin.Window.wrap({uuid, name});
+    // @ts-ignore v2 types missing 'shown' event.
     actualWindow.on('shown', () => {
         placeholder.close();
     });
@@ -104,21 +121,22 @@ export const createTabPlaceholder = async (win: WindowState) => {
             backgroundColor: '#D3D3D3'
         },
         () => {
-            placeholder.nativeWindow.document.body.style.overflow = 'hidden';
-            placeholder.nativeWindow.document.bgColor = 'D3D3D3';
+            placeholder.getNativeWindow().document.body.style.overflow = 'hidden';
+            placeholder.getNativeWindow().document.bgColor = 'D3D3D3';
         });
 
     const actualWindow = await fin.Window.wrap({uuid, name});
     actualWindow.on('initialized', async () => {
-        await TabService.INSTANCE.swapTab(actualWindow.identity, placeholder);
+        await TabService.INSTANCE.swapTab(actualWindow.identity as TabIdentifier, placeholder);
         placeholder.close();
     });
 
     return placeholder;
 };
 
-export const wasCreatedProgrammatically = (app: LayoutApp) => {
-    return app && app.initialOptions && app.initialOptions.uuid && app.initialOptions.url;
+export const wasCreatedProgrammatically = (app: ApplicationInfo|LayoutApp) => {
+    const initialOptions = app.initialOptions as {uuid: string, url: string};
+    return app && app.initialOptions && initialOptions.uuid && initialOptions.url;
 };
 
 interface AppInfo {
@@ -128,9 +146,9 @@ interface AppInfo {
 }
 
 // Type here should be ApplicationInfo from the js-adapter (needs to be updated)
-export const wasCreatedFromManifest = (app: AppInfo, uuid?: string) => {
-    const {manifest, manifestUrl} = app;
-    const appUuid = uuid || app.uuid;
+export const wasCreatedFromManifest = (app: ApplicationInfo, uuid?: string) => {
+    const {manifest} = {...app, uuid} as AppInfo;
+    const appUuid = uuid || undefined;
     return typeof manifest === 'object' && manifest.startup_app && manifest.startup_app.uuid === appUuid;
 };
 

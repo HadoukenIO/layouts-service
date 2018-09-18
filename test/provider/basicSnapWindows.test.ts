@@ -90,7 +90,6 @@ test.failing('resizing group horizontally', async t => {
     let win1Width = bounds1.right - bounds1.left;
     let win2Width = bounds2.right - bounds2.left;
     let newCombinedWidth = win1Width + win2Width;
-    console.log(newCombinedWidth, combinedWidth);
 
     t.is(combinedWidth, newCombinedWidth);
 });

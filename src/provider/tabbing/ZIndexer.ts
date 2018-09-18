@@ -116,17 +116,14 @@ export class ZIndexer {
      */
     private _addEventListeners(win: fin.OpenFinWindow) {
         win.addEventListener('focused', () => {
-            // @ts-ignore
             this.update({uuid: win.uuid, name: win.name});
         });
 
         win.addEventListener('shown', () => {
-            // @ts-ignore
             this.update({uuid: win.uuid, name: win.name});
         });
 
         win.addEventListener('bounds-changed', () => {
-            // @ts-ignore
             this.update({uuid: win.uuid, name: win.name});
         });
     }

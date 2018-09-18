@@ -76,7 +76,6 @@ export class DragWindowManager extends AsyncWindow {
                     waitForPageLoad: false,
                     alwaysOnTop: false,
                     showTaskbarIcon: false,
-                    // @ts-ignore smallWidnow flag is valid
                     smallWindow: true
                 },
                 () => {

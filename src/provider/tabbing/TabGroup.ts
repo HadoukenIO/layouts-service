@@ -1,7 +1,7 @@
-import {Provider} from 'hadouken-js-adapter/out/types/src/api/services/provider';
+import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
 
-import {TabApiEvents} from '../../client/APITypes';
 import {TabGroupEventPayload, TabIdentifier, TabPackage, TabWindowOptions} from '../../client/types';
+import {sendToClient} from '../workspaces/utils';
 
 import {GroupWindow} from './GroupWindow';
 import {Tab} from './Tab';
@@ -37,7 +37,7 @@ export class TabGroup {
     /**
      * Handle to the service provider
      */
-    private mService: Provider;
+    private mService: ChannelProvider;
 
     /**
      * Constructor for the TabGroup Class.
@@ -47,7 +47,7 @@ export class TabGroup {
         this.ID = uuidv4();
         this._tabs = [];
         this._window = new GroupWindow(windowOptions, this);
-        this.mService = (window as Window & {providerChannel: Provider}).providerChannel;
+        this.mService = (window as Window & {providerChannel: ChannelProvider}).providerChannel;
     }
 
     /**
@@ -259,7 +259,7 @@ export class TabGroup {
     public setActiveTab(tab: Tab): void {
         this._activeTab = tab;
         const payload: TabGroupEventPayload = {tabGroupId: this.ID, tabID: tab.ID};
-        this.mService.dispatch({uuid: fin.desktop.Application.getCurrent().uuid, name: this.ID}, 'tab-activated', payload);
+        sendToClient({uuid: fin.Application.me.uuid, name: this.ID}, 'tab-activated', payload);
     }
 
     /**

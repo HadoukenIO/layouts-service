@@ -3,7 +3,7 @@ import { Fin } from 'hadouken-js-adapter';
 
 const getClientConnection = async () => {
     const fin = await getConnection();
-    const client = fin.Service.connect({uuid: 'testApp'});
+    const client = fin.InterApplicationBus.Channel.connect({uuid: 'testApp'});
     return client;
 };
 const clientPromise = getClientConnection();

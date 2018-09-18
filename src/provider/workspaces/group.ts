@@ -4,12 +4,9 @@ import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 import {LayoutApp, WindowState} from '../../client/types';
 import {promiseMap} from '../snapanddock/utils/async';
 
-// tslint:disable-next-line:no-any
-declare var fin: any;
-
 export const getGroup = (identity: Identity): Promise<Identity[]> => {
     const {uuid, name} = identity;
-    const ofWin = fin.desktop.Window.wrap(uuid, name);
+    const ofWin = fin.desktop.Window.wrap(uuid, name!);
     // v2api getgroup broken
     return new Promise((res, rej) => {
         ofWin.getGroup((group: fin.OpenFinWindow[]) => {

@@ -6,15 +6,11 @@ import {p, promiseMap} from '../snapanddock/utils/async';
 import {isWin10} from '../snapanddock/utils/platform';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle} from '../snapanddock/utils/RectUtils';
-import {TabService} from '../tabbing/TabService';
 
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
 import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {DesktopTabGroup} from './DesktopTabGroup';
-
-// tslint:disable-next-line:no-any
-declare var fin: any;
 
 export interface WindowState extends Rectangle {
     center: Point;

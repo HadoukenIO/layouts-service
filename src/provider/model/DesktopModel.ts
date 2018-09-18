@@ -127,7 +127,7 @@ export class DesktopModel {
         return this.tabGroups.find(group => group.ID === id) || null;
     }
 
-    public deregister(target: {uuid: string; name: string}): void {
+    public deregister(target: WindowIdentity): void {
         // If the window is pending registration, remove it from the queue and return
         const pendingIndex = this.pendingRegistrations.findIndex(w => w.name === target.name && w.uuid === target.uuid);
         if (pendingIndex > -1) {
@@ -172,15 +172,16 @@ export class DesktopModel {
 
     private addWindow(window: Window): Promise<DesktopWindow|null> {
         // Set the window as pending registration  (Fix for race condition between register/deregister)
-        this.pendingRegistrations.push(window);
+        const identity: WindowIdentity = window.identity as WindowIdentity;
+        this.pendingRegistrations.push({...identity});
         return DesktopWindow.getWindowState(window).then<DesktopWindow|null>((state: WindowState): DesktopWindow|null => {
-            if (!this.pendingRegistrations.some(w => w.name === window.name && w.uuid === window.uuid)) {
+            if (!this.pendingRegistrations.some(w => w.name === identity.name && w.uuid === identity.uuid)) {
                 // If pendingRegistrations does not contain the window, then deregister has been called on it
                 // and we should do nothing.
                 return null;
             } else {
                 // Remove the window from pendingRegitrations
-                const pendingIndex = this.pendingRegistrations.findIndex(w => w.name === window.name && w.uuid === window.uuid);
+                const pendingIndex = this.pendingRegistrations.findIndex(w => w.name === identity.name && w.uuid === identity.uuid);
                 this.pendingRegistrations.splice(pendingIndex, 1);
 
                 // Create new window object. Will get registered implicitly, due to signal within DesktopWindow constructor.

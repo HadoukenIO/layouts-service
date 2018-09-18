@@ -178,7 +178,9 @@ export async function getTabs(window: Identity = getId()): Promise<Identity[]|nu
  * If a custom tab-strip UI is being used - this sets the URL for the tab-strip.
  * This binding happens on the application level.  An application cannot have different windows using different tabbing UI.
  */
-export async function setTabClient(url: string, config: ApplicationUIConfig): Promise<void> {
+export async function setTabClient(url: string, config: Partial<ApplicationUIConfig&{url: never}>): Promise<void> {
+    const resolvedConfig: Partial<ApplicationUIConfig> = {url, ...config};
+
     if (!config || isNaN(config.height!)) {
         return Promise.reject('Invalid config height provided');
     }
@@ -190,9 +192,8 @@ export async function setTabClient(url: string, config: ApplicationUIConfig): Pr
         return Promise.reject(e);
     }
     const channel: ChannelClient = await channelPromise;
-    config.url = url;
 
-    return tryServiceDispatch<SetTabClientPayload, void>(channel, TabAPI.SETTABCLIENT, {config, id: getId()});
+    return tryServiceDispatch<SetTabClientPayload, void>(channel, TabAPI.SETTABCLIENT, {id: getId(), config: resolvedConfig});
 }
 
 /**

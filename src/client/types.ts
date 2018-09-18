@@ -197,7 +197,7 @@ export interface JoinTabGroupPayload extends TabGroupEventPayload {
 }
 
 export interface SetTabClientPayload {
-    config: ApplicationUIConfig;
+    config: Partial<ApplicationUIConfig>;
     id: Identity;
 }
 

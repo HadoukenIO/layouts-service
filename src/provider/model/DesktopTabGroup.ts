@@ -1,22 +1,14 @@
-import {Provider} from 'hadouken-js-adapter/out/types/src/api/services/provider';
-
 import {TabApiEvents} from '../../client/APITypes';
 import {ApplicationUIConfig, JoinTabGroupPayload, TabGroupEventPayload, TabIdentifier, TabProperties, TabServiceID, TabWindowOptions} from '../../client/types';
 import {GroupEventType} from '../main';
 import {Signal1} from '../Signal';
 import {Rectangle} from '../snapanddock/utils/RectUtils';
-import {TabService} from '../tabbing/TabService';
+import {sendToClient} from '../workspaces/utils';
 
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
 import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {DesktopWindow, WindowIdentity, WindowState} from './DesktopWindow';
-import { ChannelProvider } from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
-import { sendToClient } from '../workspaces/utils';
-
-// tslint:disable-next-line:no-any
-declare var fin: any;
-
 
 /**
  * Handles functionality for the TabSet

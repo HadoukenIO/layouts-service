@@ -57,31 +57,25 @@ export class DragWindowManager {
     /**
      * Creates the drag overlay window.
      */
-    private _createDragWindow(): Promise<void> {
-        return new Promise((res, rej) => {
-            this._window = new fin.desktop.Window(
-                {
-                    name: 'TabbingDragWindow',
-                    url: DRAG_WINDOW_URL,
-                    defaultHeight: 1,
-                    defaultWidth: 1,
-                    defaultLeft: 0,
-                    defaultTop: 0,
-                    saveWindowState: false,
-                    autoShow: true,
-                    opacity: 0.01,
-                    frame: false,
-                    waitForPageLoad: false,
-                    alwaysOnTop: false,
-                    showTaskbarIcon: false,
-                    smallWindow: true
-                },
-                () => {
-                    this._window.resizeTo(screen.width, screen.height, 'top-left');
-                    this._window.hide();
-                    res();
-                },
-                rej);
+    private async _createDragWindow(): Promise<void> {
+        this._window = await fin.Window.create({
+            name: 'TabbingDragWindow',
+            url: DRAG_WINDOW_URL,
+            defaultHeight: 1,
+            defaultWidth: 1,
+            defaultLeft: 0,
+            defaultTop: 0,
+            saveWindowState: false,
+            autoShow: true,
+            opacity: 0.01,
+            frame: false,
+            waitForPageLoad: false,
+            alwaysOnTop: false,
+            showTaskbarIcon: false,
+            smallWindow: true
         });
+
+        await this._window.resizeTo(screen.width, screen.height, 'top-left');
+        await this._window.hide();
     }
 }

@@ -4,7 +4,7 @@ import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {Layout, LayoutApp, WindowState} from '../../client/types';
 import {providerChannel} from '../main';
-import {WindowIdentity} from '../snapanddock/SnapWindow';
+import {WindowIdentity} from '../model/DesktopWindow';
 import {p, promiseMap} from '../snapanddock/utils/async';
 import {TabService} from '../tabbing/TabService';
 

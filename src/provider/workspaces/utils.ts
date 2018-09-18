@@ -3,7 +3,7 @@ import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/application
 import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
-import {LayoutApp, WindowState, TabIdentifier} from '../../client/types';
+import {LayoutApp, TabIdentifier, WindowState} from '../../client/types';
 import {TabService} from '../tabbing/TabService';
 
 declare var providerChannel: ChannelProvider;

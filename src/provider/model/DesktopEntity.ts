@@ -33,11 +33,10 @@ export abstract class DesktopEntity /*implements Snappable*/ {  // Will eventual
         const MAX_AWAITS = 10;
         let awaitCount = 0;
 
-        console.log(`Sync ${this.id}: Started with ${this.pendingActions.length} actions`);
         while (this.pendingActions.length > 0) {
             if (++awaitCount <= MAX_AWAITS) {
                 // Wait for pending operations to finish
-                console.log(`Sync ${this.id}: Awaiting ${this.pendingActions.length} actions`);
+                console.log(`Sync ${this.id} ${awaitCount}/${MAX_AWAITS}: Awaiting ${this.pendingActions.length} actions`);
                 await Promise.all(this.pendingActions);
             } else {
                 // If we've looped this many times, we're probably in some kind of deadlock scenario
@@ -69,7 +68,6 @@ export abstract class DesktopEntity /*implements Snappable*/ {  // Will eventual
         const index = this.pendingActions.indexOf(action);
         if (index >= 0) {
             this.pendingActions.splice(index, 1);
-            console.log('Pending action complete. Now ' + this.pendingActions.length + ' actions');
         } else {
             console.warn('Action completed but couldn\'t find it in pending action list');
         }

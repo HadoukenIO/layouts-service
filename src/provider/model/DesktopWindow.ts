@@ -183,6 +183,7 @@ export class DesktopWindow extends DesktopEntity {
                 this.window = window;
                 this.windowState = await DesktopWindow.getWindowState(window);
                 this.applicationState = {...this.windowState};
+                this.addListeners();
                 this.initialised = true;
             }));
         } else if (!initialState) {
@@ -190,6 +191,7 @@ export class DesktopWindow extends DesktopEntity {
             this.addPendingActions(DesktopWindow.getWindowState(this.window).then((state: WindowState) => {
                 this.windowState = state;
                 this.applicationState = {...this.windowState};
+                this.addListeners();
                 this.initialised = true;
             }));
         } else {

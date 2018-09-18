@@ -2,6 +2,7 @@ import {TabApiEvents} from '../../client/APITypes';
 import {ApplicationUIConfig, JoinTabGroupPayload, TabGroupEventPayload, TabIdentifier, TabProperties, TabServiceID, TabWindowOptions} from '../../client/types';
 import {GroupEventType} from '../main';
 import {Signal1} from '../Signal';
+import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle} from '../snapanddock/utils/RectUtils';
 import {sendToClient} from '../workspaces/utils';
 
@@ -218,27 +219,33 @@ export class DesktopTabGroup extends DesktopEntity {
     }
 
     public async addTab(tab: DesktopWindow, handleTabSwitch = true, handleAlignment = true, index = -1) {
+        let remove: Promise<void>|null = null;
+
         console.log('Add ' + tab.getIdentity().name + ' to ' + this.ID);
 
         if (tab.getTabGroup()) {
             console.info('Existing tab attempting to be added.  Removing the first instance...');
-            await tab.getTabGroup()!.removeTab(tab);
+            remove = tab.getTabGroup()!.removeTab(tab);
         }
 
-        await Promise.all([this.sync(), this._window.sync(), tab.sync()]);
-
+        // Add tab
         this._tabProperties[tab.getId()] = {icon: tab.getState().icon, title: tab.getState().title};
-
         if (index > -1 && index <= this.tabs.length) {
             this._tabs.splice(index, 0, tab);
         } else {
             this._tabs.push(tab);
         }
 
+        // Sync all windows
+        if (remove) {
+            await Promise.all([this.sync(), this._window.sync(), tab.sync(), remove]);
+        } else {
+            await Promise.all([this.sync(), this._window.sync(), tab.sync()]);
+        }
 
+        // Position window
         if (this.tabs.length === 1) {
             const tabState: WindowState = tab.getState();
-            const halfHeight: number = tabState.halfSize.y - (this._config.height / 2);
 
             // Align tabstrip to this tab
             await this._window.applyProperties({
@@ -247,18 +254,15 @@ export class DesktopTabGroup extends DesktopEntity {
             });
 
             // Reduce size of app window by size of tabstrip
-            await tab.applyProperties(
-                {center: {x: tabState.center.x, y: tabState.center.y + (this._config.height / 2)}, halfSize: {x: tabState.halfSize.x, y: halfHeight}});
+            const center: Point = {x: tabState.center.x, y: tabState.center.y + (this._config.height / 2)};
+            const halfSize: Point = {x: tabState.halfSize.x, y: tabState.halfSize.y - (this._config.height / 2)};
+            await tab.applyProperties({center, halfSize});
         } else {
-            const tabState: WindowState = this._tabs[0].getState();
-            const tabstripState: WindowState = this._window.getState();
-            const halfHeight: number = tabState.halfSize.y;
+            const existingTabState: WindowState = this._activeTab.getState();
+            const {center, halfSize} = existingTabState;
 
             // Align tab with existing tab
-            await tab.applyProperties({
-                center: {x: tabstripState.center.x, y: tabstripState.center.y + tabstripState.halfSize.y + halfHeight},
-                halfSize: {x: tabstripState.halfSize.x, y: halfHeight}
-            });
+            await tab.applyProperties({center, halfSize});
         }
 
         tab.setSnapGroup(this._window.getSnapGroup());
@@ -355,20 +359,42 @@ export class DesktopTabGroup extends DesktopEntity {
     public async removeTab(tab: DesktopWindow, bounds?: Rectangle|null): Promise<void> {
         const index: number = this.tabs.indexOf(tab);
         if (tab && index >= 0) {
+            const promises: Promise<void>[] = [];
+
+            // Remove tab
             this._tabs.splice(index, 1);
             delete this._tabProperties[tab.getId()];
+            promises.push(this._removeTab(tab));
 
+            // Update tab window
+            if (bounds) {
+                // Eject tab and apply custom bounds
+                promises.push(tab.applyProperties({hidden: false, ...bounds}));
+            } else if (bounds === null) {
+                // Eject tab without modifying window bounds
+                promises.push(tab.applyProperties({hidden: false}));
+            } else {
+                const tabStripHalfSize: Point = this._window.getState().halfSize;
+                const state: WindowState = tab.getState();
+                const center: Point = {x: state.center.x, y: state.center.y - tabStripHalfSize.y};
+                const halfSize: Point = {x: state.halfSize.x, y: state.halfSize.y + tabStripHalfSize.y};
+
+                // Eject tab and apply default bounds
+                promises.push(tab.applyProperties({hidden: false, center, halfSize}));
+            }
+
+            // Activate next tab
             if (this._tabs.length > 0 && this.activeTab.getId() === tab.getId()) {
                 const nextTab: DesktopWindow = this._tabs[index] ? this._tabs[index] : this._tabs[index - 1];
 
                 if (this.tabs.length === 1) {
-                    this.tabs[0].applyProperties({hidden: false});
+                    promises.push(this.tabs[0].applyProperties({hidden: false}));
                 } else {
-                    await this.switchTab(nextTab);
+                    promises.push(this.switchTab(nextTab));
                 }
             }
 
-            await this._removeTab(tab);
+            await Promise.all(promises);
         }
     }
 
@@ -384,7 +410,7 @@ export class DesktopTabGroup extends DesktopEntity {
         const payload: TabGroupEventPayload = {tabGroupId: this.ID, tabID: tab.getIdentity()};
         this.sendTabEvent(tab, GroupEventType.LEAVE_TAB_GROUP, payload);
 
-        if (this._tabs.length <= 1) {
+        if (this._tabs.length === 1) {
             // TODO: Call removeTab on the one remaining tab?..
             await Promise.all(this._tabs.map((tab) => tab.applyProperties({hidden: false})));
             await this.removeAllTabs(false);
@@ -404,7 +430,7 @@ export class DesktopTabGroup extends DesktopEntity {
 
             await tab.applyProperties({hidden: false});
             await tab.bringToFront();
-            if (prevTab) {
+            if (prevTab && prevTab.getTabGroup() === this) {
                 await prevTab.applyProperties({hidden: true});
             }
 

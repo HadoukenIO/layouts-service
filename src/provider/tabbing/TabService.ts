@@ -268,29 +268,30 @@ export class TabService {
         const isOverTabWindow: DesktopWindow|null = (options.x && options.y) ? this._model.getWindowAt(options.x, options.y, tab) : null;
         const isOverTabGroup: DesktopTabGroup|null = isOverTabWindow && isOverTabWindow.getTabGroup();
 
-        // If there is a window underneath our point
-        if (isOverTabWindow && isOverTabGroup === tabGroup) {
-            // If the window under our point is in the same group as the one being dragged, we do nothing
-            return;
-        } else if (isOverTabWindow) {
+        // Decide what to do with the tab
+        if (!isOverTabWindow) {
+            // Move tab out of tab group
+            if (options.x && options.y) {
+                const halfSize = ejectedTab.getState().halfSize;
+                await tabGroup.removeTab(ejectedTab, {center: {x: options.x + halfSize.x, y: options.y + halfSize.y}, halfSize});
+            } else {
+                // ejectedTab.applyProperties({hidden: false});
+                await tabGroup.removeTab(ejectedTab);
+            }
+        } else if (isOverTabGroup !== tabGroup) {
+            // Move into another tab group
             if (this.applicationConfigManager.compareConfigBetweenApplications(isOverTabWindow.getIdentity().uuid, ejectedTab.getIdentity().uuid)) {
                 if (isOverTabGroup) {
-                    await tabGroup.removeTab(ejectedTab);
+                    await tabGroup.removeTab(ejectedTab, null);
                     await isOverTabGroup.addTab(ejectedTab);
                 } else {
-                    await tabGroup.removeTab(ejectedTab);
+                    await tabGroup.removeTab(ejectedTab, null);
                     await this.createTabGroupWithTabs([isOverTabWindow.getIdentity(), ejectedTab.getIdentity()]);
                 }
             }
         } else {
-            await tabGroup.removeTab(ejectedTab);
-
-            if (options.x && options.y) {
-                const halfSize = ejectedTab.getState().halfSize;
-                ejectedTab.applyProperties({center: {x: options.x + halfSize.x, y: options.y + halfSize.y}, hidden: false});
-            } else {
-                ejectedTab.applyProperties({hidden: false});
-            }
+            // Tab has been dragged and dropped onto the same tab group, do nothing.
+            // This was probably a tab re-ordering operation. This is handled separately.
         }
     }
 }

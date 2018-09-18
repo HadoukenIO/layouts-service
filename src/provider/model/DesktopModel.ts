@@ -1,7 +1,6 @@
-import {Fin, Window} from 'hadouken-js-adapter';
+import {Window} from 'hadouken-js-adapter';
 
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
-import {Signal2} from '../Signal';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {RectUtils} from '../snapanddock/utils/RectUtils';
 import {ZIndexer} from '../tabbing/ZIndexer';
@@ -17,24 +16,6 @@ export class DesktopModel {
     private zIndexer: ZIndexer;
 
     private pendingRegistrations: WindowIdentity[];
-
-    /**
-     * A window has been added to a group.
-     *
-     * Signal will be fired AFTER all state updates.
-     *
-     * Arguments: (group: SnapGroup, window: SnapWindow)
-     */
-    public readonly onWindowAdded: Signal2<DesktopSnapGroup, DesktopWindow> = new Signal2();
-
-    /**
-     * A window has been removed from a group.
-     *
-     * Signal will be fired AFTER all state updates.
-     *
-     * Arguments: (group: SnapGroup, window: SnapWindow)
-     */
-    public readonly onWindowRemoved: Signal2<DesktopSnapGroup, DesktopWindow> = new Signal2();
 
     constructor() {
         this.windows = [];
@@ -111,18 +92,6 @@ export class DesktopModel {
         return windowsAtPoint[0] || null;
     }
 
-    public getTabGroupAt(x: number, y: number): DesktopTabGroup|null {
-        // const point: Point = {x, y};
-        // const groupsAtPoint: DesktopTabGroup[] = this.tabGroups.filter((tabGroup: DesktopTabGroup) => {
-        //     const state: WindowState = tabGroup.window.getState();
-        //     return RectUtils.isPointInRect(state.center, state.halfSize, point);
-        // });
-
-        // //TODO: Prioritise by z-index
-        // return groupsAtPoint[0] || null;
-        return null;
-    }
-
     public getTabGroup(id: string): DesktopTabGroup|null {
         return this.tabGroups.find(group => group.ID === id) || null;
     }
@@ -163,7 +132,7 @@ export class DesktopModel {
         }
 
         // In either case, we will add the new window to the service.
-        this.addWindow(await fin.Window.wrap(identity)).then((win: DesktopWindow|null) =>{
+        this.addWindow(await fin.Window.wrap(identity)).then((win: DesktopWindow|null) => {
             if (win !== null) {
                 console.log('Registered window: ' + win.getId());
             }
@@ -245,58 +214,5 @@ export class DesktopModel {
             }
             this.snapGroups.splice(index, 1);
         }
-    }
-
-    private onWindowGroupChanged(event: fin.WindowGroupChangedEvent) {
-        // // Each group operation will raise an event from every window involved. We should filter out to
-        // // only receive the one from the window being moved.
-        // if (event.name !== event.sourceWindowName || event.uuid !== event.sourceWindowAppUuid) {
-        //     return;
-        // }
-
-        // console.log('Revieved window group changed event: ', event);
-        // const sourceWindow = this.getWindow({uuid: event.sourceWindowAppUuid, name: event.sourceWindowName});
-
-        // if (sourceWindow) {
-        //     if (event.reason === 'leave') {
-        //         sourceWindow.setSnapGroup(new DesktopSnapGroup(), undefined, undefined, true);
-        //     } else {
-        //         const targetWindow = this.getWindow({uuid: event.targetWindowAppUuid, name: event.targetWindowName});
-
-        //         // Merge the groups
-        //         if (targetWindow) {
-        //             if (event.reason === 'merge') {
-        //                 // Get array of SnapWindows from the native group window array
-        //                 event.sourceGroup
-        //                     .map(win => {
-        //                         return this.getWindow({uuid: win.appUuid, name: win.windowName});
-        //                     })
-        //                     // Add all windows from source group to the target group.
-        //                     // Windows are synthetic snapped since they are
-        //                     // already native grouped.
-        //                     .forEach((snapWin) => {
-        //                         // Ignore any undefined results (i.e. windows unknown to the service)
-        //                         if (snapWin !== null) {
-        //                             snapWin.setSnapGroup(targetWindow.getSnapGroup(), undefined, undefined, true);
-        //                         }
-        //                     });
-        //             } else {
-        //                 sourceWindow.setSnapGroup(targetWindow.getSnapGroup(), undefined, undefined, true);
-        //             }
-        //         }
-        //     }
-        // }
-    }
-
-    private sendWindowAddedMessage(group: DesktopSnapGroup, window: DesktopWindow) {
-        const identity = window.getIdentity();
-        console.log('Window with identity', identity, 'added to group', group);
-        this.onWindowAdded.emit(group, window);
-    }
-
-    private sendWindowRemovedMessage(group: DesktopSnapGroup, window: DesktopWindow) {
-        const identity = window.getIdentity();
-        console.log('Window with identity', identity, 'removed from group', group);
-        this.onWindowRemoved.emit(group, window);
     }
 }

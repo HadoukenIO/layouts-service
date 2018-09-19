@@ -24,7 +24,7 @@ declare const window: Window&{
 fin.desktop.main(main);
 
 async function registerService() {
-    providerChannel = window.providerChannel = await fin.InterApplicationBus.Channel.create();
+    providerChannel = window.providerChannel = await fin.InterApplicationBus.Channel.create(fin.Window.me.uuid);
     providerChannel.onConnection((app, payload) => {
         if (payload && payload.version && payload.version.length > 0) {
             console.log(`connection from client: ${app.name}, version: ${payload.version}`);

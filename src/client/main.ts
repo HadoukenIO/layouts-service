@@ -27,7 +27,8 @@ const getId = (() => {
     };
 })();
 
-const channelPromise: Promise<ChannelClient> = fin.InterApplicationBus.Channel.connect({...IDENTITY, payload: {version}}).then((channel: ChannelClient) => {
+// @ts-ignore Hadouken types are wrong. `channelName` is a valid property
+const channelPromise: Promise<ChannelClient> = fin.InterApplicationBus.Channel.connect({...IDENTITY, channelName: IDENTITY.uuid,  payload: {version}}).then((channel: ChannelClient) => {
     // Register service listeners
     channel.register('WARN', (payload: any) => console.warn(payload));  // tslint:disable-line:no-any
     channel.register('join-snap-group', () => {

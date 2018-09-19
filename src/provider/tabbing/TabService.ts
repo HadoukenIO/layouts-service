@@ -1,8 +1,8 @@
-import {ApplicationUIConfig, Bounds, TabBlob, TabIdentifier, TabWindowOptions} from '../../client/types';
+import {ApplicationUIConfig, TabBlob, TabIdentifier, TabWindowOptions} from '../../client/types';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
-import {DesktopWindow, WindowIdentity, WindowState} from '../model/DesktopWindow';
+import {DesktopWindow, WindowIdentity} from '../model/DesktopWindow';
 import {Rectangle} from '../snapanddock/utils/RectUtils';
 
 import {APIHandler} from './APIHandler';
@@ -76,7 +76,7 @@ export class TabService {
      * Creates a new tab group with provided tabs.  Will use the UI and position of the first Identity provided for positioning.
      * @param tabIdentities An array of Identities to add to a group.
      */
-    public async createTabGroupWithTabs(tabIdentities: TabIdentifier[]) {
+    public async createTabGroupWithTabs(tabIdentities: TabIdentifier[], activeTab?: TabIdentifier) {
         if (tabIdentities.length < 2) {
             console.error('createTabGroup called fewer than 2 tab identifiers');
             throw new Error('Must provide at least 2 Tab Identifiers');
@@ -108,22 +108,9 @@ export class TabService {
             }
         }
 
-        // const [bounds, state] = await Promise.all([firstTab.window.getWindowBounds(), firstTab.window.getState()]);
-        // tabs.forEach(tab => tab.getWindow().setBounds(bounds.left, bounds.top, bounds.width, bounds.height));
-        const firstTab: DesktopWindow = tabs.shift()!;
-        const state: WindowState = firstTab.getState();
-        const bounds: Partial<WindowState> = {center: state.center, halfSize: state.halfSize};
-        // tabs.forEach((tab: DesktopWindow) => {
-        //     tab.applyProperties(bounds);
-        // });
-        // tabs[tabs.length - 1].getWindow().bringToFront();
-        await group.addTab(firstTab, false);
+        await group.addTabs(tabs, activeTab);
 
-        await Promise.all(tabs.map(tab => group.addTab(tab, false)));
-        // await group.switchTab(tabs[tabs.length - 1].getIdentity());
-        // await group.hideAllTabsMinusActiveTab();
-
-        if (state.state === 'maximized') {
+        if (tabs[0].getState().state === 'maximized') {
             group.maximize();
         }
     }
@@ -212,27 +199,15 @@ export class TabService {
             const snapGroup: DesktopSnapGroup = new DesktopSnapGroup();
 
             // Create new tabgroup
+            const model: DesktopModel = this._model;
             const group: DesktopTabGroup = new DesktopTabGroup(this._model, snapGroup, newTabWindowOptions);
+            const tabs: DesktopWindow[] = blob.tabs.map(tab => model.getWindow(tab)).filter((tab): tab is DesktopWindow => !!tab);
 
-            group.isRestored = true;
-
-            await new Promise((res, rej) => {
-                const win = fin.desktop.Window.wrap(blob.tabs[0].uuid, blob.tabs[0].name);
-                win.resizeTo(blob.groupInfo.dimensions.width!, blob.groupInfo.dimensions.appHeight, 'top-left', res, rej);
-            });
-
-            for (const tab of blob.tabs) {
-                const newTab: DesktopWindow = this._model.getWindow(tab)!;
-
-                if (newTab) {
-                    await group.addTab(newTab, false, true);
-                } else {
-                    console.error('No tab was added');
-                    continue;
-                }
+            if (tabs.length >= 2) {
+                await group.addTabs(tabs, blob.groupInfo.active);
+            } else {
+                console.error("Not enough valid tab identifiers within tab blob to form a tab group", blob.tabs);
             }
-
-            await group.switchTab(this._model.getWindow({uuid: blob.groupInfo.active.uuid, name: blob.groupInfo.active.name})!);
         }
     }
 
@@ -272,8 +247,10 @@ export class TabService {
         if (!isOverTabWindow) {
             // Move tab out of tab group
             if (options.x && options.y) {
-                const halfSize = ejectedTab.getState().halfSize;
-                await tabGroup.removeTab(ejectedTab, {center: {x: options.x + halfSize.x, y: options.y + halfSize.y}, halfSize});
+                const prevHalfSize = ejectedTab.getState().halfSize;
+                const halfSize = {x: prevHalfSize.x, y: prevHalfSize.y + tabGroup.config.height / 2};
+                const center = {x: options.x + halfSize.x, y: options.y + halfSize.y};
+                await tabGroup.removeTab(ejectedTab, {center, halfSize});
             } else {
                 // ejectedTab.applyProperties({hidden: false});
                 await tabGroup.removeTab(ejectedTab);

@@ -299,7 +299,7 @@ export class DesktopWindow extends DesktopEntity {
 
             // Leave previous snap group
             if (this.snapGroup === group) {
-                this.addPendingActions([this.window!.leaveGroup()]);
+                this.addPendingActions(this.window!.leaveGroup());
             }
 
             if (offset || newHalfSize) {

@@ -7,11 +7,11 @@ enum SideEnum {
 
 export type Side = keyof typeof SideEnum;
 
-export function opposite(side:Side):Side {
-    switch(side) {
+export function opposite(side: Side): Side {
+    switch (side) {
         case 'top':
             return 'bottom';
-        case 'bottom': 
+        case 'bottom':
             return 'top';
         case 'left':
             return 'right';
@@ -22,11 +22,11 @@ export function opposite(side:Side):Side {
     }
 }
 
-export function perpendicular(side:Side):Side {
-    switch(side) {
+export function perpendicular(side: Side): Side {
+    switch (side) {
         case 'top':
             return 'left';
-        case 'bottom': 
+        case 'bottom':
             return 'right';
         case 'left':
             return 'top';

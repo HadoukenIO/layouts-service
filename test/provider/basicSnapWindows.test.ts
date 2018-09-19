@@ -1,16 +1,17 @@
-import { test } from 'ava';
-import { dragWindowTo } from './utils/dragWindowTo';
-import { getBounds } from './utils/getBounds';
+import {test} from 'ava';
+import {Window} from 'hadouken-js-adapter';
 import * as robot from 'robotjs';
-import { resizeWindowToSize } from './utils/resizeWindowToSize';
-import { createChildWindow } from './utils/createChildWindow';
-import { Window } from 'hadouken-js-adapter';
-import { setTimeout } from 'timers';
+import {setTimeout} from 'timers';
+
+import {createChildWindow} from './utils/createChildWindow';
+import {dragWindowTo} from './utils/dragWindowTo';
+import {getBounds} from './utils/getBounds';
+import {resizeWindowToSize} from './utils/resizeWindowToSize';
 
 let win1: Window, win2: Window;
 test.beforeEach(async () => {
-    win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200});
-    win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200});
+    win1 = await createChildWindow({autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200});
+    win2 = await createChildWindow({autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200});
 });
 test.afterEach.always(async () => {
     await win1.close();
@@ -87,9 +88,9 @@ test.failing('resizing group horizontally', async t => {
     // recalculate bounds & combined width
     bounds1 = await getBounds(win1);
     bounds2 = await getBounds(win2);
-    let win1Width = bounds1.right - bounds1.left;
-    let win2Width = bounds2.right - bounds2.left;
-    let newCombinedWidth = win1Width + win2Width;
+    const win1Width = bounds1.right - bounds1.left;
+    const win2Width = bounds2.right - bounds2.left;
+    const newCombinedWidth = win1Width + win2Width;
     console.log(newCombinedWidth, combinedWidth);
 
     t.is(combinedWidth, newCombinedWidth);
@@ -113,9 +114,9 @@ test.failing('resizing group vertically', async t => {
     // recalculate bounds & combined width
     bounds1 = await getBounds(win1);
     bounds2 = await getBounds(win2);
-    let win1Height = bounds1.bottom - bounds1.top;
-    let win2Height = bounds2.bottom - bounds2.top;
-    let newCombinedHeight = win1Height + win2Height;
+    const win1Height = bounds1.bottom - bounds1.top;
+    const win2Height = bounds2.bottom - bounds2.top;
+    const newCombinedHeight = win1Height + win2Height;
 
     t.is(combinedHeight, newCombinedHeight);
 });
@@ -131,7 +132,7 @@ test('resize on snap, small to big', async t => {
     bounds1 = await getBounds(win1);
     bounds2 = await getBounds(win2);
 
-    let newHeight = bounds1.bottom - bounds1.top;
+    const newHeight = bounds1.bottom - bounds1.top;
     t.is(newHeight, bounds2.height);
 });
 
@@ -146,6 +147,6 @@ test('resize on snap, big to small', async t => {
     bounds1 = await getBounds(win1);
     bounds2 = await getBounds(win2);
 
-    let newHeight = bounds1.bottom - bounds1.top;
+    const newHeight = bounds1.bottom - bounds1.top;
     t.is(newHeight, bounds2.height);
 });

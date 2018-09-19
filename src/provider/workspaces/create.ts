@@ -3,13 +3,32 @@ import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/application
 import {WindowDetail, WindowInfo} from 'hadouken-js-adapter/out/types/src/api/system/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
-import {CustomData, Layout, LayoutApp, LayoutWindowData, WindowState} from '../../client/types';
+import {CustomData, Layout, LayoutApp, LayoutWindowData, WindowState, TabIdentifier, TabBlob} from '../../client/types';
+import {WindowIdentity} from '../snapanddock/SnapWindow';
 import {promiseMap} from '../snapanddock/utils/async';
 import {getTabSaveInfo} from '../tabbing/SaveAndRestoreAPI';
 
 import {getGroup} from './group';
 import {isClientConnection, sendToClient, wasCreatedFromManifest, wasCreatedProgrammatically} from './utils';
 
+export interface WindowObject {
+    [uuid: string]: {[name: string]: boolean};
+}
+
+export function inWindowObject(win: {uuid: string, name: string}, windowObject: WindowObject) {
+    if (windowObject[win.uuid]) {
+        if (windowObject[win.uuid][win.name]) {
+            return true;
+        }
+    }
+    return false;
+}
+
+const deregisteredWindows: WindowObject = {};
+
+export const deregisterWindow = (identity: WindowIdentity) => {
+    deregisteredWindows[identity.uuid] = Object.assign({}, deregisteredWindows[identity.uuid], {[identity.uuid]: true});
+};
 
 export const getCurrentLayout = async(): Promise<Layout> => {
     // Not yet using monitor info
@@ -20,6 +39,34 @@ export const getCurrentLayout = async(): Promise<Layout> => {
     if (tabGroups === undefined) {
         tabGroups = [];
     }
+
+    
+    // Filter out tabGroups with deregistered parents.
+    const filteredTabGroups: TabBlob[] = [];
+
+    tabGroups.forEach((tabGroup) => {
+        const filteredTabs: TabIdentifier[] = [];
+        let activeWindowRemoved = false;
+
+        tabGroup.tabs.forEach(tabWindow => {
+            const parentIsDeregistered = inWindowObject({uuid: tabWindow.uuid, name: tabWindow.uuid}, deregisteredWindows);
+
+            if (parentIsDeregistered) {
+                if (tabGroup.groupInfo.active.uuid === tabWindow.uuid && tabGroup.groupInfo.active.name === tabWindow.name) {
+                    activeWindowRemoved = true;
+                }
+            } else {
+                filteredTabs.push(tabWindow);
+            }
+        });
+
+        if (filteredTabs.length > 1) {
+            if (activeWindowRemoved) {
+                tabGroup.groupInfo.active = filteredTabs[0];
+            }
+            filteredTabGroups.push({groupInfo: tabGroup.groupInfo, tabs: filteredTabs});
+        }
+    });
 
     tabGroups.forEach((tabGroup) => {
         tabGroup.tabs.forEach(tabWindow => {
@@ -33,11 +80,12 @@ export const getCurrentLayout = async(): Promise<Layout> => {
             const {uuid} = windowInfo;
             const ofApp = await fin.Application.wrap({uuid});
 
-            // If not running or showing, not part of layout
+            // If not running, or is service, or is deregistered, not part of layout
             const isRunning = await ofApp.isRunning();
             const hasMainWindow = !!windowInfo.mainWindow.name;
+            const isDeregistered = inWindowObject({uuid, name: windowInfo.mainWindow.name}, deregisteredWindows);
             const isService = uuid === fin.desktop.Application.getCurrent().uuid;
-            if (!hasMainWindow || !isRunning || isService) {
+            if (!hasMainWindow || !isRunning || isService || isDeregistered) {
                 // Not enough info returned for us to restore this app
                 return null;
             }
@@ -51,6 +99,16 @@ export const getCurrentLayout = async(): Promise<Layout> => {
             const mainWindowLayoutData = await getLayoutWindowData(mainOfWin, tabbedWindows);
 
             const mainWindow: WindowState = {...windowInfo.mainWindow, ...mainWindowLayoutData};
+
+            // Filter for deregistered child windows
+            windowInfo.childWindows = windowInfo.childWindows.filter((win: WindowDetail) => {
+                const isDeregistered = inWindowObject({uuid, name: win.name}, deregisteredWindows);
+                if (isDeregistered) {
+                    return false;
+                }
+                return true;
+            });
+
             const childWindows: WindowState[] = await promiseMap(windowInfo.childWindows, async (win: WindowDetail) => {
                 const {name} = win;
                 const ofWin = await fin.Window.wrap({uuid, name});
@@ -77,7 +135,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
     const validApps: LayoutApp[] = layoutApps.filter((a): a is LayoutApp => !!a);
     console.log('Pre-Layout Save Apps:', apps);
 
-    const layoutObject: Layout = {type: 'layout', apps: validApps, monitorInfo, tabGroups};
+    const layoutObject: Layout = {type: 'layout', apps: validApps, monitorInfo, tabGroups: filteredTabGroups};
     return layoutObject;
 };
 

@@ -1,29 +1,30 @@
-import { test, GenericTestContext, AnyContext, TestContext } from 'ava';
-import { getBounds } from './utils/getBounds';
-import { Window, Fin } from 'hadouken-js-adapter';
-import { getConnection } from './utils/connect';
-import { WindowIdentity } from './utils/undockWindow';
-import { explodeGroup } from './utils/explodeGroup';
-import { isOverlappedWith } from './utils/isOverlappedWith';
-import { isInGroup } from './utils/isInGroup';
-import { WindowInitializer, ArrangementsType } from './utils/WindowInitializer';
-import { delay } from './utils/delay';
-import { assertGrouped } from './utils/assertions';
+import {AnyContext, GenericTestContext, test, TestContext} from 'ava';
+import {Fin, Window} from 'hadouken-js-adapter';
+
+import {assertGrouped} from './utils/assertions';
+import {getConnection} from './utils/connect';
+import {delay} from './utils/delay';
+import {explodeGroup} from './utils/explodeGroup';
+import {getBounds} from './utils/getBounds';
+import {isInGroup} from './utils/isInGroup';
+import {isOverlappedWith} from './utils/isOverlappedWith';
+import {WindowIdentity} from './utils/undockWindow';
+import {ArrangementsType, WindowInitializer} from './utils/WindowInitializer';
 
 let windows: Window[] = new Array<Window>();
 let fin: Fin;
 let windowInitializer: WindowInitializer;
 
 const windowPositions = [
-    { defaultTop: 300, defaultLeft: 300 },
-    { defaultTop: 300, defaultLeft: 600 },
-    { defaultTop: 600, defaultLeft: 300 },
-    { defaultTop: 600, defaultLeft: 600 },
-    { defaultTop: 900, defaultLeft: 300 },
-    { defaultTop: 900, defaultLeft: 600 },
-    { defaultTop: 300, defaultLeft: 900 },
-    { defaultTop: 600, defaultLeft: 900 },
-    { defaultTop: 900, defaultLeft: 900 }
+    {defaultTop: 300, defaultLeft: 300},
+    {defaultTop: 300, defaultLeft: 600},
+    {defaultTop: 600, defaultLeft: 300},
+    {defaultTop: 600, defaultLeft: 600},
+    {defaultTop: 900, defaultLeft: 300},
+    {defaultTop: 900, defaultLeft: 600},
+    {defaultTop: 300, defaultLeft: 900},
+    {defaultTop: 600, defaultLeft: 900},
+    {defaultTop: 900, defaultLeft: 900}
 ];
 const windowOptions = {
     autoShow: true,
@@ -37,14 +38,14 @@ const windowOptions = {
 const arrangements: ArrangementsType = {
     2: {
         'default': [
-            [1, 'top-left', 0, 'bottom-left', { x: 10, y: 2 }],
+            [1, 'top-left', 0, 'bottom-left', {x: 10, y: 2}],
         ],
     },
     3: {
         // 1 2 3
         'line': [
-            [1, 'bottom-left', 0, 'bottom-right', { x: 2, y: -10 }],
-            [2, 'bottom-left', 1, 'bottom-right', { x: 2, y: -10 }],
+            [1, 'bottom-left', 0, 'bottom-right', {x: 2, y: -10}],
+            [2, 'bottom-left', 1, 'bottom-right', {x: 2, y: -10}],
         ]
     }
 };
@@ -56,7 +57,9 @@ test.before(async () => {
 test.afterEach.always(async () => {
     // Closes all windows and resets the array for the next test.
     for (const win of windows) {
-        if (win) { await win.close(); }
+        if (win) {
+            await win.close();
+        }
     }
     windows = new Array<Window>();
 });

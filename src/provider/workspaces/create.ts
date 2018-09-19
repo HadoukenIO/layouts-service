@@ -50,8 +50,9 @@ export const getCurrentLayout = async(): Promise<Layout> => {
 
         tabGroup.tabs.forEach(tabWindow => {
             const parentIsDeregistered = inWindowObject({uuid: tabWindow.uuid, name: tabWindow.uuid}, deregisteredWindows);
+            const windowIsDeregistered = inWindowObject(tabWindow, deregisteredWindows);
 
-            if (parentIsDeregistered) {
+            if (parentIsDeregistered || windowIsDeregistered) {
                 if (tabGroup.groupInfo.active.uuid === tabWindow.uuid && tabGroup.groupInfo.active.name === tabWindow.name) {
                     activeWindowRemoved = true;
                 }

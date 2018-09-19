@@ -28,7 +28,7 @@ const getId = (() => {
 })();
 
 const channelPromise: Promise<ChannelClient> =
-// @ts-ignore Hadouken types are wrong. `channelName` is a valid property
+    // @ts-ignore Hadouken types are wrong. `channelName` is a valid property
     fin.InterApplicationBus.Channel.connect({...IDENTITY, channelName: IDENTITY.uuid, payload: {version}}).then((channel: ChannelClient) => {
         // Register service listeners
         channel.register('WARN', (payload: any) => console.warn(payload));  // tslint:disable-line:no-any

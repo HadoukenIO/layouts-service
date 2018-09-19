@@ -1,4 +1,5 @@
 import {Fin} from 'hadouken-js-adapter';
+import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
 import {getConnection} from '../../provider/utils/connect';
 
@@ -7,14 +8,11 @@ import {getConnection} from '../../provider/utils/connect';
  * Executes javascript code on the service
  * @param script
  */
-// tslint:disable-next-line:no-any
-export async function executeJavascriptOnService(script: string): Promise<any> {
+export async function executeJavascriptOnService<T>(script: string): Promise<T> {
     const fin: Fin = await getConnection();
-    return new Promise((resolve, reject) => {
-        fin.InterApplicationBus.subscribe({uuid: 'layouts-service', name: 'layouts-service'}, 'replytest', (message: string) => {
-            console.log(message);
-            resolve(message);
+    // @ts-ignore Hadouken types are wrong. `channelName` is a valid property
+    return fin.InterApplicationBus.Channel.connect({uuid: 'layouts-service', name: 'layouts-service', channelName: 'layouts-provider-testing'})
+        .then((channelClient: ChannelClient) => {
+            return channelClient.dispatch('execute-javascript', script);
         });
-        fin.InterApplicationBus.send({uuid: 'layouts-service', name: 'layouts-service'}, 'test', script);
-    });
 }

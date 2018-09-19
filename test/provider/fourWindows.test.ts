@@ -1,27 +1,27 @@
-import { test } from 'ava';
-
-import { getConnection } from './utils/connect';
-import { dragWindowTo } from './utils/dragWindowTo';
-import { getBounds, NormalizedBounds } from './utils/getBounds';
-import { Win } from './utils/getWindow';
-import { Application, Fin } from 'hadouken-js-adapter';
+import {test} from 'ava';
+import {Application, Fin} from 'hadouken-js-adapter';
+import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import * as robot from 'robotjs';
-import { resizeWindowToSize } from './utils/resizeWindowToSize';
-import { createChildWindow } from './utils/createChildWindow';
-import { _Window } from 'hadouken-js-adapter/out/types/src/api/window/window';
+
+import {getConnection} from './utils/connect';
+import {createChildWindow} from './utils/createChildWindow';
+import {dragWindowTo} from './utils/dragWindowTo';
+import {getBounds, NormalizedBounds} from './utils/getBounds';
+import {Win} from './utils/getWindow';
+import {resizeWindowToSize} from './utils/resizeWindowToSize';
 
 let win1: _Window, win2: _Window, win3: _Window, win4: _Window;
 
 test.beforeEach(async () => {
-    win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop:   0, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200 });
-    win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 250, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200 });
-    win3 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 500, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200 });
-    win4 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 750, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200 });
+    win1 = await createChildWindow({autoShow: true, saveWindowState: false, defaultTop: 0, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200});
+    win2 = await createChildWindow({autoShow: true, saveWindowState: false, defaultTop: 250, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200});
+    win3 = await createChildWindow({autoShow: true, saveWindowState: false, defaultTop: 500, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200});
+    win4 = await createChildWindow({autoShow: true, saveWindowState: false, defaultTop: 750, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200});
 
-    let win1Bounds = await getBounds(win1);
-    let win2Bounds = await getBounds(win2);
-    let win3Bounds = await getBounds(win3);
-    let win4Bounds = await getBounds(win4);
+    const win1Bounds = await getBounds(win1);
+    const win2Bounds = await getBounds(win2);
+    const win3Bounds = await getBounds(win3);
+    const win4Bounds = await getBounds(win4);
 
     await dragWindowTo(win2, win1Bounds.right + 2, win1Bounds.top);
     await dragWindowTo(win3, win1Bounds.left, win1Bounds.bottom + 2);
@@ -97,7 +97,7 @@ test('outer vertical resize', async t => {
     let win2Bounds = await getBounds(win2);
     let win3Bounds = await getBounds(win3);
     let win4Bounds = await getBounds(win4);
-    
+
     const diff = 20;
 
     const win1ExpectedHeight = win1Bounds.bottom - win1Bounds.top;
@@ -119,7 +119,7 @@ test('outer vertical resize', async t => {
     win3Bounds = await getBounds(win3);
     win4Bounds = await getBounds(win4);
 
-    let heights = [win1Bounds, win2Bounds, win3Bounds, win4Bounds].map((bounds) => bounds.bottom - bounds.top);
+    const heights = [win1Bounds, win2Bounds, win3Bounds, win4Bounds].map((bounds) => bounds.bottom - bounds.top);
     t.is(heights[0], win1ExpectedHeight);
     t.is(heights[1], win2ExpectedHeight);
     t.is(heights[2] > win3OriginalHeight, true);
@@ -163,7 +163,7 @@ test('outer horizontal resize', async t => {
     win3Bounds = await getBounds(win3);
     win4Bounds = await getBounds(win4);
 
-    let widths = [win1Bounds, win2Bounds, win3Bounds, win4Bounds].map((bounds) => bounds.right - bounds.left);
+    const widths = [win1Bounds, win2Bounds, win3Bounds, win4Bounds].map((bounds) => bounds.right - bounds.left);
     t.is(widths[0], win1ExpectedWidth);
     t.is(widths[1] > win2OriginalWidth, true);
     t.is(widths[2], win3ExpectedWidth);
@@ -196,8 +196,8 @@ test.failing('inner diagonal resize', async t => {
     win3Bounds = await getBounds(win3);
     win4Bounds = await getBounds(win4);
 
-    let widths = [win1Bounds, win2Bounds, win3Bounds, win4Bounds].map((bounds) => width(bounds));
-    let heights = [win1Bounds, win2Bounds, win3Bounds, win4Bounds].map((bounds) => height(bounds));
+    const widths = [win1Bounds, win2Bounds, win3Bounds, win4Bounds].map((bounds) => width(bounds));
+    const heights = [win1Bounds, win2Bounds, win3Bounds, win4Bounds].map((bounds) => height(bounds));
     widths.forEach((w, i) => {
         // height off by 1 in windows 7, needs to be tested in Win 10
         t.is(Math.abs(w - expectedWidths[i]) < 2, true);
@@ -215,8 +215,8 @@ test('group moving', async t => {
     // drag the group with mouse
 
     const diff = 100;
-    let expectedLeftCoords = [win1Bounds, win2Bounds, win3Bounds, win4Bounds].map(bounds => bounds.left + diff);
-    let expectedTopCoords = [win1Bounds, win2Bounds, win3Bounds, win4Bounds].map(bounds => bounds.top + diff);
+    const expectedLeftCoords = [win1Bounds, win2Bounds, win3Bounds, win4Bounds].map(bounds => bounds.left + diff);
+    const expectedTopCoords = [win1Bounds, win2Bounds, win3Bounds, win4Bounds].map(bounds => bounds.top + diff);
 
     await dragWindowTo(win1, win1Bounds.left + diff, win1Bounds.top + diff);
     await new Promise(res => setTimeout(res, 2000));
@@ -226,8 +226,8 @@ test('group moving', async t => {
     win3Bounds = await getBounds(win3);
     win4Bounds = await getBounds(win4);
 
-    let actualLeftCoords = [win1Bounds, win2Bounds, win3Bounds, win4Bounds].map(bounds => bounds.left);
-    let actualTopCoords = [win1Bounds, win2Bounds, win3Bounds, win4Bounds].map(bounds => bounds.top);
+    const actualLeftCoords = [win1Bounds, win2Bounds, win3Bounds, win4Bounds].map(bounds => bounds.left);
+    const actualTopCoords = [win1Bounds, win2Bounds, win3Bounds, win4Bounds].map(bounds => bounds.top);
 
     actualLeftCoords.forEach((lCoord, i) => {
         // offset of 1px on Windows 7, needs to be tested on Win 10

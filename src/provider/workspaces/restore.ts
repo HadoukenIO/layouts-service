@@ -11,7 +11,7 @@ import {TabService} from '../tabbing/TabService';
 import {createTabGroupsFromTabBlob} from '../tabbing/TabUtilities';
 
 import {regroupLayout} from './group';
-import {createAppPlaceholders, createNormalPlaceholder, createTabPlaceholder, getClientConnection, isClientConnection, positionWindow, wasCreatedProgrammatically} from './utils';
+import {childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, getClientConnection, inWindowObject, positionWindow, TabbedPlaceholders, wasCreatedProgrammatically, WindowObject} from './utils';
 
 const appsToRestore = new Map();
 
@@ -61,79 +61,24 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
 
     const layout = payload;
     const startupApps: Promise<LayoutApp>[] = [];
-    const tabbedWindows: {[uuid: string]: {[name: string]: boolean}} = {};
-    const tabbedPlaceholdersToWindows: {[uuid: string]: {[name: string]: WindowIdentity}} = {};
-
-    // Helper function to determine if a window is tabbed.
-    function inTabbedWindowsObject(win: {uuid: string, name: string}) {
-        if (tabbedWindows[win.uuid]) {
-            if (tabbedWindows[win.uuid][win.name]) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // Helper function to determine if a window has a corresponding placeholder.
-    function inTabbedPlaceholdersToWindowsObject(win: {uuid: string, name: string}) {
-        if (tabbedPlaceholdersToWindows[win.uuid]) {
-            if (tabbedPlaceholdersToWindows[win.uuid][win.name]) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // Creates a tabbing placeholder and records the information for its corresponding window.
-    async function createTabbedPlaceholderAndRecord(win: WindowState) {
-        const tabPlaceholder = await createTabPlaceholder(win);
-        tabbedPlaceholdersToWindows[win.uuid] =
-            Object.assign({}, tabbedPlaceholdersToWindows[win.uuid], {[win.name]: {name: tabPlaceholder.name, uuid: tabPlaceholder.uuid}});
-    }
-
-    // Helper function to determine what type of placeholder window to open.
-    async function childWindowPlaceholderCheck(app: LayoutApp) {
-        if (app.confirmed) {
-            for (const win of app.childWindows) {
-                if (inTabbedWindowsObject(win)) {
-                    await createTabbedPlaceholderAndRecord(win);
-                } else {
-                    await createNormalPlaceholder(win);
-                }
-            }
-        } else {
-            return;
-        }
-    }
-
-    // Helper function to determine which placeholder windows to create for a running application's child windows.
-    async function childWindowPlaceholderCheckRunningApp(app: LayoutApp) {
-        if (app.confirmed) {
-            const mainApp = await fin.Application.wrap(app.mainWindow);
-            const openChildWindows = await mainApp.getChildWindows();
-            for (const win of app.childWindows) {
-                // Here we're checking if the incoming child window is already open or not.
-                const windowIsOpen = openChildWindows.some((openWin: _Window) => openWin.identity.name === win.name);
-
-                if (!windowIsOpen) {
-                    if (inTabbedWindowsObject(win)) {
-                        await createTabbedPlaceholderAndRecord(win);
-                    } else {
-                        await createNormalPlaceholder(win);
-                    }
-                } else {
-                    await removeTab(win);
-                }
-            }
-        } else {
-            return;
-        }
-    }
+    const tabbedWindows: WindowObject = {};
+    const openWindows: WindowObject = {};
+    const tabbedPlaceholdersToWindows: TabbedPlaceholders = {};
 
     // Create tabbedWindows list so we don't have to iterate over all of the tabGroup/TabBlob arrays.
-    payload.tabGroups.forEach((tabGroup) => {
+    layout.tabGroups.forEach((tabGroup) => {
         tabGroup.tabs.forEach(tabWindow => {
             tabbedWindows[tabWindow.uuid] = Object.assign({}, tabbedWindows[tabWindow.uuid], {[tabWindow.name]: true});
+        });
+    });
+
+    // Create openWindows list so we don't have to iterate over all of the open windows.
+    const allApps = await fin.System.getAllWindows();
+
+    allApps.forEach((appGroup) => {
+        openWindows[appGroup.uuid] = Object.assign({}, openWindows[appGroup.uuid], {[appGroup.mainWindow.name]: true});
+        appGroup.childWindows.forEach((childWindow) => {
+            openWindows[appGroup.uuid] = Object.assign({}, openWindows[appGroup.uuid], {[childWindow.name]: true});
         });
     });
 
@@ -141,7 +86,7 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
     // Check if we need to make tabbed vs. normal placeholders for both main windows and child windows.
     // Push those placeholder windows into tabbedPlaceholdersToWindows object
     // If an app is running, we need to check which of its child windows are open.
-    for (const app of payload.apps) {
+    async function createAllPlaceholders(app: LayoutApp) {
         // We use the v1 version of Application.wrap(...) due to an event-loop bug when
         // calling the v2 version inside a channel callback. Due for fix in v35
         const ofApp = fin.desktop.Application.wrap(app.uuid);
@@ -151,35 +96,38 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
             await removeTab(app.mainWindow);
 
             // Need to check its child windows here, if confirmed.
-            await childWindowPlaceholderCheckRunningApp(app);
+            await childWindowPlaceholderCheckRunningApp(app, tabbedWindows, tabbedPlaceholdersToWindows, openWindows);
         } else {
-            if (inTabbedWindowsObject(app.mainWindow)) {
-                await createTabbedPlaceholderAndRecord(app.mainWindow);
-                await childWindowPlaceholderCheck(app);
+            if (inWindowObject(app.mainWindow, tabbedWindows)) {
+                await createTabbedPlaceholderAndRecord(app.mainWindow, tabbedPlaceholdersToWindows);
+                await childWindowPlaceholderCheck(app, tabbedWindows, tabbedPlaceholdersToWindows);
             } else {
                 await createNormalPlaceholder(app.mainWindow);
-                await childWindowPlaceholderCheck(app);
+                await childWindowPlaceholderCheck(app, tabbedWindows, tabbedPlaceholdersToWindows);
             }
         }
     }
 
+    // Kick off placeholder creation for all apps.
+    await promiseMap(layout.apps, createAllPlaceholders);
+
     // Edit the tabGroups object with the placeholder window names/uuids, so we can create a Tab Group with a combination of open applications and placeholder
     // windows.
-    payload.tabGroups.forEach((tabBlob) => {
+    layout.tabGroups.forEach((tabBlob) => {
         const activeWindow = tabBlob.groupInfo.active;
         // Active Window could be a placeholder window.
-        if (inTabbedPlaceholdersToWindowsObject(activeWindow)) {
+        if (inWindowObject(activeWindow, tabbedPlaceholdersToWindows)) {
             tabBlob.groupInfo.active = tabbedPlaceholdersToWindows[activeWindow.uuid][activeWindow.name];
         }
 
         tabBlob.tabs.forEach((tabWindow, windowIdx) => {
-            if (inTabbedPlaceholdersToWindowsObject(tabWindow)) {
+            if (inWindowObject(tabWindow, tabbedPlaceholdersToWindows)) {
                 tabBlob.tabs[windowIdx] = tabbedPlaceholdersToWindows[tabWindow.uuid][tabWindow.name];
             }
         });
     });
 
-    await createTabGroupsFromTabBlob(payload.tabGroups);
+    await createTabGroupsFromTabBlob(layout.tabGroups);
 
     const apps = await promiseMap(layout.apps, async(app: LayoutApp): Promise<LayoutApp> => {
         // Get rid of childWindows for default response (anything else?)
@@ -206,7 +154,7 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
                     return defaultResponse;
                 }
             } else {
-                let ofApp: undefined|Application;
+                let ofAppNotRunning: undefined|Application;
                 console.log('App is not running:', app);
 
                 // App is not running - setup communication to fire once app is started
@@ -217,42 +165,27 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
                 }
                 // Start App
                 if (app.manifestUrl) {
+                    // If app created by manifest
                     const {manifestUrl} = app;
-                    // Started from manifest
                     console.log('App has manifestUrl:', app);
-                    // v2 api broken - below is messy but should be replaced with v2 (can just await create and run below w/ v2)
-
-                    // ofApp = await fin.Application.createFromManifest(manifestUrl);
-                    // SHOULD PROBABLY TRY TO CREATE AND RUN FIRST, THEN TRY TO RUN IF GET ERROR
-                    const v1App = fin.desktop.Application.wrap(app.uuid);
-                    const runV1 = (v1App: fin.OpenFinApplication, errCb?: Function) => {
-                        const defaultErrCb = () => console.error('App Run error');
-                        const errorCallback = errCb || defaultErrCb;
-                        v1App.run(() => {
-                            console.log('Running App created from manifest:', app);
-                            positionWindow(app.mainWindow);
-                        }, () => errorCallback(app));
-                    };
-
-                    const notInCoreState = (app: LayoutApp) => {
-                        fin.desktop.Application.createFromManifest(app.manifestUrl!, (v1App: fin.OpenFinApplication) => {
-                            console.log('Created from manifest:', v1App);
-                            runV1(v1App);
-                        }, (e: Error) => console.error('Create from manifest error:', e));
-                    };
-
-                    runV1(v1App, notInCoreState);
+                    ofAppNotRunning = await fin.Application.createFromManifest(manifestUrl);
                 } else {
-                    // Application created programmatically
+                    // If application created programmatically
                     if (wasCreatedProgrammatically(app)) {
                         console.warn('App created programmatically, app may not restart again:', app);
-                        ofApp = await fin.Application.create(app.initialOptions);
+                        ofAppNotRunning = await fin.Application.create(app.initialOptions);
                     } else {
                         console.error('Unable to restart programmatically launched app:', app);
                     }
                 }
-                if (ofApp) {
-                    await ofApp.run().catch(console.log);
+                if (ofAppNotRunning) {
+                    const ofAppNRWindow = await ofAppNotRunning.getWindow();
+                    const updateOptionsAndShow = async () => {
+                        await ofAppNRWindow.removeListener('show-requested', updateOptionsAndShow);
+                        await ofAppNRWindow.showAt(app.mainWindow.left, app.mainWindow.top);
+                    };
+                    await ofAppNRWindow.addListener('show-requested', updateOptionsAndShow);
+                    await ofAppNotRunning.run().catch(console.log);
                     await positionWindow(app.mainWindow);
                 }
                 // SHOULD WE RETURN DEFAULT RESPONSE HERE?!?

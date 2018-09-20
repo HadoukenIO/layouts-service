@@ -1,12 +1,13 @@
-import { test } from 'ava';
-import { dragWindowTo } from './utils/dragWindowTo';
-import { getBounds } from './utils/getBounds';
+import {test} from 'ava';
+import {Fin, Window} from 'hadouken-js-adapter';
 import * as robot from 'robotjs';
-import { createChildWindow } from './utils/createChildWindow';
-import { Window, Fin } from 'hadouken-js-adapter';
-import { getConnection } from './utils/connect';
-import { getWindow } from './utils/getWindow';
-import { dragWindowAndHover } from './utils/dragWindowAndHover';
+
+import {getConnection} from './utils/connect';
+import {createChildWindow} from './utils/createChildWindow';
+import {dragWindowAndHover} from './utils/dragWindowAndHover';
+import {dragWindowTo} from './utils/dragWindowTo';
+import {getBounds} from './utils/getBounds';
+import {getWindow} from './utils/getWindow';
 
 let win1: Window, win2: Window;
 let fin: Fin;
@@ -20,9 +21,26 @@ test.afterEach.always(async () => {
 });
 
 test('normal deregister, snap with registered', async t => {
-
-    win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window.html', frame: false });
-    win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window-deregistered.html', frame: false });
+    win1 = await createChildWindow({
+        autoShow: true,
+        saveWindowState: false,
+        defaultTop: 100,
+        defaultLeft: 100,
+        defaultHeight: 200,
+        defaultWidth: 200,
+        url: 'http://localhost:1337/demo/frameless-window.html',
+        frame: false
+    });
+    win2 = await createChildWindow({
+        autoShow: true,
+        saveWindowState: false,
+        defaultTop: 300,
+        defaultLeft: 400,
+        defaultHeight: 200,
+        defaultWidth: 200,
+        url: 'http://localhost:1337/demo/frameless-window-deregistered.html',
+        frame: false
+    });
 
     const win2Bounds = await getBounds(win2);
 
@@ -38,9 +56,26 @@ test('normal deregister, snap with registered', async t => {
 });
 
 test('normal deregister, snap with degistered', async t => {
-
-    win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window.html', frame: false });
-    win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window-deregistered.html', frame: false });
+    win1 = await createChildWindow({
+        autoShow: true,
+        saveWindowState: false,
+        defaultTop: 100,
+        defaultLeft: 100,
+        defaultHeight: 200,
+        defaultWidth: 200,
+        url: 'http://localhost:1337/demo/frameless-window.html',
+        frame: false
+    });
+    win2 = await createChildWindow({
+        autoShow: true,
+        saveWindowState: false,
+        defaultTop: 300,
+        defaultLeft: 400,
+        defaultHeight: 200,
+        defaultWidth: 200,
+        url: 'http://localhost:1337/demo/frameless-window-deregistered.html',
+        frame: false
+    });
 
     const win1bounds = await getBounds(win1);
 
@@ -55,9 +90,26 @@ test('normal deregister, snap with degistered', async t => {
 });
 
 test('delayed deregister, snap with registered', async t => {
-
-    win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window.html', frame: false });
-    win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window-delayed-deregistered.html', frame: false });
+    win1 = await createChildWindow({
+        autoShow: true,
+        saveWindowState: false,
+        defaultTop: 100,
+        defaultLeft: 100,
+        defaultHeight: 200,
+        defaultWidth: 200,
+        url: 'http://localhost:1337/demo/frameless-window.html',
+        frame: false
+    });
+    win2 = await createChildWindow({
+        autoShow: true,
+        saveWindowState: false,
+        defaultTop: 300,
+        defaultLeft: 400,
+        defaultHeight: 200,
+        defaultWidth: 200,
+        url: 'http://localhost:1337/demo/frameless-window-delayed-deregistered.html',
+        frame: false
+    });
 
     const win2Bounds = await getBounds(win2);
 
@@ -72,9 +124,26 @@ test('delayed deregister, snap with registered', async t => {
 });
 
 test('delayed deregister, snap with deregistered', async t => {
-
-    win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window.html', frame: false });
-    win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window-delayed-deregistered.html', frame: false });
+    win1 = await createChildWindow({
+        autoShow: true,
+        saveWindowState: false,
+        defaultTop: 100,
+        defaultLeft: 100,
+        defaultHeight: 200,
+        defaultWidth: 200,
+        url: 'http://localhost:1337/demo/frameless-window.html',
+        frame: false
+    });
+    win2 = await createChildWindow({
+        autoShow: true,
+        saveWindowState: false,
+        defaultTop: 300,
+        defaultLeft: 400,
+        defaultHeight: 200,
+        defaultWidth: 200,
+        url: 'http://localhost:1337/demo/frameless-window-delayed-deregistered.html',
+        frame: false
+    });
 
     const win1bounds = await getBounds(win1);
 
@@ -89,9 +158,26 @@ test('delayed deregister, snap with deregistered', async t => {
 });
 
 test('deregister snapped window', async t => {
-
-    win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window.html', frame: false });
-    win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window-triggered-deregistered.html', frame: false });
+    win1 = await createChildWindow({
+        autoShow: true,
+        saveWindowState: false,
+        defaultTop: 100,
+        defaultLeft: 100,
+        defaultHeight: 200,
+        defaultWidth: 200,
+        url: 'http://localhost:1337/demo/frameless-window.html',
+        frame: false
+    });
+    win2 = await createChildWindow({
+        autoShow: true,
+        saveWindowState: false,
+        defaultTop: 300,
+        defaultLeft: 400,
+        defaultHeight: 200,
+        defaultWidth: 200,
+        url: 'http://localhost:1337/demo/frameless-window-triggered-deregistered.html',
+        frame: false
+    });
 
     const win1bounds = await getBounds(win1);
 
@@ -119,16 +205,33 @@ test('deregister snapped window', async t => {
     // Windows should no longer be snapped.
     t.not(endbounds2.left, endbounds1.left);
     t.not(endbounds2.top, endbounds1.bottom);
-
 });
 
 test('no preview when deregistered - dragging registered', async t => {
     // Wrap the pre-spawned preview window
-    const previewWin = await getWindow({ name: 'previewWindow-', uuid: 'layouts-service' });
+    const previewWin = await getWindow({name: 'previewWindow-', uuid: 'layouts-service'});
 
     // Spawn two child windows (one of them deregistered)
-    win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window.html', frame: false });
-    win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window-deregistered.html', frame: false });
+    win1 = await createChildWindow({
+        autoShow: true,
+        saveWindowState: false,
+        defaultTop: 100,
+        defaultLeft: 100,
+        defaultHeight: 200,
+        defaultWidth: 200,
+        url: 'http://localhost:1337/demo/frameless-window.html',
+        frame: false
+    });
+    win2 = await createChildWindow({
+        autoShow: true,
+        saveWindowState: false,
+        defaultTop: 300,
+        defaultLeft: 400,
+        defaultHeight: 200,
+        defaultWidth: 200,
+        url: 'http://localhost:1337/demo/frameless-window-deregistered.html',
+        frame: false
+    });
 
     // Drag and hold the reigstered window next to the deregistered window
     const win1Bounds = await getBounds(win1);
@@ -139,16 +242,33 @@ test('no preview when deregistered - dragging registered', async t => {
 
     // Drop the window
     robot.mouseToggle('up');
-
 });
 
 test('no preview when deregistered - dragging deregistered', async t => {
     // Wrap the pre-spawned preview window
-    const previewWin = await getWindow({ name: 'previewWindow-', uuid: 'layouts-service' });
+    const previewWin = await getWindow({name: 'previewWindow-', uuid: 'layouts-service'});
 
     // Spawn two child windows (one of them deregistered)
-    win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window-deregistered.html', frame: false });
-    win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window.html', frame: false });
+    win1 = await createChildWindow({
+        autoShow: true,
+        saveWindowState: false,
+        defaultTop: 100,
+        defaultLeft: 100,
+        defaultHeight: 200,
+        defaultWidth: 200,
+        url: 'http://localhost:1337/demo/frameless-window-deregistered.html',
+        frame: false
+    });
+    win2 = await createChildWindow({
+        autoShow: true,
+        saveWindowState: false,
+        defaultTop: 300,
+        defaultLeft: 400,
+        defaultHeight: 200,
+        defaultWidth: 200,
+        url: 'http://localhost:1337/demo/frameless-window.html',
+        frame: false
+    });
 
     // Drag and hold the dereigstered window next to the registered window
     const win1Bounds = await getBounds(win1);
@@ -159,5 +279,4 @@ test('no preview when deregistered - dragging deregistered', async t => {
 
     // Drop the window
     robot.mouseToggle('up');
-
 });

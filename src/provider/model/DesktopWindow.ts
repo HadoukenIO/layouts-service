@@ -9,7 +9,7 @@ import {Rectangle} from '../snapanddock/utils/RectUtils';
 
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
-import {DesktopSnapGroup} from './DesktopSnapGroup';
+import {DesktopSnapGroup, Snappable} from './DesktopSnapGroup';
 import {DesktopTabGroup} from './DesktopTabGroup';
 
 export interface WindowState extends Rectangle {
@@ -78,7 +78,7 @@ enum ActionOrigin {
     SERVICE_TEMPORARY
 }
 
-export class DesktopWindow extends DesktopEntity {
+export class DesktopWindow extends DesktopEntity implements Snappable {
     public static readonly onCreated: Signal1<DesktopWindow> = new Signal1();
     public static readonly onDestroyed: Signal1<DesktopWindow> = new Signal1();
 
@@ -721,11 +721,17 @@ export class DesktopWindow extends DesktopEntity {
 
     private handleMinimized(): void {
         this.updateState({state: 'minimized'}, ActionOrigin.APPLICATION);
+        this.snapGroup.windows.forEach((window: Snappable) => {
+            (window as DesktopWindow).updateState({state: 'minimized'}, ActionOrigin.SERVICE);
+        });
         this.onModified.emit(this);
     }
 
     private handleRestored(): void {
         this.updateState({state: 'normal'}, ActionOrigin.APPLICATION);
+        this.snapGroup.windows.forEach((window: Snappable) => {
+            (window as DesktopWindow).updateState({state: 'normal'}, ActionOrigin.SERVICE);
+        });
         // this.onModified.emit(this);
     }
 

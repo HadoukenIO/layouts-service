@@ -206,7 +206,7 @@ export class TabService {
             if (tabs.length >= 2) {
                 await group.addTabs(tabs, blob.groupInfo.active);
             } else {
-                console.error("Not enough valid tab identifiers within tab blob to form a tab group", blob.tabs);
+                console.error('Not enough valid tab identifiers within tab blob to form a tab group', blob.tabs);
             }
         }
     }

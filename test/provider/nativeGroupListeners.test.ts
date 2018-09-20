@@ -1,19 +1,21 @@
-import { test, TestContext } from 'ava';
-import { Fin, Window } from 'hadouken-js-adapter';
-import { getConnection } from './utils/connect';
-import { createChildWindow } from './utils/createChildWindow';
-import { delay } from './utils/delay';
-import { dragSideToSide } from './utils/dragWindowTo';
-import { getBounds, NormalizedBounds } from './utils/getBounds';
-import { undockWindow, WindowIdentity } from './utils/undockWindow';
+import {test, TestContext} from 'ava';
+import {Fin, Window} from 'hadouken-js-adapter';
+import {getConnection} from './utils/connect';
+import {createChildWindow} from './utils/createChildWindow';
+import {delay} from './utils/delay';
+import {dragSideToSide} from './utils/dragWindowTo';
+import {getBounds, NormalizedBounds} from './utils/getBounds';
+import {undockWindow, WindowIdentity} from './utils/undockWindow';
 
-// Valid ways of grouping two windows (used to parameterise large number of similar tests)
+// Valid ways of grouping two windows (used to parameterise large number of
+// similar tests)
 const groupingFunctions = {
     'snap': snapWindows,
     'native': groupWindows,
 };
 
-// Valid ways of ungrouping two windows (used to parameterise large number of similar tests)
+// Valid ways of ungrouping two windows (used to parameterise large number of
+// similar tests)
 const ungroupingFunctions = {
     'unsnap': unsnapWindows,
     'native': ungroupWindows,
@@ -33,14 +35,36 @@ test.before(async () => {
 });
 test.beforeEach(async () => {
     // Spawn two windows - win1 untabbed, win2 tabbed
-    win1 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window.html', frame: false });
-    win2 = await createChildWindow({ autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window.html', frame: false });
+    win1 = await createChildWindow({
+        autoShow: true,
+        saveWindowState: false,
+        defaultTop: 100,
+        defaultLeft: 100,
+        defaultHeight: 200,
+        defaultWidth: 200,
+        url: 'http://localhost:1337/demo/frameless-window.html',
+        frame: false
+    });
+    win2 = await createChildWindow({
+        autoShow: true,
+        saveWindowState: false,
+        defaultTop: 300,
+        defaultLeft: 400,
+        defaultHeight: 200,
+        defaultWidth: 200,
+        url: 'http://localhost:1337/demo/frameless-window.html',
+        frame: false
+    });
     windows = [win1, win2];
     await delay(1000);
 });
 test.afterEach.always(async () => {
-    if (win1 && win1.identity) { await win1.close(); }
-    if (win2 && win2.identity) { await win2.close(); }
+    if (win1 && win1.identity) {
+        await win1.close();
+    }
+    if (win2 && win2.identity) {
+        await win2.close();
+    }
     win1 = win2 = {} as Window;
     windows = new Array<Window>();
 });
@@ -73,7 +97,7 @@ async function unsnapWindows(win1: Window, win2: Window, shouldMove: boolean, t:
         // Assert moved
         await assertMoved(boundsBefore, boundsAfter, t);
     } else {
-        // Assert window did not move 
+        // Assert window did not move
         await assertNotMoved(boundsBefore, boundsAfter, t);
     }
 
@@ -104,7 +128,8 @@ async function assertGrouped(win1: Window, win2: Window, t: TestContext) {
     }
 
     // Both windows are in the same SnapGroup
-    // TODO (Pending test framework improvements to allow pulling data from the service)
+    // TODO (Pending test framework improvements to allow pulling data from the
+    // service)
 }
 
 async function assertNotGrouped(win: Window, t: TestContext) {
@@ -113,7 +138,8 @@ async function assertNotGrouped(win: Window, t: TestContext) {
     t.is(group.length, 0);
 
     // Window is alone in it's SnapGroup
-    // TODO (Pending test framework improvements to allow pulling data from the service)
+    // TODO (Pending test framework improvements to allow pulling data from the
+    // service)
 }
 
 function assertMoved(bounds1: NormalizedBounds, bounds2: NormalizedBounds, t: TestContext) {
@@ -144,21 +170,25 @@ for (const firstGroup of Object.keys(groupingFunctions) as GroupingType[]) {
     }
 }
 
-function runNativeGroupListenerTest(groupType: GroupingType, firstUngroupType: UngroupingType, secondUngroupType: UngroupingType, ungroupedWindowIndex: 0 | 1) {
-    test(`Native window group works the same as snapService grouping (${[groupType, firstUngroupType, secondUngroupType, ungroupedWindowIndex].join(', ')})`, async t => {
-        // Group the windows
-        await groupingFunctions[groupType](windows[0], windows[1], t);
+function runNativeGroupListenerTest(groupType: GroupingType, firstUngroupType: UngroupingType, secondUngroupType: UngroupingType, ungroupedWindowIndex: 0|1) {
+    test(
+        `Native window group works the same as snapService grouping (${[groupType, firstUngroupType, secondUngroupType, ungroupedWindowIndex].join(', ')})`,
+        async t => {
+            // Group the windows
+            await groupingFunctions[groupType](windows[0], windows[1], t);
 
-        // Ungroup the windows with the first method. Should only move on unsnap.
-        await ungroupingFunctions[firstUngroupType](windows[0], windows[0], firstUngroupType === 'unsnap', t);
+            // Ungroup the windows with the first method. Should only move on
+            // unsnap.
+            await ungroupingFunctions[firstUngroupType](windows[0], windows[0], firstUngroupType === 'unsnap', t);
 
-        // Ungroup the windows with the second method. Should never move.
-        await ungroupingFunctions[secondUngroupType](windows[0], windows[ungroupedWindowIndex], false, t);
-    });
+            // Ungroup the windows with the second method. Should never move.
+            await ungroupingFunctions[secondUngroupType](windows[0], windows[ungroupedWindowIndex], false, t);
+        });
 }
 
 test.failing('Native window group works the same as snapService grouping  (native merge, undock, native, 1)', async t => {
-    // FAILING - Runtime behaviour: native group merge does not raise an event when grouping two ungrouped windows
+    // FAILING - Runtime behaviour: native group merge does not raise an event
+    // when grouping two ungrouped windows
 
     // Native group the windows
     win1.mergeGroups(win2);
@@ -183,7 +213,6 @@ test.failing('Native window group works the same as snapService grouping  (nativ
     await win1.leaveGroup();
     boundsAfter = await getBounds(win1);
 
-    // Assert window did not move 
+    // Assert window did not move
     await assertNotMoved(boundsBefore, boundsAfter, t);
-
 });

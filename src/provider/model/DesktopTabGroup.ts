@@ -227,11 +227,11 @@ export class DesktopTabGroup extends DesktopEntity {
         await Promise.all(tabs.map(tab => this.addTabInternal(tab, false)));
 
         if (activeTab !== firstTab) {
-            //Set the desired tab as active
+            // Set the desired tab as active
             await this.switchTab(activeTab);
         } else {
-            //Need to re-send tab-activated event to ensure tab is active within tabstrip
-            //TODO: See if this can be avoided
+            // Need to re-send tab-activated event to ensure tab is active within tabstrip
+            // TODO: See if this can be avoided
             const payload: TabGroupEventPayload = {tabGroupId: this.ID, tabID: activeTab.getIdentity()};
             await sendToClient({uuid: TabServiceID.UUID, name: this.ID}, 'tab-activated', payload);
         }
@@ -377,7 +377,7 @@ export class DesktopTabGroup extends DesktopEntity {
         let remove: Promise<void>|null = null;
         const existingGroup: DesktopTabGroup|null = tab.getTabGroup();
         if (existingGroup === this) {
-            //Nothing to do
+            // Nothing to do
             return;
         } else if (existingGroup) {
             console.info('Existing tab attempting to be added. Removing tab from previous group...');

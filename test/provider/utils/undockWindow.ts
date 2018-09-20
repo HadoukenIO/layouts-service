@@ -1,5 +1,6 @@
+import {Fin} from 'hadouken-js-adapter';
+
 import {getConnection} from './connect';
-import { Fin } from 'hadouken-js-adapter';
 
 // TODO - Change client/service file structure to allow importing these values
 export interface WindowIdentity {
@@ -8,7 +9,7 @@ export interface WindowIdentity {
 }
 
 const getClientConnection = async () => {
-    const fin:Fin = await getConnection();
+    const fin: Fin = await getConnection();
     return fin.InterApplicationBus.Channel.connect({uuid: 'layouts-service'});
 };
 

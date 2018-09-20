@@ -28,7 +28,8 @@ export const getClientConnection = (identity: Identity) => {
 
 // tslint:disable-next-line:no-any
 export const sendToClient = async (identity: Identity, action: string, payload: any) => {
-    const conn = await getClientConnection(identity);
+    const conn = getClientConnection(identity);
+
     if (conn) {
         return providerChannel.dispatch(conn, action, payload);
     }

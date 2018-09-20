@@ -3,7 +3,7 @@ import {CalculatedProperty} from '../snapanddock/utils/CalculatedProperty';
 import {Point} from '../snapanddock/utils/PointUtils';
 
 import {DesktopTabGroup} from './DesktopTabGroup';
-import {DesktopWindow, eTransformType, Mask, WindowIdentity, WindowState} from './DesktopWindow';
+import {DesktopWindow, eTransformType, Mask, WindowIdentity, WindowMessages, WindowState} from './DesktopWindow';
 
 /**
  * Key-value store for saving the state of each window before it was added to the tab group.
@@ -171,7 +171,7 @@ export class DesktopSnapGroup {
             window.onModified.add(this.onWindowModified, this);
             window.onTransform.add(this.onWindowTransform, this);
             window.onCommit.add(this.onWindowCommit, this);
-            window.onClose.add(this.removeWindow, this);
+            window.onTeardown.add(this.onWindowTeardown, this);
 
             // Setup hierarchy
             this._windows.push(window);
@@ -184,6 +184,13 @@ export class DesktopSnapGroup {
             this._origin.markStale();
             this._halfSize.markStale();
 
+            // Inform window of addition
+            // Note that client API only considers windows to belong to a group if it contains two or more windows
+            if (this._windows.length >= 2) {
+                window.sendMessage(WindowMessages.JOIN_SNAP_GROUP, {});
+            }
+
+            // Inform service of addition
             this.onWindowAdded.emit(this, window);
         }
     }
@@ -196,7 +203,6 @@ export class DesktopSnapGroup {
             window.onModified.remove(this.onWindowModified, this);
             window.onTransform.remove(this.onWindowTransform, this);
             window.onCommit.remove(this.onWindowCommit, this);
-            window.onClose.remove(this.removeWindow, this);
 
             // Root may now have changed
             this.checkRoot();
@@ -205,8 +211,14 @@ export class DesktopSnapGroup {
             this._origin.markStale();
             this._halfSize.markStale();
 
-            this.onWindowRemoved.emit(this, window);
+            // Inform window of removal
+            // Note that client API only considers windows to belong to a group if it contains two or more windows
+            if (this._windows.length > 0 && window.isReady()) {
+                window.sendMessage(WindowMessages.LEAVE_SNAP_GROUP, {});
+            }
 
+            // Inform service of removal
+            this.onWindowRemoved.emit(this, window);
             if (this._windows.length === 0) {
                 DesktopSnapGroup.onDestroyed.emit(this);
             }
@@ -254,11 +266,19 @@ export class DesktopSnapGroup {
     }
 
     private onWindowCommit(window: DesktopWindow): void {
-        this.onCommit.emit(this);
+        if (window === this.rootWindow) {
+            this.onCommit.emit(this);
+        }
     }
 
-    private onWindowClosed(window: DesktopWindow): void {
-        this.removeWindow(window);
+    private onWindowTeardown(window: DesktopWindow) {
+        const group: DesktopSnapGroup = window.getSnapGroup();
+
+        // Ensure window is removed from it's snap group, so that the group doesn't contain any de-registered or non-existant windows.
+        group.removeWindow(window);
+
+        // Have the service validate this group, to ensure it hasn't been split into two or more pieces.
+        group.onModified.emit(group, window);
     }
 
     private calculateProperties(): void {

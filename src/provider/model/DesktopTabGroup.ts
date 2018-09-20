@@ -1,15 +1,13 @@
 import {TabApiEvents} from '../../client/APITypes';
 import {ApplicationUIConfig, JoinTabGroupPayload, TabGroupEventPayload, TabIdentifier, TabProperties, TabServiceID, TabWindowOptions} from '../../client/types';
-import {GroupEventType} from '../main';
 import {Signal1} from '../Signal';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle} from '../snapanddock/utils/RectUtils';
-import {sendToClient} from '../workspaces/utils';
 
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
 import {DesktopSnapGroup} from './DesktopSnapGroup';
-import {DesktopWindow, WindowIdentity, WindowState} from './DesktopWindow';
+import {DesktopWindow, WindowMessages, WindowState} from './DesktopWindow';
 
 /**
  * Handles functionality for the TabSet
@@ -233,7 +231,7 @@ export class DesktopTabGroup extends DesktopEntity {
             // Need to re-send tab-activated event to ensure tab is active within tabstrip
             // TODO: See if this can be avoided
             const payload: TabGroupEventPayload = {tabGroupId: this.ID, tabID: activeTab.getIdentity()};
-            await sendToClient({uuid: TabServiceID.UUID, name: this.ID}, 'tab-activated', payload);
+            this.window.sendMessage(WindowMessages.TAB_ACTIVATED, payload);
         }
     }
 
@@ -306,20 +304,22 @@ export class DesktopTabGroup extends DesktopEntity {
             promises.push(this.removeTabInternal(tab, index));
 
             // Update tab window
-            if (bounds) {
-                // Eject tab and apply custom bounds
-                promises.push(tab.applyProperties({hidden: false, ...bounds}));
-            } else if (bounds === null) {
-                // Eject tab without modifying window bounds
-                promises.push(tab.applyProperties({hidden: false}));
-            } else {
-                const tabStripHalfSize: Point = this._window.getState().halfSize;
-                const state: WindowState = tab.getState();
-                const center: Point = {x: state.center.x, y: state.center.y - tabStripHalfSize.y};
-                const halfSize: Point = {x: state.halfSize.x, y: state.halfSize.y + tabStripHalfSize.y};
+            if (tab.isReady()) {
+                if (bounds) {
+                    // Eject tab and apply custom bounds
+                    promises.push(tab.applyProperties({hidden: false, ...bounds}));
+                } else if (bounds === null) {
+                    // Eject tab without modifying window bounds
+                    promises.push(tab.applyProperties({hidden: false}));
+                } else {
+                    const tabStripHalfSize: Point = this._window.getState().halfSize;
+                    const state: WindowState = tab.getState();
+                    const center: Point = {x: state.center.x, y: state.center.y - tabStripHalfSize.y};
+                    const halfSize: Point = {x: state.halfSize.x, y: state.halfSize.y + tabStripHalfSize.y};
 
-                // Eject tab and apply default bounds
-                promises.push(tab.applyProperties({hidden: false, center, halfSize}));
+                    // Eject tab and apply default bounds
+                    promises.push(tab.applyProperties({hidden: false, center, halfSize}));
+                }
             }
 
             // Activate next tab
@@ -354,7 +354,7 @@ export class DesktopTabGroup extends DesktopEntity {
 
             await Promise.all([this.sync(), this.window!.sync(), tab.sync()]);
             const payload: TabGroupEventPayload = {tabGroupId: this.ID, tabID: tab.getIdentity()};
-            await sendToClient({uuid: TabServiceID.UUID, name: this.ID}, 'tab-activated', payload);
+            this.window.sendMessage(WindowMessages.TAB_ACTIVATED, payload);
         }
     }
 
@@ -387,6 +387,7 @@ export class DesktopTabGroup extends DesktopEntity {
         // Add tab
         this._tabProperties[tab.getId()] = {icon: tab.getState().icon, title: tab.getState().title};
         this._tabs.splice(index, 0, tab);
+        tab.onTeardown.add(this.onWindowTeardown, this);
 
         // Sync all windows
         if (remove) {
@@ -425,15 +426,15 @@ export class DesktopTabGroup extends DesktopEntity {
 
         await Promise.all([tab.sync(), this.sync(), this._window.sync()]);
 
-        this.addPendingActions((async () => {
-            const payload: JoinTabGroupPayload =
-                {tabGroupId: this.ID, tabID: tab.getIdentity(), tabProps: this._tabProperties[tab.getId()], index: this.tabs.indexOf(tab)};
+        const payload:
+            JoinTabGroupPayload = {tabGroupId: this.ID, tabID: tab.getIdentity(), tabProps: this._tabProperties[tab.getId()], index: this.tabs.indexOf(tab)};
 
-            await this.sendTabEvent(tab, GroupEventType.JOIN_TAB_GROUP, payload);
-            tab.applyProperties({hidden: tab !== this._activeTab});
-
-            this.window.bringToFront();
-        })());
+        const addTabPromise: Promise<void> = (async () => {
+            await this.sendTabEvent(tab, WindowMessages.JOIN_TAB_GROUP, payload);
+            await tab.applyProperties({hidden: tab !== this._activeTab});
+            await this.window.bringToFront();
+        })();
+        this.addPendingActions('add tab - ' + this.id, addTabPromise);
     }
 
     private async removeTabInternal(tab: DesktopWindow, index: number): Promise<void> {
@@ -441,9 +442,10 @@ export class DesktopTabGroup extends DesktopEntity {
         delete this._tabProperties[tab.getId()];
         tab.setSnapGroup(new DesktopSnapGroup());
         tab.setTabGroup(null);
+        tab.onTeardown.remove(this.onWindowTeardown, this);
 
         const payload: TabGroupEventPayload = {tabGroupId: this.ID, tabID: tab.getIdentity()};
-        await this.sendTabEvent(tab, GroupEventType.LEAVE_TAB_GROUP, payload);
+        await this.sendTabEvent(tab, WindowMessages.LEAVE_TAB_GROUP, payload);
 
         if (this._tabs.length === 1) {
             // TODO: Call removeTab on the one remaining tab?..
@@ -454,13 +456,19 @@ export class DesktopTabGroup extends DesktopEntity {
         }
     }
 
-    private async sendTabEvent<T extends TabGroupEventPayload>(tab: DesktopWindow, event: GroupEventType, payload: T): Promise<void> {
-        await Promise.all([
+    private onWindowTeardown(window: DesktopWindow): void {
+        if (this._tabs.indexOf(window) >= 0) {
+            this.removeTab(window, null);
+        }
+    }
+
+    private async sendTabEvent<T extends TabGroupEventPayload>(tab: DesktopWindow, event: WindowMessages, payload: T): Promise<void> {
+        await Promise.all<Promise<void>|null, Promise<void>>([
             // Send event to application
-            sendToClient(tab.getIdentity(), event, payload),
+            tab.isReady() ? tab.sendMessage(event, payload) : null,
 
             // Send event to tabstrip
-            sendToClient({uuid: TabServiceID.UUID, name: this.ID}, event, payload)
+            this.window.sendMessage(event, payload)
         ]);
     }
 }

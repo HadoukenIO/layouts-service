@@ -53,20 +53,6 @@ async function registerService() {
         }
     });
 
-    // Register listeners for window added/removed signals
-    snapService.onWindowAdded.add((group, window) => {
-        if (group.length < 2) {
-            return;
-        }
-        sendWindowServiceMessage(GroupEventType.JOIN_SNAP_GROUP, window, providerChannel);
-    });
-    snapService.onWindowRemoved.add((group, window) => {
-        if (group.length === 0) {
-            return;
-        }
-        sendWindowServiceMessage(GroupEventType.LEAVE_SNAP_GROUP, window, providerChannel);
-    });
-
     providerChannel.register(TabAPI.CLOSETABGROUP, tabService.apiHandler.closeTabGroup.bind(tabService.apiHandler));
     providerChannel.register(TabAPI.CREATETABGROUP, tabService.apiHandler.createTabGroup.bind(tabService.apiHandler));
     providerChannel.register(TabAPI.STARTDRAG, tabService.apiHandler.startDrag.bind(tabService.apiHandler));
@@ -91,29 +77,4 @@ export async function main() {
     tabService = window.tabService = new TabService(model);
     await win10Check;
     return await registerService();
-}
-
-/**
- * Sends a service message to the specified SnapWindow
- * @param {GroupEventType} action The type of event being raised. The client will listen based on this value.
- * @param {DesktopWindow} window The target to which the message will be sent
- * @param {fin.OpenFinServiceProvider} provider Provider object wrapping an instance of the openfin layouts service
- */
-function sendWindowServiceMessage(action: GroupEventType, window: DesktopWindow, provider: ChannelProvider) {
-    const {uuid, name} = window.getIdentity();
-    const to: ProviderIdentity|undefined = provider.connections.find(conn => conn.uuid === uuid && conn.name === name);
-    if (to) {
-        console.log('Dispatching window message: ', action, 'to window: ', window.getIdentity());
-        provider.dispatch(to, action, {});
-    }
-}
-
-/**
- * List of the valid grouping events that can be passed to the client.
- */
-export enum GroupEventType {
-    JOIN_SNAP_GROUP = 'join-snap-group',
-    LEAVE_SNAP_GROUP = 'leave-snap-group',
-    JOIN_TAB_GROUP = 'join-tab-group',
-    LEAVE_TAB_GROUP = 'leave-tab-group'
 }

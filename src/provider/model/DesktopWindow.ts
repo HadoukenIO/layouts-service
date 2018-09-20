@@ -6,6 +6,7 @@ import {p, promiseMap} from '../snapanddock/utils/async';
 import {isWin10} from '../snapanddock/utils/platform';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle} from '../snapanddock/utils/RectUtils';
+import {sendToClient} from '../workspaces/utils';
 
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
@@ -49,6 +50,23 @@ export enum eTransformType {
     MOVE = 1 << 0,
     RESIZE = 1 << 1
 }
+
+/**
+ * List of the messages that can be passed to the client.
+ */
+export const enum WindowMessages {
+    // Snap & Dock
+    JOIN_SNAP_GROUP = 'join-snap-group',
+    LEAVE_SNAP_GROUP = 'leave-snap-group',
+
+    // Tabbing (application messages)
+    JOIN_TAB_GROUP = 'join-tab-group',
+    LEAVE_TAB_GROUP = 'leave-tab-group',
+
+    // Tabbing (tabstrip messages)
+    TAB_ACTIVATED = 'tab-activated'
+}
+
 
 enum ActionOrigin {
     /**
@@ -152,11 +170,14 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
     public readonly onCommit: Signal1<DesktopWindow> = new Signal1();
 
     /**
-     * Window was closed. Need to remove this window from any groups, and the service as a whole.
+     * Window is being removed from the service. Need to remove this window from any groups, and the service as a whole.
+     *
+     * This may be because the window was closed (either by user-action, or programatically), or because the window has
+     * been deregistered.
      *
      * Arguments: (window: DesktopWindow)
      */
-    public readonly onClose: Signal1<DesktopWindow> = new Signal1();
+    public readonly onTeardown: Signal1<DesktopWindow> = new Signal1();
 
     private window?: Window;
     private windowState: WindowState;
@@ -167,7 +188,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
     private snapGroup: DesktopSnapGroup;
     private tabGroup: DesktopTabGroup|null;
     private prevGroup: DesktopSnapGroup|null;
-    private initialised: boolean;
+    private ready: boolean;
 
     // State tracking for "synth move" detection
     private boundsChangeCountSinceLastCommit: number;
@@ -175,28 +196,28 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
     constructor(model: DesktopModel, group: DesktopSnapGroup, window: fin.WindowOptions|Window, initialState?: WindowState) {
         super(model, DesktopWindow.getIdentity(window));
 
-        this.initialised = false;
+        this.ready = false;
 
         const isWindow: boolean = DesktopWindow.isWindow(window);
         if (!isWindow) {
-            this.addPendingActions(fin.Window.create(window).then(async (window: Window) => {
+            this.addPendingActions('Add window ' + this.id, fin.Window.create(window).then(async (window: Window) => {
                 this.window = window;
                 this.windowState = await DesktopWindow.getWindowState(window);
                 this.applicationState = {...this.windowState};
                 this.addListeners();
-                this.initialised = true;
+                this.ready = true;
             }));
         } else if (!initialState) {
             this.window = window as Window;
-            this.addPendingActions(DesktopWindow.getWindowState(this.window).then((state: WindowState) => {
+            this.addPendingActions('Fetch initial window state ' + this.id, DesktopWindow.getWindowState(this.window).then((state: WindowState) => {
                 this.windowState = state;
                 this.applicationState = {...this.windowState};
                 this.addListeners();
-                this.initialised = true;
+                this.ready = true;
             }));
         } else {
             this.window = window as Window;
-            this.initialised = true;
+            this.ready = true;
         }
 
         if (!initialState) {
@@ -226,14 +247,28 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         this.handleRestored = this.handleRestored.bind(this);
         this.handleShown = this.handleShown.bind(this);
 
-        if (this.initialised) {
+        if (this.ready) {
             this.addListeners();
         }
 
-        // When the window's onClose signal is emitted, we cleanup all of the listeners
-        this.onClose.add(this.cleanupListeners, this);
-
         DesktopWindow.onCreated.emit(this);
+    }
+
+    /**
+     * Removes this window from the model. This may happen because the window that this object wraps has been closed, or because an application is
+     * de-registering this window from the service.
+     *
+     * That means that the window wrapped by this object may or may not exist at the point this is called. We attempt to capture this by having DesktopWindow
+     * manage it's own destruction in the former case, so that it can mark itself as not-ready before starting the clean-up of the model.
+     */
+    public teardown(): void {
+        if (this.ready) {
+            this.cleanupListeners();
+        }
+
+        this.onTeardown.emit(this);
+        DesktopWindow.onDestroyed.emit(this);
+        this.ready = false;
     }
 
     private createTemporaryState(): WindowState {
@@ -259,6 +294,10 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
 
     public getId(): string {
         return this.id;
+    }
+
+    public isReady(): boolean {
+        return this.ready;
     }
 
     /**
@@ -298,8 +337,8 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             this.addToSnapGroup(group);
 
             // Leave previous snap group
-            if (this.snapGroup === group) {
-                this.addPendingActions(this.window!.leaveGroup());
+            if (this.snapGroup === group && this.ready) {
+                this.addPendingActions('setSnapGroup - leave existing group', this.window!.leaveGroup());
             }
 
             if (offset || newHalfSize) {
@@ -372,17 +411,17 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
 
             // Merge window groups
             return Promise.all([this.sync(), other.sync()]).then(() => {
-                this.addPendingActions((async(): Promise<void> => {
-                    if (group === this.snapGroup) {
-                        await this.window!.joinGroup(other.window!);
+                this.addPendingActions('snap - joinGroup', (async(): Promise<void> => {
+                                           if (this.ready && group === this.snapGroup) {
+                                               await this.window!.joinGroup(other.window!);
 
-                        // Re-fetch window list in case it has changed during sync
-                        const windows: DesktopWindow[] = this.snapGroup.windows as DesktopWindow[];
+                                               // Re-fetch window list in case it has changed during sync
+                                               const windows: DesktopWindow[] = this.snapGroup.windows as DesktopWindow[];
 
-                        // Bring other windows in group to front
-                        await windows.map(groupWindow => groupWindow.window!.bringToFront());
-                    }
-                })());
+                                               // Bring other windows in group to front
+                                               await windows.map(groupWindow => groupWindow.window!.bringToFront());
+                                           }
+                                       })());
             });
         } else if (index === -1) {
             return Promise.reject('Attempting to snap, but window isn\'t in the target group');
@@ -406,6 +445,13 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
 
     private async updateState(delta: Partial<WindowState>, origin: ActionOrigin): Promise<void> {
         const actions: Promise<void>[] = [];
+
+        if (origin !== ActionOrigin.APPLICATION) {
+            // Ensure we can modify window before we update our cache
+            if (!this.ready) {
+                throw new Error('Cannot modify window, window not in ready state ' + this.id);
+            }
+        }
 
         // Update state caches
         if (origin === ActionOrigin.SERVICE_TEMPORARY) {
@@ -479,16 +525,17 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             }
 
             // Track these changes
-            return this.addPendingActions(actions);
+            return this.addPendingActions('updateState ' + this.id, actions);
         }
     }
 
     public async bringToFront(): Promise<void> {
-        return this.addPendingActions(this.window!.bringToFront());
+        return this.addPendingActions('bringToFront ' + this.id, this.window!.bringToFront());
     }
 
     public async close(): Promise<void> {
-        return this.addPendingActions(this.window!.close(true));
+        this.ready = false;
+        return this.addPendingActions('close ' + this.id, this.window!.close(true));
     }
 
     public async applyProperties(properties: Partial<WindowState>): Promise<void> {
@@ -518,6 +565,15 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             const value = this.modifiedState[property]!;
             this.windowState[property] = value;
             return this.updateState({[property]: value}, ActionOrigin.SERVICE);  // TODO: Is this the right origin type?
+        }
+    }
+
+    // tslint:disable-next-line:no-any
+    public sendMessage(action: WindowMessages, payload: any): Promise<void> {
+        if (this.ready) {
+            return sendToClient(this.identity, action, payload);
+        } else {
+            return Promise.reject(new Error('Cannot send event, window not ready: ' + this.id));
         }
     }
 
@@ -574,28 +630,22 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         window.addListener('shown', this.handleShown);
     }
 
-    private cleanupListeners(unused?: DesktopWindow): void {
-        console.log('OnClose recieved for window ', this.getId());
+    private cleanupListeners(): void {
+        const window: Window = this.window!;
 
-        this.onClose.remove(this.cleanupListeners);
-        DesktopWindow.onDestroyed.emit(this);
-
-        const window: Window|undefined = this.window;
-        if (window) {
-            window.removeListener('bounds-changed', this.handleBoundsChanged);
-            window.removeListener('bounds-changing', this.handleBoundsChanging);
-            window.removeListener('closed', this.handleClosed);
-            window.removeListener('focused', this.handleFocused);
-            window.removeListener('frame-disabled', this.handleFrameDisabled);
-            window.removeListener('frame-enabled', this.handleFrameEnabled);
-            window.removeListener('group-changed', this.handleGroupChanged);
-            window.removeListener('hidden', this.handleHidden);
-            window.removeListener('maximized', this.handleMaximized);
-            window.removeListener('minimized', this.handleMinimized);
-            window.removeListener('restored', this.handleRestored);
-            window.removeListener('shown', this.handleShown);
-            window.leaveGroup();
-        }
+        window.removeListener('bounds-changed', this.handleBoundsChanged);
+        window.removeListener('bounds-changing', this.handleBoundsChanging);
+        window.removeListener('closed', this.handleClosed);
+        window.removeListener('focused', this.handleFocused);
+        window.removeListener('frame-disabled', this.handleFrameDisabled);
+        window.removeListener('frame-enabled', this.handleFrameEnabled);
+        window.removeListener('group-changed', this.handleGroupChanged);
+        window.removeListener('hidden', this.handleHidden);
+        window.removeListener('maximized', this.handleMaximized);
+        window.removeListener('minimized', this.handleMinimized);
+        window.removeListener('restored', this.handleRestored);
+        window.removeListener('shown', this.handleShown);
+        window.leaveGroup();
     }
 
     private handleBoundsChanged(event: fin.WindowBoundsEvent): void {
@@ -629,7 +679,12 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
     }
 
     private handleClosed(): void {
-        this.onClose.emit(this);
+        // If 'onclose' event has fired, we shouldn't attempt to call any OpenFin API on the window.
+        // Will immediately reset ready flag, to prevent any API calls as part of clean-up/destroy process.
+        this.ready = false;
+
+        // Clean-up model state
+        this.teardown();
     }
 
     private async handleFocused(): Promise<void> {
@@ -667,7 +722,6 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         console.log('Received window group changed event: ', event);
 
         if (event.reason === 'leave') {
-            console.log(`Window ${this.id} left it's group`);
             this.addToSnapGroup(new DesktopSnapGroup());
         } else {
             const targetWindow: DesktopWindow|null = this.model.getWindow({uuid: event.targetWindowAppUuid, name: event.targetWindowName});
@@ -675,8 +729,6 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             // Merge the groups
             if (targetWindow) {
                 if (event.reason === 'merge') {
-                    console.log(`Window ${this.id} merged into ${targetWindow.id}`);
-
                     this.addToSnapGroup(targetWindow.getSnapGroup());
 
                     // When merging groups, only the window that triggered the merge will recieve the event, but we need to update all windows in that window's
@@ -701,8 +753,6 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
                         window.addToSnapGroup(targetWindow.getSnapGroup());
                     });
                 } else {
-                    console.log(`Window ${this.id} joined group ${targetWindow.id}`);
-
                     this.addToSnapGroup(targetWindow.getSnapGroup());
                 }
             }

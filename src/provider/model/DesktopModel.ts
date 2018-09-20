@@ -106,7 +106,7 @@ export class DesktopModel {
 
             if (window) {
                 try {
-                    window.onClose.emit(window);
+                    window.teardown();
                 } catch (error) {
                     console.error(`Unexpected error when deregistering: ${error}`);
                     throw new Error(`Unexpected error when deregistering: ${error}`);
@@ -128,7 +128,7 @@ export class DesktopModel {
         // window-created event for a registered window, it implies that our internal state is stale
         // and should be updated accordingly.
         if (existingSnapWindow) {
-            existingSnapWindow.onClose.emit(existingSnapWindow);
+            existingSnapWindow.teardown();
         }
 
         // In either case, we will add the new window to the service.

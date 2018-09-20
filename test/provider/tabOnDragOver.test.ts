@@ -39,21 +39,33 @@ test.beforeEach(async () => {
 });
 test.afterEach.always(async () => {
     if (win1 && win1.identity) {
-        await win1.close();
+        try{
+            await win1.close()
+        } catch (e){
+            console.log(e);
+        }
     }
     if (win2 && win2.identity) {
-        await win2.close();
+        try{
+            await win2.close().catch(console.log)
+        } catch (e){
+            console.log(e);
+        }
     }
     if (win3 && win3.identity) {
-        await win3.close();
+        try{
+            await win3.close().catch(console.log);
+        } catch (e){
+            console.log(e);
+        }
     }
     win1 = win2 = win3 = {} as Window;
 });
 
-test.skip('Tabset on dragover - basic drop', async t => {
+test('Tabset on dragover - basic drop', async t => {
     // Drag win1 over win2 to make a tabset
     await dragWindowToOtherWindow(win1, 'top-left', win2, 'top-left', {x: -20, y: -20});
-
+    await delay(1000);
     // Test that the windows are tabbed
     await assertTabbed(win1, win2, t);
 });
@@ -121,6 +133,17 @@ test('Tabset on dragover - drop on torn-out dropped window', async t => {
     await delay(500);
 
     await assertTabbed(win3, win2, t);
+});
+
+test('TabGroup Destroyed on tab removal', async t=>{
+    await dragWindowToOtherWindow(win1, 'top-left', win2, 'top-left', {x: -20, y: -20});
+    await delay(500);
+    await assertTabbed(win1, win2, t);
+    await delay(1000);
+
+    await win1.close();
+    await delay(500);
+    await assertNotTabbed(win2, t);
 });
 
 /**

@@ -188,10 +188,12 @@ export interface TabbedPlaceholders {
 }
 
 // Helper function to determine if a window is supposed to be tabbed in an incoming layout.
-export function inWindowObject(win: {uuid: string, name: string}, windowObject: WindowObject|TabbedPlaceholders) {
-    if (windowObject[win.uuid]) {
-        if (windowObject[win.uuid][win.name]) {
-            return true;
+export function inWindowObject(win: Identity, windowObject: WindowObject|TabbedPlaceholders) {
+    if (win.name) {
+        if (windowObject[win.uuid]) {
+            if (windowObject[win.uuid][win.name]) {
+                return true;
+            }
         }
     }
     return false;

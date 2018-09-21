@@ -6,6 +6,7 @@ import {createChildWindow} from './utils/createChildWindow';
 import {delay} from './utils/delay';
 import {dragWindowToOtherWindow} from './utils/dragWindowTo';
 import {getBounds} from './utils/getBounds';
+import {assertTabbed, assertNotTabbed} from './utils/assertions';
 
 let win1: Window, win2: Window, win3: Window;
 let fin: Fin;
@@ -122,31 +123,3 @@ test('Tabset on dragover - drop on torn-out dropped window', async t => {
 
     await assertTabbed(win3, win2, t);
 });
-
-/**
- * Asserts that two windows are succesfully tabbed together
- * @param t Ava test context against which to assert
- */
-async function assertTabbed(win1: Window, win2: Window, t: GenericTestContext<AnyContext>): Promise<void> {
-    // TODO: Determine if the window is tabbed on the service side.
-
-    // Both windows are in the same native openfin group
-    const [group1, group2] = [await win1.getGroup(), await win2.getGroup()];
-    for (let i = 0; i < group1.length; i++) {
-        t.deepEqual(group1[i].identity, group2[i].identity, 'Window native groups are different');
-    }
-
-    // Both windows have the same bounds
-    const [bounds1, bounds2] = [await getBounds(win1), await getBounds(win2)];
-    t.deepEqual(bounds1, bounds2, 'Tabbed windows do not have the same bounds');
-}
-
-async function assertNotTabbed(win: Window, t: GenericTestContext<AnyContext>): Promise<void> {
-    // TODO: Determine if the window is tabbed on the service side.
-
-    // Window is native grouped only to the tabstrip
-    const nativeGroup = await win.getGroup();
-
-    // Not grouped to any other windows
-    t.is(nativeGroup.length, 0);
-}

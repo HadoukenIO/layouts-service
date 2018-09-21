@@ -6,6 +6,7 @@ import {delay} from './utils/delay';
 import {dragSideToSide} from './utils/dragWindowTo';
 import {getBounds, NormalizedBounds} from './utils/getBounds';
 import {undockWindow, WindowIdentity} from './utils/undockWindow';
+import {assertGrouped, assertNotGrouped, assertMoved, assertNotMoved} from './utils/assertions';
 
 // Valid ways of grouping two windows (used to parameterise large number of
 // similar tests)
@@ -120,35 +121,6 @@ async function ungroupWindows(win1: Window, win2: Window, shouldMove: boolean, t
     await assertNotGrouped(win2, t);
 }
 
-async function assertGrouped(win1: Window, win2: Window, t: TestContext) {
-    // Both windows are in the same native openfin group
-    const [group1, group2] = [await win1.getGroup(), await win2.getGroup()];
-    for (let i = 0; i < group1.length; i++) {
-        t.deepEqual(group1[i].identity, group2[i].identity, 'Window native groups are different');
-    }
-
-    // Both windows are in the same SnapGroup
-    // TODO (Pending test framework improvements to allow pulling data from the
-    // service)
-}
-
-async function assertNotGrouped(win: Window, t: TestContext) {
-    // Window is not native grouped
-    const group = await win.getGroup();
-    t.is(group.length, 0);
-
-    // Window is alone in it's SnapGroup
-    // TODO (Pending test framework improvements to allow pulling data from the
-    // service)
-}
-
-function assertMoved(bounds1: NormalizedBounds, bounds2: NormalizedBounds, t: TestContext) {
-    t.notDeepEqual(bounds1, bounds2);
-}
-
-function assertNotMoved(bounds1: NormalizedBounds, bounds2: NormalizedBounds, t: TestContext) {
-    t.deepEqual(bounds1, bounds2);
-}
 /* ====== Tests ====== */
 
 for (const firstGroup of Object.keys(groupingFunctions) as GroupingType[]) {

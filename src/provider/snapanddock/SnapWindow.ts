@@ -404,10 +404,16 @@ export class SnapWindow {
     }
     private handleMinimized() {
         this.updateState({state: 'minimized'});
+        this.group.windows.forEach(win => {
+            win.getWindow().minimize();
+        });
         this.onModified.emit(this);
     }
     private handleRestored() {
         this.updateState({state: 'normal'});
+        this.group.windows.forEach(win => {
+            win.getWindow().restore();
+        });
         // this.onModified.emit(this);
     }
     private handleHidden() {

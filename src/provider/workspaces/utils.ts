@@ -1,39 +1,11 @@
 import {Window} from 'hadouken-js-adapter';
 import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/application/application';
-import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
+import {ProviderIdentity} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/channel';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {LayoutApp, TabIdentifier, WindowState} from '../../client/types';
+import {apiHandler} from '../main';
 import {TabService} from '../tabbing/TabService';
-
-declare var providerChannel: ChannelProvider;
-
-export const isClientConnection = (identity: LayoutApp|Identity) => {
-    // i want to access connections....
-    const {uuid} = identity;
-
-    return providerChannel.connections.some((conn: Identity) => {
-        return identity.uuid === conn.uuid;
-    });
-};
-
-export const getClientConnection = (identity: Identity) => {
-    const {uuid} = identity;
-    const name = identity.name ? identity.name : uuid;
-
-    return providerChannel.connections.find((conn) => {
-        return conn.uuid === uuid && conn.name === name;
-    });
-};
-
-// tslint:disable-next-line:no-any
-export const sendToClient = async (identity: Identity, action: string, payload: any) => {
-    const conn = getClientConnection(identity);
-
-    if (conn) {
-        return providerChannel.dispatch(conn, action, payload);
-    }
-};
 
 export const positionWindow = async (win: WindowState) => {
     try {

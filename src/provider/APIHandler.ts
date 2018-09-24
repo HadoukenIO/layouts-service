@@ -1,66 +1,158 @@
-import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
+import {Identity} from 'hadouken-js-adapter';
+import {ProviderIdentity} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/channel';
+import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
 
+import {TabAPI} from '../client/APITypes';
 import {ApplicationUIConfig, DropPosition, TabIdentifier, TabProperties} from '../client/types';
-import {DesktopModel} from './model/DesktopModel';
-import {DesktopTabGroup} from './model/DesktopTabGroup';
-import {DesktopWindow} from './model/DesktopWindow';
 
-import {TabService} from './tabbing/TabService';
+import {model, snapService, tabService} from './main';
+import {DesktopTabGroup} from './model/DesktopTabGroup';
+import {DesktopWindow, WindowIdentity} from './model/DesktopWindow';
+import {generateLayout} from './workspaces/create';
+import {getAppToRestore, restoreApplication, restoreLayout} from './workspaces/restore';
 
 /**
- * Handles all calls from tab api to service
+ * Manages all communication with the client. Stateless class that listens for incomming messages, and handles sending of messages to connected client(s).
+ *
+ * Client communication is separated from the rest of the provider code to allow easier versioning of client-provider interaction, if required in the future.
  */
 export class APIHandler {
-    private mModel: DesktopModel;
-    private mTabService: TabService;
+    private static readonly CHANNEL_NAME: string = 'of-layouts-service-v1';
 
-    /**
-     * @constructor Constructor for the TabAPIActionProcessor
-     */
-    constructor(model: DesktopModel, service: TabService) {
-        this.mModel = model;
-        this.mTabService = service;
+    private providerChannel!: ChannelProvider;
+
+    public get channel(): ChannelProvider {
+        return this.providerChannel;
+    }
+
+    public isClientConnection(identity: Identity): boolean {
+        return this.providerChannel.connections.some((conn: Identity) => {
+            return identity.uuid === conn.uuid;
+        });
+    }
+
+    public getClientConnection(identity: Identity): ProviderIdentity|null {
+        const {uuid} = identity;
+        const name = identity.name ? identity.name : uuid;
+
+        return this.providerChannel.connections.find((conn: ProviderIdentity) => {
+            return conn.uuid === uuid && conn.name === name;
+        }) ||
+            null;
     }
 
     /**
-     * If a custom tab-strip UI is being used - this sets the URL for the tab-strip.
-     * This binding happens on the application level.  An application cannot have different windows using different tabbing UI.
+     * Sends a message to a single, connected client.
+     *
+     * Will fail silently if client with given identity doesn't exist and/or isn't connected to service.
      */
-    public setTabClient(payload: {config: ApplicationUIConfig, id: Identity}) {
-        if (this.mTabService.applicationConfigManager.exists(payload.id.uuid)) {
+    public async sendToClient<T, R = void>(identity: Identity, action: string, payload: T): Promise<R|undefined> {
+        const conn: ProviderIdentity|null = this.getClientConnection(identity);
+
+        if (conn) {
+            return this.providerChannel.dispatch(conn, action, payload);
+        } else {
+            return undefined;
+        }
+    }
+
+    /**
+     * Sends a message to all connected clients.
+     */
+    // tslint:disable-next-line:no-any
+    public async sendToAll(action: string, payload: any): Promise<void> {
+        await this.providerChannel.publish(action, payload);
+    }
+
+    public async register(): Promise<void> {
+        const providerChannel: ChannelProvider = this.providerChannel = await fin.InterApplicationBus.Channel.create(APIHandler.CHANNEL_NAME);
+
+        // Common
+        providerChannel.onConnection(this.onConnection);
+        providerChannel.register('deregister', this.deregister);
+
+        // Snap & Dock
+        providerChannel.register('undockWindow', this.undockWindow);
+        providerChannel.register('undockGroup', this.undockGroup);
+
+        // Workspaces
+        providerChannel.register('generateLayout', generateLayout);
+        providerChannel.register('restoreLayout', restoreLayout);
+        providerChannel.register('appReady', this.appReady);
+
+        // Tabbing
+        providerChannel.register(TabAPI.CLOSETABGROUP, this.closeTabGroup);
+        providerChannel.register(TabAPI.CREATETABGROUP, this.createTabGroup);
+        providerChannel.register(TabAPI.STARTDRAG, this.startDrag);
+        providerChannel.register(TabAPI.ENDDRAG, this.endDrag);
+        providerChannel.register(TabAPI.GETTABS, this.getTabs);
+        providerChannel.register(TabAPI.MAXIMIZETABGROUP, this.maximizeTabGroup);
+        providerChannel.register(TabAPI.MINIMIZETABGROUP, this.minimizeTabGroup);
+        providerChannel.register(TabAPI.REMOVETAB, this.removeTab);
+        providerChannel.register(TabAPI.CLOSETAB, this.closeTab);
+        providerChannel.register(TabAPI.REORDERTABS, this.reorderTabs);
+        providerChannel.register(TabAPI.RESTORETABGROUP, this.restoreTabGroup);
+        providerChannel.register(TabAPI.SETACTIVETAB, this.setActiveTab);
+        providerChannel.register(TabAPI.SETTABCLIENT, this.setTabClient);
+        providerChannel.register(TabAPI.UPDATETABPROPERTIES, this.updateTabProperties);
+        providerChannel.register(TabAPI.ADDTAB, this.addTab);
+    }
+
+    // tslint:disable-next-line:no-any
+    private onConnection(app: ProviderIdentity, payload?: any): void {
+        if (payload && payload.version && payload.version.length > 0) {
+            console.log(`connection from client: ${app.name}, version: ${payload.version}`);
+        } else {
+            console.log(`connection from client: ${app.name}, unable to determine version`);
+        }
+    }
+
+    private async deregister(identity: WindowIdentity): Promise<void> {
+        try {
+            // Must first clean-up any usage of this window
+            const tab: DesktopWindow|null = model.getWindow(identity);
+            const group: DesktopTabGroup|null = tab && tab.getTabGroup();
+
+            if (group) {
+                await group.removeTab(tab!);
+            }
+        } catch (error) {
+            console.error(error);
+            throw new Error(`Unexpected error when deregistering: ${error}`);
+        } finally {
+            model.deregister(identity);
+        }
+    }
+
+    private undockWindow(identity: WindowIdentity): void {
+        snapService.undock(identity);
+    }
+
+    private undockGroup(identity: WindowIdentity): void {
+        snapService.explodeGroup(identity);
+    }
+
+    private appReady(payload: void, identity: Identity): void {
+        const {uuid} = identity;
+        const appToRestore = getAppToRestore(uuid);
+
+        if (appToRestore) {
+            const {layoutApp, resolve} = appToRestore;
+            restoreApplication(layoutApp, resolve);
+        }
+    }
+
+    private setTabClient(payload: {config: ApplicationUIConfig, id: Identity}) {
+        if (tabService.applicationConfigManager.exists(payload.id.uuid)) {
             console.error('Window already configured for tabbing');
             throw new Error('Window already configured for tabbing');
         }
 
-        return this.mTabService.applicationConfigManager.addApplicationUIConfig(payload.id.uuid, payload.config);
+        return tabService.applicationConfigManager.addApplicationUIConfig(payload.id.uuid, payload.config);
     }
 
-    /**
-     * Allows a window to opt-out of this service. This will disable all tabbing-related functionality for the given window.
-     */
-    public async deregister(tabId: TabIdentifier) {
-        const tab: DesktopWindow|null = this.mModel.getWindow(tabId);
-        const group: DesktopTabGroup|null = tab && tab.getTabGroup();
-
-        if (group) {
-            try {
-                return await group.removeTab(tab!);
-            } catch (error) {
-                console.error(error);
-                throw new Error(`Unexpected error when deregistering: ${error}`);
-            }
-        }
-    }
-
-    /**
-     * Returns array of window references for tabs belonging to the tab group of the provided window context.
-     *
-     * If no Identity is provided as an argument, the current window context will be used.
-     *
-     * If there is no tab group associated with the window context, will resolve to null.
-     */
-    public getTabs(tabId: TabIdentifier): TabIdentifier[]|null {
-        const tab: DesktopWindow|null = this.mModel.getWindow(tabId);
+    private getTabs(tabId: TabIdentifier): TabIdentifier[]|null {
+        const tab: DesktopWindow|null = model.getWindow(tabId);
         const group: DesktopTabGroup|null = tab && tab.getTabGroup();
 
         if (!group) {
@@ -70,24 +162,13 @@ export class APIHandler {
         return group.tabs.map(tab => tab.getIdentity());
     }
 
-    /**
-     * Given a set of windows, will create a tab group construct and UI around them.  The bounds and positioning of the first (applicable) window in the set
-     * will be used as the seed for the tab UI properties.
-     */
-    public async createTabGroup(tabs: TabIdentifier[]) {
-        return this.mTabService.createTabGroupWithTabs(tabs);
+    private async createTabGroup(tabs: TabIdentifier[]): Promise<void> {
+        return tabService.createTabGroupWithTabs(tabs);
     }
 
-    /**
-     * Adds current window context (or window specified in second arg)  to the tab group of the target window (first arg).
-     *
-     * Will reject with an error if the TabClient of the target and context tab group do not match.
-     *
-     * The added tab will be brought into focus.
-     */
-    public async addTab(payload: {targetWindow: TabIdentifier, windowToAdd: TabIdentifier}) {
-        const tabToAdd: DesktopWindow|null = this.mModel.getWindow(payload.windowToAdd);
-        const targetTab: DesktopWindow|null = this.mModel.getWindow(payload.targetWindow);
+    private async addTab(payload: {targetWindow: TabIdentifier, windowToAdd: TabIdentifier}): Promise<void> {
+        const tabToAdd: DesktopWindow|null = model.getWindow(payload.windowToAdd);
+        const targetTab: DesktopWindow|null = model.getWindow(payload.targetWindow);
         const targetGroup: DesktopTabGroup|null = targetTab && targetTab.getTabGroup();
 
         if (!targetGroup) {
@@ -99,7 +180,7 @@ export class APIHandler {
             throw new Error('Could not find \'windowToAdd\'.');
         }
 
-        if (this.mTabService.applicationConfigManager.compareConfigBetweenApplications(payload.targetWindow.uuid, payload.windowToAdd.uuid)) {
+        if (tabService.applicationConfigManager.compareConfigBetweenApplications(payload.targetWindow.uuid, payload.windowToAdd.uuid)) {
             // return group.addTab(await new Tab({tabID: payload.windowToAdd}).init());
             return targetGroup.addTab(tabToAdd);
         } else {
@@ -108,12 +189,8 @@ export class APIHandler {
         }
     }
 
-    /**
-     * Removes the specified tab from its tab group.
-     * Uses current window context by default
-     */
-    public removeTab(tab: TabIdentifier): Promise<void> {
-        const ejectedTab: DesktopWindow|null = this.mModel.getWindow(tab);
+    private removeTab(tab: TabIdentifier): Promise<void> {
+        const ejectedTab: DesktopWindow|null = model.getWindow(tab);
         const tabGroup: DesktopTabGroup|null = ejectedTab && ejectedTab.getTabGroup();
 
         if (tabGroup) {
@@ -125,11 +202,8 @@ export class APIHandler {
         }
     }
 
-    /**
-     * Brings the specified tab to the front of the set.
-     */
-    public setActiveTab(tabId: TabIdentifier) {
-        const tab: DesktopWindow|null = this.mModel.getWindow(tabId);
+    private setActiveTab(tabId: TabIdentifier): Promise<void> {
+        const tab: DesktopWindow|null = model.getWindow(tabId);
         const group: DesktopTabGroup|null = tab && tab.getTabGroup();
 
         if (!group) {
@@ -140,11 +214,8 @@ export class APIHandler {
         return group.switchTab(tab!);
     }
 
-    /**
-     * Closes the tab for the window context and removes it from the associated tab group.
-     */
-    public async closeTab(tabId: TabIdentifier): Promise<void> {
-        const tab: DesktopWindow|null = this.mModel.getWindow(tabId);
+    private async closeTab(tabId: TabIdentifier): Promise<void> {
+        const tab: DesktopWindow|null = model.getWindow(tabId);
 
         if (tab) {
             return tab.close();
@@ -162,11 +233,8 @@ export class APIHandler {
         // return group.removeTab(tab!).then(() => tab!.close());
     }
 
-    /**
-     * Minimizes the tab group for the window context.
-     */
-    public async minimizeTabGroup(tabId: TabIdentifier): Promise<void> {
-        const tab: DesktopWindow|null = this.mModel.getWindow(tabId);
+    private async minimizeTabGroup(tabId: TabIdentifier): Promise<void> {
+        const tab: DesktopWindow|null = model.getWindow(tabId);
         const group: DesktopTabGroup|null = tab && tab.getTabGroup();
 
         if (!group) {
@@ -177,11 +245,8 @@ export class APIHandler {
         return group.minimize();
     }
 
-    /**
-     * Maximizes the tab group for the window context.
-     */
-    public async maximizeTabGroup(tabId: TabIdentifier): Promise<void> {
-        const tab: DesktopWindow|null = this.mModel.getWindow(tabId);
+    private async maximizeTabGroup(tabId: TabIdentifier): Promise<void> {
+        const tab: DesktopWindow|null = model.getWindow(tabId);
         const group: DesktopTabGroup|null = tab && tab.getTabGroup();
 
         if (!group) {
@@ -192,11 +257,8 @@ export class APIHandler {
         return group.maximize();
     }
 
-    /**
-     * Closes the tab group for the window context.
-     */
-    public async closeTabGroup(tabId: TabIdentifier): Promise<void> {
-        const tab: DesktopWindow|null = this.mModel.getWindow(tabId);
+    private async closeTabGroup(tabId: TabIdentifier): Promise<void> {
+        const tab: DesktopWindow|null = model.getWindow(tabId);
         const group: DesktopTabGroup|null = tab && tab.getTabGroup();
 
         if (!group) {
@@ -208,11 +270,8 @@ export class APIHandler {
         return group.removeAllTabs(true);
     }
 
-    /**
-     * Restores the tab group for the window context to its normal state.
-     */
-    public async restoreTabGroup(tabId: TabIdentifier) {
-        const tab: DesktopWindow|null = this.mModel.getWindow(tabId);
+    private async restoreTabGroup(tabId: TabIdentifier): Promise<void> {
+        const tab: DesktopWindow|null = model.getWindow(tabId);
         const group: DesktopTabGroup|null = tab && tab.getTabGroup();
 
         if (!group) {
@@ -227,12 +286,8 @@ export class APIHandler {
         }
     }
 
-    /**
-     * Resets the tabs to the order provided.  The length of tabs Identity array must match the current number of tabs, and each current tab must appear in the
-     * array exactly once to be valid.  If the input isn’t valid, the call will reject and no change will be made.
-     */
-    public reorderTabs(newOrdering: TabIdentifier[], tabId: TabIdentifier) {
-        const tab: DesktopWindow|null = this.mModel.getWindow(tabId);
+    private reorderTabs(newOrdering: TabIdentifier[], tabId: ProviderIdentity): void {
+        const tab: DesktopWindow|null = model.getWindow(tabId as WindowIdentity);
         const group: DesktopTabGroup|null = tab && tab.getTabGroup();
 
         if (!group) {
@@ -243,11 +298,8 @@ export class APIHandler {
         return group.reOrderTabArray(newOrdering);
     }
 
-    /**
-     * Updates a Tabs Properties on the Tab strip.
-     */
-    public updateTabProperties(payload: {window: TabIdentifier, properties: TabProperties}) {
-        const tab: DesktopWindow|null = this.mModel.getWindow(payload.window);
+    private updateTabProperties(payload: {window: TabIdentifier, properties: TabProperties}): void {
+        const tab: DesktopWindow|null = model.getWindow(payload.window);
         const group: DesktopTabGroup|null = tab && tab.getTabGroup();
 
         if (!group) {
@@ -258,19 +310,13 @@ export class APIHandler {
         return group.updateTabProperties(tab!, payload.properties);
     }
 
-    /**
-     * Starts the HTML5 Dragging Sequence
-     */
-    public startDrag(payload: {}, id: TabIdentifier) {
+    private startDrag(payload: {}, id: ProviderIdentity): void {
         // TODO assign uuid, name from provider
-        this.mTabService.dragWindowManager.showWindow(id);
+        tabService.dragWindowManager.showWindow(id as WindowIdentity);
     }
 
-    /**
-     * Ends the HTML5 Dragging Sequence.
-     */
-    public async endDrag(payload: {event: DropPosition, window: TabIdentifier}) {
-        const tab: DesktopWindow|null = this.mModel.getWindow(payload.window);
+    private async endDrag(payload: {event: DropPosition, window: TabIdentifier}): Promise<void> {
+        const tab: DesktopWindow|null = model.getWindow(payload.window);
         const group: DesktopTabGroup|null = tab && tab.getTabGroup();
 
         if (!group) {
@@ -278,7 +324,7 @@ export class APIHandler {
             throw new Error('Window is not registered for tabbing');
         }
 
-        this.mTabService.dragWindowManager.hideWindow();
-        this.mTabService.ejectTab(payload.window, {x: payload.event.screenX, y: payload.event.screenY});
+        tabService.dragWindowManager.hideWindow();
+        tabService.ejectTab(payload.window, {x: payload.event.screenX, y: payload.event.screenY});
     }
 }

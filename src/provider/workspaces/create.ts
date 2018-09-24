@@ -4,11 +4,12 @@ import {WindowDetail, WindowInfo} from 'hadouken-js-adapter/out/types/src/api/sy
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {CustomData, Layout, LayoutApp, LayoutWindowData, WindowState} from '../../client/types';
+import {apiHandler} from '../main';
 import {promiseMap} from '../snapanddock/utils/async';
 import {TabService} from '../tabbing/TabService';
 
 import {getGroup} from './group';
-import {isClientConnection, sendToClient, wasCreatedFromManifest, wasCreatedProgrammatically} from './utils';
+import {wasCreatedFromManifest, wasCreatedProgrammatically} from './utils';
 
 
 export const getCurrentLayout = async(): Promise<Layout> => {
@@ -87,12 +88,12 @@ export const generateLayout = async(payload: null, identity: Identity): Promise<
 
     const apps = await promiseMap(preLayout.apps, async (app: LayoutApp) => {
         const defaultResponse = {...app};
-        if (isClientConnection(app)) {
+        if (apiHandler.isClientConnection(app)) {
             console.log('Connected application', app.uuid);
 
             // HOW TO DEAL WITH HUNG REQUEST HERE? RESHAPE IF GET NOTHING BACK?
             let customData: CustomData = undefined;
-            await sendToClient(app, 'savingLayout', app);
+            await apiHandler.sendToClient(app, 'savingLayout', app);
 
             if (!customData) {
                 customData = null;

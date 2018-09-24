@@ -171,7 +171,7 @@ export class DesktopTabGroup extends DesktopEntity {
     /**
      * Restores the tab set window.  If the tab set window is in a maximized state we will restore the window to its "before maximized" bounds.
      */
-    public async restore(): Promise<void|void[]> {
+    public async restore(): Promise<void> {
         if (this._isMaximized) {
             if (await this.activeTab.getState().state === 'minimized') {
                 await Promise.all(this.tabs.map(tab => tab.applyProperties({state: 'normal'})));
@@ -183,7 +183,7 @@ export class DesktopTabGroup extends DesktopEntity {
                     center: {x: bounds.center.x, y: bounds.center.y - bounds.halfSize.y - (this._config.height / 2)},
                     halfSize: {x: bounds.halfSize.x, y: this._config.height / 2}
                 });
-                return this.activeTab.applyProperties(bounds);
+                await this.activeTab.applyProperties(bounds);
             }
         } else {
             await Promise.all(this.tabs.map(tab => tab.applyProperties({state: 'normal'})));
@@ -260,7 +260,7 @@ export class DesktopTabGroup extends DesktopEntity {
      * Reorders the tab structure to match what is present in the UI.
      * @param {TabIdentifier[]} orderReference The order which we should rearrange our tabs to match.  This will come from the UI component.
      */
-    public reOrderTabArray(orderReference: TabIdentifier[]): boolean {
+    public reOrderTabArray(orderReference: TabIdentifier[]): void {
         const newlyOrdered: DesktopWindow[] = orderReference
                                                   .map((ref: TabIdentifier) => {
                                                       // Look-up each given identity within list of tabs
@@ -276,10 +276,8 @@ export class DesktopTabGroup extends DesktopEntity {
 
         if (newlyOrdered.length === this._tabs.length) {
             this._tabs = newlyOrdered;
-            return true;
         } else {
-            console.error('Input array must reference each tab exactly once');
-            return false;
+            throw new Error('Input array must reference each tab exactly once');
         }
     }
 

@@ -22,11 +22,6 @@ export class TabService {
     private _model: DesktopModel;
 
     /**
-     * Handle to the Tabbing API Handler
-     */
-    private _apiHandler: APIHandler;
-
-    /**
      * Handle to the DragWindowManager
      */
     private _dragWindowManager: DragWindowManager;
@@ -44,18 +39,10 @@ export class TabService {
         this._model = model;
         this._dragWindowManager = new DragWindowManager();
         this._dragWindowManager.init();
-        this._apiHandler = new APIHandler(model, this);
 
         this.mApplicationConfigManager = new ApplicationConfigManager();
 
         TabService.INSTANCE = this;
-    }
-
-    /**
-     * Returns the handler that connects the client and this service
-     */
-    public get apiHandler(): APIHandler {
-        return this._apiHandler;
     }
 
     /**

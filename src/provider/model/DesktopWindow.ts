@@ -1,12 +1,12 @@
 import {Window} from 'hadouken-js-adapter';
 
 import {TabServiceID} from '../../client/types';
+import {apiHandler} from '../main';
 import {Signal1, Signal2} from '../Signal';
 import {p, promiseMap} from '../snapanddock/utils/async';
 import {isWin10} from '../snapanddock/utils/platform';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle} from '../snapanddock/utils/RectUtils';
-import {sendToClient} from '../workspaces/utils';
 
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
@@ -579,7 +579,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
     // tslint:disable-next-line:no-any
     public async sendMessage(action: WindowMessages, payload: any): Promise<void> {
         if (this.ready) {
-            await sendToClient(this.identity, action, payload);
+            await apiHandler.sendToClient(this.identity, action, payload);
         }
     }
 

@@ -27,6 +27,7 @@ const getId = (() => {
     };
 })();
 
+// TODO: Used named channel
 const channelPromise: Promise<ChannelClient> = fin.InterApplicationBus.Channel.connect({...IDENTITY, payload: {version}}).then((channel: ChannelClient) => {
     // Register service listeners
     channel.register('WARN', (payload: any) => console.warn(payload));  // tslint:disable-line:no-any

@@ -1,11 +1,11 @@
 import {ApplicationUIConfig, TabBlob, TabIdentifier, TabWindowOptions} from '../../client/types';
+import {APIHandler} from '../APIHandler';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {DesktopWindow, WindowIdentity} from '../model/DesktopWindow';
 import {Rectangle} from '../snapanddock/utils/RectUtils';
 
-import {APIHandler} from './APIHandler';
 import {ApplicationConfigManager} from './components/ApplicationConfigManager';
 import {DragWindowManager} from './DragWindowManager';
 

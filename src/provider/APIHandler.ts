@@ -1,11 +1,11 @@
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
-import {ApplicationUIConfig, DropPosition, TabIdentifier, TabProperties} from '../../client/types';
-import {DesktopModel} from '../model/DesktopModel';
-import {DesktopTabGroup} from '../model/DesktopTabGroup';
-import {DesktopWindow} from '../model/DesktopWindow';
+import {ApplicationUIConfig, DropPosition, TabIdentifier, TabProperties} from '../client/types';
+import {DesktopModel} from './model/DesktopModel';
+import {DesktopTabGroup} from './model/DesktopTabGroup';
+import {DesktopWindow} from './model/DesktopWindow';
 
-import {TabService} from './TabService';
+import {TabService} from './tabbing/TabService';
 
 /**
  * Handles all calls from tab api to service

@@ -37,6 +37,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
         let activeWindowRemoved = false;
 
         tabGroup.tabs.forEach(tabWindow => {
+            // Filter tabs out if either the window itself or its parent is deregistered from Save and Restore
             const parentIsDeregistered = inWindowObject({uuid: tabWindow.uuid, name: tabWindow.uuid}, deregisteredWindows);
             const windowIsDeregistered = inWindowObject(tabWindow, deregisteredWindows);
 
@@ -49,20 +50,26 @@ export const getCurrentLayout = async(): Promise<Layout> => {
             }
         });
 
+        // If the active window was removed, set a new window from the group to show
         if (activeWindowRemoved && filteredTabs.length >= 1) {
             const newActiveWindow = filteredTabs[0];
             tabGroup.groupInfo.active = newActiveWindow;
             addToWindowObject(newActiveWindow, newShowingWindows);
-            if (filteredTabs.length === 1) {
-                addToWindowObject(newActiveWindow, newUntabbedWindows);
-            }
         }
 
+        // If there is only one window left, it should be untabbed now
+        if (filteredTabs.length === 1) {
+            const lastWindow = filteredTabs[0];
+            addToWindowObject(lastWindow, newUntabbedWindows);
+        }
+
+        // If we still have enough windows for a tab group, include it in filteredTabGroups
         if (filteredTabs.length > 1) {
             filteredTabGroups.push({groupInfo: tabGroup.groupInfo, tabs: filteredTabs});
         }
     });
 
+    // Populate the tabbedWindows object for easy lookup
     filteredTabGroups.forEach((tabGroup) => {
         tabGroup.tabs.forEach(tabWindow => {
             addToWindowObject(tabWindow, tabbedWindows);
@@ -90,9 +97,9 @@ export const getCurrentLayout = async(): Promise<Layout> => {
                 return {} as ApplicationInfo;
             });
 
+            // Grab the layout information for the main app window
             const mainOfWin: Window = await ofApp.getWindow();
             const mainWindowLayoutData = await getLayoutWindowData(mainOfWin, tabbedWindows, newShowingWindows, newUntabbedWindows);
-
             const mainWindow: WindowState = {...windowInfo.mainWindow, ...mainWindowLayoutData};
 
             // Filter for deregistered child windows
@@ -104,6 +111,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
                 return true;
             });
 
+            // Grab the layout information for the child windows
             const childWindows: WindowState[] = await promiseMap(windowInfo.childWindows, async (win: WindowDetail) => {
                 const {name} = win;
                 const ofWin = await fin.Window.wrap({uuid, name});
@@ -163,6 +171,7 @@ export const generateLayout = async(payload: null, identity: Identity): Promise<
     return confirmedLayout;
 };
 
+// Grabs all of the necessary layout information for a window. Filters by multiple criteria.
 const getLayoutWindowData =
     async(ofWin: Window, tabbedWindows: WindowObject, newShowingWindows: WindowObject, newUntabbedWindows: WindowObject): Promise<LayoutWindowData> => {
     const {uuid} = ofWin.identity;
@@ -171,6 +180,7 @@ const getLayoutWindowData =
     const windowGroup = await getGroup(ofWin.identity);
     const filteredWindowGroup: Identity[] = [];
     windowGroup.forEach((windowIdentity) => {
+        // Filter window group by checking to see if the window itself or its parent are deregistered. If either of them are, don't include in window group.
         const parentIsDeregistered = inWindowObject({uuid: windowIdentity.uuid, name: windowIdentity.uuid}, deregisteredWindows);
         const windowIsDeregistered = inWindowObject(windowIdentity, deregisteredWindows);
         if (!parentIsDeregistered && !windowIsDeregistered && windowIdentity.uuid !== 'layouts-service') {
@@ -180,8 +190,11 @@ const getLayoutWindowData =
 
     const options = await ofWin.getOptions();
 
+    // If a window was tabbed, but should be untabbed now because its tabGroup has only 1 member now, give it a frame.
     const frame = inWindowObject(ofWin.identity, newUntabbedWindows) ? true : options.frame;
+    // If a window is tabbed (based on filtered tabGroups), tab it.
     const isTabbed = inWindowObject(ofWin.identity, tabbedWindows) ? true : false;
+    // If a window was tabbed, but either should be untabbed or is now the active window, show it.
     const isShowing = inWindowObject(ofWin.identity, newShowingWindows) ? true : await ofWin.isShowing();
 
     return {info, uuid, windowGroup: filteredWindowGroup, frame, state: options.state, isTabbed, isShowing};

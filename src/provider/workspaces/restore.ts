@@ -141,10 +141,9 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
             if (isRunning) {
                 const appConnection = getClientConnection({uuid, name});
                 if (appConnection) {
-                    // CREATE CHILD WINDOW PLACEHOLDER IMAGES???
                     await positionWindow(app.mainWindow);
                     console.log('App is running:', app);
-                    // Send LayoutApp to connected application so it can handle child WIndows
+                    // Send LayoutApp to connected application so it can handle child windows
                     const response: LayoutApp|false = await providerChannel.dispatch(appConnection, 'restoreApp', app);
                     console.log('Response from restore:', response);
                     return response ? response : defaultResponse;
@@ -178,6 +177,8 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
                         console.error('Unable to restart programmatically launched app:', app);
                     }
                 }
+
+                // Set up listener for app window shown to run and position it.
                 if (ofAppNotRunning) {
                     const ofAppNRWindow = await ofAppNotRunning.getWindow();
                     const updateOptionsAndShow = async () => {
@@ -206,6 +207,6 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
     layout.apps = allAppResponses;
     // Regroup the windows
     await regroupLayout(allAppResponses).catch(console.log);
-    // send the layout back to the requester of the restore
+    // Send the layout back to the requester of the restore
     return layout;
 };

@@ -201,6 +201,11 @@ export function inWindowObject(win: Identity, windowObject: WindowObject|TabbedP
     return false;
 }
 
+// Helper function to add to a Window Object
+export function addToWindowObject(identity: WindowIdentity, windowObject: WindowObject) {
+    windowObject[identity.uuid] = Object.assign({}, windowObject[identity.uuid], {[identity.name]: true});
+}
+
 // Creates a tabbing placeholder and records the information for its corresponding window.
 export async function createTabbedPlaceholderAndRecord(win: WindowState, tabbedPlaceholdersToWindows: TabbedPlaceholders) {
     const tabPlaceholder = await createTabPlaceholder(win);

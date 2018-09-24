@@ -9,12 +9,12 @@ import {promiseMap} from '../snapanddock/utils/async';
 import {getTabSaveInfo} from '../tabbing/SaveAndRestoreAPI';
 
 import {getGroup} from './group';
-import {isClientConnection, sendToClient, wasCreatedFromManifest, wasCreatedProgrammatically, WindowObject, inWindowObject} from './utils';
+import {isClientConnection, sendToClient, wasCreatedFromManifest, wasCreatedProgrammatically, WindowObject, inWindowObject, addToWindowObject} from './utils';
 
 const deregisteredWindows: WindowObject = {};
 
 export const deregisterWindow = (identity: WindowIdentity) => {
-    deregisteredWindows[identity.uuid] = Object.assign({}, deregisteredWindows[identity.uuid], {[identity.name]: true});
+    addToWindowObject(identity, deregisteredWindows);
 };
 
 export const getCurrentLayout = async(): Promise<Layout> => {
@@ -52,9 +52,9 @@ export const getCurrentLayout = async(): Promise<Layout> => {
         if (activeWindowRemoved && filteredTabs.length >= 1) {
             const newActiveWindow = filteredTabs[0];
             tabGroup.groupInfo.active = newActiveWindow;
-            newShowingWindows[newActiveWindow.uuid] = Object.assign({}, newShowingWindows[newActiveWindow.uuid], { [newActiveWindow.name]: true});
+            addToWindowObject(newActiveWindow, newShowingWindows);
             if (filteredTabs.length === 1) {
-                newUntabbedWindows[newActiveWindow.uuid] = Object.assign({}, newUntabbedWindows[newActiveWindow.uuid], { [newActiveWindow.name]: true});
+                addToWindowObject(newActiveWindow, newUntabbedWindows);                
             }
         }
 
@@ -65,7 +65,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
 
     filteredTabGroups.forEach((tabGroup) => {
         tabGroup.tabs.forEach(tabWindow => {
-            tabbedWindows[tabWindow.uuid] = Object.assign({}, tabbedWindows[tabWindow.uuid], {[tabWindow.name]: true});
+            addToWindowObject(tabWindow, tabbedWindows);
         });
     });
 

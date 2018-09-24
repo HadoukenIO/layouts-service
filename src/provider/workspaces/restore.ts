@@ -11,7 +11,7 @@ import {TabService} from '../tabbing/TabService';
 import {createTabGroupsFromTabBlob} from '../tabbing/TabUtilities';
 
 import {regroupLayout} from './group';
-import {childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, getClientConnection, inWindowObject, positionWindow, TabbedPlaceholders, wasCreatedProgrammatically, WindowObject} from './utils';
+import {childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, getClientConnection, inWindowObject, positionWindow, TabbedPlaceholders, wasCreatedProgrammatically, WindowObject, addToWindowObject} from './utils';
 
 const appsToRestore = new Map();
 
@@ -68,7 +68,7 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
     // Create tabbedWindows list so we don't have to iterate over all of the tabGroup/TabBlob arrays.
     layout.tabGroups.forEach((tabGroup) => {
         tabGroup.tabs.forEach(tabWindow => {
-            tabbedWindows[tabWindow.uuid] = Object.assign({}, tabbedWindows[tabWindow.uuid], {[tabWindow.name]: true});
+            addToWindowObject(tabWindow, tabbedWindows);
         });
     });
 

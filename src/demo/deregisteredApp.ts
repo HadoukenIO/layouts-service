@@ -17,14 +17,15 @@ let numChildren = 0;
 const launchDir = location.href.slice(0, location.href.lastIndexOf('/'));
 
 export async function createChild(parentWindowName: string): Promise<void> {
-    openChild(parentWindowName + ' -  win' + numChildren, numChildren);
-    numChildren++;
+    const win = await openChild(parentWindowName + ' -  win' + numChildren, numChildren);
+    win.show();
 }
 
 export function openChild(name: string, i: number, frame = true, url?: string) {
+    numChildren++;
     const win = fin.Window.create({
         url: url || `${launchDir}/demo-window.html`,
-        autoShow: true,
+        autoShow: false,
         defaultHeight: 250 + 50 * i,
         defaultWidth: 250 + 50 * i,
         defaultLeft: 320 * (i % 3),

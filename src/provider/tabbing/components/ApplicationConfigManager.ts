@@ -58,18 +58,18 @@ export class ApplicationConfigManager {
      * @param uuid The uuid to search for
      */
     public exists(uuid: string): boolean {
-        return this.mApplicationUIConfigurations[uuid] ? true : false;
+        return this.mApplicationUIConfigurations.hasOwnProperty(uuid);
     }
 
     /**
      * Checks and Compares two UUIDs to see if they have compatible UIs for tabbing.
-     * @param {string} uuid The first uuid to compare
-     * @param {string} otherUuid THe other uuid to compare
+     * @param {string|ApplicationUIConfig} app1 The first application to compare - either an application UUID, or an application's config
+     * @param {string|ApplicationUIConfig} app2 The second application to compare - either an application UUID, or an application's config
      */
-    public compareConfigBetweenApplications(uuid: string, otherUuid: string): boolean {
-        const config: ApplicationUIConfig|undefined = this.getApplicationUIConfig(uuid);
-        const otherConfig: ApplicationUIConfig|undefined = this.getApplicationUIConfig(otherUuid);
+    public compareConfigBetweenApplications(app1: string|ApplicationUIConfig, app2: string|ApplicationUIConfig): boolean {
+        const config1: ApplicationUIConfig = (typeof app1 === 'string') ? this.getApplicationUIConfig(app1) : app1;
+        const config2: ApplicationUIConfig = (typeof app2 === 'string') ? this.getApplicationUIConfig(app2) : app2;
 
-        return ((config && otherConfig && config.url === otherConfig.url) || (!config && !otherConfig));
+        return config1.url === config2.url;
     }
 }

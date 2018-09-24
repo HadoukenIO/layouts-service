@@ -240,7 +240,7 @@ export class TabService {
         }
 
         // If we have a screen position we check if there is a tab group + tab window underneath
-        const isOverTabWindow: DesktopWindow|null = (options.x && options.y) ? this._model.getWindowAt(options.x, options.y, tab) : null;
+        const isOverTabWindow: DesktopWindow|null = (options.x && options.y) ? this._model.getWindowAt(options.x, options.y) : null;
         const isOverTabGroup: DesktopTabGroup|null = isOverTabWindow && isOverTabWindow.getTabGroup();
 
         // Decide what to do with the tab
@@ -252,7 +252,6 @@ export class TabService {
                 const center = {x: options.x + halfSize.x, y: options.y + halfSize.y};
                 await tabGroup.removeTab(ejectedTab, {center, halfSize});
             } else {
-                // ejectedTab.applyProperties({hidden: false});
                 await tabGroup.removeTab(ejectedTab);
             }
         } else if (isOverTabGroup !== tabGroup) {

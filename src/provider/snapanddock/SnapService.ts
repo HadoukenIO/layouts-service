@@ -59,7 +59,7 @@ export class SnapService {
             .register(
                 'CommandOrControl+Shift+U',
                 () => {
-                    fin.desktop.System.getFocusedWindow().then(focusedWindow => {
+                    fin.desktop.System.getFocusedWindow((focusedWindow: WindowIdentity|null) => {
                         if (focusedWindow !== null && this.model.getWindow(focusedWindow)) {
                             console.log('Global hotkey invoked on window', focusedWindow);
                             this.undock(focusedWindow);
@@ -202,16 +202,16 @@ export class SnapService {
 
                 // There is a window under our drop point
                 if (windowUnderPoint) {
-                    if (appConfigMgr.compareConfigBetweenApplications(windowUnderPoint.getIdentity().uuid, activeIdentity.uuid)) {
-                        const existingTabSet: DesktopTabGroup|null = windowUnderPoint.getTabGroup();
+                    const existingTabSet: DesktopTabGroup|null = windowUnderPoint.getTabGroup();
 
-                        if (existingTabSet) {
-                            // Add to existing tab group
-                            existingTabSet.addTab(activeWindow);
-                        } else if (windowUnderPoint instanceof DesktopWindow) {
-                            // If not a tab group then create a group with the 2 tabs.
-                            TabService.INSTANCE.createTabGroupWithTabs([windowUnderPoint.getIdentity(), activeIdentity]);
-                        }
+                    if (existingTabSet && appConfigMgr.compareConfigBetweenApplications(activeIdentity.uuid, existingTabSet.config)) {
+                        // Add to existing tab group
+                        existingTabSet.addTab(activeWindow);
+                    } else if (
+                        windowUnderPoint instanceof DesktopWindow &&
+                        appConfigMgr.compareConfigBetweenApplications(windowUnderPoint.getIdentity().uuid, activeIdentity.uuid)) {
+                        // If not a tab group then create a group with the 2 tabs.
+                        TabService.INSTANCE.createTabGroupWithTabs([windowUnderPoint.getIdentity(), activeIdentity], activeIdentity);
                     }
                 }
             }

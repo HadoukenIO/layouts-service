@@ -85,6 +85,7 @@ export class DesktopTabGroup extends DesktopEntity {
 
         this.ID = this.identity.name;
         this._window = new DesktopWindow(this.model, group, tabStripOptions);
+        this._window.setTabGroup(this);
         this._tabs = [];
         this._tabProperties = {};
         this._config = options;
@@ -323,14 +324,10 @@ export class DesktopTabGroup extends DesktopEntity {
             }
 
             // Activate next tab
-            if (this._tabs.length > 0 && this.activeTab.getId() === tab.getId()) {
+            if (this._tabs.length >= 2 && this.activeTab.getId() === tab.getId()) {
                 const nextTab: DesktopWindow = this._tabs[index] ? this._tabs[index] : this._tabs[index - 1];
 
-                if (this.tabs.length === 1) {
-                    promises.push(this.tabs[0].applyProperties({hidden: false}));
-                } else {
-                    promises.push(this.switchTab(nextTab));
-                }
+                promises.push(this.switchTab(nextTab));
             }
 
             await Promise.all(promises);
@@ -364,10 +361,12 @@ export class DesktopTabGroup extends DesktopEntity {
      */
     public removeAllTabs(closeApps: boolean): Promise<void> {
         const tabs: DesktopWindow[] = this._tabs.slice();
-        const promises: Promise<void>[] = tabs.map(tab => this.removeTab(tab));
+        let promises: Promise<void>[];
 
         if (closeApps) {
-            promises.push.apply(promises, tabs.map(tab => tab.close()));
+            promises = tabs.map(tab => tab.close());
+        } else {
+            promises = tabs.map(tab => this.removeTab(tab));
         }
 
         return Promise.all(promises).then(() => {});
@@ -420,21 +419,20 @@ export class DesktopTabGroup extends DesktopEntity {
 
         tab.setSnapGroup(this._window.getSnapGroup());
         tab.setTabGroup(this);
-        if (setActive) {
-            await this.switchTab(tab);
-        }
-
-        await Promise.all([tab.sync(), this.sync(), this._window.sync()]);
 
         const payload:
             JoinTabGroupPayload = {tabGroupId: this.ID, tabID: tab.getIdentity(), tabProps: this._tabProperties[tab.getId()], index: this.tabs.indexOf(tab)};
-
         const addTabPromise: Promise<void> = (async () => {
             await this.sendTabEvent(tab, WindowMessages.JOIN_TAB_GROUP, payload);
             await tab.applyProperties({hidden: tab !== this._activeTab});
             await this.window.bringToFront();
         })();
-        this.addPendingActions('add tab - ' + this.id, addTabPromise);
+        await this.addPendingActions('add tab - ' + this.id, addTabPromise);
+        if (setActive) {
+            await this.switchTab(tab);
+        }
+
+        await Promise.all([tab.sync(), this.sync(), this._window.sync()]);
     }
 
     private async removeTabInternal(tab: DesktopWindow, index: number): Promise<void> {
@@ -447,11 +445,17 @@ export class DesktopTabGroup extends DesktopEntity {
         const payload: TabGroupEventPayload = {tabGroupId: this.ID, tabID: tab.getIdentity()};
         await this.sendTabEvent(tab, WindowMessages.LEAVE_TAB_GROUP, payload);
 
-        if (this._tabs.length === 1) {
-            // TODO: Call removeTab on the one remaining tab?..
-            await Promise.all(this._tabs.map((tab) => tab.applyProperties({hidden: false})));
-            await this.removeAllTabs(false);
-            await this._window.close();
+        if (this._tabs.length < 2 && this._window.isReady()) {
+            // Note: Sensitive order of operations, change with caution.
+            const closePromise = this._window.close();
+            const removeTabPromises = this._tabs.map(async (tab) => {
+                // We don't receive bounds updates when windows are hidden, so cached position of inactive tabs are likely to be incorrect.
+                // Update cached position before removing tab, so that we can correctly resize the window to re-add the tabstrip height onto the window.
+                await tab.refresh();
+                await this.removeTab(tab);
+            });
+            await Promise.all(removeTabPromises.concat(closePromise));
+
             DesktopTabGroup.onDestroyed.emit(this);
         }
     }
@@ -463,9 +467,9 @@ export class DesktopTabGroup extends DesktopEntity {
     }
 
     private async sendTabEvent<T extends TabGroupEventPayload>(tab: DesktopWindow, event: WindowMessages, payload: T): Promise<void> {
-        await Promise.all<Promise<void>|null, Promise<void>>([
+        await Promise.all([
             // Send event to application
-            tab.isReady() ? tab.sendMessage(event, payload) : null,
+            tab.sendMessage(event, payload),
 
             // Send event to tabstrip
             this.window.sendMessage(event, payload)

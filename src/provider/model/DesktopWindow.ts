@@ -338,6 +338,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
 
             // Leave previous snap group
             if (this.snapGroup === group && this.ready) {
+                // TODO: Ensure returned promise includes this change. Need to await this?..
                 this.addPendingActions('setSnapGroup - leave existing group', this.window!.leaveGroup());
             }
 
@@ -400,6 +401,18 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         return !state.hidden && state.opacity > 0 && state.state !== 'minimized';
     }
 
+    public refresh(): Promise<void> {
+        const window: Window = this.window!;
+
+        if (this.ready) {
+            return DesktopWindow.getWindowState(window).then((state: WindowState) => {
+                return this.updateState(state, ActionOrigin.APPLICATION);
+            });
+        } else {
+            return Promise.resolve();
+        }
+    }
+
     private snap(): Promise<void> {
         const group: DesktopSnapGroup = this.snapGroup;
         const windows: DesktopWindow[] = this.snapGroup.windows as DesktopWindow[];
@@ -411,17 +424,19 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
 
             // Merge window groups
             return Promise.all([this.sync(), other.sync()]).then(() => {
-                this.addPendingActions('snap - joinGroup', (async(): Promise<void> => {
-                                           if (this.ready && group === this.snapGroup) {
-                                               await this.window!.joinGroup(other.window!);
+                const joinGroupPromise: Promise<void> = (async () => {
+                    if (this.ready && group === this.snapGroup) {
+                        await this.window!.joinGroup(other.window!);
 
-                                               // Re-fetch window list in case it has changed during sync
-                                               const windows: DesktopWindow[] = this.snapGroup.windows as DesktopWindow[];
+                        // Re-fetch window list in case it has changed during sync
+                        const windows: DesktopWindow[] = this.snapGroup.windows as DesktopWindow[];
 
-                                               // Bring other windows in group to front
-                                               await windows.map(groupWindow => groupWindow.window!.bringToFront());
-                                           }
-                                       })());
+                        // Bring other windows in group to front
+                        await windows.map(groupWindow => groupWindow.window!.bringToFront());
+                    }
+                })();
+
+                return this.addPendingActions('snap - joinGroup', joinGroupPromise);
             });
         } else if (index === -1) {
             return Promise.reject('Attempting to snap, but window isn\'t in the target group');
@@ -434,13 +449,6 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         this.prevGroup = this.snapGroup;
         this.snapGroup = group;
         group.addWindow(this);
-    }
-
-    private refreshOptions(): void {
-        DesktopWindow.getWindowState(this.window!).then((state: WindowState) => {
-            // TODO: Filter to only properties that have changed?
-            this.updateState(state, ActionOrigin.APPLICATION);
-        });
     }
 
     private async updateState(delta: Partial<WindowState>, origin: ActionOrigin): Promise<void> {
@@ -525,7 +533,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             }
 
             // Track these changes
-            return this.addPendingActions('updateState ' + this.id, actions);
+            return this.addPendingActions('updateState ' + this.id + ' ' + JSON.stringify(delta), actions);
         }
     }
 
@@ -569,11 +577,9 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
     }
 
     // tslint:disable-next-line:no-any
-    public sendMessage(action: WindowMessages, payload: any): Promise<void> {
+    public async sendMessage(action: WindowMessages, payload: any): Promise<void> {
         if (this.ready) {
-            return sendToClient(this.identity, action, payload);
-        } else {
-            return Promise.reject(new Error('Cannot send event, window not ready: ' + this.id));
+            await sendToClient(this.identity, action, payload);
         }
     }
 

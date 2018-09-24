@@ -3,13 +3,13 @@ import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/application
 import {WindowDetail, WindowInfo} from 'hadouken-js-adapter/out/types/src/api/system/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
-import {CustomData, Layout, LayoutApp, LayoutWindowData, WindowState, TabIdentifier, TabBlob} from '../../client/types';
+import {CustomData, Layout, LayoutApp, LayoutWindowData, TabBlob, TabIdentifier, WindowState} from '../../client/types';
 import {WindowIdentity} from '../snapanddock/SnapWindow';
 import {promiseMap} from '../snapanddock/utils/async';
 import {getTabSaveInfo} from '../tabbing/SaveAndRestoreAPI';
 
 import {getGroup} from './group';
-import {isClientConnection, sendToClient, wasCreatedFromManifest, wasCreatedProgrammatically, WindowObject, inWindowObject, addToWindowObject} from './utils';
+import {addToWindowObject, inWindowObject, isClientConnection, sendToClient, wasCreatedFromManifest, wasCreatedProgrammatically, WindowObject} from './utils';
 
 const deregisteredWindows: WindowObject = {};
 
@@ -54,7 +54,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
             tabGroup.groupInfo.active = newActiveWindow;
             addToWindowObject(newActiveWindow, newShowingWindows);
             if (filteredTabs.length === 1) {
-                addToWindowObject(newActiveWindow, newUntabbedWindows);                
+                addToWindowObject(newActiveWindow, newUntabbedWindows);
             }
         }
 
@@ -163,14 +163,15 @@ export const generateLayout = async(payload: null, identity: Identity): Promise<
     return confirmedLayout;
 };
 
-const getLayoutWindowData = async (ofWin: Window, tabbedWindows: WindowObject, newShowingWindows: WindowObject, newUntabbedWindows: WindowObject): Promise<LayoutWindowData> => {
+const getLayoutWindowData =
+    async(ofWin: Window, tabbedWindows: WindowObject, newShowingWindows: WindowObject, newUntabbedWindows: WindowObject): Promise<LayoutWindowData> => {
     const {uuid} = ofWin.identity;
     const info = await ofWin.getInfo();
-    
+
     const windowGroup = await getGroup(ofWin.identity);
     const filteredWindowGroup: Identity[] = [];
     windowGroup.forEach((windowIdentity) => {
-        const parentIsDeregistered = inWindowObject({ uuid: windowIdentity.uuid, name: windowIdentity.uuid }, deregisteredWindows);
+        const parentIsDeregistered = inWindowObject({uuid: windowIdentity.uuid, name: windowIdentity.uuid}, deregisteredWindows);
         const windowIsDeregistered = inWindowObject(windowIdentity, deregisteredWindows);
         if (!parentIsDeregistered && !windowIsDeregistered && windowIdentity.uuid !== 'layouts-service') {
             filteredWindowGroup.push(windowIdentity);
@@ -178,10 +179,10 @@ const getLayoutWindowData = async (ofWin: Window, tabbedWindows: WindowObject, n
     });
 
     const options = await ofWin.getOptions();
-    
+
     const frame = inWindowObject(ofWin.identity, newUntabbedWindows) ? true : options.frame;
     const isTabbed = inWindowObject(ofWin.identity, tabbedWindows) ? true : false;
     const isShowing = inWindowObject(ofWin.identity, newShowingWindows) ? true : await ofWin.isShowing();
 
-    return { info, uuid, windowGroup: filteredWindowGroup, frame, state: options.state, isTabbed, isShowing};
+    return {info, uuid, windowGroup: filteredWindowGroup, frame, state: options.state, isTabbed, isShowing};
 };

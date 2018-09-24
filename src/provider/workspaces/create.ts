@@ -21,13 +21,14 @@ export const getCurrentLayout = async(): Promise<Layout> => {
     // Not yet using monitor info
     const monitorInfo = await fin.System.getMonitorInfo() || {};
     let tabGroups = await getTabSaveInfo();
-    const tabbedWindows: {[uuid: string]: {[name: string]: boolean}} = {};
+    const tabbedWindows: WindowObject = {};
+    const newShowingWindows: WindowObject = {};
+    const newUntabbedWindows: WindowObject = {};
 
     if (tabGroups === undefined) {
         tabGroups = [];
     }
 
-    
     // Filter out tabGroups with deregistered parents.
     const filteredTabGroups: TabBlob[] = [];
 
@@ -48,10 +49,16 @@ export const getCurrentLayout = async(): Promise<Layout> => {
             }
         });
 
-        if (filteredTabs.length > 1) {
-            if (activeWindowRemoved) {
-                tabGroup.groupInfo.active = filteredTabs[0];
+        if (activeWindowRemoved && filteredTabs.length >= 1) {
+            const newActiveWindow = filteredTabs[0];
+            tabGroup.groupInfo.active = newActiveWindow;
+            newShowingWindows[newActiveWindow.uuid] = Object.assign({}, newShowingWindows[newActiveWindow.uuid], { [newActiveWindow.name]: true});
+            if (filteredTabs.length === 1) {
+                newUntabbedWindows[newActiveWindow.uuid] = Object.assign({}, newUntabbedWindows[newActiveWindow.uuid], { [newActiveWindow.name]: true});
             }
+        }
+
+        if (filteredTabs.length > 1) {
             filteredTabGroups.push({groupInfo: tabGroup.groupInfo, tabs: filteredTabs});
         }
     });
@@ -84,7 +91,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
             });
 
             const mainOfWin: Window = await ofApp.getWindow();
-            const mainWindowLayoutData = await getLayoutWindowData(mainOfWin, tabbedWindows);
+            const mainWindowLayoutData = await getLayoutWindowData(mainOfWin, tabbedWindows, newShowingWindows, newUntabbedWindows);
 
             const mainWindow: WindowState = {...windowInfo.mainWindow, ...mainWindowLayoutData};
 
@@ -100,7 +107,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
             const childWindows: WindowState[] = await promiseMap(windowInfo.childWindows, async (win: WindowDetail) => {
                 const {name} = win;
                 const ofWin = await fin.Window.wrap({uuid, name});
-                const windowLayoutData = await getLayoutWindowData(ofWin, tabbedWindows);
+                const windowLayoutData = await getLayoutWindowData(ofWin, tabbedWindows, newShowingWindows, newUntabbedWindows);
 
                 return {...win, ...windowLayoutData};
             });
@@ -122,6 +129,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
     });
     const validApps: LayoutApp[] = layoutApps.filter((a): a is LayoutApp => !!a);
     console.log('Pre-Layout Save Apps:', apps);
+    console.log('Post-Layout Valid Apps:', validApps);
 
     const layoutObject: Layout = {type: 'layout', apps: validApps, monitorInfo, tabGroups: filteredTabGroups};
     return layoutObject;
@@ -155,23 +163,25 @@ export const generateLayout = async(payload: null, identity: Identity): Promise<
     return confirmedLayout;
 };
 
-const getLayoutWindowData = async (ofWin: Window, tabbedWindows: WindowObject): Promise<LayoutWindowData> => {
+const getLayoutWindowData = async (ofWin: Window, tabbedWindows: WindowObject, newShowingWindows: WindowObject, newUntabbedWindows: WindowObject): Promise<LayoutWindowData> => {
     const {uuid} = ofWin.identity;
     const info = await ofWin.getInfo();
+    
     const windowGroup = await getGroup(ofWin.identity);
     const filteredWindowGroup: Identity[] = [];
     windowGroup.forEach((windowIdentity) => {
-        const isDeregistered = inWindowObject(windowIdentity, deregisteredWindows);
-        if (isDeregistered === false && windowIdentity.uuid !== 'layouts-service') {
+        const parentIsDeregistered = inWindowObject({ uuid: windowIdentity.uuid, name: windowIdentity.uuid }, deregisteredWindows);
+        const windowIsDeregistered = inWindowObject(windowIdentity, deregisteredWindows);
+        if (!parentIsDeregistered && !windowIsDeregistered && windowIdentity.uuid !== 'layouts-service') {
             filteredWindowGroup.push(windowIdentity);
         }
     });
-    let isTabbed = false;
-    if (inWindowObject(ofWin.identity, tabbedWindows)) {
-        isTabbed = true;
-    }
 
     const options = await ofWin.getOptions();
-    const isShowing: boolean = await ofWin.isShowing();
-    return { info, uuid, windowGroup: filteredWindowGroup, frame: options.frame, state: options.state, isTabbed, isShowing};
+    
+    const frame = inWindowObject(ofWin.identity, newUntabbedWindows) ? true : options.frame;
+    const isTabbed = inWindowObject(ofWin.identity, tabbedWindows) ? true : false;
+    const isShowing = inWindowObject(ofWin.identity, newShowingWindows) ? true : await ofWin.isShowing();
+
+    return { info, uuid, windowGroup: filteredWindowGroup, frame, state: options.state, isTabbed, isShowing};
 };

@@ -94,10 +94,11 @@ export const createNormalPlaceholder = async (win: WindowState) => {
         });
 
     const actualWindow = await fin.Window.wrap({uuid, name});
-    // @ts-ignore v2 types missing 'shown' event.
-    actualWindow.on('shown', () => {
-        placeholder.close();
-    });
+    const updateOptionsAndShow = async () => {
+        await actualWindow.removeListener('shown', updateOptionsAndShow);
+        await placeholder.close();
+    };
+    await actualWindow.addListener('shown', updateOptionsAndShow);
 
     return placeholder;
 };
@@ -127,11 +128,12 @@ export const createTabPlaceholder = async (win: WindowState) => {
         });
 
     const actualWindow = await fin.Window.wrap({uuid, name});
-    // @ts-ignore
-    actualWindow.on('shown', async () => {
+    const updateOptionsAndShow = async () => {
+        await actualWindow.removeListener('shown', updateOptionsAndShow);
         await swapTab(actualWindow.identity as TabIdentifier, placeholder);
-        placeholder.close();
-    });
+        await placeholder.close();
+    };
+    await actualWindow.addListener('shown', updateOptionsAndShow);
 
     return placeholder;
 };

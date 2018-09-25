@@ -22,7 +22,7 @@ export class DesktopModel {
         this.tabGroups = [];
         this.snapGroups = [];
         this.windowLookup = {};
-        this.zIndexer = new ZIndexer();
+        this.zIndexer = new ZIndexer(this);
         this.pendingRegistrations = [];
 
         DesktopWindow.onCreated.add(this.onWindowCreated, this);
@@ -88,8 +88,7 @@ export class DesktopModel {
             return window.getIsActive() && RectUtils.isPointInRect(state.center, state.halfSize, point) && window.getId() !== excludeId;
         });
 
-        // TODO: Prioritise by z-index
-        return windowsAtPoint[0] || null;
+        return this.zIndexer.getTopMost(windowsAtPoint);
     }
 
     public getTabGroup(id: string): DesktopTabGroup|null {

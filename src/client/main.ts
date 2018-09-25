@@ -319,7 +319,7 @@ export const tabStrip = {
     /**
      * Updates a Tabs Properties on the Tab strip.
      */
-    async updateTabProperties(window: Identity, properties: TabProperties): Promise<void> {
+    async updateTabProperties(window: Identity, properties: Partial<TabProperties>): Promise<void> {
         if (!window || !window.name || !window.uuid) {
             return Promise.reject('Invalid window provided');
         }

@@ -111,8 +111,8 @@ export enum ServiceIABTopics {
 }
 
 export interface TabProperties {
-    title?: string;
-    icon?: string;
+    title: string;
+    icon: string;
 }
 
 export interface ApplicationUIConfig {
@@ -124,12 +124,6 @@ export interface TabWindowOptions extends ApplicationUIConfig {
     x: number;
     y: number;
     width: number;
-}
-
-export interface TabPackage {
-    tabID: TabIdentifier;
-    tabProps?: TabProperties;
-    index?: number;
 }
 
 /**
@@ -208,7 +202,7 @@ export interface AddTabPayload {
 
 export interface UpdateTabPropertiesPayload {
     window: Identity;
-    properties: TabProperties;
+    properties: Partial<TabProperties>;
 }
 
 export interface EndDragPayload {

@@ -298,7 +298,7 @@ export class APIHandler {
         return group.reOrderTabArray(newOrdering);
     }
 
-    private updateTabProperties(payload: {window: TabIdentifier, properties: TabProperties}): void {
+    private updateTabProperties(payload: {window: TabIdentifier, properties: Partial<TabProperties>}): void {
         const tab: DesktopWindow|null = model.getWindow(payload.window);
         const group: DesktopTabGroup|null = tab && tab.getTabGroup();
 

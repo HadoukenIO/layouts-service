@@ -131,8 +131,10 @@ export class DesktopTabGroup extends DesktopEntity {
         return this._window.getSnapGroup();
     }
 
-    public updateTabProperties(tab: DesktopWindow, properties: TabProperties): void {
-        this._tabProperties[tab.getId()] = properties;
+    public updateTabProperties(tab: DesktopWindow, properties: Partial<TabProperties>): void {
+        const tabProps: TabProperties = this._tabProperties[tab.getId()];
+        Object.assign(tabProps, properties);
+        localStorage.setItem(tab.getId(), JSON.stringify(tabProps));
 
         fin.desktop.InterApplicationBus.send(
             fin.desktop.Application.getCurrent().uuid, this.ID, TabApiEvents.PROPERTIESUPDATED, {tabID: this.ID, tabProps: properties});
@@ -382,7 +384,7 @@ export class DesktopTabGroup extends DesktopEntity {
         }
 
         // Add tab
-        this._tabProperties[tab.getId()] = {icon: tab.getState().icon, title: tab.getState().title};
+        this._tabProperties[tab.getId()] = this.getTabProperties(tab);
         this._tabs.splice(index, 0, tab);
         tab.onTeardown.add(this.onWindowTeardown, this);
 
@@ -456,6 +458,11 @@ export class DesktopTabGroup extends DesktopEntity {
 
             DesktopTabGroup.onDestroyed.emit(this);
         }
+    }
+
+    private getTabProperties(tab: DesktopWindow): TabProperties {
+        const savedProperties: string|null = localStorage.getItem(tab.getId());
+        return savedProperties ? JSON.parse(savedProperties) : {icon: tab.getState().icon, title: tab.getState().title};
     }
 
     private onWindowTeardown(window: DesktopWindow): void {

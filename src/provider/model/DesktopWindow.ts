@@ -121,7 +121,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
                     frame: options.frame!,
                     hidden: !results[1],
                     state: options.state!,
-                    icon: options.icon!,
+                    icon: options.icon || `https://www.google.com/s2/favicons?domain=${options.url}`,
                     title: options.name!,
                     minWidth: options.minWidth!,
                     maxWidth: options.maxWidth!,

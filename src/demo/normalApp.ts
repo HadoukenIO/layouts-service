@@ -37,7 +37,7 @@ export function openChild(name: string, i: number, frame = true, url?: string) {
     return win;
 }
 
-async function onAppRes(layoutApp: LayoutApp): Promise<LayoutApp> {
+export async function onAppRes(layoutApp: LayoutApp): Promise<LayoutApp> {
     console.log('Apprestore called:', layoutApp);
     // We use the v1 version of Application.getCurrent() due to an event-loop bug
     // when calling the v2 version inside a channel callback. Due for fix in v35

@@ -96,6 +96,8 @@ enum ActionOrigin {
     SERVICE_TEMPORARY
 }
 
+type OpenFinWindowEventHandler = <K extends keyof fin.OpenFinWindowEventMap>(event: fin.OpenFinWindowEventMap[K]) => void;
+
 export class DesktopWindow extends DesktopEntity implements Snappable {
     public static readonly onCreated: Signal1<DesktopWindow> = new Signal1();
     public static readonly onDestroyed: Signal1<DesktopWindow> = new Signal1();
@@ -190,6 +192,9 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
     private prevGroup: DesktopSnapGroup|null;
     private ready: boolean;
 
+    // Tracks event listeners registered on the fin window for easier cleanup.
+    private registeredListeners: Map<keyof fin.OpenFinWindowEventMap, OpenFinWindowEventHandler> = new Map();
+
     // State tracking for "synth move" detection
     private boundsChangeCountSinceLastCommit: number;
 
@@ -232,20 +237,6 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         this.tabGroup = null;
         this.prevGroup = null;
         group.addWindow(this);
-
-        // Bind listeners
-        this.handleBoundsChanged = this.handleBoundsChanged.bind(this);
-        this.handleBoundsChanging = this.handleBoundsChanging.bind(this);
-        this.handleClosed = this.handleClosed.bind(this);
-        this.handleFocused = this.handleFocused.bind(this);
-        this.handleFrameDisabled = this.handleFrameDisabled.bind(this);
-        this.handleFrameEnabled = this.handleFrameEnabled.bind(this);
-        this.handleGroupChanged = this.handleGroupChanged.bind(this);
-        this.handleHidden = this.handleHidden.bind(this);
-        this.handleMaximized = this.handleMaximized.bind(this);
-        this.handleMinimized = this.handleMinimized.bind(this);
-        this.handleRestored = this.handleRestored.bind(this);
-        this.handleShown = this.handleShown.bind(this);
 
         if (this.ready) {
             this.addListeners();
@@ -620,37 +611,39 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
     }
 
     private addListeners(): void {
-        const window: Window = this.window!;
+        this.registerListener('bounds-changed', this.handleBoundsChanged.bind(this));
+        this.registerListener('bounds-changing', this.handleBoundsChanging.bind(this));
+        this.registerListener('closed', this.handleClosed.bind(this));
+        this.registerListener('focused', this.handleFocused.bind(this));
+        this.registerListener('frame-disabled', () => {
+            this.updateState({frame: true}, ActionOrigin.APPLICATION);
+            this.onModified.emit(this);
+        });
+        this.registerListener('frame-enabled', () => {
+            this.updateState({frame: true}, ActionOrigin.APPLICATION);
+            this.onModified.emit(this);
+        });
+        this.registerListener('group-changed', this.handleGroupChanged.bind(this));
+        this.registerListener('hidden', () => this.updateState({hidden: true}, ActionOrigin.APPLICATION));
+        this.registerListener('maximized', () => this.updateState({state: 'maximized'}, ActionOrigin.APPLICATION));
+        this.registerListener('minimized', () => this.updateState({state: 'minimized'}, ActionOrigin.APPLICATION));
+        this.registerListener('restored', () => this.updateState({state: 'normal'}, ActionOrigin.APPLICATION));
+        this.registerListener('shown', () => this.updateState({hidden: false}, ActionOrigin.APPLICATION));
+    }
 
-        window.addListener('bounds-changed', this.handleBoundsChanged);
-        window.addListener('bounds-changing', this.handleBoundsChanging);
-        window.addListener('closed', this.handleClosed);
-        window.addListener('focused', this.handleFocused);
-        window.addListener('frame-disabled', this.handleFrameDisabled);
-        window.addListener('frame-enabled', this.handleFrameEnabled);
-        window.addListener('group-changed', this.handleGroupChanged);
-        window.addListener('hidden', this.handleHidden);
-        window.addListener('maximized', this.handleMaximized);
-        window.addListener('minimized', this.handleMinimized);
-        window.addListener('restored', this.handleRestored);
-        window.addListener('shown', this.handleShown);
+    private registerListener<K extends keyof fin.OpenFinWindowEventMap>(eventType: K, handler: (event: fin.OpenFinWindowEventMap[K]) => void) {
+        this.window!.addListener(eventType, handler);
+        this.registeredListeners.set(eventType, handler);
     }
 
     private cleanupListeners(): void {
         const window: Window = this.window!;
 
-        window.removeListener('bounds-changed', this.handleBoundsChanged);
-        window.removeListener('bounds-changing', this.handleBoundsChanging);
-        window.removeListener('closed', this.handleClosed);
-        window.removeListener('focused', this.handleFocused);
-        window.removeListener('frame-disabled', this.handleFrameDisabled);
-        window.removeListener('frame-enabled', this.handleFrameEnabled);
-        window.removeListener('group-changed', this.handleGroupChanged);
-        window.removeListener('hidden', this.handleHidden);
-        window.removeListener('maximized', this.handleMaximized);
-        window.removeListener('minimized', this.handleMinimized);
-        window.removeListener('restored', this.handleRestored);
-        window.removeListener('shown', this.handleShown);
+        for (const [key, listener] of this.registeredListeners) {
+            window.removeListener(key, listener);
+        }
+        this.registeredListeners.clear();
+
         window.leaveGroup();
     }
 
@@ -708,19 +701,9 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         // });
     }
 
-    private handleFrameDisabled(): void {
-        this.updateState({frame: false}, ActionOrigin.APPLICATION);
-        this.onModified.emit(this);
-    }
-
-    private handleFrameEnabled(): void {
-        this.updateState({frame: true}, ActionOrigin.APPLICATION);
-        this.onModified.emit(this);
-    }
-
     private handleGroupChanged(event: fin.WindowGroupChangedEvent): void {
-        // Each group operation will raise an event from every window involved. We should filter out to
-        // only receive the one from the window being moved.
+        // Each group operation will raise an event from every window involved. To avoid handling the same event twice, we will only handle the event on the
+        // window that triggered the event
         if (event.name !== event.sourceWindowName || event.uuid !== event.sourceWindowAppUuid) {
             return;
         }
@@ -728,71 +711,26 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         console.log('Received window group changed event: ', event);
 
         if (event.reason === 'leave') {
+            // Remove window from its current group
             this.addToSnapGroup(new DesktopSnapGroup());
         } else {
             const targetWindow: DesktopWindow|null = this.model.getWindow({uuid: event.targetWindowAppUuid, name: event.targetWindowName});
 
             // Merge the groups
             if (targetWindow) {
+                const targetGroup: DesktopSnapGroup = targetWindow.getSnapGroup();
+
                 if (event.reason === 'merge') {
-                    this.addToSnapGroup(targetWindow.getSnapGroup());
-
-                    // When merging groups, only the window that triggered the merge will recieve the event, but we need to update all windows in that window's
-                    // group
-                    // Get array of SnapWindows from the native group window array
-                    event.sourceGroup
-                        .map(win => {
-                            return this.model.getWindow({uuid: win.appUuid, name: win.windowName});
-                        })
-                        // Add all windows from source group to the target group.
-                        // Windows are synthetic snapped since they are
-                        // already native grouped.
-                        .forEach((snapWin) => {
-                            // Ignore any undefined results (i.e. windows unknown to the service)
-                            if (snapWin !== null) {
-                                snapWin.addToSnapGroup(targetWindow.getSnapGroup());
-                            }
-                        });
-
+                    // When merging groups, we need to update all windows within the source window's group
                     const windowsInGroup: DesktopWindow[] = this.snapGroup.windows as DesktopWindow[];  // TODO: Test snap groups that contain tabs
                     windowsInGroup.forEach((window: DesktopWindow) => {
-                        window.addToSnapGroup(targetWindow.getSnapGroup());
+                        window.addToSnapGroup(targetGroup);
                     });
                 } else {
-                    this.addToSnapGroup(targetWindow.getSnapGroup());
+                    // Add just the window that received the event to the target group
+                    this.addToSnapGroup(targetGroup);
                 }
             }
         }
-    }
-
-    private handleHidden(): void {
-        this.updateState({hidden: true}, ActionOrigin.APPLICATION);
-        this.onModified.emit(this);
-    }
-
-    private handleMaximized(): void {
-        this.updateState({state: 'maximized'}, ActionOrigin.APPLICATION);
-        this.onModified.emit(this);
-    }
-
-    private handleMinimized(): void {
-        this.updateState({state: 'minimized'}, ActionOrigin.APPLICATION);
-        this.snapGroup.windows.forEach((window: Snappable) => {
-            (window as DesktopWindow).updateState({state: 'minimized'}, ActionOrigin.SERVICE);
-        });
-        this.onModified.emit(this);
-    }
-
-    private handleRestored(): void {
-        this.updateState({state: 'normal'}, ActionOrigin.APPLICATION);
-        this.snapGroup.windows.forEach((window: Snappable) => {
-            (window as DesktopWindow).updateState({state: 'normal'}, ActionOrigin.SERVICE);
-        });
-        // this.onModified.emit(this);
-    }
-
-    private handleShown(): void {
-        this.updateState({hidden: false}, ActionOrigin.APPLICATION);
-        // this.onModified.emit(this);
     }
 }

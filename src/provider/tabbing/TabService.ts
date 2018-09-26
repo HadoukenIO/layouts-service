@@ -241,6 +241,7 @@ export class TabService {
             } else {
                 await tabGroup.removeTab(ejectedTab);
             }
+            await ejectedTab.bringToFront();
         } else if (isOverTabGroup !== tabGroup) {
             // Move into another tab group
             if (this.applicationConfigManager.compareConfigBetweenApplications(isOverTabWindow.getIdentity().uuid, ejectedTab.getIdentity().uuid)) {

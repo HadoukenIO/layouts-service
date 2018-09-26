@@ -12,7 +12,7 @@ import {DesktopWindow, eTransformType, Mask, WindowIdentity, WindowMessages, Win
  * be able to restore each window to it's original state when you "pop" or "tear" the tab out of the group.
  *
  * Whilst a tab is within a group, this will be the only place that has the original pre-tab state of the window. The
- * SnapWindow state will all reflect the size/appearance of the tabbed version of the window.
+ * DesktopWindow state will all reflect the size/appearance of the tabbed version of the window.
  */
 type TabData = {
     [id: string]: WindowState
@@ -22,9 +22,9 @@ interface TabState {
     tabBar: DesktopWindow;
 
     /**
-     * Maps SnapWindow ID's to the cached state for that window.
+     * Maps DesktopWindow ID's to the cached state for that window.
      *
-     * The tab bar is a SnapWindow the same as any other window in the group, but that window will not appear in this
+     * The tab bar is a DesktopWindow the same as any other window in the group, but that window will not appear in this
      * map, as we won't ever need to "un-tab" or "restore" that window.
      */
     previousState: TabData;
@@ -54,14 +54,14 @@ export class DesktopSnapGroup {
      *
      * The service should validate the window, to ensure it's current grouping is still valid.
      *
-     * Arguments: (group: SnapGroup, modifiedWindow: SnapWindow)
+     * Arguments: (group: DesktopSnapGroup, modifiedWindow: DesktopWindow)
      */
     public readonly onModified: Signal2<DesktopSnapGroup, DesktopWindow> = new Signal2();
 
     /**
      * Window is being moved/resized, need to check for any snap targets.
      *
-     * Arguments: (group: SnapGroup, type: Mask<eTransformType>)
+     * Arguments: (group: DesktopSnapGroup, type: Mask<eTransformType>)
      */
     public readonly onTransform: Signal2<DesktopSnapGroup, Mask<eTransformType>> = new Signal2();
 
@@ -70,7 +70,7 @@ export class DesktopSnapGroup {
      *
      * Any active snap target can now be applied.
      *
-     * Arguments: (group: SnapGroup)
+     * Arguments: (group: DesktopSnapGroup)
      */
     public readonly onCommit: Signal1<DesktopSnapGroup> = new Signal1();
 
@@ -79,7 +79,7 @@ export class DesktopSnapGroup {
      *
      * Signal will be fired AFTER all state updates.
      *
-     * Arguments: (group: SnapGroup, window: SnapWindow)
+     * Arguments: (group: DesktopSnapGroup, window: DesktopWindow)
      */
     public readonly onWindowAdded: Signal2<DesktopSnapGroup, DesktopWindow> = new Signal2();
 
@@ -88,7 +88,7 @@ export class DesktopSnapGroup {
      *
      * Signal will be fired AFTER all state updates.
      *
-     * Arguments: (group: SnapGroup, window: SnapWindow)
+     * Arguments: (group: DesktopSnapGroup, window: DesktopWindow)
      */
     public readonly onWindowRemoved: Signal2<DesktopSnapGroup, DesktopWindow> = new Signal2();
 
@@ -107,7 +107,7 @@ export class DesktopSnapGroup {
      *
      * A group with n tabs will contain n+1 windows - the n applications that the user has "tabbed" together, amd an
      * additional window that is created by the Snap & Dock service. This window acts as the tab bar - it will be a
-     * SnapWindow same as any other window, and other windows will also be able to snap to it.
+     * DesktopWindow same as any other window, and other windows will also be able to snap to it.
      */
     private tabData: TabData|null;
 
@@ -265,8 +265,8 @@ export class DesktopSnapGroup {
         }
     }
 
-    private onWindowCommit(window: DesktopWindow): void {
-        if (window === this.rootWindow) {
+    private onWindowCommit(window: DesktopWindow, type: Mask<eTransformType>): void {
+        if (window === this.rootWindow || (type & eTransformType.RESIZE) !== 0) {
             this.onCommit.emit(this);
         }
     }

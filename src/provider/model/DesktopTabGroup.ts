@@ -2,7 +2,7 @@ import {TabApiEvents} from '../../client/APITypes';
 import {ApplicationUIConfig, JoinTabGroupPayload, TabGroupEventPayload, TabIdentifier, TabProperties, TabServiceID, TabWindowOptions} from '../../client/types';
 import {Signal1} from '../Signal';
 import {Point} from '../snapanddock/utils/PointUtils';
-import {Rectangle} from '../snapanddock/utils/RectUtils';
+import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
@@ -75,7 +75,11 @@ export class DesktopTabGroup extends DesktopEntity {
             maxHeight: options.height,
             frame: false,
             maximizable: false,
-            resizable: false,
+            resizable: true,
+            resizeRegion: {
+                //@ts-ignore 'sides' missing from TypeScript interface
+                sides: {left: true, top: false, right: true, bottom: false}
+            },
             saveWindowState: false,
             taskbarIconGroup: name,
             //@ts-ignore 'backgroundThrottling' missing from TypeScript interface
@@ -306,12 +310,14 @@ export class DesktopTabGroup extends DesktopEntity {
 
             // Update tab window
             if (tab.isReady()) {
+                const frame: boolean = tab.getApplicationState().frame;
+
                 if (bounds) {
                     // Eject tab and apply custom bounds
-                    promises.push(tab.applyProperties({hidden: false, ...bounds}));
+                    promises.push(tab.applyProperties({hidden: false, frame, ...bounds}));
                 } else if (bounds === null) {
                     // Eject tab without modifying window bounds
-                    promises.push(tab.applyProperties({hidden: false}));
+                    promises.push(tab.applyProperties({hidden: false, frame}));
                 } else {
                     const tabStripHalfSize: Point = this._window.getState().halfSize;
                     const state: WindowState = tab.getState();
@@ -319,7 +325,7 @@ export class DesktopTabGroup extends DesktopEntity {
                     const halfSize: Point = {x: state.halfSize.x, y: state.halfSize.y + tabStripHalfSize.y};
 
                     // Eject tab and apply default bounds
-                    promises.push(tab.applyProperties({hidden: false, center, halfSize}));
+                    promises.push(tab.applyProperties({hidden: false, frame, center, halfSize}));
                 }
             }
 
@@ -341,10 +347,20 @@ export class DesktopTabGroup extends DesktopEntity {
     public async switchTab(tab: DesktopWindow): Promise<void> {
         if (tab && tab !== this._activeTab) {
             const prevTab: DesktopWindow = this._activeTab;
+            const redrawRequired: boolean = prevTab && !RectUtils.isEqual(tab.getState(), this._activeTab.getState());
             this._activeTab = tab;
 
-            await tab.applyProperties({hidden: false});
-            await tab.bringToFront();
+            if (redrawRequired) {
+                // Allow tab time to redraw before being shown to user
+                await prevTab.bringToFront();
+                await tab.applyProperties({hidden: false});
+                await new Promise<void>(r => setTimeout(r, 150));
+                await tab.bringToFront();
+            } else {
+                // Show tab as quickly as possible
+                await tab.applyProperties({hidden: false});
+                await tab.bringToFront();
+            }
             if (prevTab && prevTab.getTabGroup() === this) {
                 await prevTab.applyProperties({hidden: true});
             }
@@ -408,13 +424,13 @@ export class DesktopTabGroup extends DesktopEntity {
             // Reduce size of app window by size of tabstrip
             const center: Point = {x: tabState.center.x, y: tabState.center.y + (this._config.height / 2)};
             const halfSize: Point = {x: tabState.halfSize.x, y: tabState.halfSize.y - (this._config.height / 2)};
-            await tab.applyProperties({center, halfSize});
+            await tab.applyProperties({center, halfSize, frame: false});
         } else {
             const existingTabState: WindowState = this._activeTab.getState();
             const {center, halfSize} = existingTabState;
 
             // Align tab with existing tab
-            await tab.applyProperties({center, halfSize});
+            await tab.applyProperties({center, halfSize, frame: false});
         }
 
         tab.setSnapGroup(this._window.getSnapGroup());

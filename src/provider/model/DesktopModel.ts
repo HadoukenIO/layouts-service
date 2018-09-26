@@ -121,13 +121,13 @@ export class DesktopModel {
         const identity: WindowIdentity = {uuid, name};
 
         // Check that the service does not already have a matching window
-        const existingSnapWindow = this.getWindow(identity);
+        const existingWindow = this.getWindow(identity);
 
         // The runtime will not allow multiple windows with the same uuid/name, so if we recieve a
         // window-created event for a registered window, it implies that our internal state is stale
         // and should be updated accordingly.
-        if (existingSnapWindow) {
-            existingSnapWindow.teardown();
+        if (existingWindow) {
+            existingWindow.teardown();
         }
 
         // In either case, we will add the new window to the service.

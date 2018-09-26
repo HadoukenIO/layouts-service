@@ -100,7 +100,7 @@ export class Tab {
      * @param {DragEvent} e DragEvent
      */
     private _onDragEnd(e: DragEvent): void {
-        layouts.tabStrip.endDrag(e, {uuid: this._ID.uuid, name: this._ID.name});
+        layouts.tabStrip.endDrag(e, this._ID);
     }
 
     /**
@@ -128,7 +128,9 @@ export class Tab {
     private _onMouseDownHandler(e: MouseEvent): void {
         this.setActive();
 
-        layouts.setActiveTab({uuid: this._ID.uuid, name: this._ID.name});
+        if ((e.target as Element).className !== 'tab-exit') {
+            layouts.setActiveTab(this._ID);
+        }
     }
 
 
@@ -137,12 +139,8 @@ export class Tab {
      * @param {MouseEvent} e MouseEvent
      */
     private _onClickHandler(e: MouseEvent): void {
-        switch ((e.target as Element).className) {
-            case 'tab-exit': {
-                layouts.closeTab({uuid: this._ID.uuid, name: this._ID.name});
-                break;
-            }
-            default: { layouts.setActiveTab({uuid: this._ID.uuid, name: this._ID.name}); }
+        if ((e.target as Element).className === 'tab-exit') {
+            layouts.closeTab(this._ID);
         }
     }
 
@@ -157,7 +155,7 @@ export class Tab {
                 this._handlePropertiesInput();
                 break;
             }
-            default: { layouts.setActiveTab({uuid: this._ID.uuid, name: this._ID.name}); }
+            default: { layouts.setActiveTab(this._ID); }
         }
     }
 
@@ -201,7 +199,7 @@ export class Tab {
             try {
                 inputNode.remove();
                 that.updateText(inputNode.value);
-                layouts.tabStrip.updateTabProperties({uuid: that._ID.uuid, name: that._ID.name}, {title: inputNode.value});
+                layouts.tabStrip.updateTabProperties(that._ID, {title: inputNode.value});
             } catch (e) {
             }
         }
@@ -224,7 +222,7 @@ export class Tab {
      * @returns {TabIdentifier} {uuid, name}
      */
     public get ID(): TabIdentifier {
-        return {uuid: this._ID.uuid, name: this._ID.name};
+        return this._ID;
     }
 
     /**

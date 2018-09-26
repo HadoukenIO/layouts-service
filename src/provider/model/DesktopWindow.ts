@@ -89,7 +89,7 @@ enum ActionOrigin {
     /**
      * A change made by the service that is intended to be very short-lived, and will soon be reverted.
      *
-     * These changes can be reverted using 'SnapWindow.revertProperty'
+     * These changes can be reverted using 'DesktopWindow.resetOverride'
      *
      * e.g: Applying opacity effects when dragging windows and snap/tab previews.
      */
@@ -167,9 +167,9 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
      *
      * Any active snap target can now be applied.
      *
-     * Arguments: (window: DesktopWindow)
+     * Arguments: (window: DesktopWindow, type: Mask<eTransformType>)
      */
-    public readonly onCommit: Signal1<DesktopWindow> = new Signal1();
+    public readonly onCommit: Signal2<DesktopWindow, Mask<eTransformType>> = new Signal2();
 
     /**
      * Window is being removed from the service. Need to remove this window from any groups, and the service as a whole.
@@ -182,10 +182,32 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
     public readonly onTeardown: Signal1<DesktopWindow> = new Signal1();
 
     private window?: Window;
+
+    /**
+     * Cached state. Reflects the current state of the *actual* window object - basically, what you would get if you called any of the OpenFin API functions on
+     * the window object.
+     */
     private windowState: WindowState;
+
+    /**
+     * What the application "thinks" the state of this window is. This is the state of the window, excluding any changes made to the window by the service.
+     */
     private applicationState: WindowState;
-    // private pendingState: Partial<WindowState>;
+
+    /**
+     * Lists all the modifications made to the window by the service. This is effectively a 'diff' between windowState and applicationState.
+     */
     private modifiedState: Partial<WindowState>;
+
+    /**
+     * A subset of modifiedState - changes made to the window on a very short-term basis, which will soon be reverted.
+     *
+     * When reverting, the property may go back to a value set by the application, or an earlier value set by the service.
+     *
+     * NOTE: The values within this object are the *previous* values of each property - what the property should be set to when reverting the temporary change.
+     * The temporary value can be found by looking up the keys of this object within 'windowState'.
+     */
+    private temporaryState: Partial<WindowState>;
 
     private snapGroup: DesktopSnapGroup;
     private tabGroup: DesktopTabGroup|null;
@@ -231,6 +253,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         this.windowState = {...initialState};
         this.applicationState = {...initialState};
         this.modifiedState = {};
+        this.temporaryState = {};
         this.boundsChangeCountSinceLastCommit = 0;
 
         this.snapGroup = group;
@@ -383,6 +406,10 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         return this.windowState;
     }
 
+    public getApplicationState(): WindowState {
+        return this.applicationState;
+    }
+
     public getIdentity(): WindowIdentity {
         return this.identity;
     }
@@ -397,10 +424,43 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
 
         if (this.ready) {
             return DesktopWindow.getWindowState(window).then((state: WindowState) => {
-                return this.updateState(state, ActionOrigin.APPLICATION);
+                const appState: WindowState = this.applicationState;
+                const modifications: Partial<WindowState> = {};
+                let hasChanges = false;
+
+                for (const iter in state) {
+                    if (state.hasOwnProperty(iter)) {
+                        const key = iter as keyof WindowState;
+
+                        if (this.isModified(key, appState, state) &&
+                            (!this.modifiedState.hasOwnProperty(key) || this.isModified(key, this.modifiedState, state))) {
+                            modifications[key] = state[key];
+                            hasChanges = true;
+                        }
+                    }
+                }
+
+                if (hasChanges) {
+                    console.log('Window refresh found changes: ', this.id, modifications);
+                    return this.updateState(modifications, ActionOrigin.APPLICATION);
+                } else {
+                    console.log('Refreshed window, no changes were found', this.id);
+                    return Promise.resolve();
+                }
             });
         } else {
             return Promise.resolve();
+        }
+    }
+
+    private isModified(key: keyof WindowState, prevState: Partial<WindowState>, newState: WindowState): boolean {
+        if (prevState[key] === undefined) {
+            return true;
+        } else if (key === 'center' || key === 'halfSize') {
+            const prevPoint: Point = prevState[key] as Point, newPoint: Point = newState[key] as Point;
+            return prevPoint.x !== newPoint.x || prevPoint.y !== newPoint.y;
+        } else {
+            return prevState[key] !== newState[key];
         }
     }
 
@@ -450,6 +510,8 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             if (!this.ready) {
                 throw new Error('Cannot modify window, window not in ready state ' + this.id);
             }
+        } else {
+            Object.assign(this.applicationState, delta);
         }
 
         // Update state caches
@@ -457,15 +519,24 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             // Back-up existing values, so they can be restored later
             Object.keys(delta).forEach((key: string) => {
                 const property: keyof WindowState = key as keyof WindowState;
-                if (!this.modifiedState.hasOwnProperty(property)) {
-                    this.modifiedState[property] = this.windowState[property];
+                if (!this.temporaryState.hasOwnProperty(property)) {
+                    this.temporaryState[property] = this.windowState[property];
                 }
             });
         } else {
-            // These changes will undo any temporary changes that have been applied
-            Object.keys(delta).forEach((property) => {
-                if (this.modifiedState.hasOwnProperty(property)) {
-                    delete this.modifiedState[property as keyof WindowState];
+            Object.keys(delta).forEach((key: string) => {
+                const property: keyof WindowState = key as keyof WindowState;
+
+                // These changes will undo any temporary changes that have been applied
+                if (this.temporaryState.hasOwnProperty(property)) {
+                    delete this.temporaryState[property];
+                }
+
+                // Track which properties have been modified by the service
+                if (this.applicationState[property] === delta[property]) {
+                    delete this.modifiedState[property];
+                } else {
+                    this.modifiedState[property] = delta[property];
                 }
             });
         }
@@ -541,18 +612,9 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         this.updateState(properties, ActionOrigin.SERVICE);
     }
 
-    public async applyProperty(property: keyof WindowState, value: any): Promise<void> {  // tslint:disable-line:no-any
+    public async applyOverride<K extends keyof WindowState>(property: K, value: WindowState[K]): Promise<void> {
         if (value !== this.windowState[property]) {
-            this.modifiedState[property] = this.modifiedState[property] || this.windowState[property];
-            this.windowState[property] = value;
-
-            return this.updateState({[property]: value}, ActionOrigin.SERVICE_TEMPORARY);
-        }
-    }
-
-    public async applyOverride(property: keyof WindowState, value: any): Promise<void> {  // tslint:disable-line:no-any
-        if (value !== this.windowState[property]) {
-            this.modifiedState[property] = this.modifiedState[property] || this.windowState[property];
+            this.temporaryState[property] = this.temporaryState[property] || this.windowState[property];
             this.windowState[property] = value;
 
             return this.updateState({[property]: value}, ActionOrigin.SERVICE_TEMPORARY);
@@ -560,8 +622,8 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
     }
 
     public async resetOverride(property: keyof WindowState): Promise<void> {
-        if (this.modifiedState.hasOwnProperty(property)) {
-            const value = this.modifiedState[property]!;
+        if (this.temporaryState.hasOwnProperty(property)) {
+            const value = this.temporaryState[property]!;
             this.windowState[property] = value;
             return this.updateState({[property]: value}, ActionOrigin.SERVICE);  // TODO: Is this the right origin type?
         }
@@ -573,27 +635,6 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             await apiHandler.sendToClient(this.identity, action, payload);
         }
     }
-
-    private async applyOffset(offset?: Point, newHalfSize?: Point, synthetic?: boolean): Promise<void> {
-        if (offset || newHalfSize) {
-            const state: WindowState = this.windowState;
-            const delta: Partial<WindowState> = {};
-
-            if (offset) {
-                delta.center = {x: state.center.x + offset.x, y: state.center.y + offset.y};
-            }
-            if (newHalfSize) {  //} && !(this.isTabStrip() || this.tabSet)) {
-                delta.center = delta.center || {...state.center};
-                delta.halfSize = newHalfSize;
-
-                delta.center.x += newHalfSize.x - state.halfSize.x;
-                delta.center.y += newHalfSize.y - state.halfSize.y;
-            }
-
-            await this.updateState(delta, ActionOrigin.SERVICE);
-        }
-    }
-
 
     /**
      * Windows 10 has a border shadow, which needs to be accounted for in window dimensions.
@@ -654,7 +695,10 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
 
         this.updateState({center, halfSize}, ActionOrigin.APPLICATION);
         if (this.boundsChangeCountSinceLastCommit > 1) {
-            this.onCommit.emit(this);
+            // Convert 'changeType' into our enum type
+            const type: Mask<eTransformType> = event.changeType + 1;
+
+            this.onCommit.emit(this, type);
         } else {
             this.onModified.emit(this);
         }

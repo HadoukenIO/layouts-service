@@ -94,10 +94,11 @@ export const createNormalPlaceholder = async (win: WindowState) => {
         });
 
     const actualWindow = await fin.Window.wrap({uuid, name});
-    // @ts-ignore v2 types missing 'shown' event.
-    actualWindow.on('shown', () => {
-        placeholder.close();
-    });
+    const updateOptionsAndShow = async () => {
+        await actualWindow.removeListener('shown', updateOptionsAndShow);
+        await placeholder.close();
+    };
+    await actualWindow.addListener('shown', updateOptionsAndShow);
 
     return placeholder;
 };
@@ -127,11 +128,12 @@ export const createTabPlaceholder = async (win: WindowState) => {
         });
 
     const actualWindow = await fin.Window.wrap({uuid, name});
-    // @ts-ignore
-    actualWindow.on('shown', async () => {
+    const updateOptionsAndShow = async () => {
+        await actualWindow.removeListener('shown', updateOptionsAndShow);
         await swapTab(actualWindow.identity as TabIdentifier, placeholder);
-        placeholder.close();
-    });
+        await placeholder.close();
+    };
+    await actualWindow.addListener('shown', updateOptionsAndShow);
 
     return placeholder;
 };
@@ -188,13 +190,20 @@ export interface TabbedPlaceholders {
 }
 
 // Helper function to determine if a window is supposed to be tabbed in an incoming layout.
-export function inWindowObject(win: {uuid: string, name: string}, windowObject: WindowObject|TabbedPlaceholders) {
-    if (windowObject[win.uuid]) {
-        if (windowObject[win.uuid][win.name]) {
-            return true;
+export function inWindowObject(win: Identity, windowObject: WindowObject|TabbedPlaceholders) {
+    if (win.name) {
+        if (windowObject[win.uuid]) {
+            if (windowObject[win.uuid][win.name]) {
+                return true;
+            }
         }
     }
     return false;
+}
+
+// Helper function to add to a Window Object
+export function addToWindowObject(identity: WindowIdentity, windowObject: WindowObject) {
+    windowObject[identity.uuid] = Object.assign({}, windowObject[identity.uuid], {[identity.name]: true});
 }
 
 // Creates a tabbing placeholder and records the information for its corresponding window.

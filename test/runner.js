@@ -18,22 +18,59 @@ const {launch} = require('hadouken-js-adapter');
 
 let port;
 
-let testFileName = '*';
-let testNameFilter;
-let args = process.argv.splice(2);
+/**
+ * Simple command-line parser. Returns the named argument from the list of process arguments.
+ * 
+ * @param {string} name Argument name, including any hyphens
+ * @param {boolean} hasValue If this argument requires a value. Accepts "--name value" and "--name=value" syntax.//#endregion
+ * @param {any} defaultValue Determines return value, if an argument with the given name doesn't exist. Only really makes sense when 'hasValue' is true.
+ */
+function getArg(name, hasValue, defaultValue = hasValue ? null : false) {
+    let value = defaultValue;
+    let argIndex = unusedArgs.indexOf(name);
 
-let fileNameIndex = args.indexOf('--file-name')
-if (fileNameIndex > -1) {
-    testFileName = args[fileNameIndex + 1];
-    args.splice(fileNameIndex, 2);
+    if (argIndex >= 0 && argIndex < unusedArgs.length - (hasValue ? 1 : 0)) {
+        if (hasValue) {
+            // Take the argument after this as being the value
+            value = unusedArgs[argIndex + 1];
+            unusedArgs.splice(argIndex, 2);
+        } else {
+            // Only consume the one argument
+            value = true;
+            unusedArgs.splice(argIndex, 1);
+        }
+    } else if (hasValue) {
+        argIndex = unusedArgs.findIndex((arg) => arg.indexOf(name + '=') === 0);
+        if (argIndex >= 0) {
+            value = unusedArgs[argIndex].substr(unusedArgs[argIndex].indexOf('=') + 1);
+            unusedArgs.splice(argIndex, 1);
+        }
+    }
+
+    return value;
 }
-let testFilterIndex = args.indexOf('--filter')
-if (testFilterIndex > -1) {
-    testNameFilter = args[testFilterIndex + 1];
-    args.splice(testFilterIndex, 2);
+const unusedArgs = process.argv.slice(2);
+
+const testFileName = getArg('--file-name', true, '*');
+const testNameFilter = getArg('--filter', true);
+const showHelp = getArg('--help') || getArg('-h');
+const skipBuild = getArg('--run') || getArg('-r');
+
+if (showHelp) {
+    console.log(`Test runner accepts the following arguments. Any additional arguments will be passed-through to the test runner, see "ava --help" for details.
+
+NOTE: When running through 'npm test', pass -- before any test runner options, to stop NPM from consuming those arguments. For example, 'npm test -- -b'.
+
+Options:
+--file-name <file>      Runs all tests in the given file
+--filter <pattern>      Only runs tests whose names match the given pattern. Can be used with --file-name.
+--help | -h             Displays this help
+--run | -r              Skips the build step, and will *only* run the tests - rather than the default 'build & run' behaviour.
+`);
+    process.exit();
 }
 
-const testCommand = `ava --serial build/test/**/${testFileName}.test.js ${testNameFilter? '--match ' + testNameFilter: ''} ${args.join(' ')}`;
+const testCommand = `ava --serial build/test/**/${testFileName}.test.js ${testNameFilter ? '--match ' + testNameFilter: ''} ${unusedArgs.join(' ')}`;
 
 const cleanup = async res => {
     if (os.platform().match(/^win/)) {
@@ -82,7 +119,9 @@ async function serve() {
     });
 }
 
-build()
+const buildStep = skipBuild ? Promise.resolve() : build();
+
+buildStep
     .then(() => serve())
     .then(async () => {
         port = await launch({manifestUrl: 'http://localhost:1337/test/app.json'});
@@ -90,8 +129,6 @@ build()
         return port
     })
     .catch(fail)
-    //Had to restrict pattern to only include 'provider' as we now have a mix of ava and jest based tests.
-    //Will need to port one to the other at some point - needs some discussion first.
     .then(OF_PORT => run(testCommand , { env: { OF_PORT } }))
     .then(cleanup)
     .catch(cleanup);

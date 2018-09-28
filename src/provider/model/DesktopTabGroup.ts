@@ -434,7 +434,7 @@ export class DesktopTabGroup extends DesktopEntity {
         }
 
         tab.setSnapGroup(this._window.getSnapGroup());
-        tab.setTabGroup(this);
+        await tab.setTabGroup(this);
 
         const payload:
             JoinTabGroupPayload = {tabGroupId: this.ID, tabID: tab.getIdentity(), tabProps: this._tabProperties[tab.getId()], index: this.tabs.indexOf(tab)};
@@ -455,8 +455,8 @@ export class DesktopTabGroup extends DesktopEntity {
         this._tabs.splice(index, 1);
         delete this._tabProperties[tab.getId()];
         tab.setSnapGroup(new DesktopSnapGroup());
-        tab.setTabGroup(null);
         tab.onTeardown.remove(this.onWindowTeardown, this);
+        await tab.setTabGroup(null);
 
         const payload: TabGroupEventPayload = {tabGroupId: this.ID, tabID: tab.getIdentity()};
         await this.sendTabEvent(tab, WindowMessages.LEAVE_TAB_GROUP, payload);

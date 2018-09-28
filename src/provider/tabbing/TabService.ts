@@ -191,6 +191,14 @@ export class TabService {
             const tabs: DesktopWindow[] = blob.tabs.map(tab => model.getWindow(tab)).filter((tab): tab is DesktopWindow => !!tab);
 
             if (tabs.length >= 2) {
+                // Position first tab (positions of tabstrip and subsequent tabs will all be based on this)
+                const bounds: Rectangle = {
+                    center: {x: newTabWindowOptions.x + (newTabWindowOptions.width / 2), y: newTabWindowOptions.y + (newTabWindowOptions.height / 2)},
+                    halfSize: {x: newTabWindowOptions.width / 2, y: newTabWindowOptions.height / 2}
+                };
+                await tabs[0].applyProperties(bounds);
+
+                // Add tabs to group
                 await group.addTabs(tabs, blob.groupInfo.active);
             } else {
                 console.error('Not enough valid tab identifiers within tab blob to form a tab group', blob.tabs);

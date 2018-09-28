@@ -23,6 +23,7 @@ export interface WindowState extends Rectangle {
 
     icon: string;
     title: string;
+    showTaskbarIcon: boolean;
 
     minWidth: number;
     maxWidth: number;
@@ -125,6 +126,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
                     state: options.state!,
                     icon: options.icon || `https://www.google.com/s2/favicons?domain=${options.url}`,
                     title: options.name!,
+                    showTaskbarIcon: options.showTaskbarIcon!,
                     minWidth: options.minWidth!,
                     maxWidth: options.maxWidth!,
                     minHeight: options.minHeight!,
@@ -276,7 +278,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
      * manage it's own destruction in the former case, so that it can mark itself as not-ready before starting the clean-up of the model.
      */
     public teardown(): void {
-        if (this.ready) {
+        if (this.registeredListeners.size > 0) {
             this.cleanupListeners();
         }
 
@@ -294,6 +296,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             state: 'normal',
             icon: '',
             title: '',
+            showTaskbarIcon: true,
             minWidth: -1,
             maxWidth: -1,
             minHeight: 0,
@@ -383,23 +386,28 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         return Promise.resolve();
     }
 
-    public setTabGroup(group: DesktopTabGroup|null): void {
-        // TODO: Remove from existing tab group, apply window group, etc (TBD: here, in DesktopTabGroup, or in TabService?)
-        this.tabGroup = group;
-
+    public setTabGroup(group: DesktopTabGroup|null): Promise<void> {
         if (group) {
             console.log('Added ' + this.id + ' to ' + group.ID);
-        } else {
-            console.log('Restoring tab state');
-            // this.updateState(
-            //     {
-            //         center: this.applicationState.center,
-            //         halfSize: this.applicationState.halfSize,
-            //         frame: this.applicationState.frame,
-            //         // hidden: this.applicationState.hidden
-            //     },
-            //     ActionOrigin.SERVICE);
+        } else if (this.tabGroup) {
+            console.log('Removed ' + this.id + ' from ' + this.tabGroup.ID);
         }
+
+        this.tabGroup = group;
+
+        // Hide tabbed windows in the task bar (except for tabstrip windows)
+        if (this.identity.uuid !== TabServiceID.UUID) {
+            if (group) {
+                // Hide tabbed windows in taskbar
+                return this.ready ? this.updateState({showTaskbarIcon: false}, ActionOrigin.SERVICE) : Promise.resolve();
+            } else if (this.windowState.showTaskbarIcon !== this.applicationState.showTaskbarIcon) {
+                // Revert taskbar icon to application-specified state
+                return this.ready ? this.updateState({showTaskbarIcon: this.applicationState.showTaskbarIcon}, ActionOrigin.SERVICE) : Promise.resolve();
+            }
+        }
+
+        // Nothing to do
+        return Promise.resolve();
     }
 
     public getState(): WindowState {
@@ -511,7 +519,13 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
                 throw new Error('Cannot modify window, window not in ready state ' + this.id);
             }
         } else {
-            Object.assign(this.applicationState, delta);
+            // Find changes from the application that weren't already known to the service
+            Object.keys(delta).forEach((key: string) => {
+                const property: keyof WindowState = key as keyof WindowState;
+                if (this.isModified(property, delta, this.windowState)) {
+                    this.applicationState[property] = delta[property]!;
+                }
+            });
         }
 
         // Update state caches
@@ -533,10 +547,10 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
                 }
 
                 // Track which properties have been modified by the service
-                if (this.applicationState[property] === delta[property]) {
-                    delete this.modifiedState[property];
-                } else {
+                if (this.isModified(property, delta, this.applicationState)) {
                     this.modifiedState[property] = delta[property];
+                } else {
+                    delete this.modifiedState[property];
                 }
             });
         }
@@ -666,9 +680,36 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         });
         this.registerListener('group-changed', this.handleGroupChanged.bind(this));
         this.registerListener('hidden', () => this.updateState({hidden: true}, ActionOrigin.APPLICATION));
-        this.registerListener('maximized', () => this.updateState({state: 'maximized'}, ActionOrigin.APPLICATION));
-        this.registerListener('minimized', () => this.updateState({state: 'minimized'}, ActionOrigin.APPLICATION));
-        this.registerListener('restored', () => this.updateState({state: 'normal'}, ActionOrigin.APPLICATION));
+        this.registerListener('maximized', () => {
+            this.updateState({state: 'maximized'}, ActionOrigin.APPLICATION);
+            this.snapGroup.windows.forEach(window => {
+                if (window !== this) {
+                    (window as DesktopWindow).applyProperties({state: 'maximized'});
+                }
+            });
+        });
+        this.registerListener('minimized', () => {
+            this.updateState({state: 'minimized'}, ActionOrigin.APPLICATION);
+            this.snapGroup.windows.forEach(window => {
+                if (window !== this) {
+                    (window as DesktopWindow).applyProperties({state: 'minimized'});
+                }
+            });
+        });
+        this.registerListener('restored', () => {
+            this.updateState({state: 'normal'}, ActionOrigin.APPLICATION);
+            this.snapGroup.windows.forEach(window => {
+                if (window !== this) {
+                    if (this.tabGroup && window !== this.tabGroup.window) {
+                        // Window will set a window to visible when minimizing. Need to restore window visibility.
+                        (window as DesktopWindow).applyProperties({state: 'normal', hidden: true});
+                    } else {
+                        // Restore window, without affecting visibility
+                        (window as DesktopWindow).applyProperties({state: 'normal'});
+                    }
+                }
+            });
+        });
         this.registerListener('shown', () => this.updateState({hidden: false}, ActionOrigin.APPLICATION));
     }
 
@@ -685,7 +726,9 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         }
         this.registeredListeners.clear();
 
-        window.leaveGroup();
+        if (this.ready) {
+            window.leaveGroup();
+        }
     }
 
     private handleBoundsChanged(event: fin.WindowBoundsEvent): void {

@@ -1,7 +1,7 @@
 import {TabIdentifier} from '../../client/types';
-import {DesktopModel} from '../model/DesktopModel';
-import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
-import {DesktopWindow} from '../model/DesktopWindow';
+import {DesktopModel} from './DesktopModel';
+import {DesktopSnapGroup} from './DesktopSnapGroup';
+import {DesktopWindow} from './DesktopWindow';
 
 export interface ZIndex {
     timestamp: number;

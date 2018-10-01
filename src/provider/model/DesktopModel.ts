@@ -3,7 +3,7 @@ import {Window} from 'hadouken-js-adapter';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {RectUtils} from '../snapanddock/utils/RectUtils';
-import {ZIndexer} from '../tabbing/ZIndexer';
+import {ZIndexer} from './ZIndexer';
 
 import {DesktopTabGroup} from './DesktopTabGroup';
 import {DesktopWindow, WindowIdentity, WindowState} from './DesktopWindow';

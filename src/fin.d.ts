@@ -717,7 +717,7 @@ declare namespace fin {
          */
         updateProxySettings(type: string, address: string, port: number, callback?: () => void, errorCallback?: (reason: string) => void): void;
 
-        getFocusedWindow(): Promise<{uuid: string, name: string} | null>;
+        getFocusedWindow(callback?: (window: {uuid: string; name: string}|null) => void, errorCallback?: (reason: string) => void): void;
     }
 
     interface CacheOptions {

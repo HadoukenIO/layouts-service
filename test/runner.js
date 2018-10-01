@@ -1,11 +1,10 @@
 /*
- * Script accepts the following optional parameters:
- * --file-path [String] : Specifies the name of the file containing the tests to run. 
- *     Example: --file-path undock will run tests in the file undock.test.ts
- * --filter [String] : Filters the tests that will be run. 
- *     Valid filter syntax is described in the ava documentation: https://github.com/avajs/ava#running-tests-with-matching-titles.
- *     Example: --filter *vertical* will run all tests containing the word 'vertical'
- * Any other command line parameters will be passed through to ava as-is. 
+ * Script accepts various command-line arguments. Run with -h or --help for more information, or see help text below.
+ * 
+ * NOTE: When invoking via 'npm test', NPM will consume any arguments passed to it. Prepend '--' to signal to NPM that any additional arguments should be 
+ * passed-through to the invoked application. For example: 'npm test -- --help'
+ * 
+ * Any additional command line parameters (arguments that are not described within the help text) will be passed through to ava as-is.
  *     A list of valid command line parameters can be found in the ava documentation: https://github.com/avajs/ava#cli
  *     NOTE: --match is not supported, use --filter instead
  */

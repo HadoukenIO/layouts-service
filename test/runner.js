@@ -51,10 +51,15 @@ function getArg(name, hasValue, defaultValue = hasValue ? null : false) {
 }
 const unusedArgs = process.argv.slice(2);
 
-const testFileName = getArg('--file-name', true, '*');
+const testFileNames = ['*'];
 const testNameFilter = getArg('--filter', true);
 const showHelp = getArg('--help') || getArg('-h');
 const skipBuild = getArg('--run') || getArg('-r');
+
+let testFileName;
+while(testFileName = getArg('--file-name', true)) {
+    testFileNames.push(testFileName);
+}
 
 if (showHelp) {
     console.log(`Test runner accepts the following arguments. Any additional arguments will be passed-through to the test runner, see "ava --help" for details.
@@ -70,7 +75,8 @@ Options:
     process.exit();
 }
 
-const testCommand = `ava --serial build/test/**/${testFileName}.test.js ${testNameFilter ? '--match ' + testNameFilter: ''} ${unusedArgs.join(' ')}`;
+const fileNamesArg = testFileNames.slice(testFileNames.length > 1 ? 1 : 0).map(testFileName => `build/test/**/${testFileName}.test.js`).join(" ");
+const testCommand = `ava --serial ${fileNamesArg} ${testNameFilter ? '--match ' + testNameFilter: ''} ${unusedArgs.join(' ')}`;
 
 const cleanup = async res => {
     if (os.platform().match(/^win/)) {

@@ -91,7 +91,7 @@ export async function createChild(parentWindowName: string): Promise<void> {
 export function openChild(name: string, i: number, frame = true, url?: string) {
     const win = fin.Window.create({
         url: url || `${launchDir}/demo-window.html`,
-        autoShow: true,
+        autoShow: false,
         defaultHeight: 250 + 50 * i,
         defaultWidth: 250 + 50 * i,
         defaultLeft: 320 * (i % 3),

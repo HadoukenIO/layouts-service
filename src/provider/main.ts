@@ -9,7 +9,7 @@ import {SnapService} from './snapanddock/SnapService';
 import {SnapWindow, WindowIdentity} from './snapanddock/SnapWindow';
 import {win10Check} from './snapanddock/utils/platform';
 import {TabService} from './tabbing/TabService';
-import {generateLayout} from './workspaces/create';
+import {deregisterWindow, generateLayout} from './workspaces/create';
 import {getAppToRestore, restoreApplication, restoreLayout} from './workspaces/restore';
 
 export let snapService: SnapService;
@@ -38,6 +38,7 @@ async function registerService() {
     providerChannel.register('deregister', (identity: WindowIdentity) => {
         snapService.deregister(identity);
         tabService.apiHandler.deregister(identity);
+        deregisterWindow(identity);
     });
     providerChannel.register('undockGroup', (identity: WindowIdentity) => {
         snapService.explodeGroup(identity);

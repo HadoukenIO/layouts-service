@@ -15,7 +15,7 @@ test.before(async () => {
     fin = await getConnection();
 });
 test.beforeEach(async () => {
-    // Spawn two windows - wins[0] untabbed, wins[1] tabbed
+    // Spawn two windows - wins[0] untabbed, wins[1] tabbed.  Any additional windows needed should be created in the test.
     wins[0] = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
@@ -40,6 +40,7 @@ test.beforeEach(async () => {
 });
 
 test.afterEach.always(async () => {
+    // Try and close all the windows.  If the window is already closed then it will throw an error which we catch and ignore.
     await Promise.all(wins.map(win => {
         try {
             return win.close();
@@ -47,6 +48,7 @@ test.afterEach.always(async () => {
             return;
         }
     }));
+
     wins = [];
 });
 
@@ -138,8 +140,6 @@ test('Tabset on dragover - drop on torn-out dropped window', async t => {
         frame: false
     });
 
-
-
     await delay(500);
     // Drag win3 over wins[1] to make a tabset
     await dragWindowToOtherWindow(win3, 'top-left', wins[0], 'top-left', {x: -20, y: -20});
@@ -149,7 +149,7 @@ test('Tabset on dragover - drop on torn-out dropped window', async t => {
     wins.push(win3);
 });
 
-test('TabGroup destroyed on tab removal (2 tab - 1)', async t => {
+test('TabGroup destroyed on tab removal (2 tabs - 1)', async t => {
     await dragWindowToOtherWindow(wins[0], 'top-left', wins[1], 'top-left', {x: -20, y: -20});
     await delay(500);
     await assertTabbed(wins[0], wins[1], t);
@@ -160,7 +160,7 @@ test('TabGroup destroyed on tab removal (2 tab - 1)', async t => {
     await assertNotTabbed(wins[1], t);
 });
 
-test('TabGroup remains on tab removal (3 tab - 1)', async t => {
+test('TabGroup remains on tab removal (3 tabs - 1)', async t => {
     const win3 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,

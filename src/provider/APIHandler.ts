@@ -8,7 +8,7 @@ import {ApplicationUIConfig, DropPosition, TabIdentifier, TabProperties} from '.
 import {model, snapService, tabService} from './main';
 import {DesktopTabGroup} from './model/DesktopTabGroup';
 import {DesktopWindow, WindowIdentity} from './model/DesktopWindow';
-import {generateLayout} from './workspaces/create';
+import {deregisterWindow, generateLayout} from './workspaces/create';
 import {getAppToRestore, restoreApplication, restoreLayout} from './workspaces/restore';
 
 /**
@@ -121,6 +121,7 @@ export class APIHandler {
             throw new Error(`Unexpected error when deregistering: ${error}`);
         } finally {
             model.deregister(identity);
+            deregisterWindow(identity);
         }
     }
 

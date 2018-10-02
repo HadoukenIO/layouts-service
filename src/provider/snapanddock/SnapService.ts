@@ -46,6 +46,8 @@ export class SnapService {
     private resolver: Resolver;
     private view: SnapView;
 
+    private pendingRegistrations: WindowIdentity[] = [];
+
     /**
      * A window has been added to a group.
      *
@@ -95,6 +97,20 @@ export class SnapService {
                 }
             });
         });
+
+        // Register global undock hotkey listener
+        fin.GlobalHotkey
+            .register(
+                'CommandOrControl+Shift+U',
+                () => {
+                    fin.desktop.System.getFocusedWindow(focusedWindow => {
+                        if (focusedWindow !== null && this.getSnapWindow(focusedWindow)) {
+                            console.log('Global hotkey invoked on window', focusedWindow);
+                            this.undock(focusedWindow);
+                        }
+                    });
+                })
+            .catch(console.error);
     }
 
     public undock(target: {uuid: string; name: string}): void {
@@ -127,19 +143,25 @@ export class SnapService {
     }
 
     public deregister(target: {uuid: string; name: string}): void {
-        const window: SnapWindow|undefined = this.getSnapWindow(target);
-
-        if (window) {
-            try {
-                window.getWindow().leaveGroup();
-                window.onClose.emit(window);
-            } catch (error) {
-                console.error(`Unexpected error when deregistering: ${error}`);
-                throw new Error(`Unexpected error when deregistering: ${error}`);
-            }
+        // If the window is pending registration, remove it from the queue and return
+        const pendingIndex = this.pendingRegistrations.findIndex(w => w.name === target.name && w.uuid === target.uuid);
+        if (pendingIndex > -1) {
+            this.pendingRegistrations.splice(pendingIndex, 1);
         } else {
-            console.error(`Unable to deregister from Snap&Dock - no window is registered with identity "${target.uuid}/${target.name}"`);
-            throw new Error(`Unable to deregister from Snap&Dock - no window is registered with identity "${target.uuid}/${target.name}"`);
+            const window: SnapWindow|undefined = this.getSnapWindow(target);
+
+            if (window) {
+                try {
+                    window.getWindow().leaveGroup();
+                    window.onClose.emit(window);
+                } catch (error) {
+                    console.error(`Unexpected error when deregistering: ${error}`);
+                    throw new Error(`Unexpected error when deregistering: ${error}`);
+                }
+            } else {
+                console.error(`Unable to deregister from Snap&Dock - no window is registered with identity "${target.uuid}/${target.name}"`);
+                throw new Error(`Unable to deregister from Snap&Dock - no window is registered with identity "${target.uuid}/${target.name}"`);
+            }
         }
     }
 
@@ -203,20 +225,36 @@ export class SnapService {
         }
 
         // In either case, we will add the new window to the service.
-        this.addWindow(newOFWindow).then((win: SnapWindow) => console.log('Registered window: ' + win.getId()));
+        this.addWindow(newOFWindow).then((win: SnapWindow|null) => {
+            if (win !== null) {
+                console.log('Registered window: ' + win.getId());
+            }
+        });
     }
 
-    private addWindow(window: fin.OpenFinWindow): Promise<SnapWindow> {
-        return SnapWindow.getWindowState(window).then<SnapWindow>((state: WindowState): SnapWindow => {
-            const group: SnapGroup = this.addGroup();
-            const snapWindow: SnapWindow = new SnapWindow(group, window, state);
+    private addWindow(window: fin.OpenFinWindow): Promise<SnapWindow|null> {
+        // Set the window as pending registration  (Fix for race condition between register/deregister)
+        this.pendingRegistrations.push(window);
+        return SnapWindow.getWindowState(window).then<SnapWindow|null>((state: WindowState): SnapWindow|null => {
+            if (!this.pendingRegistrations.some(w => w.name === window.name && w.uuid === window.uuid)) {
+                // If pendingRegistrations does not contain the window, then deregister has been called on it
+                // and we should do nothing.
+                return null;
+            } else {
+                const group: SnapGroup = this.addGroup();
+                const snapWindow: SnapWindow = new SnapWindow(group, window, state);
 
-            snapWindow.onClose.add(this.onWindowClosed, this);
-            this.windows.push(snapWindow);
+                snapWindow.onClose.add(this.onWindowClosed, this);
+                this.windows.push(snapWindow);
 
-            window.addEventListener('group-changed', this.onWindowGroupChanged.bind(this));
+                window.addEventListener('group-changed', this.onWindowGroupChanged.bind(this));
 
-            return snapWindow;
+                // Remove the window from pendingRegitrations
+                const pendingIndex = this.pendingRegistrations.findIndex(w => w.name === window.name && w.uuid === window.uuid);
+                this.pendingRegistrations.splice(pendingIndex, 1);
+
+                return snapWindow;
+            }
         });
     }
 

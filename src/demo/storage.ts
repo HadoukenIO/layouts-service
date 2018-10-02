@@ -1,5 +1,5 @@
 import {Layout, LayoutName} from '../client/types';
-import { Workspace } from './LayoutsUI';
+import {Workspace} from './LayoutsUI';
 
 /*tslint:disable:no-any*/
 

@@ -209,8 +209,7 @@ export class GroupWindow extends AsyncWindow {
      * Creates the tab set window using the window options passed in during initialization.
      */
     private async _createTabWindow(): Promise<fin.OpenFinWindow> {
-        // @ts-ignore TS complains, but verified this is real and working.
-        return new Promise((res, rej) => {
+        return new Promise<fin.OpenFinWindow>((res, rej) => {
             const win = new fin.desktop.Window(
                 {
                     name: this._tabGroup.ID,
@@ -226,7 +225,6 @@ export class GroupWindow extends AsyncWindow {
                     defaultCentered: !this._initialWindowOptions.screenX && !this._initialWindowOptions.screenY,
                     saveWindowState: false,
                     taskbarIconGroup: this._tabGroup.ID,
-                    //@ts-ignore
                     backgroundThrottling: true,
                     waitForPageLoad: false
                 },

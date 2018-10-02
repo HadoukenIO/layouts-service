@@ -8,6 +8,7 @@
     },
     "include": [
         "src/fin.d.ts",
+        "src/finV2.d.ts",
         "src/provider/tabbing/tabstrip/TabStrip.ts",
         "src/provider/main.ts"
     ]

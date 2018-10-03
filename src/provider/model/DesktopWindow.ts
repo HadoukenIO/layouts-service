@@ -666,6 +666,13 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
     }
 
     private addListeners(): void {
+        this.registerListener('begin-user-bounds-changing', ()=>{
+            
+        });
+        this.registerListener('end-user-bounds-changing', ()=>{
+            
+        });
+        
         this.registerListener('bounds-changed', this.handleBoundsChanged.bind(this));
         this.registerListener('bounds-changing', this.handleBoundsChanging.bind(this));
         this.registerListener('closed', this.handleClosed.bind(this));
@@ -728,6 +735,10 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             window.leaveGroup();
         }
         this.registeredListeners.clear();
+    }
+
+    private async handleBeginUserBoundsChanging(event: fin.WindowBoundsEvent) {
+        const mousePos = fin.System.getMousePosition();
     }
 
     private handleBoundsChanged(event: fin.WindowBoundsEvent): void {

@@ -1422,6 +1422,8 @@ declare namespace fin {
         'blurred': WindowBaseEvent;
         'bounds-changed': WindowBoundsEvent;
         'bounds-changing': WindowBoundsEvent;
+        'begin-user-bounds-changing': WindowBoundsEvent;
+        'end-user-bounds-changing': WindowBoundsEvent;
         'close-requested': WindowBaseEvent;
         'closed': WindowBaseEvent;
         'disabled-frame-bounds-changed': WindowBoundsEvent;

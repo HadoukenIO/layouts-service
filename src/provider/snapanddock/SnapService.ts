@@ -397,7 +397,7 @@ export class SnapService {
                     'Expected group to have been removed, but still exists (' + activeGroup.id + ': ' + activeGroup.windows.map(w => w.getId()).join() + ')');
             }
             // TAB WINDOWS
-        } else if (activeGroup.length === 1) {
+        } else if (activeGroup.length === 1 && !TabService.INSTANCE.disableTabbingOperations) {
             const currentDragWindowIdentity: WindowIdentity = activeGroup.windows[0].getIdentity();
             // If a single untabbed window is being dragged, it is possible to create a tabset
             const activeState = activeGroup.windows[0].getState();

@@ -25,6 +25,11 @@ export class TabService {
     public static INSTANCE: TabService;
 
     /**
+     * Flag to disable / enable tabbing operations.
+     */
+    public disableTabbingOperations: boolean = false;
+
+    /**
      * Handle to the Tabbing API Handler
      */
     public apiHandler: APIHandler;
@@ -60,6 +65,10 @@ export class TabService {
         this.apiHandler = new APIHandler(this);
 
         this.mApplicationConfigManager = new ApplicationConfigManager();
+
+        fin.desktop.InterApplicationBus.subscribe("*", "layoutsService:experimental:disableTabbing", (message, uuid, name) => {
+            this.disableTabbingOperations = message;
+        });
 
         TabService.INSTANCE = this;
     }

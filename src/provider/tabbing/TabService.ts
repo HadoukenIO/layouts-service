@@ -66,10 +66,6 @@ export class TabService {
 
         this.mApplicationConfigManager = new ApplicationConfigManager();
 
-        fin.desktop.InterApplicationBus.subscribe('*', 'layoutsService:experimental:disableTabbing', (message, uuid, name) => {
-            this.disableTabbingOperations = message;
-        });
-
         TabService.INSTANCE = this;
     }
 

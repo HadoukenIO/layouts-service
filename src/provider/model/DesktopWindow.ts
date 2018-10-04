@@ -664,9 +664,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
     }
 
     private addListeners(): void {
-        this.registerListener('begin-user-bounds-changing', this.handleBeginUserBoundsChanging.bind(this));
-        //this.registerListener('end-user-bounds-changing', this.model.getMouseTracker().end.bind(this));
-        
+        this.registerListener('begin-user-bounds-changing', this.handleBeginUserBoundsChanging.bind(this));        
         this.registerListener('bounds-changed', this.handleBoundsChanged.bind(this));
         this.registerListener('bounds-changing', this.handleBoundsChanging.bind(this));
         this.registerListener('closed', this.handleClosed.bind(this));

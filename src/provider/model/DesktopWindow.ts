@@ -219,9 +219,6 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
     // Tracks event listeners registered on the fin window for easier cleanup.
     private registeredListeners: Map<keyof fin.OpenFinWindowEventMap, OpenFinWindowEventHandler> = new Map();
 
-    // State tracking for "synth move" detection
-    private boundsChangeCountSinceLastCommit: number;
-
     private userInitiatedBoundsChange: boolean = false;
 
     constructor(model: DesktopModel, group: DesktopSnapGroup, window: fin.WindowOptions|Window, initialState?: WindowState) {
@@ -258,7 +255,6 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         this.applicationState = {...initialState};
         this.modifiedState = {};
         this.temporaryState = {};
-        this.boundsChangeCountSinceLastCommit = 0;
 
         this.snapGroup = group;
         this.tabGroup = null;
@@ -741,18 +737,17 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
 
         this.updateState({center, halfSize}, ActionOrigin.APPLICATION);
-        if (this.boundsChangeCountSinceLastCommit > 1) {
+        if (this.userInitiatedBoundsChange) {
             // Convert 'changeType' into our enum type
             const type: Mask<eTransformType> = event.changeType + 1;
-            if(this.userInitiatedBoundsChange){
-                this.model.getMouseTracker().end();
-            }
 
             this.onCommit.emit(this, type);
+
+            // Setting this here instead of in 'end-user-bounds-changing' event to ensure we are still synced when this method is called.
+            this.userInitiatedBoundsChange = false;
         } else {
             this.onModified.emit(this);
         }
-        this.boundsChangeCountSinceLastCommit = 0;
     }
 
     private handleBoundsChanging(event: fin.WindowBoundsEvent): void {
@@ -764,20 +759,14 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         const type: Mask<eTransformType> = event.changeType + 1;
 
         this.updateState({center, halfSize}, ActionOrigin.APPLICATION);
-        this.boundsChangeCountSinceLastCommit++;
 
-        if (this.boundsChangeCountSinceLastCommit > 1) {
-
-            if(this.userInitiatedBoundsChange){
-
-            }
-            
+        if (this.userInitiatedBoundsChange) {
+            console.log(this.model.getMouseTracker().getPos())
             this.onTransform.emit(this, type);
         }
     }
 
     private handleBeginUserBoundsChanging(event: fin.WindowBoundsEvent) {
-        this.model.getMouseTracker().start.bind(this);
         this.userInitiatedBoundsChange = true;
     }
 

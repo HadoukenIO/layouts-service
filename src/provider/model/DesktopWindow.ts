@@ -222,6 +222,8 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
     // State tracking for "synth move" detection
     private boundsChangeCountSinceLastCommit: number;
 
+    private userInitiatedBoundsChange: boolean = false;
+
     constructor(model: DesktopModel, group: DesktopSnapGroup, window: fin.WindowOptions|Window, initialState?: WindowState) {
         super(model, DesktopWindow.getIdentity(window));
 
@@ -666,12 +668,8 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
     }
 
     private addListeners(): void {
-        this.registerListener('begin-user-bounds-changing', ()=>{
-            
-        });
-        this.registerListener('end-user-bounds-changing', ()=>{
-            
-        });
+        this.registerListener('begin-user-bounds-changing', this.handleBeginUserBoundsChanging.bind(this));
+        //this.registerListener('end-user-bounds-changing', this.model.getMouseTracker().end.bind(this));
         
         this.registerListener('bounds-changed', this.handleBoundsChanged.bind(this));
         this.registerListener('bounds-changing', this.handleBoundsChanging.bind(this));
@@ -737,10 +735,6 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         this.registeredListeners.clear();
     }
 
-    private async handleBeginUserBoundsChanging(event: fin.WindowBoundsEvent) {
-        const mousePos = fin.System.getMousePosition();
-    }
-
     private handleBoundsChanged(event: fin.WindowBoundsEvent): void {
         const bounds: fin.WindowBounds = this.checkBounds(event);
         const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
@@ -750,6 +744,9 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         if (this.boundsChangeCountSinceLastCommit > 1) {
             // Convert 'changeType' into our enum type
             const type: Mask<eTransformType> = event.changeType + 1;
+            if(this.userInitiatedBoundsChange){
+                this.model.getMouseTracker().end();
+            }
 
             this.onCommit.emit(this, type);
         } else {
@@ -770,8 +767,18 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         this.boundsChangeCountSinceLastCommit++;
 
         if (this.boundsChangeCountSinceLastCommit > 1) {
+
+            if(this.userInitiatedBoundsChange){
+
+            }
+            
             this.onTransform.emit(this, type);
         }
+    }
+
+    private handleBeginUserBoundsChanging(event: fin.WindowBoundsEvent) {
+        this.model.getMouseTracker().start.bind(this);
+        this.userInitiatedBoundsChange = true;
     }
 
     private handleClosed(): void {

@@ -761,7 +761,6 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         this.updateState({center, halfSize}, ActionOrigin.APPLICATION);
 
         if (this.userInitiatedBoundsChange) {
-            console.log(this.model.getMouseTracker().getPos())
             this.onTransform.emit(this, type);
         }
     }

@@ -130,6 +130,8 @@ test('Tabset on dragover - drop on torn-out dropped window', async t => {
 async function assertTabbed(win1: Window, win2: Window, t: GenericTestContext<AnyContext>): Promise<void> {
     // TODO: Determine if the window is tabbed on the service side.
 
+    await delay(500);
+
     // Both windows are in the same native openfin group
     const [group1, group2] = [await win1.getGroup(), await win2.getGroup()];
     for (let i = 0; i < group1.length; i++) {

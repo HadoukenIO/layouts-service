@@ -6,19 +6,36 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <script src="../provider/main-bundle.js"></script>
     <script>
-        fin.desktop.InterApplicationBus.subscribe('*', 'test', (message) => {
-            console.log(message);
-            const returnVal = eval(message);
+        fin.desktop.InterApplicationBus.subscribe('*', 'executeJavascript', (message) => {
+            try {
+                const result = eval(message);
 
-            if (returnVal instanceof Promise) {
-                returnVal.then(() => {
-                    fin.desktop.InterApplicationBus.send("TEST", "replytest", "script evaluated");
-                });
-            } else {
-                fin.desktop.InterApplicationBus.send("TEST", "replytest", "script evaluated");
+                if (result instanceof Promise) {
+                    result.then(sendResult, sendError);
+                } else {
+                    sendResult(result);
+                }
+            } catch(error) {
+                sendError(error);
             }
-            
         });
+
+        function sendResult(value) {
+            fin.desktop.InterApplicationBus.send("TEST", "executeJavascriptResult", {success: true, result: stringify(value), type: typeof value})
+        }
+
+        function sendError(reason) {
+            fin.desktop.InterApplicationBus.send("TEST", "executeJavascriptResult", {success: false, result: stringify(reason), type: typeof reason})
+        }
+
+        function stringify(value) {
+            try {
+                return JSON.stringify(value);
+            } catch(error) {
+                console.warn("Cannot stringify eval result", value);
+                return JSON.stringify(value + "");
+            }
+        }
     </script>
     <title>Layouts Manager Service</title>
 </head>

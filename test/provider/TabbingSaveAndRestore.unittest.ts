@@ -1,4 +1,4 @@
-import {TabService} from "../../src/provider/tabbing/TabService";
+import {TabService} from '../../src/provider/tabbing/TabService';
 
 // tslint:disable:variable-name
 // tslint:disable:no-any

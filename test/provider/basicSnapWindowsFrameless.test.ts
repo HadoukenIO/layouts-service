@@ -4,6 +4,7 @@ import * as robot from 'robotjs';
 import {setTimeout} from 'timers';
 
 import {createChildWindow} from './utils/createChildWindow';
+import {delay} from './utils/delay';
 import {dragWindowTo} from './utils/dragWindowTo';
 import {getBounds} from './utils/getBounds';
 import {resizeWindowToSize} from './utils/resizeWindowToSize';
@@ -101,7 +102,8 @@ test('resizing group horizontally', async t => {
     robot.mouseToggle('down');
     robot.moveMouseSmooth(bounds2.right - 1 + 40, (bounds2.top + bounds2.bottom) / 2);
     robot.mouseToggle('up');
-    await new Promise(r => setTimeout(r, 2000));
+
+    await delay(1000);
 
     // recalculate bounds & combined width
     bounds1 = await getBounds(win1);
@@ -126,6 +128,8 @@ test('resizing group vertically', async t => {
 
     robot.moveMouseSmooth((bounds2.left + bounds2.right) / 2, bounds2.bottom + 50);
     robot.mouseToggle('up');
+
+    await delay(1000);
 
     // recalculate bounds & combined width
     bounds1 = await getBounds(win1);

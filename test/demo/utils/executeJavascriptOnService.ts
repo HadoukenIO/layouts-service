@@ -8,7 +8,7 @@ import {getConnection} from '../../provider/utils/connect';
  * Executes javascript code on the service
  * @param func
  */
-export async function executeJavascriptOnService<T, R>(func: ((data: T) => R),  data?: T): Promise<R> {
+export async function executeJavascriptOnService<T, R>(func: ((data: T) => R), data?: T): Promise<R> {
     const fin: Fin = await getConnection();
     // @ts-ignore Hadouken types are wrong. `channelName` is a valid property
     return fin.InterApplicationBus.Channel.connect({uuid: 'layouts-service', name: 'layouts-service', channelName: 'layouts-provider-testing'})

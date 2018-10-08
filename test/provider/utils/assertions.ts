@@ -1,8 +1,10 @@
 import {TestContext} from 'ava';
 import {Window} from 'hadouken-js-adapter';
-import {NormalizedBounds, getBounds} from './getBounds';
+
 import {getGroupedWindows} from '../../demo/utils/snapServiceUtils';
 import {getTabGroupID} from '../../demo/utils/tabServiceUtils';
+
+import {getBounds, NormalizedBounds} from './getBounds';
 
 export async function assertGrouped(win1: Window, win2: Window, t: TestContext) {
     // Both windows are in the same native openfin group
@@ -54,7 +56,6 @@ export async function assertTabbed(win1: Window, win2: Window, t: TestContext): 
 }
 
 export async function assertNotTabbed(win: Window, t: TestContext): Promise<void> {
-
     // Get the tabGroup ID for the window
     const tabGroupID = await getTabGroupID(win.identity);
     // Untabbed windows will return null

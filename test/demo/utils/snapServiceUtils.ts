@@ -1,10 +1,13 @@
 import {Identity} from 'hadouken-js-adapter';
+
+import {WindowIdentity} from '../../provider/utils/explodeGroup';
+
 import {executeJavascriptOnService} from './executeJavascriptOnService';
-import { SnapWindow } from '../../providerTypes';
 
 export async function isWindowRegistered(identity: Identity): Promise<boolean> {
-    function remoteFunc(this: Window, identity:Identity): boolean {
-        return !!this.snapService.getSnapWindow(identity);
+    function remoteFunc(this: Window, identity: Identity): boolean {
+        //@ts-ignore Need to call private method. Will be changed following refactor.
+        return !!this.snapService.getSnapWindow(identity as WindowIdentity);
     }
 
     return executeJavascriptOnService<Identity, boolean>(remoteFunc, identity);
@@ -12,9 +15,10 @@ export async function isWindowRegistered(identity: Identity): Promise<boolean> {
 
 export async function getGroupedWindows(identity: Identity): Promise<Identity[]> {
     function remoteFunc(this: Window, identity: Identity): Identity[] {
-        const snapWindow: SnapWindow | undefined = this.snapService.getSnapWindow(identity);
+        //@ts-ignore Need to call private method. Will be changed following refactor.
+        const snapWindow = this.snapService.getSnapWindow(identity as WindowIdentity);
         if (snapWindow) {
-            return snapWindow.getGroup().windows.map((win: SnapWindow) => {
+            return snapWindow.getGroup().windows.map(win => {
                 return win.getIdentity();
             });
         } else {
@@ -22,5 +26,5 @@ export async function getGroupedWindows(identity: Identity): Promise<Identity[]>
         }
     }
 
-    return executeJavascriptOnService<Identity,Identity[]>(remoteFunc, identity);
+    return executeJavascriptOnService<Identity, Identity[]>(remoteFunc, identity);
 }

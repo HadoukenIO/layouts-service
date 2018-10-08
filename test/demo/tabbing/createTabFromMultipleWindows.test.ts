@@ -52,7 +52,9 @@ test('Create tab group from 2 windows', async (assert) => {
 
 
     // Act
-    function scriptToExecute(this: Window, tabBlobs: TabBlob[]):Promise<void> {return window.createTabGroupsFromTabBlob(tabBlobs);}
+    function scriptToExecute(this: Window, tabBlobs: TabBlob[]): Promise<void> {
+        return window.createTabGroupsFromTabBlob(tabBlobs);
+    }
     await executeJavascriptOnService<TabBlob[], void>(scriptToExecute, tabBlobs);
 
     // Tab group should have been created

@@ -1,12 +1,13 @@
 import {AnyContext, GenericTestContext, test} from 'ava';
 import {Fin, Window} from 'hadouken-js-adapter';
 import * as robot from 'robotjs';
+
+import {assertNotTabbed, assertTabbed} from './utils/assertions';
 import {getConnection} from './utils/connect';
 import {createChildWindow} from './utils/createChildWindow';
 import {delay} from './utils/delay';
 import {dragWindowToOtherWindow} from './utils/dragWindowTo';
 import {getBounds} from './utils/getBounds';
-import {assertTabbed, assertNotTabbed} from './utils/assertions';
 
 let win1: Window, win2: Window, win3: Window;
 let fin: Fin;

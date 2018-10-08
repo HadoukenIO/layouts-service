@@ -19,6 +19,11 @@ export class TabService {
      */
     public static INSTANCE: TabService;
 
+    /**
+     * Flag to disable / enable tabbing operations.
+     */
+    public disableTabbingOperations = false;
+
     private _model: DesktopModel;
 
     /**

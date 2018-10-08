@@ -25,6 +25,32 @@ export async function main() {
     tabService = window.tabService = new TabService(model);
     apiHandler = window.apiHandler = new APIHandler();
 
+    fin.desktop.InterApplicationBus.subscribe('*', 'layoutsService:experimental:disableTabbing', (message, uuid, name) => {
+        TabService.INSTANCE.disableTabbingOperations = message;
+    });
+
+    fin.desktop.Application.getCurrent().addEventListener('run-requested', (event) => {
+        if (event.userAppConfigArgs && event.userAppConfigArgs.disableTabbingOperations) {
+            TabService.INSTANCE.disableTabbingOperations = event.userAppConfigArgs.disableTabbingOperations ? true : false;
+        }
+    });
+
+    function getParameter(paramName: string) {
+        const searchString = window.location.search.substring(1);
+        const params = searchString.split('&');
+        let i, val;
+
+        for (i = 0; i < params.length; i++) {
+            val = params[i].split('=');
+            if (val[0] === paramName) {
+                return val[1];
+            }
+        }
+        return null;
+    }
+
+    TabService.INSTANCE.disableTabbingOperations = getParameter('disableTabbingOperations') ? true : false;
+
     await win10Check;
     await apiHandler.register();
 }

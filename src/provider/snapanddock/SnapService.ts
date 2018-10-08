@@ -189,7 +189,7 @@ export class SnapService {
                 console.warn(
                     'Expected group to have been removed, but still exists (' + activeGroup.id + ': ' + activeGroup.windows.map(w => w.getId()).join() + ')');
             }
-        } else if (activeGroup.length === 1 && !activeGroup.windows[0].getTabGroup()) {  // TAB WINDOWS
+        } else if (activeGroup.length === 1 && !activeGroup.windows[0].getTabGroup() && !TabService.INSTANCE.disableTabbingOperations) {  // TAB WINDOWS
             // If a single untabbed window is being dragged, it is possible to create a tabset
             const activeWindow: DesktopWindow = activeGroup.windows[0] as DesktopWindow;
             const activeIdentity: WindowIdentity = activeWindow.getIdentity();

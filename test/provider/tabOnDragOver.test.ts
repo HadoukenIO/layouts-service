@@ -198,6 +198,11 @@ async function assertTabbed(win1: Window, win2: Window, t: GenericTestContext<An
         t.deepEqual(group1[i].identity, group2[i].identity, 'Window native groups are different');
     }
 
+    // Checks if a tabset window is present in the group (detatched tab check)
+    t.truthy(group1.find((win) => {
+        return win.identity.name!.includes("TABSET-");
+    }),'No tabset window found in openfin group!');
+
     // Both windows have the same bounds
     const [bounds1, bounds2] = [await getBounds(win1), await getBounds(win2)];
     t.deepEqual(bounds1, bounds2, 'Tabbed windows do not have the same bounds');

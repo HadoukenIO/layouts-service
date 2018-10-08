@@ -8,7 +8,8 @@
     <script>
         fin.InterApplicationBus.Channel.create('layouts-provider-testing').then(channelProvider => {
             channelProvider.register('execute-javascript', (payload) => {
-                return eval(payload);
+                
+                return new Function("return " + payload.script)()(payload.data);
             });
         })
     </script>

@@ -52,8 +52,8 @@ test('Create tab group from 2 windows', async (assert) => {
 
 
     // Act
-    const scriptToExecute = `createTabGroupsFromTabBlob(${JSON.stringify(tabBlobs)})`;
-    await executeJavascriptOnService(scriptToExecute);
+    function scriptToExecute(this: Window, tabBlobs: TabBlob[]):Promise<void> {return window.createTabGroupsFromTabBlob(tabBlobs);}
+    await executeJavascriptOnService<TabBlob[], void>(scriptToExecute, tabBlobs);
 
     // Tab group should have been created
     const serviceChildWindows: Window[] = await serviceApplication.getChildWindows();

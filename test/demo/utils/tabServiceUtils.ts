@@ -1,18 +1,23 @@
 import {Identity} from 'hadouken-js-adapter';
-
 import {executeJavascriptOnService} from './executeJavascriptOnService';
-import { TabService } from '../../../src/provider/tabbing/TabService';
+import { TabGroup, Tab } from '../../providerTypes';
 
-export async function getTabGroupID(identity: Identity): Promise<string> {
-    return executeJavascriptOnService<string>(`
-        let remoteTabGroup = tabService.getTabGroupByApp({name:'${identity.name}', uuid:'${identity.uuid}'});
-        remoteTabGroup && remoteTabGroup.ID? remoteTabGroup.ID : null;
-    `);
+export async function getTabGroupID(identity: Identity): Promise<string | null> {
+    function remoteFunc(this: Window, identity: Identity): string | null {
+        const tabGroup = this.tabService.getTabGroupByApp(identity);
+        return tabGroup && tabGroup.ID? tabGroup.ID : null;
+    }
+    return executeJavascriptOnService<Identity, string | null>(remoteFunc, identity);
 }
 
 export async function getTabbedWindows(identity: Identity): Promise<Identity[]> {
-    return executeJavascriptOnService<Identity[]>(`
-        tabService.getTabGroupByApp({name:'${identity.name}', uuid:'${identity.uuid}'})._tabs.map(tab => tab._tabID);
-    `);
+    function remoteFunc(this: Window, identity: Identity): Identity[] {
+        const tabGroup: TabGroup | undefined = this.tabService.getTabGroupByApp(identity);
+        if (tabGroup && tabGroup.tabs) {
+            return tabGroup.tabs.map((tab: Tab) => tab.ID);
+        } else {
+            return [identity];
+        }
+    }
+    return executeJavascriptOnService<Identity, Identity[]>(remoteFunc, identity);
 }
-

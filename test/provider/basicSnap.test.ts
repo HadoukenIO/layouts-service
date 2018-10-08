@@ -7,6 +7,7 @@ import {dragWindowTo} from './utils/dragWindowTo';
 import {getBounds} from './utils/getBounds';
 import {Win} from './utils/getWindow';
 import {resizeWindowToSize} from './utils/resizeWindowToSize';
+import { delay } from './utils/delay';
 
 let win1: Window, win2: Window, fin: Fin, app1: Application, app2: Application;
 
@@ -35,6 +36,8 @@ test.beforeEach(async () => {
 
     win1 = await fin.Window.wrap({uuid: app1.identity.uuid, name: app1.identity.uuid});
     win2 = await fin.Window.wrap({uuid: app2.identity.uuid, name: app2.identity.uuid});
+
+    await delay(300);
 });
 
 test.afterEach.always(async () => {
@@ -174,29 +177,40 @@ test('resize on snap, big to small', async t => {
 });
 
 // throws 'Error: Application with specified UUID already exists: a0' rejection
-test.failing('should allow reregistration of a previously used identity', async t => {
-    const fin = await getConnection();
+test('should allow reregistration of a previously used identity', async t => {
+
+    // Get the names of the first windows
+    const win1Name = win1.identity.name!;
+    const win2Name = win2.identity.name!;
+
+    // Close the first set of windows
+    await win1.close();
+    await win2.close();
+
     // intentionally hardcoding previosuly used uuid
-    const app1 = await fin.Application.create({
-        uuid: 'test-app-0',
-        name: 'test-app-0',
+    app1 = await fin.Application.create({
+        uuid: win1Name,
+        name: win1Name,
         mainWindowOptions: {autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 200, defaultWidth: 200}
     });
     await app1.run();
 
     // intentionally hardcoding previosuly used uuid
-    const app2 = await fin.Application.create({
-        uuid: 'test-app-1',
-        name: 'test-app-1',
+    app2 = await fin.Application.create({
+        uuid: win2Name,
+        name: win2Name,
         mainWindowOptions: {autoShow: true, saveWindowState: false, defaultTop: 300, defaultLeft: 400, defaultHeight: 200, defaultWidth: 200}
     });
     await app2.run();
 
+    await delay(500);
 
-    const win1 = await fin.Window.wrap({uuid: 'test-app-0', name: 'test-app-0'});
-    const win2 = await fin.Window.wrap({uuid: 'test-app-1', name: 'test-app-1'});
+    // wrap the secoind set of windows windows
+    win1 = await fin.Window.wrap({uuid: win1Name, name: win1Name});
+    win2 = await fin.Window.wrap({uuid: win2Name, name: win2Name});
     const win2Bounds = await getBounds(win2);
 
+    // test that the new windows can be snapped
     await dragWindowTo(win1, win2Bounds.left + 50, win2Bounds.bottom + 2);
     await dragWindowTo(win2, 500, 500);
 

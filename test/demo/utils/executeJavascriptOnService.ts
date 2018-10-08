@@ -16,8 +16,6 @@ export async function executeJavascriptOnService(script: string): Promise<Execut
         const callback = (message: {success: boolean; result: ExecuteResult; type: string}) => {
             fin.InterApplicationBus.unsubscribe(serviceIdentity, 'executeJavascriptResult', callback);
 
-            console.log(message);
-
             if (message.success) {
                 let result = message.result;
                 try {

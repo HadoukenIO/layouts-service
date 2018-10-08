@@ -1,3 +1,4 @@
+import {tabService} from '../main';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
@@ -161,20 +162,17 @@ export class SnapService {
     }
 
     private snapGroup(activeGroup: DesktopSnapGroup, type: Mask<eTransformType>): void {
-        const groups: DesktopSnapGroup[] = this.model.getSnapGroups() as DesktopSnapGroup[];  // TODO: Make read-only?
+        const groups: ReadonlyArray<DesktopSnapGroup> = this.model.getSnapGroups();
         const snapTarget: SnapTarget|null = this.resolver.getSnapTarget(groups, activeGroup);
 
         this.view.update(activeGroup, snapTarget);
     }
 
     private applySnapTarget(activeGroup: DesktopSnapGroup): void {
-        const groups: DesktopSnapGroup[] = this.model.getSnapGroups() as DesktopSnapGroup[];  // TODO: Make read-only?
+        const groups: ReadonlyArray<DesktopSnapGroup> = this.model.getSnapGroups();
         const snapTarget: SnapTarget|null = this.resolver.getSnapTarget(groups, activeGroup);
 
         if (snapTarget && snapTarget.validity === eSnapValidity.VALID) {  // SNAP WINDOWS
-            // Reset view (do this before moving windows out of active group, to ensure opacities are reset)
-            // this.view.update(null, null);
-
             // Move all windows in activeGroup to snapTarget.group
             activeGroup.windows.forEach((window: Snappable) => {
                 if (window === snapTarget.activeWindow && snapTarget.halfSize) {
@@ -189,32 +187,10 @@ export class SnapService {
                 console.warn(
                     'Expected group to have been removed, but still exists (' + activeGroup.id + ': ' + activeGroup.windows.map(w => w.getId()).join() + ')');
             }
-        } else if (activeGroup.length === 1 && !activeGroup.windows[0].getTabGroup() && !TabService.INSTANCE.disableTabbingOperations) {  // TAB WINDOWS
-            // If a single untabbed window is being dragged, it is possible to create a tabset
+        } else if (activeGroup.length === 1 && !activeGroup.windows[0].getTabGroup()) {  // TAB WINDOWS
+            // Check if we can add this window to a (new or existing) tab group
             const activeWindow: DesktopWindow = activeGroup.windows[0] as DesktopWindow;
-            const activeIdentity: WindowIdentity = activeWindow.getIdentity();
-            const activeState = activeGroup.windows[0].getState();
-
-            // Ignore if we are dragging around a tabset
-            if (activeWindow instanceof DesktopWindow) {
-                const windowUnderPoint: DesktopWindow|null = this.model.getWindowAt(activeState.center.x, activeState.center.y, activeIdentity);
-                const appConfigMgr: ApplicationConfigManager = TabService.INSTANCE.applicationConfigManager;
-
-                // There is a window under our drop point
-                if (windowUnderPoint) {
-                    const existingTabSet: DesktopTabGroup|null = windowUnderPoint.getTabGroup();
-
-                    if (existingTabSet && appConfigMgr.compareConfigBetweenApplications(activeIdentity.uuid, existingTabSet.config)) {
-                        // Add to existing tab group
-                        existingTabSet.addTab(activeWindow);
-                    } else if (
-                        windowUnderPoint instanceof DesktopWindow &&
-                        appConfigMgr.compareConfigBetweenApplications(windowUnderPoint.getIdentity().uuid, activeIdentity.uuid)) {
-                        // If not a tab group then create a group with the 2 tabs.
-                        TabService.INSTANCE.createTabGroupWithTabs([windowUnderPoint.getIdentity(), activeIdentity], activeIdentity);
-                    }
-                }
-            }
+            tabService.tabDroppedWindow(activeWindow);
         }
 
         // Reset view

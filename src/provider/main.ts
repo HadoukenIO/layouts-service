@@ -26,12 +26,12 @@ export async function main() {
     apiHandler = window.apiHandler = new APIHandler();
 
     fin.desktop.InterApplicationBus.subscribe('*', 'layoutsService:experimental:disableTabbing', (message, uuid, name) => {
-        TabService.INSTANCE.disableTabbingOperations = message;
+        tabService.disableTabbingOperations = message;
     });
 
     fin.desktop.Application.getCurrent().addEventListener('run-requested', (event) => {
         if (event.userAppConfigArgs && event.userAppConfigArgs.disableTabbingOperations) {
-            TabService.INSTANCE.disableTabbingOperations = event.userAppConfigArgs.disableTabbingOperations ? true : false;
+            tabService.disableTabbingOperations = event.userAppConfigArgs.disableTabbingOperations ? true : false;
         }
     });
 
@@ -49,7 +49,7 @@ export async function main() {
         return null;
     }
 
-    TabService.INSTANCE.disableTabbingOperations = getParameter('disableTabbingOperations') ? true : false;
+    tabService.disableTabbingOperations = getParameter('disableTabbingOperations') ? true : false;
 
     await win10Check;
     await apiHandler.register();

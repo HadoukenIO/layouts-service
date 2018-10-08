@@ -1,7 +1,4 @@
-import {TabService} from '../../src/provider/tabbing/TabService';
-
-// tslint:disable:variable-name
-// tslint:disable:no-any
+import {tabService} from '../../src/provider/main';
 
 beforeEach(() => {
     jest.restoreAllMocks();
@@ -13,7 +10,7 @@ describe('Tests for save and restore API methods', () => {
     describe('Tests for getting tabbing info blob', () => {
         describe('Request to get tab info with tabbing no service', () => {
             it('should return undefined', async () => {
-                const tabBlob = await TabService.INSTANCE.getTabSaveInfo();
+                const tabBlob = await tabService.getTabSaveInfo();
                 expect(tabBlob).toBeUndefined();
             });
         });

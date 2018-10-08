@@ -3,7 +3,7 @@ import {APIHandler} from '../APIHandler';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
-import {DesktopWindow, WindowIdentity} from '../model/DesktopWindow';
+import {DesktopWindow, WindowIdentity, WindowState} from '../model/DesktopWindow';
 import {Rectangle} from '../snapanddock/utils/RectUtils';
 
 import {ApplicationConfigManager} from './components/ApplicationConfigManager';
@@ -14,11 +14,6 @@ import {DragWindowManager} from './DragWindowManager';
  * The overarching class for the Tab Service.
  */
 export class TabService {
-    /**
-     * Handle of this Tab Service Instance.
-     */
-    public static INSTANCE: TabService;
-
     /**
      * Flag to disable / enable tabbing operations.
      */
@@ -46,8 +41,6 @@ export class TabService {
         this._dragWindowManager.init();
 
         this.mApplicationConfigManager = new ApplicationConfigManager();
-
-        TabService.INSTANCE = this;
     }
 
     /**
@@ -207,6 +200,40 @@ export class TabService {
                 await group.addTabs(tabs, blob.groupInfo.active);
             } else {
                 console.error('Not enough valid tab identifiers within tab blob to form a tab group', blob.tabs);
+            }
+        }
+    }
+
+    /**
+     * Takes the given window and tabs it to any other window at the same position.
+     *
+     * @param window Window that has just been moved by the user
+     */
+    public tabDroppedWindow(window: DesktopWindow): void {
+        if (!this.disableTabbingOperations) {
+            // If a single untabbed window is being dragged, it is possible to create a tabset
+            const activeIdentity: WindowIdentity = window.getIdentity();
+            const activeState: WindowState = window.getState();
+
+            // Ignore if we are dragging around a tabset
+            if (window instanceof DesktopWindow) {
+                const windowUnderPoint: DesktopWindow|null = this._model.getWindowAt(activeState.center.x, activeState.center.y, activeIdentity);
+                const appConfigMgr: ApplicationConfigManager = this.mApplicationConfigManager;
+
+                // There is a window under our drop point
+                if (windowUnderPoint) {
+                    const existingTabSet: DesktopTabGroup|null = windowUnderPoint.getTabGroup();
+
+                    if (existingTabSet && appConfigMgr.compareConfigBetweenApplications(activeIdentity.uuid, existingTabSet.config)) {
+                        // Add to existing tab group
+                        existingTabSet.addTab(window);
+                    } else if (
+                        windowUnderPoint instanceof DesktopWindow &&
+                        appConfigMgr.compareConfigBetweenApplications(windowUnderPoint.getIdentity().uuid, activeIdentity.uuid)) {
+                        // If not a tab group then create a group with the 2 tabs.
+                        this.createTabGroupWithTabs([windowUnderPoint.getIdentity(), activeIdentity], activeIdentity);
+                    }
+                }
             }
         }
     }

@@ -33,7 +33,7 @@ if (testFilterIndex > -1) {
     args.splice(testFilterIndex, 2);
 }
 
-const testCommand = `ava --serial build/test/**/*${testFileName}*.test.js ${testNameFilter? '--match ' + testNameFilter: ''} ${args.join(' ')}`;
+const testCommand = `ava --serial build/test/**/${testFileName}.test.js ${testNameFilter? '--match ' + testNameFilter: ''} ${args.join(' ')}`;
 
 const cleanup = async res => {
     if (os.platform().match(/^win/)) {

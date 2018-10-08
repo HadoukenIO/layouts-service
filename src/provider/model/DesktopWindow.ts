@@ -682,11 +682,6 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         this.registerListener('hidden', () => this.updateState({hidden: true}, ActionOrigin.APPLICATION));
         this.registerListener('maximized', () => {
             this.updateState({state: 'maximized'}, ActionOrigin.APPLICATION);
-            this.snapGroup.windows.forEach(window => {
-                if (window !== this) {
-                    (window as DesktopWindow).applyProperties({state: 'maximized'});
-                }
-            });
         });
         this.registerListener('minimized', () => {
             this.updateState({state: 'minimized'}, ActionOrigin.APPLICATION);

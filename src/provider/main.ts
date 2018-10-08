@@ -9,7 +9,7 @@ import {SnapService} from './snapanddock/SnapService';
 import {SnapWindow, WindowIdentity} from './snapanddock/SnapWindow';
 import {win10Check} from './snapanddock/utils/platform';
 import {TabService} from './tabbing/TabService';
-import {generateLayout} from './workspaces/create';
+import {deregisterWindow, generateLayout} from './workspaces/create';
 import {getAppToRestore, restoreApplication, restoreLayout} from './workspaces/restore';
 
 export let snapService: SnapService;
@@ -38,6 +38,7 @@ async function registerService() {
     providerChannel.register('deregister', (identity: WindowIdentity) => {
         snapService.deregister(identity);
         tabService.apiHandler.deregister(identity);
+        deregisterWindow(identity);
     });
     providerChannel.register('undockGroup', (identity: WindowIdentity) => {
         snapService.explodeGroup(identity);
@@ -89,6 +90,34 @@ export async function main() {
     snapService = window.snapService = new SnapService();
     tabService = window.tabService = new TabService();
     await win10Check;
+
+
+    fin.desktop.InterApplicationBus.subscribe('*', 'layoutsService:experimental:disableTabbing', (message, uuid, name) => {
+        TabService.INSTANCE.disableTabbingOperations = message;
+    });
+
+    fin.desktop.Application.getCurrent().addEventListener('run-requested', (event) => {
+        if (event.userAppConfigArgs && event.userAppConfigArgs.disableTabbingOperations) {
+            TabService.INSTANCE.disableTabbingOperations = event.userAppConfigArgs.disableTabbingOperations ? true : false;
+        }
+    });
+
+    function getParameter(paramName: string) {
+        const searchString = window.location.search.substring(1);
+        const params = searchString.split('&');
+        let i, val;
+
+        for (i = 0; i < params.length; i++) {
+            val = params[i].split('=');
+            if (val[0] === paramName) {
+                return val[1];
+            }
+        }
+        return null;
+    }
+
+    TabService.INSTANCE.disableTabbingOperations = getParameter('disableTabbingOperations') ? true : false;
+
     return await registerService();
 }
 

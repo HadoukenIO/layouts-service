@@ -1,27 +1,22 @@
-import {test, TestContext, Macro} from 'ava';
-import { _Window } from 'hadouken-js-adapter/out/types/src/api/window/window';
-import { createChildWindow } from '../../provider/utils/createChildWindow';
-import { Side, sideArray, opposite } from '../../provider/utils/SideUtils';
-import { delay } from '../../provider/utils/delay';
-import { assertGrouped, assertAdjacent } from '../../provider/utils/assertions';
-import { dragSideToSide, dragWindowTo } from '../../provider/utils/dragWindowTo';
-import { Fin } from 'hadouken-js-adapter';
-import { getConnection } from '../../provider/utils/connect';
+import {Macro, test, TestContext} from 'ava';
+import {Fin} from 'hadouken-js-adapter';
+import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-let windows: _Window[] = [];
-let fin:Fin;
+import {assertAdjacent, assertGrouped} from '../../provider/utils/assertions';
+import {getConnection} from '../../provider/utils/connect';
+import {createChildWindow} from '../../provider/utils/createChildWindow';
+import {delay} from '../../provider/utils/delay';
+import {dragSideToSide, dragWindowTo} from '../../provider/utils/dragWindowTo';
+import {opposite, Side, sideArray} from '../../provider/utils/SideUtils';
 
-const windowPositions =
-    [{defaultTop: 300, defaultLeft: 300}, {defaultTop: 300, defaultLeft: 600}];
+let windows: _Window[] = new Array<_Window>();
+let fin: Fin;
+
+const windowPositions = [{defaultTop: 300, defaultLeft: 300}, {defaultTop: 300, defaultLeft: 600}];
 const windowOptions: fin.WindowOptions[] = windowPositions.map(position => {
-    return Object.apply({
-        autoShow: true,
-        saveWindowState: false,
-        defaultHeight: 200,
-        defaultWidth: 200,
-        url: 'http://localhost:1337/demo/frameless-window.html',
-        frame: false
-    }, position);
+    return Object.assign(
+        {autoShow: true, saveWindowState: false, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window.html', frame: false},
+        position);
 });
 
 test.before(async () => {
@@ -30,11 +25,9 @@ test.before(async () => {
 
 test.beforeEach(async (t: TestContext) => {
     // Create all windows
-    try {
-        windows = await Promise.all(windowOptions.map(options => createChildWindow(options)));
-    } catch (error) {
-        console.log(error);
-        throw error;
+    for (let i = 0; i < windowOptions.length; i++) {
+        const element = windowOptions[i];
+        windows[i] = await createChildWindow(element);
     }
 
     // Delay slightly to allow windows to initialize
@@ -46,7 +39,7 @@ test.afterEach.always(async (t: TestContext) => {
     await Promise.all(windows.map(win => win.close()));
 
     // Reset the windows array
-    windows = [];
+    windows = new Array<_Window>();
 });
 
 const basicSnapDockMacro: Macro<TestContext> = async (t: TestContext, side: Side) => {
@@ -66,7 +59,7 @@ const basicSnapDockMacro: Macro<TestContext> = async (t: TestContext, side: Side
 };
 basicSnapDockMacro.title = (providedTitle, side) => `${providedTitle} - ${side}`;
 
-// Test basic snap and dock for each side
+// Test snap and dock for each side
 sideArray.forEach(side => {
     test('Basic SnapDock Tests', basicSnapDockMacro, side);
 });

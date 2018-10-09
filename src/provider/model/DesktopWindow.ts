@@ -278,9 +278,10 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
      * manage it's own destruction in the former case, so that it can mark itself as not-ready before starting the clean-up of the model.
      */
     public teardown(): void {
-        if (this.registeredListeners.size > 0) {
-            this.cleanupListeners();
+        if (this.ready) {
+            this.window!.leaveGroup();
         }
+        this.cleanupListeners();
 
         this.onTeardown.emit(this);
         DesktopWindow.onDestroyed.emit(this);
@@ -720,7 +721,6 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             for (const [key, listener] of this.registeredListeners) {
                 window.removeListener(key, listener);
             }
-            window.leaveGroup();
         }
         this.registeredListeners.clear();
     }

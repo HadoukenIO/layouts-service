@@ -2,6 +2,7 @@ import {Tab} from '../tabbing/Tab';
 import {TabService} from '../tabbing/TabService';
 import {getWindowAt} from '../tabbing/TabUtilities';
 
+import {EXPLODE_MOVE_SCALE, UNDOCK_MOVE_DISTANCE} from './Config';
 import {eSnapValidity, Resolver, SnapTarget} from './Resolver';
 import {Signal2} from './Signal';
 import {SnapGroup} from './SnapGroup';
@@ -9,7 +10,6 @@ import {SnapView} from './SnapView';
 import {eTransformType, Mask, SnapWindow, WindowIdentity, WindowState} from './SnapWindow';
 import {Point, PointUtils} from './utils/PointUtils';
 import {MeasureResult, RectUtils} from './utils/RectUtils';
-import { EXPLODE_MOVE_SCALE, UNDOCK_MOVE_DISTANCE } from './Config';
 
 /**
  * For passing state between service and view.

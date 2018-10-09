@@ -1,7 +1,7 @@
 import {Fin} from 'hadouken-js-adapter';
+import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {getConnection} from './connect';
-import { _Window } from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 const getClientConnection = async () => {
     const fin = await getConnection();

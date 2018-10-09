@@ -5,9 +5,9 @@ import {getGroupedWindows} from '../../demo/utils/snapServiceUtils';
 import {getTabGroupID} from '../../demo/utils/tabServiceUtils';
 
 import {getBounds, NormalizedBounds} from './getBounds';
-import { isAdjacentTo } from './isAdjacentTo';
-import { Win } from './getWindow';
-import { Side } from './SideUtils';
+import {Win} from './getWindow';
+import {isAdjacentTo} from './isAdjacentTo';
+import {Side} from './SideUtils';
 
 export async function assertGrouped(win1: Window, win2: Window, t: TestContext) {
     // Both windows are in the same native openfin group
@@ -65,6 +65,6 @@ export async function assertNotTabbed(win: Window, t: TestContext): Promise<void
     t.is(tabGroupID, null);
 }
 
-export async function assertAdjacent(win1:Win, win2:Win, side: Side, t: TestContext): Promise<void> {
+export async function assertAdjacent(win1: Win, win2: Win, side: Side, t: TestContext): Promise<void> {
     t.true(await isAdjacentTo(win1, win2, side));
 }

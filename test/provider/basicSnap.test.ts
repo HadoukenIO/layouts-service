@@ -3,11 +3,11 @@ import {Application, Fin, Window} from 'hadouken-js-adapter';
 import * as robot from 'robotjs';
 
 import {getConnection} from './utils/connect';
+import {delay} from './utils/delay';
 import {dragWindowTo} from './utils/dragWindowTo';
 import {getBounds} from './utils/getBounds';
 import {Win} from './utils/getWindow';
 import {resizeWindowToSize} from './utils/resizeWindowToSize';
-import { delay } from './utils/delay';
 
 let win1: Window, win2: Window, fin: Fin, app1: Application, app2: Application;
 
@@ -178,7 +178,6 @@ test('resize on snap, big to small', async t => {
 
 // throws 'Error: Application with specified UUID already exists: a0' rejection
 test('should allow reregistration of a previously used identity', async t => {
-
     // Get the names of the first windows
     const win1Name = win1.identity.name!;
     const win2Name = win2.identity.name!;

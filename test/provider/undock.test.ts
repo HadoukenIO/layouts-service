@@ -1,6 +1,8 @@
 import {test, TestContext} from 'ava';
 import {Fin, Window} from 'hadouken-js-adapter';
 
+import {UNDOCK_MOVE_DISTANCE} from '../../src/provider/snapanddock/Config';
+
 import {getConnection} from './utils/connect';
 import {createChildWindow} from './utils/createChildWindow';
 import {Corner, dragSideToSide, dragWindowToOtherWindow} from './utils/dragWindowTo';
@@ -9,7 +11,6 @@ import {getDistanceBetween} from './utils/getDistanceBetween';
 import {isAdjacentTo} from './utils/isAdjacentTo';
 import {opposite, perpendicular, Side} from './utils/SideUtils';
 import {undockWindow, WindowIdentity} from './utils/undockWindow';
-import { UNDOCK_MOVE_DISTANCE } from '../../src/provider/snapanddock/Config';
 
 // TODO - Change client/service file structure to allow importing these values
 

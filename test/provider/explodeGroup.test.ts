@@ -9,9 +9,6 @@ import {isOverlappedWith} from './utils/isOverlappedWith';
 import {WindowIdentity} from './utils/undockWindow';
 import {ArrangementsType, WindowInitializer} from './utils/WindowInitializer';
 
-// TODO - Change client/service file structure to allow importing these values
-const UNDOCK_MOVE_DISTANCE = 30;
-
 let windows: Window[] = new Array<Window>();
 let fin: Fin;
 let windowInitializer: WindowInitializer;

@@ -717,11 +717,10 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
     private cleanupListeners(): void {
         const window: Window = this.window!;
 
-        if (this.ready) {
-            for (const [key, listener] of this.registeredListeners) {
-                window.removeListener(key, listener);
-            }
+        for (const [key, listener] of this.registeredListeners) {
+            window.removeListener(key, listener);
         }
+
         this.registeredListeners.clear();
     }
 

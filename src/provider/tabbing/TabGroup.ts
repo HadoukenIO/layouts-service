@@ -44,7 +44,7 @@ export class TabGroup {
      * @param {TabWindowOptions} windowOptions
      */
     constructor(windowOptions: TabWindowOptions) {
-        this.ID = uuidv4();
+        this.ID = `TABSET-${uuidv4()}`;
         this._tabs = [];
         this._window = new GroupWindow(windowOptions, this);
         this.mService = (window as Window & {providerChannel: ChannelProvider}).providerChannel;

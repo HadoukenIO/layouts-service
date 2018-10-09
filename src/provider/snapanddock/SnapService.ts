@@ -9,12 +9,7 @@ import {SnapView} from './SnapView';
 import {eTransformType, Mask, SnapWindow, WindowIdentity, WindowState} from './SnapWindow';
 import {Point, PointUtils} from './utils/PointUtils';
 import {MeasureResult, RectUtils} from './utils/RectUtils';
-
-// Defines the distance windows will be moved when undocked.
-const UNDOCK_MOVE_DISTANCE = 30;
-
-// Scaling factor for explosion spread.
-const EXPLODE_MOVE_SCALE = 0.1;
+import { EXPLODE_MOVE_SCALE, UNDOCK_MOVE_DISTANCE } from './Config';
 
 /**
  * For passing state between service and view.

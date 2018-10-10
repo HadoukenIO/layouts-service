@@ -3,18 +3,20 @@ import {ApplicationUIConfig, JoinTabGroupPayload, TabGroupEventPayload, TabIdent
 import {Signal1} from '../Signal';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
+
 import {DesktopModel} from './DesktopModel';
 import {DesktopSnapGroup} from './DesktopSnapGroup';
+import {TabWindowFactory} from './DesktopTabGroupWindowFactory';
 import {DesktopWindow, WindowMessages, WindowState} from './DesktopWindow';
-import { TabWindowFactory } from './DesktopTabGroupWindowFactory';
 
 /**
  * Creates a UUIDv4() ID
  * Sourced from https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
  */
 export function createTabGroupId(): string {
-    //@ts-ignore Black Magic
-    return "TABSET-"+([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16));
+    return 'TABSET-' +
+        //@ts-ignore Black Magic
+        ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16));
 }
 
 
@@ -24,7 +26,7 @@ export function createTabGroupId(): string {
 export class DesktopTabGroup {
     public static readonly onCreated: Signal1<DesktopTabGroup> = new Signal1();
     public static readonly onDestroyed: Signal1<DesktopTabGroup> = new Signal1();
-  
+
     private static _windowPool: TabWindowFactory = new TabWindowFactory();
 
     /**

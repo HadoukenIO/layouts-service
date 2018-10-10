@@ -1,5 +1,5 @@
 import {ApplicationUIConfig} from '../../../client/types';
-import { Signal2 } from '../../Signal';
+import {Signal2} from '../../Signal';
 
 export const DEFAULT_UI_URL = (() => {
     let providerLocation = window.location.href;
@@ -56,7 +56,6 @@ export class ApplicationConfigManager {
      */
     public addApplicationUIConfig(uuid: string, config: ApplicationUIConfig): void {
         if (!this.exists(uuid)) {
-
             this.mApplicationUIConfigurations[uuid] = config;
             ApplicationConfigManager.onApplicationConfigCreated.emit(uuid, config);
         }

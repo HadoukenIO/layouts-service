@@ -1,7 +1,9 @@
-import { ApplicationUIConfig} from "../../client/types";
-import { ApplicationConfigManager} from "../tabbing/components/ApplicationConfigManager";
-import { _Window } from "hadouken-js-adapter/out/types/src/api/window/window";
-import { createTabGroupId } from "./DesktopTabGroup";
+import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
+
+import {ApplicationUIConfig} from '../../client/types';
+import {ApplicationConfigManager} from '../tabbing/components/ApplicationConfigManager';
+
+import {createTabGroupId} from './DesktopTabGroup';
 
 /**
  * Handles creation and pooling of Tab Group Windows
@@ -27,13 +29,13 @@ export class TabWindowFactory {
      * @param {ApplicationUIConfig} options The options for the window to retrieve.  Used as key in the window pool map.
      * @returns {_Window | undefined}
      */
-    public getNextWindow(options: ApplicationUIConfig): _Window | undefined {
+    public getNextWindow(options: ApplicationUIConfig): _Window|undefined {
         const pooledWindows = this._windowPool.get(options.url) || [];
         const next = pooledWindows.shift();
 
         // Settimeout to offset blocking fin window creation
         // TODO: Remove once runtime has investigated
-        setTimeout(()=>{
+        setTimeout(() => {
             this._createAndPool(options);
         }, 2000);
 
@@ -41,11 +43,11 @@ export class TabWindowFactory {
     }
 
     /**
-     * Handles when an application configuration has been added.  
+     * Handles when an application configuration has been added.
      * @param uuid Uuid of the application which the config was added for.
      * @param config The configuration added.
      */
-    private onApplicationConfigCreated(uuid: string, config: ApplicationUIConfig){
+    private onApplicationConfigCreated(uuid: string, config: ApplicationUIConfig) {
         this._createAndPool(config);
     }
 
@@ -54,21 +56,20 @@ export class TabWindowFactory {
      * @param {ApplicationUIConfig} options The configuration to create the windows against.
      */
     private _createAndPool(options: ApplicationUIConfig) {
-            if(!this._windowPool.has(options.url)){
-                this._createWindow(options).then((window) => {
-                    this._windowPool.set(options.url, [window]);
-                });
-            } else if(this._windowPool.has(options.url) && this._windowPool.get(options.url)!.length < 3) {
-                this._createWindow(options).then((window) => {
-                    this._windowPool.set(options.url, [...this._windowPool.get(options.url)!, window]);
-                });            
-            }
-
+        if (!this._windowPool.has(options.url)) {
+            this._createWindow(options).then((window) => {
+                this._windowPool.set(options.url, [window]);
+            });
+        } else if (this._windowPool.has(options.url) && this._windowPool.get(options.url)!.length < 3) {
+            this._createWindow(options).then((window) => {
+                this._windowPool.set(options.url, [...this._windowPool.get(options.url)!, window]);
+            });
+        }
     }
 
     /**
      * Creates a single non-pooled window.
-     * @param {ApplicationUIConfig} options The configuration to create the windows against. 
+     * @param {ApplicationUIConfig} options The configuration to create the windows against.
      */
     private _createWindow(options: ApplicationUIConfig) {
         return fin.Window.create({
@@ -81,9 +82,7 @@ export class TabWindowFactory {
             frame: false,
             maximizable: false,
             resizable: true,
-            resizeRegion: {
-                sides: {left: true, top: false, right: true, bottom: false}
-            },
+            resizeRegion: {sides: {left: true, top: false, right: true, bottom: false}},
             saveWindowState: false,
             taskbarIconGroup: name,
             backgroundThrottling: true,

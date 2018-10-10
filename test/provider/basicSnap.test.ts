@@ -6,7 +6,6 @@ import {getConnection} from './utils/connect';
 import {delay} from './utils/delay';
 import {dragWindowTo} from './utils/dragWindowTo';
 import {getBounds} from './utils/getBounds';
-import {Win} from './utils/getWindow';
 import {resizeWindowToSize} from './utils/resizeWindowToSize';
 
 let win1: Window, win2: Window, fin: Fin, app1: Application, app2: Application;

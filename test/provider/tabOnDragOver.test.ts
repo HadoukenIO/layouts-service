@@ -1,4 +1,4 @@
-import {AnyContext, GenericTestContext, test} from 'ava';
+import {test} from 'ava';
 import {Fin, Window} from 'hadouken-js-adapter';
 import * as robot from 'robotjs';
 

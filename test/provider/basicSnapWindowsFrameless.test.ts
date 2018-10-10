@@ -1,7 +1,6 @@
 import {test} from 'ava';
 import {Window} from 'hadouken-js-adapter';
 import * as robot from 'robotjs';
-import {setTimeout} from 'timers';
 
 import {createChildWindow} from './utils/createChildWindow';
 import {delay} from './utils/delay';

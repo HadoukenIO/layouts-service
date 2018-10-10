@@ -1,12 +1,9 @@
-import {AnyContext, GenericTestContext, test, TestContext} from 'ava';
+import {test, TestContext} from 'ava';
 import {Fin, Window} from 'hadouken-js-adapter';
 
 import {assertGrouped} from './utils/assertions';
 import {getConnection} from './utils/connect';
 import {delay} from './utils/delay';
-import {getBounds} from './utils/getBounds';
-import {isInGroup} from './utils/isInGroup';
-import {isOverlappedWith} from './utils/isOverlappedWith';
 import {ArrangementsType, WindowInitializer} from './utils/WindowInitializer';
 
 let windows: Window[] = new Array<Window>();

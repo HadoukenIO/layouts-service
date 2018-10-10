@@ -9,7 +9,7 @@ import {getConnection} from './utils/connect';
 import {createChildWindow} from './utils/createChildWindow';
 import {delay} from './utils/delay';
 import {dragSideToSide} from './utils/dragWindowTo';
-import {getBounds, NormalizedBounds} from './utils/getBounds';
+import {getBounds} from './utils/getBounds';
 
 // Valid ways of grouping two windows (used to parameterise large number of
 // similar tests)

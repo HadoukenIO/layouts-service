@@ -1,14 +1,9 @@
 import {test} from 'ava';
-import {Application, Fin} from 'hadouken-js-adapter';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import * as robot from 'robotjs';
-
-import {getConnection} from './utils/connect';
 import {createChildWindow} from './utils/createChildWindow';
 import {dragWindowTo} from './utils/dragWindowTo';
 import {getBounds, NormalizedBounds} from './utils/getBounds';
-import {Win} from './utils/getWindow';
-import {resizeWindowToSize} from './utils/resizeWindowToSize';
 
 let win1: _Window, win2: _Window, win3: _Window, win4: _Window;
 

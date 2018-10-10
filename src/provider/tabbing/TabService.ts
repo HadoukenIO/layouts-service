@@ -113,9 +113,9 @@ export class TabService {
         const group: DesktopTabGroup|null = tabToRemove && tabToRemove.getTabGroup();
 
         if (!tabToRemove || !group) {
-            throw new Error(`No tab group found for ${toRemove}`);
+            throw new Error(`No tab group found for ${toRemove.uuid} - ${toRemove.name}`);
         } else if (!tabToAdd) {
-            throw new Error(`No window found for ${toAdd}`);
+            throw new Error(`No window found for ${toAdd.uuid} - ${toAdd.name}`);
         }
 
         return group.swapTab(tabToRemove, tabToAdd);

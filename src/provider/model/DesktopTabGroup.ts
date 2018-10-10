@@ -419,7 +419,8 @@ export class DesktopTabGroup {
             // Align tabstrip to this tab
             await this._window.applyProperties({
                 center: {x: tabState.center.x, y: tabState.center.y - tabState.halfSize.y + (this._config.height / 2)},
-                halfSize: {x: tabState.halfSize.x, y: this._config.height / 2}
+                halfSize: {x: tabState.halfSize.x, y: this._config.height / 2},
+                hidden: false
             });
 
             // Reduce size of app window by size of tabstrip

@@ -12,6 +12,7 @@ import {DesktopWindow, WindowMessages, WindowState} from './DesktopWindow';
 /**
  * Handles functionality for the TabSet
  */
+
 export class DesktopTabGroup {
     public static readonly onCreated: Signal1<DesktopTabGroup> = new Signal1();
     public static readonly onDestroyed: Signal1<DesktopTabGroup> = new Signal1();
@@ -21,8 +22,9 @@ export class DesktopTabGroup {
      * Sourced from https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
      */
     private static createTabGroupId(): string {
-        //@ts-ignore Black Magic
-        return 'TABSET-' + ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16));
+        return 'TABSET-' +
+            //@ts-ignore Black Magic
+            ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16));
     }
 
 
@@ -227,6 +229,7 @@ export class DesktopTabGroup {
 
     public async addTabs(tabs: DesktopWindow[], activeTabId?: TabIdentifier): Promise<void> {
         const firstTab: DesktopWindow = tabs.shift()!;
+
         const activeTab: DesktopWindow = (activeTabId && this._model.getWindow(activeTabId)) || firstTab;
 
         await this.addTabInternal(firstTab, true);
@@ -272,7 +275,9 @@ export class DesktopTabGroup {
         const newlyOrdered: DesktopWindow[] = orderReference
                                                   .map((ref: TabIdentifier) => {
                                                       // Look-up each given identity within list of tabs
+
                                                       const refId = this._model.getId(ref);
+
                                                       return this._tabs.find((tab: DesktopWindow) => {
                                                           return tab.getId() === refId;
                                                       });
@@ -368,6 +373,7 @@ export class DesktopTabGroup {
             }
 
             await Promise.all([this.window!.sync(), tab.sync()]);
+
             const payload: TabGroupEventPayload = {tabGroupId: this.ID, tabID: tab.getIdentity()};
             this.window.sendMessage(WindowMessages.TAB_ACTIVATED, payload);
         }

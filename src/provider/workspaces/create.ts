@@ -7,7 +7,6 @@ import {CustomData, Layout, LayoutApp, LayoutWindowData, TabBlob, TabIdentifier,
 import {apiHandler, tabService} from '../main';
 import {WindowIdentity} from '../model/DesktopWindow';
 import {promiseMap} from '../snapanddock/utils/async';
-
 import {getGroup} from './group';
 import {addToWindowObject, inWindowObject, wasCreatedFromManifest, wasCreatedProgrammatically, WindowObject} from './utils';
 

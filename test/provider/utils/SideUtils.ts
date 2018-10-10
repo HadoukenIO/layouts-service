@@ -37,4 +37,4 @@ export function perpendicular(side: Side): Side {
     }
 }
 
-export const sideArray = ['top', 'bottom', 'left', 'right'];
+export const sideArray = ['top', 'bottom', 'left', 'right'] as Side[];

@@ -12,7 +12,8 @@ import {DesktopWindow, WindowMessages, WindowState} from './DesktopWindow';
 /**
  * Handles functionality for the TabSet
  */
-export class DesktopTabGroup extends DesktopEntity {
+
+export class DesktopTabGroup {
     public static readonly onCreated: Signal1<DesktopTabGroup> = new Signal1();
     public static readonly onDestroyed: Signal1<DesktopTabGroup> = new Signal1();
 
@@ -22,7 +23,7 @@ export class DesktopTabGroup extends DesktopEntity {
      */
     private static createTabGroupId(): string {
         //@ts-ignore Black Magic
-        return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16));
+        return 'TABSET-' + ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16));
     }
 
 
@@ -30,6 +31,8 @@ export class DesktopTabGroup extends DesktopEntity {
      * The ID for the TabGroup.
      */
     public readonly ID: string;
+
+    private _model: DesktopModel;
 
     /**
      * Handle to this tabgroups window.
@@ -61,10 +64,11 @@ export class DesktopTabGroup extends DesktopEntity {
      * @param {ApplicationUIConfig} windowOptions
      */
     constructor(model: DesktopModel, group: DesktopSnapGroup, options: TabWindowOptions) {
-        super(model, {uuid: TabServiceID.UUID, name: DesktopTabGroup.createTabGroupId()});
+        this._model = model;
+        this.ID = DesktopTabGroup.createTabGroupId();
 
         const tabStripOptions: fin.WindowOptions = {
-            name: this.identity.name,
+            name: this.ID,
             url: options.url,
             autoShow: true,
             defaultLeft: options.x,
@@ -87,8 +91,7 @@ export class DesktopTabGroup extends DesktopEntity {
             waitForPageLoad: false
         };
 
-        this.ID = this.identity.name;
-        this._window = new DesktopWindow(this.model, group, tabStripOptions);
+        this._window = new DesktopWindow(this._model, group, tabStripOptions);
         this._window.setTabGroup(this);
         this._tabs = [];
         this._tabProperties = {};
@@ -225,10 +228,11 @@ export class DesktopTabGroup extends DesktopEntity {
 
     public async addTabs(tabs: DesktopWindow[], activeTabId?: TabIdentifier): Promise<void> {
         const firstTab: DesktopWindow = tabs.shift()!;
-        const activeTab: DesktopWindow = (activeTabId && this.model.getWindow(activeTabId)) || firstTab;
+
+        const activeTab: DesktopWindow = (activeTabId && this._model.getWindow(activeTabId)) || firstTab;
 
         await this.addTabInternal(firstTab, true);
-        await Promise.all([firstTab.sync(), this.sync(), this._window.sync()]);
+        await Promise.all([firstTab.sync(), this._window.sync()]);
         await Promise.all(tabs.map(tab => this.addTabInternal(tab, false)));
 
         if (activeTab !== firstTab) {
@@ -270,7 +274,9 @@ export class DesktopTabGroup extends DesktopEntity {
         const newlyOrdered: DesktopWindow[] = orderReference
                                                   .map((ref: TabIdentifier) => {
                                                       // Look-up each given identity within list of tabs
-                                                      const refId = this.model.getId(ref);
+
+                                                      const refId = this._model.getId(ref);
+
                                                       return this._tabs.find((tab: DesktopWindow) => {
                                                           return tab.getId() === refId;
                                                       });
@@ -364,8 +370,9 @@ export class DesktopTabGroup extends DesktopEntity {
             if (prevTab && prevTab.getTabGroup() === this) {
                 await prevTab.applyProperties({hidden: true});
             }
-
-            await Promise.all([this.sync(), this.window!.sync(), tab.sync()]);
+          
+            await Promise.all([this.window!.sync(), tab.sync()]);
+          
             const payload: TabGroupEventPayload = {tabGroupId: this.ID, tabID: tab.getIdentity()};
             this.window.sendMessage(WindowMessages.TAB_ACTIVATED, payload);
         }
@@ -406,9 +413,9 @@ export class DesktopTabGroup extends DesktopEntity {
 
         // Sync all windows
         if (remove) {
-            await Promise.all([this.sync(), this._window.sync(), tab.sync(), remove]);
+            await Promise.all([this._window.sync(), tab.sync(), remove]);
         } else {
-            await Promise.all([this.sync(), this._window.sync(), tab.sync()]);
+            await Promise.all([this._window.sync(), tab.sync()]);
         }
 
         // Position window
@@ -436,19 +443,20 @@ export class DesktopTabGroup extends DesktopEntity {
         tab.setSnapGroup(this._window.getSnapGroup());
         await tab.setTabGroup(this);
 
-        const payload:
-            JoinTabGroupPayload = {tabGroupId: this.ID, tabID: tab.getIdentity(), tabProps: this._tabProperties[tab.getId()], index: this.tabs.indexOf(tab)};
         const addTabPromise: Promise<void> = (async () => {
-            await this.sendTabEvent(tab, WindowMessages.JOIN_TAB_GROUP, payload);
+            const payload: JoinTabGroupPayload =
+                {tabGroupId: this.ID, tabID: tab.getIdentity(), tabProps: this._tabProperties[tab.getId()], index: this.tabs.indexOf(tab)};
+
+            this.sendTabEvent(tab, WindowMessages.JOIN_TAB_GROUP, payload);
             await tab.applyProperties({hidden: tab !== this._activeTab});
             await this.window.bringToFront();
         })();
-        await this.addPendingActions('add tab - ' + this.id, addTabPromise);
+        await addTabPromise;  // TODO: Need to add this to a pendingActions queue?
+
         if (setActive) {
             await this.switchTab(tab);
         }
-
-        await Promise.all([tab.sync(), this.sync(), this._window.sync()]);
+        await Promise.all([tab.sync(), this._window.sync()]);
     }
 
     private async removeTabInternal(tab: DesktopWindow, index: number): Promise<void> {

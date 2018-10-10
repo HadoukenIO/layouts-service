@@ -4,11 +4,9 @@ import {WindowDetail, WindowInfo} from 'hadouken-js-adapter/out/types/src/api/sy
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {CustomData, Layout, LayoutApp, LayoutWindowData, TabBlob, TabIdentifier, WindowState} from '../../client/types';
-import {apiHandler} from '../main';
+import {apiHandler, tabService} from '../main';
 import {WindowIdentity} from '../model/DesktopWindow';
 import {promiseMap} from '../snapanddock/utils/async';
-import {TabService} from '../tabbing/TabService';
-
 import {getGroup} from './group';
 import {addToWindowObject, inWindowObject, wasCreatedFromManifest, wasCreatedProgrammatically, WindowObject} from './utils';
 
@@ -21,7 +19,7 @@ export const deregisterWindow = (identity: WindowIdentity) => {
 export const getCurrentLayout = async(): Promise<Layout> => {
     // Not yet using monitor info
     const monitorInfo = await fin.System.getMonitorInfo() || {};
-    let tabGroups = await TabService.INSTANCE.getTabSaveInfo();
+    let tabGroups = await tabService.getTabSaveInfo();
     const tabbedWindows: WindowObject = {};
     const newShowingWindows: WindowObject = {};
     const newUntabbedWindows: WindowObject = {};
@@ -33,11 +31,11 @@ export const getCurrentLayout = async(): Promise<Layout> => {
     // Filter out tabGroups with deregistered parents.
     const filteredTabGroups: TabBlob[] = [];
 
-    tabGroups.forEach((tabGroup) => {
+    tabGroups.forEach((tabGroup: TabBlob) => {
         const filteredTabs: TabIdentifier[] = [];
         let activeWindowRemoved = false;
 
-        tabGroup.tabs.forEach(tabWindow => {
+        tabGroup.tabs.forEach((tabWindow: TabIdentifier) => {
             // Filter tabs out if either the window itself or its parent is deregistered from Save and Restore
             const parentIsDeregistered = inWindowObject({uuid: tabWindow.uuid, name: tabWindow.uuid}, deregisteredWindows);
             const windowIsDeregistered = inWindowObject(tabWindow, deregisteredWindows);

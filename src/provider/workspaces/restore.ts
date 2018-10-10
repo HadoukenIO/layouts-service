@@ -1,13 +1,9 @@
 import {Application} from 'hadouken-js-adapter/out/types/src/api/application/application';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
-
-import {Layout, LayoutApp, WindowState} from '../../client/types';
-import {apiHandler} from '../main';
-import {WindowIdentity} from '../model/DesktopWindow';
+import {Layout, LayoutApp} from '../../client/types';
+import {apiHandler, tabService} from '../main';
 import {p, promiseMap} from '../snapanddock/utils/async';
-import {TabService} from '../tabbing/TabService';
-
 import {regroupLayout} from './group';
 import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, getClientConnection, inWindowObject, positionWindow, TabbedPlaceholders, wasCreatedProgrammatically, WindowObject} from './utils';
 
@@ -91,8 +87,8 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
         const isRunning = await p<boolean>(ofApp.isRunning.bind(ofApp))();
         if (isRunning) {
             // Should de-tab here.
-            await TabService.INSTANCE.removeTab(app.mainWindow);
-
+            await tabService.removeTab(app.mainWindow);
+          
             // Need to check its child windows here, if confirmed.
             await childWindowPlaceholderCheckRunningApp(app, tabbedWindows, tabbedPlaceholdersToWindows, openWindows);
         } else {
@@ -125,7 +121,7 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
         });
     });
 
-    await TabService.INSTANCE.createTabGroupsFromTabBlob(layout.tabGroups);
+    await tabService.createTabGroupsFromTabBlob(layout.tabGroups);
 
     const apps = await promiseMap(layout.apps, async(app: LayoutApp): Promise<LayoutApp> => {
         // Get rid of childWindows for default response (anything else?)

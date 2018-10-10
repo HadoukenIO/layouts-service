@@ -223,15 +223,6 @@ export class APIHandler {
         } else {
             return Promise.reject(`No such tab: ${tabId}`);
         }
-
-        // const group: DesktopTabGroup|null = tab && tab.getTabGroup();
-
-        // if (!group) {
-        //     console.error('No tab group found for window');
-        //     throw new Error('No tab group found for window');
-        // }
-
-        // return group.removeTab(tab!).then(() => tab!.close());
     }
 
     private async minimizeTabGroup(tabId: TabIdentifier): Promise<void> {

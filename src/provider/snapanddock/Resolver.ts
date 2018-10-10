@@ -102,7 +102,7 @@ export class Resolver {
      * @param groups A list of all groups within the system
      * @param activeGroup The group that is currently being moved
      */
-    public getSnapTarget(groups: DesktopSnapGroup[], activeGroup: DesktopSnapGroup): SnapTarget|null {
+    public getSnapTarget(groups: ReadonlyArray<DesktopSnapGroup>, activeGroup: DesktopSnapGroup): SnapTarget|null {
         const projector: Projector = this.projector;
         const targets: SnapTarget[] = [];
 

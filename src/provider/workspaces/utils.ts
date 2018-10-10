@@ -47,7 +47,7 @@ export const createNormalPlaceholder = async (win: WindowState) => {
 
     const placeholderName = 'Placeholder-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
-    const placeholder = new fin.desktop.Window(
+    const placeholder = await fin.Window.create(
         {
             name: placeholderName,
             autoShow: true,
@@ -58,10 +58,6 @@ export const createNormalPlaceholder = async (win: WindowState) => {
             saveWindowState: false,
             opacity: 0.6,
             backgroundColor: '#D3D3D3'
-        },
-        () => {
-            placeholder.getNativeWindow().document.body.style.overflow = 'hidden';
-            placeholder.getNativeWindow().document.bgColor = 'D3D3D3';
         });
 
     const actualWindow = await fin.Window.wrap({uuid, name});
@@ -81,7 +77,7 @@ export const createTabPlaceholder = async (win: WindowState) => {
 
     const placeholderName = 'Placeholder-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
-    const placeholder = new fin.desktop.Window(
+    const placeholder = await fin.Window.create(
         {
             name: placeholderName,
             autoShow: true,
@@ -92,16 +88,12 @@ export const createTabPlaceholder = async (win: WindowState) => {
             saveWindowState: false,
             opacity: 0.6,
             backgroundColor: '#D3D3D3'
-        },
-        () => {
-            placeholder.getNativeWindow().document.body.style.overflow = 'hidden';
-            placeholder.getNativeWindow().document.bgColor = 'D3D3D3';
         });
 
     const actualWindow = await fin.Window.wrap({uuid, name});
     const updateOptionsAndShow = async () => {
         await actualWindow.removeListener('shown', updateOptionsAndShow);
-        await tabService.swapTab(actualWindow.identity as TabIdentifier, placeholder);
+        await tabService.swapTab({uuid: placeholder.identity.uuid, name: placeholderName}, actualWindow.identity as TabIdentifier);
         await placeholder.close();
     };
     await actualWindow.addListener('shown', updateOptionsAndShow);
@@ -181,7 +173,7 @@ export function addToWindowObject(identity: WindowIdentity, windowObject: Window
 export async function createTabbedPlaceholderAndRecord(win: WindowState, tabbedPlaceholdersToWindows: TabbedPlaceholders) {
     const tabPlaceholder = await createTabPlaceholder(win);
     tabbedPlaceholdersToWindows[win.uuid] =
-        Object.assign({}, tabbedPlaceholdersToWindows[win.uuid], {[win.name]: {name: tabPlaceholder.name, uuid: tabPlaceholder.uuid}});
+        Object.assign({}, tabbedPlaceholdersToWindows[win.uuid], {[win.name]: {name: tabPlaceholder.identity.name, uuid: tabPlaceholder.identity.uuid}});
 }
 
 // Helper function to determine what type of placeholder window to open.

@@ -1,20 +1,39 @@
-import {Fin} from 'hadouken-js-adapter';
+import {Fin, Identity} from 'hadouken-js-adapter';
 
 import {getConnection} from '../../provider/utils/connect';
 
+// tslint:disable-next-line:no-any
+type ExecuteResult = any;
 
 /**
  * Executes javascript code on the service
  * @param script
  */
-// tslint:disable-next-line:no-any
-export async function executeJavascriptOnService(script: string): Promise<any> {
+export async function executeJavascriptOnService(script: string): Promise<ExecuteResult> {
     const fin: Fin = await getConnection();
     return new Promise((resolve, reject) => {
-        fin.InterApplicationBus.subscribe({uuid: 'layouts-service', name: 'layouts-service'}, 'replytest', (message: string) => {
-            console.log(message);
-            resolve(message);
-        });
-        fin.InterApplicationBus.send({uuid: 'layouts-service', name: 'layouts-service'}, 'test', script);
+        const serviceIdentity: Identity = {uuid: 'layouts-service', name: 'layouts-service'};
+        const callback = (message: {success: boolean; result: ExecuteResult; type: string}) => {
+            fin.InterApplicationBus.unsubscribe(serviceIdentity, 'executeJavascriptResult', callback);
+
+            if (message.success) {
+                let result = message.result;
+                try {
+                    // Seems IAB strips-out any properties that are undefined - avoid trying to parse invalid value
+                    if (message.type !== 'undefined') {
+                        result = JSON.parse(result);
+                    }
+                } catch (e) {
+                    console.warn('Expected result to be stringified, but wasn\'t:', result, typeof result);
+                }
+
+                resolve(result);
+            } else {
+                reject(message.result);
+            }
+        };
+
+        fin.InterApplicationBus.subscribe(serviceIdentity, 'executeJavascriptResult', callback);
+        fin.InterApplicationBus.send(serviceIdentity, 'executeJavascript', script);
     });
 }

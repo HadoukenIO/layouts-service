@@ -1,7 +1,9 @@
-import {Signal1, Signal2} from './Signal';
-import {eTransformType, Mask, SnapWindow, WindowState} from './SnapWindow';
-import {CalculatedProperty} from './utils/CalculatedProperty';
-import {Point} from './utils/PointUtils';
+import {Signal1, Signal2} from '../Signal';
+import {CalculatedProperty} from '../snapanddock/utils/CalculatedProperty';
+import {Point} from '../snapanddock/utils/PointUtils';
+
+import {DesktopTabGroup} from './DesktopTabGroup';
+import {DesktopWindow, eTransformType, Mask, WindowIdentity, WindowMessages, WindowState} from './DesktopWindow';
 
 /**
  * Key-value store for saving the state of each window before it was added to the tab group.
@@ -10,69 +12,85 @@ import {Point} from './utils/PointUtils';
  * be able to restore each window to it's original state when you "pop" or "tear" the tab out of the group.
  *
  * Whilst a tab is within a group, this will be the only place that has the original pre-tab state of the window. The
- * SnapWindow state will all reflect the size/appearance of the tabbed version of the window.
+ * DesktopWindow state will all reflect the size/appearance of the tabbed version of the window.
  */
 type TabData = {
     [id: string]: WindowState
 };
 
 interface TabState {
-    tabBar: SnapWindow;
+    tabBar: DesktopWindow;
 
     /**
-     * Maps SnapWindow ID's to the cached state for that window.
+     * Maps DesktopWindow ID's to the cached state for that window.
      *
-     * The tab bar is a SnapWindow the same as any other window in the group, but that window will not appear in this
+     * The tab bar is a DesktopWindow the same as any other window in the group, but that window will not appear in this
      * map, as we won't ever need to "un-tab" or "restore" that window.
      */
     previousState: TabData;
 }
 
-export class SnapGroup {
+export interface Snappable {
+    getId(): string;
+    getIdentity(): WindowIdentity;
+    getState(): WindowState;
+    getTabGroup(): DesktopTabGroup|null;
+    getSnapGroup(): DesktopSnapGroup;
+
+    // tslint:disable-next-line:no-any
+    applyOverride(property: keyof WindowState, value: any): Promise<void>;
+    resetOverride(property: keyof WindowState): Promise<void>;
+    setSnapGroup(group: DesktopSnapGroup, offset?: Point, newHalfSize?: Point, synthetic?: boolean): void;
+}
+
+export class DesktopSnapGroup {
     private static nextId = 1;
+
+    public static readonly onCreated: Signal1<DesktopSnapGroup> = new Signal1();
+    public static readonly onDestroyed: Signal1<DesktopSnapGroup> = new Signal1();
 
     /**
      * A window property has been changed that may snap the window out of any group that it it's currently in.
      *
      * The service should validate the window, to ensure it's current grouping is still valid.
      *
-     * Arguments: (group: SnapGroup, modifiedWindow: SnapWindow)
+     * Arguments: (group: DesktopSnapGroup, modifiedWindow: DesktopWindow)
      */
-    public readonly onModified: Signal2<SnapGroup, SnapWindow> = new Signal2();
+    public readonly onModified: Signal2<DesktopSnapGroup, DesktopWindow> = new Signal2();
 
     /**
      * Window is being moved/resized, need to check for any snap targets.
      *
-     * Arguments: (group: SnapGroup, type: Mask<eTransformType>)
+     * Arguments: (group: DesktopSnapGroup, type: Mask<eTransformType>)
      */
-    public readonly onTransform: Signal2<SnapGroup, Mask<eTransformType>> = new Signal2();
+    public readonly onTransform: Signal2<DesktopSnapGroup, Mask<eTransformType>> = new Signal2();
 
     /**
      * The move/resize operation (that was signalled through onTransform) has been completed.
      *
      * Any active snap target can now be applied.
      *
-     * Arguments: (group: SnapGroup)
+     * Arguments: (group: DesktopSnapGroup)
      */
-    public readonly onCommit: Signal1<SnapGroup> = new Signal1();
+    public readonly onCommit: Signal1<DesktopSnapGroup> = new Signal1();
 
     /**
      * A window has been added to this group.
      *
      * Signal will be fired AFTER all state updates.
      *
-     * Arguments: (group: SnapGroup, window: SnapWindow)
+     * Arguments: (group: DesktopSnapGroup, window: DesktopWindow)
      */
-    public readonly onWindowAdded: Signal2<SnapGroup, SnapWindow> = new Signal2();
+    public readonly onWindowAdded: Signal2<DesktopSnapGroup, DesktopWindow> = new Signal2();
 
     /**
      * A window has been removed from this group.
      *
      * Signal will be fired AFTER all state updates.
      *
-     * Arguments: (group: SnapGroup, window: SnapWindow)
+     * Arguments: (group: DesktopSnapGroup, window: DesktopWindow)
      */
-    public readonly onWindowRemoved: Signal2<SnapGroup, SnapWindow> = new Signal2();
+    public readonly onWindowRemoved: Signal2<DesktopSnapGroup, DesktopWindow> = new Signal2();
 
 
     // NOTE: The co-ordinates used by _origin and _halfSize use the center of the root window as the origin.
@@ -80,21 +98,21 @@ export class SnapGroup {
     private _halfSize: CalculatedProperty<Point>;
 
     private _id: number;
-    private _windows: SnapWindow[];
+    private _windows: DesktopWindow[];
 
-    private rootWindow: SnapWindow|null;
+    private rootWindow: DesktopWindow|null;
 
     /**
      * If this is non-null then the windows in this group are tabbed, and so have some special behaviour.
      *
      * A group with n tabs will contain n+1 windows - the n applications that the user has "tabbed" together, amd an
      * additional window that is created by the Snap & Dock service. This window acts as the tab bar - it will be a
-     * SnapWindow same as any other window, and other windows will also be able to snap to it.
+     * DesktopWindow same as any other window, and other windows will also be able to snap to it.
      */
     private tabData: TabData|null;
 
     constructor() {
-        this._id = SnapGroup.nextId++;
+        this._id = DesktopSnapGroup.nextId++;
         this._windows = [];
         this.rootWindow = null;
         this.tabData = null;
@@ -102,6 +120,8 @@ export class SnapGroup {
         const refreshFunc = this.calculateProperties.bind(this);
         this._origin = new CalculatedProperty(refreshFunc);
         this._halfSize = new CalculatedProperty(refreshFunc);
+
+        DesktopSnapGroup.onCreated.emit(this);
     }
 
     public get id(): number {
@@ -135,14 +155,14 @@ export class SnapGroup {
         return this.tabData !== null;
     }
 
-    public get windows(): SnapWindow[] {
+    public get windows(): Snappable[] {
         return this._windows.slice();
     }
 
-    public addWindow(window: SnapWindow): void {
+    public addWindow(window: DesktopWindow): void {
         if (!this._windows.includes(window)) {
             // Remove window from it's previous group
-            const prevGroup = (window.getGroup() === this) ? window.getPrevGroup() : window.getGroup();
+            const prevGroup = (window.getSnapGroup() === this) ? window.getPrevGroup() : window.getSnapGroup();
             if (prevGroup) {
                 prevGroup.removeWindow(window);
             }
@@ -151,24 +171,31 @@ export class SnapGroup {
             window.onModified.add(this.onWindowModified, this);
             window.onTransform.add(this.onWindowTransform, this);
             window.onCommit.add(this.onWindowCommit, this);
-            window.onClose.add(this.removeWindow, this);
+            window.onTeardown.add(this.onWindowTeardown, this);
 
             // Setup hierarchy
             this._windows.push(window);
             this.checkRoot();
-            if (window.getGroup() !== this) {
-                window.setGroup(this);
+            if (window.getSnapGroup() !== this) {
+                window.setSnapGroup(this);
             }
 
             // Will need to re-calculate cached properties
             this._origin.markStale();
             this._halfSize.markStale();
 
+            // Inform window of addition
+            // Note that client API only considers windows to belong to a group if it contains two or more windows
+            if (this._windows.length >= 2) {
+                window.sendMessage(WindowMessages.JOIN_SNAP_GROUP, {});
+            }
+
+            // Inform service of addition
             this.onWindowAdded.emit(this, window);
         }
     }
 
-    private removeWindow(window: SnapWindow): void {
+    private removeWindow(window: DesktopWindow): void {
         const index: number = this._windows.indexOf(window);
 
         if (index >= 0) {
@@ -176,7 +203,6 @@ export class SnapGroup {
             window.onModified.remove(this.onWindowModified, this);
             window.onTransform.remove(this.onWindowTransform, this);
             window.onCommit.remove(this.onWindowCommit, this);
-            window.onClose.remove(this.removeWindow, this);
 
             // Root may now have changed
             this.checkRoot();
@@ -185,7 +211,17 @@ export class SnapGroup {
             this._origin.markStale();
             this._halfSize.markStale();
 
+            // Inform window of removal
+            // Note that client API only considers windows to belong to a group if it contains two or more windows
+            if (this._windows.length > 0 && window.isReady()) {
+                window.sendMessage(WindowMessages.LEAVE_SNAP_GROUP, {});
+            }
+
+            // Inform service of removal
             this.onWindowRemoved.emit(this, window);
+            if (this._windows.length === 0) {
+                DesktopSnapGroup.onDestroyed.emit(this);
+            }
         }
     }
 
@@ -203,13 +239,13 @@ export class SnapGroup {
         }
     }
 
-    private onWindowModified(window: SnapWindow): void {
+    private onWindowModified(window: DesktopWindow): void {
         this._origin.markStale();
         this._halfSize.markStale();
         this.onModified.emit(this, window);
     }
 
-    private onWindowTransform(window: SnapWindow, type: Mask<eTransformType>): void {
+    private onWindowTransform(window: DesktopWindow, type: Mask<eTransformType>): void {
         if (type === eTransformType.MOVE) {
             // When a grouped window is moved, all windows in the group will fire a move event.
             // We want to filter these to ensure the group only fires onTransform once
@@ -229,16 +265,24 @@ export class SnapGroup {
         }
     }
 
-    private onWindowCommit(window: SnapWindow): void {
-        this.onCommit.emit(this);
+    private onWindowCommit(window: DesktopWindow, type: Mask<eTransformType>): void {
+        if (window === this.rootWindow || (type & eTransformType.RESIZE) !== 0) {
+            this.onCommit.emit(this);
+        }
     }
 
-    private onWindowClosed(window: SnapWindow): void {
-        this.removeWindow(window);
+    private onWindowTeardown(window: DesktopWindow) {
+        const group: DesktopSnapGroup = window.getSnapGroup();
+
+        // Ensure window is removed from it's snap group, so that the group doesn't contain any de-registered or non-existant windows.
+        group.removeWindow(window);
+
+        // Have the service validate this group, to ensure it hasn't been split into two or more pieces.
+        group.onModified.emit(group, window);
     }
 
     private calculateProperties(): void {
-        const windows: SnapWindow[] = this._windows;
+        const windows: DesktopWindow[] = this._windows;
         const numWindows: number = windows.length;
 
         if (numWindows === 0) {

@@ -5,8 +5,9 @@ import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {LayoutApp, TabIdentifier, WindowState} from '../../client/types';
-import {WindowIdentity} from '../snapanddock/SnapWindow';
-import {removeTab, swapTab} from '../tabbing/SaveAndRestoreAPI';
+import {tabService} from '../main';
+import {WindowIdentity} from '../model/DesktopWindow';
+import {TabService} from '../tabbing/TabService';
 
 declare var providerChannel: ChannelProvider;
 
@@ -130,7 +131,7 @@ export const createTabPlaceholder = async (win: WindowState) => {
     const actualWindow = await fin.Window.wrap({uuid, name});
     const updateOptionsAndShow = async () => {
         await actualWindow.removeListener('shown', updateOptionsAndShow);
-        await swapTab(actualWindow.identity as TabIdentifier, placeholder);
+        await tabService.swapTab(actualWindow.identity as TabIdentifier, placeholder);
         await placeholder.close();
     };
     await actualWindow.addListener('shown', updateOptionsAndShow);
@@ -244,7 +245,7 @@ export async function childWindowPlaceholderCheckRunningApp(
                     await createNormalPlaceholder(win);
                 }
             } else {
-                await removeTab(win);
+                await tabService.removeTab(win);
             }
         }
     } else {

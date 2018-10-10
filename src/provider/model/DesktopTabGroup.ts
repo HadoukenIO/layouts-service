@@ -3,11 +3,19 @@ import {ApplicationUIConfig, JoinTabGroupPayload, TabGroupEventPayload, TabIdent
 import {Signal1} from '../Signal';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
-
-import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
 import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {DesktopWindow, WindowMessages, WindowState} from './DesktopWindow';
+import { TabWindowFactory } from './DesktopTabGroupWindowFactory';
+
+/**
+ * Creates a UUIDv4() ID
+ * Sourced from https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
+ */
+export function createTabGroupId(): string {
+    //@ts-ignore Black Magic
+    return "TABSET-"+([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16));
+}
 
 /**
  * Handles functionality for the TabSet
@@ -16,15 +24,7 @@ export class DesktopTabGroup {
     public static readonly onCreated: Signal1<DesktopTabGroup> = new Signal1();
     public static readonly onDestroyed: Signal1<DesktopTabGroup> = new Signal1();
 
-    /**
-     * Creates a UUIDv4() ID
-     * Sourced from https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
-     */
-    private static createTabGroupId(): string {
-        //@ts-ignore Black Magic
-        return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16));
-    }
-
+    private static _windowPool: TabWindowFactory = new TabWindowFactory();
 
     /**
      * The ID for the TabGroup.
@@ -64,15 +64,11 @@ export class DesktopTabGroup {
      */
     constructor(model: DesktopModel, group: DesktopSnapGroup, options: TabWindowOptions) {
         this._model = model;
-        this.ID = DesktopTabGroup.createTabGroupId();
 
         const tabStripOptions: fin.WindowOptions = {
-            name: this.ID,
+            name: createTabGroupId(),
             url: options.url,
             autoShow: true,
-            defaultLeft: options.x,
-            defaultTop: options.y,
-            defaultWidth: options.width,
             defaultHeight: options.height,
             minHeight: options.height,
             maxHeight: options.height,
@@ -85,12 +81,12 @@ export class DesktopTabGroup {
             },
             saveWindowState: false,
             taskbarIconGroup: name,
-            //@ts-ignore 'backgroundThrottling' missing from TypeScript interface
             backgroundThrottling: true,
             waitForPageLoad: false
         };
 
-        this._window = new DesktopWindow(this._model, group, tabStripOptions);
+        this._window = new DesktopWindow(this._model, group, DesktopTabGroup._windowPool.getNextWindow(options) || tabStripOptions);
+        this.ID = this._window.getIdentity().name;
         this._window.setTabGroup(this);
         this._tabs = [];
         this._tabProperties = {};
@@ -420,13 +416,15 @@ export class DesktopTabGroup {
             // Align tabstrip to this tab
             await this._window.applyProperties({
                 center: {x: tabState.center.x, y: tabState.center.y - tabState.halfSize.y + (this._config.height / 2)},
-                halfSize: {x: tabState.halfSize.x, y: this._config.height / 2}
+                halfSize: {x: tabState.halfSize.x, y: this._config.height / 2},
+                hidden:false
             });
 
             // Reduce size of app window by size of tabstrip
             const center: Point = {x: tabState.center.x, y: tabState.center.y + (this._config.height / 2)};
             const halfSize: Point = {x: tabState.halfSize.x, y: tabState.halfSize.y - (this._config.height / 2)};
             await tab.applyProperties({center, halfSize, frame: false});
+            
         } else {
             const existingTabState: WindowState = this._activeTab.getState();
             const {center, halfSize} = existingTabState;

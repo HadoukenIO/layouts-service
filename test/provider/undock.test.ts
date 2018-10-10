@@ -1,7 +1,9 @@
 import {test, TestContext} from 'ava';
 import {Fin, Window} from 'hadouken-js-adapter';
 
+import {WindowIdentity} from '../../src/provider/model/DesktopWindow';
 import {UNDOCK_MOVE_DISTANCE} from '../../src/provider/snapanddock/Config';
+import {undockWindow} from '../demo/utils/snapServiceUtils';
 
 import {getConnection} from './utils/connect';
 import {createChildWindow} from './utils/createChildWindow';
@@ -10,10 +12,6 @@ import {getBounds} from './utils/getBounds';
 import {getDistanceBetween} from './utils/getDistanceBetween';
 import {isAdjacentTo} from './utils/isAdjacentTo';
 import {opposite, perpendicular, Side} from './utils/SideUtils';
-import {undockWindow, WindowIdentity} from './utils/undockWindow';
-
-// TODO - Change client/service file structure to allow importing these values
-
 
 let windows: Window[] = new Array<Window>();
 let fin: Fin;

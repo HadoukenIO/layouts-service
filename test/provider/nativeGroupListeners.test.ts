@@ -1,13 +1,15 @@
 import {test, TestContext} from 'ava';
 import {Fin, Window} from 'hadouken-js-adapter';
 
+import {WindowIdentity} from '../../src/provider/model/DesktopWindow';
+import {undockWindow} from '../demo/utils/snapServiceUtils';
+
 import {assertGrouped, assertMoved, assertNotGrouped, assertNotMoved} from './utils/assertions';
 import {getConnection} from './utils/connect';
 import {createChildWindow} from './utils/createChildWindow';
 import {delay} from './utils/delay';
 import {dragSideToSide} from './utils/dragWindowTo';
 import {getBounds, NormalizedBounds} from './utils/getBounds';
-import {undockWindow, WindowIdentity} from './utils/undockWindow';
 
 // Valid ways of grouping two windows (used to parameterise large number of
 // similar tests)

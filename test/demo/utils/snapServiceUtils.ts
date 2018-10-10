@@ -1,10 +1,10 @@
 import {Identity} from 'hadouken-js-adapter';
 
 import {Snappable} from '../../../src/provider/model/DesktopSnapGroup';
-import {DesktopWindow} from '../../../src/provider/model/DesktopWindow';
-import {WindowIdentity} from '../../provider/utils/explodeGroup';
+import {DesktopWindow, WindowIdentity} from '../../../src/provider/model/DesktopWindow';
 
-import {executeJavascriptOnService} from './executeJavascriptOnService';
+import {executeJavascriptOnService} from './serviceUtils';
+import {sendServiceMessage} from './serviceUtils';
 
 export async function isWindowRegistered(identity: Identity): Promise<boolean> {
     function remoteFunc(this: Window, identity: WindowIdentity): boolean {
@@ -26,4 +26,12 @@ export async function getGroupedWindows(identity: Identity): Promise<Identity[]>
         }
     }
     return executeJavascriptOnService<WindowIdentity, Identity[]>(remoteFunc, identity as WindowIdentity);
+}
+
+export async function undockWindow(identity: WindowIdentity) {
+    await sendServiceMessage<WindowIdentity, void>('undockWindow', identity);
+}
+
+export async function explodeGroup(identity: WindowIdentity) {
+    await sendServiceMessage<WindowIdentity, void>('undockGroup', identity);
 }

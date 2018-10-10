@@ -4,7 +4,7 @@ import {Application, Fin, Window} from 'hadouken-js-adapter';
 import {TabBlob} from '../../../src/client/types';
 import {getConnection} from '../../provider/utils/connect';
 import {getBounds, NormalizedBounds} from '../../provider/utils/getBounds';
-import {executeJavascriptOnService} from '../utils/executeJavascriptOnService';
+import {executeJavascriptOnService} from '../utils/serviceUtils';
 
 let win1: Window;
 let win2: Window;

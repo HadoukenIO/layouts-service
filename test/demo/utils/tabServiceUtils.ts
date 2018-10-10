@@ -4,7 +4,7 @@ import {TabIdentifier} from '../../../src/client/types';
 import {DesktopTabGroup} from '../../../src/provider/model/DesktopTabGroup';
 import {DesktopWindow, WindowIdentity} from '../../../src/provider/model/DesktopWindow';
 
-import {executeJavascriptOnService} from './executeJavascriptOnService';
+import {executeJavascriptOnService} from './serviceUtils';
 
 export async function getTabGroupID(identity: Identity): Promise<string|null> {
     function remoteFunc(this: Window, identity: WindowIdentity): string|null {

@@ -17,13 +17,14 @@ export function createTabGroupId(): string {
     return "TABSET-"+([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16));
 }
 
+
 /**
  * Handles functionality for the TabSet
  */
 export class DesktopTabGroup {
     public static readonly onCreated: Signal1<DesktopTabGroup> = new Signal1();
     public static readonly onDestroyed: Signal1<DesktopTabGroup> = new Signal1();
-
+  
     private static _windowPool: TabWindowFactory = new TabWindowFactory();
 
     /**
@@ -416,15 +417,13 @@ export class DesktopTabGroup {
             // Align tabstrip to this tab
             await this._window.applyProperties({
                 center: {x: tabState.center.x, y: tabState.center.y - tabState.halfSize.y + (this._config.height / 2)},
-                halfSize: {x: tabState.halfSize.x, y: this._config.height / 2},
-                hidden:false
+                halfSize: {x: tabState.halfSize.x, y: this._config.height / 2}
             });
 
             // Reduce size of app window by size of tabstrip
             const center: Point = {x: tabState.center.x, y: tabState.center.y + (this._config.height / 2)};
             const halfSize: Point = {x: tabState.halfSize.x, y: tabState.halfSize.y - (this._config.height / 2)};
             await tab.applyProperties({center, halfSize, frame: false});
-            
         } else {
             const existingTabState: WindowState = this._activeTab.getState();
             const {center, halfSize} = existingTabState;

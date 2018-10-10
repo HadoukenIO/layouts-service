@@ -278,9 +278,10 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
      * manage it's own destruction in the former case, so that it can mark itself as not-ready before starting the clean-up of the model.
      */
     public teardown(): void {
-        if (this.registeredListeners.size > 0) {
-            this.cleanupListeners();
+        if (this.ready) {
+            this.window!.leaveGroup();
         }
+        this.cleanupListeners();
 
         this.onTeardown.emit(this);
         DesktopWindow.onDestroyed.emit(this);
@@ -682,11 +683,6 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         this.registerListener('hidden', () => this.updateState({hidden: true}, ActionOrigin.APPLICATION));
         this.registerListener('maximized', () => {
             this.updateState({state: 'maximized'}, ActionOrigin.APPLICATION);
-            this.snapGroup.windows.forEach(window => {
-                if (window !== this) {
-                    (window as DesktopWindow).applyProperties({state: 'maximized'});
-                }
-            });
         });
         this.registerListener('minimized', () => {
             this.updateState({state: 'minimized'}, ActionOrigin.APPLICATION);
@@ -721,12 +717,10 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
     private cleanupListeners(): void {
         const window: Window = this.window!;
 
-        if (this.ready) {
-            for (const [key, listener] of this.registeredListeners) {
-                window.removeListener(key, listener);
-            }
-            window.leaveGroup();
+        for (const [key, listener] of this.registeredListeners) {
+            window.removeListener(key, listener);
         }
+
         this.registeredListeners.clear();
     }
 

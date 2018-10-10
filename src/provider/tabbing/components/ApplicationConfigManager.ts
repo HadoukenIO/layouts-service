@@ -24,6 +24,7 @@ export class ApplicationConfigManager {
      */
     public static onApplicationConfigCreated: Signal2<string, ApplicationUIConfig> = new Signal2();
 
+
     /**
      * @private
      * Container for all application configurations

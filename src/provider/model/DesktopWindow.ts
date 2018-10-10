@@ -219,7 +219,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
     // Tracks event listeners registered on the fin window for easier cleanup.
     private registeredListeners: Map<keyof fin.OpenFinWindowEventMap, OpenFinWindowEventHandler> = new Map();
 
-    private userInitiatedBoundsChange: boolean = false;
+    private userInitiatedBoundsChange = false;
 
     constructor(model: DesktopModel, group: DesktopSnapGroup, window: fin.WindowOptions|Window, initialState?: WindowState) {
         super(model, DesktopWindow.getIdentity(window));
@@ -663,7 +663,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
     }
 
     private addListeners(): void {
-        this.registerListener('begin-user-bounds-changing', this.handleBeginUserBoundsChanging.bind(this));        
+        this.registerListener('begin-user-bounds-changing', this.handleBeginUserBoundsChanging.bind(this));
         this.registerListener('bounds-changed', this.handleBoundsChanged.bind(this));
         this.registerListener('bounds-changing', this.handleBoundsChanging.bind(this));
         this.registerListener('closed', this.handleClosed.bind(this));
@@ -727,7 +727,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
 
         this.updateState({center, halfSize}, ActionOrigin.APPLICATION);
-      
+
         if (this.userInitiatedBoundsChange) {
             // Convert 'changeType' into our enum type
             const type: Mask<eTransformType> = event.changeType + 1;
@@ -739,7 +739,6 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         } else {
             this.onModified.emit(this);
         }
-
     }
 
     private handleBoundsChanging(event: fin.WindowBoundsEvent): void {

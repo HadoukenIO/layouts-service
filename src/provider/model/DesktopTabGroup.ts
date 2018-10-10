@@ -22,8 +22,9 @@ export class DesktopTabGroup {
      * Sourced from https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
      */
     private static createTabGroupId(): string {
-        //@ts-ignore Black Magic
-        return 'TABSET-' + ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16));
+        return 'TABSET-' +
+            //@ts-ignore Black Magic
+            ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16));
     }
 
 
@@ -370,9 +371,9 @@ export class DesktopTabGroup {
             if (prevTab && prevTab.getTabGroup() === this) {
                 await prevTab.applyProperties({hidden: true});
             }
-          
+
             await Promise.all([this.window!.sync(), tab.sync()]);
-          
+
             const payload: TabGroupEventPayload = {tabGroupId: this.ID, tabID: tab.getIdentity()};
             this.window.sendMessage(WindowMessages.TAB_ACTIVATED, payload);
         }

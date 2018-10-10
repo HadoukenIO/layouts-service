@@ -88,7 +88,7 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
         if (isRunning) {
             // Should de-tab here.
             await tabService.removeTab(app.mainWindow);
-          
+
             // Need to check its child windows here, if confirmed.
             await childWindowPlaceholderCheckRunningApp(app, tabbedWindows, tabbedPlaceholdersToWindows, openWindows);
         } else {

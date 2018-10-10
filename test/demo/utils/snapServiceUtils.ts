@@ -3,8 +3,7 @@ import {Identity} from 'hadouken-js-adapter';
 import {Snappable} from '../../../src/provider/model/DesktopSnapGroup';
 import {DesktopWindow, WindowIdentity} from '../../../src/provider/model/DesktopWindow';
 
-import {executeJavascriptOnService} from './serviceUtils';
-import {sendServiceMessage} from './serviceUtils';
+import {executeJavascriptOnService, sendServiceMessage} from './serviceUtils';
 
 export async function isWindowRegistered(identity: Identity): Promise<boolean> {
     function remoteFunc(this: Window, identity: WindowIdentity): boolean {

@@ -4,7 +4,7 @@ import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {DesktopWindow, WindowIdentity, WindowState} from '../model/DesktopWindow';
-import {Rectangle} from '../snapanddock/utils/RectUtils';
+import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 
 import {ApplicationConfigManager} from './components/ApplicationConfigManager';
 import {DragWindowManager} from './DragWindowManager';
@@ -214,22 +214,33 @@ export class TabService {
             // If a single untabbed window is being dragged, it is possible to create a tabset
             const activeIdentity: WindowIdentity = window.getIdentity();
             const activeState: WindowState = window.getState();
+            const mousePosition = this._model.getMouseTracker().getPosition();
 
             // Ignore if we are dragging around a tabset
-            if (window instanceof DesktopWindow) {
+            if (window instanceof DesktopWindow && mousePosition) {
                 const windowUnderPoint: DesktopWindow|null = this._model.getWindowAt(activeState.center.x, activeState.center.y, activeIdentity);
                 const appConfigMgr: ApplicationConfigManager = this.mApplicationConfigManager;
-
+                
                 // There is a window under our drop point
                 if (windowUnderPoint) {
                     const existingTabSet: DesktopTabGroup|null = windowUnderPoint.getTabGroup();
+                    const windowUnderPointState = windowUnderPoint.getState();
+                    const windowUnderPointConfig = appConfigMgr.getApplicationUIConfig(windowUnderPoint.getIdentity().uuid);
 
-                    if (existingTabSet && appConfigMgr.compareConfigBetweenApplications(activeIdentity.uuid, existingTabSet.config)) {
+                    if (existingTabSet && appConfigMgr.compareConfigBetweenApplications(activeIdentity.uuid, existingTabSet.config) &&
+                    windowUnderPoint.getId() === existingTabSet.window.getId()) {
                         // Add to existing tab group
                         existingTabSet.addTab(window);
                     } else if (
-                        windowUnderPoint instanceof DesktopWindow &&
-                        appConfigMgr.compareConfigBetweenApplications(windowUnderPoint.getIdentity().uuid, activeIdentity.uuid)) {
+                        windowUnderPoint instanceof DesktopWindow && !existingTabSet &&
+                        appConfigMgr.compareConfigBetweenApplications(windowUnderPoint.getIdentity().uuid, activeIdentity.uuid) &&
+                        RectUtils.isPointInRect(
+                            {
+                                x: windowUnderPointState.center.x,
+                                y: (windowUnderPointState.center.y - windowUnderPointState.halfSize.y) + (windowUnderPointConfig.height / 2)
+                            },
+                            {x: windowUnderPointState.halfSize.x, y: windowUnderPointConfig.height / 2},
+                            {x: mousePosition.left, y: mousePosition.top})) {
                         // If not a tab group then create a group with the 2 tabs.
                         this.createTabGroupWithTabs([windowUnderPoint.getIdentity(), activeIdentity], activeIdentity);
                     }

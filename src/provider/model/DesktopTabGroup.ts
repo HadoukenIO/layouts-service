@@ -224,7 +224,7 @@ export class DesktopTabGroup {
             await this.addTabInternal(tabToAdd, false, tabIndex);
             await this.removeTabInternal(tabToRemove, tabIndex);
 
-            if (this._activeTab.getId() === tabToAdd.getId()) {
+            if (this._activeTab.getId() === tabToRemove.getId()) {
                 // if the switchedwith tab was the active one, we make the added tab active
                 this.switchTab(tabToAdd);
             } else {

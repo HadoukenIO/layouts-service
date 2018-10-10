@@ -1,11 +1,12 @@
+import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
+
 import {SnapTarget} from './Resolver';
-import {SnapGroup} from './SnapGroup';
 import {SnapPreview} from './SnapPreview';
 
 export class SnapView {
-    private activeGroup: SnapGroup|null;  // The group being moved
-    private target: SnapTarget|null;      // The current snap candidate (target may be valid or invalid. Will be null if there are no candidates)
-    private preview: SnapPreview;         // For displaying where the active group will snap to (the red/green boxes)
+    private activeGroup: DesktopSnapGroup|null;  // The group being moved
+    private target: SnapTarget|null;             // The current snap candidate (target may be valid or invalid. Will be null if there are no candidates)
+    private preview: SnapPreview;                // For displaying where the active group will snap to (the red/green boxes)
 
     constructor() {
         this.activeGroup = null;
@@ -23,26 +24,42 @@ export class SnapView {
      * SnapView also stores these parameters as members. This allows it to revert the active/target windows to their
      * original opacities once the active/target group(s) change or get reset.
      */
-    public update(activeGroup: SnapGroup|null, target: SnapTarget|null): void {
-        if (activeGroup && target) {
-            if (!this.target || this.target.group !== target.group) {
-                this.setTargetOpacity(this.target, 1.0);
-                this.setTargetOpacity(target, 0.8);
-            }
-            this.preview.show(target);
-        } else {
-            this.setTargetOpacity(this.target, 1.0);
-            this.preview.hide();
+    public update(activeGroup: DesktopSnapGroup|null, target: SnapTarget|null): void {
+        // Handle change of active group
+        if (activeGroup !== this.activeGroup) {
+            this.setGroupOpacity(this.activeGroup, false);
+            this.activeGroup = activeGroup;
+            this.setGroupOpacity(this.activeGroup, true);
         }
 
+        // Detect change of target group
+        if ((this.target && this.target.group) !== (target && target.group)) {
+            // Restore opacity of previous target group (if any)
+            this.setGroupOpacity(this.target && this.target.group, false);
+
+            // Reduce opacity of new target group (if any)
+            this.setGroupOpacity(target && target.group, true);
+        }
+
+        // Update preview window
         this.target = target;
+        if (activeGroup && target) {
+            this.preview.show(target);
+        } else {
+            this.preview.hide();
+        }
     }
 
-    private setTargetOpacity(target: SnapTarget|null, opacity: number) {
-        if (target) {
-            for (let index = 0; index < target!.group.windows.length; index++) {
-                const groupWindow = target!.group.windows[index].getWindow();
-                groupWindow.updateOptions({opacity});
+    private setGroupOpacity(group: DesktopSnapGroup|null, transparent: boolean): void {
+        if (group) {
+            if (transparent) {
+                group.windows.forEach((window: Snappable) => {
+                    window.applyOverride('opacity', 0.8);
+                });
+            } else {
+                group.windows.forEach((window: Snappable) => {
+                    window.resetOverride('opacity');
+                });
             }
         }
     }

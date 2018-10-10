@@ -111,22 +111,19 @@ export enum ServiceIABTopics {
 }
 
 export interface TabProperties {
-    title?: string;
-    icon?: string;
+    title: string;
+    icon: string;
 }
 
-export interface TabWindowOptions {
-    url?: string;
-    screenX?: number;
-    screenY?: number;
-    width?: number;
-    height?: number;
+export interface ApplicationUIConfig {
+    url: string;
+    height: number;
 }
 
-export interface TabPackage {
-    tabID: TabIdentifier;
-    tabProps?: TabProperties;
-    index?: number;
+export interface TabWindowOptions extends ApplicationUIConfig {
+    x: number;
+    y: number;
+    width: number;
 }
 
 /**
@@ -146,7 +143,7 @@ export interface TabAPIInteractionMessage extends TabAPIMessage {
 }
 
 export interface TabAPIDragMessage extends TabAPIMessage {
-    event: TabWindowOptions|null;
+    event: ApplicationUIConfig|null;
     uuid: string;
     name: string;
 }
@@ -178,10 +175,6 @@ export interface TabAPIReorderMessage extends TabAPIMessage {
     tabOrder: TabIdentifier[];
 }
 
-export interface ApplicationUIConfig {
-    [uuid: string]: TabWindowOptions;
-}
-
 export interface DropPosition {
     screenX: number;
     screenY: number;
@@ -198,7 +191,7 @@ export interface JoinTabGroupPayload extends TabGroupEventPayload {
 }
 
 export interface SetTabClientPayload {
-    config: TabWindowOptions;
+    config: Partial<ApplicationUIConfig>;
     id: Identity;
 }
 
@@ -209,10 +202,12 @@ export interface AddTabPayload {
 
 export interface UpdateTabPropertiesPayload {
     window: Identity;
-    properties: TabProperties;
+    properties: Partial<TabProperties>;
 }
 
 export interface EndDragPayload {
     event: DropPosition;
     window: Identity;
 }
+
+export const CHANNEL_NAME = 'of-layouts-service-v1';

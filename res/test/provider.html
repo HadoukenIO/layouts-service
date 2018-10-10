@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <script src="../provider/main-bundle.js"></script>
     <script>
         fin.InterApplicationBus.Channel.create('layouts-provider-testing').then(channelProvider => {
             channelProvider.register('execute-javascript', (payload) => {
@@ -12,11 +11,16 @@
                 return new Function("return " + payload.script)()(payload.data);
             });
         })
-    </script>
-    <title>Layouts Manager Service</title>
+        
+        fin.System.showDeveloperTools({uuid: 'layouts-service', name: 'layouts-service'});
+        </script>
+    <title>Layouts Service</title>
 </head>
 
 <body>
-  <h3>"Headless" Layouts Manager Service</h3>
+    <h3>Layouts Service Provider</h3>
+    
+    <button onclick="fin.System.showDeveloperTools({uuid: 'layouts-service', name: 'layouts-service'})">Show Debugger</button>
 </body>
+<script src="../provider/main-bundle.js"></script>
 </html>

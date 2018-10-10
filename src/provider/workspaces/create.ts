@@ -4,12 +4,12 @@ import {WindowDetail, WindowInfo} from 'hadouken-js-adapter/out/types/src/api/sy
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {CustomData, Layout, LayoutApp, LayoutWindowData, TabBlob, TabIdentifier, WindowState} from '../../client/types';
-import {WindowIdentity} from '../snapanddock/SnapWindow';
+import {apiHandler, tabService} from '../main';
+import {WindowIdentity} from '../model/DesktopWindow';
 import {promiseMap} from '../snapanddock/utils/async';
-import {getTabSaveInfo} from '../tabbing/SaveAndRestoreAPI';
 
 import {getGroup} from './group';
-import {addToWindowObject, inWindowObject, isClientConnection, sendToClient, wasCreatedFromManifest, wasCreatedProgrammatically, WindowObject} from './utils';
+import {addToWindowObject, inWindowObject, wasCreatedFromManifest, wasCreatedProgrammatically, WindowObject} from './utils';
 
 const deregisteredWindows: WindowObject = {};
 
@@ -20,7 +20,7 @@ export const deregisterWindow = (identity: WindowIdentity) => {
 export const getCurrentLayout = async(): Promise<Layout> => {
     // Not yet using monitor info
     const monitorInfo = await fin.System.getMonitorInfo() || {};
-    let tabGroups = await getTabSaveInfo();
+    let tabGroups = await tabService.getTabSaveInfo();
     const tabbedWindows: WindowObject = {};
     const newShowingWindows: WindowObject = {};
     const newUntabbedWindows: WindowObject = {};
@@ -32,11 +32,11 @@ export const getCurrentLayout = async(): Promise<Layout> => {
     // Filter out tabGroups with deregistered parents.
     const filteredTabGroups: TabBlob[] = [];
 
-    tabGroups.forEach((tabGroup) => {
+    tabGroups.forEach((tabGroup: TabBlob) => {
         const filteredTabs: TabIdentifier[] = [];
         let activeWindowRemoved = false;
 
-        tabGroup.tabs.forEach(tabWindow => {
+        tabGroup.tabs.forEach((tabWindow: TabIdentifier) => {
             // Filter tabs out if either the window itself or its parent is deregistered from Save and Restore
             const parentIsDeregistered = inWindowObject({uuid: tabWindow.uuid, name: tabWindow.uuid}, deregisteredWindows);
             const windowIsDeregistered = inWindowObject(tabWindow, deregisteredWindows);
@@ -149,12 +149,12 @@ export const generateLayout = async(payload: null, identity: Identity): Promise<
 
     const apps = await promiseMap(preLayout.apps, async (app: LayoutApp) => {
         const defaultResponse = {...app};
-        if (isClientConnection(app)) {
+        if (apiHandler.isClientConnection(app)) {
             console.log('Connected application', app.uuid);
 
             // HOW TO DEAL WITH HUNG REQUEST HERE? RESHAPE IF GET NOTHING BACK?
             let customData: CustomData = undefined;
-            await sendToClient(app, 'savingLayout', app);
+            await apiHandler.sendToClient(app, 'savingLayout', app);
 
             if (!customData) {
                 customData = null;

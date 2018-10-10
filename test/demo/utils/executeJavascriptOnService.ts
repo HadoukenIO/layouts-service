@@ -1,8 +1,11 @@
+
 import {Fin} from 'hadouken-js-adapter';
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
 import {getConnection} from '../../provider/utils/connect';
 
+// tslint:disable-next-line:no-any
+type ExecuteResult = any;
 
 /**
  * Executes javascript code on the service

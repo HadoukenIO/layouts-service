@@ -1,27 +1,34 @@
 import {Identity} from 'hadouken-js-adapter';
 
 import {TabIdentifier} from '../../../src/client/types';
-import {Tab} from '../../../src/provider/tabbing/Tab';
-import {TabGroup} from '../../../src/provider/tabbing/TabGroup';
+import {DesktopTabGroup} from '../../../src/provider/model/DesktopTabGroup';
+import {DesktopWindow, WindowIdentity} from '../../../src/provider/model/DesktopWindow';
 
 import {executeJavascriptOnService} from './executeJavascriptOnService';
 
 export async function getTabGroupID(identity: Identity): Promise<string|null> {
-    function remoteFunc(this: Window, identity: Identity): string|null {
-        const tabGroup = this.tabService.getTabGroupByApp(identity as TabIdentifier);
+    function remoteFunc(this: Window, identity: WindowIdentity): string|null {
+        const tab: DesktopWindow|null = this.model.getWindow(identity);
+        const tabGroup: DesktopTabGroup|null = tab ? tab.getTabGroup() : null;
         return tabGroup && tabGroup.ID ? tabGroup.ID : null;
     }
-    return executeJavascriptOnService<Identity, string|null>(remoteFunc, identity);
+    return executeJavascriptOnService<WindowIdentity, string|null>(remoteFunc, identity as WindowIdentity);
 }
 
+/**
+ * Queries the service for all windows in the same tabGroup as the given identity. If the window
+ * is not in a tab group, only that window is returned.
+ * @param identity
+ */
 export async function getTabbedWindows(identity: Identity): Promise<Identity[]> {
-    function remoteFunc(this: Window, identity: Identity): Identity[] {
-        const tabGroup: TabGroup|undefined = this.tabService.getTabGroupByApp(identity as TabIdentifier);
+    function remoteFunc(this: Window, identity: WindowIdentity): Identity[] {
+        const tab: DesktopWindow|null = this.model.getWindow(identity);
+        const tabGroup: DesktopTabGroup|null = tab ? tab.getTabGroup() : null;
         if (tabGroup && tabGroup.tabs) {
-            return tabGroup.tabs.map((tab: Tab) => tab.ID);
+            return tabGroup.tabs.map((tab: DesktopWindow) => tab.getIdentity());
         } else {
             return [identity];
         }
     }
-    return executeJavascriptOnService<Identity, Identity[]>(remoteFunc, identity);
+    return executeJavascriptOnService<WindowIdentity, Identity[]>(remoteFunc, identity as WindowIdentity);
 }

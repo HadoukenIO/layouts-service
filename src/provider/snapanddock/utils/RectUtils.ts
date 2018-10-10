@@ -1,4 +1,4 @@
-import {Point} from './PointUtils';
+import {Point, PointUtils} from './PointUtils';
 
 export class MeasureResult implements Point {
     public x: number;
@@ -95,5 +95,9 @@ export class RectUtils {
 
     public static isPointInRect(center: Point, halfSize: Point, point: Point): boolean {
         return Math.abs(center.x - point.x) <= halfSize.x && Math.abs(center.y - point.y) < halfSize.y;
+    }
+
+    public static isEqual(rect1: Rectangle, rect2: Rectangle): boolean {
+        return PointUtils.isEqual(rect1.center, rect2.center) && PointUtils.isEqual(rect1.halfSize, rect2.halfSize);
     }
 }

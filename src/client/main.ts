@@ -1,11 +1,12 @@
 import {Identity} from 'hadouken-js-adapter';
 
-import {TabAPI, TabAPIActions} from './APITypes';
-import {AddTabPayload, ApplicationUIConfig, CustomData, DropPosition, EndDragPayload, JoinTabGroupPayload, Layout, LayoutApp, LayoutName, SetTabClientPayload, TabGroupEventPayload, TabProperties, TabWindowOptions, UpdateTabPropertiesPayload} from './types';
+import {TabAPI} from './APITypes';
+import {AddTabPayload, ApplicationUIConfig, CustomData, DropPosition, EndDragPayload, JoinTabGroupPayload, Layout, LayoutApp, LayoutName, SetTabClientPayload, TabGroupEventPayload, TabProperties, UpdateTabPropertiesPayload} from './types';
 
 const IDENTITY = {
     uuid: 'layouts-service',
-    name: 'layouts-service'
+    name: 'layouts-service',
+    channelName: 'of-layouts-service-v1'
 };
 
 import {version} from './version';
@@ -29,7 +30,7 @@ const getId = (() => {
 
 const channelPromise: Promise<ChannelClient> =
     // @ts-ignore Hadouken types are wrong. `channelName` is a valid property
-    fin.InterApplicationBus.Channel.connect({...IDENTITY, channelName: IDENTITY.uuid, payload: {version}}).then((channel: ChannelClient) => {
+    fin.InterApplicationBus.Channel.connect({...IDENTITY, payload: {version}}).then((channel: ChannelClient) => {
         // Register service listeners
         channel.register('WARN', (payload: any) => console.warn(payload));  // tslint:disable-line:no-any
         channel.register('join-snap-group', () => {
@@ -180,7 +181,9 @@ export async function getTabs(window: Identity = getId()): Promise<Identity[]|nu
  * If a custom tab-strip UI is being used - this sets the URL for the tab-strip.
  * This binding happens on the application level.  An application cannot have different windows using different tabbing UI.
  */
-export async function setTabClient(url: string, config: TabWindowOptions): Promise<void> {
+export async function setTabClient(url: string, config: Partial<ApplicationUIConfig&{url: never}>): Promise<void> {
+    const resolvedConfig: Partial<ApplicationUIConfig> = {url, ...config};
+
     if (!config || isNaN(config.height!)) {
         return Promise.reject('Invalid config height provided');
     }
@@ -192,9 +195,8 @@ export async function setTabClient(url: string, config: TabWindowOptions): Promi
         return Promise.reject(e);
     }
     const channel: ChannelClient = await channelPromise;
-    config.url = url;
 
-    return tryServiceDispatch<SetTabClientPayload, void>(channel, TabAPI.SETTABCLIENT, {config, id: getId()});
+    return tryServiceDispatch<SetTabClientPayload, void>(channel, TabAPI.SETTABCLIENT, {id: getId(), config: resolvedConfig});
 }
 
 /**
@@ -319,7 +321,7 @@ export const tabStrip = {
     /**
      * Updates a Tabs Properties on the Tab strip.
      */
-    async updateTabProperties(window: Identity, properties: TabProperties): Promise<void> {
+    async updateTabProperties(window: Identity, properties: Partial<TabProperties>): Promise<void> {
         if (!window || !window.name || !window.uuid) {
             return Promise.reject('Invalid window provided');
         }

@@ -1,30 +1,29 @@
 import {Identity} from 'hadouken-js-adapter';
 
+import {Snappable} from '../../../src/provider/model/DesktopSnapGroup';
+import {DesktopWindow} from '../../../src/provider/model/DesktopWindow';
 import {WindowIdentity} from '../../provider/utils/explodeGroup';
 
 import {executeJavascriptOnService} from './executeJavascriptOnService';
 
 export async function isWindowRegistered(identity: Identity): Promise<boolean> {
-    function remoteFunc(this: Window, identity: Identity): boolean {
-        //@ts-ignore Need to call private method. Will be changed following refactor.
-        return !!this.snapService.getSnapWindow(identity as WindowIdentity);
+    function remoteFunc(this: Window, identity: WindowIdentity): boolean {
+        return !!this.model.getWindow(identity);
     }
 
-    return executeJavascriptOnService<Identity, boolean>(remoteFunc, identity);
+    return executeJavascriptOnService<WindowIdentity, boolean>(remoteFunc, identity as WindowIdentity);
 }
 
 export async function getGroupedWindows(identity: Identity): Promise<Identity[]> {
-    function remoteFunc(this: Window, identity: Identity): Identity[] {
-        //@ts-ignore Need to call private method. Will be changed following refactor.
-        const snapWindow = this.snapService.getSnapWindow(identity as WindowIdentity);
+    function remoteFunc(this: Window, identity: WindowIdentity): Identity[] {
+        const snapWindow: DesktopWindow|null = this.model.getWindow(identity);
         if (snapWindow) {
-            return snapWindow.getGroup().windows.map(win => {
+            return snapWindow.getSnapGroup().windows.map((win: Snappable) => {
                 return win.getIdentity();
             });
         } else {
             throw new Error(`Attempted to get window group of non-existent or deregistered window: ${identity.uuid}/${identity.name}`);
         }
     }
-
-    return executeJavascriptOnService<Identity, Identity[]>(remoteFunc, identity);
+    return executeJavascriptOnService<WindowIdentity, Identity[]>(remoteFunc, identity as WindowIdentity);
 }

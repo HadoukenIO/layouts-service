@@ -1,5 +1,5 @@
+import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {eSnapValidity, SnapTarget} from './Resolver';
-import {SnapGroup} from './SnapGroup';
 import {Point, PointUtils} from './utils/PointUtils';
 
 const PREVIEW_SUCCESS = '#3D4059';
@@ -20,7 +20,7 @@ interface PreviewWindow {
 export class SnapPreview {
     private pool: {active: fin.OpenFinWindow[]; free: fin.OpenFinWindow[]};
 
-    private activeGroup: SnapGroup|null;
+    private activeGroup: DesktopSnapGroup|null;
     private activeWindowPreview: PreviewWindow|null;
 
     // Just using a single window instance right now. Will update to use the pool at a later point.
@@ -44,7 +44,7 @@ export class SnapPreview {
      * argument to avoid having to re-create the rectangle objects on every call if the group hasn't changed.
      */
     public show(target: SnapTarget): void {
-        const activeGroup = target.activeWindow.getGroup();
+        const activeGroup = target.activeWindow.getSnapGroup();
         const groupHalfSize = activeGroup.halfSize;  // TODO: Will need to change once 'activeGroup' can have multiple windows (SERVICE-128)
 
         if (!this.tempWindowIsActive || this.activeGroup !== activeGroup) {

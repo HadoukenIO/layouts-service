@@ -36,7 +36,7 @@ export function openChild(name: string, i: number, frame = true, url?: string, b
             frame,
             name
         });
-        
+
     } else {
         win = fin.Window.create({
             url: url || `${launchDir}/demo-window.html`,

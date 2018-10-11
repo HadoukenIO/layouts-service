@@ -4,7 +4,7 @@ import {WindowDetail, WindowInfo} from 'hadouken-js-adapter/out/types/src/api/sy
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {CustomData, Layout, LayoutApp, LayoutWindowData, TabBlob, TabIdentifier, WindowState} from '../../client/types';
-import {apiHandler, tabService, model} from '../main';
+import {apiHandler, model, tabService} from '../main';
 import {WindowIdentity} from '../model/DesktopWindow';
 import {promiseMap} from '../snapanddock/utils/async';
 
@@ -195,7 +195,7 @@ const getLayoutWindowData =
         throw Error(`No desktop window for window. Name: ${identity.name}, UUID: ${identity.uuid}`);
     }
     const applicationState = desktopWindow.getApplicationState();
-    
+
     // If a window was tabbed, but should be untabbed now because its tabGroup has only 1 member now, give it a frame.
     // const frame = inWindowObject(ofWin.identity, newUntabbedWindows) ? true : options.frame;
 

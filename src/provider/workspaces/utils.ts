@@ -46,18 +46,17 @@ export const createNormalPlaceholder = async (win: WindowState) => {
 
     const placeholderName = 'Placeholder-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
-    const placeholder = await fin.Window.create(
-        {
-            name: placeholderName,
-            autoShow: true,
-            defaultHeight: height,
-            defaultWidth: width,
-            defaultLeft: left,
-            defaultTop: top,
-            saveWindowState: false,
-            opacity: 0.6,
-            backgroundColor: '#D3D3D3'
-        });
+    const placeholder = await fin.Window.create({
+        name: placeholderName,
+        autoShow: true,
+        defaultHeight: height,
+        defaultWidth: width,
+        defaultLeft: left,
+        defaultTop: top,
+        saveWindowState: false,
+        opacity: 0.6,
+        backgroundColor: '#D3D3D3'
+    });
 
     const actualWindow = await fin.Window.wrap({uuid, name});
     const updateOptionsAndShow = async () => {
@@ -76,18 +75,17 @@ export const createTabPlaceholder = async (win: WindowState) => {
 
     const placeholderName = 'Placeholder-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
-    const placeholder = await fin.Window.create(
-        {
-            name: placeholderName,
-            autoShow: true,
-            defaultHeight: height,
-            defaultWidth: width,
-            defaultLeft: left,
-            defaultTop: top,
-            saveWindowState: false,
-            opacity: 0.6,
-            backgroundColor: '#D3D3D3'
-        });
+    const placeholder = await fin.Window.create({
+        name: placeholderName,
+        autoShow: true,
+        defaultHeight: height,
+        defaultWidth: width,
+        defaultLeft: left,
+        defaultTop: top,
+        saveWindowState: false,
+        opacity: 0.6,
+        backgroundColor: '#D3D3D3'
+    });
 
     const actualWindow = await fin.Window.wrap({uuid, name});
     const updateOptionsAndShow = async () => {

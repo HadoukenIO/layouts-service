@@ -2,9 +2,9 @@
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {LayoutApp, WindowState} from '../../client/types';
+import {model} from '../main';
+import {WindowIdentity} from '../model/DesktopWindow';
 import {promiseMap} from '../snapanddock/utils/async';
-import { model } from '../main';
-import { WindowIdentity } from '../model/DesktopWindow';
 
 export const getGroup = (identity: Identity): Promise<Identity[]> => {
     const {uuid, name} = identity;

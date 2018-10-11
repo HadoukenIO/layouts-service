@@ -4,7 +4,7 @@ import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {LayoutApp, TabIdentifier, WindowState} from '../../client/types';
-import {tabService} from '../main';
+import {model, tabService} from '../main';
 import {WindowIdentity} from '../model/DesktopWindow';
 
 // Positions a window when it is restored.
@@ -93,6 +93,7 @@ export const createTabPlaceholder = async (win: WindowState) => {
     const actualWindow = await fin.Window.wrap({uuid, name});
     const updateOptionsAndShow = async () => {
         await actualWindow.removeListener('shown', updateOptionsAndShow);
+        await model.expect(actualWindow.identity as WindowIdentity);
         await tabService.swapTab({uuid: placeholder.identity.uuid, name: placeholderName}, actualWindow.identity as TabIdentifier);
         await placeholder.close();
     };

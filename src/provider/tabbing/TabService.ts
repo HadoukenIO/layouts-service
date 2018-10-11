@@ -218,7 +218,7 @@ export class TabService {
 
             // Ignore if we are dragging around a tabset
             if (window instanceof DesktopWindow && mousePosition) {
-                const windowUnderPoint: DesktopWindow|null = this._model.getWindowAt(activeState.center.x, activeState.center.y, activeIdentity);
+                const windowUnderPoint: DesktopWindow|null = this._model.getWindowAt(mousePosition.left, mousePosition.top, activeIdentity);
                 const appConfigMgr: ApplicationConfigManager = this.mApplicationConfigManager;
                 
                 // There is a window under our drop point

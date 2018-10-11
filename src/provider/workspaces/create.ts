@@ -4,7 +4,7 @@ import {WindowDetail, WindowInfo} from 'hadouken-js-adapter/out/types/src/api/sy
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {CustomData, Layout, LayoutApp, LayoutWindowData, TabBlob, TabIdentifier, WindowState} from '../../client/types';
-import {apiHandler, tabService} from '../main';
+import {apiHandler, tabService, model} from '../main';
 import {WindowIdentity} from '../model/DesktopWindow';
 import {promiseMap} from '../snapanddock/utils/async';
 
@@ -175,6 +175,7 @@ export const generateLayout = async(payload: null, identity: Identity): Promise<
 const getLayoutWindowData =
     async(ofWin: Window, tabbedWindows: WindowObject, newShowingWindows: WindowObject, newUntabbedWindows: WindowObject): Promise<LayoutWindowData> => {
     const {uuid} = ofWin.identity;
+    const identity: WindowIdentity = ofWin.identity as WindowIdentity;
     const info = await ofWin.getInfo();
 
     const windowGroup = await getGroup(ofWin.identity);
@@ -189,13 +190,20 @@ const getLayoutWindowData =
     });
 
     const options = await ofWin.getOptions();
-
+    const desktopWindow = model.getWindow(identity);
+    if (desktopWindow === null) {
+        throw Error(`No desktop window for window. Name: ${identity.name}, UUID: ${identity.uuid}`);
+    }
+    const applicationState = desktopWindow.getApplicationState();
+    
     // If a window was tabbed, but should be untabbed now because its tabGroup has only 1 member now, give it a frame.
-    const frame = inWindowObject(ofWin.identity, newUntabbedWindows) ? true : options.frame;
+    // const frame = inWindowObject(ofWin.identity, newUntabbedWindows) ? true : options.frame;
+
     // If a window is tabbed (based on filtered tabGroups), tab it.
     const isTabbed = inWindowObject(ofWin.identity, tabbedWindows) ? true : false;
-    // If a window was tabbed, but either should be untabbed or is now the active window, show it.
-    const isShowing = inWindowObject(ofWin.identity, newShowingWindows) ? true : await ofWin.isShowing();
 
-    return {info, uuid, windowGroup: filteredWindowGroup, frame, state: options.state, isTabbed, isShowing};
+    // If a window was tabbed, but either should be untabbed or is now the active window, show it.
+    // const isShowing = inWindowObject(ofWin.identity, newShowingWindows) ? true : await ofWin.isShowing();
+
+    return {info, uuid, windowGroup: filteredWindowGroup, frame: applicationState.frame, state: options.state, isTabbed, isShowing: !applicationState.hidden};
 };

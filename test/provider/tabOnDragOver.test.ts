@@ -53,7 +53,7 @@ test.afterEach.always(async () => {
 });
 
 test('Tabset on dragover - basic drop', async t => {
-    // Drag wins[0] over wins[1] to make a tabset
+    // Drag wins[0] over wins[1] to make a tabset (in valid drop region)
     await dragWindowToOtherWindow(wins[0], 'top-left', wins[1], 'top-left', {x: 10, y: 10});
     await delay(500);
     // Test that the windows are tabbed
@@ -72,13 +72,18 @@ test('Drop window on tabset', async t => {
         frame: true
     });
 
+    // Mark win3 for closure
     wins.push(win3);
 
+    // create tab group
     await dragWindowToOtherWindow(wins[0], 'top-left', wins[1], 'top-left', {x: 20, y: 20});
     await delay(500);
+
+    // Add win3 to tabe group (valid drop region)
     await dragWindowToOtherWindow(win3, 'top-left', wins[0], 'top-left', {x: 20, y: -20});
     await delay(500);
 
+    // Assert tab group formed
     await assertTabbed(wins[0], win3, t);
 });
 
@@ -102,6 +107,7 @@ test('Tabset on dragover - tearout dropped window', async t => {
 
     await delay(500);
 
+    // Assert no groups
     await Promise.all([assertNotTabbed(wins[0], t), assertNotTabbed(wins[1], t)]);
 });
 
@@ -145,18 +151,23 @@ test('Tabset on dragover - drop on torn-out dropped window', async t => {
     await dragWindowToOtherWindow(win3, 'top-left', wins[0], 'top-left', {x: 20, y: 20});
     await delay(500);
 
+    // Assert group is formed again
     await assertTabbed(win3, wins[0], t);
     wins.push(win3);
 });
 
 test('TabGroup destroyed on tab removal (2 tabs - 1)', async t => {
+    // Create tab group
     await dragWindowToOtherWindow(wins[0], 'top-left', wins[1], 'top-left', {x: 20, y: 20});
     await delay(500);
     await assertTabbed(wins[0], wins[1], t);
     await delay(500);
 
+    // Close a window
     await wins[0].close();
     await delay(500);
+
+    // Assert no group
     await assertNotTabbed(wins[1], t);
 });
 
@@ -172,24 +183,59 @@ test('TabGroup remains on tab removal (3 tabs - 1)', async t => {
         frame: true
     });
 
+    // Create tab group
     await dragWindowToOtherWindow(wins[0], 'top-left', wins[1], 'top-left', {x: 20, y: 20});
     await delay(500);
+
+    // Add 3rd window to group
     await dragWindowToOtherWindow(win3, 'top-left', wins[1], 'top-left', {x: 20, y: -20});
     await delay(500);
-    await assertTabbed(wins[0], wins[1], t);
-    await assertTabbed(wins[0], win3, t);
+
+    await Promise.all([assertTabbed(wins[0], wins[1], t), assertTabbed(wins[0], win3, t)]);
     await delay(500);
 
+    // Close 3rd window
     await win3.close();
     await delay(500);
+
+    // Assert group remains
     await assertTabbed(wins[0], wins[1], t);
 });
 
-test('No Tab on window drop over invalid drop region', async t => {
+test('No tab on window drop over invalid drop region - singleton window', async t => {
+    // Fail creating group using invalid drop region
     await dragWindowToOtherWindow(wins[0], 'top-left', wins[1], 'top-left', {x: 20, y: 100});
     await delay(500);
+
+    // Assert a group did not form
     await assertNotTabbed(wins[0], t);
 });
+
+test('No tab on window drop over invalid drop region - tab group', async t => {
+    // Tab 2 Windows Together
+    await dragWindowToOtherWindow(wins[0], 'top-left', wins[1], 'top-left', {x: 20, y: 20});
+    await delay(500);
+
+    const win3 = await createChildWindow({
+        autoShow: true,
+        saveWindowState: false,
+        defaultTop: 50,
+        defaultLeft: 50,
+        defaultHeight: 200,
+        defaultWidth: 200,
+        url: 'http://localhost:1337/demo/tabbing/App/default.html',
+        frame: true
+    });
+
+    // Mark win3 for close
+    wins.push(win3);
+
+    // Move win3 into invalid drop area
+    await dragWindowToOtherWindow(win3, "top-left", wins[0], "top-left", {x:20, y:50});
+
+    // Assert tab group did not form
+    await assertNotTabbed(win3, t);
+})
 
 /**
  * Asserts that two windows are succesfully tabbed together

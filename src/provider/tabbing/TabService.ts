@@ -220,7 +220,7 @@ export class TabService {
             if (window instanceof DesktopWindow && mousePosition) {
                 const windowUnderPoint: DesktopWindow|null = this._model.getWindowAt(mousePosition.left, mousePosition.top, activeIdentity);
                 const appConfigMgr: ApplicationConfigManager = this.mApplicationConfigManager;
-                
+
                 // There is a window under our drop point
                 if (windowUnderPoint) {
                     const existingTabSet: DesktopTabGroup|null = windowUnderPoint.getTabGroup();
@@ -228,7 +228,7 @@ export class TabService {
                     const windowUnderPointConfig = appConfigMgr.getApplicationUIConfig(windowUnderPoint.getIdentity().uuid);
 
                     if (existingTabSet && appConfigMgr.compareConfigBetweenApplications(activeIdentity.uuid, existingTabSet.config) &&
-                    windowUnderPoint.getId() === existingTabSet.window.getId()) {
+                        windowUnderPoint.getId() === existingTabSet.window.getId()) {
                         // Add to existing tab group
                         existingTabSet.addTab(window);
                     } else if (
@@ -302,7 +302,8 @@ export class TabService {
                     // window with tab group, dropped over tabgroup
                     await tabGroup.removeTab(ejectedTab, null);
                     await isOverTabGroup.addTab(ejectedTab);
-                } else if(!isOverTabGroup &&
+                } else if (
+                    !isOverTabGroup &&
                     RectUtils.isPointInRect(
                         {
                             x: windowUnderPointState.center.x,

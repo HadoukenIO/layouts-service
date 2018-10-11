@@ -54,7 +54,7 @@ test.afterEach.always(async () => {
 
 test('Tabset on dragover - basic drop', async t => {
     // Drag wins[0] over wins[1] to make a tabset
-    await dragWindowToOtherWindow(wins[0], 'top-left', wins[1], 'top-left', {x: -20, y: -20});
+    await dragWindowToOtherWindow(wins[0], 'top-left', wins[1], 'top-left', {x: 10, y: 10});
     await delay(500);
     // Test that the windows are tabbed
     await assertTabbed(wins[0], wins[1], t);
@@ -74,9 +74,9 @@ test('Drop window on tabset', async t => {
 
     wins.push(win3);
 
-    await dragWindowToOtherWindow(wins[0], 'top-left', wins[1], 'top-left', {x: -20, y: -20});
+    await dragWindowToOtherWindow(wins[0], 'top-left', wins[1], 'top-left', {x: 20, y: 20});
     await delay(500);
-    await dragWindowToOtherWindow(win3, 'top-left', wins[0], 'top-left', {x: -20, y: -20});
+    await dragWindowToOtherWindow(win3, 'top-left', wins[0], 'top-left', {x: 20, y: -20});
     await delay(500);
 
     await assertTabbed(wins[0], win3, t);
@@ -84,7 +84,7 @@ test('Drop window on tabset', async t => {
 
 test('Tabset on dragover - tearout dropped window', async t => {
     // Drag wins[0] over wins[1] to make a tabset
-    await dragWindowToOtherWindow(wins[0], 'top-left', wins[1], 'top-left', {x: -20, y: -20});
+    await dragWindowToOtherWindow(wins[0], 'top-left', wins[1], 'top-left', {x: 20, y: 20});
     await delay(500);
 
     // Test that the windows are tabbed
@@ -107,7 +107,7 @@ test('Tabset on dragover - tearout dropped window', async t => {
 
 test('Tabset on dragover - drop on torn-out dropped window', async t => {
     // Drag wins[0] over wins[1] to make a tabset
-    await dragWindowToOtherWindow(wins[0], 'top-left', wins[1], 'top-left', {x: -20, y: -20});
+    await dragWindowToOtherWindow(wins[0], 'top-left', wins[1], 'top-left', {x: 20, y: 20});
     await delay(500);
 
     // Test that the windows are tabbed
@@ -142,7 +142,7 @@ test('Tabset on dragover - drop on torn-out dropped window', async t => {
 
     await delay(500);
     // Drag win3 over wins[1] to make a tabset
-    await dragWindowToOtherWindow(win3, 'top-left', wins[0], 'top-left', {x: -20, y: -20});
+    await dragWindowToOtherWindow(win3, 'top-left', wins[0], 'top-left', {x: 20, y: 20});
     await delay(500);
 
     await assertTabbed(win3, wins[0], t);
@@ -150,7 +150,7 @@ test('Tabset on dragover - drop on torn-out dropped window', async t => {
 });
 
 test('TabGroup destroyed on tab removal (2 tabs - 1)', async t => {
-    await dragWindowToOtherWindow(wins[0], 'top-left', wins[1], 'top-left', {x: -20, y: -20});
+    await dragWindowToOtherWindow(wins[0], 'top-left', wins[1], 'top-left', {x: 20, y: 20});
     await delay(500);
     await assertTabbed(wins[0], wins[1], t);
     await delay(500);
@@ -172,9 +172,9 @@ test('TabGroup remains on tab removal (3 tabs - 1)', async t => {
         frame: true
     });
 
-    await dragWindowToOtherWindow(wins[0], 'top-left', wins[1], 'top-left', {x: -20, y: -20});
+    await dragWindowToOtherWindow(wins[0], 'top-left', wins[1], 'top-left', {x: 20, y: 20});
     await delay(500);
-    await dragWindowToOtherWindow(win3, 'top-left', wins[1], 'top-left', {x: -20, y: -20});
+    await dragWindowToOtherWindow(win3, 'top-left', wins[1], 'top-left', {x: 20, y: -20});
     await delay(500);
     await assertTabbed(wins[0], wins[1], t);
     await assertTabbed(wins[0], win3, t);
@@ -183,6 +183,12 @@ test('TabGroup remains on tab removal (3 tabs - 1)', async t => {
     await win3.close();
     await delay(500);
     await assertTabbed(wins[0], wins[1], t);
+});
+
+test('No Tab on window drop over invalid drop region', async t => {
+    await dragWindowToOtherWindow(wins[0], 'top-left', wins[1], 'top-left', {x: 20, y: 100});
+    await delay(500);
+    await assertNotTabbed(wins[0], t);
 });
 
 /**

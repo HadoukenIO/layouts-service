@@ -21,14 +21,18 @@ const forgetWindows: Identity[] = [];
 
 window.forgetMe = forgetMe;
 
-export const positionWindow = async (win: WindowState) => {
+// Positions a window when it is restored.
+const positionWindow = async (win: WindowState) => {
     try {
         const ofWin = await fin.Window.wrap(win);
-        if (!win.isTabbed) {
-            await ofWin.leaveGroup();
-        }
         await ofWin.setBounds(win);
+        if (win.isTabbed) {
+            return;
+        }
+        await ofWin.leaveGroup();
 
+
+        // COMMENTED OUT FOR DEMO
         if (win.state === 'normal') {
             await ofWin.restore();
         } else if (win.state === 'minimized') {

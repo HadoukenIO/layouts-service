@@ -8,15 +8,14 @@ import {model, tabService} from '../main';
 import {WindowIdentity} from '../model/DesktopWindow';
 
 // Positions a window when it is restored.
-// If the window is supposed to be tabbed, makes it leave its group to avoid tab collision bugs
-// Also given to the client to use.
 export const positionWindow = async (win: WindowState) => {
     try {
         const ofWin = await fin.Window.wrap(win);
-        if (!win.isTabbed) {
-            await ofWin.leaveGroup();
-        }
         await ofWin.setBounds(win);
+        if (win.isTabbed) {
+            return;
+        }
+        await ofWin.leaveGroup();
 
 
         // COMMENTED OUT FOR DEMO

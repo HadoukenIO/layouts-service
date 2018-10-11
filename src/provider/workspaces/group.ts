@@ -3,6 +3,8 @@ import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {LayoutApp, WindowState} from '../../client/types';
 import {promiseMap} from '../snapanddock/utils/async';
+import { model } from '../main';
+import { WindowIdentity } from '../model/DesktopWindow';
 
 export const getGroup = (identity: Identity): Promise<Identity[]> => {
     const {uuid, name} = identity;
@@ -33,6 +35,9 @@ export const regroupLayout = async (apps: LayoutApp[]) => {
 };
 
 export const groupWindow = async (win: WindowState) => {
+    if (win.isTabbed) {
+        return;
+    }
     const {uuid, name} = win;
     const ofWin = await fin.Window.wrap({uuid, name});
     await promiseMap(win.windowGroup, async (w: Identity) => {
@@ -40,6 +45,8 @@ export const groupWindow = async (win: WindowState) => {
             return;
         }
         const windowToGroup = await fin.Window.wrap({uuid: w.uuid, name: w.name});
+        await model.expect(ofWin.identity as WindowIdentity);
+        await model.expect(windowToGroup.identity as WindowIdentity);
         // ERROR: windowToGroup returns even if the window doesn't exist, so the if (windowToGroup) always results in true.
 
         // Wrap returns even if the window doesn't exist. We need a windowToGroup.exists function.

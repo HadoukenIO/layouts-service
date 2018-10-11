@@ -174,12 +174,6 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
 
                 // Set up listener for app window shown to run and position it.
                 if (ofAppNotRunning) {
-                    const ofAppNRWindow = await ofAppNotRunning.getWindow();
-                    const updateOptionsAndShow = async () => {
-                        await ofAppNRWindow.removeListener('show-requested', updateOptionsAndShow);
-                        await ofAppNRWindow.showAt(app.mainWindow.left, app.mainWindow.top);
-                    };
-                    await ofAppNRWindow.addListener('show-requested', updateOptionsAndShow);
                     await ofAppNotRunning.run().catch(console.log);
                     await positionWindow(app.mainWindow);
                 }

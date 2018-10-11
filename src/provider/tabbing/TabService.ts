@@ -296,12 +296,29 @@ export class TabService {
         } else if (isOverTabGroup !== tabGroup) {
             // Move into another tab group
             if (this.applicationConfigManager.compareConfigBetweenApplications(isOverTabWindow.getIdentity().uuid, ejectedTab.getIdentity().uuid)) {
-                if (isOverTabGroup) {
+                const windowUnderPointState = isOverTabWindow.getState();
+                const windowUnderPointConfig = this.mApplicationConfigManager.getApplicationUIConfig(isOverTabWindow.getIdentity().uuid);
+                if (isOverTabGroup && isOverTabWindow.getId() === isOverTabGroup.window.getId()) {
+                    // window with tab group, dropped over tabgroup
                     await tabGroup.removeTab(ejectedTab, null);
                     await isOverTabGroup.addTab(ejectedTab);
-                } else {
+                } else if(!isOverTabGroup &&
+                    RectUtils.isPointInRect(
+                        {
+                            x: windowUnderPointState.center.x,
+                            y: (windowUnderPointState.center.y - windowUnderPointState.halfSize.y) + (windowUnderPointConfig.height / 2)
+                        },
+                        {x: windowUnderPointState.halfSize.x, y: windowUnderPointConfig.height / 2},
+                        {x: options.x!, y: options.y!})) {
+                    // standalone window (no tab group)
                     await tabGroup.removeTab(ejectedTab, null);
                     await this.createTabGroupWithTabs([isOverTabWindow.getIdentity(), ejectedTab.getIdentity()]);
+                } else {
+                    // window with tab group, dropped not on tabgroup
+                    const prevHalfSize = ejectedTab.getState().halfSize;
+                    const halfSize = {x: prevHalfSize.x, y: prevHalfSize.y + tabGroup.config.height / 2};
+                    const center = {x: options.x! + halfSize.x, y: options.y! + halfSize.y};
+                    await tabGroup.removeTab(ejectedTab, {center, halfSize});
                 }
             }
         } else {

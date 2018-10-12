@@ -1,4 +1,4 @@
-import {PointTopLeft} from 'hadouken-js-adapter/out/types/src/api/system/point';
+import {PointTopLeft, Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
 
 import {DesktopWindow, eTransformType, Mask, WindowState} from './DesktopWindow';
 
@@ -13,7 +13,7 @@ export class MouseTracker {
     /**
      * The mouse offset relative to the top-left corner of the window
      */
-    private mouseOffset: PointTopLeft|null = null;
+    private mouseOffset: Point|null = null;
 
     constructor() {
         DesktopWindow.onCreated.add(this.onDesktopWindowCreated, this);
@@ -40,8 +40,8 @@ export class MouseTracker {
 
         this.window = window;
         this.mouseOffset = {
-            left: mousePosition.left - (windowState.center.x - windowState.halfSize.x),
-            top: mousePosition.top - (windowState.center.y - windowState.halfSize.y)
+            x: mousePosition.left - (windowState.center.x - windowState.halfSize.x),
+            y: mousePosition.top - (windowState.center.y - windowState.halfSize.y)
         };
     }
 
@@ -57,15 +57,15 @@ export class MouseTracker {
 
     /**
      * Returns the mouse position on screen when a window is being moved. If no window is being moved then we return null.
-     * @returns {PointTopLeft | null} Mouse Position or null.
+     * @returns {Point | null} Mouse Position or null.
      */
-    public getPosition(): PointTopLeft|null {
+    public getPosition(): Point|null {
         if (this.window && this.mouseOffset) {
             const currentWindowState: WindowState = this.window.getState();
 
             return {
-                left: this.mouseOffset.left + (currentWindowState.center.x - currentWindowState.halfSize.x),
-                top: this.mouseOffset.top + (currentWindowState.center.y - currentWindowState.halfSize.y)
+                x: this.mouseOffset.x + (currentWindowState.center.x - currentWindowState.halfSize.x),
+                y: this.mouseOffset.y + (currentWindowState.center.y - currentWindowState.halfSize.y)
             };
         }
 

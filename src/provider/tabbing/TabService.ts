@@ -218,7 +218,7 @@ export class TabService {
 
             // Ignore if we are dragging around a tabset
             if (window instanceof DesktopWindow && mousePosition) {
-                const windowUnderPoint: DesktopWindow|null = this._model.getWindowAt(mousePosition.left, mousePosition.top, activeIdentity);
+                const windowUnderPoint: DesktopWindow|null = this._model.getWindowAt(mousePosition.x, mousePosition.y, activeIdentity);
                 const appConfigMgr: ApplicationConfigManager = this.mApplicationConfigManager;
 
                 // There is a window under our drop point
@@ -240,7 +240,7 @@ export class TabService {
                                 y: (windowUnderPointState.center.y - windowUnderPointState.halfSize.y) + (windowUnderPointConfig.height / 2)
                             },
                             {x: windowUnderPointState.halfSize.x, y: windowUnderPointConfig.height / 2},
-                            {x: mousePosition.left, y: mousePosition.top})) {
+                            {x: mousePosition.x, y: mousePosition.y})) {
                         // If not a tab group then create a group with the 2 tabs.
                         this.createTabGroupWithTabs([windowUnderPoint.getIdentity(), activeIdentity], activeIdentity);
                     }

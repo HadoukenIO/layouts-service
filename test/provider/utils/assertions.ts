@@ -66,7 +66,7 @@ export function assertNotMoved(bounds1: NormalizedBounds, bounds2: NormalizedBou
 /**
  * Assert that the given windows are part of the same TabGroup.
  */
-export async function assertTabbed(t: TestContext, win1: Window, win2: Window): Promise<void> {
+export async function assertTabbed(win1: Window, win2: Window, t: TestContext): Promise<void> {
     // Get the tabGroup UUID for each window
     const [tabGroupID1, tabGroupID2] = [await getTabGroupID(win1.identity), await getTabGroupID(win2.identity)];
 

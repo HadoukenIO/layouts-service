@@ -66,7 +66,7 @@ export function assertNotMoved(bounds1: NormalizedBounds, bounds2: NormalizedBou
 /**
  * Assert that the given windows are part of the same TabGroup.
  */
-export async function assertTabbed(win1: Window, win2: Window, t: TestContext): Promise<void> {
+export async function assertTabbed(t: TestContext, win1: Window, win2: Window): Promise<void> {
     // Get the tabGroup UUID for each window
     const [tabGroupID1, tabGroupID2] = [await getTabGroupID(win1.identity), await getTabGroupID(win2.identity)];
 
@@ -83,6 +83,18 @@ export async function assertTabbed(win1: Window, win2: Window, t: TestContext): 
     // Both windows have the same bounds
     const [bounds1, bounds2] = [await getBounds(win1), await getBounds(win2)];
     t.deepEqual(bounds1, bounds2, 'Tabbed windows do not have the same bounds');
+}
+
+/**
+ * Assert that the given windows are **all** part of the same tab group.
+ */
+export async function assertAllTabbed(t: TestContext, ...windows:Window[]):Promise<void> {
+    const tabGroupIDs = await promiseMap(windows, async (win: Window) => {
+        return getTabGroupID(win.identity);
+    });
+    for (let i = 0; i < tabGroupIDs.length; i++) {
+        t.is(tabGroupIDs[i], tabGroupIDs[0], `Window ${i} is in a different snapGroup to window 0: expected ${tabGroupIDs[0]}, got ${tabGroupIDs[i]}`);
+    }
 }
 
 /**

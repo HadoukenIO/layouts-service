@@ -88,7 +88,7 @@ export async function assertTabbed(win1: Window, win2: Window, t: TestContext): 
 /**
  * Assert that the given windows are **all** part of the same tab group.
  */
-export async function assertAllTabbed(t: TestContext, ...windows:Window[]):Promise<void> {
+export async function assertAllTabbed(t: TestContext, ...windows: Window[]): Promise<void> {
     const tabGroupIDs = await promiseMap(windows, async (win: Window) => {
         return getTabGroupID(win.identity);
     });

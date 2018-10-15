@@ -20,12 +20,12 @@ export async function createChild(parentWindowName: string): Promise<void> {
     const win = await openChild(parentWindowName + ' -  win' + numChildren, numChildren);
 }
 
-export function openChild(name: string, i: number, frame = true, url?: string, bounds?: Bounds) {
+export async function openChild(name: string, i: number, frame = true, url?: string, bounds?: Bounds) {
     numChildren++;
     let win;
 
     if (bounds) {
-        win = fin.Window.create({
+        win = await fin.Window.create({
             url: url || `${launchDir}/demo-window.html`,
             autoShow: true,
             defaultHeight: bounds.height,
@@ -38,7 +38,7 @@ export function openChild(name: string, i: number, frame = true, url?: string, b
         });
 
     } else {
-        win = fin.Window.create({
+        win = await fin.Window.create({
             url: url || `${launchDir}/demo-window.html`,
             autoShow: true,
             defaultHeight: 250 + 50 * i,

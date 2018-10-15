@@ -45,9 +45,9 @@ export class DesktopTabGroupWindowFactory {
     constructor() {
         ApplicationConfigManager.onApplicationConfigCreated.add(this.onApplicationConfigCreated, this);
         // Creates 3 default windows in the pool.
-        this._createAndPool(ApplicationConfigManager.DEFAULT_CONFIG);
-        this._createAndPool(ApplicationConfigManager.DEFAULT_CONFIG);
-        this._createAndPool(ApplicationConfigManager.DEFAULT_CONFIG);
+        this.createAndPool(ApplicationConfigManager.DEFAULT_CONFIG);
+        this.createAndPool(ApplicationConfigManager.DEFAULT_CONFIG);
+        this.createAndPool(ApplicationConfigManager.DEFAULT_CONFIG);
     }
 
     /**
@@ -60,7 +60,7 @@ export class DesktopTabGroupWindowFactory {
         const next = pooledWindows.shift();
         // Settimeout to offset blocking fin window creation
         setTimeout(() => {
-            this._createAndPool(options);
+            this.createAndPool(options);
         }, 2000);
         return next;
     }
@@ -71,20 +71,20 @@ export class DesktopTabGroupWindowFactory {
      * @param config The configuration added.
      */
     private onApplicationConfigCreated(uuid: string, config: ApplicationUIConfig) {
-        this._createAndPool(config);
+        this.createAndPool(config);
     }
 
     /**
      * Creates and pools windows against a specific ApplicationUI configuration.
      * @param {ApplicationUIConfig} options The configuration to create the windows against.
      */
-    private _createAndPool(options: ApplicationUIConfig) {
+    private createAndPool(options: ApplicationUIConfig) {
         if (!this._windowPool.has(options.url)) {
-            this._createWindow(options).then((window) => {
+            this.createWindow(options).then((window) => {
                 this._windowPool.set(options.url, [window]);
             });
         } else if (this._windowPool.has(options.url) && this._windowPool.get(options.url)!.length < 3) {
-            this._createWindow(options).then((window) => {
+            this.createWindow(options).then((window) => {
                 this._windowPool.set(options.url, [...this._windowPool.get(options.url)!, window]);
             });
         }
@@ -94,7 +94,7 @@ export class DesktopTabGroupWindowFactory {
      * Creates a single non-pooled window.
      * @param {ApplicationUIConfig} options The configuration to create the windows against.
      */
-    private _createWindow(options: ApplicationUIConfig) {
+    private createWindow(options: ApplicationUIConfig) {
         return fin.Window.create(DesktopTabGroupWindowFactory.generateTabStripOptions(options));
     }
 }

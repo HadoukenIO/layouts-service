@@ -120,7 +120,7 @@ test('Basic Minimize and Restore - Restore Other Window', async t => {
     // Check that the windows have both restored
     await assertAllRestored(t);
     // Check that the windows are still grouped properly after the restore
-    await assertGrouped(windows[0], windows[1], t);
+    await assertGrouped(t, windows[0], windows[1]);
 });
 
 test('Three-window Minimize', async t => {
@@ -150,6 +150,5 @@ test('Three-window Minimize and Restore', async t => {
     // Check that the windows have all restored
     await assertAllRestored(t);
     // Check that the windows are still grouped properly after the restore
-    await assertGrouped(windows[0], windows[1], t);
-    await assertGrouped(windows[1], windows[2], t);
+    await assertGrouped(t, windows[0], windows[1], windows[2]);
 });

@@ -80,7 +80,7 @@ async function snapWindows(win1: Window, win2: Window, t: TestContext) {
     await dragSideToSide(win2, 'left', win1, 'right');
 
     // Assert in snap group and native group
-    await assertGrouped(win1, win2, t);
+    await assertGrouped(t, win1, win2);
 }
 
 async function groupWindows(win1: Window, win2: Window, t: TestContext) {
@@ -88,7 +88,7 @@ async function groupWindows(win1: Window, win2: Window, t: TestContext) {
     win1.joinGroup(win2);
 
     // Assert in snap group and native group
-    await assertGrouped(win1, win2, t);
+    await assertGrouped(t, win1, win2);
 }
 
 async function unsnapWindows(win1: Window, win2: Window, shouldMove: boolean, t: TestContext) {
@@ -169,7 +169,7 @@ test.failing('Native window group works the same as snapService grouping  (nativ
     win1.mergeGroups(win2);
 
     // Assert in snap group and native group
-    await assertGrouped(win1, win2, t);
+    await assertGrouped(t, win1, win2);
 
     // Undock
     let boundsBefore = await getBounds(win1);

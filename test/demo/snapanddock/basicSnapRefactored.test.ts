@@ -1,43 +1,18 @@
-import {Context, GenericTestContext, Macro, test, TestContext} from 'ava';
-import {Fin} from 'hadouken-js-adapter';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import {assertAdjacent, assertGrouped} from '../../provider/utils/assertions';
-import {getConnection} from '../../provider/utils/connect';
-import {createChildWindow} from '../../provider/utils/createChildWindow';
-import {delay} from '../../provider/utils/delay';
+import {assertAdjacent, assertGrouped, assertSquare} from '../../provider/utils/assertions';
 import {dragSideToSide, dragWindowTo} from '../../provider/utils/dragWindowTo';
 import {opposite, Side, sideArray} from '../../provider/utils/SideUtils';
+import {FrameState, SnapDockTest, TestHelper, TestIdentifier, TestMacroBase, TestOptionsBase} from '../utils/testRunnerUtils';
 
-enum FrameStateEnum {
-    'framed' = 1,
-    'frameless' = 0,
-}
-
-type FrameState = keyof typeof FrameStateEnum|FrameStateEnum;
-
-// These names are a bit awkward, but match the conventions in Ava's type definitions
-interface BasicSnapDockContext {
-    windows: _Window[];
-}
-type BasicSnapDockTestContext = GenericTestContext<Context<BasicSnapDockContext>>;
-interface SnapDockMacro extends Macro<BasicSnapDockTestContext> {
-    (t: BasicSnapDockTestContext, side: Side, frame: FrameState): void;
-}
-
-type TestIdentifier = {
-    name: string,
-    side: Side,
-    frame: FrameState
-};
 
 /**
  * Add any tests to skip to this array. Will skip all *exact* matches.
- * The signature is: {name: String, side: Side, frame: FrameState}
+ * The signature is: {name: string, numWindows: number, frame: FrameState, ...any other params}
  *
  * (NOTE: If a test appears in both the skip and failing lists it will be skipped)
  */
-const skipTests: TestIdentifier[] = [];
+const skippedTests: TestIdentifier<BasicTestOptions<number>>[] = [];
 
 /**
  * Add any known failing tests to this array. Will mark all *exact* matches as expected failures.
@@ -45,81 +20,75 @@ const skipTests: TestIdentifier[] = [];
  *
  * (NOTE: If a test appears in both the skip and failing lists it will be skipped)
  */
-const failingTests: TestIdentifier[] = [];
+const failingTests: TestIdentifier<BasicTestOptions<number>>[] = [];
 
-let fin: Fin;
+type BasicSnapDockMacro<N extends number> = TestMacroBase<BasicTestOptions<N>>;
+interface BasicTestOptions<N extends number> extends TestOptionsBase {
+    side: N extends 2? Side: undefined;
+    numWindows: N;
+}
 
-const windowPositions = [{defaultTop: 300, defaultLeft: 300}, {defaultTop: 300, defaultLeft: 600}];
-const windowOptions: fin.WindowOptions[] = windowPositions.map(position => {
-    return Object.assign(
-        {autoShow: true, saveWindowState: false, defaultHeight: 200, defaultWidth: 200, url: 'http://localhost:1337/demo/frameless-window.html'}, position);
-});
+
+const testHelper = new TestHelper<BasicTestOptions<number>>(skippedTests, failingTests);
 
 /* == Macro Declarations == */
-
-const spawnBasicSnapWindows: SnapDockMacro = async (t: BasicSnapDockTestContext, side: Side, frame: FrameState) => {
-    t.context.windows = new Array<_Window>();
-    // Create all windows
-    for (let i = 0; i < windowOptions.length; i++) {
-        const options = Object.assign(windowOptions[i], {frame: !!FrameStateEnum[frame]});
-        t.context.windows[i] = await createChildWindow(options);
-    }
-
-    // Delay slightly to allow windows to initialize
-    await delay(300);
-};
-
-const cleanupWindows: SnapDockMacro = async (t: BasicSnapDockTestContext, side: Side, frame: FrameState) => {
-    // Close all windows
-    await Promise.all(t.context.windows.map(win => win.close()));
-};
-
 // Test macro that will snap two windows together, on the specified side
-const basicSnapDockMacro: SnapDockMacro = async (t: BasicSnapDockTestContext, side: Side, frame: FrameState) => {
+const basicSnapDockTest: BasicSnapDockMacro<2> = async (t: SnapDockTest, testOptions: BasicTestOptions<2>) => {
+    await testHelper.spawnBasicSnapWindows(t, testOptions);
+
     const windows = t.context.windows;
+    const {side} = testOptions;
 
     // Align windows
     await dragSideToSide(windows[1], opposite(side), windows[0], side);
 
     // Assert snapped and docked
-    await assertAdjacent(windows[0], windows[1], side, t);
-    await assertGrouped(windows[0], windows[1], t);
+    await assertAdjacent(t, windows[0], windows[1], side);
+    await assertGrouped(t, windows[0], windows[1]);
 
     // Move windows
-    await dragWindowTo(windows[0], 700, 700);
+    await dragWindowTo(windows[0], 500, 500);
 
     // Assert still docked and adjacent
-    await assertAdjacent(windows[0], windows[1], side, t);
-    await assertGrouped(windows[0], windows[1], t);
+    await assertAdjacent(t, windows[0], windows[1], side);
+    await assertGrouped(t, windows[0], windows[1]);
 };
-basicSnapDockMacro.title = (providedTitle, side, frame) => `${providedTitle} - ${frame} - ${side}`;
+basicSnapDockTest.title = (providedTitle: string, testOptions: BasicTestOptions<2>): string =>
+    `${providedTitle} - 2 windows - ${testOptions.frame} - ${testOptions.side}`;
+
+// Test macro that snaps four windows together as a square
+const fourWindowSnapDockTest: BasicSnapDockMacro<4> = async (t: SnapDockTest, testOptions: BasicTestOptions<4>) => {
+    await testHelper.spawnBasicSnapWindows(t, testOptions);
+    const windows = t.context.windows;
+
+    // Snap all four windows together
+    await dragSideToSide(windows[1], 'left', windows[0], 'right');
+    await dragSideToSide(windows[2], 'top', windows[0], 'bottom');
+    await dragSideToSide(windows[3], 'left', windows[2], 'right');
+
+    // Assert snapped and docked
+    await assertGrouped(t, ...windows);
+    await assertAdjacent(t, windows[0], windows[1], 'right');
+    await assertAdjacent(t, windows[0], windows[2], 'bottom');
+    await assertAdjacent(t, windows[2], windows[3], 'right');
+
+    // Move windows
+    await dragWindowTo(windows[0], 500, 500);
+
+    // Assert still docked and adjacent
+    await assertGrouped(t, ...windows);
+    await assertSquare(t, ...windows);
+};
+fourWindowSnapDockTest.title = (providedTitle: string, testOptions: BasicTestOptions<4>): string => `${providedTitle} - 4 windows - ${testOptions.frame}`;
 
 /* == Test Execution == */
-
-test.before(async () => {
-    fin = await getConnection();
-});
-
-test.beforeEach(spawnBasicSnapWindows);
-
-test.afterEach.always(cleanupWindows);
-
 // All tests will be run for framed and frameless windows
-(['frameless', 'framed'] as FrameState[]).forEach((frame: FrameState) => {
-    // Test snap and dock for each side
+(['framed', 'frameless'] as FrameState[]).forEach((frame: FrameState) => {
     sideArray.forEach((side: Side) => {
-        testWrapper('Basic SnapDock Tests', basicSnapDockMacro, side, frame);
+        // Test basic snap and dock for each side
+        testHelper.runTest('Basic SnapDock Tests', basicSnapDockTest, {numWindows: 2, frame, side} as BasicTestOptions<2>);
     });
-});
 
-// Helper function to keep type-safety when invoking tests.
-// (If typescript ever supports proper variadic kinds this can be cleaned up a lot)
-function testWrapper(name: string, macro: SnapDockMacro, side: Side, frame: FrameState) {
-    if (skipTests.some(test => test.name === name && test.side === side && test.frame === frame)) {
-        test.skip(name, macro, side, frame);
-    } else if (failingTests.some(test => test.name === name && test.side === side && test.frame === frame)) {
-        test.failing(name, macro, side, frame);
-    } else {
-        test(name, macro, side, frame);
-    }
-}
+    // Test snapping four windows in a square
+    testHelper.runTest('Basic SnapDock Tests', fourWindowSnapDockTest, {numWindows: 4, frame} as BasicTestOptions<4>);
+});

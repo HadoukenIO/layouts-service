@@ -1,4 +1,5 @@
 import {ApplicationUIConfig} from '../../../client/types';
+import {Signal2} from '../../Signal';
 
 export const DEFAULT_UI_URL = (() => {
     let providerLocation = window.location.href;
@@ -16,7 +17,12 @@ export const DEFAULT_UI_URL = (() => {
  * Class that handles which application configuration to use for the app and all its child windows
  */
 export class ApplicationConfigManager {
-    private static DEFAULT_CONFIG: ApplicationUIConfig = {url: DEFAULT_UI_URL, height: 60};
+    public static readonly DEFAULT_CONFIG: ApplicationUIConfig = {url: DEFAULT_UI_URL, height: 60};
+
+    /**
+     * When an application config is added to the stack
+     */
+    public static onApplicationConfigCreated: Signal2<string, ApplicationUIConfig> = new Signal2();
 
     /**
      * @private
@@ -50,6 +56,7 @@ export class ApplicationConfigManager {
     public addApplicationUIConfig(uuid: string, config: ApplicationUIConfig): void {
         if (!this.exists(uuid)) {
             this.mApplicationUIConfigurations[uuid] = config;
+            ApplicationConfigManager.onApplicationConfigCreated.emit(uuid, config);
         }
     }
 

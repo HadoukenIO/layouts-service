@@ -59,6 +59,7 @@ export class DesktopTabGroupWindowFactory {
         const pooledWindows = this._windowPool.get(options.url) || [];
         const next = pooledWindows.shift();
         // Settimeout to offset blocking fin window creation
+        // Runtime Ticket RUN-4704
         setTimeout(() => {
             this.createAndPool(options);
         }, 2000);

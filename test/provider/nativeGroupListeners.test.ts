@@ -11,14 +11,14 @@ import {delay} from './utils/delay';
 import {dragSideToSide} from './utils/dragWindowTo';
 import {getBounds} from './utils/getBounds';
 
-// Valid ways of grouping two windows (used to parameterise large number of
+// Valid ways of grouping two windows (used to parameterize large number of
 // similar tests)
 const groupingFunctions = {
     'snap': snapWindows,
     'native': groupWindows,
 };
 
-// Valid ways of ungrouping two windows (used to parameterise large number of
+// Valid ways of ungrouping two windows (used to parameterize large number of
 // similar tests)
 const ungroupingFunctions = {
     'unsnap': unsnapWindows,

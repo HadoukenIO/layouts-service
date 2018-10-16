@@ -4,13 +4,13 @@ import {assertAdjacent, assertGrouped, assertSquare} from '../../provider/utils/
 import {dragSideToSide, dragWindowTo} from '../../provider/utils/dragWindowTo';
 import {opposite, Side} from '../../provider/utils/SideUtils';
 import {CreateWindowData, createWindowTest, WindowContext} from '../utils/createWindowTest';
-import {testParameterised} from '../utils/parameterizedTestUtils';
+import {testParameterized} from '../utils/parameterizedTestUtils';
 
 interface TwoWindowTestOptions extends CreateWindowData {
     side: Side;
 }
 
-testParameterised<TwoWindowTestOptions, WindowContext>(
+testParameterized<TwoWindowTestOptions, WindowContext>(
     (testOptions: TwoWindowTestOptions): string =>
         `Basic SnapAndDock - ${testOptions.windowCount} windows - ${testOptions.frame} ${testOptions.side ? `- ${testOptions.side}` : ''}`,
     [
@@ -43,7 +43,7 @@ testParameterised<TwoWindowTestOptions, WindowContext>(
     }));
 
 
-testParameterised<CreateWindowData, WindowContext>(
+testParameterized<CreateWindowData, WindowContext>(
     (testOptions: CreateWindowData): string => `Basic SnapAndDock - ${testOptions.windowCount} windows - ${testOptions.frame}}`,
     [
         {frame: true, windowCount: 4},

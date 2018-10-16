@@ -6,15 +6,15 @@ interface InstanceData {
     failing?: boolean;
 }
 
-// Helper, easier to use "Parameterised<ResizeInstance>" than "ResizeInstance&InstanceData"
-export type Parameterised<T> = T&InstanceData;
+// Helper, easier to use "Parameterized<ResizeInstance>" than "ResizeInstance&InstanceData"
+export type Parameterized<T> = T&InstanceData;
 
 export interface TestMacro<T, C> {
     (t: GenericTestContext<Context<C>>, instance: T): void;
 }
 
-export function testParameterised<T, C extends {} = {}>(
-    title: string|((data: T) => string), instanceData: Parameterised<T>[], testFunc: TestMacro<T, C>): void {
+export function testParameterized<T, C extends {} = {}>(
+    title: string|((data: T) => string), instanceData: Parameterized<T>[], testFunc: TestMacro<T, C>): void {
     instanceData.forEach((instance: T&InstanceData) => {
         const instanceTitle: string = typeof title === 'string' ? `${title} ${JSON.stringify(instance)}` : title(instance);
 

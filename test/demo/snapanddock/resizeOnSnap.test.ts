@@ -4,7 +4,7 @@ import {getBounds} from '../../provider/utils/getBounds';
 import * as SideUtils from '../../provider/utils/SideUtils';
 import {Side} from '../../provider/utils/SideUtils';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
-import {testParameterised} from '../utils/parameterizedTestUtils';
+import {testParameterized} from '../utils/parameterizedTestUtils';
 
 interface ResizeOnSnapOptions extends CreateWindowData {
     side: Side;
@@ -12,7 +12,7 @@ interface ResizeOnSnapOptions extends CreateWindowData {
     windowCount: 2;
 }
 
-testParameterised(
+testParameterized(
     (testOptions: ResizeOnSnapOptions): string =>
         `Resize on Snap - 2 windows - ${testOptions.frame} - ${testOptions.resizeDirection.split('-').join(' ')} - ${testOptions.side}`,
     [

@@ -3,14 +3,14 @@ import {assertAdjacent, assertGrouped, assertSquare} from '../../provider/utils/
 import {delay} from '../../provider/utils/delay';
 import {getBounds, NormalizedBounds} from '../../provider/utils/getBounds';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
-import {testParameterised} from '../utils/parameterizedTestUtils';
+import {testParameterized} from '../utils/parameterizedTestUtils';
 
 interface ResizeGroupOptions extends CreateWindowData {
     windowCount: 2|4;
     resizeType: ['inner'|'outer', 'vertical'|'horizontal'];
 }
 
-testParameterised(
+testParameterized(
     (testOptions: ResizeGroupOptions): string =>
         `Resize SnapGroup - ${testOptions.windowCount} windows - ${testOptions.frame ? 'framed' : 'frameless'} - ${testOptions.resizeType.join('-')} resize`,
     [

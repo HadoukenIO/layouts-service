@@ -1,12 +1,10 @@
 import {Context, GenericTestContext, test} from 'ava';
 
-// In testUtils.ts
 interface InstanceData {
     skip?: boolean;
     failing?: boolean;
 }
 
-// Helper, easier to use "Parameterized<ResizeInstance>" than "ResizeInstance&InstanceData"
 export type Parameterized<T> = T&InstanceData;
 
 export interface TestMacro<T, C> {

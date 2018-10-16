@@ -28,16 +28,7 @@ type WindowPosition = {
     defaultTop: number,
     defaultLeft: number
 };
-export type WindowOptions = {
-    autoShow?: boolean,
-    saveWindowState?: boolean,
-    defaultHeight?: number,
-    defaultWidth?: number,
-    url?: string,
-    frame?: boolean,
-         // tslint:disable-next-line:no-any
-         [key: string]: any;
-};
+
 
 /**
  * Helper class to instantiate and optionally arrange openfin windows to be
@@ -45,14 +36,14 @@ export type WindowOptions = {
  */
 export class WindowInitializer {
     private _windowPositions: WindowPosition[];
-    private _windowOptions: WindowOptions;
+    private _windowOptions: fin.WindowOptions;
 
     private _arrangements: ArrangementsType;
     public get arrangements(): ArrangementsType {
         return this._arrangements;
     }
 
-    constructor(arrangements?: ArrangementsType, windowPositions?: WindowPosition[], windowOptions?: WindowOptions) {
+    constructor(arrangements?: ArrangementsType, windowPositions?: WindowPosition[], windowOptions?: fin.WindowOptions) {
         this._arrangements = arrangements || defaultArrangements;
         this._windowPositions = windowPositions || defaultWindowPositions;
         this._windowOptions = windowOptions || deafultWindowOptions;

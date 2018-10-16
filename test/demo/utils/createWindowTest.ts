@@ -2,7 +2,7 @@ import {Context, GenericTestContext} from 'ava';
 import {Window} from 'hadouken-js-adapter';
 
 import {delay} from '../../provider/utils/delay';
-import {WindowInitializer, WindowOptions} from '../../provider/utils/WindowInitializer';
+import {WindowInitializer} from '../../provider/utils/WindowInitializer';
 
 import {TestMacro} from './parameterizedTestUtils';
 
@@ -26,8 +26,8 @@ export interface WindowContext {
 }
 
 export function createWindowTest<T extends CreateWindowData, C extends WindowContext = WindowContext>(
-    testFunc: TestMacro<T, C>, windowOptions?: WindowOptions): TestMacro<T, C> {
-    const options: WindowOptions = Object.assign({}, windowOptionsBase, windowOptions);
+    testFunc: TestMacro<T, C>, windowOptions?: fin.WindowOptions): TestMacro<T, C> {
+    const options: fin.WindowOptions = Object.assign({}, windowOptionsBase, windowOptions);
     const framedInitializer: WindowInitializer = new WindowInitializer(undefined, undefined, Object.assign({}, options, {frame: true}));
     const framelessInitializer: WindowInitializer = new WindowInitializer(undefined, undefined, Object.assign({}, options, {frame: false}));
 

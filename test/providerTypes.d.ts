@@ -6,7 +6,7 @@ import {SnapService} from '../src/provider/snapanddock/SnapService';
 import {TabService} from '../src/provider/tabbing/TabService';
 
 declare global {
-    interface Window {
+    interface ProviderWindow extends Window {
         model: DesktopModel;
         snapService: SnapService;
         tabService: TabService;

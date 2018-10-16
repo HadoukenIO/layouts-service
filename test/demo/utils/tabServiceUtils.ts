@@ -6,7 +6,7 @@ import {DesktopWindow, WindowIdentity} from '../../../src/provider/model/Desktop
 import {executeJavascriptOnService} from './serviceUtils';
 
 export async function getTabGroupID(identity: Identity): Promise<string|null> {
-    function remoteFunc(this: Window, identity: WindowIdentity): string|null {
+    function remoteFunc(this: ProviderWindow, identity: WindowIdentity): string|null {
         const tab: DesktopWindow|null = this.model.getWindow(identity);
         const tabGroup: DesktopTabGroup|null = tab ? tab.getTabGroup() : null;
         return tabGroup && tabGroup.ID ? tabGroup.ID : null;
@@ -20,7 +20,7 @@ export async function getTabGroupID(identity: Identity): Promise<string|null> {
  * @param identity
  */
 export async function getTabbedWindows(identity: Identity): Promise<Identity[]> {
-    function remoteFunc(this: Window, identity: WindowIdentity): Identity[] {
+    function remoteFunc(this: ProviderWindow, identity: WindowIdentity): Identity[] {
         const tab: DesktopWindow|null = this.model.getWindow(identity);
         const tabGroup: DesktopTabGroup|null = tab ? tab.getTabGroup() : null;
         if (tabGroup && tabGroup.tabs) {

@@ -9,7 +9,7 @@ import {executeJavascriptOnService, sendServiceMessage} from './serviceUtils';
  * Check if a given window is registered with the layouts-service.
  */
 export async function isWindowRegistered(identity: Identity): Promise<boolean> {
-    function remoteFunc(this: Window, identity: WindowIdentity): boolean {
+    function remoteFunc(this: ProviderWindow, identity: WindowIdentity): boolean {
         return !!this.model.getWindow(identity);
     }
 
@@ -23,7 +23,7 @@ export async function isWindowRegistered(identity: Identity): Promise<boolean> {
  * If the window is not grouped, a single-item array of its own identity is returned.
  */
 export async function getGroupedWindows(identity: Identity): Promise<Identity[]> {
-    function remoteFunc(this: Window, identity: WindowIdentity): Identity[] {
+    function remoteFunc(this: ProviderWindow, identity: WindowIdentity): Identity[] {
         const snapWindow: DesktopWindow|null = this.model.getWindow(identity);
         if (snapWindow) {
             return snapWindow.getSnapGroup().windows.map((win: Snappable) => {
@@ -40,7 +40,7 @@ export async function getGroupedWindows(identity: Identity): Promise<Identity[]>
  * Returns the id of given window's snapGroup.
  */
 export async function getSnapGroupID(identity: Identity) {
-    function remoteFunc(this: Window, identity: WindowIdentity) {
+    function remoteFunc(this: ProviderWindow, identity: WindowIdentity) {
         const snapWindow: DesktopWindow|null = this.model.getWindow(identity);
         if (snapWindow) {
             return snapWindow.getSnapGroup().id;

@@ -49,8 +49,8 @@ test.skip('Create tab group from 2 windows', async (assert) => {
 
 
     // Act
-    function scriptToExecute(this: Window, tabBlobs: TabBlob[]): Promise<void> {
-        return window.tabService.createTabGroupsFromTabBlob(tabBlobs);
+    function scriptToExecute(this: ProviderWindow, tabBlobs: TabBlob[]): Promise<void> {
+        return this.tabService.createTabGroupsFromTabBlob(tabBlobs);
     }
     await executeJavascriptOnService<TabBlob[], void>(scriptToExecute, tabBlobs);
 

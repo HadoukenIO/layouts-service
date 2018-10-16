@@ -1,12 +1,12 @@
 import {Identity} from 'hadouken-js-adapter';
 
 import {TabAPI} from './APITypes';
-import {AddTabPayload, ApplicationUIConfig, CustomData, DropPosition, EndDragPayload, JoinTabGroupPayload, Layout, LayoutApp, LayoutName, SetTabClientPayload, TabGroupEventPayload, TabProperties, UpdateTabPropertiesPayload} from './types';
+import {AddTabPayload, ApplicationUIConfig, CHANNEL_NAME, CustomData, DropPosition, EndDragPayload, JoinTabGroupPayload, Layout, LayoutApp, LayoutName, SetTabClientPayload, TabGroupEventPayload, TabProperties, UpdateTabPropertiesPayload} from './types';
 
 const IDENTITY = {
     uuid: 'layouts-service',
     name: 'layouts-service',
-    channelName: 'of-layouts-service-v1'
+    channelName: CHANNEL_NAME
 };
 
 import {version} from './version';

@@ -1,6 +1,8 @@
-import {AnyContext, GenericTestContext, test} from 'ava';
+import {test} from 'ava';
 import {Fin, Window} from 'hadouken-js-adapter';
 import * as robot from 'robotjs';
+
+import {assertNotTabbed, assertTabbed} from './utils/assertions';
 import {getConnection} from './utils/connect';
 import {createChildWindow} from './utils/createChildWindow';
 import {delay} from './utils/delay';
@@ -184,38 +186,3 @@ test('TabGroup remains on tab removal (3 tabs - 1)', async t => {
     await delay(500);
     await assertTabbed(wins[0], wins[1], t);
 });
-
-/**
- * Asserts that two windows are succesfully tabbed together
- * @param t Ava test context against which to assert
- */
-async function assertTabbed(win1: Window, win2: Window, t: GenericTestContext<AnyContext>): Promise<void> {
-    // TODO: Determine if the window is tabbed on the service side.
-
-    await delay(500);
-
-    // Both windows are in the same native openfin group
-    const [group1, group2] = [await win1.getGroup(), await win2.getGroup()];
-    for (let i = 0; i < group1.length; i++) {
-        t.deepEqual(group1[i].identity, group2[i].identity, 'Window native groups are different');
-    }
-
-    // Checks if a tabset window is present in the group (detatched tab check)
-    t.truthy(group1.find((win) => {
-        return win.identity.name!.includes("TABSET-");
-    }),'No tabset window found in openfin group!');
-
-    // Both windows have the same bounds
-    const [bounds1, bounds2] = [await getBounds(win1), await getBounds(win2)];
-    t.deepEqual(bounds1, bounds2, 'Tabbed windows do not have the same bounds');
-}
-
-async function assertNotTabbed(win: Window, t: GenericTestContext<AnyContext>): Promise<void> {
-    // TODO: Determine if the window is tabbed on the service side.
-
-    // Window is native grouped only to the tabstrip
-    const nativeGroup = await win.getGroup();
-
-    // Not grouped to any other windows
-    t.is(nativeGroup.length, 0);
-}

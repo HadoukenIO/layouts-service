@@ -1,10 +1,9 @@
 import {Identity} from 'hadouken-js-adapter';
+import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
 import {TabAPI} from './APITypes';
-import {AddTabPayload, ApplicationUIConfig, CustomData, DropPosition, EndDragPayload, JoinTabGroupPayload, Layout, LayoutApp, LayoutName, SetTabClientPayload, TabGroupEventPayload, TabProperties, UpdateTabPropertiesPayload, CHANNEL_NAME} from './types';
-
+import {AddTabPayload, ApplicationUIConfig, CHANNEL_NAME, CustomData, DropPosition, EndDragPayload, JoinTabGroupPayload, Layout, LayoutApp, LayoutName, SetTabClientPayload, TabGroupEventPayload, TabProperties, UpdateTabPropertiesPayload} from './types';
 import {version} from './version';
-import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
 if (typeof fin === 'undefined') {
     throw new Error('fin is not defined, This module is only intended for use in an OpenFin application.');

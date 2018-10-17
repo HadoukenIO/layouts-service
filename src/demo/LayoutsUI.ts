@@ -220,7 +220,7 @@ async function onAppRes(layoutApp: LayoutApp): Promise<LayoutApp> {
     console.log('Apprestore called:', layoutApp);
     const ofApp = fin.Application.getCurrentSync();
     const openWindows = await ofApp.getChildWindows();
-    const openAndPosition = layoutApp.childWindows.map(async (win:WindowState, index:number) => {
+    const openAndPosition = layoutApp.childWindows.map(async (win: WindowState, index: number) => {
         if (!openWindows.some((w: _Window) => w.identity.name === win.name)) {
             const ofWin = await openChild(win.name, index, win.frame, win.info.url);
             await positionWindow(win);

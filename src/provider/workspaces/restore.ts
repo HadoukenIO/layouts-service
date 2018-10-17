@@ -30,7 +30,7 @@ export const restoreApplication = async(layoutApp: LayoutApp, resolve: Function)
     const {uuid} = layoutApp;
     const name = uuid;
     const defaultResponse: LayoutApp = {...layoutApp, childWindows: []};
-    const appConnected = apiHandler.channel.connections.some((conn:Identity) => conn.uuid === uuid && conn.name === name);
+    const appConnected = apiHandler.channel.connections.some((conn: Identity) => conn.uuid === uuid && conn.name === name);
     if (appConnected) {
         const responseAppLayout: LayoutApp|false = await apiHandler.channel.dispatch({uuid, name}, 'restoreApp', layoutApp);
         if (responseAppLayout) {
@@ -133,7 +133,7 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
             const ofApp = await fin.Application.wrap({uuid});
             const isRunning = await ofApp.isRunning();
             if (isRunning) {
-                const appConnected = apiHandler.channel.connections.some((conn:Identity) => conn.uuid === uuid && conn.name === name);
+                const appConnected = apiHandler.channel.connections.some((conn: Identity) => conn.uuid === uuid && conn.name === name);
                 if (appConnected) {
                     await positionWindow(app.mainWindow);
                     console.log('App is running:', app);

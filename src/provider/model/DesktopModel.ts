@@ -1,4 +1,5 @@
 import {Window} from 'hadouken-js-adapter';
+import {WindowEvent} from 'hadouken-js-adapter/out/types/src/api/events/base';
 
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {Point} from '../snapanddock/utils/PointUtils';
@@ -7,7 +8,6 @@ import {RectUtils} from '../snapanddock/utils/RectUtils';
 import {DesktopTabGroup} from './DesktopTabGroup';
 import {DesktopWindow, WindowIdentity, WindowState} from './DesktopWindow';
 import {ZIndexer} from './ZIndexer';
-import { WindowEvent } from 'hadouken-js-adapter/out/types/src/api/events/base';
 
 export class DesktopModel {
     private windows: DesktopWindow[];
@@ -36,7 +36,7 @@ export class DesktopModel {
         const serviceUUID: string = fin.Application.me.uuid;
 
         // Listen for any new windows created and register them with the service
-        fin.System.addListener('window-created', (evt: WindowEvent<"system", "window-created">) => {
+        fin.System.addListener('window-created', (evt: WindowEvent<'system', 'window-created'>) => {
             if (evt.uuid !== serviceUUID) {
                 this.registerWindow(evt);
             }
@@ -116,7 +116,7 @@ export class DesktopModel {
         }
     }
 
-    private async registerWindow(identity:WindowIdentity): Promise<void> {
+    private async registerWindow(identity: WindowIdentity): Promise<void> {
         // Check that the service does not already have a matching window
         const existingWindow = this.getWindow(identity);
 

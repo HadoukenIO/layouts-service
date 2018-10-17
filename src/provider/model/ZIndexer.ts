@@ -1,10 +1,12 @@
+import {ApplicationEvent, WindowEvent} from 'hadouken-js-adapter/out/types/src/api/events/base';
+import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/system/application';
+import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
+
 import {TabIdentifier} from '../../client/types';
+
 import {DesktopModel} from './DesktopModel';
 import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {DesktopWindow, WindowIdentity} from './DesktopWindow';
-import { WindowEvent, ApplicationEvent } from 'hadouken-js-adapter/out/types/src/api/events/base';
-import { _Window } from 'hadouken-js-adapter/out/types/src/api/window/window';
-import { ApplicationInfo } from 'hadouken-js-adapter/out/types/src/api/system/application';
 
 export interface ZIndex {
     timestamp: number;
@@ -33,20 +35,20 @@ export class ZIndexer {
     constructor(model: DesktopModel) {
         this._model = model;
 
-        fin.System.addListener('window-created', (evt: WindowEvent<"system", "window-created">) => {
+        fin.System.addListener('window-created', (evt: WindowEvent<'system', 'window-created'>) => {
             const ofWin = fin.Window.wrapSync(evt);
             this._addEventListeners(ofWin);
         });
-        
+
         // Register all existing applications
-        fin.System.getAllApplications().then((apps:ApplicationInfo[]) => {
-            apps.forEach( (appInfo: ApplicationInfo) => {
+        fin.System.getAllApplications().then((apps: ApplicationInfo[]) => {
+            apps.forEach((appInfo: ApplicationInfo) => {
                 const app = fin.Application.wrapSync(appInfo);
 
                 app.getWindow().then(win => {
                     this._addEventListeners(win);
                 });
-                app.getChildWindows().then( children => {
+                app.getChildWindows().then(children => {
                     children.forEach(child => {
                         this._addEventListeners(child);
                     });
@@ -130,7 +132,7 @@ export class ZIndexer {
      * @param win Window to add the event listeners to.
      */
     private _addEventListeners(win: _Window) {
-        const identity = win.identity as WindowIdentity; // A window identity will always have a name, so it is safe to cast
+        const identity = win.identity as WindowIdentity;  // A window identity will always have a name, so it is safe to cast
 
         const bringToFront = () => {
             const modelWindow: DesktopWindow|null = this._model.getWindow(identity);

@@ -3,7 +3,7 @@ import {ProviderIdentity} from 'hadouken-js-adapter/out/types/src/api/interappbu
 import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
 
 import {TabAPI} from '../client/APITypes';
-import {ApplicationUIConfig, DropPosition, TabIdentifier, TabProperties, CHANNEL_NAME} from '../client/types';
+import {ApplicationUIConfig, CHANNEL_NAME, DropPosition, TabIdentifier, TabProperties} from '../client/types';
 
 import {model, snapService, tabService} from './main';
 import {DesktopTabGroup} from './model/DesktopTabGroup';
@@ -17,7 +17,6 @@ import {getAppToRestore, restoreApplication, restoreLayout} from './workspaces/r
  * Client communication is separated from the rest of the provider code to allow easier versioning of client-provider interaction, if required in the future.
  */
 export class APIHandler {
-
     private providerChannel!: ChannelProvider;
 
     public get channel(): ChannelProvider {

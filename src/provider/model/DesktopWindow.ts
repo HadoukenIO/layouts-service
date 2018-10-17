@@ -1,4 +1,4 @@
-import {Window, Identity} from 'hadouken-js-adapter';
+import {Identity, Window} from 'hadouken-js-adapter';
 
 import {TabServiceID} from '../../client/types';
 import {apiHandler} from '../main';

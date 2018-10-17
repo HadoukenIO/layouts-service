@@ -1,4 +1,4 @@
-import {PointTopLeft, Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
+import {Point, PointTopLeft} from 'hadouken-js-adapter/out/types/src/api/system/point';
 
 import {DesktopWindow, eTransformType, Mask, WindowState} from './DesktopWindow';
 

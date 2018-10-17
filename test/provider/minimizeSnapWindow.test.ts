@@ -1,14 +1,9 @@
-import {AnyContext, GenericTestContext, test, TestContext} from 'ava';
+import {test, TestContext} from 'ava';
 import {Fin, Window} from 'hadouken-js-adapter';
 
 import {assertGrouped} from './utils/assertions';
 import {getConnection} from './utils/connect';
 import {delay} from './utils/delay';
-import {explodeGroup} from './utils/explodeGroup';
-import {getBounds} from './utils/getBounds';
-import {isInGroup} from './utils/isInGroup';
-import {isOverlappedWith} from './utils/isOverlappedWith';
-import {WindowIdentity} from './utils/undockWindow';
 import {ArrangementsType, WindowInitializer} from './utils/WindowInitializer';
 
 let windows: Window[] = new Array<Window>();
@@ -125,7 +120,7 @@ test('Basic Minimize and Restore - Restore Other Window', async t => {
     // Check that the windows have both restored
     await assertAllRestored(t);
     // Check that the windows are still grouped properly after the restore
-    await assertGrouped(windows[0], windows[1], t);
+    await assertGrouped(t, windows[0], windows[1]);
 });
 
 test('Three-window Minimize', async t => {
@@ -155,6 +150,5 @@ test('Three-window Minimize and Restore', async t => {
     // Check that the windows have all restored
     await assertAllRestored(t);
     // Check that the windows are still grouped properly after the restore
-    await assertGrouped(windows[0], windows[1], t);
-    await assertGrouped(windows[1], windows[2], t);
+    await assertGrouped(t, windows[0], windows[1], windows[2]);
 });

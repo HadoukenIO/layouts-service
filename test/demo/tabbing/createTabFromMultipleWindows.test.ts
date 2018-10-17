@@ -2,10 +2,10 @@ import {test} from 'ava';
 import {Application, Fin, Window} from 'hadouken-js-adapter';
 
 import {TabBlob} from '../../../src/client/types';
+import {DesktopTabGroup} from '../../../src/provider/model/DesktopTabGroup';
 import {getConnection} from '../../provider/utils/connect';
-import {delay} from '../../provider/utils/delay';
 import {getBounds, NormalizedBounds} from '../../provider/utils/getBounds';
-import {executeJavascriptOnService} from '../utils/executeJavascriptOnService';
+import {executeJavascriptOnService} from '../utils/serviceUtils';
 
 let win1: Window;
 let win2: Window;
@@ -48,10 +48,13 @@ test('Create tab group from 2 windows', async (assert) => {
 
 
     // Act
-    const scriptToExecute = `tabService.createTabGroupsFromTabBlob(${JSON.stringify(tabBlobs)}).then(groups => groups[0].ID)`;
-    const tabGroupId: string = await executeJavascriptOnService(scriptToExecute);
+    function scriptToExecute(this: ProviderWindow, tabBlobs: TabBlob[]): Promise<string> {
+        return this.tabService.createTabGroupsFromTabBlob(tabBlobs).then((addedGroups: DesktopTabGroup[]) => {
+            return addedGroups[0].ID;
+        });
+    }
+    const tabGroupId: string = await executeJavascriptOnService<TabBlob[], string>(scriptToExecute, tabBlobs);
     assert.truthy(tabGroupId);
-    await delay(1000);
 
     // Tab group should have been created
     const serviceChildWindows: Window[] = await serviceApplication.getChildWindows();

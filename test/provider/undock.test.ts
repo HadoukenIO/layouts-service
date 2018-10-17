@@ -1,17 +1,18 @@
-import {GenericTestContext, test, TestContext} from 'ava';
+import {test, TestContext} from 'ava';
 import {Fin, Window} from 'hadouken-js-adapter';
 
+import {WindowIdentity} from '../../src/provider/model/DesktopWindow';
+import {UNDOCK_MOVE_DISTANCE} from '../../src/provider/snapanddock/Config';
+import {undockWindow} from '../demo/utils/snapServiceUtils';
+
+import {assertNotGrouped} from './utils/assertions';
 import {getConnection} from './utils/connect';
 import {createChildWindow} from './utils/createChildWindow';
-import {Corner, dragSideToSide, dragWindowTo, dragWindowToOtherWindow} from './utils/dragWindowTo';
-import {getBounds, NormalizedBounds} from './utils/getBounds';
+import {Corner, dragSideToSide, dragWindowToOtherWindow} from './utils/dragWindowTo';
+import {getBounds} from './utils/getBounds';
 import {getDistanceBetween} from './utils/getDistanceBetween';
 import {isAdjacentTo} from './utils/isAdjacentTo';
 import {opposite, perpendicular, Side} from './utils/SideUtils';
-import {undockWindow, WindowIdentity} from './utils/undockWindow';
-
-// TODO - Change client/service file structure to allow importing these values
-const UNDOCK_MOVE_DISTANCE = 30;
 
 let windows: Window[] = new Array<Window>();
 let fin: Fin;
@@ -95,6 +96,10 @@ function twoWindowTest(side: Side) {
         // Undocked window moved away from other window(s)
         t.is(await getDistanceBetween(windows[0], side, windows[1], opposite(side)), UNDOCK_MOVE_DISTANCE);
         t.is(await getDistanceBetween(windows[0], perpendicular(side), windows[1], perpendicular(side)), 0);
+
+        // Check that both windows are undocked at the service level
+        await assertNotGrouped(windows[0], t);
+        await assertNotGrouped(windows[1], t);
     });
 }
 
@@ -134,5 +139,8 @@ function fourWindowTest(corner: Corner) {
         // Check that the window moved in the expected way
         t.is(distanceX, UNDOCK_MOVE_DISTANCE);
         t.is(distanceY, UNDOCK_MOVE_DISTANCE);
+
+        // Check that the window is undocked at the service level
+        await assertNotGrouped(windows[undockedIndex], t);
     });
 }

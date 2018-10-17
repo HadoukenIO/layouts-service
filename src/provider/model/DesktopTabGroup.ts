@@ -415,7 +415,7 @@ export class DesktopTabGroup {
             await tab.applyProperties({center, halfSize, frame: false});
         }
 
-        tab.setSnapGroup(this._window.getSnapGroup());
+        tab.dockToGroup(this._window.getSnapGroup());
         await tab.setTabGroup(this);
 
         const addTabPromise: Promise<void> = (async () => {
@@ -437,7 +437,7 @@ export class DesktopTabGroup {
     private async removeTabInternal(tab: DesktopWindow, index: number): Promise<void> {
         this._tabs.splice(index, 1);
         delete this._tabProperties[tab.getId()];
-        tab.setSnapGroup(new DesktopSnapGroup());
+        tab.dockToGroup(new DesktopSnapGroup());
         tab.onTeardown.remove(this.onWindowTeardown, this);
         await tab.setTabGroup(null);
 

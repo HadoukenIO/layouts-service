@@ -29,9 +29,14 @@ export async function main() {
         tabService.disableTabbingOperations = message;
     });
 
+    fin.desktop.InterApplicationBus.subscribe('*', 'layoutsService:experimental:disableDocking', (message, uuid, name) => {
+        snapService.disableDockingOperations = message;
+    });
+
     fin.desktop.Application.getCurrent().addEventListener('run-requested', (event) => {
         if (event.userAppConfigArgs && event.userAppConfigArgs.disableTabbingOperations) {
             tabService.disableTabbingOperations = event.userAppConfigArgs.disableTabbingOperations ? true : false;
+            snapService.disableDockingOperations = event.userAppConfigArgs.disableDockingOperations ? true : false;
         }
     });
 
@@ -50,6 +55,7 @@ export async function main() {
     }
 
     tabService.disableTabbingOperations = getParameter('disableTabbingOperations') ? true : false;
+    snapService.disableDockingOperations = getParameter('disableDockingOperations') ? true : false;
 
     await win10Check;
     await apiHandler.register();

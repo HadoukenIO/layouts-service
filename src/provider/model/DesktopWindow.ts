@@ -346,7 +346,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
      * @param offset An offset to apply to this windows position (use this to enusre window is in correct position)
      * @param newHalfSize Can also simultaneously change the size of the window
      */
-    public setSnapGroup(group: DesktopSnapGroup, offset?: Point, newHalfSize?: Point): Promise<void> {
+    public dockToGroup(group: DesktopSnapGroup, offset?: Point, newHalfSize?: Point): Promise<void> {
         if (group !== this.snapGroup) {
             this.addToSnapGroup(group);
 
@@ -357,20 +357,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             }
 
             if (offset || newHalfSize) {
-                const delta: Partial<WindowState> = {};
-
-                if (offset) {
-                    delta.center = {x: this.windowState.center.x + offset.x, y: this.windowState.center.y + offset.y};
-                }
-                if (newHalfSize) {
-                    delta.center = delta.center || {...this.windowState.center};
-                    delta.halfSize = newHalfSize;
-
-                    delta.center.x += newHalfSize.x - this.windowState.halfSize.x;
-                    delta.center.y += newHalfSize.y - this.windowState.halfSize.y;
-                }
-
-                return this.updateState(delta, ActionOrigin.SERVICE).then(async () => {
+                this.snapToGroup(group, offset, newHalfSize).then(async () => {
                     if (group.windows.length >= 2) {
                         await this.snap();
                     }
@@ -381,6 +368,23 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         }
 
         return Promise.resolve();
+    }
+
+    public snapToGroup(group: DesktopSnapGroup, offset?: Point, newHalfSize?: Point): Promise<void> {
+        const delta: Partial<WindowState> = {};
+
+        if (offset) {
+            delta.center = {x: this.windowState.center.x + offset.x, y: this.windowState.center.y + offset.y};
+        }
+        if (newHalfSize) {
+            delta.center = delta.center || {...this.windowState.center};
+            delta.halfSize = newHalfSize;
+
+            delta.center.x += newHalfSize.x - this.windowState.halfSize.x;
+            delta.center.y += newHalfSize.y - this.windowState.halfSize.y;
+        }
+
+        return this.updateState(delta, ActionOrigin.SERVICE);
     }
 
     public setTabGroup(group: DesktopTabGroup|null): Promise<void> {

@@ -7,6 +7,7 @@ import {RectUtils} from '../snapanddock/utils/RectUtils';
 import {DesktopTabGroup} from './DesktopTabGroup';
 import {DesktopWindow, WindowIdentity, WindowState} from './DesktopWindow';
 import {ZIndexer} from './ZIndexer';
+import { WindowEvent } from 'hadouken-js-adapter/out/types/src/api/events/base';
 
 export class DesktopModel {
     private windows: DesktopWindow[];
@@ -32,27 +33,25 @@ export class DesktopModel {
         DesktopSnapGroup.onCreated.add(this.onSnapGroupCreated, this);
         DesktopSnapGroup.onDestroyed.add(this.onSnapGroupDestroyed, this);
 
-        const serviceUUID: string = fin.desktop.Application.getCurrent().uuid;
+        const serviceUUID: string = fin.Application.me.uuid;
 
         // Listen for any new windows created and register them with the service
-        fin.desktop.System.addEventListener('window-created', (event: fin.WindowBaseEvent) => {
-            // Ignore child windows of the service itself (e.g. preview windows)
-            if (event.uuid !== serviceUUID) {
-                this.registerWindow(event.uuid, event.name);
+        fin.System.addListener('window-created', (evt: WindowEvent<"system", "window-created">) => {
+            if (evt.uuid !== serviceUUID) {
+                this.registerWindow(evt);
             }
         });
 
-        // Register all existing windows
-        fin.desktop.System.getAllWindows((windows: fin.WindowDetails[]) => {
-            windows.forEach((app: fin.WindowDetails) => {
+        fin.System.getAllWindows().then(apps => {
+            apps.forEach((app) => {
                 // Ignore the main service window and all of it's children
                 if (app.uuid !== serviceUUID) {
                     // Register the main window
-                    this.registerWindow(app.uuid, app.mainWindow.name);
+                    this.registerWindow({uuid: app.uuid, name: app.mainWindow.name});
 
                     // Register all of the child windows
-                    app.childWindows.forEach((child: fin.WindowInfo) => {
-                        this.registerWindow(app.uuid, child.name);
+                    app.childWindows.forEach((child) => {
+                        this.registerWindow({uuid: app.uuid, name: child.name});
                     });
                 }
             });
@@ -117,9 +116,7 @@ export class DesktopModel {
         }
     }
 
-    private async registerWindow(uuid: string, name: string): Promise<void> {
-        const identity: WindowIdentity = {uuid, name};
-
+    private async registerWindow(identity:WindowIdentity): Promise<void> {
         // Check that the service does not already have a matching window
         const existingWindow = this.getWindow(identity);
 

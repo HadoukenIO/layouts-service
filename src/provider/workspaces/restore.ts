@@ -83,10 +83,8 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
     // Push those placeholder windows into tabbedPlaceholdersToWindows object
     // If an app is running, we need to check which of its child windows are open.
     async function createAllPlaceholders(app: LayoutApp) {
-        // We use the v1 version of Application.wrap(...) due to an event-loop bug when
-        // calling the v2 version inside a channel callback. Due for fix in v35
-        const ofApp = fin.desktop.Application.wrap(app.uuid);
-        const isRunning = await p<boolean>(ofApp.isRunning.bind(ofApp))();
+        const ofApp = fin.Application.wrapSync(app);
+        const isRunning = await ofApp.isRunning();
         if (isRunning) {
             // Should de-tab here.
             await tabService.removeTab(app.mainWindow);

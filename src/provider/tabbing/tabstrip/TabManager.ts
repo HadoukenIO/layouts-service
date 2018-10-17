@@ -40,7 +40,7 @@ export class TabManager {
         TabManager.tabContainer = document.getElementById('tabs')!;
 
         // Checks initial window state
-        fin.desktop.Window.getCurrent().getState((state) => {
+        fin.Window.getCurrentSync().getState().then(state => {
             if (state === 'maximized') {
                 this.maximized = true;
                 const maximizeElem: HTMLElement|null = document.getElementById('window-button-maximize');
@@ -54,7 +54,7 @@ export class TabManager {
             animation: 200,
             onUpdate: (evt) => {
                 // Gets the new tab order as an array of TabIdentifiers
-                const tabNodes = ((document.getElementById('tabs') as HTMLDivElement).getElementsByClassName('tab') as NodeListOf<HTMLDivElement>);
+                const tabNodes = ((document.getElementById('tabs') as HTMLDivElement).getElementsByClassName('tab') as HTMLCollectionOf<HTMLDivElement>);
                 const orderedTabList: TabIdentifier[] = Array.from(tabNodes).map((el) => {
                     return {uuid: el.dataset.uuid as string, name: el.dataset.name as string};
                 });

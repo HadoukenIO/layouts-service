@@ -121,8 +121,8 @@ export class DesktopTabGroup {
         Object.assign(tabProps, properties);
         localStorage.setItem(tab.getId(), JSON.stringify(tabProps));
 
-        fin.desktop.InterApplicationBus.send(
-            fin.desktop.Application.getCurrent().uuid, this.ID, TabApiEvents.PROPERTIESUPDATED, {tabID: this.ID, tabProps: properties});
+        fin.InterApplicationBus.send(
+            {uuid: fin.Application.me.uuid, name: this.ID}, TabApiEvents.PROPERTIESUPDATED, {tabID: this.ID, tabProps: properties});
     }
 
     /**

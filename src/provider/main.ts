@@ -3,6 +3,7 @@ import {DesktopModel} from './model/DesktopModel';
 import {SnapService} from './snapanddock/SnapService';
 import {win10Check} from './snapanddock/utils/platform';
 import {TabService} from './tabbing/TabService';
+import { Identity } from 'hadouken-js-adapter';
 
 export let model: DesktopModel;
 export let snapService: SnapService;
@@ -25,16 +26,16 @@ export async function main() {
     tabService = window.tabService = new TabService(model);
     apiHandler = window.apiHandler = new APIHandler();
 
-    fin.desktop.InterApplicationBus.subscribe('*', 'layoutsService:experimental:disableTabbing', (message, uuid, name) => {
+    fin.InterApplicationBus.subscribe({uuid: '*'}, 'layoutsService:experimental:disableTabbing', (message: boolean, source: Identity) => {
         tabService.disableTabbingOperations = message;
     });
 
-    fin.desktop.Application.getCurrent().addEventListener('run-requested', (event) => {
+    fin.Application.getCurrentSync().addListener('run-requested', (event) => {
         if (event.userAppConfigArgs && event.userAppConfigArgs.disableTabbingOperations) {
             tabService.disableTabbingOperations = event.userAppConfigArgs.disableTabbingOperations ? true : false;
         }
     });
-
+    
     function getParameter(paramName: string) {
         const searchString = window.location.search.substring(1);
         const params = searchString.split('&');

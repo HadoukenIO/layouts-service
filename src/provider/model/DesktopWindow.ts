@@ -1,4 +1,4 @@
-import {Window} from 'hadouken-js-adapter';
+import {Window, Identity} from 'hadouken-js-adapter';
 
 import {TabServiceID} from '../../client/types';
 import {apiHandler} from '../main';
@@ -33,7 +33,7 @@ export interface WindowState extends Rectangle {
     opacity: number;
 }
 
-export interface WindowIdentity extends fin.OpenFinIdentity {
+export interface WindowIdentity extends Identity {
     uuid: string;
     name: string;
 }

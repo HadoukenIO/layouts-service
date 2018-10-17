@@ -1422,6 +1422,7 @@ declare namespace fin {
         'auth-requested': WindowAuthRequestedEvent;
         'blurred': WindowBaseEvent;
         'bounds-changed': WindowBoundsEvent;
+        'begin-user-bounds-changing': WindowBoundsEvent;
         'bounds-changing': WindowBoundsEvent;
         'close-requested': WindowBaseEvent;
         'closed': WindowBaseEvent;

@@ -1,6 +1,8 @@
 import {test} from 'ava';
 import {Fin, Window} from 'hadouken-js-adapter';
 import * as robot from 'robotjs';
+
+import {assertNotTabbed, assertTabbed} from './utils/assertions';
 import {getConnection} from './utils/connect';
 import {createChildWindow} from './utils/createChildWindow';
 import {delay} from './utils/delay';
@@ -353,7 +355,6 @@ test('3 tab tabgroup, Tab closed - should retain tabgroup', async t => {
     await assertTabbed(wins[0], wins[1], t);
 });
 
-
 test('3 tab tabgroup, Tab tearout - should retain tabgroup', async t => {
     const win3 = await createChildWindow({
         autoShow: true,
@@ -446,7 +447,7 @@ test('Close tab then retab - should create tabgroup', async t => {
 });
 
 
-test('test Tearout tab onto itself - should remain in tabgroup', async t => {
+test('Tearout tab onto itself - should remain in tabgroup', async t => {
     // Create tab group
     await tabWindowsTogether(wins[1], [wins[0]]);
     await assertTabbed(wins[0], wins[1], t);

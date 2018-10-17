@@ -209,3 +209,5 @@ export interface EndDragPayload {
     event: DropPosition;
     window: Identity;
 }
+
+export const CHANNEL_NAME = 'of-layouts-service-v1';

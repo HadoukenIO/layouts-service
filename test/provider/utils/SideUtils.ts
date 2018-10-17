@@ -36,3 +36,5 @@ export function perpendicular(side: Side): Side {
             throw new Error('Invalid Argument in side calculation');
     }
 }
+
+export const sideArray = ['top', 'bottom', 'left', 'right'] as Side[];

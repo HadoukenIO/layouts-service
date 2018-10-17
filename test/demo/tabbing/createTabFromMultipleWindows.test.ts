@@ -3,6 +3,7 @@ import {Application, Fin, Window} from 'hadouken-js-adapter';
 
 import {TabBlob} from '../../../src/client/types';
 import {getConnection} from '../../provider/utils/connect';
+import {delay} from '../../provider/utils/delay';
 import {getBounds, NormalizedBounds} from '../../provider/utils/getBounds';
 import {executeJavascriptOnService} from '../utils/executeJavascriptOnService';
 
@@ -32,9 +33,9 @@ test('Create tab group from 2 windows', async (assert) => {
 
     const tabBlobs: TabBlob[] = [{
         groupInfo: {
-            url: '',
+            url: 'http://localhost:1337/provider/tabbing/tabstrip/tabstrip.html',
             active: {uuid: win2.identity.uuid, name: win2.identity.name!},
-            dimensions: {x: 100, y: 100, width: preWin2Bounds.width, tabGroupHeight: 100, appHeight: preWin2Bounds.height}
+            dimensions: {x: 100, y: 100, width: preWin2Bounds.width, tabGroupHeight: 60, appHeight: preWin2Bounds.height}
         },
         tabs: [
             {uuid: app1.identity.uuid, name: win1.identity.name!},
@@ -47,18 +48,17 @@ test('Create tab group from 2 windows', async (assert) => {
 
 
     // Act
-    const scriptToExecute = `tabService.createTabGroupsFromTabBlob(${JSON.stringify(tabBlobs)})`;
-    await executeJavascriptOnService(scriptToExecute);
+    const scriptToExecute = `tabService.createTabGroupsFromTabBlob(${JSON.stringify(tabBlobs)}).then(groups => groups[0].ID)`;
+    const tabGroupId: string = await executeJavascriptOnService(scriptToExecute);
+    assert.truthy(tabGroupId);
+    await delay(1000);
 
     // Tab group should have been created
     const serviceChildWindows: Window[] = await serviceApplication.getChildWindows();
-
-    const uuidTestPattern = new RegExp('^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$', 'i');
-
     const newTabGroupWindow: Window|undefined = serviceChildWindows.find((window: Window) => {
-        return window.identity.uuid === 'layouts-service' && uuidTestPattern.test(window.identity.name!);
+        return window.identity.uuid === 'layouts-service' && window.identity.name === tabGroupId;
     });
-
+    assert.truthy(newTabGroupWindow);
 
     // Assert
     const win1Bounds: NormalizedBounds = await getBounds(win1);

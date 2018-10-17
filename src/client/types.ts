@@ -120,12 +120,6 @@ export interface ApplicationUIConfig {
     height: number;
 }
 
-export interface TabWindowOptions extends ApplicationUIConfig {
-    x: number;
-    y: number;
-    width: number;
-}
-
 /**
  * @description Each action coming into the will have an action attached
  */

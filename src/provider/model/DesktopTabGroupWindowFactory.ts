@@ -10,19 +10,9 @@ export class DesktopTabGroupWindowFactory {
      */
     private _windowPool: Map<string, _Window[]> = new Map();
 
-    /**
-     * Creates a UUIDv4() ID
-     * Sourced from https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
-     */
-    private static createTabGroupId(): string {
-        return 'TABSET-' +
-            //@ts-ignore Black Magic
-            ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16));
-    }
-
     public static generateTabStripOptions(options: ApplicationUIConfig): fin.WindowOptions {
         return {
-            name: this.createTabGroupId(),
+            name: `TABSET-${fin.desktop.getUuid()}`,
             url: options.url,
             autoShow: false,
             defaultHeight: options.height,

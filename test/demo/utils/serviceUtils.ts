@@ -10,11 +10,11 @@ interface RemoteExecSuccess<R> {
     success: true;
     result: R;
 }
-interface RemoteExecFailure<R> {
+interface RemoteExecFailure {
     success: false;
     result: Error;
 }
-type RemoteExecResponse<R> = RemoteExecSuccess<R>|RemoteExecFailure<R>;
+type RemoteExecResponse<R> = RemoteExecSuccess<R>|RemoteExecFailure;
 
 /**
  * Executes javascript code on the service

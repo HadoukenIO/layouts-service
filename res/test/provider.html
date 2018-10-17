@@ -13,7 +13,7 @@
                     return {success: true, result};
                 } catch (e) {
                     // Deconstruct the error to be sent over the bus (NB: Error is not a JSON.stringify()-able type)
-                    return {success: false, result: {message: e.message, stack: e.stack}};
+                    return {success: false, result: {message: e.message, stack: e.stack, name: e.name}};
                 }
             });
         })

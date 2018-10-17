@@ -40,7 +40,7 @@ export interface Snappable {
     // tslint:disable-next-line:no-any
     applyOverride(property: keyof WindowState, value: any): Promise<void>;
     resetOverride(property: keyof WindowState): Promise<void>;
-    dockToGroup(group: DesktopSnapGroup, offset?: Point, newHalfSize?: Point, synthetic?: boolean): void;
+    dockToGroup(group: DesktopSnapGroup, offset?: Point, newHalfSize?: Point): void;
     snapToGroup(group: DesktopSnapGroup, offset?: Point, newHalfSize?: Point): void;
 }
 

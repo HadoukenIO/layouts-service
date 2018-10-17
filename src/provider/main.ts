@@ -34,9 +34,9 @@ export async function main() {
     });
 
     fin.desktop.Application.getCurrent().addEventListener('run-requested', (event) => {
-        if (event.userAppConfigArgs && event.userAppConfigArgs.disableTabbingOperations) {
-            tabService.disableTabbingOperations = event.userAppConfigArgs.disableTabbingOperations ? true : false;
-            snapService.disableDockingOperations = event.userAppConfigArgs.disableDockingOperations ? true : false;
+        if (event.userAppConfigArgs) {
+            tabService.disableTabbingOperations = event.userAppConfigArgs.disableTabbingOperations === 'true';
+            snapService.disableDockingOperations = event.userAppConfigArgs.disableDockingOperations === 'true';
         }
     });
 

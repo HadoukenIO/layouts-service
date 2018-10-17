@@ -357,7 +357,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             }
 
             if (offset || newHalfSize) {
-                this.snapToGroup(group, offset, newHalfSize).then(async () => {
+                return this.snapToGroup(group, offset, newHalfSize).then(async () => {
                     if (group.windows.length >= 2) {
                         await this.snap();
                     }

@@ -1,7 +1,7 @@
 import {Identity} from 'hadouken-js-adapter';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import {Layout, LayoutApp} from '../client/types';
+import {Layout, LayoutApp, WindowState} from '../client/types';
 import {positionWindow} from '../provider/workspaces/utils';
 
 export interface Workspace {
@@ -39,12 +39,10 @@ export function openChild(name: string, i: number, frame = true, url?: string) {
 
 export async function onAppRes(layoutApp: LayoutApp): Promise<LayoutApp> {
     console.log('Apprestore called:', layoutApp);
-    // We use the v1 version of Application.getCurrent() due to an event-loop bug
-    // when calling the v2 version inside a channel callback. Due for fix in v35
-    const ofApp = fin.desktop.Application.getCurrent();
-    const openWindows = await new Promise<fin.OpenFinWindow[]>(res => ofApp.getChildWindows(res));
-    const openAndPosition = layoutApp.childWindows.map(async (win, index) => {
-        if (!openWindows.some((w: fin.OpenFinWindow) => w.name === win.name)) {
+    const ofApp = fin.Application.getCurrentSync();
+    const openWindows = await ofApp.getChildWindows();
+    const openAndPosition = layoutApp.childWindows.map(async (win:WindowState, index:number) => {
+        if (!openWindows.some((w: _Window) => w.identity.name === win.name)) {
             const ofWin = await openChild(win.name, index, win.frame, win.info.url);
             await positionWindow(win);
         } else {

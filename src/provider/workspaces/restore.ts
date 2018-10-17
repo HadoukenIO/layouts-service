@@ -30,9 +30,9 @@ export const restoreApplication = async(layoutApp: LayoutApp, resolve: Function)
     const {uuid} = layoutApp;
     const name = uuid;
     const defaultResponse: LayoutApp = {...layoutApp, childWindows: []};
-    const appConnection = apiHandler.getClientConnection({uuid, name});
-    if (appConnection) {
-        const responseAppLayout: LayoutApp|false = await apiHandler.channel.dispatch(appConnection, 'restoreApp', layoutApp);
+    const appConnected = apiHandler.channel.connections.some((conn:Identity) => conn.uuid === uuid && conn.name === name);
+    if (appConnected) {
+        const responseAppLayout: LayoutApp|false = await apiHandler.channel.dispatch({uuid, name}, 'restoreApp', layoutApp);
         if (responseAppLayout) {
             resolve(responseAppLayout);
         } else {
@@ -135,12 +135,12 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
             const ofApp = await fin.Application.wrap({uuid});
             const isRunning = await ofApp.isRunning();
             if (isRunning) {
-                const appConnection = apiHandler.getClientConnection({uuid, name});
-                if (appConnection) {
+                const appConnected = apiHandler.channel.connections.some((conn:Identity) => conn.uuid === uuid && conn.name === name);
+                if (appConnected) {
                     await positionWindow(app.mainWindow);
                     console.log('App is running:', app);
                     // Send LayoutApp to connected application so it can handle child windows
-                    const response: LayoutApp|false|undefined = await apiHandler.sendToClient<LayoutApp, LayoutApp|false>(appConnection, 'restoreApp', app);
+                    const response: LayoutApp|false|undefined = await apiHandler.sendToClient<LayoutApp, LayoutApp|false>({uuid, name}, 'restoreApp', app);
                     console.log('Response from restore:', response);
                     return response ? response : defaultResponse;
                 } else {

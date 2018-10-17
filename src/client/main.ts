@@ -1,12 +1,7 @@
 import {Identity} from 'hadouken-js-adapter';
 
 import {TabAPI} from './APITypes';
-import {AddTabPayload, ApplicationUIConfig, CustomData, DropPosition, EndDragPayload, JoinTabGroupPayload, Layout, LayoutApp, LayoutName, SetTabClientPayload, TabGroupEventPayload, TabProperties, UpdateTabPropertiesPayload} from './types';
-
-const IDENTITY = {
-    uuid: 'layouts-service',
-    name: 'layouts-service'
-};
+import {AddTabPayload, ApplicationUIConfig, CustomData, DropPosition, EndDragPayload, JoinTabGroupPayload, Layout, LayoutApp, LayoutName, SetTabClientPayload, TabGroupEventPayload, TabProperties, UpdateTabPropertiesPayload, CHANNEL_NAME} from './types';
 
 import {version} from './version';
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
@@ -28,7 +23,7 @@ const getId = (() => {
 })();
 
 // TODO: Used named channel
-const channelPromise: Promise<ChannelClient> = fin.InterApplicationBus.Channel.connect({...IDENTITY, payload: {version}}).then((channel: ChannelClient) => {
+const channelPromise: Promise<ChannelClient> = fin.InterApplicationBus.Channel.connect(CHANNEL_NAME, {payload: {version}}).then((channel: ChannelClient) => {
     // Register service listeners
     channel.register('WARN', (payload: any) => console.warn(payload));  // tslint:disable-line:no-any
     channel.register('join-snap-group', () => {

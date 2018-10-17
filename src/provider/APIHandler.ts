@@ -3,7 +3,7 @@ import {ProviderIdentity} from 'hadouken-js-adapter/out/types/src/api/interappbu
 import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
 
 import {TabAPI} from '../client/APITypes';
-import {ApplicationUIConfig, DropPosition, TabIdentifier, TabProperties} from '../client/types';
+import {ApplicationUIConfig, DropPosition, TabIdentifier, TabProperties, CHANNEL_NAME} from '../client/types';
 
 import {model, snapService, tabService} from './main';
 import {DesktopTabGroup} from './model/DesktopTabGroup';
@@ -17,7 +17,6 @@ import {getAppToRestore, restoreApplication, restoreLayout} from './workspaces/r
  * Client communication is separated from the rest of the provider code to allow easier versioning of client-provider interaction, if required in the future.
  */
 export class APIHandler {
-    private static readonly CHANNEL_NAME: string = 'of-layouts-service-v1';
 
     private providerChannel!: ChannelProvider;
 
@@ -31,29 +30,13 @@ export class APIHandler {
         });
     }
 
-    public getClientConnection(identity: Identity): ProviderIdentity|null {
-        const {uuid} = identity;
-        const name = identity.name ? identity.name : uuid;
-
-        return this.providerChannel.connections.find((conn: ProviderIdentity) => {
-            return conn.uuid === uuid && conn.name === name;
-        }) ||
-            null;
-    }
-
     /**
      * Sends a message to a single, connected client.
      *
      * Will fail silently if client with given identity doesn't exist and/or isn't connected to service.
      */
     public async sendToClient<T, R = void>(identity: Identity, action: string, payload: T): Promise<R|undefined> {
-        const conn: ProviderIdentity|null = this.getClientConnection(identity);
-
-        if (conn) {
-            return this.providerChannel.dispatch(conn, action, payload);
-        } else {
-            return undefined;
-        }
+        return this.providerChannel.dispatch(identity, action, payload);
     }
 
     /**
@@ -65,7 +48,7 @@ export class APIHandler {
     }
 
     public async register(): Promise<void> {
-        const providerChannel: ChannelProvider = this.providerChannel = await fin.InterApplicationBus.Channel.create(APIHandler.CHANNEL_NAME);
+        const providerChannel: ChannelProvider = this.providerChannel = await fin.InterApplicationBus.Channel.create(CHANNEL_NAME);
 
         // Common
         providerChannel.onConnection(this.onConnection);
@@ -99,7 +82,7 @@ export class APIHandler {
     }
 
     // tslint:disable-next-line:no-any
-    private onConnection(app: ProviderIdentity, payload?: any): void {
+    private onConnection(app: Identity, payload?: any): void {
         if (payload && payload.version && payload.version.length > 0) {
             console.log(`connection from client: ${app.name}, version: ${payload.version}`);
         } else {

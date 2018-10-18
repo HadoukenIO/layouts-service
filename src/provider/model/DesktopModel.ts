@@ -6,6 +6,7 @@ import {RectUtils} from '../snapanddock/utils/RectUtils';
 
 import {DesktopTabGroup} from './DesktopTabGroup';
 import {DesktopWindow, WindowIdentity, WindowState} from './DesktopWindow';
+import {MouseTracker} from './MouseTracker';
 import {ZIndexer} from './ZIndexer';
 
 export class DesktopModel {
@@ -14,7 +15,7 @@ export class DesktopModel {
     private snapGroups: DesktopSnapGroup[];
     private windowLookup: {[key: string]: DesktopWindow};
     private zIndexer: ZIndexer;
-
+    private mouseTracker: MouseTracker;
     private pendingRegistrations: WindowIdentity[];
 
     constructor() {
@@ -23,6 +24,7 @@ export class DesktopModel {
         this.snapGroups = [];
         this.windowLookup = {};
         this.zIndexer = new ZIndexer(this);
+        this.mouseTracker = new MouseTracker();
         this.pendingRegistrations = [];
 
         DesktopWindow.onCreated.add(this.onWindowCreated, this);
@@ -57,6 +59,10 @@ export class DesktopModel {
                 }
             });
         });
+    }
+
+    public getMouseTracker(): MouseTracker {
+        return this.mouseTracker;
     }
 
     public getWindows(): ReadonlyArray<DesktopWindow> {

@@ -145,7 +145,7 @@ async function assertExploded(t: GenericTestContext<AnyContext>) {
  * add new entries there.
  */
 Object.keys(arrangements).forEach(num => {
-    const count = Number.parseInt(num);
+    const count = Number.parseInt(num, 10);
 
     Object.keys(arrangements[count]).forEach(name => {
         test(`${count} windows - ${name}`, async t => {

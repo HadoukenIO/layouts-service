@@ -1,11 +1,10 @@
+import {Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
 import {ApplicationUIConfig, Dimensions, TabBlob, TabIdentifier} from '../../client/types';
-import {APIHandler} from '../APIHandler';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {DesktopWindow, WindowIdentity, WindowState} from '../model/DesktopWindow';
-import {Point} from '../snapanddock/utils/PointUtils';
-import {Rectangle} from '../snapanddock/utils/RectUtils';
+import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 
 import {ApplicationConfigManager} from './components/ApplicationConfigManager';
 import {DragWindowManager} from './DragWindowManager';
@@ -208,30 +207,7 @@ export class TabService {
      */
     public tabDroppedWindow(window: DesktopWindow): void {
         if (!this.disableTabbingOperations) {
-            // If a single untabbed window is being dragged, it is possible to create a tabset
-            const activeIdentity: WindowIdentity = window.getIdentity();
-            const activeState: WindowState = window.getState();
-
-            // Ignore if we are dragging around a tabset
-            if (window instanceof DesktopWindow) {
-                const windowUnderPoint: DesktopWindow|null = this._model.getWindowAt(activeState.center.x, activeState.center.y, activeIdentity);
-                const appConfigMgr: ApplicationConfigManager = this.mApplicationConfigManager;
-
-                // There is a window under our drop point
-                if (windowUnderPoint) {
-                    const existingTabSet: DesktopTabGroup|null = windowUnderPoint.getTabGroup();
-
-                    if (existingTabSet && appConfigMgr.compareConfigBetweenApplications(activeIdentity.uuid, existingTabSet.config)) {
-                        // Add to existing tab group
-                        existingTabSet.addTab(window);
-                    } else if (
-                        windowUnderPoint instanceof DesktopWindow &&
-                        appConfigMgr.compareConfigBetweenApplications(windowUnderPoint.getIdentity().uuid, activeIdentity.uuid)) {
-                        // If not a tab group then create a group with the 2 tabs.
-                        this.createTabGroupWithTabs([windowUnderPoint.getIdentity(), activeIdentity], activeIdentity);
-                    }
-                }
-            }
+            this.internalHandleWindowDrop(window, this._model.getMouseTracker().getPosition());
         }
     }
 
@@ -264,36 +240,85 @@ export class TabService {
             throw new Error('Specified window is not in a tabGroup.');
         }
 
-        // If we have a screen position we check if there is a tab group + tab window underneath
-        const isOverTabWindow: DesktopWindow|null = ejectPosition ? this._model.getWindowAt(ejectPosition.x, ejectPosition.y) : null;
-        const isOverTabGroup: DesktopTabGroup|null = isOverTabWindow && isOverTabWindow.getTabGroup();
+        this.internalHandleWindowDrop(ejectedTab, ejectPosition);
+    }
 
-        // Decide what to do with the tab
-        if (!isOverTabWindow) {
-            // Move tab out of tab group
-            if (ejectPosition) {
-                const prevHalfSize = ejectedTab.getState().halfSize;
-                const halfSize = {x: prevHalfSize.x, y: prevHalfSize.y + tabGroup.config.height / 2};
-                const center = {x: ejectPosition.x + halfSize.x, y: ejectPosition.y + halfSize.y};
-                await tabGroup.removeTab(ejectedTab, {center, halfSize});
+    /**
+     * Handles all possible tabbing actions when a window/tab is dropped.  The possibilies are:
+     *
+     * 1. If there is a window under our point and its a tab group different to the one we're leaving, we join into it.
+     *
+     * 2. If there is a window under our point, and its not a tab group window, and we are in its valid drop area, then we create a new tab group with it.
+     *
+     * 3. If there are no windows under the point, then we move the ejecting window to the point.
+     *
+     * 4. If there is no point then we only eject in current position.
+     *
+     * @param window The window being ejected or dropped
+     * @param position The point where the window is being dropped at. If nothing is passed the window will be ejected at its current spot.
+     */
+    private async internalHandleWindowDrop(window: DesktopWindow, position: Point|null = null) {
+        const activeIdentity: WindowIdentity = window.getIdentity();
+        const existingTabGroup: DesktopTabGroup|null = window.getTabGroup();
+        const windowUnderPoint: DesktopWindow|null = position && this._model.getWindowAt(position.x, position.y, activeIdentity);
+        const tabGroupUnderPoint: DesktopTabGroup|null = windowUnderPoint && windowUnderPoint.getTabGroup();
+        const tabAllowed = windowUnderPoint &&
+            this.applicationConfigManager.compareConfigBetweenApplications(
+                tabGroupUnderPoint ? tabGroupUnderPoint.config : windowUnderPoint.getIdentity().uuid, activeIdentity.uuid);
+
+        if (tabGroupUnderPoint && windowUnderPoint === tabGroupUnderPoint.window) {
+            // If we are over a tab group
+
+            if (existingTabGroup !== tabGroupUnderPoint && tabAllowed) {
+                // And that tab group is not the one we are ejecting from
+
+                if (existingTabGroup) await existingTabGroup.removeTab(window);
+
+                // Add ejected tab to tab group under Point.
+                await tabGroupUnderPoint.addTab(window);
+
             } else {
-                await tabGroup.removeTab(ejectedTab);
+                // Tab has been dragged and dropped onto the same tab group, do nothing.
+                // This was probably a tab re-ordering operation. This is handled separately
             }
-            await ejectedTab.bringToFront();
-        } else if (isOverTabGroup !== tabGroup) {
-            // Move into another tab group
-            if (this.applicationConfigManager.compareConfigBetweenApplications(isOverTabWindow.getIdentity().uuid, ejectedTab.getIdentity().uuid)) {
-                if (isOverTabGroup) {
-                    await tabGroup.removeTab(ejectedTab, null);
-                    await isOverTabGroup.addTab(ejectedTab);
-                } else {
-                    await tabGroup.removeTab(ejectedTab, null);
-                    await this.createTabGroupWithTabs([isOverTabWindow.getIdentity(), ejectedTab.getIdentity()]);
-                }
-            }
-        } else {
-            // Tab has been dragged and dropped onto the same tab group, do nothing.
-            // This was probably a tab re-ordering operation. This is handled separately.
+        } else if (tabAllowed && position && windowUnderPoint && !tabGroupUnderPoint && this.isOverWindowDropArea(windowUnderPoint, position)) {
+            // If there is a window under our Point, and its not part of a tab group, and we are over a valid drop area
+
+            if (existingTabGroup) await existingTabGroup.removeTab(window);
+
+            // Create new tab group
+            await this.createTabGroupWithTabs([windowUnderPoint.getIdentity(), activeIdentity], activeIdentity);
+
+        } else if (position && existingTabGroup) {
+            // If there are no windows under the point and we are being ejected from a tab group
+
+            // We eject at the Point
+            const prevHalfSize = window.getState().halfSize;
+            const halfSize = {x: prevHalfSize.x, y: prevHalfSize.y + existingTabGroup.config.height / 2};
+            const center = {x: position.x + halfSize.x, y: position.y + halfSize.y};
+            await existingTabGroup.removeTab(window, {center, halfSize});
+
+        } else if (existingTabGroup) {
+            // If we are provided no Point
+
+            // Eject tab at its current position
+            await existingTabGroup.removeTab(window);
         }
+
+        await window.bringToFront();
+    }
+
+    /**
+     * Determines if a Point is over a valid tabbing drop area on a window. The default drop area is 100% width x height of the windows tab group.
+     * @param {DesktopWindow} window
+     * @param {Point} position
+     */
+    private isOverWindowDropArea(window: DesktopWindow, position: Point): boolean {
+        const state: WindowState = window.getState();
+        const config: ApplicationUIConfig = this.mApplicationConfigManager.getApplicationUIConfig(window.getIdentity().uuid);
+        const dropAreaCenter: Point = {x: state.center.x, y: (state.center.y - state.halfSize.y) + (config.height / 2)};
+        const dropAreaHalfSize = {x: state.halfSize.x, y: config.height / 2};
+
+        return RectUtils.isPointInRect(dropAreaCenter, dropAreaHalfSize, position);
     }
 }

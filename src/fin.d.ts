@@ -22,6 +22,7 @@ declare namespace fin {
 
     interface OpenFinDesktop {
         main(f: () => any): void;
+        getUuid(): string;
         Application: OpenFinApplicationStatic;
         ExternalApp: OpenFinExternalApplicationStatic;
         InterApplicationBus: OpenFinInterApplicationBus;

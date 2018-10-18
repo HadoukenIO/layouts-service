@@ -178,7 +178,7 @@ export class SnapService {
         const snapTarget: SnapTarget|null = this.resolver.getSnapTarget(groups, activeGroup);
 
         if (snapTarget && snapTarget.validity === eSnapValidity.VALID) {  // SNAP WINDOWS
-            if (this.disableDockingOperations) {                          // Move all windows in activeGroup to snapTarget.group
+            if (this.disableDockingOperations) {                          
                 activeGroup.windows.forEach((window: Snappable) => {
                     if (window === snapTarget.activeWindow && snapTarget.halfSize) {
                         window.snapToGroup(snapTarget.group, snapTarget.snapOffset, snapTarget.halfSize);
@@ -187,7 +187,7 @@ export class SnapService {
                     }
                 });
             } else {
-                activeGroup.windows.forEach((window: Snappable) => {
+                activeGroup.windows.forEach((window: Snappable) => {  // Move all windows in activeGroup to snapTarget.group
                     if (window === snapTarget.activeWindow && snapTarget.halfSize) {
                         window.dockToGroup(snapTarget.group, snapTarget.snapOffset, snapTarget.halfSize);
                     } else {

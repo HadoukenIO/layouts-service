@@ -35,8 +35,12 @@ export async function main() {
 
     fin.desktop.Application.getCurrent().addEventListener('run-requested', (event) => {
         if (event.userAppConfigArgs) {
-            tabService.disableTabbingOperations = event.userAppConfigArgs.disableTabbingOperations === 'true';
-            snapService.disableDockingOperations = event.userAppConfigArgs.disableDockingOperations === 'true';
+            if (event.userAppConfigArgs.disableTabbingOperations) {
+                tabService.disableTabbingOperations = event.userAppConfigArgs.disableTabbingOperations === 'true';
+            }
+            if (event.userAppConfigArgs.disableDockingOperations) {
+                snapService.disableDockingOperations = event.userAppConfigArgs.disableDockingOperations === 'true';
+            }
         }
     });
 

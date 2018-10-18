@@ -201,9 +201,11 @@ async function assertTabbed(win1: Window, win2: Window, t: GenericTestContext<An
     }
 
     // Checks if a tabset window is present in the group (detatched tab check)
-    t.truthy(group1.find((win) => {
-        return win.identity.name!.includes("TABSET-");
-    }),'No tabset window found in openfin group!');
+    t.truthy(
+        group1.find((win) => {
+            return win.identity.name!.includes('TABSET-');
+        }),
+        'No tabset window found in openfin group!');
 
     // Both windows have the same bounds
     const [bounds1, bounds2] = [await getBounds(win1), await getBounds(win2)];

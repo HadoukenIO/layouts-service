@@ -20,7 +20,7 @@ type RemoteExecResponse<R> = RemoteExecSuccess<R>|RemoteExecFailure;
  * Executes javascript code on the service
  * @param func
  */
-export async function executeJavascriptOnService<T, R>(func: ((data: T) => R), data?: T): Promise<R> {
+export async function executeJavascriptOnService<T, R>(func: ((data: T) => R | Promise<R>), data?: T): Promise<R> {
     const fin: Fin = await getConnection();
     return fin.InterApplicationBus.Channel.connect('layouts-provider-testing').then(async (channelClient: ChannelClient) => {
         const response: RemoteExecResponse<R> = await channelClient.dispatch('execute-javascript', {script: func.toString(), data});

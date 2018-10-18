@@ -2,7 +2,6 @@ import {Identity} from 'hadouken-js-adapter';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {Layout, LayoutApp, WindowState} from '../client/types';
-import {positionWindow} from '../provider/workspaces/utils';
 
 export interface Workspace {
     id: string;
@@ -15,6 +14,34 @@ declare var window: _Window&{forgetMe: (identity: Identity) => void};
 
 let numChildren = 0;
 const launchDir = location.href.slice(0, location.href.lastIndexOf('/'));
+
+const positionWindow = async (win: WindowState) => {
+    try {
+        const ofWin = await fin.Window.wrap(win);
+        if (!win.isTabbed) {
+            await ofWin.leaveGroup();
+        }
+        await ofWin.setBounds(win);
+
+
+        // COMMENTED OUT FOR DEMO
+        if (win.state === 'normal') {
+            await ofWin.restore();
+        } else if (win.state === 'minimized') {
+            await ofWin.minimize();
+        } else if (win.state === 'maximized') {
+            await ofWin.maximize();
+        }
+
+        if (win.isShowing) {
+            await ofWin.show();
+        } else {
+            await ofWin.hide();
+        }
+    } catch (e) {
+        console.error('position window error', e);
+    }
+};
 
 export async function createChild(parentWindowName: string): Promise<void> {
     const win = await openChild(parentWindowName + ' -  win' + numChildren, numChildren);

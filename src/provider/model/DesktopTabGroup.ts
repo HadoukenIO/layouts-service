@@ -1,5 +1,6 @@
+import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {TabApiEvents} from '../../client/APITypes';
-import {ApplicationUIConfig, JoinTabGroupPayload, TabGroupEventPayload, TabIdentifier, TabProperties, TabServiceID, TabWindowOptions} from '../../client/types';
+import {ApplicationUIConfig, JoinTabGroupPayload, TabGroupEventPayload, TabIdentifier, TabProperties} from '../../client/types';
 import {Signal1} from '../Signal';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
@@ -55,15 +56,18 @@ export class DesktopTabGroup {
      * Constructor for the TabGroup Class.
      * @param {ApplicationUIConfig} windowOptions
      */
-    constructor(model: DesktopModel, group: DesktopSnapGroup, options: TabWindowOptions) {
+    constructor(model: DesktopModel, group: DesktopSnapGroup, config: ApplicationUIConfig) {
+        // Fetch a window from the pool, if available. Otherwise, fetch the relevant window options and have DesktopWindow handle the window creation.
+        const windowSpec: _Window|fin.WindowOptions =
+            DesktopTabGroup._windowPool.getNextWindow(config) || DesktopTabGroupWindowFactory.generateTabStripOptions(config);
+
         this._model = model;
-        this._window = new DesktopWindow(
-            this._model, group, DesktopTabGroup._windowPool.getNextWindow(options) || DesktopTabGroupWindowFactory.generateTabStripOptions(options));
+        this._window = new DesktopWindow(model, group, windowSpec);
         this.ID = this._window.getIdentity().name;
         this._window.setTabGroup(this);
         this._tabs = [];
         this._tabProperties = {};
-        this._config = options;
+        this._config = config;
 
         this._isMaximized = false;
 

@@ -6,16 +6,11 @@ import {DesktopWindow, eTransformType, Mask, WindowIdentity} from '../model/Desk
 import {ApplicationConfigManager} from '../tabbing/components/ApplicationConfigManager';
 import {TabService} from '../tabbing/TabService';
 
+import {EXPLODE_MOVE_SCALE, UNDOCK_MOVE_DISTANCE} from './Config';
 import {eSnapValidity, Resolver, SnapTarget} from './Resolver';
 import {SnapView} from './SnapView';
 import {Point, PointUtils} from './utils/PointUtils';
 import {MeasureResult, RectUtils} from './utils/RectUtils';
-
-// Defines the distance windows will be moved when undocked.
-const UNDOCK_MOVE_DISTANCE = 30;
-
-// Scaling factor for explosion spread.
-const EXPLODE_MOVE_SCALE = 0.1;
 
 /**
  * For passing state between service and view.

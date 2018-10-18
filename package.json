@@ -7,13 +7,13 @@
   "scripts": {
     "test:unit": "jest",
     "test": "node test/runner.js",
-    "check": "gts check",
+    "check": "gts check && cd test && gts check",
     "clean": "gts clean && rimraf dist staging",
     "compile": "npm run compile:client && npm run compile:provider",
     "compile:client": "genversion --es6 --semi src/client/version.ts && tsc -p tsconfig.client.json",
     "compile:provider": "tsc -p tsconfig.provider.json",
     "docs": "typedoc --name \"OpenFin Layouts\" --out ./build/docs --excludeNotExported --excludePrivate --excludeProtected --hideGenerator --tsconfig tsconfig.client.json --readme none",
-    "fix": "gts fix",
+    "fix": "gts fix && cd test && gts fix ",
     "prepare": "npm run compile",
     "posttest": "npm run check",
     "package": "webpack --mode production",
@@ -57,6 +57,7 @@
     "webpack-cli": "^3.1.0"
   },
   "dependencies": {
+    "fast-deep-equal": "^2.0.1",
     "sortablejs": "^1.7.0"
   },
   "jest": {

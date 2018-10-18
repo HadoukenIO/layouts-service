@@ -87,7 +87,7 @@ export async function assertTabbed(win1: Window, win2: Window, t: TestContext): 
     // Both windows are attached to the tabStrip
     const tabStripWindow = group1.find((win: Window) => win.identity.name! === tabGroupID1);
     if (tabStripWindow) {
-        assertAdjacent(t, tabStripWindow, win1, 'bottom');
+        await assertAdjacent(t, tabStripWindow, win1, 'bottom');
     } else {
         t.fail('Windows are not native grouped to the tabStrip');
     }

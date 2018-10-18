@@ -1,11 +1,10 @@
 import {AnyContext, GenericTestContext, test} from 'ava';
 import {Fin, Window} from 'hadouken-js-adapter';
-import * as robot from 'robotjs';
 
 import {getConnection} from './utils/connect';
 import {createChildWindow} from './utils/createChildWindow';
 import {delay} from './utils/delay';
-import {dragWindowTo, dragWindowToOtherWindow} from './utils/dragWindowTo';
+
 import {getBounds} from './utils/getBounds';
 
 let fin: Fin;

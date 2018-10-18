@@ -205,9 +205,9 @@ export class TabService {
      *
      * @param window Window that has just been moved by the user
      */
-    public tabDroppedWindow(window: DesktopWindow): void {
+    public async tabDroppedWindow(window: DesktopWindow): Promise<void> {
         if (!this.disableTabbingOperations) {
-            this.internalHandleWindowDrop(window, this._model.getMouseTracker().getPosition());
+            await this.internalHandleWindowDrop(window, this._model.getMouseTracker().getPosition());
         }
     }
 
@@ -240,7 +240,7 @@ export class TabService {
             throw new Error('Specified window is not in a tabGroup.');
         }
 
-        this.internalHandleWindowDrop(ejectedTab, ejectPosition);
+        await this.internalHandleWindowDrop(ejectedTab, ejectPosition);
     }
 
     /**
@@ -257,7 +257,7 @@ export class TabService {
      * @param window The window being ejected or dropped
      * @param position The point where the window is being dropped at. If nothing is passed the window will be ejected at its current spot.
      */
-    private async internalHandleWindowDrop(window: DesktopWindow, position: Point|null = null) {
+    private async internalHandleWindowDrop(window: DesktopWindow, position: Point|null = null): Promise<void> {
         const activeIdentity: WindowIdentity = window.getIdentity();
         const existingTabGroup: DesktopTabGroup|null = window.getTabGroup();
         const windowUnderPoint: DesktopWindow|null = position && this._model.getWindowAt(position.x, position.y, activeIdentity);

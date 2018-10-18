@@ -643,7 +643,12 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
     // tslint:disable-next-line:no-any
     public async sendMessage(action: WindowMessages, payload: any): Promise<void> {
         if (this.ready) {
-            await apiHandler.sendToClient(this.identity, action, payload);
+            // TODO: Revisit this timeout after we bump to V.35 
+            // Current hypothesis is that, in sendToClient, we're trying to dispatch to a tabstrip that no longer exists, but hasn't been removed from the .connections array.
+            await Promise.race([
+                apiHandler.sendToClient(this.identity, action, payload),
+                new Promise((res) => setTimeout(res, 15))
+            ]);
         }
     }
 

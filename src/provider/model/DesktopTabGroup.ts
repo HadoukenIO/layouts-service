@@ -15,29 +15,8 @@ import {DesktopWindow, WindowMessages, WindowState} from './DesktopWindow';
 export class DesktopTabGroup {
     public static readonly onCreated: Signal1<DesktopTabGroup> = new Signal1();
     public static readonly onDestroyed: Signal1<DesktopTabGroup> = new Signal1();
-    /**
-     * Creates a UUIDv4() ID
-     * Sourced from https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
-     */
-    private static createTabGroupId(): string {
-        return 'TABSET-' +
-            //@ts-ignore Black Magic
-            ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16));
-    }
-
-    /**
-     * Creates a UUIDv4() ID
-     * Sourced from https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
-     */
-    private static createTabGroupId(): string {
-        return 'TABSET-' +
-            //@ts-ignore Black Magic
-            ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16));
-    }
-
 
     private static _windowPool: DesktopTabGroupWindowFactory = new DesktopTabGroupWindowFactory();
-
 
     /**
      * The ID for the TabGroup.

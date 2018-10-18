@@ -16,3 +16,13 @@ export const ANCHOR_DISTANCE = 100;
  * The minimum amount of overlap required for two window edges to snap together.
  */
 export const MIN_OVERLAP = 50;
+
+/**
+ * Defines the distance windows will be moved when undocked.
+ */
+export const UNDOCK_MOVE_DISTANCE = 30;
+
+/**
+ *  Scaling factor for explosion spread.
+ */
+export const EXPLODE_MOVE_SCALE = 0.1;

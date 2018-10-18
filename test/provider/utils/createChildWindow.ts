@@ -1,4 +1,5 @@
 import {Fin} from 'hadouken-js-adapter';
+import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {getConnection} from './connect';
 
@@ -10,8 +11,7 @@ const getClientConnection = async () => {
 const clientPromise = getClientConnection();
 let childWindowCount = 1;
 
-// tslint:disable-next-line:no-any
-export const createChildWindow = async (windowOptions: any) => {
+export const createChildWindow = async (windowOptions: fin.WindowOptions) => {
     const fin = await getConnection();
     const client = await clientPromise;
     await client.dispatch('createWindow', {...windowOptions, uuid: 'testApp', name: 'win' + childWindowCount});

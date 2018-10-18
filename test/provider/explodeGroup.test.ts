@@ -1,16 +1,14 @@
 import {AnyContext, GenericTestContext, test} from 'ava';
 import {Fin, Window} from 'hadouken-js-adapter';
 
+import {WindowIdentity} from '../../src/provider/model/DesktopWindow';
+import {explodeGroup} from '../demo/utils/snapServiceUtils';
+
 import {getConnection} from './utils/connect';
-import {explodeGroup} from './utils/explodeGroup';
 import {getBounds} from './utils/getBounds';
 import {isInGroup} from './utils/isInGroup';
 import {isOverlappedWith} from './utils/isOverlappedWith';
-import {WindowIdentity} from './utils/undockWindow';
 import {ArrangementsType, WindowInitializer} from './utils/WindowInitializer';
-
-// TODO - Change client/service file structure to allow importing these values
-const UNDOCK_MOVE_DISTANCE = 30;
 
 let windows: Window[] = new Array<Window>();
 let fin: Fin;
@@ -147,7 +145,7 @@ async function assertExploded(t: GenericTestContext<AnyContext>) {
  * add new entries there.
  */
 Object.keys(arrangements).forEach(num => {
-    const count = Number.parseInt(num);
+    const count = Number.parseInt(num, 10);
 
     Object.keys(arrangements[count]).forEach(name => {
         test(`${count} windows - ${name}`, async t => {
@@ -155,8 +153,7 @@ Object.keys(arrangements).forEach(num => {
             // positions/groups
             windows = await windowInitializer.initWindows(count, name);
 
-            // Special handling for single window. Checks window did not move in any
-            // way
+            // Special handling for single window. Checks window did not move in any way
             if (count === 1) {
                 const boundsBefore = await getBounds(windows[0]);
                 await explodeGroup(windows[0].identity as WindowIdentity);

@@ -9,7 +9,7 @@ pipeline {
             steps {
                 bat "npm i"
                 bat "npm run check"
-                bat "npm test"
+                bat "npm test -- --verbose"
             }
         }
 

@@ -21,10 +21,10 @@ let port;
  * Simple command-line parser. Returns the named argument from the list of process arguments.
  * 
  * @param {string} name Argument name, including any hyphens
- * @param {boolean} hasValue If this argument requires a value. Accepts "--name value" and "--name=value" syntax.//#endregion
+ * @param {boolean} hasValue If this argument requires a value. Accepts "--name value" and "--name=value" syntax.
  * @param {any} defaultValue Determines return value, if an argument with the given name doesn't exist. Only really makes sense when 'hasValue' is true.
  */
-function getArg(name, hasValue, defaultValue = hasValue ? null : false) {
+function getArg(name, hasValue = false, defaultValue = hasValue ? null : false) {
     let value = defaultValue;
     let argIndex = unusedArgs.indexOf(name);
 
@@ -54,6 +54,7 @@ const testFileNames = ['*'];
 const testNameFilter = getArg('--filter', true);
 const showHelp = getArg('--help') || getArg('-h');
 const skipBuild = getArg('--run') || getArg('-r');
+const debugMode = getArg('--debug') || getArg('-d');
 
 let testFileName;
 while(testFileName = getArg('--file-name', true)) {
@@ -70,6 +71,7 @@ Options:
 --filter <pattern>      Only runs tests whose names match the given pattern. Can be used with --file-name.
 --help | -h             Displays this help
 --run | -r              Skips the build step, and will *only* run the tests - rather than the default 'build & run' behaviour.
+--debug | -d            Builds the test/application code using 'development' webpack mode for easier debugging. Has no effect when used with -r.
 `);
     process.exit();
 }
@@ -105,7 +107,7 @@ const run = (...args) => {
  */
 async function build() {
     await run('npm', ['run', 'clean']);
-    await run('npm', ['run', 'build']);
+    await run('npm', ['run', debugMode ? 'build:dev' : 'build']);
     await run('tsc', ['-p', 'test', '--skipLibCheck']);
 }
 

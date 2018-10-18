@@ -1,10 +1,9 @@
 import {AnyContext, GenericTestContext, test} from 'ava';
 import {Fin, Window} from 'hadouken-js-adapter';
-import * as robot from 'robotjs';
 import {getConnection} from './utils/connect';
 import {createChildWindow} from './utils/createChildWindow';
 import {delay} from './utils/delay';
-import {dragWindowToOtherWindow, dragWindowTo} from './utils/dragWindowTo';
+
 import {getBounds} from './utils/getBounds';
 
 let fin: Fin;
@@ -55,17 +54,10 @@ test.afterEach.always(async () => {
 test('Animate Basic Snap, top - should not snap', async t => {
     const win2Bounds = await getBounds(wins[1]);
 
-    await wins[0].animate({position: {
-        left: win2Bounds.left + 50,
-        top: win2Bounds.top - (win2Bounds.bottom - win2Bounds.top + 2),
-        duration: 3000
-    }}, { interrupt: false});
+    await wins[0].animate(
+        {position: {left: win2Bounds.left + 50, top: win2Bounds.top - (win2Bounds.bottom - win2Bounds.top + 2), duration: 3000}}, {interrupt: false});
 
-    await wins[1].animate({position: {
-        left: 500,
-        top: 500,
-        duration: 3000
-    }}, { interrupt: false});
+    await wins[1].animate({position: {left: 500, top: 500, duration: 3000}}, {interrupt: false});
 
     const bounds1 = await getBounds(wins[0]);
     const bounds2 = await getBounds(wins[1]);
@@ -78,11 +70,7 @@ test('Animate Basic Snap, top - should not snap', async t => {
 test('Animate Basic Tab - should not tab', async t => {
     const win2bounds = await getBounds(wins[1]);
 
-    await wins[0].animate({position: {
-        left: win2bounds.left + 20,
-        top: win2bounds.top + 20,
-        duration: 3000
-    }}, { interrupt: false});
+    await wins[0].animate({position: {left: win2bounds.left + 20, top: win2bounds.top + 20, duration: 3000}}, {interrupt: false});
 
     await delay(500);
     // Test that the windows are tabbed
@@ -97,7 +85,7 @@ test('Programmatic move, Basic Snap, top - should not snap', async t => {
         win2Bounds.top - (win2Bounds.bottom - win2Bounds.top + 2),
     );
 
-    await wins[1].moveTo(500,500);
+    await wins[1].moveTo(500, 500);
 
     const bounds1 = await getBounds(wins[0]);
     const bounds2 = await getBounds(wins[1]);
@@ -132,9 +120,11 @@ async function assertTabbed(win1: Window, win2: Window, t: GenericTestContext<An
     }
 
     // Checks if a tabset window is present in the group (detatched tab check)
-    t.truthy(group1.find((win) => {
-        return win.identity.name!.includes("TABSET-");
-    }),'No tabset window found in openfin group!');
+    t.truthy(
+        group1.find((win) => {
+            return win.identity.name!.includes('TABSET-');
+        }),
+        'No tabset window found in openfin group!');
 
     // Both windows have the same bounds
     const [bounds1, bounds2] = [await getBounds(win1), await getBounds(win2)];

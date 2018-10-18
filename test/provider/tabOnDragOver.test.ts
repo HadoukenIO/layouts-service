@@ -8,8 +8,7 @@ import {createChildWindow} from './utils/createChildWindow';
 import {delay} from './utils/delay';
 import {dragWindowToOtherWindow} from './utils/dragWindowTo';
 import {getBounds} from './utils/getBounds';
-import { tabWindowsTogether } from './utils/tabWindowsTogether';
-import { assertNotTabbed, assertTabbed } from './utils/assertions';
+import {tabWindowsTogether} from './utils/tabWindowsTogether';
 
 let fin: Fin;
 
@@ -113,7 +112,7 @@ test('Drag window into tabgroup, invalid region - should not create 3 tab tabgro
     wins.push(win3);
 
     // Move win3 into invalid drop area
-    await dragWindowToOtherWindow(win3, "top-left", wins[0], "top-left", {x:20, y:50});
+    await dragWindowToOtherWindow(win3, 'top-left', wins[0], 'top-left', {x: 20, y: 50});
 
     // Assert tab group did not form
     await assertNotTabbed(win3, t);
@@ -160,17 +159,19 @@ test('Tearout tab dragged into singleton window - should create new tab group', 
     wins.push(win3);
 
     // Tearout tab & drag to valid drop region in win3
-    const [bounds1, bounds2] = await Promise.all([getBounds(wins[0]),getBounds(win3)]);
+    const [bounds1, bounds2] = await Promise.all([getBounds(wins[0]), getBounds(win3)]);
     robot.mouseToggle('up');
-    robot.moveMouseSmooth(bounds1.left + 30, bounds1.top - 20);
+    robot.moveMouseSmooth(bounds1.left + 15, bounds1.top - 20);
     robot.mouseToggle('down');
     robot.moveMouseSmooth(bounds2.left + 20, bounds2.top + 20);
     robot.mouseToggle('up');
 
-    await delay(500);
+    await delay(1000);
 
     // Assert win1 not tabbed, win2&3 are tabbed
     await Promise.all([assertNotTabbed(wins[0], t), assertTabbed(wins[1], win3, t)]);
+
+    await delay(1000);
 });
 
 
@@ -193,7 +194,7 @@ test('Tearout tab dragged into singleton window, invalid ragion - should not cre
     wins.push(win3);
 
     // Tearout tab & drag to valid drop region in win3
-    const [bounds1, bounds2] = await Promise.all([getBounds(wins[0]),getBounds(win3)]);
+    const [bounds1, bounds2] = await Promise.all([getBounds(wins[0]), getBounds(win3)]);
     robot.mouseToggle('up');
     robot.moveMouseSmooth(bounds1.left + 30, bounds1.top - 20);
     robot.mouseToggle('down');
@@ -203,13 +204,12 @@ test('Tearout tab dragged into singleton window, invalid ragion - should not cre
     await delay(500);
 
     // Assert win1 not tabbed, win2&3 are tabbed
-    await Promise.all([assertNotTabbed(wins[0], t), assertNotTabbed(wins[1], t), assertNotTabbed(win3,t)]);
+    await Promise.all([assertNotTabbed(wins[0], t), assertNotTabbed(wins[1], t), assertNotTabbed(win3, t)]);
 });
 
 
 
-
-test('Tearout tab dragged into tab group - should add tab to tabgroup', async t => {
+test('test Tearout tab dragged into tab group - should add tab to tabgroup', async t => {
     // Tab 2 Windows Together
     await tabWindowsTogether(wins[1], [wins[0]]);
 
@@ -240,7 +240,7 @@ test('Tearout tab dragged into tab group - should add tab to tabgroup', async t 
 
     await tabWindowsTogether(win3, [win4]);
     // Tearout tab & drag to valid drop region in win3
-    const [bounds1, bounds2] = await Promise.all([getBounds(wins[0]),getBounds(win3)]);
+    const [bounds1, bounds2] = await Promise.all([getBounds(wins[0]), getBounds(win3)]);
     robot.mouseToggle('up');
     robot.moveMouseSmooth(bounds1.left + 30, bounds1.top - 20);
     robot.mouseToggle('down');
@@ -286,7 +286,7 @@ test('Tearout tab dragged into tab group, invalid region - should not add tab to
 
     await tabWindowsTogether(win3, [win4]);
     // Tearout tab & drag to valid drop region in win3
-    const [bounds1, bounds2] = await Promise.all([getBounds(wins[0]),getBounds(win3)]);
+    const [bounds1, bounds2] = await Promise.all([getBounds(wins[0]), getBounds(win3)]);
     robot.mouseToggle('up');
     robot.moveMouseSmooth(bounds1.left + 30, bounds1.top - 20);
     robot.mouseToggle('down');
@@ -296,7 +296,7 @@ test('Tearout tab dragged into tab group, invalid region - should not add tab to
     await delay(500);
 
     // Assert win1 not tabbed, win2&3 are tabbed
-    await Promise.all([assertNotTabbed(wins[0], t), assertNotTabbed(wins[1],t)]);
+    await Promise.all([assertNotTabbed(wins[0], t), assertNotTabbed(wins[1], t)]);
 });
 
 
@@ -430,20 +430,24 @@ test('Close tab then retab - should create tabgroup', async t => {
 
     // Drag wins[0] over wins[1] to make a tabset
     await tabWindowsTogether(wins[0], [win3]);
-
-    // Test that the windows are tabbed
-    await assertTabbed(wins[0], win3, t);
+    await delay(500);
 
     // Close tab
     await win3.close();
+
+    await delay(500);
 
     await assertNotTabbed(wins[0], t);
 
     // Attempt to retab remaining windows
     await tabWindowsTogether(wins[0], [wins[1]]);
 
+    await delay(500);
+
     // Assert group is formed again
     await assertTabbed(wins[1], wins[0], t);
+
+    await delay(1000);
 });
 
 
@@ -456,11 +460,13 @@ test('Tearout tab onto itself - should remain in tabgroup', async t => {
     robot.mouseToggle('up');
     robot.moveMouseSmooth(bounds1.left + 15, bounds1.top - 20);
     robot.mouseToggle('down');
-    robot.moveMouseSmooth(bounds1.left+30, bounds1.top - 20);
+    robot.moveMouseSmooth(bounds1.left + 30, bounds1.top - 20);
     robot.mouseToggle('up');
 
     await delay(500);
 
     // Assert group remains
     await assertTabbed(wins[0], wins[1], t);
+
+    await delay(1000);
 });

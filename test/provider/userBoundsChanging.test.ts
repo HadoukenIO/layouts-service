@@ -1,5 +1,6 @@
 import {AnyContext, GenericTestContext, test} from 'ava';
 import {Fin, Window} from 'hadouken-js-adapter';
+
 import {getConnection} from './utils/connect';
 import {createChildWindow} from './utils/createChildWindow';
 import {delay} from './utils/delay';

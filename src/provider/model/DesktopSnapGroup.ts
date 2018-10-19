@@ -40,7 +40,8 @@ export interface Snappable {
     // tslint:disable-next-line:no-any
     applyOverride(property: keyof WindowState, value: any): Promise<void>;
     resetOverride(property: keyof WindowState): Promise<void>;
-    setSnapGroup(group: DesktopSnapGroup, offset?: Point, newHalfSize?: Point, synthetic?: boolean): void;
+    dockToGroup(group: DesktopSnapGroup, offset?: Point, newHalfSize?: Point): void;
+    snapToGroup(group: DesktopSnapGroup, offset?: Point, newHalfSize?: Point): void;
 }
 
 export class DesktopSnapGroup {
@@ -177,7 +178,7 @@ export class DesktopSnapGroup {
             this._windows.push(window);
             this.checkRoot();
             if (window.getSnapGroup() !== this) {
-                window.setSnapGroup(this);
+                window.dockToGroup(this);
             }
 
             // Will need to re-calculate cached properties

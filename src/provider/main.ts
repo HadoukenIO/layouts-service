@@ -1,3 +1,6 @@
+import {Identity} from 'hadouken-js-adapter';
+import {RunRequestedEvent} from 'hadouken-js-adapter/out/types/src/api/events/application';
+
 import {APIHandler} from './APIHandler';
 import {DesktopModel} from './model/DesktopModel';
 import {SnapService} from './snapanddock/SnapService';
@@ -25,15 +28,15 @@ export async function main() {
     tabService = window.tabService = new TabService(model);
     apiHandler = window.apiHandler = new APIHandler();
 
-    fin.desktop.InterApplicationBus.subscribe('*', 'layoutsService:experimental:disableTabbing', (message, uuid, name) => {
+    fin.InterApplicationBus.subscribe({uuid: '*'}, 'layoutsService:experimental:disableTabbing', (message: boolean, source: Identity) => {
         tabService.disableTabbingOperations = message;
     });
 
-    fin.desktop.InterApplicationBus.subscribe('*', 'layoutsService:experimental:disableDocking', (message, uuid, name) => {
+    fin.InterApplicationBus.subscribe({uuid: '*'}, 'layoutsService:experimental:disableDocking', (message: boolean, source: Identity) => {
         snapService.disableDockingOperations = message;
     });
 
-    fin.desktop.Application.getCurrent().addEventListener('run-requested', (event) => {
+    fin.Application.getCurrentSync().addListener('run-requested', (event: RunRequestedEvent<'application', 'run-requested'>) => {
         if (event.userAppConfigArgs) {
             if (event.userAppConfigArgs.disableTabbingOperations) {
                 tabService.disableTabbingOperations = event.userAppConfigArgs.disableTabbingOperations === 'true';

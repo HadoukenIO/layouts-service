@@ -1,7 +1,12 @@
+import {ApplicationEvent, WindowEvent} from 'hadouken-js-adapter/out/types/src/api/events/base';
+import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/system/application';
+import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
+
 import {TabIdentifier} from '../../client/types';
+
 import {DesktopModel} from './DesktopModel';
 import {DesktopSnapGroup} from './DesktopSnapGroup';
-import {DesktopWindow} from './DesktopWindow';
+import {DesktopWindow, WindowIdentity} from './DesktopWindow';
 
 export interface ZIndex {
     timestamp: number;
@@ -30,41 +35,22 @@ export class ZIndexer {
     constructor(model: DesktopModel) {
         this._model = model;
 
-        fin.desktop.Application.getCurrent().addEventListener('window-created', (win: fin.WindowEvent) => {
-            const w = fin.desktop.Window.wrap(fin.desktop.Application.getCurrent().uuid, win.name);
-            this._addEventListeners(w);
-        });
-
-        fin.desktop.System.addEventListener('application-started', (ev: fin.SystemBaseEvent) => {
-            const app = fin.desktop.Application.wrap(ev.uuid);
-            const appWin = app.getWindow();
-
-            this._addEventListeners(appWin);
-
-            app.addEventListener('window-created', (win: fin.WindowEvent) => {
-                const w = fin.desktop.Window.wrap(app.uuid, win.name);
-                this._addEventListeners(w);
-            });
+        fin.System.addListener('window-created', (evt: WindowEvent<'system', 'window-created'>) => {
+            const ofWin = fin.Window.wrapSync(evt);
+            this._addEventListeners(ofWin);
         });
 
         // Register all existing applications
-        fin.desktop.System.getAllApplications(apps => {
-            apps.forEach(appID => {
-                const app = fin.desktop.Application.wrap(appID.uuid);
+        fin.System.getAllApplications().then((apps: ApplicationInfo[]) => {
+            apps.forEach((appInfo: ApplicationInfo) => {
+                const app = fin.Application.wrapSync(appInfo);
 
-                // Listen for any new child windows
-                app.addEventListener('window-created', (win: {name: string}) => {
-                    const w = fin.desktop.Window.wrap(app.uuid, win.name);
-                    this._addEventListeners(w);
+                app.getWindow().then(win => {
+                    this._addEventListeners(win);
                 });
-
-                // Register main window
-                this._addEventListeners(app.getWindow());
-
-                // Register existing child windows
-                app.getChildWindows(children => {
-                    children.forEach(w => {
-                        this._addEventListeners(w);
+                app.getChildWindows().then(children => {
+                    children.forEach(child => {
+                        this._addEventListeners(child);
                     });
                 });
             });
@@ -145,9 +131,11 @@ export class ZIndexer {
      * Creates window event listeners on a specified window.
      * @param win Window to add the event listeners to.
      */
-    private _addEventListeners(win: fin.OpenFinWindow) {
+    private _addEventListeners(win: _Window) {
+        const identity = win.identity as WindowIdentity;  // A window identity will always have a name, so it is safe to cast
+
         const bringToFront = () => {
-            const modelWindow: DesktopWindow|null = this._model.getWindow(win);
+            const modelWindow: DesktopWindow|null = this._model.getWindow(identity);
             const modelGroup: DesktopSnapGroup|null = modelWindow && modelWindow.getSnapGroup();
 
             if (modelGroup && modelGroup.length > 1) {
@@ -155,23 +143,23 @@ export class ZIndexer {
                 modelGroup.windows.forEach(window => this.update(window.getIdentity()));
             } else {
                 // Just bring modified window to front
-                this.update({uuid: win.uuid, name: win.name});
+                this.update(identity);
             }
         };
         const onClose = () => {
-            win.removeEventListener('focused', bringToFront);
-            win.removeEventListener('shown', bringToFront);
-            win.removeEventListener('bounds-changed', bringToFront);
-            win.removeEventListener('closed', onClose);
+            win.removeListener('focused', bringToFront);
+            win.removeListener('shown', bringToFront);
+            win.removeListener('bounds-changed', bringToFront);
+            win.removeListener('closed', onClose);
         };
 
         // When a window is brought to the front of the stack, update the z-index of the window and any grouped windows
-        win.addEventListener('focused', bringToFront);
-        win.addEventListener('shown', bringToFront);
-        win.addEventListener('bounds-changed', bringToFront);
+        win.addListener('focused', bringToFront);
+        win.addListener('shown', bringToFront);
+        win.addListener('bounds-changed', bringToFront);
 
         // Remove listeners when the window is destroyed
-        win.addEventListener('closed', onClose);
+        win.addListener('closed', onClose);
     }
 
     private getIds<T extends(TabIdentifier|ObjectWithIdentity)>(items: T[]): string[] {

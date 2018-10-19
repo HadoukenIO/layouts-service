@@ -1,9 +1,9 @@
-import {Window} from 'hadouken-js-adapter';
+import {Identity, Window} from 'hadouken-js-adapter';
 
 import {TabServiceID} from '../../client/types';
 import {apiHandler} from '../main';
 import {Signal1, Signal2} from '../Signal';
-import {p, promiseMap} from '../snapanddock/utils/async';
+import {promiseMap} from '../snapanddock/utils/async';
 import {isWin10} from '../snapanddock/utils/platform';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle} from '../snapanddock/utils/RectUtils';
@@ -33,7 +33,7 @@ export interface WindowState extends Rectangle {
     opacity: number;
 }
 
-export interface WindowIdentity extends fin.OpenFinIdentity {
+export interface WindowIdentity extends Identity {
     uuid: string;
     name: string;
 }
@@ -183,7 +183,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
      */
     public readonly onTeardown: Signal1<DesktopWindow> = new Signal1();
 
-    private window?: Window;
+    private window: Window;
 
     /**
      * Cached state. Reflects the current state of the *actual* window object - basically, what you would get if you called any of the OpenFin API functions on
@@ -226,8 +226,8 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
 
         this.ready = false;
 
-        const isWindow: boolean = DesktopWindow.isWindow(window);
-        if (!isWindow) {
+        if (!DesktopWindow.isWindow(window)) {
+            this.window = fin.Window.wrapSync({uuid: fin.Application.me.uuid, name: window.name});
             this.addPendingActions('Add window ' + this.id, fin.Window.create(window).then(async (window: Window) => {
                 this.window = window;
                 this.windowState = await DesktopWindow.getWindowState(window);
@@ -276,7 +276,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
      */
     public teardown(): void {
         if (this.ready) {
-            this.window!.leaveGroup();
+            this.window.leaveGroup();
         }
         this.cleanupListeners();
         this.onTeardown.emit(this);
@@ -353,7 +353,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             // Leave previous snap group
             if (this.snapGroup === group && this.ready) {
                 // TODO: Ensure returned promise includes this change. Need to await this?..
-                this.addPendingActions('setSnapGroup - leave existing group', this.window!.leaveGroup());
+                this.addPendingActions('setSnapGroup - leave existing group', this.window.leaveGroup());
             }
 
             if (offset || newHalfSize) {
@@ -429,7 +429,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
     }
 
     public refresh(): Promise<void> {
-        const window: Window = this.window!;
+        const window: Window = this.window;
 
         if (this.ready) {
             return DesktopWindow.getWindowState(window).then((state: WindowState) => {
@@ -486,13 +486,13 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             return Promise.all([this.sync(), other.sync()]).then(() => {
                 const joinGroupPromise: Promise<void> = (async () => {
                     if (this.ready && group === this.snapGroup) {
-                        await this.window!.joinGroup(other.window!);
+                        await this.window.joinGroup(other.window);
 
                         // Re-fetch window list in case it has changed during sync
                         const windows: DesktopWindow[] = this.snapGroup.windows as DesktopWindow[];
 
                         // Bring other windows in group to front
-                        await windows.map(groupWindow => groupWindow.window!.bringToFront());
+                        await windows.map(groupWindow => groupWindow.window.bringToFront());
                     }
                 })();
 
@@ -559,7 +559,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
 
         // Apply changes to the window (unless we're reacting to an external change that has already happened)
         if (origin !== ActionOrigin.APPLICATION) {
-            const window = this.window!;
+            const window = this.window;
             const {center, halfSize, state, hidden, ...options} = delta;
             const optionsToChange: (keyof WindowState)[] = Object.keys(options) as (keyof WindowState)[];
 
@@ -602,11 +602,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
 
             // Apply options
             if (optionsToChange.length > 0) {
-                if (window && window.updateOptions) {
-                    actions.push(window.updateOptions(options));
-                } else {
-                    console.error('No window', window);
-                }
+                actions.push(window.updateOptions(options));
             }
 
             // Track these changes
@@ -615,12 +611,12 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
     }
 
     public async bringToFront(): Promise<void> {
-        return this.addPendingActions('bringToFront ' + this.id, this.window!.bringToFront());
+        return this.addPendingActions('bringToFront ' + this.id, this.window.bringToFront());
     }
 
     public async close(): Promise<void> {
         this.ready = false;
-        return this.addPendingActions('close ' + this.id, this.window!.close(true));
+        return this.addPendingActions('close ' + this.id, this.window.close(true));
     }
 
     public async applyProperties(properties: Partial<WindowState>): Promise<void> {
@@ -714,12 +710,12 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
     }
 
     private registerListener<K extends keyof fin.OpenFinWindowEventMap>(eventType: K, handler: (event: fin.OpenFinWindowEventMap[K]) => void) {
-        this.window!.addListener(eventType, handler);
+        this.window.addListener(eventType, handler);
         this.registeredListeners.set(eventType, handler);
     }
 
     private cleanupListeners(): void {
-        const window: Window = this.window!;
+        const window: Window = this.window;
 
         for (const [key, listener] of this.registeredListeners) {
             window.removeListener(key, listener);
@@ -780,10 +776,16 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         // Loop through all windows in the same group as the focused window and bring them
         // all to front
         const window: fin.OpenFinWindow = fin.desktop.Window.wrap(this.identity.uuid, this.identity.name);
-        const group: fin.OpenFinWindow[] = await p<fin.OpenFinWindow[]>(window.getGroup.bind(window))();
-        await promiseMap(group, async (window: fin.OpenFinWindow) => {
-            await p<never>(window.bringToFront.bind(window))();
+        const group: fin.OpenFinWindow[] = await new Promise<fin.OpenFinWindow[]>((res, rej) => {
+            window.getGroup(res, rej);
         });
+        await promiseMap(group, async (groupWindow: fin.OpenFinWindow) => {
+            return new Promise<void>((res, rej) => {
+                groupWindow.bringToFront(res, rej);
+            });
+        });
+
+
 
         // V2 'getGroup' API has bug: https://appoji.jira.com/browse/RUN-4535
         // await this.window.getGroup().then((group: Window[]) => {

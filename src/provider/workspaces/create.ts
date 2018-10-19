@@ -86,7 +86,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
             const isRunning = await ofApp.isRunning();
             const hasMainWindow = !!windowInfo.mainWindow.name;
             const isDeregistered = inWindowObject({uuid, name: windowInfo.mainWindow.name}, deregisteredWindows);
-            const isService = uuid === fin.desktop.Application.getCurrent().uuid;
+            const isService = uuid === fin.Application.me.uuid;
             if (!hasMainWindow || !isRunning || isService || isDeregistered) {
                 // Not enough info returned for us to restore this app
                 return null;

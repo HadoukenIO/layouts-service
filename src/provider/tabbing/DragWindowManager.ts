@@ -38,8 +38,7 @@ export class DragWindowManager {
         this._window.focus();
 
         // Bring source window in front of invisible window
-        fin.desktop.Window.wrap(source.uuid, source.name).focus();
-
+        fin.Window.wrapSync(source).focus();
 
         this._hideTimeout = setTimeout(() => {
             this._window.hide();

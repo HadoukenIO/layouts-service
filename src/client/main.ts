@@ -1,16 +1,9 @@
 import {Identity} from 'hadouken-js-adapter';
+import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
 import {TabAPI} from './APITypes';
 import {AddTabPayload, ApplicationUIConfig, CHANNEL_NAME, CustomData, DropPosition, EndDragPayload, JoinTabGroupPayload, Layout, LayoutApp, LayoutName, SetTabClientPayload, TabGroupEventPayload, TabProperties, UpdateTabPropertiesPayload} from './types';
-
-const IDENTITY = {
-    uuid: 'layouts-service',
-    name: 'layouts-service',
-    channelName: CHANNEL_NAME
-};
-
 import {version} from './version';
-import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
 if (typeof fin === 'undefined') {
     throw new Error('fin is not defined, This module is only intended for use in an OpenFin application.');
@@ -28,32 +21,30 @@ const getId = (() => {
     };
 })();
 
-const channelPromise: Promise<ChannelClient> =
-    // @ts-ignore Hadouken types are wrong. `channelName` is a valid property
-    fin.InterApplicationBus.Channel.connect({...IDENTITY, payload: {version}}).then((channel: ChannelClient) => {
-        // Register service listeners
-        channel.register('WARN', (payload: any) => console.warn(payload));  // tslint:disable-line:no-any
-        channel.register('join-snap-group', () => {
-            window.dispatchEvent(new Event('join-snap-group'));
-        });
-        channel.register('leave-snap-group', () => {
-            window.dispatchEvent(new Event('leave-snap-group'));
-        });
-        channel.register('join-tab-group', (payload: JoinTabGroupPayload) => {
-            window.dispatchEvent(new CustomEvent<JoinTabGroupPayload>('join-tab-group', {detail: payload}));
-        });
-        channel.register('leave-tab-group', (payload: TabGroupEventPayload) => {
-            window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('leave-tab-group', {detail: payload}));
-        });
-        channel.register('tab-activated', (payload: TabGroupEventPayload) => {
-            window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('tab-activated', {detail: payload}));
-        });
-
-        // Any unregistered action will simply return false
-        channel.setDefaultAction(() => false);
-
-        return channel;
+const channelPromise: Promise<ChannelClient> = fin.InterApplicationBus.Channel.connect(CHANNEL_NAME, {payload: {version}}).then((channel: ChannelClient) => {
+    // Register service listeners
+    channel.register('WARN', (payload: any) => console.warn(payload));  // tslint:disable-line:no-any
+    channel.register('join-snap-group', () => {
+        window.dispatchEvent(new Event('join-snap-group'));
     });
+    channel.register('leave-snap-group', () => {
+        window.dispatchEvent(new Event('leave-snap-group'));
+    });
+    channel.register('join-tab-group', (payload: JoinTabGroupPayload) => {
+        window.dispatchEvent(new CustomEvent<JoinTabGroupPayload>('join-tab-group', {detail: payload}));
+    });
+    channel.register('leave-tab-group', (payload: TabGroupEventPayload) => {
+        window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('leave-tab-group', {detail: payload}));
+    });
+    channel.register('tab-activated', (payload: TabGroupEventPayload) => {
+        window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('tab-activated', {detail: payload}));
+    });
+
+    // Any unregistered action will simply return false
+    channel.setDefaultAction(() => false);
+
+    return channel;
+});
 
 /**
  * Undocks a window from any group it currently belongs to.

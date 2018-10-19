@@ -3,7 +3,7 @@ import {Identity, Window} from 'hadouken-js-adapter';
 import {TabServiceID} from '../../client/types';
 import {apiHandler} from '../main';
 import {Signal1, Signal2} from '../Signal';
-import {p, promiseMap} from '../snapanddock/utils/async';
+import {promiseMap} from '../snapanddock/utils/async';
 import {isWin10} from '../snapanddock/utils/platform';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle} from '../snapanddock/utils/RectUtils';
@@ -602,11 +602,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
 
             // Apply options
             if (optionsToChange.length > 0) {
-                if (window && window.updateOptions) {
-                    actions.push(window.updateOptions(options));
-                } else {
-                    console.error('No window', window);
-                }
+                actions.push(window.updateOptions(options));
             }
 
             // Track these changes
@@ -780,10 +776,16 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         // Loop through all windows in the same group as the focused window and bring them
         // all to front
         const window: fin.OpenFinWindow = fin.desktop.Window.wrap(this.identity.uuid, this.identity.name);
-        const group: fin.OpenFinWindow[] = await p<fin.OpenFinWindow[]>(window.getGroup.bind(window))();
-        await promiseMap(group, async (window: fin.OpenFinWindow) => {
-            await p<never>(window.bringToFront.bind(window))();
+        const group: fin.OpenFinWindow[] = await new Promise<fin.OpenFinWindow[]>((res, rej) => {
+            window.getGroup(res, rej);
         });
+        await promiseMap(group, async (groupWindow: fin.OpenFinWindow) => {
+            return new Promise<void>((res, rej) => {
+                groupWindow.bringToFront(res, rej);
+            });
+        });
+
+
 
         // V2 'getGroup' API has bug: https://appoji.jira.com/browse/RUN-4535
         // await this.window.getGroup().then((group: Window[]) => {

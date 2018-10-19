@@ -1,11 +1,11 @@
 import {Identity} from 'hadouken-js-adapter';
+import {RunRequestedEvent} from 'hadouken-js-adapter/out/types/src/api/events/application';
 
 import {APIHandler} from './APIHandler';
 import {DesktopModel} from './model/DesktopModel';
 import {SnapService} from './snapanddock/SnapService';
 import {win10Check} from './snapanddock/utils/platform';
 import {TabService} from './tabbing/TabService';
-import { RunRequestedEvent } from 'hadouken-js-adapter/out/types/src/api/events/application';
 
 export let model: DesktopModel;
 export let snapService: SnapService;
@@ -32,11 +32,11 @@ export async function main() {
         tabService.disableTabbingOperations = message;
     });
 
-    fin.InterApplicationBus.subscribe({uuid: '*'}, 'layoutsService:experimental:disableDocking', (message: boolean,source: Identity) => {
+    fin.InterApplicationBus.subscribe({uuid: '*'}, 'layoutsService:experimental:disableDocking', (message: boolean, source: Identity) => {
         snapService.disableDockingOperations = message;
     });
 
-    fin.Application.getCurrentSync().addListener('run-requested', (event: RunRequestedEvent<"application", "run-requested">) => {
+    fin.Application.getCurrentSync().addListener('run-requested', (event: RunRequestedEvent<'application', 'run-requested'>) => {
         if (event.userAppConfigArgs) {
             if (event.userAppConfigArgs.disableTabbingOperations) {
                 tabService.disableTabbingOperations = event.userAppConfigArgs.disableTabbingOperations === 'true';

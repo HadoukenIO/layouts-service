@@ -183,7 +183,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
      */
     public readonly onTeardown: Signal1<DesktopWindow> = new Signal1();
 
-    private window?: Window;
+    private window: Window;
 
     /**
      * Cached state. Reflects the current state of the *actual* window object - basically, what you would get if you called any of the OpenFin API functions on
@@ -226,8 +226,8 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
 
         this.ready = false;
 
-        const isWindow: boolean = DesktopWindow.isWindow(window);
-        if (!isWindow) {
+        if (!DesktopWindow.isWindow(window)) {
+            this.window = fin.Window.wrapSync({uuid: fin.Application.me.uuid, name: window.name});
             this.addPendingActions('Add window ' + this.id, fin.Window.create(window).then(async (window: Window) => {
                 this.window = window;
                 this.windowState = await DesktopWindow.getWindowState(window);
@@ -276,7 +276,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
      */
     public teardown(): void {
         if (this.ready) {
-            this.window!.leaveGroup();
+            this.window.leaveGroup();
         }
         this.cleanupListeners();
         this.onTeardown.emit(this);
@@ -353,7 +353,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             // Leave previous snap group
             if (this.snapGroup === group && this.ready) {
                 // TODO: Ensure returned promise includes this change. Need to await this?..
-                this.addPendingActions('setSnapGroup - leave existing group', this.window!.leaveGroup());
+                this.addPendingActions('setSnapGroup - leave existing group', this.window.leaveGroup());
             }
 
             if (offset || newHalfSize) {
@@ -429,7 +429,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
     }
 
     public refresh(): Promise<void> {
-        const window: Window = this.window!;
+        const window: Window = this.window;
 
         if (this.ready) {
             return DesktopWindow.getWindowState(window).then((state: WindowState) => {
@@ -486,13 +486,13 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             return Promise.all([this.sync(), other.sync()]).then(() => {
                 const joinGroupPromise: Promise<void> = (async () => {
                     if (this.ready && group === this.snapGroup) {
-                        await this.window!.joinGroup(other.window!);
+                        await this.window.joinGroup(other.window);
 
                         // Re-fetch window list in case it has changed during sync
                         const windows: DesktopWindow[] = this.snapGroup.windows as DesktopWindow[];
 
                         // Bring other windows in group to front
-                        await windows.map(groupWindow => groupWindow.window!.bringToFront());
+                        await windows.map(groupWindow => groupWindow.window.bringToFront());
                     }
                 })();
 
@@ -559,7 +559,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
 
         // Apply changes to the window (unless we're reacting to an external change that has already happened)
         if (origin !== ActionOrigin.APPLICATION) {
-            const window = this.window!;
+            const window = this.window;
             const {center, halfSize, state, hidden, ...options} = delta;
             const optionsToChange: (keyof WindowState)[] = Object.keys(options) as (keyof WindowState)[];
 
@@ -615,12 +615,12 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
     }
 
     public async bringToFront(): Promise<void> {
-        return this.addPendingActions('bringToFront ' + this.id, this.window!.bringToFront());
+        return this.addPendingActions('bringToFront ' + this.id, this.window.bringToFront());
     }
 
     public async close(): Promise<void> {
         this.ready = false;
-        return this.addPendingActions('close ' + this.id, this.window!.close(true));
+        return this.addPendingActions('close ' + this.id, this.window.close(true));
     }
 
     public async applyProperties(properties: Partial<WindowState>): Promise<void> {
@@ -714,12 +714,12 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
     }
 
     private registerListener<K extends keyof fin.OpenFinWindowEventMap>(eventType: K, handler: (event: fin.OpenFinWindowEventMap[K]) => void) {
-        this.window!.addListener(eventType, handler);
+        this.window.addListener(eventType, handler);
         this.registeredListeners.set(eventType, handler);
     }
 
     private cleanupListeners(): void {
-        const window: Window = this.window!;
+        const window: Window = this.window;
 
         for (const [key, listener] of this.registeredListeners) {
             window.removeListener(key, listener);

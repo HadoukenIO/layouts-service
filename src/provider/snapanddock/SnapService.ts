@@ -173,7 +173,7 @@ export class SnapService {
         const snapTarget: SnapTarget|null = this.resolver.getSnapTarget(groups, activeGroup);
 
         if (snapTarget && snapTarget.validity === eSnapValidity.VALID) {  // SNAP WINDOWS
-            if (this.disableDockingOperations) {                          
+            if (this.disableDockingOperations) {
                 activeGroup.windows.forEach((window: Snappable) => {
                     if (window === snapTarget.activeWindow && snapTarget.halfSize) {
                         window.snapToGroup(snapTarget.group, snapTarget.snapOffset, snapTarget.halfSize);

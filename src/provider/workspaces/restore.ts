@@ -10,6 +10,7 @@ import {regroupLayout} from './group';
 import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, positionWindow, TabbedPlaceholders, wasCreatedProgrammatically, WindowObject} from './utils';
 
 const appsToRestore = new Map();
+const appsCurrentlyRestoring = new Map();
 
 interface AppToRestore {
     layoutApp: LayoutApp;
@@ -30,15 +31,24 @@ export const restoreApplication = async(layoutApp: LayoutApp, resolve: Function)
     const {uuid} = layoutApp;
     const name = uuid;
     const defaultResponse: LayoutApp = {...layoutApp, childWindows: []};
-    const appConnected = apiHandler.channel.connections.some((conn: Identity) => conn.uuid === uuid && conn.name === name);
-    if (appConnected) {
-        const responseAppLayout: LayoutApp|false = await apiHandler.channel.dispatch({uuid, name}, 'restoreApp', layoutApp);
-        if (responseAppLayout) {
-            resolve(responseAppLayout);
+    const appConnection = apiHandler.isClientConnection({uuid, name});
+    if (appConnection) {
+        if (appsToRestore.has(uuid) && !appsCurrentlyRestoring.has(uuid)) {
+            // Instruct app to restore its child windows
+            appsCurrentlyRestoring.set(uuid, true);
+            const responseAppLayout: LayoutApp|false = await apiHandler.channel.dispatch({uuid, name}, 'restoreApp', layoutApp);
+
+            // Flag app as restored
+            appsCurrentlyRestoring.delete(uuid);
+            appsToRestore.delete(uuid);
+            if (responseAppLayout) {
+                resolve(responseAppLayout);
+            } else {
+                resolve(defaultResponse);
+            }
         } else {
-            resolve(defaultResponse);
+            console.warn('Ignoring duplicate \'ready\' call');
         }
-        appsToRestore.delete(uuid);
     }
 };
 

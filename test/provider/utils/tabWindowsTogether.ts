@@ -4,24 +4,12 @@ import {delay} from './delay';
 import {dragWindowToOtherWindow} from './dragWindowTo';
 import {isInGroup} from './isInGroup';
 
-async function asyncForEach<T>(array: T[], callback: (value: T, index: number, array: T[]) => void) {
-    for (let index = 0; index < array.length; index++) {
-        await callback(array[index], index, array);
-    }
-}
-
-export async function tabWindowsTogether(target: _Window, windowsToTab: _Window[]) {
+export async function tabWindowsTogether(target: _Window, windowToTab: _Window) {
     const group = await target.getGroup();
-    let startingInGroup: boolean|_Window|undefined = await isInGroup(target) && group.find((win) => {
+    const startingInGroup: boolean = await isInGroup(target) && group.findIndex((win) => {
         return win.identity.name!.includes('TABSET-');
-    });
+    }) >= 0;
 
-    return await asyncForEach(windowsToTab, async (win: _Window, i: number) => {
-        await dragWindowToOtherWindow(win, 'top-left', target, 'top-left', {x: 10, y: startingInGroup ? -20 : 20});
-        await delay(500);
-
-        if (i === 0) {
-            startingInGroup = true;
-        }
-    });
+    await dragWindowToOtherWindow(windowToTab, 'top-left', target, 'top-left', {x: 10, y: startingInGroup ? -20 : 20});
+    await delay(500);
 }

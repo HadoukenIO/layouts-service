@@ -56,7 +56,7 @@ export async function onAppRes(layoutApp: LayoutApp): Promise<LayoutApp> {
     const openWindows = await ofApp.getChildWindows();
     const openAndPosition = layoutApp.childWindows.map(async (win: WindowState, index: number) => {
         if (!openWindows.some((w: _Window) => w.identity.name === win.name)) {
-            const ofWin = await openChild(win.name, index, win.frame, win.info.url);
+            const ofWin = await openChild(win.name, index, win.frame, win.info.url, win);
         } else {
             await positionWindow(win);
         }

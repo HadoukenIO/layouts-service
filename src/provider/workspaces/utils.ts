@@ -5,6 +5,7 @@ import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {LayoutApp, TabIdentifier, WindowState} from '../../client/types';
 import {model, tabService} from '../main';
+import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {WindowIdentity} from '../model/DesktopWindow';
 
 // Positions a window when it is restored.
@@ -205,7 +206,10 @@ export async function childWindowPlaceholderCheckRunningApp(
                     await createNormalPlaceholder(win);
                 }
             } else {
+                console.log('win in placeholder', win);
+                const childWindowModel = model.getWindow(win);
                 await tabService.removeTab(win);
+                childWindowModel!.dockToGroup(new DesktopSnapGroup());
             }
         }
     } else {

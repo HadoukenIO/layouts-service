@@ -171,9 +171,7 @@ export class DesktopModel {
         return promiseWithTimeout.then(removeSlot, removeSlot);
     }
 
-    private async registerWindow(uuid: string, name: string): Promise<void> {
-        const identity: WindowIdentity = {uuid, name};
-
+    private async registerWindow(identity: WindowIdentity): Promise<void> {
         // Check that the service does not already have a matching window
         const existingWindow = this.getWindow(identity);
 

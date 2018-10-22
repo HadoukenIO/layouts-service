@@ -3,7 +3,8 @@ import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {Layout, LayoutApp} from '../../client/types';
-import {apiHandler, tabService} from '../main';
+import {apiHandler, model, tabService} from '../main';
+import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {promiseMap} from '../snapanddock/utils/async';
 
 import {regroupLayout} from './group';
@@ -97,7 +98,10 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
         const isRunning = await ofApp.isRunning();
         if (isRunning) {
             // Should de-tab here.
+            const mainWindowModel = model.getWindow(app.mainWindow);
             await tabService.removeTab(app.mainWindow);
+            mainWindowModel!.dockToGroup(new DesktopSnapGroup());
+
 
             // Need to check its child windows here, if confirmed.
             await childWindowPlaceholderCheckRunningApp(app, tabbedWindows, tabbedPlaceholdersToWindows, openWindows);

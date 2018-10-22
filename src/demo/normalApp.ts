@@ -1,15 +1,14 @@
 import {Identity} from 'hadouken-js-adapter';
+import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
+import * as Layouts from '../client/main';
 import {Layout, LayoutApp, WindowState} from '../client/types';
 
 export interface Workspace {
     id: string;
     layout: Layout;
 }
-
-import * as Layouts from '../client/main';
-import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
 
 declare var window: _Window&{forgetMe: (identity: Identity) => void};
 
@@ -22,10 +21,9 @@ export async function createChild(parentWindowName: string): Promise<void> {
 
 export async function openChild(name: string, i: number, frame = true, url?: string, bounds?: Bounds) {
     numChildren++;
-    let win;
 
     if (bounds) {
-        win = await fin.Window.create({
+        return await fin.Window.create({
             url: url || `${launchDir}/demo-window.html`,
             autoShow: true,
             defaultHeight: bounds.height,
@@ -38,7 +36,7 @@ export async function openChild(name: string, i: number, frame = true, url?: str
         });
 
     } else {
-        win = await fin.Window.create({
+        return await fin.Window.create({
             url: url || `${launchDir}/demo-window.html`,
             autoShow: true,
             defaultHeight: 250 + 50 * i,
@@ -50,8 +48,6 @@ export async function openChild(name: string, i: number, frame = true, url?: str
             name
         });
     }
-
-    return win;
 }
 
 export async function onAppRes(layoutApp: LayoutApp): Promise<LayoutApp> {

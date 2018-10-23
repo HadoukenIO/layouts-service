@@ -783,12 +783,14 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         // });
     }
 
-    private handleGroupChanged(event: fin.WindowGroupChangedEvent): void {
+    private async handleGroupChanged(event: fin.WindowGroupChangedEvent): Promise<void> {
         // Each group operation will raise an event from every window involved. To avoid handling the same event twice, we will only handle the event on the
         // window that triggered the event
         if (event.name !== event.sourceWindowName || event.uuid !== event.sourceWindowAppUuid) {
             return;
         }
+
+        await this.sync();
 
         console.log('Received window group changed event: ', event);
 
@@ -797,44 +799,25 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
 
         switch (event.reason) {
             case 'leave':
-                this.addPendingActions(
-                    'Native group handler - remove from group',
-                    Promise.resolve().then((async () => {
-                                               if (this.snapGroup.length > 1 &&
-                                                   deepEqual(
-                                                       this.snapGroup.windows.map(w => w.getIdentity())
-                                                           .sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid)),
-                                                       event.sourceGroup.map(w => ({uuid: w.appUuid, name: w.windowName}))
-                                                           .concat(this.identity)
-                                                           .sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid)))) {
-                                                   return this.dockToGroup(new DesktopSnapGroup());
-                                               }
-                                           }).bind(this)));
-                break;
+
+                return this.snapGroup.length > 1 &&
+                        compareSnapAndEventWindowArrays(
+                            this.snapGroup.windows, event.sourceGroup.concat({appUuid: this.identity.uuid, windowName: this.identity.name})) ?
+                    this.dockToGroup(new DesktopSnapGroup()) :
+                    Promise.resolve();
+
+
             case 'join':
                 if (targetWindow && targetGroup) {
-                    this.addPendingActions(
-                        'Native group handler - add to group',
-                        Promise.resolve().then(
-                            (async () => {
-                                if (!deepEqual(
-                                        this.snapGroup.windows.map(w => w.getIdentity())
-                                            .sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid)),
-                                        event.targetGroup.map(w => ({uuid: w.appUuid, name: w.windowName}))
-                                            .sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid)))) {
-                                    return this.addToSnapGroup(targetGroup);
-                                }
-                            }).bind(this)));
+                    return compareSnapAndEventWindowArrays(this.snapGroup.windows, event.targetGroup) ? Promise.resolve() : this.addToSnapGroup(targetGroup);
                 }
                 break;
+
             case 'merge':
                 if (targetWindow && targetGroup) {
-                    const windowsInGroup: DesktopWindow[] = this.snapGroup.windows as DesktopWindow[];  // TODO: Test snap groups that contain tabs
-                    windowsInGroup.forEach((window: DesktopWindow) => {
+                    this.snapGroup.windows.forEach((window: Snappable) => {  // TODO: Test snap groups that contain tabs
                         // Merge events are never triggered inside the service, so we do not need the same guards as join/leave
-                        window.addPendingActions('Native group handler - merge groups', Promise.resolve().then(async () => {
-                            return window.dockToGroup(targetGroup);
-                        }));
+                        return window.dockToGroup(targetGroup);
                     });
                 }
                 break;
@@ -845,6 +828,13 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             default:
                 console.warn('Received unexpected group event type: ' + event.reason + '. Expected valued are "leave", "join", "merge" or "disband".');
                 break;
+        }
+
+        function compareSnapAndEventWindowArrays(snapWindows: Snappable[], eventWindows: {appUuid: string, windowName: string}[]): boolean {
+            return deepEqual(
+                snapWindows.map(w => w.getIdentity()).sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid)),
+                eventWindows.map(w => ({uuid: w.appUuid, name: w.windowName}))
+                    .sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid)));
         }
     }
 }

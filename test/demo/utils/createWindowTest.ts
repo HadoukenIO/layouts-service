@@ -17,7 +17,7 @@ const windowOptionsBase = {
 export interface CreateWindowData {
     frame: boolean;
     windowCount: number;
-    arragement?: string;
+    arrangement?: string;
 }
 
 export interface WindowContext {
@@ -36,7 +36,7 @@ export function createWindowTest<T extends CreateWindowData, C extends WindowCon
 
         // Create all windows
         const windowInitializer = frame ? framedInitializer : framelessInitializer;
-        const windows: Window[] = await windowInitializer.initWindows(windowCount, data.arragement);
+        const windows: Window[] = await windowInitializer.initWindows(windowCount, data.arrangement);
         t.context.windows = windows;
         t.context.windowInitializer = windowInitializer;
 

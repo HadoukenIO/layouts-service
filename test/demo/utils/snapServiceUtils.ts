@@ -54,13 +54,13 @@ export async function getSnapGroupID(identity: Identity) {
 /**
  * Send a message to the service requesting that the window be undocked.
  */
-export async function undockWindow(identity: WindowIdentity) {
-    await sendServiceMessage<WindowIdentity, void>('undockWindow', identity);
+export async function undockWindow(identity: Identity) {
+    await sendServiceMessage<WindowIdentity, void>('undockWindow', identity as WindowIdentity);
 }
 
 /**
  * Send a message to the service requesting that the group be exploded.
  */
-export async function explodeGroup(identity: WindowIdentity) {
-    await sendServiceMessage<WindowIdentity, void>('undockGroup', identity);
+export async function explodeGroup(identity: Identity) {
+    await sendServiceMessage<WindowIdentity, void>('undockGroup', identity as WindowIdentity);
 }

@@ -206,10 +206,11 @@ export async function childWindowPlaceholderCheckRunningApp(
                     await createNormalPlaceholder(win);
                 }
             } else {
-                console.log('win in placeholder', win);
                 const childWindowModel = model.getWindow(win);
                 await tabService.removeTab(win);
-                childWindowModel!.dockToGroup(new DesktopSnapGroup());
+                if (childWindowModel!.getSnapGroup().length > 1) {
+                    childWindowModel!.dockToGroup(new DesktopSnapGroup());
+                }
             }
         }
     } else {

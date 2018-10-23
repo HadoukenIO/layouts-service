@@ -65,7 +65,7 @@ export async function setLayout(layoutParam?: Layout) {
                 break;
             }
         }
-
+        
         if (!optionPresent) {
             const option = createOptionElement(id);
             layoutSelect.appendChild(option);

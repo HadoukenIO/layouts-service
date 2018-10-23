@@ -154,7 +154,7 @@ export const generateLayout = async(payload: null, identity: Identity): Promise<
 
             // HOW TO DEAL WITH HUNG REQUEST HERE? RESHAPE IF GET NOTHING BACK?
             let customData: CustomData = undefined;
-            await apiHandler.sendToClient(app, 'savingLayout', app);
+            customData = await apiHandler.sendToClient({uuid: app.uuid, name: app.uuid}, 'savingLayout', app);
 
             if (!customData) {
                 customData = null;

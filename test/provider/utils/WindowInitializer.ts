@@ -115,39 +115,39 @@ const deafultWindowOptions = {
 export const defaultArrangements: ArrangementsType = {
     1: {'default': []},
     2: {
+        // 0
         // 1
-        // 2
         'vertical': [
             [1, 'top-left', 0, 'bottom-left', {x: 10, y: 2}],
         ],
-        // 1 2
+        // 0 1
         'horizontal': [
             [1, 'top-left', 0, 'top-right', {x: 2, y: 10}],
         ]
     },
     3: {
-        // 1 2 3
+        // 0 1 2
         'line': [
             [1, 'bottom-left', 0, 'bottom-right', {x: 2, y: -10}],
             [2, 'bottom-left', 1, 'bottom-right', {x: 2, y: -10}],
         ],
-        //   1
-        // 2
-        //   3
+        //   0
+        // 1
+        //   2
         'vertical-triangle': [
             [2, 'top-left', 0, 'bottom-left', {x: 10, y: 2}],
             [1, 'top-right', 0, 'top-left', {x: -2, y: 102}],
         ],
-        // 1 2
-        //  3
+        // 0 1
+        //  2
         'horizontal-triangle': [
             [1, 'bottom-left', 0, 'bottom-right', {x: 2, y: -10}],
             [2, 'top-left', 0, 'bottom-left', {x: 102, y: 2}],
         ]
     },
     4: {
-        // 1 2
-        // 3 4
+        // 0 1
+        // 2 3
         'square': [
             [1, 'bottom-left', 0, 'bottom-right', {x: 2, y: -10}],
             [2, 'top-right', 0, 'bottom-right', {x: -10, y: 2}],
@@ -155,21 +155,21 @@ export const defaultArrangements: ArrangementsType = {
         ]
     },
     5: {
-        // 1 2
-        //  3
-        // 4 5
+        // 0 1
+        //  2
+        // 3 4
         'hourglass': [
             [0, 'top-left', 0, 'top-left', {x: -100, y: -100}],
             [1, 'bottom-left', 0, 'bottom-right', {x: 2, y: -10}],
             [2, 'top-left', 0, 'bottom-left', {x: 100, y: 2}],
-            [3, 'top-right', 2, 'bottom-left', {x: 95, y: 2}],
-            [4, 'top-left', 2, 'bottom-right', {x: -105, y: 2}],
+            [3, 'top-right', 2, 'bottom-left', {x: 100, y: 2}],
+            [4, 'top-left', 3, 'top-right', {x: 2, y: -10}],
         ]
     },
     7: {
-        //  1 2
-        // 3 4 5
-        //  6 7
+        //  0 1
+        // 2 3 4
+        //  5 6
         'honeycomb': [
             [0, 'top-left', 0, 'top-left', {x: -100, y: -100}],
             [1, 'bottom-left', 0, 'bottom-right', {x: 2, y: -10}],

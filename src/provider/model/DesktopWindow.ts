@@ -1,18 +1,18 @@
 import deepEqual from 'fast-deep-equal';
-import { Identity, Window } from 'hadouken-js-adapter';
+import {Identity, Window} from 'hadouken-js-adapter';
 
-import { TabServiceID } from '../../client/types';
-import { apiHandler, snapService } from '../main';
-import { Signal1, Signal2 } from '../Signal';
-import { promiseMap } from '../snapanddock/utils/async';
-import { isWin10 } from '../snapanddock/utils/platform';
-import { Point } from '../snapanddock/utils/PointUtils';
-import { Rectangle } from '../snapanddock/utils/RectUtils';
+import {TabServiceID} from '../../client/types';
+import {apiHandler, snapService} from '../main';
+import {Signal1, Signal2} from '../Signal';
+import {promiseMap} from '../snapanddock/utils/async';
+import {isWin10} from '../snapanddock/utils/platform';
+import {Point} from '../snapanddock/utils/PointUtils';
+import {Rectangle} from '../snapanddock/utils/RectUtils';
 
-import { DesktopEntity } from './DesktopEntity';
-import { DesktopModel } from './DesktopModel';
-import { DesktopSnapGroup, Snappable } from './DesktopSnapGroup';
-import { DesktopTabGroup } from './DesktopTabGroup';
+import {DesktopEntity} from './DesktopEntity';
+import {DesktopModel} from './DesktopModel';
+import {DesktopSnapGroup, Snappable} from './DesktopSnapGroup';
+import {DesktopTabGroup} from './DesktopTabGroup';
 
 export interface WindowState extends Rectangle {
     center: Point;
@@ -20,7 +20,7 @@ export interface WindowState extends Rectangle {
 
     frame: boolean;
     hidden: boolean;
-    state: 'normal' | 'minimized' | 'maximized';
+    state: 'normal'|'minimized'|'maximized';
 
     icon: string;
     title: string;
@@ -46,7 +46,7 @@ export interface WindowIdentity extends Identity {
  *
  * This type should only ever be used with enums, where each enum value is a power of two.
  */
-export type Mask<T> = T | number;
+export type Mask<T> = T|number;
 
 export enum eTransformType {
     MOVE = 1 << 0,
@@ -109,8 +109,8 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             .then((results: [fin.WindowOptions, boolean, fin.WindowBounds]): WindowState => {
                 const options: fin.WindowOptions = results[0];
                 const bounds: fin.WindowBounds = results[2];
-                const halfSize: Point = { x: bounds.width / 2, y: bounds.height / 2 };
-                const center: Point = { x: bounds.left + halfSize.x, y: bounds.top + halfSize.y };
+                const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
+                const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
 
                 // Apply OS-specific offsets
                 if (isWin10() && options.frame) {
@@ -137,15 +137,15 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             });
     }
 
-    private static isWindow(window: Window | fin.WindowOptions): window is Window {
+    private static isWindow(window: Window|fin.WindowOptions): window is Window {
         return window.hasOwnProperty('identity');
     }
 
-    private static getIdentity(window: Window | fin.WindowOptions): WindowIdentity {
+    private static getIdentity(window: Window|fin.WindowOptions): WindowIdentity {
         if (this.isWindow(window)) {
             return window.identity as WindowIdentity;
         } else {
-            return { uuid: TabServiceID.UUID, name: window.name! };
+            return {uuid: TabServiceID.UUID, name: window.name!};
         }
     }
 
@@ -213,8 +213,8 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
     private temporaryState: Partial<WindowState>;
 
     private snapGroup: DesktopSnapGroup;
-    private tabGroup: DesktopTabGroup | null;
-    private prevGroup: DesktopSnapGroup | null;
+    private tabGroup: DesktopTabGroup|null;
+    private prevGroup: DesktopSnapGroup|null;
     private ready: boolean;
 
     // Tracks event listeners registered on the fin window for easier cleanup.
@@ -222,17 +222,17 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
 
     private userInitiatedBoundsChange = false;
 
-    constructor(model: DesktopModel, group: DesktopSnapGroup, window: fin.WindowOptions | Window, initialState?: WindowState) {
+    constructor(model: DesktopModel, group: DesktopSnapGroup, window: fin.WindowOptions|Window, initialState?: WindowState) {
         super(model, DesktopWindow.getIdentity(window));
 
         this.ready = false;
 
         if (!DesktopWindow.isWindow(window)) {
-            this.window = fin.Window.wrapSync({ uuid: fin.Application.me.uuid, name: window.name });
+            this.window = fin.Window.wrapSync({uuid: fin.Application.me.uuid, name: window.name});
             this.addPendingActions('Add window ' + this.id, fin.Window.create(window).then(async (window: Window) => {
                 this.window = window;
                 this.windowState = await DesktopWindow.getWindowState(window);
-                this.applicationState = { ...this.windowState };
+                this.applicationState = {...this.windowState};
                 this.addListeners();
                 this.ready = true;
             }));
@@ -240,7 +240,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             this.window = window as Window;
             this.addPendingActions('Fetch initial window state ' + this.id, DesktopWindow.getWindowState(this.window).then((state: WindowState) => {
                 this.windowState = state;
-                this.applicationState = { ...this.windowState };
+                this.applicationState = {...this.windowState};
                 this.addListeners();
                 this.ready = true;
             }));
@@ -252,8 +252,8 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         if (!initialState) {
             initialState = this.createTemporaryState();
         }
-        this.windowState = { ...initialState };
-        this.applicationState = { ...initialState };
+        this.windowState = {...initialState};
+        this.applicationState = {...initialState};
         this.modifiedState = {};
         this.temporaryState = {};
         this.snapGroup = group;
@@ -287,8 +287,8 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
 
     private createTemporaryState(): WindowState {
         return {
-            center: { x: 500, y: 300 },
-            halfSize: { x: 200, y: 100 },
+            center: {x: 500, y: 300},
+            halfSize: {x: 200, y: 100},
             frame: false,
             hidden: false,
             state: 'normal',
@@ -303,7 +303,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         };
     }
 
-    public get [Symbol.toStringTag]() {
+    public get[Symbol.toStringTag]() {
         return this.id;
     }
 
@@ -325,11 +325,11 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         return this.snapGroup;
     }
 
-    public getTabGroup(): DesktopTabGroup | null {
+    public getTabGroup(): DesktopTabGroup|null {
         return this.tabGroup;
     }
 
-    public getPrevGroup(): DesktopSnapGroup | null {
+    public getPrevGroup(): DesktopSnapGroup|null {
         return this.prevGroup;
     }
 
@@ -373,10 +373,10 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         const delta: Partial<WindowState> = {};
 
         if (offset) {
-            delta.center = { x: this.windowState.center.x + offset.x, y: this.windowState.center.y + offset.y };
+            delta.center = {x: this.windowState.center.x + offset.x, y: this.windowState.center.y + offset.y};
         }
         if (newHalfSize) {
-            delta.center = delta.center || { ...this.windowState.center };
+            delta.center = delta.center || {...this.windowState.center};
             delta.halfSize = newHalfSize;
 
             delta.center.x += newHalfSize.x - this.windowState.halfSize.x;
@@ -386,7 +386,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         return this.updateState(delta, ActionOrigin.SERVICE);
     }
 
-    public setTabGroup(group: DesktopTabGroup | null): Promise<void> {
+    public setTabGroup(group: DesktopTabGroup|null): Promise<void> {
         if (group) {
             console.log('Added ' + this.id + ' to ' + group.ID);
         } else if (this.tabGroup) {
@@ -399,10 +399,10 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         if (this.identity.uuid !== TabServiceID.UUID) {
             if (group) {
                 // Hide tabbed windows in taskbar
-                return this.ready ? this.updateState({ showTaskbarIcon: false }, ActionOrigin.SERVICE) : Promise.resolve();
+                return this.ready ? this.updateState({showTaskbarIcon: false}, ActionOrigin.SERVICE) : Promise.resolve();
             } else if (this.windowState.showTaskbarIcon !== this.applicationState.showTaskbarIcon) {
                 // Revert taskbar icon to application-specified state
-                return this.ready ? this.updateState({ showTaskbarIcon: this.applicationState.showTaskbarIcon }, ActionOrigin.SERVICE) : Promise.resolve();
+                return this.ready ? this.updateState({showTaskbarIcon: this.applicationState.showTaskbarIcon}, ActionOrigin.SERVICE) : Promise.resolve();
             }
         }
 
@@ -557,7 +557,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         // Apply changes to the window (unless we're reacting to an external change that has already happened)
         if (origin !== ActionOrigin.APPLICATION) {
             const window = this.window;
-            const { center, halfSize, state, hidden, ...options } = delta;
+            const {center, halfSize, state, hidden, ...options} = delta;
             const optionsToChange: (keyof WindowState)[] = Object.keys(options) as (keyof WindowState)[];
 
             // Apply visibility
@@ -589,12 +589,12 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
                 let newCenter = center || state.center, newHalfSize = halfSize || state.halfSize;
 
                 if (isWin10() && state.frame) {
-                    newCenter = { x: newCenter.x, y: newCenter.y + 3.5 };
-                    newHalfSize = { x: newHalfSize.x + 7, y: newHalfSize.y + 3.5 };
+                    newCenter = {x: newCenter.x, y: newCenter.y + 3.5};
+                    newHalfSize = {x: newHalfSize.x + 7, y: newHalfSize.y + 3.5};
                 }
 
                 actions.push(window.setBounds(
-                    { left: newCenter.x - newHalfSize.x, top: newCenter.y - newHalfSize.y, width: newHalfSize.x * 2, height: newHalfSize.y * 2 }));
+                    {left: newCenter.x - newHalfSize.x, top: newCenter.y - newHalfSize.y, width: newHalfSize.x * 2, height: newHalfSize.y * 2}));
             }
 
             // Apply options
@@ -625,7 +625,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             this.temporaryState[property] = this.temporaryState[property] || this.windowState[property];
             this.windowState[property] = value;
 
-            return this.updateState({ [property]: value }, ActionOrigin.SERVICE_TEMPORARY);
+            return this.updateState({[property]: value}, ActionOrigin.SERVICE_TEMPORARY);
         }
     }
 
@@ -633,7 +633,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         if (this.temporaryState.hasOwnProperty(property)) {
             const value = this.temporaryState[property]!;
             this.windowState[property] = value;
-            return this.updateState({ [property]: value }, ActionOrigin.SERVICE);  // TODO: Is this the right origin type?
+            return this.updateState({[property]: value}, ActionOrigin.SERVICE);  // TODO: Is this the right origin type?
         }
     }
 
@@ -656,7 +656,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
      */
     private checkBounds(bounds: fin.WindowBounds): fin.WindowBounds {
         if (isWin10() && this.windowState.frame) {
-            return { left: bounds.left + 7, top: bounds.top, width: bounds.width - 14, height: bounds.height - 7 };
+            return {left: bounds.left + 7, top: bounds.top, width: bounds.width - 14, height: bounds.height - 7};
         } else {
             return bounds;
         }
@@ -669,33 +669,33 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         this.registerListener('closed', this.handleClosed.bind(this));
         this.registerListener('focused', this.handleFocused.bind(this));
         this.registerListener('group-changed', this.handleGroupChanged.bind(this));
-        this.registerListener('hidden', () => this.updateState({ hidden: true }, ActionOrigin.APPLICATION));
+        this.registerListener('hidden', () => this.updateState({hidden: true}, ActionOrigin.APPLICATION));
         this.registerListener('maximized', () => {
-            this.updateState({ state: 'maximized' }, ActionOrigin.APPLICATION);
+            this.updateState({state: 'maximized'}, ActionOrigin.APPLICATION);
         });
         this.registerListener('minimized', () => {
-            this.updateState({ state: 'minimized' }, ActionOrigin.APPLICATION);
+            this.updateState({state: 'minimized'}, ActionOrigin.APPLICATION);
             this.snapGroup.windows.forEach(window => {
                 if (window !== this) {
-                    (window as DesktopWindow).applyProperties({ state: 'minimized' });
+                    (window as DesktopWindow).applyProperties({state: 'minimized'});
                 }
             });
         });
         this.registerListener('restored', () => {
-            this.updateState({ state: 'normal' }, ActionOrigin.APPLICATION);
+            this.updateState({state: 'normal'}, ActionOrigin.APPLICATION);
             this.snapGroup.windows.forEach(window => {
                 if (window !== this) {
                     if (this.tabGroup && window !== this.tabGroup.window) {
                         // Window will set a window to visible when minimizing. Need to restore window visibility.
-                        (window as DesktopWindow).applyProperties({ state: 'normal', hidden: true });
+                        (window as DesktopWindow).applyProperties({state: 'normal', hidden: true});
                     } else {
                         // Restore window, without affecting visibility
-                        (window as DesktopWindow).applyProperties({ state: 'normal' });
+                        (window as DesktopWindow).applyProperties({state: 'normal'});
                     }
                 }
             });
         });
-        this.registerListener('shown', () => this.updateState({ hidden: false }, ActionOrigin.APPLICATION));
+        this.registerListener('shown', () => this.updateState({hidden: false}, ActionOrigin.APPLICATION));
     }
 
     private registerListener<K extends keyof fin.OpenFinWindowEventMap>(eventType: K, handler: (event: fin.OpenFinWindowEventMap[K]) => void) {
@@ -715,10 +715,10 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
 
     private handleBoundsChanged(event: fin.WindowBoundsEvent): void {
         const bounds: fin.WindowBounds = this.checkBounds(event);
-        const halfSize: Point = { x: bounds.width / 2, y: bounds.height / 2 };
-        const center: Point = { x: bounds.left + halfSize.x, y: bounds.top + halfSize.y };
+        const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
+        const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
 
-        this.updateState({ center, halfSize }, ActionOrigin.APPLICATION);
+        this.updateState({center, halfSize}, ActionOrigin.APPLICATION);
 
         if (this.userInitiatedBoundsChange) {
             // Convert 'changeType' into our enum type
@@ -736,13 +736,13 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
 
     private handleBoundsChanging(event: fin.WindowBoundsEvent): void {
         const bounds: fin.WindowBounds = this.checkBounds(event);
-        const halfSize: Point = { x: bounds.width / 2, y: bounds.height / 2 };
-        const center: Point = { x: bounds.left + halfSize.x, y: bounds.top + halfSize.y };
+        const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
+        const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
 
         // Convert 'changeType' into our enum type
         const type: Mask<eTransformType> = event.changeType + 1;
 
-        this.updateState({ center, halfSize }, ActionOrigin.APPLICATION);
+        this.updateState({center, halfSize}, ActionOrigin.APPLICATION);
 
         if (this.userInitiatedBoundsChange) {
             this.onTransform.emit(this, type);
@@ -792,24 +792,24 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
 
         console.log('Received window group changed event: ', event);
 
-        const targetWindow: DesktopWindow | null = this.model.getWindow({ uuid: event.targetWindowAppUuid, name: event.targetWindowName });
-        const targetGroup: DesktopSnapGroup | null = targetWindow ? targetWindow.getSnapGroup() : null;
+        const targetWindow: DesktopWindow|null = this.model.getWindow({uuid: event.targetWindowAppUuid, name: event.targetWindowName});
+        const targetGroup: DesktopSnapGroup|null = targetWindow ? targetWindow.getSnapGroup() : null;
 
         switch (event.reason) {
             case 'leave':
                 this.addPendingActions(
                     'Native group handler - remove from group',
                     Promise.resolve().then((async () => {
-                        if (this.snapGroup.length > 1 &&
-                            deepEqual(
-                                this.snapGroup.windows.map(w => w.getIdentity())
-                                    .sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid)),
-                                event.sourceGroup.map(w => ({ uuid: w.appUuid, name: w.windowName }))
-                                    .concat(this.identity)
-                                    .sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid)))) {
-                            return this.dockToGroup(new DesktopSnapGroup());
-                        }
-                    }).bind(this)));
+                                               if (this.snapGroup.length > 1 &&
+                                                   deepEqual(
+                                                       this.snapGroup.windows.map(w => w.getIdentity())
+                                                           .sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid)),
+                                                       event.sourceGroup.map(w => ({uuid: w.appUuid, name: w.windowName}))
+                                                           .concat(this.identity)
+                                                           .sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid)))) {
+                                                   return this.dockToGroup(new DesktopSnapGroup());
+                                               }
+                                           }).bind(this)));
                 break;
             case 'join':
                 if (targetWindow && targetGroup) {
@@ -818,14 +818,12 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
                         Promise.resolve().then(
                             (async () => {
                                 if (!deepEqual(
-                                    this.snapGroup.windows.map(w => w.getIdentity())
-                                        .sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid)),
-                                    event.targetGroup.map(w => ({ uuid: w.appUuid, name: w.windowName }))
-                                        .sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid)))) {
-
+                                        this.snapGroup.windows.map(w => w.getIdentity())
+                                            .sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid)),
+                                        event.targetGroup.map(w => ({uuid: w.appUuid, name: w.windowName}))
+                                            .sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid)))) {
                                     return this.addToSnapGroup(targetGroup);
                                 }
-
                             }).bind(this)));
                 }
                 break;

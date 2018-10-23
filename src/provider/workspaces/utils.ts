@@ -62,10 +62,12 @@ export const createNormalPlaceholder = async (win: WindowState) => {
 
     const actualWindow = await fin.Window.wrap({uuid, name});
     const updateOptionsAndShow = async () => {
-        await actualWindow.removeListener('shown', updateOptionsAndShow);
+        await actualWindow.removeListener('show-requested', updateOptionsAndShow);
+        await actualWindow.setBounds(win);
+        await actualWindow.showAt(left, top);
         await placeholder.close();
     };
-    await actualWindow.addListener('shown', updateOptionsAndShow);
+    await actualWindow.addListener('show-requested', updateOptionsAndShow);
 
     return placeholder;
 };

@@ -188,10 +188,8 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
                     }
                 }
 
-                // Set up listener for app window shown to run and position it.
                 if (ofAppNotRunning) {
                     await ofAppNotRunning.run().catch(console.log);
-                    await positionWindow(app.mainWindow);
                 }
                 // SHOULD WE RETURN DEFAULT RESPONSE HERE?!?
                 return defaultResponse;

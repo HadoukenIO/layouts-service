@@ -1,10 +1,7 @@
 import {tabService} from '../main';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
-import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {DesktopWindow, eTransformType, Mask, WindowIdentity} from '../model/DesktopWindow';
-import {ApplicationConfigManager} from '../tabbing/components/ApplicationConfigManager';
-import {TabService} from '../tabbing/TabService';
 
 import {EXPLODE_MOVE_SCALE, UNDOCK_MOVE_DISTANCE} from './Config';
 import {eSnapValidity, Resolver, SnapTarget} from './Resolver';
@@ -159,6 +156,23 @@ export class SnapService {
         // NOTE: 'modifiedWindow' may no longer exist (if validation is being performed because a window was closed)
 
         // TODO (SERVICE-130)
+
+        // Build adjacency list
+        // const adjacencyList = new AdjacencyList();
+        // for (const win of group.windows) {
+        //     adjacencyList.addWindow(win);
+        // }
+
+        // const contiguousWindowSets = adjacencyList.getAllContiguousSets();
+        const contiguousWindowSets = this.getContiguousWindows(group.windows);
+        if (contiguousWindowSets.length > 1) {                             // Group is disjointed. Need to split.
+            for (const windowsToGroup of contiguousWindowSets.slice(1)) {  // Leave first set as-is. Move others into own groups.
+                const newGroup = new DesktopSnapGroup();
+                for (const windowToGroup of windowsToGroup) {
+                    windowToGroup.dockToGroup(newGroup);
+                }
+            }
+        }
     }
 
     private snapGroup(activeGroup: DesktopSnapGroup, type: Mask<eTransformType>): void {
@@ -222,5 +236,42 @@ export class SnapService {
             }
         }
         return totalOffset;
+    }
+
+    private getContiguousWindows(windows: Snappable[]): Snappable[][] {
+        const adjacencyList: Snappable[][] = new Array<Snappable[]>(windows.length);
+
+        // Build adjacency list
+        for (let i = 0; i < windows.length; i++) {
+            adjacencyList[i] = [];
+            for (let j = 0; j < windows.length; j++) {
+                if (i !== j && RectUtils.distance(windows[i].getState(), windows[j].getState()).border(0)) {
+                    adjacencyList[i].push(windows[j]);
+                }
+            }
+        }
+
+        // Find all contiguous sets
+        const contiguousSets: Snappable[][] = [];
+        const unvisited: Snappable[] = windows.slice();
+
+        while (unvisited.length > 0) {
+            const visited: Snappable[] = [];
+            dfs(unvisited[0], visited);
+            contiguousSets.push(visited);
+        }
+
+        return contiguousSets;
+
+        function dfs(startWindow: Snappable, visited: Snappable[]) {
+            if (visited.includes(startWindow)) {
+                return;
+            }
+            visited.push(startWindow);
+            unvisited.splice(unvisited.indexOf(startWindow), 1);
+            for (let i = 0; i < adjacencyList[windows.indexOf(startWindow)].length; i++) {
+                dfs(adjacencyList[windows.indexOf(startWindow)][i], visited);
+            }
+        }
     }
 }

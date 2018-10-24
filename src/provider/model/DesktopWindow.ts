@@ -729,8 +729,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             // Setting this here instead of in 'end-user-bounds-changing' event to ensure we are still synced when this method is called.
             this.userInitiatedBoundsChange = false;
         } else {
-            // I feel like this shouldn't be here. Why would moving a window invalidate a snap group. All of the windows will move together.
-            // this.onModified.emit(this);
+            this.onModified.emit(this);
         }
     }
 

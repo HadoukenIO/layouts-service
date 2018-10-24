@@ -154,16 +154,6 @@ export class SnapService {
     private validateGroup(group: DesktopSnapGroup, modifiedWindow: DesktopWindow): void {
         // Ensure 'group' is still a valid, contiguous group.
         // NOTE: 'modifiedWindow' may no longer exist (if validation is being performed because a window was closed)
-
-        // TODO (SERVICE-130)
-
-        // Build adjacency list
-        // const adjacencyList = new AdjacencyList();
-        // for (const win of group.windows) {
-        //     adjacencyList.addWindow(win);
-        // }
-
-        // const contiguousWindowSets = adjacencyList.getAllContiguousSets();
         const contiguousWindowSets = this.getContiguousWindows(group.windows);
         if (contiguousWindowSets.length > 1) {                             // Group is disjointed. Need to split.
             for (const windowsToGroup of contiguousWindowSets.slice(1)) {  // Leave first set as-is. Move others into own groups.

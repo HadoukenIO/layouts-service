@@ -8,9 +8,9 @@ import {undockWindow} from '../utils/snapServiceUtils';
 
 interface ValidateGroupOptions extends CreateWindowData {
     arrangement: string;
-    windowToUndock: number;  // Zero-indexed
-    remainingWindowGroups: number[][];
-    undockType: 'service'|'runtime';
+    undockIndex: number;  // Zero-indexed
+    remainingGroups: number[][];
+    undockBy: 'service'|'runtime';
 }
 
 const undockFunctions = {
@@ -57,41 +57,37 @@ const customArrangements: ArrangementsType = Object.assign({}, defaultArrangemen
 });
 
 testParameterized<ValidateGroupOptions, WindowContext>(
-    'Validate SnapGroup',
+    (testOptions: ValidateGroupOptions): string => `Validate Group - ${testOptions.frame ? 'framed' : 'frameless'} - ${testOptions.windowCount} window ${
+        testOptions.arrangement} - window ${testOptions.undockIndex} ungrouped by ${testOptions.undockBy}`,
     [
-        {frame: true, undockType: 'service', windowCount: 3, arrangement: 'line', windowToUndock: 1, remainingWindowGroups: [[0], [1], [2]]},
-        {frame: true, undockType: 'service', windowCount: 3, arrangement: 'line', windowToUndock: 2, remainingWindowGroups: [[0, 1], [2]]},
-        {frame: true, undockType: 'service', windowCount: 3, arrangement: 'vertical-triangle', windowToUndock: 1, remainingWindowGroups: [[0, 2], [1]]},
-        {frame: true, undockType: 'service', windowCount: 3, arrangement: 'vertical-triangle', windowToUndock: 2, remainingWindowGroups: [[0, 1], [2]]},
-        {frame: true, undockType: 'service', windowCount: 5, arrangement: 'hourglass', windowToUndock: 2, remainingWindowGroups: [[0, 1], [2], [3, 4]]},
-        {frame: true, undockType: 'service', windowCount: 9, arrangement: 'dumbell', windowToUndock: 4, remainingWindowGroups: [[0, 1,2,3], [4], [5,6,7,8]]},
-        {frame: true, undockType: 'service', windowCount: 9, arrangement: 'x', windowToUndock: 2, remainingWindowGroups: [[0,1],[3,4],[5,6],[7,8],[2]]},
-
-        {frame: true, undockType: 'runtime', windowCount: 3, arrangement: 'line', windowToUndock: 1, remainingWindowGroups: [[0], [1], [2]]},
-        {frame: true, undockType: 'runtime', windowCount: 3, arrangement: 'line', windowToUndock: 2, remainingWindowGroups: [[0, 1], [2]]},
-        {frame: true, undockType: 'runtime', windowCount: 3, arrangement: 'vertical-triangle', windowToUndock: 1, remainingWindowGroups: [[0, 2], [1]]},
-        {frame: true, undockType: 'runtime', windowCount: 3, arrangement: 'vertical-triangle', windowToUndock: 2, remainingWindowGroups: [[0, 1], [2]]},
-        {frame: true, undockType: 'runtime', windowCount: 5, arrangement: 'hourglass', windowToUndock: 2, remainingWindowGroups: [[0, 1], [2], [3,4]]},
-        {frame: true, undockType: 'runtime', windowCount: 9, arrangement: 'dumbell', windowToUndock: 4, remainingWindowGroups: [[0, 1,2,3], [4], [5,6,7,8]]},
-        {frame: true, undockType: 'runtime', windowCount: 9, arrangement: 'x', windowToUndock: 2, remainingWindowGroups: [[0,1],[3,4],[5,6],[7,8],[2]]},
-
-
-        {frame: false, undockType: 'service', windowCount: 3, arrangement: 'line', windowToUndock: 1, remainingWindowGroups: [[0], [1], [2]]},
-        {frame: false, undockType: 'service', windowCount: 3, arrangement: 'line', windowToUndock: 2, remainingWindowGroups: [[0, 1], [2]]},
-        {frame: false, undockType: 'service', windowCount: 3, arrangement: 'vertical-triangle', windowToUndock: 1, remainingWindowGroups: [[0, 2], [1]]},
-        {frame: false, undockType: 'service', windowCount: 3, arrangement: 'vertical-triangle', windowToUndock: 2, remainingWindowGroups: [[0, 1], [2]]},
-        {frame: false, undockType: 'service', windowCount: 5, arrangement: 'hourglass', windowToUndock: 2, remainingWindowGroups: [[0, 1], [2], [3, 4]]},
-        {frame: false, undockType: 'service', windowCount: 9, arrangement: 'dumbell', windowToUndock: 4, remainingWindowGroups: [[0, 1,2,3], [4], [5,6,7,8]]},
-        {frame: false, undockType: 'service', windowCount: 9, arrangement: 'x', windowToUndock: 2, remainingWindowGroups: [[0,1],[3,4],[5,6],[7,8],[2]]},
-        
-        {frame: false, undockType: 'runtime', windowCount: 3, arrangement: 'line', windowToUndock: 1, remainingWindowGroups: [[0], [1], [2]]},
-        {frame: false, undockType: 'runtime', windowCount: 3, arrangement: 'line', windowToUndock: 2, remainingWindowGroups: [[0, 1], [2]]},
-        {frame: false, undockType: 'runtime', windowCount: 3, arrangement: 'vertical-triangle', windowToUndock: 1, remainingWindowGroups: [[0, 2], [1]]},
-        {frame: false, undockType: 'runtime', windowCount: 3, arrangement: 'vertical-triangle', windowToUndock: 2, remainingWindowGroups: [[0, 1], [2]]},
-        {frame: false, undockType: 'runtime', windowCount: 5, arrangement: 'hourglass', windowToUndock: 2, remainingWindowGroups: [[0, 1], [2], [3,4]]},
-        {frame: false, undockType: 'runtime', windowCount: 9, arrangement: 'dumbell', windowToUndock: 4, remainingWindowGroups: [[0, 1,2,3], [4], [5,6,7,8]]},
-        {frame: false, undockType: 'runtime', windowCount: 9, arrangement: 'x', windowToUndock: 2, remainingWindowGroups: [[0,1],[3,4],[5,6],[7,8],[2]]},
-        
+        {frame: true, undockBy: 'service', windowCount: 3, arrangement: 'line', undockIndex: 1, remainingGroups: [[0], [1], [2]]},
+        {frame: true, undockBy: 'service', windowCount: 3, arrangement: 'line', undockIndex: 2, remainingGroups: [[0, 1], [2]]},
+        {frame: true, undockBy: 'service', windowCount: 3, arrangement: 'vertical-triangle', undockIndex: 1, remainingGroups: [[0, 2], [1]]},
+        {frame: true, undockBy: 'service', windowCount: 3, arrangement: 'vertical-triangle', undockIndex: 2, remainingGroups: [[0, 1], [2]]},
+        {frame: true, undockBy: 'service', windowCount: 5, arrangement: 'hourglass', undockIndex: 2, remainingGroups: [[0, 1], [2], [3, 4]]},
+        {frame: true, undockBy: 'service', windowCount: 9, arrangement: 'dumbell', undockIndex: 4, remainingGroups: [[0, 1, 2, 3], [4], [5, 6, 7, 8]]},
+        {frame: true, undockBy: 'service', windowCount: 9, arrangement: 'x', undockIndex: 2, remainingGroups: [[0, 1], [3, 4], [5, 6], [7, 8], [2]]},
+        {frame: true, undockBy: 'runtime', windowCount: 3, arrangement: 'line', undockIndex: 1, remainingGroups: [[0], [1], [2]]},
+        {frame: true, undockBy: 'runtime', windowCount: 3, arrangement: 'line', undockIndex: 2, remainingGroups: [[0, 1], [2]]},
+        {frame: true, undockBy: 'runtime', windowCount: 3, arrangement: 'vertical-triangle', undockIndex: 1, remainingGroups: [[0, 2], [1]]},
+        {frame: true, undockBy: 'runtime', windowCount: 3, arrangement: 'vertical-triangle', undockIndex: 2, remainingGroups: [[0, 1], [2]]},
+        {frame: true, undockBy: 'runtime', windowCount: 5, arrangement: 'hourglass', undockIndex: 2, remainingGroups: [[0, 1], [2], [3, 4]]},
+        {frame: true, undockBy: 'runtime', windowCount: 9, arrangement: 'dumbell', undockIndex: 4, remainingGroups: [[0, 1, 2, 3], [4], [5, 6, 7, 8]]},
+        {frame: true, undockBy: 'runtime', windowCount: 9, arrangement: 'x', undockIndex: 2, remainingGroups: [[0, 1], [3, 4], [5, 6], [7, 8], [2]]},
+        {frame: false, undockBy: 'service', windowCount: 3, arrangement: 'line', undockIndex: 1, remainingGroups: [[0], [1], [2]]},
+        {frame: false, undockBy: 'service', windowCount: 3, arrangement: 'line', undockIndex: 2, remainingGroups: [[0, 1], [2]]},
+        {frame: false, undockBy: 'service', windowCount: 3, arrangement: 'vertical-triangle', undockIndex: 1, remainingGroups: [[0, 2], [1]]},
+        {frame: false, undockBy: 'service', windowCount: 3, arrangement: 'vertical-triangle', undockIndex: 2, remainingGroups: [[0, 1], [2]]},
+        {frame: false, undockBy: 'service', windowCount: 5, arrangement: 'hourglass', undockIndex: 2, remainingGroups: [[0, 1], [2], [3, 4]]},
+        {frame: false, undockBy: 'service', windowCount: 9, arrangement: 'dumbell', undockIndex: 4, remainingGroups: [[0, 1, 2, 3], [4], [5, 6, 7, 8]]},
+        {frame: false, undockBy: 'service', windowCount: 9, arrangement: 'x', undockIndex: 2, remainingGroups: [[0, 1], [3, 4], [5, 6], [7, 8], [2]]},
+        {frame: false, undockBy: 'runtime', windowCount: 3, arrangement: 'line', undockIndex: 1, remainingGroups: [[0], [1], [2]]},
+        {frame: false, undockBy: 'runtime', windowCount: 3, arrangement: 'line', undockIndex: 2, remainingGroups: [[0, 1], [2]]},
+        {frame: false, undockBy: 'runtime', windowCount: 3, arrangement: 'vertical-triangle', undockIndex: 1, remainingGroups: [[0, 2], [1]]},
+        {frame: false, undockBy: 'runtime', windowCount: 3, arrangement: 'vertical-triangle', undockIndex: 2, remainingGroups: [[0, 1], [2]]},
+        {frame: false, undockBy: 'runtime', windowCount: 5, arrangement: 'hourglass', undockIndex: 2, remainingGroups: [[0, 1], [2], [3, 4]]},
+        {frame: false, undockBy: 'runtime', windowCount: 9, arrangement: 'dumbell', undockIndex: 4, remainingGroups: [[0, 1, 2, 3], [4], [5, 6, 7, 8]]},
+        {frame: false, undockBy: 'runtime', windowCount: 9, arrangement: 'x', undockIndex: 2, remainingGroups: [[0, 1], [3, 4], [5, 6], [7, 8], [2]]},
     ],
     createWindowTest(async (t, testOptions: ValidateGroupOptions) => {
         const windows = t.context.windows;
@@ -99,11 +95,11 @@ testParameterized<ValidateGroupOptions, WindowContext>(
         await assertGrouped(t, ...windows);
         await assertAllContiguous(t, windows);
 
-        await undockFunctions[testOptions.undockType](windows[testOptions.windowToUndock]);
+        await undockFunctions[testOptions.undockBy](windows[testOptions.undockIndex]);
 
-        await assertNotGrouped(windows[testOptions.windowToUndock], t);
+        await assertNotGrouped(windows[testOptions.undockIndex], t);
 
-        for (const group of testOptions.remainingWindowGroups) {
+        for (const group of testOptions.remainingGroups) {
             if (group.length === 1) {
                 await assertNotGrouped(windows[group[0]], t);
             } else {

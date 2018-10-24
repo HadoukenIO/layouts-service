@@ -11,8 +11,8 @@ interface TwoWindowTestOptions extends CreateWindowData {
 }
 
 testParameterized<TwoWindowTestOptions, WindowContext>(
-    (testOptions: TwoWindowTestOptions): string =>
-        `Basic SnapAndDock - ${testOptions.windowCount} windows - ${testOptions.frame} ${testOptions.side ? `- ${testOptions.side}` : ''}`,
+    (testOptions: TwoWindowTestOptions): string => `Basic SnapAndDock - ${testOptions.windowCount} windows - ${testOptions.frame ? 'framed' : 'frameless'} - ${
+        testOptions.side ? `- ${testOptions.side}` : ''}`,
     [
         {frame: true, windowCount: 2, side: 'top'},
         {frame: true, windowCount: 2, side: 'bottom'},

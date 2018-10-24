@@ -2,7 +2,7 @@ import deepEqual from 'fast-deep-equal';
 import {Identity, Window} from 'hadouken-js-adapter';
 
 import {TabServiceID} from '../../client/types';
-import {apiHandler, snapService} from '../main';
+import {apiHandler} from '../main';
 import {Signal1, Signal2} from '../Signal';
 import {promiseMap} from '../snapanddock/utils/async';
 import {isWin10} from '../snapanddock/utils/platform';

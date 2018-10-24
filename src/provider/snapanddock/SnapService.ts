@@ -61,9 +61,13 @@ export class SnapService {
                 'CommandOrControl+Shift+U',
                 () => {
                     fin.desktop.System.getFocusedWindow(focusedWindow => {
-                        if (focusedWindow !== null && this.model.getWindow(focusedWindow)) {
+                        if (focusedWindow !== null) {
                             console.log('Global hotkey invoked on window', focusedWindow);
-                            this.undock(focusedWindow);
+                            const focusedDesktopWindow =  this.model.getWindow(focusedWindow);
+                            // Ignore this event for tabbed windows until tab/snap is properly integrated
+                            if (focusedDesktopWindow && focusedDesktopWindow.getTabGroup() === null) {
+                                this.undock(focusedWindow);
+                            }
                         }
                     });
                 })

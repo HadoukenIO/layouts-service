@@ -254,13 +254,14 @@ export class SnapService {
         return contiguousSets;
 
         function dfs(startWindow: Snappable, visited: Snappable[]) {
+            const startIndex = windows.indexOf(startWindow);
             if (visited.includes(startWindow)) {
                 return;
             }
             visited.push(startWindow);
             unvisited.splice(unvisited.indexOf(startWindow), 1);
-            for (let i = 0; i < adjacencyList[windows.indexOf(startWindow)].length; i++) {
-                dfs(adjacencyList[windows.indexOf(startWindow)][i], visited);
+            for (let i = 0; i < adjacencyList[startIndex].length; i++) {
+                dfs(adjacencyList[startIndex][i], visited);
             }
         }
     }

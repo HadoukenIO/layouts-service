@@ -798,14 +798,12 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
 
         switch (event.reason) {
             case 'leave':
-
-                return this.snapGroup.length > 1 &&
-                        compareSnapAndEventWindowArrays(
-                            this.snapGroup.windows, event.sourceGroup.concat({appUuid: this.identity.uuid, windowName: this.identity.name})) ?
-                    this.dockToGroup(new DesktopSnapGroup()) :
-                    Promise.resolve();
-
-
+                const mofifiedSourceGroup = event.sourceGroup.concat({appUuid: this.identity.uuid, windowName: this.identity.name});
+                if (this.snapGroup.length > 1 && compareSnapAndEventWindowArrays(this.snapGroup.windows, mofifiedSourceGroup)) {
+                    return this.dockToGroup(new DesktopSnapGroup());
+                } else {
+                    return Promise.resolve();
+                }
             case 'join':
                 if (targetWindow && targetGroup) {
                     return compareSnapAndEventWindowArrays(this.snapGroup.windows, event.targetGroup) ? Promise.resolve() : this.addToSnapGroup(targetGroup);
@@ -814,7 +812,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
 
             case 'merge':
                 if (targetWindow && targetGroup) {
-                    this.snapGroup.windows.forEach((window: Snappable) => {  // TODO: Test snap groups that contain tabs
+                    this.snapGroup.windows.forEach((window: Snappable) => {  // TODO (SERVICE-200): Test snap groups that contain tabs
                         // Merge events are never triggered inside the service, so we do not need the same guards as join/leave
                         return window.dockToGroup(targetGroup);
                     });

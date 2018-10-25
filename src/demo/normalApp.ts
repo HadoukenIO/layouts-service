@@ -10,13 +10,11 @@ export interface Workspace {
     layout: Layout;
 }
 
-declare var window: _Window&{forgetMe: (identity: Identity) => void};
-
 let numChildren = 0;
 const launchDir = location.href.slice(0, location.href.lastIndexOf('/'));
 
 export async function createChild(parentWindowName: string): Promise<void> {
-    const win = await openChild(parentWindowName + ' -  win' + numChildren, numChildren);
+    await openChild(parentWindowName + ' -  win' + numChildren, numChildren);
 }
 
 export async function openChild(name: string, i: number, frame = true, url?: string, bounds?: Bounds) {
@@ -56,7 +54,7 @@ export async function onAppRes(layoutApp: LayoutApp): Promise<LayoutApp> {
     const openWindows = await ofApp.getChildWindows();
     const openAndPosition = layoutApp.childWindows.map(async (win: WindowState, index: number) => {
         if (!openWindows.some((w: _Window) => w.identity.name === win.name)) {
-            const ofWin = await openChild(win.name, index, win.frame, win.info.url, win);
+            await openChild(win.name, index, win.frame, win.info.url, win);
         } else {
             await positionWindow(win);
         }

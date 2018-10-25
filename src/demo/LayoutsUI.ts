@@ -14,42 +14,11 @@ import * as Layouts from '../client/main';
 
 declare var window: _Window&{forgetMe: (identity: Identity) => void};
 
-let numChildren = 0;
 let numTabbedWindows = 0;
 const launchDir = location.href.slice(0, location.href.lastIndexOf('/'));
 const forgetWindows: Identity[] = [];
 
 window.forgetMe = forgetMe;
-
-// Positions a window when it is restored.
-const positionWindow = async (win: WindowState) => {
-    try {
-        const ofWin = await fin.Window.wrap(win);
-        await ofWin.setBounds(win);
-        if (win.isTabbed) {
-            return;
-        }
-        await ofWin.leaveGroup();
-
-
-        // COMMENTED OUT FOR DEMO
-        if (win.state === 'normal') {
-            await ofWin.restore();
-        } else if (win.state === 'minimized') {
-            await ofWin.minimize();
-        } else if (win.state === 'maximized') {
-            await ofWin.maximize();
-        }
-
-        if (win.isShowing) {
-            await ofWin.show();
-        } else {
-            await ofWin.hide();
-        }
-    } catch (e) {
-        console.error('position window error', e);
-    }
-};
 
 export async function setLayout(layoutParam?: Layout) {
     const id = (document.getElementById('layoutName') as HTMLTextAreaElement).value;
@@ -112,26 +81,6 @@ export async function restoreLayout() {
     document.getElementById('showLayout')!.innerHTML = JSON.stringify(afterLayout, null, 2);
 }
 
-export async function createChild(parentWindowName: string): Promise<void> {
-    openChild(parentWindowName + ' -  win' + numChildren, numChildren);
-    numChildren++;
-}
-
-export function openChild(name: string, i: number, frame = true, url?: string) {
-    const win = fin.Window.create({
-        url: url || `${launchDir}/demo-window.html`,
-        autoShow: false,
-        defaultHeight: 250 + 50 * i,
-        defaultWidth: 250 + 50 * i,
-        defaultLeft: 320 * (i % 3),
-        defaultTop: i > 2 ? 400 : 50,
-        saveWindowState: false,
-        frame,
-        name
-    });
-    return win;
-}
-
 export async function createAppFromManifest2() {
     const appUrl = `${launchDir}/app2.json`;
     console.log('appurl', appUrl);
@@ -187,7 +136,7 @@ export function createSnapWindows(): void {
     // Create snap windows
     fin.desktop.main(() => {
         for (let i = 0; i < 6; i++) {
-            const unused = new fin.desktop.Window(
+            fin.Window.create(
                 {
                     url: `${launchDir}/frameless-window.html`,
                     autoShow: true,
@@ -198,9 +147,9 @@ export function createSnapWindows(): void {
                     saveWindowState: false,
                     frame: false,
                     name: 'Window' + (i + 1),
-                },
-                console.log,
-                console.error);
+                })
+                .then(console.log)
+                .catch(console.log);
         }
     });
 }
@@ -218,26 +167,6 @@ export function createTabbedWindow(page: string) {
             app.run();
             numTabbedWindows++;
         });
-}
-
-async function onAppRes(layoutApp: LayoutApp): Promise<LayoutApp> {
-    console.log('Apprestore called:', layoutApp);
-    const ofApp = fin.Application.getCurrentSync();
-    const openWindows = await ofApp.getChildWindows();
-    const openAndPosition = layoutApp.childWindows.map(async (win: WindowState, index: number) => {
-        if (!openWindows.some((w: _Window) => w.identity.name === win.name)) {
-            const ofWin = await openChild(win.name, index, win.frame, win.info.url);
-            await positionWindow(win);
-        } else {
-            await positionWindow(win);
-        }
-    });
-    await Promise.all(openAndPosition);
-    return layoutApp;
-}
-
-function removeForgetWins(window: Identity) {
-    return !forgetWindows.some(w => w.name === window.name);
 }
 
 function addLayoutNamesToDropdown() {
@@ -267,11 +196,6 @@ export function importLayout() {
 // Do not snap to other windows
 Layouts.deregister();
 
-// Allow layouts service to save and restore this application
-Layouts.onApplicationSave(() => {
-    return {test: true};
-});
-Layouts.onAppRestore(onAppRes);
 Layouts.ready();
 
 fin.desktop.main(() => {

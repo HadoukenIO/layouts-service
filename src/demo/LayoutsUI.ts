@@ -34,7 +34,7 @@ export async function setLayout(layoutParam?: Layout) {
                 break;
             }
         }
-        
+
         if (!optionPresent) {
             const option = createOptionElement(id);
             layoutSelect.appendChild(option);
@@ -136,8 +136,8 @@ export function createSnapWindows(): void {
     // Create snap windows
     fin.desktop.main(() => {
         for (let i = 0; i < 6; i++) {
-            fin.Window.create(
-                {
+            fin.Window
+                .create({
                     url: `${launchDir}/frameless-window.html`,
                     autoShow: true,
                     defaultHeight: i > 2 ? 275 : 200,

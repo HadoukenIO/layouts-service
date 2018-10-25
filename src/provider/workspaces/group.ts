@@ -1,6 +1,4 @@
-
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
-
 import {LayoutApp, WindowState} from '../../client/types';
 import {model} from '../main';
 import {WindowIdentity} from '../model/DesktopWindow';

@@ -1,7 +1,5 @@
-import {Identity} from 'hadouken-js-adapter';
 import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
-
 import * as Layouts from '../client/main';
 import {Layout, LayoutApp, WindowState} from '../client/types';
 

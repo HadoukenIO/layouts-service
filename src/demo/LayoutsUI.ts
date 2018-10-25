@@ -1,7 +1,8 @@
 import {Identity} from 'hadouken-js-adapter';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import {Layout, LayoutApp, WindowState} from '../client/types';
+import * as Layouts from '../client/main';
+import {Layout} from '../client/types';
 
 import * as Storage from './storage';
 
@@ -9,8 +10,6 @@ export interface Workspace {
     id: string;
     layout: Layout;
 }
-
-import * as Layouts from '../client/main';
 
 declare var window: _Window&{forgetMe: (identity: Identity) => void};
 

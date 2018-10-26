@@ -235,7 +235,6 @@ export class SnapService {
         for (let i = 0; i < windows.length; i++) {
             adjacencyList[i] = [];
             for (let j = 0; j < windows.length; j++) {
-                const distance = RectUtils.distance(windows[i].getState(), windows[j].getState());
                 if (i !== j && isAdjacent(windows[i], windows[j])) {
                     adjacencyList[i].push(windows[j]);
                 }
@@ -272,7 +271,7 @@ export class SnapService {
                 // Special handling for tab groups. When validating, all windows in a tabgroup are
                 // assumed to be adjacent to avoid weirdness with hidden windows.
                 return true;
-            } else if (win1.getState().hidden || win1.getState().hidden) {
+            } else if (win1.getState().hidden || win2.getState().hidden) {
                 // If a window is not visible it cannot be adjacent to anything. This also allows us
                 // to avoid the questionable position tracking for hidden windows.
                 return false;

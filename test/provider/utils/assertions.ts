@@ -9,6 +9,7 @@ import {getTabGroupID} from '../../demo/utils/tabServiceUtils';
 import {getBounds, NormalizedBounds} from './getBounds';
 import {Win} from './getWindow';
 import {isAdjacentTo} from './isAdjacentTo';
+import {getContiguousWindows} from './isContiguousGroup';
 import {Side} from './SideUtils';
 
 /**
@@ -138,4 +139,19 @@ export async function assertSquare(t: TestContext, ...windows: Win[]) {
     await assertAdjacent(t, windows[0], windows[2], 'bottom');
     await assertAdjacent(t, windows[1], windows[3], 'bottom');
     await assertAdjacent(t, windows[2], windows[3], 'right');
+}
+
+/**
+ * Assert that some given set of windows are adjacent to eachother in such a way as to
+ * form a contiguous set of windows (i.e. no physically disjoint windows)
+ */
+export async function assertAllContiguous(t: TestContext, windows: Window[]) {
+    const actualGroups = await getContiguousWindows(windows);
+    if (actualGroups.length > 1 || (actualGroups.length === 1 && actualGroups[0].length !== windows.length)) {
+        const expectedGroupsString: string = '[' + windows.map(w => w.identity.uuid + '/' + w.identity.name).join(', ') + ']';
+        const actualGroupsString: string = actualGroups.map(g => '[' + g.map(w => w.identity.uuid + '/' + w.identity.name).join(', ') + ']').join('\n ');
+        t.fail(`Windows do not form a contiguous group. \nExpected: ${expectedGroupsString} \nActual: ${actualGroupsString}`);
+    } else {
+        t.pass();
+    }
 }

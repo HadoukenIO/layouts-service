@@ -13,8 +13,8 @@ interface ResizeOnSnapOptions extends CreateWindowData {
 }
 
 testParameterized(
-    (testOptions: ResizeOnSnapOptions): string =>
-        `Resize on Snap - 2 windows - ${testOptions.frame} - ${testOptions.resizeDirection.split('-').join(' ')} - ${testOptions.side}`,
+    (testOptions: ResizeOnSnapOptions): string => `Resize on Snap - 2 windows - ${testOptions.frame ? 'framed' : 'frameless'} - ${
+        testOptions.resizeDirection.split('-').join(' ')} - ${testOptions.side}`,
     [
         {frame: true, windowCount: 2, resizeDirection: 'big-to-small', side: 'right'},
         {frame: true, windowCount: 2, resizeDirection: 'big-to-small', side: 'bottom'},

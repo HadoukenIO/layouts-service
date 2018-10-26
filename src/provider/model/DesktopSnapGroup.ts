@@ -40,8 +40,8 @@ export interface Snappable {
     // tslint:disable-next-line:no-any
     applyOverride(property: keyof WindowState, value: any): Promise<void>;
     resetOverride(property: keyof WindowState): Promise<void>;
-    dockToGroup(group: DesktopSnapGroup, offset?: Point, newHalfSize?: Point): void;
-    snapToGroup(group: DesktopSnapGroup, offset?: Point, newHalfSize?: Point): void;
+    dockToGroup(group: DesktopSnapGroup, offset?: Point, newHalfSize?: Point): Promise<void>;
+    snapToGroup(group: DesktopSnapGroup, offset?: Point, newHalfSize?: Point): Promise<void>;
 }
 
 export class DesktopSnapGroup {
@@ -167,7 +167,6 @@ export class DesktopSnapGroup {
             if (prevGroup) {
                 prevGroup.removeWindow(window);
             }
-
             // Add listeners to window
             window.onModified.add(this.onWindowModified, this);
             window.onTransform.add(this.onWindowTransform, this);
@@ -180,6 +179,7 @@ export class DesktopSnapGroup {
             if (window.getSnapGroup() !== this) {
                 window.dockToGroup(this);
             }
+
 
             // Will need to re-calculate cached properties
             this._origin.markStale();
@@ -218,8 +218,12 @@ export class DesktopSnapGroup {
                 window.sendMessage(WindowMessages.LEAVE_SNAP_GROUP, {});
             }
 
+            // Have the service validate this group, to ensure it hasn't been split into two or more pieces.
+            this.onModified.emit(this, window);
+
             // Inform service of removal
             this.onWindowRemoved.emit(this, window);
+
             if (this._windows.length === 0) {
                 DesktopSnapGroup.onDestroyed.emit(this);
             }
@@ -277,9 +281,6 @@ export class DesktopSnapGroup {
 
         // Ensure window is removed from it's snap group, so that the group doesn't contain any de-registered or non-existant windows.
         group.removeWindow(window);
-
-        // Have the service validate this group, to ensure it hasn't been split into two or more pieces.
-        group.onModified.emit(group, window);
     }
 
     private calculateProperties(): void {

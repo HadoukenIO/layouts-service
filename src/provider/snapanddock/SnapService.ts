@@ -63,11 +63,7 @@ export class SnapService {
                     fin.desktop.System.getFocusedWindow(focusedWindow => {
                         if (focusedWindow !== null) {
                             console.log('Global hotkey invoked on window', focusedWindow);
-                            const focusedDesktopWindow =  this.model.getWindow(focusedWindow);
-                            // Ignore this event for tabbed windows until tab/snap is properly integrated
-                            if (focusedDesktopWindow && focusedDesktopWindow.getTabGroup() === null) {
-                                this.undock(focusedWindow);
-                            }
+                            this.undock(focusedWindow);
                         }
                     });
                 })
@@ -77,7 +73,8 @@ export class SnapService {
     public undock(target: WindowIdentity): void {
         const window: DesktopWindow|null = this.model.getWindow(target);
 
-        if (window && window.getSnapGroup().length > 1) {
+        // Do nothing for tabbed windows until tab/snap is properly integrated
+        if (window && window.getSnapGroup().length > 1 && window.getTabGroup() === null) {
             try {
                 // Calculate undock offset
                 const offset = this.calculateUndockMoveDirection(window);
@@ -103,22 +100,26 @@ export class SnapService {
 
     /**
      * Explodes a group. All windows in the group are unlocked.
-     * @param targetWindow A window which is a member of the group to be exploded.
+     * @param target A window which is a member of the group to be exploded.
      */
-    public explodeGroup(targetWindow: WindowIdentity): void {
+    public explodeGroup(target: WindowIdentity): void {
         // NOTE: Since there is currently not a schema to identify a group, this method
         // accepts a window that is a member of the group. Once there is a way of uniquely
         // identifying groups, this can be changed
 
         // Get the group containing the targetWindow
-        const groups: ReadonlyArray<DesktopSnapGroup> = this.model.getSnapGroups();
-        const group: DesktopSnapGroup|undefined = groups.find((g) => {
-            return g.windows.findIndex(w => w.getIdentity().uuid === targetWindow.uuid && w.getIdentity().name === targetWindow.name) >= 0;
-        });
+        const targetWindow = this.model.getWindow(target);
+
+        // This function does nothing for tabbed windows.
+        if (targetWindow && targetWindow.getTabGroup()) {
+            return;
+        }
+
+        const group = targetWindow ? targetWindow.getSnapGroup() : null;
 
         if (!group) {
-            console.error(`Unable to undock - no group found for window with identity "${targetWindow.uuid}/${targetWindow.name}"`);
-            throw new Error(`Unable to undock - no group found for window with identity "${targetWindow.uuid}/${targetWindow.name}"`);
+            console.error(`Unable to undock - no group found for window with identity "${target.uuid}/${target.name}"`);
+            throw new Error(`Unable to undock - no group found for window with identity "${target.uuid}/${target.name}"`);
         }
 
         try {

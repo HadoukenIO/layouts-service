@@ -236,7 +236,7 @@ export class SnapService {
             adjacencyList[i] = [];
             for (let j = 0; j < windows.length; j++) {
                 const distance = RectUtils.distance(windows[i].getState(), windows[j].getState());
-                if (i !== j && distance.border(0) && distance.maxAbs > MIN_OVERLAP) {
+                if (i !== j && isAdjacent(windows[i], windows[j])) {
                     adjacencyList[i].push(windows[j]);
                 }
             }
@@ -264,6 +264,23 @@ export class SnapService {
             for (let i = 0; i < adjacencyList[startIndex].length; i++) {
                 dfs(adjacencyList[startIndex][i], visited);
             }
+        }
+
+        function isAdjacent(win1: Snappable, win2: Snappable) {
+            const distance = RectUtils.distance(win1.getState(), win2.getState());
+            if (win1.getTabGroup() && win1.getTabGroup() === win2.getTabGroup()) {
+                // Special handling for tab groups. When validating, all windows in a tabgroup are
+                // assumed to be adjacent to avoid weirdness with hidden windows.
+                return true;
+            } else if (win1.getState().hidden || win1.getState().hidden) {
+                // If a window is not visible it cannot be adjacent to anything. This also allows us
+                // to avoid the questionable position tracking for hidden windows.
+                return false;
+            } else if (distance.border(0) && Math.abs(distance.maxAbs) > MIN_OVERLAP) {
+                // The overlap check ensures that only valid snap configurations are counted
+                return true;
+            }
+            return false;
         }
     }
 }

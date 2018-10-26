@@ -61,7 +61,7 @@ export class SnapService {
                 'CommandOrControl+Shift+U',
                 () => {
                     fin.desktop.System.getFocusedWindow(focusedWindow => {
-                        if (focusedWindow !== null) {
+                        if (focusedWindow !== null && model.getWindow(focusedWindow)) {
                             console.log('Global hotkey invoked on window', focusedWindow);
                             this.undock(focusedWindow);
                         }

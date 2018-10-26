@@ -1,15 +1,15 @@
 import {Application} from 'hadouken-js-adapter/out/types/src/api/application/application';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
-
 import {Layout, LayoutApp} from '../../client/types';
-import {apiHandler, tabService} from '../main';
+import {apiHandler, model, tabService} from '../main';
+import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {promiseMap} from '../snapanddock/utils/async';
-
 import {regroupLayout} from './group';
 import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, positionWindow, TabbedPlaceholders, wasCreatedProgrammatically, WindowObject} from './utils';
 
 const appsToRestore = new Map();
+const appsCurrentlyRestoring = new Map();
 
 interface AppToRestore {
     layoutApp: LayoutApp;
@@ -30,15 +30,24 @@ export const restoreApplication = async(layoutApp: LayoutApp, resolve: Function)
     const {uuid} = layoutApp;
     const name = uuid;
     const defaultResponse: LayoutApp = {...layoutApp, childWindows: []};
-    const appConnected = apiHandler.channel.connections.some((conn: Identity) => conn.uuid === uuid && conn.name === name);
-    if (appConnected) {
-        const responseAppLayout: LayoutApp|false = await apiHandler.channel.dispatch({uuid, name}, 'restoreApp', layoutApp);
-        if (responseAppLayout) {
-            resolve(responseAppLayout);
+    const appConnection = apiHandler.isClientConnection({uuid, name});
+    if (appConnection) {
+        if (appsToRestore.has(uuid) && !appsCurrentlyRestoring.has(uuid)) {
+            // Instruct app to restore its child windows
+            appsCurrentlyRestoring.set(uuid, true);
+            const responseAppLayout: LayoutApp|false = await apiHandler.channel.dispatch({uuid, name}, 'restoreApp', layoutApp);
+
+            // Flag app as restored
+            appsCurrentlyRestoring.delete(uuid);
+            appsToRestore.delete(uuid);
+            if (responseAppLayout) {
+                resolve(responseAppLayout);
+            } else {
+                resolve(defaultResponse);
+            }
         } else {
-            resolve(defaultResponse);
+            console.warn('Ignoring duplicate \'ready\' call');
         }
-        appsToRestore.delete(uuid);
     }
 };
 
@@ -87,7 +96,12 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
         const isRunning = await ofApp.isRunning();
         if (isRunning) {
             // Should de-tab here.
+            const mainWindowModel = model.getWindow(app.mainWindow);
             await tabService.removeTab(app.mainWindow);
+            if (mainWindowModel!.getSnapGroup().length > 1) {
+                mainWindowModel!.dockToGroup(new DesktopSnapGroup());
+            }
+
 
             // Need to check its child windows here, if confirmed.
             await childWindowPlaceholderCheckRunningApp(app, tabbedWindows, tabbedPlaceholdersToWindows, openWindows);
@@ -172,16 +186,8 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
                     }
                 }
 
-                // Set up listener for app window shown to run and position it.
                 if (ofAppNotRunning) {
-                    const ofAppNRWindow = await ofAppNotRunning.getWindow();
-                    const updateOptionsAndShow = async () => {
-                        await ofAppNRWindow.removeListener('show-requested', updateOptionsAndShow);
-                        await ofAppNRWindow.showAt(app.mainWindow.left, app.mainWindow.top);
-                    };
-                    await ofAppNRWindow.addListener('show-requested', updateOptionsAndShow);
                     await ofAppNotRunning.run().catch(console.log);
-                    await positionWindow(app.mainWindow);
                 }
                 // SHOULD WE RETURN DEFAULT RESPONSE HERE?!?
                 return defaultResponse;

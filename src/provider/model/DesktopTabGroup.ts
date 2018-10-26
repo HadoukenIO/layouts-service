@@ -220,11 +220,10 @@ export class DesktopTabGroup {
         const tabIndex = this.tabs.indexOf(tabToRemove!);
 
         if (tabIndex >= 0) {
-            this._tabs.splice(tabIndex, 1, tabToAdd);
-            await this.addTabInternal(tabToAdd, false, tabIndex);
-            await this.removeTabInternal(tabToRemove, tabIndex);
+            await this.addTabInternal(tabToAdd, false, this.tabs.indexOf(tabToRemove!) + 1);
+            await this.removeTabInternal(tabToRemove, this.tabs.indexOf(tabToRemove!));
 
-            if (this._activeTab.getId() === tabToAdd.getId()) {
+            if (this._activeTab.getId() === tabToRemove.getId()) {
                 // if the switchedwith tab was the active one, we make the added tab active
                 this.switchTab(tabToAdd);
             } else {

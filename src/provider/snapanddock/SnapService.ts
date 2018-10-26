@@ -3,7 +3,7 @@ import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
 import {DesktopWindow, eTransformType, Mask, WindowIdentity} from '../model/DesktopWindow';
 
-import {EXPLODE_MOVE_SCALE, UNDOCK_MOVE_DISTANCE, MIN_OVERLAP} from './Config';
+import {EXPLODE_MOVE_SCALE, MIN_OVERLAP, UNDOCK_MOVE_DISTANCE} from './Config';
 import {eSnapValidity, Resolver, SnapTarget} from './Resolver';
 import {SnapView} from './SnapView';
 import {Point, PointUtils} from './utils/PointUtils';

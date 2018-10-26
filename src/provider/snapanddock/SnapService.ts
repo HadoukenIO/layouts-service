@@ -3,7 +3,7 @@ import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
 import {DesktopWindow, eTransformType, Mask, WindowIdentity} from '../model/DesktopWindow';
 
-import {EXPLODE_MOVE_SCALE, UNDOCK_MOVE_DISTANCE} from './Config';
+import {EXPLODE_MOVE_SCALE, UNDOCK_MOVE_DISTANCE, MIN_OVERLAP} from './Config';
 import {eSnapValidity, Resolver, SnapTarget} from './Resolver';
 import {SnapView} from './SnapView';
 import {Point, PointUtils} from './utils/PointUtils';
@@ -235,7 +235,8 @@ export class SnapService {
         for (let i = 0; i < windows.length; i++) {
             adjacencyList[i] = [];
             for (let j = 0; j < windows.length; j++) {
-                if (i !== j && RectUtils.distance(windows[i].getState(), windows[j].getState()).border(0)) {
+                const distance = RectUtils.distance(windows[i].getState(), windows[j].getState());
+                if (i !== j && distance.border(0) && distance.maxAbs > MIN_OVERLAP) {
                     adjacencyList[i].push(windows[j]);
                 }
             }

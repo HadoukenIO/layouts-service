@@ -457,11 +457,9 @@ export class DesktopTabGroup {
             return JSON.parse(savedProperties);
         }
         
-        
         const {icon, title} = tab.getState();
-        const properties:TabProperties =  savedProperties ? JSON.parse(savedProperties) : {icon: tab.getState().icon, title: tab.getState().title};
         // Special handling for S&R placeholder windows
-        const modifiedTitle = tab.getIdentity().uuid === fin.Window.me.uuid && properties.title.match(/^Placeholder\-/) ? "Loading..." : title;
+        const modifiedTitle = tab.getIdentity().uuid === fin.Window.me.uuid && title.startsWith('Placeholder-') ? "Loading..." : title;
         return {icon, title: modifiedTitle};
     }
 

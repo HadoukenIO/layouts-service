@@ -27,7 +27,7 @@ testParameterized<TwoWindowTestOptions, WindowContext>(
         const windows = t.context.windows;
         const {side} = testOptions;
 
-        await dragWindowTo(windows[0], 375,375);
+        await dragWindowTo(windows[0], 375, 375);
         // Align windows
         await dragSideToSide(windows[1], opposite(side), windows[0], side);
 

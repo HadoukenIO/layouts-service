@@ -453,7 +453,14 @@ export class DesktopTabGroup {
 
     private getTabProperties(tab: DesktopWindow): TabProperties {
         const savedProperties: string|null = localStorage.getItem(tab.getId());
-        return savedProperties ? JSON.parse(savedProperties) : {icon: tab.getState().icon, title: tab.getState().title};
+        if (savedProperties) {
+            return JSON.parse(savedProperties);
+        }
+
+        const {icon, title} = tab.getState();
+        // Special handling for S&R placeholder windows
+        const modifiedTitle = tab.getIdentity().uuid === fin.Window.me.uuid && title.startsWith('Placeholder-') ? 'Loading...' : title;
+        return {icon, title: modifiedTitle};
     }
 
     private onWindowTeardown(window: DesktopWindow): void {

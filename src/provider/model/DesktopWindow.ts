@@ -31,6 +31,7 @@ export interface WindowState extends Rectangle {
     maxHeight: number;
 
     opacity: number;
+    frameEnabled: boolean;  // If window will respond to move/resize events. Corresponds to enable/disableFrame, not WindowOptions.frame.
 }
 
 export interface WindowIdentity extends Identity {
@@ -102,6 +103,17 @@ type OpenFinWindowEventHandler = <K extends keyof fin.OpenFinWindowEventMap>(eve
 export class DesktopWindow extends DesktopEntity implements Snappable {
     public static readonly onCreated: Signal1<DesktopWindow> = new Signal1();
     public static readonly onDestroyed: Signal1<DesktopWindow> = new Signal1();
+    public static emulateDragEvents: boolean;
+
+    /**
+     * When in 'emulateDragEvents' mode, the service needs to call disableFrame on every window that is registered 
+     * with the service. However, this may cause issues with applications that are already using 'disableFrame'.
+     * 
+     * Service assumes that any window that uses disableFrame will call it immediately after creating the window. If
+     * disableFrame() has not been called after waiting this many milliseconds, the service assumes it can take control
+     * of disabling the frame and moving/resizing the window.
+     */
+    private static readonly DISABLE_BOUNDS_DELAY = 1000;
 
     public static async getWindowState(window: Window): Promise<WindowState> {
         return Promise.all([window.getOptions(), window.isShowing(), window.getBounds()])
@@ -131,7 +143,8 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
                     maxWidth: options.maxWidth!,
                     minHeight: options.minHeight!,
                     maxHeight: options.maxHeight!,
-                    opacity: options.opacity!
+                    opacity: options.opacity!,
+                    frameEnabled: true  // No way to query frame enabled/disabled state from API. Assume frame is enabled
                 };
             });
     }
@@ -232,16 +245,18 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
                 this.window = window;
                 this.windowState = await DesktopWindow.getWindowState(window);
                 this.applicationState = {...this.windowState};
-                this.addListeners();
+
                 this.ready = true;
+                this.addListeners();
             }));
         } else if (!initialState) {
             this.window = window as Window;
             this.addPendingActions('Fetch initial window state ' + this.id, DesktopWindow.getWindowState(this.window).then((state: WindowState) => {
                 this.windowState = state;
                 this.applicationState = {...this.windowState};
-                this.addListeners();
+
                 this.ready = true;
+                this.addListeners();
             }));
         } else {
             this.window = window as Window;
@@ -298,7 +313,8 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             maxWidth: -1,
             minHeight: 0,
             maxHeight: 0,
-            opacity: 1
+            opacity: 1,
+            frameEnabled: true
         };
     }
 
@@ -560,7 +576,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         // Apply changes to the window (unless we're reacting to an external change that has already happened)
         if (origin !== ActionOrigin.APPLICATION) {
             const window = this.window;
-            const {center, halfSize, state, hidden, ...options} = delta;
+            const {center, halfSize, state, hidden, frameEnabled, ...options} = delta;
             const optionsToChange: (keyof WindowState)[] = Object.keys(options) as (keyof WindowState)[];
 
             // Apply visibility
@@ -584,6 +600,11 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
                         console.warn('Invalid window state: ' + state);
                         break;
                 }
+            }
+
+            // Apply window frame
+            if (frameEnabled !== undefined) {
+                actions.push(frameEnabled ? window.enableFrame() : window.disableFrame());
             }
 
             // Apply bounds
@@ -670,13 +691,15 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         this.registerListener('bounds-changed', this.handleBoundsChanged.bind(this));
         this.registerListener('bounds-changing', this.handleBoundsChanging.bind(this));
         this.registerListener('closed', this.handleClosed.bind(this));
+        this.registerListener('disabled-frame-bounds-changed', this.handleDisabledFrameBoundsChanged.bind(this));
+        this.registerListener('disabled-frame-bounds-changing', this.handleDisabledFrameBoundsChanging.bind(this));
         this.registerListener('focused', this.handleFocused.bind(this));
         this.registerListener('frame-disabled', () => {
-            this.updateState({frame: true}, ActionOrigin.APPLICATION);
+            this.updateState({frameEnabled: false}, ActionOrigin.APPLICATION);
             this.onModified.emit(this);
         });
         this.registerListener('frame-enabled', () => {
-            this.updateState({frame: true}, ActionOrigin.APPLICATION);
+            this.updateState({frameEnabled: true}, ActionOrigin.APPLICATION);
             this.onModified.emit(this);
         });
         this.registerListener('group-changed', this.handleGroupChanged.bind(this));
@@ -707,6 +730,39 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             });
         });
         this.registerListener('shown', () => this.updateState({hidden: false}, ActionOrigin.APPLICATION));
+
+        if (DesktopWindow.emulateDragEvents) {
+            function disableFrame(this: DesktopWindow) {
+                // Check window hasn't been closed/de-registered whilst we were waiting
+                const isRegistered: boolean = this.model.getWindow(this.id) !== null;
+
+                if (isRegistered && this.windowState.frameEnabled) {
+                    console.log('Disabling frame on ' + this.id);
+
+                    // Application isn't using 'disableFrame', safe for the service to enable it on behalf of the application
+                    this.applyProperties({frameEnabled: false});
+
+                    // Re-enable the frame if window window gets de-registered in the future
+                    this.onTeardown.add(window => {
+                        if (window.ready) {
+                            window.window.enableFrame().catch(console.warn);
+                        }
+                    });
+                } else if (isRegistered) {
+                    console.log('Window has already disabled its frame ' + this.id);
+                } else {
+                    console.log('Window deregistered before frame check could occur ' + this.id);
+                }
+            }
+
+            if (this.identity.uuid === TabServiceID.UUID) {
+                // Can disable frame on tabstrips immediately, without waiting to see what application does.
+                disableFrame.call(this);
+            } else {
+                // Wait and see what the application does, and then disable frame only if application hasn't already.
+                setTimeout(disableFrame.bind(this), DesktopWindow.DISABLE_BOUNDS_DELAY);
+            }
+        }
     }
 
     private registerListener<K extends keyof fin.OpenFinWindowEventMap>(eventType: K, handler: (event: fin.OpenFinWindowEventMap[K]) => void) {
@@ -732,10 +788,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         this.updateState({center, halfSize}, ActionOrigin.APPLICATION);
 
         if (this.userInitiatedBoundsChange) {
-            // Convert 'changeType' into our enum type
-            const type: Mask<eTransformType> = event.changeType + 1;
-
-            this.onCommit.emit(this, type);
+            this.onCommit.emit(this, this.getTransformType(event));
 
             // Setting this here instead of in 'end-user-bounds-changing' event to ensure we are still synced when this method is called.
             this.userInitiatedBoundsChange = false;
@@ -749,14 +802,44 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
         const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
 
-        // Convert 'changeType' into our enum type
-        const type: Mask<eTransformType> = event.changeType + 1;
-
         this.updateState({center, halfSize}, ActionOrigin.APPLICATION);
 
         if (this.userInitiatedBoundsChange) {
-            this.onTransform.emit(this, type);
+            this.onTransform.emit(this, this.getTransformType(event));
         }
+    }
+
+    private handleDisabledFrameBoundsChanged(event: fin.WindowBoundsEvent): void {
+        const bounds: fin.WindowBounds = this.checkBounds(event);
+        const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
+        const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
+
+        if (this.applicationState.frameEnabled) {
+            // Service must move the window, as application (presumably) won't have registered any 'disabled-*' listeners registered
+            this.updateState({center, halfSize}, ActionOrigin.SERVICE);
+        }
+
+        // Assume that all disabled-frame-bounds-* events are user-initiated
+        this.onCommit.emit(this, this.getTransformType(event));
+    }
+
+    private handleDisabledFrameBoundsChanging(event: fin.WindowBoundsEvent): void {
+        const bounds: fin.WindowBounds = this.checkBounds(event);
+        const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
+        const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
+
+        if (this.applicationState.frameEnabled) {
+            // Service must move the window, as application (presumably) won't have registered any 'disabled-*' listeners registered
+            this.updateState({center, halfSize}, ActionOrigin.SERVICE);
+        }
+
+        // Assume that all disabled-frame-bounds-* events are user-initiated
+        this.onTransform.emit(this, this.getTransformType(event));
+    }
+
+    private getTransformType(event: fin.WindowBoundsEvent): Mask<eTransformType> {
+        // Convert 'changeType' into our enum type
+        return event.changeType + 1;
     }
 
     private handleBeginUserBoundsChanging(event: fin.WindowBoundsEvent) {

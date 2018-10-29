@@ -80,8 +80,15 @@ export class DesktopModel {
         return `${identity.uuid}/${identity.name}`;
     }
 
-    public getWindow(identity: WindowIdentity): DesktopWindow|null {
-        const id = this.getId(identity);
+    /**
+     * Fetches the model object for the given window, or null if no window currently exists within the service.
+     *
+     * Window to find can be identified by
+     *
+     * @param identity Window identifier - either a UUID/name object, or a stringified identity as created by @see getId
+     */
+    public getWindow(identity: WindowIdentity|string): DesktopWindow|null {
+        const id = typeof identity === 'string' ? identity : this.getId(identity);
         return this.windows.find(window => window.getId() === id) || null;
     }
 

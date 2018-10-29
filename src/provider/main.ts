@@ -3,6 +3,7 @@ import {RunRequestedEvent} from 'hadouken-js-adapter/out/types/src/api/events/ap
 
 import {APIHandler} from './APIHandler';
 import {DesktopModel} from './model/DesktopModel';
+import {DesktopWindow} from './model/DesktopWindow';
 import {SnapService} from './snapanddock/SnapService';
 import {win10Check} from './snapanddock/utils/platform';
 import {TabService} from './tabbing/TabService';
@@ -22,6 +23,15 @@ declare const window: Window&{
 
 fin.desktop.main(main);
 
+interface SupportedArguments {
+    disableTabbingOperations: boolean;
+    disableDockingOperations: boolean;
+    emulateDragEvents: boolean;
+}
+type Stringified<T> = {
+    [P in keyof T]?: string;
+};
+
 export async function main() {
     model = window.model = new DesktopModel();
     snapService = window.snapService = new SnapService(model);
@@ -31,38 +41,31 @@ export async function main() {
     fin.InterApplicationBus.subscribe({uuid: '*'}, 'layoutsService:experimental:disableTabbing', (message: boolean, source: Identity) => {
         tabService.disableTabbingOperations = message;
     });
-
     fin.InterApplicationBus.subscribe({uuid: '*'}, 'layoutsService:experimental:disableDocking', (message: boolean, source: Identity) => {
         snapService.disableDockingOperations = message;
     });
 
     fin.Application.getCurrentSync().addListener('run-requested', (event: RunRequestedEvent<'application', 'run-requested'>) => {
-        if (event.userAppConfigArgs) {
-            if (event.userAppConfigArgs.disableTabbingOperations) {
-                tabService.disableTabbingOperations = event.userAppConfigArgs.disableTabbingOperations === 'true';
-            }
-            if (event.userAppConfigArgs.disableDockingOperations) {
-                snapService.disableDockingOperations = event.userAppConfigArgs.disableDockingOperations === 'true';
-            }
-        }
+        processUserArgs(event.userAppConfigArgs);
+    });
+    fin.Window.getCurrentSync().getOptions().then((options: fin.WindowOptions) => {
+        //@ts-ignore userAppConfigArgs is returned by this function, but missing from types
+        processUserArgs(options.userAppConfigArgs);
     });
 
-    function getParameter(paramName: string) {
-        const searchString = window.location.search.substring(1);
-        const params = searchString.split('&');
-        let i, val;
-
-        for (i = 0; i < params.length; i++) {
-            val = params[i].split('=');
-            if (val[0] === paramName) {
-                return val[1];
+    function processUserArgs(args: Stringified<SupportedArguments>): void {
+        if (args) {
+            if (args.disableTabbingOperations) {
+                tabService.disableTabbingOperations = args.disableTabbingOperations === 'true';
+            }
+            if (args.disableDockingOperations) {
+                snapService.disableDockingOperations = args.disableDockingOperations === 'true';
+            }
+            if (args.emulateDragEvents) {
+                DesktopWindow.emulateDragEvents = args.emulateDragEvents === 'true';
             }
         }
-        return null;
     }
-
-    tabService.disableTabbingOperations = getParameter('disableTabbingOperations') ? true : false;
-    snapService.disableDockingOperations = getParameter('disableDockingOperations') ? true : false;
 
     await win10Check;
     await apiHandler.register();

@@ -453,7 +453,7 @@ export class DesktopTabGroup {
 
     private getTabProperties(tab: DesktopWindow): TabProperties {
         const savedProperties: string|null = localStorage.getItem(tab.getId());
-        return savedProperties ? JSON.parse(savedProperties) : {icon: tab.getState().icon, title: tab.getState().title};
+        return savedProperties ? JSON.parse(savedProperties) : {icon: tab.getState().icon, title: tab.getState().title.match(/^Placeholder\-/) ? "Placeholder" : tab.getState().title};
     }
 
     private onWindowTeardown(window: DesktopWindow): void {

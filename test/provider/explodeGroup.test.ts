@@ -8,105 +8,15 @@ import {getConnection} from './utils/connect';
 import {getBounds} from './utils/getBounds';
 import {isInGroup} from './utils/isInGroup';
 import {isOverlappedWith} from './utils/isOverlappedWith';
-import {ArrangementsType, WindowInitializer} from './utils/WindowInitializer';
+import {defaultArrangements, WindowInitializer} from './utils/WindowInitializer';
 
 let windows: Window[] = new Array<Window>();
 let fin: Fin;
 let windowInitializer: WindowInitializer;
 
-const windowPositions = [
-    {defaultTop: 300, defaultLeft: 300},
-    {defaultTop: 300, defaultLeft: 600},
-    {defaultTop: 600, defaultLeft: 300},
-    {defaultTop: 600, defaultLeft: 600},
-    {defaultTop: 900, defaultLeft: 300},
-    {defaultTop: 900, defaultLeft: 600},
-    {defaultTop: 300, defaultLeft: 900},
-    {defaultTop: 600, defaultLeft: 900},
-    {defaultTop: 900, defaultLeft: 900}
-];
-const windowOptions = {
-    autoShow: true,
-    saveWindowState: false,
-    defaultHeight: 200,
-    defaultWidth: 200,
-    url: 'http://localhost:1337/demo/frameless-window.html',
-    frame: false
-};
-
-const arrangements: ArrangementsType = {
-    1: {'default': []},
-    2: {
-        // 1
-        // 2
-        'vertical': [
-            [1, 'top-left', 0, 'bottom-left', {x: 10, y: 2}],
-        ],
-        // 1 2
-        'horizontal': [
-            [1, 'top-left', 0, 'top-right', {x: 2, y: 10}],
-        ]
-    },
-    3: {
-        // 1 2 3
-        'line': [
-            [1, 'bottom-left', 0, 'bottom-right', {x: 2, y: -10}],
-            [2, 'bottom-left', 1, 'bottom-right', {x: 2, y: -10}],
-        ],
-        //   1
-        // 2
-        //   3
-        'vertical-triangle': [
-            [2, 'top-left', 0, 'bottom-left', {x: 10, y: 2}],
-            [1, 'top-right', 0, 'top-left', {x: -2, y: 102}],
-        ],
-        // 1 2
-        //  3
-        'horizontal-triangle': [
-            [1, 'bottom-left', 0, 'bottom-right', {x: 2, y: -10}],
-            [2, 'top-left', 0, 'bottom-left', {x: 102, y: 2}],
-        ]
-    },
-    4: {
-        // 1 2
-        // 3 4
-        'square': [
-            [1, 'bottom-left', 0, 'bottom-right', {x: 2, y: -10}],
-            [2, 'top-right', 0, 'bottom-right', {x: -10, y: 2}],
-            [3, 'top-left', 0, 'bottom-right', {x: 10, y: 2}],
-        ]
-    },
-    5: {
-        // 1 2
-        //  3
-        // 4 5
-        'hourglass': [
-            [0, 'top-left', 0, 'top-left', {x: -100, y: -100}],
-            [1, 'bottom-left', 0, 'bottom-right', {x: 2, y: -10}],
-            [2, 'top-left', 0, 'bottom-left', {x: 100, y: 2}],
-            [3, 'top-right', 2, 'bottom-left', {x: 95, y: 2}],
-            [4, 'top-left', 2, 'bottom-right', {x: -105, y: 2}],
-        ]
-    },
-    7: {
-        //  1 2
-        // 3 4 5
-        //  6 7
-        'honeycomb': [
-            [0, 'top-left', 0, 'top-left', {x: -100, y: -100}],
-            [1, 'bottom-left', 0, 'bottom-right', {x: 2, y: -10}],
-            [2, 'top-left', 0, 'bottom-left', {x: -105, y: 2}],
-            [3, 'top-left', 2, 'top-right', {x: 2, y: 2}],
-            [4, 'top-left', 3, 'top-right', {x: 2, y: 2}],
-            [5, 'top-right', 3, 'bottom-left', {x: 95, y: 2}],
-            [6, 'top-left', 3, 'bottom-right', {x: -105, y: 2}],
-        ]
-    }
-};
-
 test.before(async () => {
     fin = await getConnection();
-    windowInitializer = new WindowInitializer(arrangements, windowPositions, windowOptions);
+    windowInitializer = new WindowInitializer();
 });
 test.afterEach.always(async () => {
     // Closes all windows and resets the array for the next test.
@@ -144,10 +54,10 @@ async function assertExploded(t: GenericTestContext<AnyContext>) {
  * arrangemtns object. To add an additional window layouts to be tested, simply
  * add new entries there.
  */
-Object.keys(arrangements).forEach(num => {
+Object.keys(defaultArrangements).forEach(num => {
     const count = Number.parseInt(num, 10);
 
-    Object.keys(arrangements[count]).forEach(name => {
+    Object.keys(defaultArrangements[count]).forEach(name => {
         test(`${count} windows - ${name}`, async t => {
             // This will spawn the required number of windows in the correct
             // positions/groups

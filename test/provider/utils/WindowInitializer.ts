@@ -93,21 +93,21 @@ export class WindowInitializer {
 }
 
 const defaultWindowPositions = [
-    {defaultTop: 300, defaultLeft: 300},
-    {defaultTop: 300, defaultLeft: 600},
-    {defaultTop: 600, defaultLeft: 300},
-    {defaultTop: 600, defaultLeft: 600},
-    {defaultTop: 900, defaultLeft: 300},
-    {defaultTop: 900, defaultLeft: 600},
-    {defaultTop: 300, defaultLeft: 900},
-    {defaultTop: 600, defaultLeft: 900},
-    {defaultTop: 900, defaultLeft: 900}
+    {defaultTop: 100, defaultLeft: 100},
+    {defaultTop: 100, defaultLeft: 375},
+    {defaultTop: 375, defaultLeft: 100},
+    {defaultTop: 375, defaultLeft: 375},
+    {defaultTop: 650, defaultLeft: 100},
+    {defaultTop: 650, defaultLeft: 375},
+    {defaultTop: 100, defaultLeft: 650},
+    {defaultTop: 375, defaultLeft: 650},
+    {defaultTop: 650, defaultLeft: 650}
 ];
 const deafultWindowOptions = {
     autoShow: true,
     saveWindowState: false,
-    defaultHeight: 200,
-    defaultWidth: 200,
+    defaultHeight: 250,
+    defaultWidth: 250,
     url: 'http://localhost:1337/demo/frameless-window.html',
     frame: false
 };
@@ -131,18 +131,18 @@ export const defaultArrangements: ArrangementsType = {
             [1, 'bottom-left', 0, 'bottom-right', {x: 2, y: -10}],
             [2, 'bottom-left', 1, 'bottom-right', {x: 2, y: -10}],
         ],
-        //   0
-        // 1
-        //   2
+        // 0
+        //   1
+        // 2
         'vertical-triangle': [
             [2, 'top-left', 0, 'bottom-left', {x: 10, y: 2}],
-            [1, 'top-right', 0, 'top-left', {x: -2, y: 102}],
+            [1, 'top-left', 0, 'top-right', {x: 2, y: 127}],
         ],
         // 0 1
         //  2
         'horizontal-triangle': [
             [1, 'bottom-left', 0, 'bottom-right', {x: 2, y: -10}],
-            [2, 'top-left', 0, 'bottom-left', {x: 102, y: 2}],
+            [2, 'top-left', 0, 'bottom-left', {x: 127, y: 2}],
         ]
     },
     4: {
@@ -159,10 +159,9 @@ export const defaultArrangements: ArrangementsType = {
         //  2
         // 3 4
         'hourglass': [
-            [0, 'top-left', 0, 'top-left', {x: -100, y: -100}],
             [1, 'bottom-left', 0, 'bottom-right', {x: 2, y: -10}],
-            [2, 'top-left', 0, 'bottom-left', {x: 100, y: 2}],
-            [3, 'top-right', 2, 'bottom-left', {x: 100, y: 2}],
+            [2, 'top-left', 0, 'bottom-left', {x: 127, y: 2}],
+            [3, 'top-right', 2, 'bottom-left', {x: 123, y: 2}],
             [4, 'top-left', 3, 'top-right', {x: 2, y: -10}],
         ]
     },
@@ -171,13 +170,12 @@ export const defaultArrangements: ArrangementsType = {
         // 2 3 4
         //  5 6
         'honeycomb': [
-            [0, 'top-left', 0, 'top-left', {x: -100, y: -100}],
             [1, 'bottom-left', 0, 'bottom-right', {x: 2, y: -10}],
-            [2, 'top-left', 0, 'bottom-left', {x: -105, y: 2}],
+            [2, 'top-left', 0, 'bottom-left', {x: -127, y: 2}],
             [3, 'top-left', 2, 'top-right', {x: 2, y: 2}],
             [4, 'top-left', 3, 'top-right', {x: 2, y: 2}],
-            [5, 'top-right', 3, 'bottom-left', {x: 95, y: 2}],
-            [6, 'top-left', 3, 'bottom-right', {x: -105, y: 2}],
+            [5, 'top-right', 3, 'bottom-left', {x: 123, y: 2}],
+            [6, 'top-left', 3, 'bottom-right', {x: -120, y: 2}],
         ]
     }
 };

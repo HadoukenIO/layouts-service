@@ -27,6 +27,7 @@ testParameterized<TwoWindowTestOptions, WindowContext>(
         const windows = t.context.windows;
         const {side} = testOptions;
 
+        await dragWindowTo(windows[0], 375, 375);
         // Align windows
         await dragSideToSide(windows[1], opposite(side), windows[0], side);
 
@@ -35,7 +36,7 @@ testParameterized<TwoWindowTestOptions, WindowContext>(
         await assertGrouped(t, windows[0], windows[1]);
 
         // Move windows
-        await dragWindowTo(windows[0], 500, 500);
+        await dragWindowTo(windows[0], 300, 300);
 
         // Assert still docked and adjacent
         await assertAdjacent(t, windows[0], windows[1], side);
@@ -64,7 +65,7 @@ testParameterized<CreateWindowData, WindowContext>(
         await assertAdjacent(t, windows[2], windows[3], 'right');
 
         // Move windows
-        await dragWindowTo(windows[0], 500, 500);
+        await dragWindowTo(windows[0], 300, 300);
 
         // Assert still docked and adjacent
         await assertGrouped(t, ...windows);

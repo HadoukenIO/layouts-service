@@ -29,27 +29,33 @@ const customArrangements: ArrangementsType = Object.assign({}, defaultArrangemen
         //   2
         //  5 7
         // 6   8
+
+        // 0               4
+        //     1       3
+        //         2
+        //     5       7
+        // 6               8
         'x': [
-            [0, 'top-left', 0, 'top-left', {x: -280, y: -280}],
-            [1, 'top-left', 0, 'bottom-right', {x: -98, y: 10}],
-            [2, 'top-left', 1, 'bottom-right', {x: -98, y: 10}],
-            [3, 'bottom-left', 2, 'top-right', {x: -98, y: -10}],
-            [4, 'bottom-left', 3, 'top-right', {x: -98, y: -10}],
-            [5, 'top-right', 2, 'bottom-left', {x: 102, y: 10}],
-            [6, 'top-right', 5, 'bottom-left', {x: 102, y: 10}],
-            [7, 'top-left', 2, 'bottom-right', {x: -98, y: 10}],
-            [8, 'top-left', 7, 'bottom-right', {x: -98, y: 10}],
+            [0, 'top-left', 0, 'top-left', {x: -80, y: -80}],
+            [1, 'top-left', 0, 'bottom-right', {x: 10, y: -98}],
+            [2, 'top-left', 1, 'bottom-right', {x: 10, y: -98}],
+            [3, 'bottom-left', 2, 'top-right', {x: 10, y: 102}],
+            [4, 'bottom-left', 3, 'top-right', {x: 10, y: 102}],
+            [5, 'top-right', 2, 'bottom-left', {x: -10, y: -98}],
+            [6, 'top-right', 5, 'bottom-left', {x: -10, y: -98}],
+            [7, 'top-left', 2, 'bottom-right', {x: 10, y: -98}],
+            [8, 'top-left', 7, 'bottom-right', {x: 10, y: -98}],
         ],
         // 0   1       5   6
         //         4
         // 2   3       7   8
         'dumbell': [
-            [1, 'bottom-left', 0, 'bottom-right', {x: 2, y: -10}],
+            [1, 'bottom-left', 0, 'bottom-right', {x: 2, y: 10}],
             [2, 'top-right', 0, 'bottom-right', {x: -10, y: 2}],
             [3, 'top-left', 0, 'bottom-right', {x: 10, y: 2}],
             [4, 'top-left', 1, 'top-right', {x: 2, y: 102}],
             [5, 'top-left', 4, 'top-right', {x: 2, y: -102}],
-            [6, 'bottom-left', 5, 'bottom-right', {x: 2, y: -10}],
+            [6, 'bottom-left', 5, 'bottom-right', {x: 2, y: 10}],
             [7, 'top-right', 5, 'bottom-right', {x: -10, y: 2}],
             [8, 'top-left', 5, 'bottom-right', {x: 10, y: 2}],
         ]

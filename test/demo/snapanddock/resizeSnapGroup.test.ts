@@ -14,8 +14,9 @@ testParameterized(
     (testOptions: ResizeGroupOptions): string =>
         `Resize SnapGroup - ${testOptions.windowCount} windows - ${testOptions.frame ? 'framed' : 'frameless'} - ${testOptions.resizeType.join('-')} resize`,
     [
-        {frame: true, windowCount: 2, resizeType: ['inner', 'horizontal'], failing: true},
-        {frame: true, windowCount: 2, resizeType: ['inner', 'vertical'], failing: true},
+        // These two tests are passing, but for the wrong reasons. Should be revisited once win10 bounds fix is in place.
+        {frame: true, windowCount: 2, resizeType: ['inner', 'horizontal'], skip: true},
+        {frame: true, windowCount: 2, resizeType: ['inner', 'vertical'], skip: true},
         {frame: true, windowCount: 2, resizeType: ['outer', 'horizontal']},
         {frame: true, windowCount: 2, resizeType: ['outer', 'vertical']},
         {frame: true, windowCount: 4, resizeType: ['inner', 'horizontal'], failing: true},

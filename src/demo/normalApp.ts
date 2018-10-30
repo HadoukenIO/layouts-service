@@ -12,7 +12,7 @@ let numChildren = 0;
 const launchDir = location.href.slice(0, location.href.lastIndexOf('/'));
 
 export async function createChild(parentWindowName: string): Promise<void> {
-    await openChild(parentWindowName + ' -  win' + numChildren, numChildren);
+    await openChild(parentWindowName + ' - win' + numChildren, numChildren);
 }
 
 export async function openChild(name: string, i: number, frame = true, url?: string, bounds?: Bounds) {

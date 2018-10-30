@@ -107,6 +107,22 @@ export async function assertAllTabbed(t: TestContext, ...windows: Window[]): Pro
 }
 
 /**
+ * Assert that the given windows all have a tabstrip grouped with them.
+ */
+export async function assertAllHaveTabstrip(t: TestContext, ...windows: Window[]): Promise<void> {
+    const tabGroups = await promiseMap(windows, async (win: Window) => {
+        return await win.getGroup();
+    });
+    for (let i = 0; i < tabGroups.length; i++) {
+        t.truthy(
+            tabGroups[i].find((win) => {
+                return win.identity.name!.includes('TABSET-');
+            }),
+            'No tabset window found in openfin group!');
+    }
+}
+
+/**
  * Assert that a given window is not part of a TabGroup.
  */
 export async function assertNotTabbed(win: Window, t: TestContext): Promise<void> {

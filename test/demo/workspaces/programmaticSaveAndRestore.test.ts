@@ -14,7 +14,7 @@ import {getWindow} from '../../provider/utils/getWindow';
 import {saveRestoreCreateChildWindow} from '../../provider/utils/saveRestoreCreateChildWindow';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 import {sendServiceMessage} from '../utils/serviceUtils';
-import {createCloseAndRestoreLayout, createRegisteredApp} from '../utils/workspacesUtils';
+import {createApp, createCloseAndRestoreLayout} from '../utils/workspacesUtils';
 
 let fin: Fin;
 
@@ -41,21 +41,21 @@ test.beforeEach(async (t) => {
 });
 
 test.afterEach.always(async (t) => {
-    const apps: Application[] = t.context.apps || [];
+    const apps: Application[] = t.context.apps;
     await Promise.all(apps.map(app => app.close()));
 
     await fin.System.removeAllListeners();
 });
 
 test('Programmatic Save and Restore - 1 App', async t => {
-    const app1 = await createRegisteredApp(t, t.context.app1Name);
+    const app1 = await createApp(t, t.context.app1Name, 'registered');
 
     const passIfAppCreated = async (event: {topic: string, type: string, uuid: string}) => {
         if (event.uuid === app1.identity.uuid) {
             t.context.y();
         }
     };
-    await createCloseAndRestoreLayout(t, passIfAppCreated);
+    await createCloseAndRestoreLayout(t, passIfAppCreated, true);
     t.pass();
 });
 
@@ -66,15 +66,15 @@ test('Programmatic Save and Restore - 1 App 1 Child', async t => {
         }
     };
 
-    const app1 = await createRegisteredApp(t, t.context.app1Name);
+    const app1 = await createApp(t, t.context.app1Name, 'registered');
     await saveRestoreCreateChildWindow(t.context.app1Name);
-    await createCloseAndRestoreLayout(t, passIfWindowCreated);
+    await createCloseAndRestoreLayout(t, passIfWindowCreated, true);
     t.pass();
 });
 
 test('Programmatic Save and Restore - 2 Snapped Apps', async t => {
-    const app1 = await createRegisteredApp(t, t.context.app1Name);
-    const app2 = await createRegisteredApp(t, t.context.app2Name, 300, 400);
+    const app1 = await createApp(t, t.context.app1Name, 'registered');
+    const app2 = await createApp(t, t.context.app2Name, 'registered', 300, 400);
 
     let numAppsRestored = 0;
     const passIfAppsCreated = async (event: {topic: string, type: string, uuid: string}) => {
@@ -91,7 +91,7 @@ test('Programmatic Save and Restore - 2 Snapped Apps', async t => {
 
     await dragSideToSide(win1, 'right', win2, 'left');
 
-    await createCloseAndRestoreLayout(t, passIfAppsCreated);
+    await createCloseAndRestoreLayout(t, passIfAppsCreated, true);
 
     win1 = await getWindow({uuid: app1.identity.uuid, name: app1.identity.uuid});
     win2 = await getWindow({uuid: app2.identity.uuid, name: app2.identity.uuid});
@@ -103,8 +103,8 @@ test('Programmatic Save and Restore - 2 Snapped Apps', async t => {
 });
 
 test('Programmatic Save and Restore - 2 Tabbed Apps', async t => {
-    const app1 = await createRegisteredApp(t, t.context.app1Name);
-    const app2 = await createRegisteredApp(t, t.context.app2Name, 300, 400);
+    const app1 = await createApp(t, t.context.app1Name, 'registered');
+    const app2 = await createApp(t, t.context.app2Name, 'registered', 300, 400);
 
     let numAppsRestored = 0;
     const passIfAppsCreated = async (event: {topic: string, type: string, uuid: string}) => {
@@ -121,7 +121,7 @@ test('Programmatic Save and Restore - 2 Tabbed Apps', async t => {
 
     await tabWindowsTogether(win1, win2);
 
-    await createCloseAndRestoreLayout(t, passIfAppsCreated);
+    await createCloseAndRestoreLayout(t, passIfAppsCreated, true);
 
     win1 = await getWindow({uuid: app1.identity.uuid, name: app1.identity.uuid});
     win2 = await getWindow({uuid: app2.identity.uuid, name: app2.identity.uuid});
@@ -132,49 +132,18 @@ test('Programmatic Save and Restore - 2 Tabbed Apps', async t => {
 });
 
 
-// test('Programmatic Save and Restore - Deregistered - 1 App', async t => {
-//     let y: () => void;
-//     let n: (e: string) => void;
-//     const p = new Promise((res, rej) => {
-//         y = res;
-//         n = rej;
-//     });
+test('Programmatic Save and Restore - Deregistered - 1 App', async t => {
+    const app1 = await createApp(t, t.context.app1Name, 'deregistered');
 
-//     const app1Name = getAppName();
+    const failIfAppCreated = async (event: {topic: string, type: string, uuid: string}) => {
+        if (event.uuid === app1.identity.uuid) {
+            t.context.y();
+            t.fail();
+        }
+    };
 
-//     app1 = await fin.Application.create({
-//         uuid: app1Name,
-//         url: 'http://localhost:1337/test/deregisteredApp.html',
-//         name: app1Name,
-//         mainWindowOptions: {autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 300, defaultWidth: 300}
-//     });
-
-//     const failIfAppCreated = async (event: {topic: string, type: string, uuid: string}) => {
-//         if (event.uuid === app1.identity.uuid) {
-//             y();
-//             t.fail();
-//         }
-//     };
-
-//     await app1.run();
-
-//     await delay(500);
-
-//     const generatedLayout = await client.dispatch('generateLayout');
-
-//     await app1.close();
-
-//     await fin.System.addListener('application-created', failIfAppCreated);
-
-//     await client.dispatch('restoreLayout', generatedLayout);
-
-//     setTimeout(() => {
-//         y();
-//         t.pass();
-//     }, 2500);
-
-//     await p;
-// });
+    await createCloseAndRestoreLayout(t, failIfAppCreated, false);
+});
 
 // test('Programmatic Save and Restore - Deregistered - 1 App 1 Child', async t => {
 //     let y: () => void;

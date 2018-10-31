@@ -60,13 +60,14 @@ test('Programmatic Save and Restore - 1 App', async t => {
 });
 
 test('Programmatic Save and Restore - 1 App 1 Child', async t => {
+    const app1 = await createApp(t, t.context.app1Name, 'registered');
+
     const passIfWindowCreated = async (event: {topic: string, type: string, uuid: string, name: string}) => {
         if (event.name === 'Child-1 - win0') {
             t.context.y();
         }
     };
 
-    const app1 = await createApp(t, t.context.app1Name, 'registered');
     await saveRestoreCreateChildWindow(t.context.app1Name);
     await createCloseAndRestoreLayout(t, passIfWindowCreated, true);
     t.pass();
@@ -145,51 +146,19 @@ test('Programmatic Save and Restore - Deregistered - 1 App', async t => {
     await createCloseAndRestoreLayout(t, failIfAppCreated, false);
 });
 
-// test('Programmatic Save and Restore - Deregistered - 1 App 1 Child', async t => {
-//     let y: () => void;
-//     let n: (e: string) => void;
-//     const p = new Promise((res, rej) => {
-//         y = res;
-//         n = rej;
-//     });
+test('Programmatic Save and Restore - Deregistered - 1 App 1 Child', async t => {
+    const app1 = await createApp(t, t.context.app1Name, 'deregistered');
 
-//     const app1Name = getAppName();
+    const failIfWindowCreated = async (event: {topic: string, type: string, uuid: string, name: string}) => {
+        if (event.name === 'Child-1 - win0' || event.name === t.context.app1Name) {
+            t.context.y();
+            t.fail();
+        }
+    };
 
-//     app1 = await fin.Application.create({
-//         uuid: app1Name,
-//         url: 'http://localhost:1337/test/deregisteredApp.html',
-//         name: app1Name,
-//         mainWindowOptions: {autoShow: true, saveWindowState: false, defaultTop: 100, defaultLeft: 100, defaultHeight: 300, defaultWidth: 300}
-//     });
-
-//     const failIfWindowCreated = async (event: {topic: string, type: string, uuid: string, name: string}) => {
-//         if (event.name === 'Child-1 - win0' || event.name === app1Name) {
-//             y();
-//             t.fail();
-//         }
-//     };
-
-//     await app1.run();
-
-//     await saveRestoreCreateChildWindow(app1Name);
-
-//     await delay(1000);
-
-//     const generatedLayout = await client.dispatch('generateLayout');
-
-//     await fin.System.addListener('window-created', failIfWindowCreated);
-
-//     await app1.close();
-
-//     await client.dispatch('restoreLayout', generatedLayout);
-
-//     setTimeout(() => {
-//         y();
-//         t.pass();
-//     }, 2500);
-
-//     await p;
-// });
+    await saveRestoreCreateChildWindow(t.context.app1Name);
+    await createCloseAndRestoreLayout(t, failIfWindowCreated, false);
+});
 
 // test('Programmatic Save and Restore - Deregistered - 2 Snapped Apps', async t => {
 //     let y: () => void;

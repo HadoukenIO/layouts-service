@@ -20,7 +20,7 @@ export async function createApp(t: SaveRestoreTestContext, uuid: string, registr
         uuid,
         url: registered ? 'http://localhost:1337/test/registeredApp.html' : 'http://localhost:1337/test/deregisteredApp.html',
         name: uuid,
-        mainWindowOptions: {autoShow: true, saveWindowState: false, defaultTop: top || 100, defaultLeft: left || 100, defaultHeight: 300, defaultWidth: 300}
+        mainWindowOptions: {autoShow: true, saveWindowState: false, defaultTop: top || 200, defaultLeft: left || 200, defaultHeight: 300, defaultWidth: 300}
     });
     t.context.apps.push(app);
     await app.run();

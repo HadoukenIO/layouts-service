@@ -35,10 +35,10 @@ export async function openChild(name: string, i: number, frame = true, url?: str
         return await fin.Window.create({
             url: url || `${launchDir}/child.html`,
             autoShow: true,
-            defaultHeight: 250 + 50 * i,
-            defaultWidth: 250 + 50 * i,
-            defaultLeft: 320 * (i % 3),
-            defaultTop: i > 2 ? 400 : 50,
+            defaultHeight: 300,
+            defaultWidth: 300,
+            defaultLeft: 350,
+            defaultTop: 350,
             saveWindowState: false,
             frame,
             name

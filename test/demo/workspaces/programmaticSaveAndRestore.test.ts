@@ -14,6 +14,8 @@ import {getWindow} from '../../provider/utils/getWindow';
 import {saveRestoreCreateChildWindow} from '../../provider/utils/saveRestoreCreateChildWindow';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 import {sendServiceMessage} from '../utils/serviceUtils';
+import {undockWindow} from '../utils/snapServiceUtils';
+import {removeTab} from '../utils/tabServiceUtils';
 import {createApp, createCloseAndRestoreLayout} from '../utils/workspacesUtils';
 
 let fin: Fin;
@@ -42,7 +44,9 @@ test.beforeEach(async (t) => {
 
 test.afterEach.always(async (t) => {
     const apps: Application[] = t.context.apps;
-    await Promise.all(apps.map(app => app.close()));
+    await Promise.all(apps.map(async app => await app.close(true)));
+
+    await delay(200);
 
     await fin.System.removeAllListeners();
 });
@@ -160,7 +164,7 @@ test('Programmatic Save and Restore - Deregistered - Doesn\'t Restore 1 App or i
     await createCloseAndRestoreLayout(t, failIfWindowCreated, false);
 });
 
-test('Programmatic Save and Restore - Deregistered - 2 Snapped Windows - Restores One Normal, but Not One Deregistered Child', async t => {
+test('Programmatic Save and Restore - Deregistered - 2 Snapped Windows - Restores 1 Normal, but Not 1 Deregistered Child', async t => {
     const app1 = await createApp(t, t.context.app1Name, 'registered');
     const app2 = await createApp(t, t.context.app2Name, 'deregistered', 300, 400);
 
@@ -183,7 +187,7 @@ test('Programmatic Save and Restore - Deregistered - 2 Snapped Windows - Restore
     await assertNotGrouped(win1, t);
 });
 
-test('Programmatic Save and Restore - Deregistered - 2 Tabbed Windows - Restores One Normal, but Not One Deregistered Child', async t => {
+test('Programmatic Save and Restore - Deregistered - 2 Tabbed Windows - Restores 1 Normal, but Not 1 Deregistered Child', async t => {
     const app1 = await createApp(t, t.context.app1Name, 'registered');
     const app2 = await createApp(t, t.context.app2Name, 'deregistered', 300, 400);
 
@@ -204,4 +208,64 @@ test('Programmatic Save and Restore - Deregistered - 2 Tabbed Windows - Restores
     await createCloseAndRestoreLayout(t, failIfWindowCreated, false);
     win1 = await fin.Window.wrap({uuid: app1.identity.uuid, name: app1.identity.uuid});
     await assertNotGrouped(win1, t);
+});
+
+test('Programmatic Save and Restore - Switching From 1 Snap Group To Another', async t => {
+    const app1 = await createApp(t, t.context.app1Name, 'registered');
+    const app2 = await createApp(t, t.context.app2Name, 'registered', 300, 400);
+
+    await saveRestoreCreateChildWindow(t.context.app2Name);
+
+    const win1 = await fin.Window.wrap({uuid: app1.identity.uuid, name: app1.identity.uuid});
+    const win2 = await fin.Window.wrap({uuid: app2.identity.uuid, name: app2.identity.uuid});
+    const win3 = await fin.Window.wrap({uuid: t.context.app2Name, name: `Child-1 - win0`});
+
+
+    await dragSideToSide(win1, 'right', win3, 'left');
+
+    const generatedLayout = await sendServiceMessage('generateLayout', undefined);
+
+    await undockWindow(win1.identity);
+
+    await dragSideToSide(win1, 'right', win2, 'left');
+
+    await sendServiceMessage('restoreLayout', generatedLayout);
+    await delay(500);
+
+    await dragWindowTo(win1, 500, 500);
+
+    await assertNotGrouped(win2, t);
+    await assertAdjacent(t, win1, win3);
+    await assertGrouped(t, win1, win3);
+});
+
+test('Programmatic Save and Restore - Switching From 1 Tab Group To Another', async t => {
+    const app1 = await createApp(t, t.context.app1Name, 'registered');
+    const app2 = await createApp(t, t.context.app2Name, 'registered', 300, 400);
+
+    await saveRestoreCreateChildWindow(t.context.app2Name);
+
+    const win1 = await fin.Window.wrap({uuid: app1.identity.uuid, name: app1.identity.uuid});
+    const win2 = await fin.Window.wrap({uuid: app2.identity.uuid, name: app2.identity.uuid});
+    const win3 = await fin.Window.wrap({uuid: t.context.app2Name, name: `Child-1 - win0`});
+
+
+    await tabWindowsTogether(win1, win3);
+
+    const generatedLayout = await sendServiceMessage('generateLayout', undefined);
+
+    await removeTab(win1.identity);
+    await delay(500);
+
+    await dragWindowTo(win3, 500, 500);
+
+    await tabWindowsTogether(win1, win2);
+
+    await sendServiceMessage('restoreLayout', generatedLayout);
+    await delay(500);
+
+    await assertNotGrouped(win2, t);
+    await assertAllTabbed(t, win1, win3);
+    await assertGrouped(t, win1, win3);
+    await assertAllHaveTabstrip(t, win1, win3);
 });

@@ -16,6 +16,15 @@ export async function getTabGroupID(identity: Identity): Promise<string|null> {
     return executeJavascriptOnService<WindowIdentity, string|null>(remoteFunc, identity as WindowIdentity);
 }
 
+export async function removeTab(identity: Identity): Promise<void> {
+    function remoteFunc(this: ProviderWindow, identity: WindowIdentity): void {
+        const tab: DesktopWindow|null = this.model.getWindow(identity);
+        const tabGroup: DesktopTabGroup|null = tab ? tab.getTabGroup() : null;
+        tabGroup && tab ? tabGroup.removeTab(tab) : console.log('No Tab Group Found for', tab);
+    }
+    return executeJavascriptOnService<WindowIdentity, void>(remoteFunc, identity as WindowIdentity);
+}
+
 /**
  * Queries the service for all windows in the same tabGroup as the given identity. If the window
  * is not in a tab group, only that window is returned.

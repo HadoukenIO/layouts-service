@@ -47,7 +47,7 @@ test.afterEach.always(async (t) => {
     await fin.System.removeAllListeners();
 });
 
-test('Programmatic Save and Restore - 1 App', async t => {
+test('Programmatic Save and Restore - Restore 1 App', async t => {
     const app1 = await createApp(t, t.context.app1Name, 'registered');
 
     const passIfAppCreated = async (event: {topic: string, type: string, uuid: string}) => {
@@ -59,7 +59,7 @@ test('Programmatic Save and Restore - 1 App', async t => {
     t.pass();
 });
 
-test('Programmatic Save and Restore - 1 App 1 Child', async t => {
+test('Programmatic Save and Restore - Restore 1 App and its 1 Child', async t => {
     const app1 = await createApp(t, t.context.app1Name, 'registered');
 
     const passIfWindowCreated = async (event: {topic: string, type: string, uuid: string, name: string}) => {
@@ -73,7 +73,7 @@ test('Programmatic Save and Restore - 1 App 1 Child', async t => {
     t.pass();
 });
 
-test('Programmatic Save and Restore - 2 Snapped Apps', async t => {
+test('Programmatic Save and Restore - Restore 2 Snapped Apps', async t => {
     const app1 = await createApp(t, t.context.app1Name, 'registered');
     const app2 = await createApp(t, t.context.app2Name, 'registered', 300, 400);
 
@@ -103,7 +103,7 @@ test('Programmatic Save and Restore - 2 Snapped Apps', async t => {
     await assertGrouped(t, win1, win2);
 });
 
-test('Programmatic Save and Restore - 2 Tabbed Apps', async t => {
+test('Programmatic Save and Restore - Restore 2 Tabbed Apps', async t => {
     const app1 = await createApp(t, t.context.app1Name, 'registered');
     const app2 = await createApp(t, t.context.app2Name, 'registered', 300, 400);
 
@@ -133,7 +133,7 @@ test('Programmatic Save and Restore - 2 Tabbed Apps', async t => {
 });
 
 
-test('Programmatic Save and Restore - Deregistered - 1 App', async t => {
+test('Programmatic Save and Restore - Deregistered - Doesn\'t Restore 1 App', async t => {
     const app1 = await createApp(t, t.context.app1Name, 'deregistered');
 
     const failIfAppCreated = async (event: {topic: string, type: string, uuid: string}) => {
@@ -146,7 +146,7 @@ test('Programmatic Save and Restore - Deregistered - 1 App', async t => {
     await createCloseAndRestoreLayout(t, failIfAppCreated, false);
 });
 
-test('Programmatic Save and Restore - Deregistered - 1 App 1 Child', async t => {
+test('Programmatic Save and Restore - Deregistered - Doesn\'t Restore 1 App or its 1 Child', async t => {
     const app1 = await createApp(t, t.context.app1Name, 'deregistered');
 
     const failIfWindowCreated = async (event: {topic: string, type: string, uuid: string, name: string}) => {
@@ -160,7 +160,7 @@ test('Programmatic Save and Restore - Deregistered - 1 App 1 Child', async t => 
     await createCloseAndRestoreLayout(t, failIfWindowCreated, false);
 });
 
-test('Programmatic Save and Restore - Deregistered - 2 Snapped Windows - One Normal, One Deregistered Child', async t => {
+test('Programmatic Save and Restore - Deregistered - 2 Snapped Windows - Restores One Normal, but Not One Deregistered Child', async t => {
     const app1 = await createApp(t, t.context.app1Name, 'registered');
     const app2 = await createApp(t, t.context.app2Name, 'deregistered', 300, 400);
 
@@ -183,7 +183,7 @@ test('Programmatic Save and Restore - Deregistered - 2 Snapped Windows - One Nor
     await assertNotGrouped(win1, t);
 });
 
-test('Programmatic Save and Restore - Deregistered - 2 Tabbed Windows - One Normal, One Deregistered Child', async t => {
+test('Programmatic Save and Restore - Deregistered - 2 Tabbed Windows - Restores One Normal, but Not One Deregistered Child', async t => {
     const app1 = await createApp(t, t.context.app1Name, 'registered');
     const app2 = await createApp(t, t.context.app2Name, 'deregistered', 300, 400);
 

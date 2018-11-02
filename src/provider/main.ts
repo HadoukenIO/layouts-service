@@ -27,6 +27,8 @@ interface SupportedArguments {
     disableTabbingOperations: boolean;
     disableDockingOperations: boolean;
     emulateDragEvents: boolean;
+    disableBoundsDelay: number;
+    disableBoundsRateLimit: number;
 }
 type Stringified<T> = {
     [P in keyof T]?: string;
@@ -55,6 +57,8 @@ export async function main() {
 
     function processUserArgs(args: Stringified<SupportedArguments>): void {
         if (args) {
+            console.log('Using URL config:', args);
+
             if (args.disableTabbingOperations) {
                 tabService.disableTabbingOperations = args.disableTabbingOperations === 'true';
             }
@@ -63,6 +67,12 @@ export async function main() {
             }
             if (args.emulateDragEvents) {
                 DesktopWindow.emulateDragEvents = args.emulateDragEvents === 'true';
+            }
+            if (args.disableBoundsDelay) {
+                DesktopWindow.disableBoundsDelay = Number.parseInt(args.disableBoundsDelay, 10);
+            }
+            if (args.disableBoundsRateLimit) {
+                DesktopWindow.disableBoundsRateLimit = Number.parseInt(args.disableBoundsRateLimit, 10);
             }
         }
     }

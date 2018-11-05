@@ -2,21 +2,20 @@ import {Window} from 'hadouken-js-adapter';
 import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/application/application';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
-
 import {LayoutApp, TabIdentifier, WindowState} from '../../client/types';
-import {tabService} from '../main';
+import {model, tabService} from '../main';
+import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {WindowIdentity} from '../model/DesktopWindow';
 
 // Positions a window when it is restored.
-// If the window is supposed to be tabbed, makes it leave its group to avoid tab collision bugs
-// Also given to the client to use.
 export const positionWindow = async (win: WindowState) => {
     try {
         const ofWin = await fin.Window.wrap(win);
-        if (!win.isTabbed) {
-            await ofWin.leaveGroup();
-        }
         await ofWin.setBounds(win);
+        if (win.isTabbed) {
+            return;
+        }
+        await ofWin.leaveGroup();
 
 
         // COMMENTED OUT FOR DEMO
@@ -47,29 +46,27 @@ export const createNormalPlaceholder = async (win: WindowState) => {
 
     const placeholderName = 'Placeholder-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
-    const placeholder = new fin.desktop.Window(
-        {
-            name: placeholderName,
-            autoShow: true,
-            defaultHeight: height,
-            defaultWidth: width,
-            defaultLeft: left,
-            defaultTop: top,
-            saveWindowState: false,
-            opacity: 0.6,
-            backgroundColor: '#D3D3D3'
-        },
-        () => {
-            placeholder.getNativeWindow().document.body.style.overflow = 'hidden';
-            placeholder.getNativeWindow().document.bgColor = 'D3D3D3';
-        });
+    const placeholder = await fin.Window.create({
+        name: placeholderName,
+        autoShow: true,
+        defaultHeight: height,
+        defaultWidth: width,
+        defaultLeft: left,
+        defaultTop: top,
+        saveWindowState: false,
+        opacity: 0.6,
+        frame: false,
+        backgroundColor: '#D3D3D3'
+    });
 
     const actualWindow = await fin.Window.wrap({uuid, name});
     const updateOptionsAndShow = async () => {
-        await actualWindow.removeListener('shown', updateOptionsAndShow);
+        await actualWindow.removeListener('show-requested', updateOptionsAndShow);
+        await actualWindow.setBounds(win);
+        await actualWindow.showAt(left, top);
         await placeholder.close();
     };
-    await actualWindow.addListener('shown', updateOptionsAndShow);
+    await actualWindow.addListener('show-requested', updateOptionsAndShow);
 
     return placeholder;
 };
@@ -81,27 +78,24 @@ export const createTabPlaceholder = async (win: WindowState) => {
 
     const placeholderName = 'Placeholder-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
-    const placeholder = new fin.desktop.Window(
-        {
-            name: placeholderName,
-            autoShow: true,
-            defaultHeight: height,
-            defaultWidth: width,
-            defaultLeft: left,
-            defaultTop: top,
-            saveWindowState: false,
-            opacity: 0.6,
-            backgroundColor: '#D3D3D3'
-        },
-        () => {
-            placeholder.getNativeWindow().document.body.style.overflow = 'hidden';
-            placeholder.getNativeWindow().document.bgColor = 'D3D3D3';
-        });
+    const placeholder = await fin.Window.create({
+        name: placeholderName,
+        autoShow: true,
+        defaultHeight: height,
+        defaultWidth: width,
+        defaultLeft: left,
+        defaultTop: top,
+        saveWindowState: false,
+        frame: false,
+        opacity: 0.6,
+        backgroundColor: '#D3D3D3'
+    });
 
     const actualWindow = await fin.Window.wrap({uuid, name});
     const updateOptionsAndShow = async () => {
         await actualWindow.removeListener('shown', updateOptionsAndShow);
-        await tabService.swapTab(actualWindow.identity as TabIdentifier, placeholder);
+        await model.expect(actualWindow.identity as WindowIdentity);
+        await tabService.swapTab({uuid: placeholder.identity.uuid, name: placeholderName}, actualWindow.identity as TabIdentifier);
         await placeholder.close();
     };
     await actualWindow.addListener('shown', updateOptionsAndShow);
@@ -181,7 +175,7 @@ export function addToWindowObject(identity: WindowIdentity, windowObject: Window
 export async function createTabbedPlaceholderAndRecord(win: WindowState, tabbedPlaceholdersToWindows: TabbedPlaceholders) {
     const tabPlaceholder = await createTabPlaceholder(win);
     tabbedPlaceholdersToWindows[win.uuid] =
-        Object.assign({}, tabbedPlaceholdersToWindows[win.uuid], {[win.name]: {name: tabPlaceholder.name, uuid: tabPlaceholder.uuid}});
+        Object.assign({}, tabbedPlaceholdersToWindows[win.uuid], {[win.name]: {name: tabPlaceholder.identity.name, uuid: tabPlaceholder.identity.uuid}});
 }
 
 // Helper function to determine what type of placeholder window to open.
@@ -215,7 +209,11 @@ export async function childWindowPlaceholderCheckRunningApp(
                     await createNormalPlaceholder(win);
                 }
             } else {
+                const childWindowModel = model.getWindow(win);
                 await tabService.removeTab(win);
+                if (childWindowModel!.getSnapGroup().length > 1) {
+                    childWindowModel!.dockToGroup(new DesktopSnapGroup());
+                }
             }
         }
     } else {

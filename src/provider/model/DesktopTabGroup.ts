@@ -220,11 +220,10 @@ export class DesktopTabGroup {
         const tabIndex = this.tabs.indexOf(tabToRemove!);
 
         if (tabIndex >= 0) {
-            this._tabs.splice(tabIndex, 1, tabToAdd);
-            await this.addTabInternal(tabToAdd, false, tabIndex);
-            await this.removeTabInternal(tabToRemove, tabIndex);
+            await this.addTabInternal(tabToAdd, false, this.tabs.indexOf(tabToRemove!) + 1);
+            await this.removeTabInternal(tabToRemove, this.tabs.indexOf(tabToRemove!));
 
-            if (this._activeTab.getId() === tabToAdd.getId()) {
+            if (this._activeTab.getId() === tabToRemove.getId()) {
                 // if the switchedwith tab was the active one, we make the added tab active
                 this.switchTab(tabToAdd);
             } else {
@@ -454,7 +453,14 @@ export class DesktopTabGroup {
 
     private getTabProperties(tab: DesktopWindow): TabProperties {
         const savedProperties: string|null = localStorage.getItem(tab.getId());
-        return savedProperties ? JSON.parse(savedProperties) : {icon: tab.getState().icon, title: tab.getState().title};
+        if (savedProperties) {
+            return JSON.parse(savedProperties);
+        }
+
+        const {icon, title} = tab.getState();
+        // Special handling for S&R placeholder windows
+        const modifiedTitle = tab.getIdentity().uuid === fin.Window.me.uuid && title.startsWith('Placeholder-') ? 'Loading...' : title;
+        return {icon, title: modifiedTitle};
     }
 
     private onWindowTeardown(window: DesktopWindow): void {

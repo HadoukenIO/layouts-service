@@ -1,12 +1,9 @@
 import {tabService} from '../main';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
-import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {DesktopWindow, eTransformType, Mask, WindowIdentity} from '../model/DesktopWindow';
-import {ApplicationConfigManager} from '../tabbing/components/ApplicationConfigManager';
-import {TabService} from '../tabbing/TabService';
 
-import {EXPLODE_MOVE_SCALE, UNDOCK_MOVE_DISTANCE} from './Config';
+import {EXPLODE_MOVE_SCALE, MIN_OVERLAP, UNDOCK_MOVE_DISTANCE} from './Config';
 import {eSnapValidity, Resolver, SnapTarget} from './Resolver';
 import {SnapView} from './SnapView';
 import {Point, PointUtils} from './utils/PointUtils';
@@ -61,7 +58,7 @@ export class SnapService {
                 'CommandOrControl+Shift+U',
                 () => {
                     fin.desktop.System.getFocusedWindow(focusedWindow => {
-                        if (focusedWindow !== null && this.model.getWindow(focusedWindow)) {
+                        if (focusedWindow !== null && model.getWindow(focusedWindow)) {
                             console.log('Global hotkey invoked on window', focusedWindow);
                             this.undock(focusedWindow);
                         }
@@ -73,7 +70,8 @@ export class SnapService {
     public undock(target: WindowIdentity): void {
         const window: DesktopWindow|null = this.model.getWindow(target);
 
-        if (window && window.getSnapGroup().length > 1) {
+        // Do nothing for tabbed windows until tab/snap is properly integrated
+        if (window && window.getSnapGroup().length > 1 && window.getTabGroup() === null) {
             try {
                 // Calculate undock offset
                 const offset = this.calculateUndockMoveDirection(window);
@@ -99,22 +97,26 @@ export class SnapService {
 
     /**
      * Explodes a group. All windows in the group are unlocked.
-     * @param targetWindow A window which is a member of the group to be exploded.
+     * @param target A window which is a member of the group to be exploded.
      */
-    public explodeGroup(targetWindow: WindowIdentity): void {
+    public explodeGroup(target: WindowIdentity): void {
         // NOTE: Since there is currently not a schema to identify a group, this method
         // accepts a window that is a member of the group. Once there is a way of uniquely
         // identifying groups, this can be changed
 
         // Get the group containing the targetWindow
-        const groups: ReadonlyArray<DesktopSnapGroup> = this.model.getSnapGroups();
-        const group: DesktopSnapGroup|undefined = groups.find((g) => {
-            return g.windows.findIndex(w => w.getIdentity().uuid === targetWindow.uuid && w.getIdentity().name === targetWindow.name) >= 0;
-        });
+        const targetWindow = this.model.getWindow(target);
+
+        // This function does nothing for tabbed windows.
+        if (targetWindow && targetWindow.getTabGroup()) {
+            return;
+        }
+
+        const group = targetWindow ? targetWindow.getSnapGroup() : null;
 
         if (!group) {
-            console.error(`Unable to undock - no group found for window with identity "${targetWindow.uuid}/${targetWindow.name}"`);
-            throw new Error(`Unable to undock - no group found for window with identity "${targetWindow.uuid}/${targetWindow.name}"`);
+            console.error(`Unable to undock - no group found for window with identity "${target.uuid}/${target.name}"`);
+            throw new Error(`Unable to undock - no group found for window with identity "${target.uuid}/${target.name}"`);
         }
 
         try {
@@ -157,8 +159,15 @@ export class SnapService {
     private validateGroup(group: DesktopSnapGroup, modifiedWindow: DesktopWindow): void {
         // Ensure 'group' is still a valid, contiguous group.
         // NOTE: 'modifiedWindow' may no longer exist (if validation is being performed because a window was closed)
-
-        // TODO (SERVICE-130)
+        const contiguousWindowSets = this.getContiguousWindows(group.windows);
+        if (contiguousWindowSets.length > 1) {                             // Group is disjointed. Need to split.
+            for (const windowsToGroup of contiguousWindowSets.slice(1)) {  // Leave first set as-is. Move others into own groups.
+                const newGroup = new DesktopSnapGroup();
+                for (const windowToGroup of windowsToGroup) {
+                    windowToGroup.dockToGroup(newGroup);
+                }
+            }
+        }
     }
 
     private snapGroup(activeGroup: DesktopSnapGroup, type: Mask<eTransformType>): void {
@@ -222,5 +231,60 @@ export class SnapService {
             }
         }
         return totalOffset;
+    }
+
+    private getContiguousWindows(windows: Snappable[]): Snappable[][] {
+        const adjacencyList: Snappable[][] = new Array<Snappable[]>(windows.length);
+
+        // Build adjacency list
+        for (let i = 0; i < windows.length; i++) {
+            adjacencyList[i] = [];
+            for (let j = 0; j < windows.length; j++) {
+                if (i !== j && isAdjacent(windows[i], windows[j])) {
+                    adjacencyList[i].push(windows[j]);
+                }
+            }
+        }
+
+        // Find all contiguous sets
+        const contiguousSets: Snappable[][] = [];
+        const unvisited: Snappable[] = windows.slice();
+
+        while (unvisited.length > 0) {
+            const visited: Snappable[] = [];
+            dfs(unvisited[0], visited);
+            contiguousSets.push(visited);
+        }
+
+        return contiguousSets;
+
+        function dfs(startWindow: Snappable, visited: Snappable[]) {
+            const startIndex = windows.indexOf(startWindow);
+            if (visited.includes(startWindow)) {
+                return;
+            }
+            visited.push(startWindow);
+            unvisited.splice(unvisited.indexOf(startWindow), 1);
+            for (let i = 0; i < adjacencyList[startIndex].length; i++) {
+                dfs(adjacencyList[startIndex][i], visited);
+            }
+        }
+
+        function isAdjacent(win1: Snappable, win2: Snappable) {
+            const distance = RectUtils.distance(win1.getState(), win2.getState());
+            if (win1.getTabGroup() && win1.getTabGroup() === win2.getTabGroup()) {
+                // Special handling for tab groups. When validating, all windows in a tabgroup are
+                // assumed to be adjacent to avoid weirdness with hidden windows.
+                return true;
+            } else if (win1.getState().hidden || win2.getState().hidden) {
+                // If a window is not visible it cannot be adjacent to anything. This also allows us
+                // to avoid the questionable position tracking for hidden windows.
+                return false;
+            } else if (distance.border(0) && Math.abs(distance.maxAbs) > MIN_OVERLAP) {
+                // The overlap check ensures that only valid snap configurations are counted
+                return true;
+            }
+            return false;
+        }
     }
 }

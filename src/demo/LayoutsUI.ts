@@ -147,7 +147,7 @@ export function createTabbedWindow(page: string) {
     const uuid = `App${numTabbedWindows}`;
     const app = new fin.desktop.Application(
         {
-            url: `http://localhost:1337/demo/tabbing/App/${page}.html`,
+            url: `http://localhost:1337/demo/tabbing/${page}.html`,
             uuid,
             name: uuid,
             mainWindowOptions: {defaultWidth: 400, defaultHeight: 300, saveWindowState: false, autoShow: true, defaultCentered: true}

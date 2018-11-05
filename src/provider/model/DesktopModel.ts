@@ -54,7 +54,7 @@ export class DesktopModel {
         fin.System.getAllWindows().then(apps => {
             apps.forEach((app) => {
                 // Ignore openfin error windows, the main service window, and all of it's children
-                if (this.isErrorWindow(app.uuid) && app.uuid !== serviceUUID) {
+                if (!this.isErrorWindow(app.uuid) && app.uuid !== serviceUUID) {
                     // Register the main window
                     this.registerWindow({uuid: app.uuid, name: app.mainWindow.name});
 

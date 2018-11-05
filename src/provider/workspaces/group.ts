@@ -1,5 +1,5 @@
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
-import {LayoutApp, WindowState} from '../../client/types';
+import {LayoutApp, LayoutWindow} from '../../client/types';
 import {model} from '../main';
 import {WindowIdentity} from '../model/DesktopWindow';
 import {promiseMap} from '../snapanddock/utils/async';
@@ -26,13 +26,13 @@ export const getGroup = (identity: Identity): Promise<Identity[]> => {
 export const regroupLayout = async (apps: LayoutApp[]) => {
     await promiseMap(apps, async(app: LayoutApp): Promise<void> => {
         await groupWindow(app.mainWindow);
-        await promiseMap(app.childWindows, async (child: WindowState) => {
+        await promiseMap(app.childWindows, async (child: LayoutWindow) => {
             await groupWindow(child);
         });
     });
 };
 
-export const groupWindow = async (win: WindowState) => {
+export const groupWindow = async (win: LayoutWindow) => {
     if (win.isTabbed) {
         return;
     }

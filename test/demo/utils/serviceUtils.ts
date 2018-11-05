@@ -2,7 +2,8 @@
 import {Fin} from 'hadouken-js-adapter';
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
-import {CHANNEL_NAME} from '../../../src/client/types';
+// import {SERVICE_CHANNEL} from '../../../src/client/internal';
+const SERVICE_CHANNEL = 'of-layouts-service-v1';  // TODO: Remove duplication with internal.ts
 
 import {getConnection} from '../../provider/utils/connect';
 
@@ -49,5 +50,5 @@ export async function sendServiceMessage<T, R>(message: string, payload: T): Pro
 
 async function getServiceClient() {
     const fin: Fin = await getConnection();
-    return fin.InterApplicationBus.Channel.connect(CHANNEL_NAME);
+    return fin.InterApplicationBus.Channel.connect(SERVICE_CHANNEL);
 }

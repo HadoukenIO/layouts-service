@@ -1,7 +1,7 @@
 import {test} from 'ava';
 import {Application, Fin, Window} from 'hadouken-js-adapter';
 
-import {TabBlob} from '../../../src/client/types';
+import {TabGroup} from '../../../src/client/types';
 import {DesktopTabGroup} from '../../../src/provider/model/DesktopTabGroup';
 import {getConnection} from '../../provider/utils/connect';
 import {getBounds, NormalizedBounds} from '../../provider/utils/getBounds';
@@ -31,7 +31,7 @@ test('Create tab group from 2 windows', async (assert) => {
     win2 = await app2.getWindow();
     const preWin2Bounds = await win2.getBounds();
 
-    const tabBlobs: TabBlob[] = [{
+    const tabGroups: TabGroup[] = [{
         groupInfo: {
             url: 'http://localhost:1337/provider/tabbing/tabstrip/tabstrip.html',
             active: {uuid: win2.identity.uuid, name: win2.identity.name!},
@@ -48,12 +48,12 @@ test('Create tab group from 2 windows', async (assert) => {
 
 
     // Act
-    function scriptToExecute(this: ProviderWindow, tabBlobs: TabBlob[]): Promise<string> {
-        return this.tabService.createTabGroupsFromTabBlob(tabBlobs).then((addedGroups: DesktopTabGroup[]) => {
+    function scriptToExecute(this: ProviderWindow, tabGroups: TabGroup[]): Promise<string> {
+        return this.tabService.createTabGroupsFromLayout(tabGroups).then((addedGroups: DesktopTabGroup[]) => {
             return addedGroups[0].ID;
         });
     }
-    const tabGroupId: string = await executeJavascriptOnService<TabBlob[], string>(scriptToExecute, tabBlobs);
+    const tabGroupId: string = await executeJavascriptOnService<TabGroup[], string>(scriptToExecute, tabGroups);
     assert.truthy(tabGroupId);
 
     // Tab group should have been created
@@ -75,8 +75,8 @@ test('Create tab group from 2 windows', async (assert) => {
     assert.is(win2Bounds.right, win1Bounds.right);
     assert.is(win2Bounds.top, win1Bounds.top);
     assert.is(win2Bounds.width, win1Bounds.width);
-    assert.is(win2Bounds.top, (tabBlobs[0].groupInfo.dimensions.y + tabBlobs[0].groupInfo.dimensions.tabGroupHeight));
-    assert.is(win2Bounds.left, tabBlobs[0].groupInfo.dimensions.x);
+    assert.is(win2Bounds.top, (tabGroups[0].groupInfo.dimensions.y + tabGroups[0].groupInfo.dimensions.tabGroupHeight));
+    assert.is(win2Bounds.left, tabGroups[0].groupInfo.dimensions.x);
 
 
     // TabGroup existence check

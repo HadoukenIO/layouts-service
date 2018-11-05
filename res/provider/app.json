@@ -3,7 +3,7 @@
     "startup_app": {
         "name": "layouts-service",
         "description": "OpenFin Layouts Managing Service",
-        "url": "https://cdn.openfin.co/services/openfin/layouts/stable/index.html",
+        "url": "https://cdn.openfin.co/services/openfin/layouts/provider.html",
         "uuid": "layouts-service",
         "autoShow": true,
         "showTaskbarIcon": true,

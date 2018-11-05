@@ -10,8 +10,8 @@ describe('Tests for save and restore API methods', () => {
     describe('Tests for getting tabbing info blob', () => {
         describe('Request to get tab info with tabbing no service', () => {
             it('should return undefined', async () => {
-                const tabBlob = await tabService.getTabSaveInfo();
-                expect(tabBlob).toBeUndefined();
+                const tabGroup = await tabService.getTabSaveInfo();
+                expect(tabGroup).toBeUndefined();
             });
         });
     });

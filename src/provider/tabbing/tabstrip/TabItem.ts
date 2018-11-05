@@ -1,7 +1,7 @@
 
-import * as layouts from '../../../client/main';  //The equivalent of 'openfin-layouts' NPM package outside of this project.
+import * as layouts from '../../../client/main';
+import {TabProperties, WindowIdentity} from '../../../client/types';
 
-import {TabIdentifier, TabProperties} from '../../../client/types';
 import {TabManager} from './TabManager';
 
 export class Tab {
@@ -18,7 +18,7 @@ export class Tab {
     /**
      * ID of the Tab (uuid, name);
      */
-    private _ID: TabIdentifier;
+    private _ID: WindowIdentity;
 
     /**
      * Handle to the TabManager
@@ -27,10 +27,10 @@ export class Tab {
 
     /**
      * Constructor for the Tab class.
-     * @param {TabIdentifier} tabID An object containing the uuid, name for the external application/window.
+     * @param {WindowIdentity} tabID An object containing the uuid, name for the external application/window.
      * @param {TabManager} tabManager Reference to the tab manager handling this tab.
      */
-    constructor(tabID: TabIdentifier, tabProperties: TabProperties, tabManager: TabManager) {
+    constructor(tabID: WindowIdentity, tabProperties: TabProperties, tabManager: TabManager) {
         this._ID = tabID;
         this._properties = tabProperties;
         this._tabManager = tabManager;
@@ -90,7 +90,7 @@ export class Tab {
      * @param {DragEvent} e DragEvent
      */
     private _onDragStart(e: DragEvent): boolean {
-        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer!.effectAllowed = 'move';
         layouts.tabStrip.startDrag();
         return true;
     }
@@ -219,9 +219,9 @@ export class Tab {
 
     /**
      * Returns tab identifier object consisting of UUID, Name
-     * @returns {TabIdentifier} {uuid, name}
+     * @returns {WindowIdentity} {uuid, name}
      */
-    public get ID(): TabIdentifier {
+    public get ID(): WindowIdentity {
         return this._ID;
     }
 

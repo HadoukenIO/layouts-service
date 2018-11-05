@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 fin.desktop.main(() => {
-    Layouts.setTabClient('http://localhost:1337/demo/tabbing/UI/UI2.html', {height: 62});
+    Layouts.setTabClient('http://localhost:1337/demo/tabstrips/custom2.html', {height: 62});
     Layouts.addEventListener('join-tab-group', () => {
         console.log('TABBED: ');
     });

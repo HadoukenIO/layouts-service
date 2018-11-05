@@ -1,7 +1,7 @@
 import {Application} from 'hadouken-js-adapter/out/types/src/api/application/application';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
-import {Layout, LayoutApp} from '../../client/types';
+import {Layout, LayoutApp, TabGroup} from '../../client/types';
 import {apiHandler, model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {promiseMap} from '../snapanddock/utils/async';
@@ -70,7 +70,7 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
     const openWindows: WindowObject = {};
     const tabbedPlaceholdersToWindows: TabbedPlaceholders = {};
 
-    // Create tabbedWindows list so we don't have to iterate over all of the tabGroup/TabBlob arrays.
+    // Create tabbedWindows list so we don't have to iterate over all of the tabGroup arrays.
     layout.tabGroups.forEach((tabGroup) => {
         tabGroup.tabs.forEach(tabWindow => {
             addToWindowObject(tabWindow, tabbedWindows);
@@ -121,21 +121,21 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
 
     // Edit the tabGroups object with the placeholder window names/uuids, so we can create a Tab Group with a combination of open applications and placeholder
     // windows.
-    layout.tabGroups.forEach((tabBlob) => {
-        const activeWindow = tabBlob.groupInfo.active;
+    layout.tabGroups.forEach((groupDef: TabGroup) => {
+        const activeWindow = groupDef.groupInfo.active;
         // Active Window could be a placeholder window.
         if (inWindowObject(activeWindow, tabbedPlaceholdersToWindows)) {
-            tabBlob.groupInfo.active = tabbedPlaceholdersToWindows[activeWindow.uuid][activeWindow.name];
+            groupDef.groupInfo.active = tabbedPlaceholdersToWindows[activeWindow.uuid][activeWindow.name];
         }
 
-        tabBlob.tabs.forEach((tabWindow, windowIdx) => {
+        groupDef.tabs.forEach((tabWindow, windowIdx) => {
             if (inWindowObject(tabWindow, tabbedPlaceholdersToWindows)) {
-                tabBlob.tabs[windowIdx] = tabbedPlaceholdersToWindows[tabWindow.uuid][tabWindow.name];
+                groupDef.tabs[windowIdx] = tabbedPlaceholdersToWindows[tabWindow.uuid][tabWindow.name];
             }
         });
     });
 
-    await tabService.createTabGroupsFromTabBlob(layout.tabGroups);
+    await tabService.createTabGroupsFromLayout(layout.tabGroups);
 
     const apps = await promiseMap(layout.apps, async(app: LayoutApp): Promise<LayoutApp> => {
         // Get rid of childWindows for default response (anything else?)

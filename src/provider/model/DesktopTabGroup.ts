@@ -1,6 +1,7 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
-import {TabApiEvents} from '../../client/APITypes';
-import {ApplicationUIConfig, JoinTabGroupPayload, TabGroupEventPayload, TabIdentifier, TabProperties} from '../../client/types';
+
+import {JoinTabGroupPayload, TabApiEvents, TabGroupEventPayload} from '../../client/internal';
+import {ApplicationUIConfig, TabProperties, WindowIdentity} from '../../client/types';
 import {Signal1} from '../Signal';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
@@ -197,7 +198,7 @@ export class DesktopTabGroup {
         await this.addTabInternal(tab, true, index);
     }
 
-    public async addTabs(tabs: DesktopWindow[], activeTabId?: TabIdentifier): Promise<void> {
+    public async addTabs(tabs: DesktopWindow[], activeTabId?: WindowIdentity): Promise<void> {
         const firstTab: DesktopWindow = tabs.shift()!;
         const activeTab: DesktopWindow = (activeTabId && this._model.getWindow(activeTabId)) || firstTab;
 
@@ -237,11 +238,11 @@ export class DesktopTabGroup {
 
     /**
      * Reorders the tab structure to match what is present in the UI.
-     * @param {TabIdentifier[]} orderReference The order which we should rearrange our tabs to match.  This will come from the UI component.
+     * @param {WindowIdentity[]} orderReference The order which we should rearrange our tabs to match.  This will come from the UI component.
      */
-    public reOrderTabArray(orderReference: TabIdentifier[]): void {
+    public reOrderTabArray(orderReference: WindowIdentity[]): void {
         const newlyOrdered: DesktopWindow[] = orderReference
-                                                  .map((ref: TabIdentifier) => {
+                                                  .map((ref: WindowIdentity) => {
                                                       // Look-up each given identity within list of tabs
                                                       const refId = this._model.getId(ref);
                                                       return this._tabs.find((tab: DesktopWindow) => {
@@ -315,7 +316,7 @@ export class DesktopTabGroup {
 
     /**
      * Switches the active Tab in the group. Hides current active window.
-     * @param {TabIdentifier} ID The ID of the tab to set as active.
+     * @param {WindowIdentity} ID The ID of the tab to set as active.
      */
     public async switchTab(tab: DesktopWindow): Promise<void> {
         if (tab && tab !== this._activeTab) {

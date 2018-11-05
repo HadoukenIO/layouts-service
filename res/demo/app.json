@@ -5,8 +5,8 @@
         "uuid": "Layouts-Manager",
         "autoShow": true,
         "saveWindowState": false,
-        "defaultHeight": 500,
-        "defaultWidth": 700,
+        "defaultHeight": 540,
+        "defaultWidth": 716,
         "defaultCentered": true,
         "_experimental": {
             "v2Api": true

@@ -2,12 +2,16 @@
     "extends": "./node_modules/gts/tsconfig-google.json",
     "compilerOptions": {
         "target": "es2017",
-        "outDir": "build",
+        "outDir": "dist",
         "rootDir": "src",
         "lib": ["dom", "es2017"],
-        "types": ["node", "jest"]
+        "types": ["node", "jest"],
+        "sourceMap": true,
+        "declaration": false
     },
     "include": [
+        "src/fin.d.ts",
+        "src/finV2.d.ts",
         "src"
     ]
 }

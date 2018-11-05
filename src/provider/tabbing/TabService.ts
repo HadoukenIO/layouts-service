@@ -1,9 +1,10 @@
 import {Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
-import {ApplicationUIConfig, Dimensions, TabBlob, TabIdentifier} from '../../client/types';
+
+import {ApplicationUIConfig, TabGroup, TabGroupDimensions, WindowIdentity} from '../../client/types';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
-import {DesktopWindow, WindowIdentity, WindowState} from '../model/DesktopWindow';
+import {DesktopWindow, WindowState} from '../model/DesktopWindow';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 
 import {ApplicationConfigManager} from './components/ApplicationConfigManager';
@@ -61,7 +62,7 @@ export class TabService {
      * Creates a new tab group with provided tabs.  Will use the UI and position of the first Identity provided for positioning.
      * @param tabIdentities An array of Identities to add to a group.
      */
-    public async createTabGroupWithTabs(tabIdentities: TabIdentifier[], activeTab?: TabIdentifier) {
+    public async createTabGroupWithTabs(tabIdentities: WindowIdentity[], activeTab?: WindowIdentity) {
         if (tabIdentities.length < 2) {
             console.error('createTabGroup called fewer than 2 tab identifiers');
             throw new Error('Must provide at least 2 Tab Identifiers');
@@ -96,9 +97,9 @@ export class TabService {
      *
      * If given ID is invalid or doesn't belong to a tab set, method call has no effect.
      *
-     * @param {TabIdentifier} tabID The identity of the tab to remove.
+     * @param {WindowIdentity} tabID The identity of the tab to remove.
      */
-    public async removeTab(tabID: TabIdentifier): Promise<void> {
+    public async removeTab(tabID: WindowIdentity): Promise<void> {
         const tab: DesktopWindow|null = this._model.getWindow(tabID);
         const group: DesktopTabGroup|null = tab && tab.getTabGroup();
 
@@ -107,7 +108,7 @@ export class TabService {
         }
     }
 
-    public async swapTab(toRemove: TabIdentifier, toAdd: TabIdentifier): Promise<void> {
+    public async swapTab(toRemove: WindowIdentity, toAdd: WindowIdentity): Promise<void> {
         const tabToAdd: DesktopWindow|null = this._model.getWindow(toAdd);
         const tabToRemove: DesktopWindow|null = this._model.getWindow(toRemove);
         const group: DesktopTabGroup|null = tabToRemove && tabToRemove.getTabGroup();
@@ -124,11 +125,11 @@ export class TabService {
     /**
      * Gathers information from tab sets and their tabs, and returns as a JSON object back to the requesting application/window.
      */
-    public async getTabSaveInfo(): Promise<TabBlob[]> {
+    public async getTabSaveInfo(): Promise<TabGroup[]> {
         const tabGroups: ReadonlyArray<DesktopTabGroup> = this._model.getTabGroups();
 
         return Promise.all(tabGroups.map(async (group: DesktopTabGroup) => {
-            const tabs: TabIdentifier[] = group.tabs.map((tab: DesktopWindow) => {
+            const tabs: WindowIdentity[] = group.tabs.map((tab: DesktopWindow) => {
                 return tab.getIdentity();
             });
 
@@ -150,28 +151,22 @@ export class TabService {
         }));
     }
 
-
-    /**
-     * Takes a tabblob and restores windows based on the blob
-     * @function createTabGroupsFromMultipleWindows
-     * @param tabBlob[] Restoration data
-     */
-    public async createTabGroupsFromTabBlob(tabBlob: TabBlob[]): Promise<DesktopTabGroup[]> {
+    public async createTabGroupsFromLayout(groupDefs: TabGroup[]): Promise<DesktopTabGroup[]> {
         const model: DesktopModel = this._model;
         const tabGroups: DesktopTabGroup[] = [];
 
-        if (!tabBlob) {
+        if (!groupDefs) {
             console.error('Unable to create tabgroup - no blob supplied');
             throw new Error('Unable to create tabgroup - no blob supplied');
         }
 
-        for (const blob of tabBlob) {
-            const tabs: DesktopWindow[] = blob.tabs.map(tab => model.getWindow(tab)).filter((tab): tab is DesktopWindow => !!tab);
-            const dimensions: Dimensions = blob.groupInfo.dimensions;
+        for (const groupDef of groupDefs) {
+            const tabs: DesktopWindow[] = groupDef.tabs.map(tab => model.getWindow(tab)).filter((tab): tab is DesktopWindow => !!tab);
+            const dimensions: TabGroupDimensions = groupDef.groupInfo.dimensions;
 
             if (tabs.length >= 2) {
                 // Create a tabstrip window in the correct position
-                const tabstripOptions: ApplicationUIConfig = {url: blob.groupInfo.url, height: dimensions.tabGroupHeight};
+                const tabstripOptions: ApplicationUIConfig = {url: groupDef.groupInfo.url, height: dimensions.tabGroupHeight};
 
                 // Each tab group will be a stand-alone snap group
                 const snapGroup: DesktopSnapGroup = new DesktopSnapGroup();
@@ -188,12 +183,12 @@ export class TabService {
 
                 // Add tabs to group
                 await tabGroup.window.sync();
-                await tabGroup.addTabs(tabs, blob.groupInfo.active);
+                await tabGroup.addTabs(tabs, groupDef.groupInfo.active);
                 await tabGroup.window.sync();
 
                 tabGroups.push(tabGroup);
             } else {
-                console.error('Not enough valid tab identifiers within tab blob to form a tab group', blob.tabs);
+                console.error('Not enough valid tab identifiers within tab blob to form a tab group', groupDef.tabs);
             }
         }
 
@@ -229,7 +224,7 @@ export class TabService {
      * @param ejectPosition The current position of the mouse (if known). Ejected tab will be moved to this location, and tabbed with any other (compatible)
      * window/tabgroup at this position.
      */
-    public async ejectTab(tab: TabIdentifier, ejectPosition?: Point): Promise<void> {
+    public async ejectTab(tab: WindowIdentity, ejectPosition?: Point): Promise<void> {
         // Get the tab that was ejected.
         const ejectedTab: DesktopWindow|null = this._model.getWindow(tab);
         const tabGroup: DesktopTabGroup|null = ejectedTab && ejectedTab.getTabGroup();

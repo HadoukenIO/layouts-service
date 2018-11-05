@@ -1,7 +1,8 @@
 import {Identity} from 'hadouken-js-adapter';
 
+import {WindowIdentity} from '../../../src/client/types';
 import {DesktopTabGroup} from '../../../src/provider/model/DesktopTabGroup';
-import {DesktopWindow, WindowIdentity} from '../../../src/provider/model/DesktopWindow';
+import {DesktopWindow} from '../../../src/provider/model/DesktopWindow';
 
 import {executeJavascriptOnService} from './serviceUtils';
 

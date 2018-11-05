@@ -1,7 +1,7 @@
 import Sortable from 'sortablejs';
 
-import * as layouts from '../../../client/main';  //The equivalent of 'openfin-layouts' NPM package outside of this project.
-import {TabIdentifier, TabProperties} from '../../../client/types';
+import * as layouts from '../../../client/main';
+import {TabProperties, WindowIdentity} from '../../../client/types';
 
 import {Tab} from './TabItem';
 
@@ -53,9 +53,9 @@ export class TabManager {
             sort: true,
             animation: 200,
             onUpdate: (evt) => {
-                // Gets the new tab order as an array of TabIdentifiers
+                // Gets the new tab order as an array of WindowIdentitys
                 const tabNodes = ((document.getElementById('tabs') as HTMLDivElement).getElementsByClassName('tab') as HTMLCollectionOf<HTMLDivElement>);
-                const orderedTabList: TabIdentifier[] = Array.from(tabNodes).map((el) => {
+                const orderedTabList: WindowIdentity[] = Array.from(tabNodes).map((el) => {
                     return {uuid: el.dataset.uuid as string, name: el.dataset.name as string};
                 });
 
@@ -67,10 +67,10 @@ export class TabManager {
 
     /**
      * Creates a new Tab and renders.
-     * @param {TabIdentifier} tabID An object containing the uuid, name for the external application/window.
+     * @param {WindowIdentity} tabID An object containing the uuid, name for the external application/window.
      * @param {tabProps} tabProps An object containing Tab Properties (icon, title,etc)
      */
-    public addTab(tabID: TabIdentifier, tabProps: TabProperties, index: number) {
+    public addTab(tabID: WindowIdentity, tabProps: TabProperties, index: number) {
         if (this._getTabIndex(tabID) === -1) {
             const tab = new Tab(tabID, tabProps, this);
             tab.init(index);
@@ -85,9 +85,9 @@ export class TabManager {
 
     /**
      * Removes a Tab.
-     * @param {TabIdentifier} tabID An object containing the uuid, name for the external application/window.
+     * @param {WindowIdentity} tabID An object containing the uuid, name for the external application/window.
      */
-    public removeTab(tabID: TabIdentifier, closeApp = false): void {
+    public removeTab(tabID: WindowIdentity, closeApp = false): void {
         const index: number = this._getTabIndex(tabID);
         const tab: Tab|undefined = this.getTab(tabID);
 
@@ -112,9 +112,9 @@ export class TabManager {
 
     /**
      * Sets a specified tab as active.  If no tab is specified then the first tab will be chosen.
-     * @param {TabIdentifier | null} tabID An object containing the uuid, name for the external application/window or null.
+     * @param {WindowIdentity | null} tabID An object containing the uuid, name for the external application/window or null.
      */
-    public setActiveTab(tabID: TabIdentifier|null = null): void {
+    public setActiveTab(tabID: WindowIdentity|null = null): void {
         if (tabID) {
             const tab: Tab|undefined = this.getTab(tabID);
 
@@ -131,9 +131,9 @@ export class TabManager {
 
     /**
      * Finds and gets the Tab object.
-     * @param {TabIdentifier} tabID An object containing the uuid, name for the external application/window.
+     * @param {WindowIdentity} tabID An object containing the uuid, name for the external application/window.
      */
-    public getTab(tabID: TabIdentifier): Tab|undefined {
+    public getTab(tabID: WindowIdentity): Tab|undefined {
         return this.tabs.find((tab: Tab) => {
             return tab.ID.name === tabID.name && tab.ID.uuid === tabID.uuid;
         });
@@ -142,9 +142,9 @@ export class TabManager {
 
     /**
      * Gets the Tab index from the array.
-     * @param {TabIdentifier} tabID An object containing the uuid, name for the external application/window.
+     * @param {WindowIdentity} tabID An object containing the uuid, name for the external application/window.
      */
-    private _getTabIndex(tabID: TabIdentifier): number {
+    private _getTabIndex(tabID: WindowIdentity): number {
         return this.tabs.findIndex((tab: Tab) => {
             return tab.ID.name === tabID.name && tab.ID.uuid === tabID.uuid;
         });

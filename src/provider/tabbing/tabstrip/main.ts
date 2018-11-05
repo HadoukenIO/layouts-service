@@ -1,5 +1,6 @@
-import * as layouts from '../../../client/main';  //The equivalent of 'openfin-layouts' NPM package outside of this project.
-import {JoinTabGroupPayload, TabGroupEventPayload, TabIdentifier} from '../../../client/types';
+import {JoinTabGroupPayload, TabGroupEventPayload} from '../../../client/internal';
+import * as layouts from '../../../client/main';
+import {WindowIdentity} from '../../../client/types';
 
 import {TabManager} from './TabManager';
 
@@ -30,7 +31,7 @@ const createLayoutsEventListeners = () => {
 
     layouts.addEventListener('tab-activated', (event: CustomEvent<TabGroupEventPayload>|Event) => {
         const customEvent: CustomEvent<TabGroupEventPayload> = event as CustomEvent<TabGroupEventPayload>;
-        const tabInfo: TabIdentifier = customEvent.detail.tabID;
+        const tabInfo: WindowIdentity = customEvent.detail.tabID;
         tabManager.setActiveTab(tabInfo);
     });
 };

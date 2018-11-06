@@ -8,6 +8,7 @@ import {model} from '../../../src/provider/main';
 import {assertAdjacent, assertAllHaveTabstrip, assertAllTabbed, assertGrouped, assertNotGrouped, assertTabbed} from '../../provider/utils/assertions';
 import {getConnection} from '../../provider/utils/connect';
 import {delay} from '../../provider/utils/delay';
+import {dragTabOut} from '../../provider/utils/dragTabOut';
 import {dragSideToSide, dragWindowTo} from '../../provider/utils/dragWindowTo';
 import {getBounds} from '../../provider/utils/getBounds';
 import {getWindow} from '../../provider/utils/getWindow';
@@ -39,6 +40,8 @@ test.beforeEach(async (t) => {
 
     t.context.app1Name = getAppName();
     t.context.app2Name = getAppName();
+    t.context.app3Name = getAppName();
+    t.context.app4Name = getAppName();
     t.context.apps = [];
 });
 
@@ -220,7 +223,6 @@ test('Programmatic Save and Restore - Switching From 1 Snap Group To Another', a
     const win2 = await fin.Window.wrap({uuid: app2.identity.uuid, name: app2.identity.uuid});
     const win3 = await fin.Window.wrap({uuid: t.context.app2Name, name: `Child-1 - win0`});
 
-
     await dragSideToSide(win1, 'right', win3, 'left');
 
     const generatedLayout = await sendServiceMessage('generateLayout', undefined);
@@ -268,4 +270,42 @@ test('Programmatic Save and Restore - Switching From 1 Tab Group To Another', as
     await assertAllTabbed(t, win1, win3);
     await assertGrouped(t, win1, win3);
     await assertAllHaveTabstrip(t, win1, win3);
+});
+
+test('Programmatic Save and Restore - Switching Tab Groups and Snap Groups', async t => {
+    const app1 = await createApp(t, t.context.app1Name, 'registered');
+    const app2 = await createApp(t, t.context.app2Name, 'registered', 300, 400);
+
+    await saveRestoreCreateChildWindow(t.context.app1Name);
+    await saveRestoreCreateChildWindow(t.context.app2Name);
+
+    const win1 = await fin.Window.wrap({uuid: app1.identity.uuid, name: app1.identity.uuid});
+    const win2 = await fin.Window.wrap({uuid: app2.identity.uuid, name: app2.identity.uuid});
+    const win3 = await fin.Window.wrap({uuid: app1.identity.uuid, name: `Child-1 - win0`});
+    const win4 = await fin.Window.wrap({uuid: app2.identity.uuid, name: `Child-1 - win0`});
+
+    await tabWindowsTogether(win1, win3);
+    await dragSideToSide(win2, 'right', win4, 'left');
+    await delay(1000);
+
+    const generatedLayout = await sendServiceMessage('generateLayout', undefined);
+
+    await dragTabOut(win1, 500, 100);
+    await undockWindow(win2.identity);
+    await delay(500);
+
+    await dragWindowTo(win2, 500, 500);
+
+    await dragSideToSide(win1, 'right', win4, 'left');
+    await tabWindowsTogether(win3, win2);
+    await delay(1000);
+
+    await sendServiceMessage('restoreLayout', generatedLayout);
+    await delay(500);
+
+    await assertAllTabbed(t, win1, win3);
+    await assertGrouped(t, win1, win3);
+    await assertAllHaveTabstrip(t, win1, win3);
+    await assertAdjacent(t, win2, win4);
+    await assertGrouped(t, win2, win4);
 });

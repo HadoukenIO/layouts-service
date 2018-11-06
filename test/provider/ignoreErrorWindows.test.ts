@@ -40,11 +40,12 @@ test('Error windows are not registered with layouts', async t => {
 
     if (errorWindow) {
         t.false(await isWindowRegistered(errorWindow.identity), `Error window with identity "${errorWindow.identity.uuid}" was registered with the service.`);
+        await errorWindow.close();
     }
 });
 
 test.afterEach.always(async t => {
-    if (crashApp) {
+    if (crashApp && await crashApp.isRunning()) {
         crashApp.close(true);
     }
 });

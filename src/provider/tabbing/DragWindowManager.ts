@@ -1,6 +1,6 @@
-import {TabIdentifier} from '../../client/types';
+import {Window} from 'hadouken-js-adapter';
 
-import {AsyncWindow} from './asyncWindow';
+import {TabIdentifier} from '../../client/types';
 
 const DRAG_WINDOW_URL = (() => {
     let providerLocation = window.location.href;
@@ -17,13 +17,11 @@ const DRAG_WINDOW_URL = (() => {
 /**
  * Handles the Drag Window which appears when API drag and drop is initialized.
  */
-export class DragWindowManager extends AsyncWindow {
+export class DragWindowManager {
     // tslint:disable-next-line:no-any setTimout return Type is confused by VSC
     private _hideTimeout: any;
 
-    constructor() {
-        super();
-    }
+    private _window!: Window;
 
     /**
      * Initializes Async Methods required by this class.
@@ -40,11 +38,10 @@ export class DragWindowManager extends AsyncWindow {
         this._window.focus();
 
         // Bring source window in front of invisible window
-        fin.desktop.Window.wrap(source.uuid, source.name).focus();
-
+        fin.Window.wrapSync(source).focus();
 
         this._hideTimeout = setTimeout(() => {
-            this.hide();
+            this._window.hide();
         }, 15000);
     }
 
@@ -59,31 +56,25 @@ export class DragWindowManager extends AsyncWindow {
     /**
      * Creates the drag overlay window.
      */
-    private _createDragWindow(): Promise<void> {
-        return new Promise((res, rej) => {
-            this._window = new fin.desktop.Window(
-                {
-                    name: 'TabbingDragWindow',
-                    url: DRAG_WINDOW_URL,
-                    defaultHeight: 1,
-                    defaultWidth: 1,
-                    defaultLeft: 0,
-                    defaultTop: 0,
-                    saveWindowState: false,
-                    autoShow: true,
-                    opacity: 0.01,
-                    frame: false,
-                    waitForPageLoad: false,
-                    alwaysOnTop: false,
-                    showTaskbarIcon: false,
-                    smallWindow: true
-                },
-                () => {
-                    this._window.resizeTo(screen.width, screen.height, 'top-left');
-                    this._window.hide();
-                    res();
-                },
-                rej);
+    private async _createDragWindow(): Promise<void> {
+        this._window = await fin.Window.create({
+            name: 'TabbingDragWindow',
+            url: DRAG_WINDOW_URL,
+            defaultHeight: 1,
+            defaultWidth: 1,
+            defaultLeft: 0,
+            defaultTop: 0,
+            saveWindowState: false,
+            autoShow: true,
+            opacity: 0.01,
+            frame: false,
+            waitForPageLoad: false,
+            alwaysOnTop: false,
+            showTaskbarIcon: false,
+            smallWindow: true
         });
+
+        await this._window.resizeTo(screen.width, screen.height, 'top-left');
+        await this._window.hide();
     }
 }

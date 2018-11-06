@@ -13,19 +13,16 @@
     </head>
     <body>
         <script>
-            fin.desktop.main(()=>{
+            document.body.addEventListener("dragover", (ev)=>{
+                ev.preventDefault();
+                ev.stopPropagation();
+                return true;
+            });
 
-                document.body.addEventListener("dragover", (ev)=>{
-                    ev.preventDefault();
-                    ev.stopPropagation();
-                    return true;
-                });
-
-                document.body.addEventListener("drop", (ev)=>{
-                    ev.preventDefault();
-                    ev.stopPropagation();
-                    return true;
-                });
+            document.body.addEventListener("drop", (ev)=>{
+                ev.preventDefault();
+                ev.stopPropagation();
+                return true;
             });
         </script>
     </body>

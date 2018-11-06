@@ -6,24 +6,24 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <script src="../provider/main-bundle.js"></script>
     <script>
-        fin.desktop.InterApplicationBus.subscribe('*', 'test', (message) => {
-            console.log(message);
-            const returnVal = eval(message);
-
-            if (returnVal instanceof Promise) {
-                returnVal.then(() => {
-                    fin.desktop.InterApplicationBus.send("TEST", "replytest", "script evaluated");
-                });
-            } else {
-                fin.desktop.InterApplicationBus.send("TEST", "replytest", "script evaluated");
-            }
-            
-        });
-    </script>
-    <title>Layouts Manager Service</title>
+        fin.InterApplicationBus.Channel.create('layouts-provider-testing').then(channelProvider => {
+            channelProvider.register('execute-javascript', async (payload) => {
+                try {
+                    result = await new Function("return " + payload.script)()(payload.data)
+                    return {success: true, result};
+                } catch (e) {
+                    // Deconstruct the error to be sent over the bus (NB: Error is not a JSON.stringify()-able type)
+                    return {success: false, result: {message: e.message, stack: e.stack, name: e.name}};
+                }
+            });
+        })
+        </script>
+    <title>Layouts Service</title>
 </head>
 
 <body>
-  <h3>"Headless" Layouts Manager Service</h3>
+    <h3>Layouts Service Provider</h3>
+    
+    <button onclick="fin.System.showDeveloperTools({uuid: 'layouts-service', name: 'layouts-service'})">Show Debugger</button>
 </body>
 </html>

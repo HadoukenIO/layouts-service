@@ -3,7 +3,7 @@
     "compilerOptions": {
       "rootDir": "..",
       "outDir": "../build/test",
-      "target": "es6",
+      "target": "es2017",
       "module": "commonjs",
       "lib": [
         "dom",
@@ -14,7 +14,8 @@
       "provider/**/*.ts",
       "demo/**/*.ts",
       "../src/fin.d.ts",
-      "../src/finV2.d.ts"
+      "../src/finV2.d.ts",
+      "providerTypes.d.ts"
     ],
     "exclude": [
       "../node_modules"

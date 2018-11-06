@@ -1,4 +1,4 @@
-import {Layout, LayoutName} from '../client/types';
+import {LayoutName} from '../client/types';
 import {Workspace} from './LayoutsUI';
 
 /*tslint:disable:no-any*/

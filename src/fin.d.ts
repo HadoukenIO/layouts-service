@@ -22,6 +22,7 @@ declare namespace fin {
 
     interface OpenFinDesktop {
         main(f: () => any): void;
+        getUuid(): string;
         Application: OpenFinApplicationStatic;
         ExternalApp: OpenFinExternalApplicationStatic;
         InterApplicationBus: OpenFinInterApplicationBus;
@@ -1421,6 +1422,7 @@ declare namespace fin {
         'auth-requested': WindowAuthRequestedEvent;
         'blurred': WindowBaseEvent;
         'bounds-changed': WindowBoundsEvent;
+        'begin-user-bounds-changing': WindowBoundsEvent;
         'bounds-changing': WindowBoundsEvent;
         'close-requested': WindowBaseEvent;
         'closed': WindowBaseEvent;

@@ -1,15 +1,11 @@
 import {test} from 'ava';
 import {Application, Fin, Window} from 'hadouken-js-adapter';
-import * as robot from 'robotjs';
-import {setTimeout} from 'timers';
 
 import {TabBlob} from '../../../src/client/types';
-import {TabService} from '../../../src/provider/tabbing/TabService';
-import {createTabGroupsFromTabBlob} from '../../../src/provider/tabbing/TabUtilities';
+import {DesktopTabGroup} from '../../../src/provider/model/DesktopTabGroup';
 import {getConnection} from '../../provider/utils/connect';
 import {getBounds, NormalizedBounds} from '../../provider/utils/getBounds';
-import {getWindow} from '../../provider/utils/getWindow';
-import {executeJavascriptOnService} from '../utils/executeJavascriptOnService';
+import {executeJavascriptOnService} from '../utils/serviceUtils';
 
 let win1: Window;
 let win2: Window;
@@ -37,9 +33,9 @@ test('Create tab group from 2 windows', async (assert) => {
 
     const tabBlobs: TabBlob[] = [{
         groupInfo: {
-            url: '',
+            url: 'http://localhost:1337/provider/tabbing/tabstrip/tabstrip.html',
             active: {uuid: win2.identity.uuid, name: win2.identity.name!},
-            dimensions: {x: 100, y: 100, width: preWin2Bounds.width, tabGroupHeight: 100, appHeight: preWin2Bounds.height}
+            dimensions: {x: 100, y: 100, width: preWin2Bounds.width, tabGroupHeight: 60, appHeight: preWin2Bounds.height}
         },
         tabs: [
             {uuid: app1.identity.uuid, name: win1.identity.name!},
@@ -52,18 +48,20 @@ test('Create tab group from 2 windows', async (assert) => {
 
 
     // Act
-    const scriptToExecute = `createTabGroupsFromTabBlob(${JSON.stringify(tabBlobs)})`;
-    await executeJavascriptOnService(scriptToExecute);
+    function scriptToExecute(this: ProviderWindow, tabBlobs: TabBlob[]): Promise<string> {
+        return this.tabService.createTabGroupsFromTabBlob(tabBlobs).then((addedGroups: DesktopTabGroup[]) => {
+            return addedGroups[0].ID;
+        });
+    }
+    const tabGroupId: string = await executeJavascriptOnService<TabBlob[], string>(scriptToExecute, tabBlobs);
+    assert.truthy(tabGroupId);
 
     // Tab group should have been created
     const serviceChildWindows: Window[] = await serviceApplication.getChildWindows();
-
-    const uuidTestPattern = new RegExp('^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$', 'i');
-
     const newTabGroupWindow: Window|undefined = serviceChildWindows.find((window: Window) => {
-        return window.identity.uuid === 'layouts-service' && uuidTestPattern.test(window.identity.name!);
+        return window.identity.uuid === 'layouts-service' && window.identity.name === tabGroupId;
     });
-
+    assert.truthy(newTabGroupWindow);
 
     // Assert
     const win1Bounds: NormalizedBounds = await getBounds(win1);

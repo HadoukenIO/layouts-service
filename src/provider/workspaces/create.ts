@@ -2,14 +2,12 @@ import {Window} from 'hadouken-js-adapter';
 import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/application/application';
 import {WindowDetail, WindowInfo} from 'hadouken-js-adapter/out/types/src/api/system/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
-
 import {CustomData, Layout, LayoutApp, LayoutWindowData, TabBlob, TabIdentifier, WindowState} from '../../client/types';
-import {WindowIdentity} from '../snapanddock/SnapWindow';
+import {apiHandler, model, tabService} from '../main';
+import {WindowIdentity} from '../model/DesktopWindow';
 import {promiseMap} from '../snapanddock/utils/async';
-import {getTabSaveInfo} from '../tabbing/SaveAndRestoreAPI';
-
 import {getGroup} from './group';
-import {addToWindowObject, inWindowObject, isClientConnection, sendToClient, wasCreatedFromManifest, wasCreatedProgrammatically, WindowObject} from './utils';
+import {addToWindowObject, inWindowObject, wasCreatedFromManifest, wasCreatedProgrammatically, WindowObject} from './utils';
 
 const deregisteredWindows: WindowObject = {};
 
@@ -20,10 +18,8 @@ export const deregisterWindow = (identity: WindowIdentity) => {
 export const getCurrentLayout = async(): Promise<Layout> => {
     // Not yet using monitor info
     const monitorInfo = await fin.System.getMonitorInfo() || {};
-    let tabGroups = await getTabSaveInfo();
+    let tabGroups = await tabService.getTabSaveInfo();
     const tabbedWindows: WindowObject = {};
-    const newShowingWindows: WindowObject = {};
-    const newUntabbedWindows: WindowObject = {};
 
     if (tabGroups === undefined) {
         tabGroups = [];
@@ -32,11 +28,11 @@ export const getCurrentLayout = async(): Promise<Layout> => {
     // Filter out tabGroups with deregistered parents.
     const filteredTabGroups: TabBlob[] = [];
 
-    tabGroups.forEach((tabGroup) => {
+    tabGroups.forEach((tabGroup: TabBlob) => {
         const filteredTabs: TabIdentifier[] = [];
         let activeWindowRemoved = false;
 
-        tabGroup.tabs.forEach(tabWindow => {
+        tabGroup.tabs.forEach((tabWindow: TabIdentifier) => {
             // Filter tabs out if either the window itself or its parent is deregistered from Save and Restore
             const parentIsDeregistered = inWindowObject({uuid: tabWindow.uuid, name: tabWindow.uuid}, deregisteredWindows);
             const windowIsDeregistered = inWindowObject(tabWindow, deregisteredWindows);
@@ -54,13 +50,6 @@ export const getCurrentLayout = async(): Promise<Layout> => {
         if (activeWindowRemoved && filteredTabs.length >= 1) {
             const newActiveWindow = filteredTabs[0];
             tabGroup.groupInfo.active = newActiveWindow;
-            addToWindowObject(newActiveWindow, newShowingWindows);
-        }
-
-        // If there is only one window left, it should be untabbed now
-        if (filteredTabs.length === 1) {
-            const lastWindow = filteredTabs[0];
-            addToWindowObject(lastWindow, newUntabbedWindows);
         }
 
         // If we still have enough windows for a tab group, include it in filteredTabGroups
@@ -86,7 +75,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
             const isRunning = await ofApp.isRunning();
             const hasMainWindow = !!windowInfo.mainWindow.name;
             const isDeregistered = inWindowObject({uuid, name: windowInfo.mainWindow.name}, deregisteredWindows);
-            const isService = uuid === fin.desktop.Application.getCurrent().uuid;
+            const isService = uuid === fin.Application.me.uuid;
             if (!hasMainWindow || !isRunning || isService || isDeregistered) {
                 // Not enough info returned for us to restore this app
                 return null;
@@ -99,7 +88,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
 
             // Grab the layout information for the main app window
             const mainOfWin: Window = await ofApp.getWindow();
-            const mainWindowLayoutData = await getLayoutWindowData(mainOfWin, tabbedWindows, newShowingWindows, newUntabbedWindows);
+            const mainWindowLayoutData = await getLayoutWindowData(mainOfWin, tabbedWindows);
             const mainWindow: WindowState = {...windowInfo.mainWindow, ...mainWindowLayoutData};
 
             // Filter for deregistered child windows
@@ -115,7 +104,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
             const childWindows: WindowState[] = await promiseMap(windowInfo.childWindows, async (win: WindowDetail) => {
                 const {name} = win;
                 const ofWin = await fin.Window.wrap({uuid, name});
-                const windowLayoutData = await getLayoutWindowData(ofWin, tabbedWindows, newShowingWindows, newUntabbedWindows);
+                const windowLayoutData = await getLayoutWindowData(ofWin, tabbedWindows);
 
                 return {...win, ...windowLayoutData};
             });
@@ -149,12 +138,12 @@ export const generateLayout = async(payload: null, identity: Identity): Promise<
 
     const apps = await promiseMap(preLayout.apps, async (app: LayoutApp) => {
         const defaultResponse = {...app};
-        if (isClientConnection(app)) {
+        if (apiHandler.isClientConnection(app)) {
             console.log('Connected application', app.uuid);
 
             // HOW TO DEAL WITH HUNG REQUEST HERE? RESHAPE IF GET NOTHING BACK?
             let customData: CustomData = undefined;
-            await sendToClient(app, 'savingLayout', app);
+            customData = await apiHandler.sendToClient({uuid: app.uuid, name: app.uuid}, 'savingLayout', app);
 
             if (!customData) {
                 customData = null;
@@ -172,9 +161,9 @@ export const generateLayout = async(payload: null, identity: Identity): Promise<
 };
 
 // Grabs all of the necessary layout information for a window. Filters by multiple criteria.
-const getLayoutWindowData =
-    async(ofWin: Window, tabbedWindows: WindowObject, newShowingWindows: WindowObject, newUntabbedWindows: WindowObject): Promise<LayoutWindowData> => {
+const getLayoutWindowData = async(ofWin: Window, tabbedWindows: WindowObject): Promise<LayoutWindowData> => {
     const {uuid} = ofWin.identity;
+    const identity: WindowIdentity = ofWin.identity as WindowIdentity;
     const info = await ofWin.getInfo();
 
     const windowGroup = await getGroup(ofWin.identity);
@@ -189,13 +178,14 @@ const getLayoutWindowData =
     });
 
     const options = await ofWin.getOptions();
+    const desktopWindow = model.getWindow(identity);
+    if (desktopWindow === null) {
+        throw Error(`No desktop window for window. Name: ${identity.name}, UUID: ${identity.uuid}`);
+    }
+    const applicationState = desktopWindow.getApplicationState();
 
-    // If a window was tabbed, but should be untabbed now because its tabGroup has only 1 member now, give it a frame.
-    const frame = inWindowObject(ofWin.identity, newUntabbedWindows) ? true : options.frame;
     // If a window is tabbed (based on filtered tabGroups), tab it.
     const isTabbed = inWindowObject(ofWin.identity, tabbedWindows) ? true : false;
-    // If a window was tabbed, but either should be untabbed or is now the active window, show it.
-    const isShowing = inWindowObject(ofWin.identity, newShowingWindows) ? true : await ofWin.isShowing();
 
-    return {info, uuid, windowGroup: filteredWindowGroup, frame, state: options.state, isTabbed, isShowing};
+    return {info, uuid, windowGroup: filteredWindowGroup, frame: applicationState.frame, state: options.state, isTabbed, isShowing: !applicationState.hidden};
 };

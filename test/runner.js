@@ -1,11 +1,10 @@
 /*
- * Script accepts the following optional parameters:
- * --file-path [String] : Specifies the name of the file containing the tests to run. 
- *     Example: --file-path undock will run tests in the file undock.test.ts
- * --filter [String] : Filters the tests that will be run. 
- *     Valid filter syntax is described in the ava documentation: https://github.com/avajs/ava#running-tests-with-matching-titles.
- *     Example: --filter *vertical* will run all tests containing the word 'vertical'
- * Any other command line parameters will be passed through to ava as-is. 
+ * Script accepts various command-line arguments. Run with -h or --help for more information, or see help text below.
+ * 
+ * NOTE: When invoking via 'npm test', NPM will consume any arguments passed to it. Prepend '--' to signal to NPM that any additional arguments should be 
+ * passed-through to the invoked application. For example: 'npm test -- --help'
+ * 
+ * Any additional command line parameters (arguments that are not described within the help text) will be passed through to ava as-is.
  *     A list of valid command line parameters can be found in the ava documentation: https://github.com/avajs/ava#cli
  *     NOTE: --match is not supported, use --filter instead
  */
@@ -18,22 +17,67 @@ const {launch} = require('hadouken-js-adapter');
 
 let port;
 
-let testFileName = '*';
-let testNameFilter;
-let args = process.argv.splice(2);
+/**
+ * Simple command-line parser. Returns the named argument from the list of process arguments.
+ * 
+ * @param {string} name Argument name, including any hyphens
+ * @param {boolean} hasValue If this argument requires a value. Accepts "--name value" and "--name=value" syntax.
+ * @param {any} defaultValue Determines return value, if an argument with the given name doesn't exist. Only really makes sense when 'hasValue' is true.
+ */
+function getArg(name, hasValue = false, defaultValue = hasValue ? null : false) {
+    let value = defaultValue;
+    let argIndex = unusedArgs.indexOf(name);
 
-let fileNameIndex = args.indexOf('--file-name')
-if (fileNameIndex > -1) {
-    testFileName = args[fileNameIndex + 1];
-    args.splice(fileNameIndex, 2);
+    if (argIndex >= 0 && argIndex < unusedArgs.length - (hasValue ? 1 : 0)) {
+        if (hasValue) {
+            // Take the argument after this as being the value
+            value = unusedArgs[argIndex + 1];
+            unusedArgs.splice(argIndex, 2);
+        } else {
+            // Only consume the one argument
+            value = true;
+            unusedArgs.splice(argIndex, 1);
+        }
+    } else if (hasValue) {
+        argIndex = unusedArgs.findIndex((arg) => arg.indexOf(name + '=') === 0);
+        if (argIndex >= 0) {
+            value = unusedArgs[argIndex].substr(unusedArgs[argIndex].indexOf('=') + 1);
+            unusedArgs.splice(argIndex, 1);
+        }
+    }
+
+    return value;
 }
-let testFilterIndex = args.indexOf('--filter')
-if (testFilterIndex > -1) {
-    testNameFilter = args[testFilterIndex + 1];
-    args.splice(testFilterIndex, 2);
+const unusedArgs = process.argv.slice(2);
+
+const testFileNames = ['*'];
+const testNameFilter = getArg('--filter', true);
+const showHelp = getArg('--help') || getArg('-h');
+const skipBuild = getArg('--run') || getArg('-r');
+const debugMode = getArg('--debug') || getArg('-d');
+
+let testFileName;
+while(testFileName = getArg('--file-name', true)) {
+    testFileNames.push(testFileName);
 }
 
-const testCommand = `ava --serial build/test/**/${testFileName}.test.js ${testNameFilter? '--match ' + testNameFilter: ''} ${args.join(' ')}`;
+if (showHelp) {
+    console.log(`Test runner accepts the following arguments. Any additional arguments will be passed-through to the test runner, see "ava --help" for details.
+
+NOTE: When running through 'npm test', pass -- before any test runner options, to stop NPM from consuming those arguments. For example, 'npm test -- -b'.
+
+Options:
+--file-name <file>      Runs all tests in the given file
+--filter <pattern>      Only runs tests whose names match the given pattern. Can be used with --file-name.
+--help | -h             Displays this help
+--run | -r              Skips the build step, and will *only* run the tests - rather than the default 'build & run' behaviour.
+--debug | -d            Builds the test/application code using 'development' webpack mode for easier debugging. Has no effect when used with -r.
+`);
+    process.exit();
+}
+
+const fileNamesArg = testFileNames.slice(testFileNames.length > 1 ? 1 : 0).map(testFileName => `build/test/**/${testFileName}.test.js`).join(" ");
+const testCommand = `ava --serial ${fileNamesArg} ${testNameFilter ? '--match ' + testNameFilter: ''} ${unusedArgs.join(' ')}`;
 
 const cleanup = async res => {
     if (os.platform().match(/^win/)) {
@@ -63,7 +107,7 @@ const run = (...args) => {
  */
 async function build() {
     await run('npm', ['run', 'clean']);
-    await run('npm', ['run', 'build']);
+    await run('npm', ['run', debugMode ? 'build:dev' : 'build']);
     await run('tsc', ['-p', 'test', '--skipLibCheck']);
 }
 
@@ -82,7 +126,9 @@ async function serve() {
     });
 }
 
-build()
+const buildStep = skipBuild ? Promise.resolve() : build();
+
+buildStep
     .then(() => serve())
     .then(async () => {
         port = await launch({manifestUrl: 'http://localhost:1337/test/app.json'});
@@ -90,8 +136,6 @@ build()
         return port
     })
     .catch(fail)
-    //Had to restrict pattern to only include 'provider' as we now have a mix of ava and jest based tests.
-    //Will need to port one to the other at some point - needs some discussion first.
     .then(OF_PORT => run(testCommand , { env: { OF_PORT } }))
     .then(cleanup)
     .catch(cleanup);

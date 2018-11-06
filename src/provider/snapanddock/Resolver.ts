@@ -1,9 +1,7 @@
-import {TabService} from '../tabbing/TabService';
-
+import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
+import {WindowState} from '../model/DesktopWindow';
 import {SNAP_DISTANCE} from './Config';
 import {Projector} from './Projector';
-import {SnapGroup} from './SnapGroup';
-import {SnapWindow, WindowIdentity, WindowState} from './SnapWindow';
 import {Point, PointUtils} from './utils/PointUtils';
 import {RectUtils} from './utils/RectUtils';
 
@@ -58,12 +56,12 @@ export interface SnapTarget {
      * This is not the group that the user is currently dragging, it is the group that has been selected as the snap
      * target.
      */
-    group: SnapGroup;
+    group: DesktopSnapGroup;
 
     /**
      * The window within the active group that was used to find this candidate
      */
-    activeWindow: SnapWindow;
+    activeWindow: Snappable;
 
     /**
      * The offset that will be applied to the active group, in order to correctly align it with this target.
@@ -104,7 +102,7 @@ export class Resolver {
      * @param groups A list of all groups within the system
      * @param activeGroup The group that is currently being moved
      */
-    public getSnapTarget(groups: SnapGroup[], activeGroup: SnapGroup): SnapTarget|null {
+    public getSnapTarget(groups: ReadonlyArray<DesktopSnapGroup>, activeGroup: DesktopSnapGroup): SnapTarget|null {
         const projector: Projector = this.projector;
         const targets: SnapTarget[] = [];
 
@@ -114,7 +112,7 @@ export class Resolver {
         }
 
         // Find any groups that are close to a window in activeGroup
-        groups.forEach((candidateGroup: SnapGroup) => {
+        groups.forEach((candidateGroup: DesktopSnapGroup) => {
             if (candidateGroup !== activeGroup) {
                 // Before checking any windows, make sure the bounding boxes of each group overlaps
                 if (RectUtils.distance(activeGroup, candidateGroup).within(SNAP_DISTANCE)) {
@@ -125,12 +123,11 @@ export class Resolver {
                         const activeState: WindowState = activeWindow.getState();
 
                         // Only do the next loop if there's a chance that this window can intersect with the other group
-                        if (this.isSnappable(activeWindow.getIdentity(), activeState) &&
-                            RectUtils.distance(candidateGroup, activeState).within(SNAP_DISTANCE)) {
+                        if (this.isSnappable(activeWindow, activeState) && RectUtils.distance(candidateGroup, activeState).within(SNAP_DISTANCE)) {
                             candidateGroup.windows.forEach(candidateWindow => {
                                 const candidateState: WindowState = candidateWindow.getState();
 
-                                if (this.isSnappable(candidateWindow.getIdentity(), candidateState)) {
+                                if (this.isSnappable(candidateWindow, candidateState)) {
                                     projector.project(activeState, candidateState);
                                 }
                             });
@@ -188,7 +185,7 @@ export class Resolver {
      * @param identity Handle to the window we are considering for snapping
      * @param windowState State of the window object we are considering for snapping
      */
-    private isSnappable(identity: WindowIdentity, windowState: WindowState): boolean {
-        return !windowState.hidden && windowState.opacity > 0 && windowState.state === 'normal' && TabService.INSTANCE.getTab(identity) === undefined;
+    private isSnappable(window: Snappable, windowState: WindowState): boolean {
+        return !windowState.hidden && windowState.opacity > 0 && windowState.state === 'normal' && !window.getTabGroup();
     }
 }

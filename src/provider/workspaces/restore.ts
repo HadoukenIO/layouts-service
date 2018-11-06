@@ -1,19 +1,15 @@
 import {Application} from 'hadouken-js-adapter/out/types/src/api/application/application';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
-
-import {Layout, LayoutApp, LayoutName, WindowState} from '../../client/types';
-import {providerChannel} from '../main';
-import {WindowIdentity} from '../snapanddock/SnapWindow';
-import {p, promiseMap} from '../snapanddock/utils/async';
-import {removeTab} from '../tabbing/SaveAndRestoreAPI';
-import {TabService} from '../tabbing/TabService';
-import {createTabGroupsFromTabBlob} from '../tabbing/TabUtilities';
-
+import {Layout, LayoutApp} from '../../client/types';
+import {apiHandler, model, tabService} from '../main';
+import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
+import {promiseMap} from '../snapanddock/utils/async';
 import {regroupLayout} from './group';
-import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, getClientConnection, inWindowObject, positionWindow, TabbedPlaceholders, wasCreatedProgrammatically, WindowObject} from './utils';
+import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, positionWindow, TabbedPlaceholders, wasCreatedProgrammatically, WindowObject} from './utils';
 
 const appsToRestore = new Map();
+const appsCurrentlyRestoring = new Map();
 
 interface AppToRestore {
     layoutApp: LayoutApp;
@@ -34,15 +30,24 @@ export const restoreApplication = async(layoutApp: LayoutApp, resolve: Function)
     const {uuid} = layoutApp;
     const name = uuid;
     const defaultResponse: LayoutApp = {...layoutApp, childWindows: []};
-    const appConnection = getClientConnection({uuid, name});
+    const appConnection = apiHandler.isClientConnection({uuid, name});
     if (appConnection) {
-        const responseAppLayout: LayoutApp|false = await providerChannel.dispatch(appConnection, 'restoreApp', layoutApp);
-        if (responseAppLayout) {
-            resolve(responseAppLayout);
+        if (appsToRestore.has(uuid) && !appsCurrentlyRestoring.has(uuid)) {
+            // Instruct app to restore its child windows
+            appsCurrentlyRestoring.set(uuid, true);
+            const responseAppLayout: LayoutApp|false = await apiHandler.channel.dispatch({uuid, name}, 'restoreApp', layoutApp);
+
+            // Flag app as restored
+            appsCurrentlyRestoring.delete(uuid);
+            appsToRestore.delete(uuid);
+            if (responseAppLayout) {
+                resolve(responseAppLayout);
+            } else {
+                resolve(defaultResponse);
+            }
         } else {
-            resolve(defaultResponse);
+            console.warn('Ignoring duplicate \'ready\' call');
         }
-        appsToRestore.delete(uuid);
     }
 };
 
@@ -87,13 +92,16 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
     // Push those placeholder windows into tabbedPlaceholdersToWindows object
     // If an app is running, we need to check which of its child windows are open.
     async function createAllPlaceholders(app: LayoutApp) {
-        // We use the v1 version of Application.wrap(...) due to an event-loop bug when
-        // calling the v2 version inside a channel callback. Due for fix in v35
-        const ofApp = fin.desktop.Application.wrap(app.uuid);
-        const isRunning = await p<boolean>(ofApp.isRunning.bind(ofApp))();
+        const ofApp = fin.Application.wrapSync(app);
+        const isRunning = await ofApp.isRunning();
         if (isRunning) {
             // Should de-tab here.
-            await removeTab(app.mainWindow);
+            const mainWindowModel = model.getWindow(app.mainWindow);
+            await tabService.removeTab(app.mainWindow);
+            if (mainWindowModel!.getSnapGroup().length > 1) {
+                mainWindowModel!.dockToGroup(new DesktopSnapGroup());
+            }
+
 
             // Need to check its child windows here, if confirmed.
             await childWindowPlaceholderCheckRunningApp(app, tabbedWindows, tabbedPlaceholdersToWindows, openWindows);
@@ -127,7 +135,7 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
         });
     });
 
-    await createTabGroupsFromTabBlob(layout.tabGroups);
+    await tabService.createTabGroupsFromTabBlob(layout.tabGroups);
 
     const apps = await promiseMap(layout.apps, async(app: LayoutApp): Promise<LayoutApp> => {
         // Get rid of childWindows for default response (anything else?)
@@ -139,12 +147,12 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
             const ofApp = await fin.Application.wrap({uuid});
             const isRunning = await ofApp.isRunning();
             if (isRunning) {
-                const appConnection = getClientConnection({uuid, name});
-                if (appConnection) {
+                const appConnected = apiHandler.channel.connections.some((conn: Identity) => conn.uuid === uuid && conn.name === name);
+                if (appConnected) {
                     await positionWindow(app.mainWindow);
                     console.log('App is running:', app);
                     // Send LayoutApp to connected application so it can handle child windows
-                    const response: LayoutApp|false = await providerChannel.dispatch(appConnection, 'restoreApp', app);
+                    const response: LayoutApp|false|undefined = await apiHandler.sendToClient<LayoutApp, LayoutApp|false>({uuid, name}, 'restoreApp', app);
                     console.log('Response from restore:', response);
                     return response ? response : defaultResponse;
                 } else {
@@ -178,16 +186,11 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
                     }
                 }
 
-                // Set up listener for app window shown to run and position it.
                 if (ofAppNotRunning) {
-                    const ofAppNRWindow = await ofAppNotRunning.getWindow();
-                    const updateOptionsAndShow = async () => {
-                        await ofAppNRWindow.removeListener('show-requested', updateOptionsAndShow);
-                        await ofAppNRWindow.showAt(app.mainWindow.left, app.mainWindow.top);
-                    };
-                    await ofAppNRWindow.addListener('show-requested', updateOptionsAndShow);
                     await ofAppNotRunning.run().catch(console.log);
-                    await positionWindow(app.mainWindow);
+                    const ofWindowNotRunning = await ofAppNotRunning.getWindow();
+                    await ofWindowNotRunning.setBounds(app.mainWindow);
+                    await ofWindowNotRunning.showAt(app.mainWindow.left, app.mainWindow.top);
                 }
                 // SHOULD WE RETURN DEFAULT RESPONSE HERE?!?
                 return defaultResponse;

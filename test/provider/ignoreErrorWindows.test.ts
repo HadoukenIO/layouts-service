@@ -25,7 +25,7 @@ test('Error windows are not registered with layouts', async t => {
     let count = 0;
     // Check every second for the error window and wrap it when it appears
     do {
-        // If it takes more than 10 seconds to crash, we will throw an error and fail the test.
+        // If it takes more than 10 seconds to crash, we will fail the test and break out of the loop.
         if (count++ > 10) {
             t.fail('Error window not found after 10 seconds. App may not have crashed or error window signature may have changed');
             break;

@@ -49,6 +49,10 @@ class SignalBase<R, R2> {
         }
     }
 
+    protected hasInternal(callback: Function, context?: Context): boolean {
+        return this.slots.findIndex((c) => c.callback === callback && c.context === context) >= 0;
+    }
+
     // tslint:disable-next-line:no-any
     protected emitInternal(...args: any[]): R2|null {
         const callbacks = this.slots.slice();  // Clone array, in case a callback modifies this signal
@@ -87,6 +91,10 @@ export class Signal0<R = void, R2 = R> extends SignalBase<R, R2> {
         return super.removeInternal(listener, context);
     }
 
+    public has(listener: () => R, context?: Context): boolean {
+        return super.hasInternal(listener, context);
+    }
+
     public emit(): R2|null {
         return super.emitInternal();
     }
@@ -103,6 +111,10 @@ export class Signal1<A1, R = void, R2 = R> extends SignalBase<R, R2> {
 
     public remove(listener: (arg1: A1) => R, context?: Context): boolean {
         return super.removeInternal(listener, context);
+    }
+
+    public has(listener: (arg1: A1) => R, context?: Context): boolean {
+        return super.hasInternal(listener, context);
     }
 
     public emit(arg1: A1): R2|null {
@@ -123,6 +135,10 @@ export class Signal2<A1, A2, R = void, R2 = R> extends SignalBase<R, R2> {
         return super.removeInternal(listener, context);
     }
 
+    public has(listener: (arg1: A1, arg2: A2) => R, context?: Context): boolean {
+        return super.hasInternal(listener, context);
+    }
+
     public emit(arg1: A1, arg2: A2): R2|null {
         return super.emitInternal(arg1, arg2);
     }
@@ -141,6 +157,10 @@ export class Signal3<A1, A2, A3, A4, R = void, R2 = R> extends SignalBase<R, R2>
         return super.removeInternal(listener, context);
     }
 
+    public has(listener: (arg1: A1, arg2: A2, arg3: A3) => R, context?: Context): boolean {
+        return super.hasInternal(listener, context);
+    }
+
     public emit(arg1: A1, arg2: A2, arg3: A3): R2|null {
         return super.emitInternal(arg1, arg2, arg3);
     }
@@ -157,6 +177,10 @@ export class Signal4<A1, A2, A3, A4, R = void, R2 = R> extends SignalBase<R, R2>
 
     public remove(listener: (arg1: A1, arg2: A2, arg3: A3, arg4: A4) => R, context?: Context): boolean {
         return super.removeInternal(listener, context);
+    }
+
+    public has(listener: (arg1: A1, arg2: A2, arg3: A3, arg4: A4) => R, context?: Context): boolean {
+        return super.hasInternal(listener, context);
     }
 
     public emit(arg1: A1, arg2: A2, arg3: A3, arg4: A4): R2|null {

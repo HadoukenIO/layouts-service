@@ -22,7 +22,6 @@ export class MouseTracker {
 
     private onDesktopWindowCreated(window: DesktopWindow) {
         window.onTransform.add(this.start, this);
-        window.onCommit.add(this.end, this);
     }
 
     private onDesktopWindowDestroyed(window: DesktopWindow) {
@@ -35,14 +34,28 @@ export class MouseTracker {
      * @param {DesktopWindow} window The window to use as a reference point for calculations.  Typically the window being dragged.
      */
     private async start(window: DesktopWindow, type: Mask<eTransformType>) {
-        const mousePosition: PointTopLeft = await fin.System.getMousePosition();
-        const windowState: WindowState = window.getState();
+        if (this.window === window) {
+            // Already initialised
+            return;
+        } else if (this.window) {
+            // Being re-initialised with another window
+            console.warn('Switching mouse tracker from', this.window.getId(), 'to', window && window.getId());
+            this.end(window, type);
+        }
 
+        // Must do all initialisation of the mouse tracker synchronously.
         this.window = window;
-        this.mouseOffset = {
-            x: mousePosition.left - (windowState.center.x - windowState.halfSize.x),
-            y: mousePosition.top - (windowState.center.y - windowState.halfSize.y)
-        };
+        if (!window.onCommit.has(this.end, this)) {
+            window.onCommit.add(this.end, this);
+        }
+
+        // Asynchronously get the mouse position and offset
+        const mousePosition: PointTopLeft = await fin.System.getMousePosition();
+        if (this.window === window) {
+            const state: WindowState = window.getState();
+
+            this.mouseOffset = {x: mousePosition.left - (state.center.x - state.halfSize.x), y: mousePosition.top - (state.center.y - state.halfSize.y)};
+        }
     }
 
     /**

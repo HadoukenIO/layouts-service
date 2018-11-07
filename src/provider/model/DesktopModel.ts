@@ -5,6 +5,7 @@ import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {SignalSlot} from '../Signal';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {RectUtils} from '../snapanddock/utils/RectUtils';
+import {deregisterWindow as deregisterFromWorkspaces} from '../workspaces/create';
 
 import {DesktopTabGroup} from './DesktopTabGroup';
 import {DesktopWindow, WindowIdentity, WindowState} from './DesktopWindow';
@@ -39,10 +40,11 @@ export class DesktopModel {
         const serviceUUID: string = fin.Application.me.uuid;
 
         // Listen for any new windows created and register them with the service
-        fin.System.addListener('window-created', (evt: WindowEvent<'system', 'window-created'>) => {        
+        fin.System.addListener('window-created', (evt: WindowEvent<'system', 'window-created'>) => {
             // Filter out error windows (which should never register)
             if (this.isErrorWindow(evt.uuid)) {
                 console.log('Ignoring error window: ' + evt.uuid);
+                deregisterFromWorkspaces({name: evt.name, uuid: evt.uuid});
                 return;
             }
 

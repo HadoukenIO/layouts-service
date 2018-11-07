@@ -34,6 +34,13 @@ export interface SnapState {
 
 export class SnapService {
     /**
+     * Any windows less than this distance apart will be considered as touching for the purposes of the validateGroup
+     * 
+     * This is a workaround for runtime issues due to be fixed in v37.
+     */
+    private static VALIDATE_GROUP_DISTANCE = 14;
+
+    /**
      * Flag to disable / enable docking.
      */
     public disableDockingOperations = false;
@@ -280,7 +287,7 @@ export class SnapService {
                 // If a window is not visible it cannot be adjacent to anything. This also allows us
                 // to avoid the questionable position tracking for hidden windows.
                 return false;
-            } else if (distance.border(0) && Math.abs(distance.maxAbs) > MIN_OVERLAP) {
+            } else if (distance.border(SnapService.VALIDATE_GROUP_DISTANCE) && Math.abs(distance.maxAbs) > MIN_OVERLAP) {
                 // The overlap check ensures that only valid snap configurations are counted
                 return true;
             }

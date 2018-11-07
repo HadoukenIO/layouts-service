@@ -2,7 +2,7 @@ import {Identity} from 'hadouken-js-adapter';
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
 import {TabAPI} from './APITypes';
-import {AddTabPayload, ApplicationUIConfig, CHANNEL_NAME, CustomData, DropPosition, EndDragPayload, JoinTabGroupPayload, Layout, LayoutApp, LayoutName, SetTabClientPayload, TabGroupEventPayload, TabProperties, UpdateTabPropertiesPayload, TabPropertiesUpdatedPayload} from './types';
+import {AddTabPayload, ApplicationUIConfig, CHANNEL_NAME, CustomData, DropPosition, EndDragPayload, JoinTabGroupPayload, Layout, LayoutApp, LayoutName, SetTabClientPayload, TabGroupEventPayload, TabProperties, TabPropertiesUpdatedPayload, UpdateTabPropertiesPayload} from './types';
 import {version} from './version';
 
 if (typeof fin === 'undefined') {

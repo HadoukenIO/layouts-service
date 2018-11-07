@@ -114,7 +114,7 @@ export class DesktopTabGroup {
         Object.assign(tabProps, properties);
         localStorage.setItem(tab.getId(), JSON.stringify(tabProps));
 
-        const payload: TabPropertiesUpdatedPayload = {tabGroupId: this.ID, tabID: tab.getIdentity(), properties: tabProps }
+        const payload: TabPropertiesUpdatedPayload = {tabGroupId: this.ID, tabID: tab.getIdentity(), properties: tabProps};
         this.sendTabEvent(tab, WindowMessages.TAB_PROPERTIES_UPDATED, payload);
     }
 

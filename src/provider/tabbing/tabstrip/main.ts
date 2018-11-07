@@ -39,10 +39,10 @@ const createLayoutsEventListeners = () => {
 
         const tab = tabManager.getTab(customEvent.detail.tabID as TabIdentifier);
         const props = customEvent.detail.properties;
-        
-        if(tab){
-            if(props.icon) tab.updateIcon(props.icon);
-            if(props.title) tab.updateText(props.title);
+
+        if (tab) {
+            if (props.icon) tab.updateIcon(props.icon);
+            if (props.title) tab.updateText(props.title);
         }
     });
 };

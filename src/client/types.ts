@@ -199,6 +199,10 @@ export interface UpdateTabPropertiesPayload {
     properties: Partial<TabProperties>;
 }
 
+export interface TabPropertiesUpdatedPayload extends TabGroupEventPayload {
+    properties: TabProperties;
+}
+
 export interface EndDragPayload {
     event: DropPosition;
     window: Identity;

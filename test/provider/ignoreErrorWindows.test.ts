@@ -71,9 +71,7 @@ test('Error windows are not included in generateLayout', async t => {
     } while (errorWindow === undefined);
 
     if (errorWindow) {
-        await delay(1000);
         const layout = await sendServiceMessage<undefined, Layout>('generateLayout', undefined);
-        console.log(layout);
 
         t.false(isErrorInLayout(errorWindow.identity.uuid, layout), 'Error window found in generated layout');
 

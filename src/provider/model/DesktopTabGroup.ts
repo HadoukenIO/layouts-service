@@ -1,6 +1,5 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
-import {TabApiEvents} from '../../client/APITypes';
-import {ApplicationUIConfig, JoinTabGroupPayload, TabGroupEventPayload, TabIdentifier, TabProperties} from '../../client/types';
+import {ApplicationUIConfig, JoinTabGroupPayload, TabGroupEventPayload, TabIdentifier, TabProperties, TabPropertiesUpdatedPayload} from '../../client/types';
 import {Signal1} from '../Signal';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
@@ -115,7 +114,8 @@ export class DesktopTabGroup {
         Object.assign(tabProps, properties);
         localStorage.setItem(tab.getId(), JSON.stringify(tabProps));
 
-        fin.InterApplicationBus.send({uuid: fin.Application.me.uuid, name: this.ID}, TabApiEvents.PROPERTIESUPDATED, {tabID: this.ID, tabProps: properties});
+        const payload: TabPropertiesUpdatedPayload = {tabGroupId: this.ID, tabID: tab.getIdentity(), properties: tabProps }
+        this.sendTabEvent(tab, WindowMessages.TAB_PROPERTIES_UPDATED, payload);
     }
 
     /**

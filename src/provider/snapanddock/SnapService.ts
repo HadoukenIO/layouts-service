@@ -35,7 +35,7 @@ export interface SnapState {
 export class SnapService {
     /**
      * Any windows less than this distance apart will be considered as touching for the purposes of the validateGroup
-     * 
+     *
      * This is a workaround for runtime issues due to be fixed in v37.
      */
     private static VALIDATE_GROUP_DISTANCE = 14;

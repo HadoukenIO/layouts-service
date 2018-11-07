@@ -1,5 +1,5 @@
 import * as layouts from '../../../client/main';  //The equivalent of 'openfin-layouts' NPM package outside of this project.
-import {JoinTabGroupPayload, TabGroupEventPayload, TabIdentifier} from '../../../client/types';
+import {JoinTabGroupPayload, TabGroupEventPayload, TabIdentifier, TabPropertiesUpdatedPayload} from '../../../client/types';
 
 import {TabManager} from './TabManager';
 
@@ -32,6 +32,18 @@ const createLayoutsEventListeners = () => {
         const customEvent: CustomEvent<TabGroupEventPayload> = event as CustomEvent<TabGroupEventPayload>;
         const tabInfo: TabIdentifier = customEvent.detail.tabID;
         tabManager.setActiveTab(tabInfo);
+    });
+
+    layouts.addEventListener('tab-properties-updated', (event: CustomEvent<TabPropertiesUpdatedPayload>|Event) => {
+        const customEvent: CustomEvent<TabPropertiesUpdatedPayload> = event as CustomEvent<TabPropertiesUpdatedPayload>;
+
+        const tab = tabManager.getTab(customEvent.detail.tabID as TabIdentifier);
+        const props = customEvent.detail.properties;
+        
+        if(tab){
+            if(props.icon) tab.updateIcon(props.icon);
+            if(props.title) tab.updateText(props.title);
+        }
     });
 };
 

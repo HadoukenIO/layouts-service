@@ -2,7 +2,7 @@ import {Identity} from 'hadouken-js-adapter';
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
 import {TabAPI} from './APITypes';
-import {AddTabPayload, ApplicationUIConfig, CHANNEL_NAME, CustomData, DropPosition, EndDragPayload, JoinTabGroupPayload, Layout, LayoutApp, LayoutName, SetTabClientPayload, TabGroupEventPayload, TabProperties, UpdateTabPropertiesPayload} from './types';
+import {AddTabPayload, ApplicationUIConfig, CHANNEL_NAME, CustomData, DropPosition, EndDragPayload, JoinTabGroupPayload, Layout, LayoutApp, LayoutName, SetTabClientPayload, TabGroupEventPayload, TabProperties, UpdateTabPropertiesPayload, TabPropertiesUpdatedPayload} from './types';
 import {version} from './version';
 
 if (typeof fin === 'undefined') {
@@ -38,6 +38,9 @@ const channelPromise: Promise<ChannelClient> = fin.InterApplicationBus.Channel.c
     });
     channel.register('tab-activated', (payload: TabGroupEventPayload) => {
         window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('tab-activated', {detail: payload}));
+    });
+    channel.register('tab-properties-updated', (payload: TabPropertiesUpdatedPayload) => {
+        window.dispatchEvent(new CustomEvent<TabPropertiesUpdatedPayload>('tab-properties-updated', {detail: payload}));
     });
 
     // Any unregistered action will simply return false
@@ -89,7 +92,7 @@ export async function deregister(identity: Identity = getId()): Promise<void> {
  */
 // export async function addEventListener(eventType: 'join-tab-group' | 'leave-tab-group', callback: (customEvent: TabEvent) => void): Promise<void>;
 export async function addEventListener(
-    eventType: 'join-snap-group'|'leave-snap-group'|'join-tab-group'|'leave-tab-group'|'tab-activated',
+    eventType: 'tab-properties-updated'|'join-snap-group'|'leave-snap-group'|'join-tab-group'|'leave-tab-group'|'tab-activated',
     callback: (customEvent: Event|CustomEvent<TabGroupEventPayload>) => void): Promise<void> {
     // Use native js event system to pass internal events around.
     // Without this we would need to handle multiple registration ourselves.

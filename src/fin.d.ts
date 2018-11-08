@@ -307,6 +307,13 @@ declare namespace fin {
              * frameless window. (Default: 4)
              */
             bottomRightCorner?: number;
+
+            sides: {
+                top: boolean;
+                bottom: boolean;
+                left: boolean;
+                right: boolean;
+            }
         };
         /**
          * A flag to show the Window's icon in the taskbar. Default: true.

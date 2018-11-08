@@ -30,9 +30,15 @@ export interface WindowState extends Rectangle {
     maxWidth: number;
     minHeight: number;
     maxHeight: number;
+    resizable: boolean;
+    resizeRegion: WindowResizeRegion;
 
     opacity: number;
     frameEnabled: boolean;  // If window will respond to move/resize events. Corresponds to enable/disableFrame, not WindowOptions.frame.
+}
+
+export interface WindowResizeRegion {
+    sides: {top: boolean; bottom: boolean; left: boolean; right: boolean;};
 }
 
 export interface WindowIdentity extends Identity {
@@ -167,6 +173,8 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
                     maxWidth: options.maxWidth!,
                     minHeight: options.minHeight!,
                     maxHeight: options.maxHeight!,
+                    resizable: options.resizable!,
+                    resizeRegion: options.resizeRegion!,
                     opacity: options.opacity!,
                     frameEnabled: true  // No way to query frame enabled/disabled state from API. Assume frame is enabled
                 };
@@ -337,6 +345,8 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             maxWidth: -1,
             minHeight: 0,
             maxHeight: 0,
+            resizable: true,
+            resizeRegion: {sides: {top: true, bottom: true, left: true, right: true}},
             opacity: 1,
             frameEnabled: true
         };

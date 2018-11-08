@@ -112,7 +112,7 @@ export class Projector {
                                 Math.abs((activeState.center[border.opposite] + activeState.halfSize[border.opposite]) - border.max) < ANCHOR_DISTANCE;
 
                             if (snapToMin && snapToMax) {
-                                halfSize[border.opposite] = (border.max - border.min) / 2;
+                                    halfSize[border.opposite] = (border.max - border.min) / 2;
                                 snapOffset[border.opposite] = ((border.min + border.max) / 2) - activeState.center[border.opposite];
                                 snapOffset[border.opposite] = ((border.min + border.max) / 2) - activeState.center[border.opposite] +
                                     (activeState.halfSize[border.opposite] - halfSize[border.opposite]);

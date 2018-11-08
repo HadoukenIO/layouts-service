@@ -11,11 +11,11 @@
       ]
     },
     "include": [
-      "provider/**/*.ts",
-      "demo/**/*.ts",
       "../src/fin.d.ts",
       "../src/finV2.d.ts",
-      "providerTypes.d.ts", "../src/demo/popup.ts"
+      "providerTypes.d.ts",
+      "provider/**/*.ts",
+      "demo/**/*.ts"
     ],
     "exclude": [
       "../node_modules"

@@ -1,5 +1,5 @@
-import {JoinTabGroupPayload, TabGroupEventPayload} from '../../../client/internal';
 import * as layouts from '../../../client/main';
+import {JoinTabGroupPayload, TabGroupEventPayload} from '../../../client/tabbing';
 import {WindowIdentity} from '../../../client/types';
 
 import {TabManager} from './TabManager';
@@ -20,7 +20,7 @@ const createLayoutsEventListeners = () => {
         document.title = tabManager.getTabs.map(tab => tab.ID.name).join(', ');
     });
 
-    layouts.addEventListener('leave-tab-group', (event: CustomEvent<LeaveTabGroup>) => {
+    layouts.addEventListener('leave-tab-group', (event: CustomEvent<TabGroupEventPayload>) => {
         const tabInfo: TabGroupEventPayload = event.detail;
         tabManager.removeTab(tabInfo.tabID);
 

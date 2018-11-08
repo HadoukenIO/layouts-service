@@ -105,7 +105,8 @@ export async function createAppProgrammatically4() {
         },
         () => {
             app.run();
-        });
+        },
+        console.error);
 }
 
 export async function createAppProgrammatically5() {
@@ -118,7 +119,8 @@ export async function createAppProgrammatically5() {
         },
         () => {
             app.run();
-        });
+        },
+        console.error);
 }
 
 export function createSnapWindows(): void {
@@ -155,7 +157,8 @@ export function createTabbedWindow(page: string) {
         () => {
             app.run();
             numTabbedWindows++;
-        });
+        },
+        console.error);
 }
 
 function addLayoutNamesToDropdown() {

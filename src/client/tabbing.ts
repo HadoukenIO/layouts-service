@@ -32,7 +32,7 @@ export interface JoinTabGroupPayload extends TabGroupEventPayload {
     /**
      * The properties of the newly-added tab.
      *
-     * These will be generated from the `tabID` window, or will be whatever properties were previously set for the `tabID` window using 
+     * These will be generated from the `tabID` window, or will be whatever properties were previously set for the `tabID` window using
      * {@link updateTabProperties}.
      */
     tabProps: TabProperties;

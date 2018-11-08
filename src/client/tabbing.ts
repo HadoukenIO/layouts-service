@@ -9,6 +9,43 @@ import {DropPosition, EndDragPayload, UpdateTabPropertiesPayload} from './intern
 import {ApplicationUIConfig, TabProperties, WindowIdentity} from './types';
 
 /**
+ * Data passed as part of tabbing-related events
+ */
+export interface TabGroupEventPayload {
+    /**
+     * String that uniquely identifies the current tabset.
+     */
+    tabGroupId: string;
+
+    /**
+     * Identifies the window that is the source of the current event.
+     *
+     * See the documentation for individual events for more details.
+     */
+    tabID: WindowIdentity;
+}
+
+/**
+ * Details of the {@link JoinTabGroupEvent|'join-tab-group'} event
+ */
+export interface JoinTabGroupPayload extends TabGroupEventPayload {
+    /**
+     * The properties of the newly-added tab.
+     *
+     * These will be generated from the `tabID` window, or will be whatever properties were previously set for the `tabID` window using 
+     * {@link updateTabProperties}.
+     */
+    tabProps: TabProperties;
+
+    /**
+     * The index at which the tab was inserted.
+     *
+     * An integer in the range `[0, <tab count>-1]`.
+     */
+    index: number;
+}
+
+/**
  * Returns array of window references for tabs belonging to the tab group of the provided window context.
  *
  * If no Identity is provided as an argument, the current window context will be used.

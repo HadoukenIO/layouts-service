@@ -4,9 +4,9 @@
 import {Identity} from 'hadouken-js-adapter';
 
 import {tryServiceDispatch} from './connection';
-import {getId, JoinTabGroupPayload, TabGroupEventPayload} from './internal';
+import {getId} from './internal';
 import {undockGroup, undockWindow} from './snapanddock';
-import {addTab, closeTab, closeTabGroup, createTabGroup, getTabs, maximizeTabGroup} from './tabbing';
+import {addTab, closeTab, closeTabGroup, createTabGroup, getTabs, JoinTabGroupPayload, maximizeTabGroup, TabGroupEventPayload} from './tabbing';
 import {minimizeTabGroup, removeTab, restoreTabGroup, setActiveTab, setTabClient, tabStrip} from './tabbing';
 import {generateLayout, onApplicationSave, onAppRestore, onLayoutRestore, onLayoutSave, ready, restoreLayout} from './workspaces';
 
@@ -68,7 +68,7 @@ export async function addEventListener<K extends keyof EventMap>(type: K, listen
  * The service considers any windows that are tabbed together to also be in the same snap group, so this event will also fire when a window is added to a tab
  * group. This may change in future versions of the service.
  *
- * @name join-snap-group
+ * @type join-snap-group
  * @event
  */
 export type JoinSnapGroupEvent = Event&{type: 'join-snap-group'};
@@ -98,7 +98,7 @@ export type JoinSnapGroupEvent = Event&{type: 'join-snap-group'};
  * The service considers any windows that are tabbed together to also be in the same snap group, so this event will also fire when a window is removed from a
  * tab group. This may change in future versions of the service.
  *
- * @name leave-snap-group
+ * @type leave-snap-group
  * @event
  */
 export type LeaveSnapGroupEvent = Event&{type: 'leave-snap-group'};
@@ -120,7 +120,7 @@ export type LeaveSnapGroupEvent = Event&{type: 'leave-snap-group'};
  *
  * If a window is moved from one tab group to another, this will be messaged as a `leave-tab-group` event, followed by a `join-tab-group`.
  *
- * @name join-tab-group
+ * @type join-tab-group
  * @event
  */
 export type JoinTabGroupEvent = CustomEvent<JoinTabGroupPayload>&{type: 'join-tab-group'};
@@ -140,7 +140,7 @@ export type JoinTabGroupEvent = CustomEvent<JoinTabGroupPayload>&{type: 'join-ta
  *
  * If a window is moved from one tab group to another, this will be messaged as a `leave-tab-group` event, followed by a `join-tab-group`.
  *
- * @name leave-tab-group
+ * @type leave-tab-group
  * @event
  */
 export type LeaveTabGroupEvent = CustomEvent<TabGroupEventPayload>&{type: 'leave-tab-group'};
@@ -159,7 +159,7 @@ export type LeaveTabGroupEvent = CustomEvent<TabGroupEventPayload>&{type: 'leave
  *
  * NOTE: This event is only passed to tabstrip windows, and not to the actual application windows within the tabset.
  *
- * @name tab-activated
+ * @type tab-activated
  * @event
  */
 export type TabActivatedEvent = CustomEvent<TabGroupEventPayload>&{type: 'tab-activated'};

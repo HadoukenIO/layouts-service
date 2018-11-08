@@ -13,25 +13,22 @@ tabManager = new TabManager();
  * Creates event listeners for events fired from the openfin layouts service.
  */
 const createLayoutsEventListeners = () => {
-    layouts.addEventListener('join-tab-group', (event: CustomEvent<TabGroupEventPayload>|Event) => {
-        const customEvent: CustomEvent<JoinTabGroupPayload> = event as CustomEvent<JoinTabGroupPayload>;
-        const tabInfo: JoinTabGroupPayload = customEvent.detail;
+    layouts.addEventListener('join-tab-group', (event: CustomEvent<JoinTabGroupPayload>) => {
+        const tabInfo: JoinTabGroupPayload = event.detail;
         tabManager.addTab(tabInfo.tabID, tabInfo.tabProps!, tabInfo.index!);
 
         document.title = tabManager.getTabs.map(tab => tab.ID.name).join(', ');
     });
 
-    layouts.addEventListener('leave-tab-group', (event: CustomEvent<TabGroupEventPayload>|Event) => {
-        const customEvent: CustomEvent<TabGroupEventPayload> = event as CustomEvent<TabGroupEventPayload>;
-        const tabInfo: TabGroupEventPayload = customEvent.detail;
+    layouts.addEventListener('leave-tab-group', (event: CustomEvent<LeaveTabGroup>) => {
+        const tabInfo: TabGroupEventPayload = event.detail;
         tabManager.removeTab(tabInfo.tabID);
 
         document.title = tabManager.getTabs.map(tab => tab.ID.name).join(', ');
     });
 
-    layouts.addEventListener('tab-activated', (event: CustomEvent<TabGroupEventPayload>|Event) => {
-        const customEvent: CustomEvent<TabGroupEventPayload> = event as CustomEvent<TabGroupEventPayload>;
-        const tabInfo: WindowIdentity = customEvent.detail.tabID;
+    layouts.addEventListener('tab-activated', (event: CustomEvent<TabGroupEventPayload>) => {
+        const tabInfo: WindowIdentity = event.detail.tabID;
         tabManager.setActiveTab(tabInfo);
     });
 };

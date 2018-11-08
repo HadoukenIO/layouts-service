@@ -110,16 +110,6 @@ export interface TabAPIReorderMessage extends TabAPIMessage {
     tabOrder: WindowIdentity[];
 }
 
-export interface TabGroupEventPayload {
-    tabGroupId: string;
-    tabID: WindowIdentity;
-}
-
-export interface JoinTabGroupPayload extends TabGroupEventPayload {
-    tabProps: TabProperties;
-    index: number;
-}
-
 export interface SetTabClientPayload {
     config: Partial<ApplicationUIConfig>;
     id: Identity;

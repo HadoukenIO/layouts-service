@@ -13,7 +13,8 @@
  */
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
-import {JoinTabGroupPayload, SERVICE_CHANNEL, TabGroupEventPayload} from './internal';
+import {SERVICE_CHANNEL} from './internal';
+import {JoinTabGroupPayload, TabGroupEventPayload} from './tabbing';
 
 
 /**

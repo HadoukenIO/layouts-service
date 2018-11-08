@@ -53,7 +53,7 @@ export class TabManager {
             sort: true,
             animation: 200,
             onUpdate: (evt) => {
-                // Gets the new tab order as an array of WindowIdentitys
+                // Gets the new tab order as an array of WindowIdentity objects
                 const tabNodes = ((document.getElementById('tabs') as HTMLDivElement).getElementsByClassName('tab') as HTMLCollectionOf<HTMLDivElement>);
                 const orderedTabList: WindowIdentity[] = Array.from(tabNodes).map((el) => {
                     return {uuid: el.dataset.uuid as string, name: el.dataset.name as string};

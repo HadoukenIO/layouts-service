@@ -67,7 +67,8 @@ export const enum WindowMessages {
     LEAVE_TAB_GROUP = 'leave-tab-group',
 
     // Tabbing (tabstrip messages)
-    TAB_ACTIVATED = 'tab-activated'
+    TAB_ACTIVATED = 'tab-activated',
+    TAB_PROPERTIES_UPDATED = 'tab-properties-updated'
 }
 
 

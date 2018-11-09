@@ -1,9 +1,4 @@
-export enum TabApiEvents {
-    TABADDED = 'TABADDED',
-    TABREMOVED = 'TABREMOVED',
-    PROPERTIESUPDATED = 'PROPERTIESUPDATED',
-    TABACTIVATED = 'TABACTIVATED'
-}
+
 
 export enum AppApiEvents {
     CLIENTINIT = 'CLIENTINIT',

@@ -112,7 +112,19 @@ export class Projector {
                                 Math.abs((activeState.center[border.opposite] + activeState.halfSize[border.opposite]) - border.max) < ANCHOR_DISTANCE;
 
                             if (snapToMin && snapToMax) {
+                                // Determine if a resize would violate any constraints
+                                const resizeRegions = activeState.resizeRegion.sides;
+                                const targetBorderLength = (border.max - border.min);
+                                // tslint:disable-next-line:prefer-const
+                                let [min, max] = border.orientation === 'x' ? [activeState.minHeight, activeState.maxHeight] : [activeState.minWidth, activeState.maxWidth];
+                                max = max < 0 ? Number.MAX_SAFE_INTEGER : max;
+
+                                const violatesSizeConstraints = targetBorderLength < min || targetBorderLength > max;
+                                const canResizeInAxis = border.orientation === 'x' ? resizeRegions.top || resizeRegions.bottom : resizeRegions.left || resizeRegions.right;                                
+
+                                if (activeState.resizable && !violatesSizeConstraints && canResizeInAxis) {
                                     halfSize[border.opposite] = (border.max - border.min) / 2;
+                                }
                                 snapOffset[border.opposite] = ((border.min + border.max) / 2) - activeState.center[border.opposite];
                                 snapOffset[border.opposite] = ((border.min + border.max) / 2) - activeState.center[border.opposite] +
                                     (activeState.halfSize[border.opposite] - halfSize[border.opposite]);

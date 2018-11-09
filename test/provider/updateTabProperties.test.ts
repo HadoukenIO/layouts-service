@@ -40,7 +40,7 @@ test('Update Tab Properties - property changes reflected in service', async t =>
     // Drag wins[0] over wins[1] to make a tabset (in valid drop region)
     await tabWindowsTogether(wins[0], wins[1]);
 
-    const newProps = {title: '' + Math.random() * 10, icon: 'https://thumbs.gfycat.com/HeftyLightHorsemouse-size_restricted.gif'};
+    const newProps = {title: '' + Math.random() * 10, icon: 'http://cdn.openfin.co/favicon.ico'};
 
     // Update first windows Tab Properties (icon, title);
     await updateTabProperties(wins[0].identity, newProps);
@@ -64,7 +64,7 @@ test('Update Tab Properties - property changes reflected in tabstrip DOM', async
     // Drag wins[0] over wins[1] to make a tabset (in valid drop region)
     await tabWindowsTogether(wins[0], wins[1]);
 
-    const newProps = {title: '' + Math.random() * 10, icon: 'https://thumbs.gfycat.com/HeftyLightHorsemouse-size_restricted.gif'};
+    const newProps = {title: '' + Math.random() * 10, icon: 'http://cdn.openfin.co/favicon.ico'};
 
     // Update first windows Tab Properties (icon, title);
     await updateTabProperties(wins[0].identity, newProps);

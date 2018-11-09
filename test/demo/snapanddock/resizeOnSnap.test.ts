@@ -1,11 +1,12 @@
 import {assertAdjacent, assertGrouped} from '../../provider/utils/assertions';
+import {delay} from '../../provider/utils/delay';
 import {dragSideToSide} from '../../provider/utils/dragWindowTo';
 import {getBounds} from '../../provider/utils/getBounds';
 import * as SideUtils from '../../provider/utils/SideUtils';
 import {Side} from '../../provider/utils/SideUtils';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
+import {refreshWindowState} from '../utils/modelUtils';
 import {testParameterized} from '../utils/parameterizedTestUtils';
-import { delay } from '../../provider/utils/delay';
 
 // Width and Height of the windows when spawned
 const WINDOW_SIZE = 250;
@@ -24,8 +25,13 @@ interface Constraints {
     minHeight?: number;
     minWidth?: number;
     resizable?: boolean;
-    resizeRegion?: {sides: {top?: boolean; bottom?: boolean; left?: boolean; right?: boolean;}};
+    resizeRegion?: ResizeRegion;
 }
+
+interface ResizeRegion {
+    sides: {[K in ResizeSides]: boolean;};
+}
+type ResizeSides = 'top'|'bottom'|'left'|'right';
 
 interface ResizeWithConstrainsOptions extends ResizeOnSnapOptions {
     constraints: Constraints;
@@ -42,12 +48,13 @@ testParameterized(
             if (Object.keys(testOptions.constraints).length === 0) {
                 constraintsString = 'No Constraints';
             } else if (!!testOptions.constraints.resizeRegion) {
-                constraintsString = `Resize regions: ${Object.keys(testOptions.constraints.resizeRegion.sides).join(', ')}`;
+                const sides = testOptions.constraints.resizeRegion.sides;
+                constraintsString = `Resize regions: ${(Object.keys(sides) as ResizeSides[]).filter((side) => sides[side]).join(', ')}`;
             } else {
                 constraintsString = `Constraints: ${JSON.stringify(testOptions.constraints).slice(1, -1)}`;
             }
 
-            return `Resize on Snap - ${frameString} - ${resizeDirectionString} - ${constraintsString}`;
+            return `Resize on Snap - ${frameString} - ${testOptions.side} - ${resizeDirectionString} - ${constraintsString}`;
         },
     [
         // No constraints. Normal resizing behaviour expected
@@ -64,7 +71,7 @@ testParameterized(
             windowCount: 2,
             resizeDirection: 'small-to-big',
             side: 'right',
-            constraints: {resizeRegion: {sides: {top: false, bottom: false}}},
+            constraints: {resizeRegion: {sides: {top: false, bottom: false, left: true, right: true}}},
             shouldResize: false
         },
         {
@@ -72,7 +79,7 @@ testParameterized(
             windowCount: 2,
             resizeDirection: 'small-to-big',
             side: 'bottom',
-            constraints: {resizeRegion: {sides: {left: false, right: false}}},
+            constraints: {resizeRegion: {sides: {left: false, right: false, top: true, bottom: true}}},
             shouldResize: false
         },
         // Constraint not in axis of resize
@@ -81,7 +88,7 @@ testParameterized(
             windowCount: 2,
             resizeDirection: 'big-to-small',
             side: 'right',
-            constraints: {resizeRegion: {sides: {left: false, right: false}}},
+            constraints: {resizeRegion: {sides: {left: false, right: false, top: true, bottom: true}}},
             shouldResize: true
         },
         {
@@ -89,7 +96,7 @@ testParameterized(
             windowCount: 2,
             resizeDirection: 'big-to-small',
             side: 'bottom',
-            constraints: {resizeRegion: {sides: {top: false, bottom: false}}},
+            constraints: {resizeRegion: {sides: {top: false, bottom: false, left: true, right: true}}},
             shouldResize: true
         },
         // Resize region only on perpendicular sides. Same as no constraint.
@@ -98,7 +105,7 @@ testParameterized(
             windowCount: 2,
             resizeDirection: 'big-to-small',
             side: 'right',
-            constraints: {resizeRegion: {sides: {left: false, top: false}}},
+            constraints: {resizeRegion: {sides: {left: false, top: false, right: true, bottom: true}}},
             shouldResize: true
         },
         // Size constraints
@@ -157,8 +164,11 @@ testParameterized(
 
         // Apply constraints
         await windows[1].updateOptions(constraints);
+        await refreshWindowState(windows[1].identity);
 
         await delay(500);
+
+        const boundsBefore = await getBounds(windows[1]);
 
         // Snap the windows together
         await dragSideToSide(windows[1], SideUtils.opposite(side), windows[0], side);
@@ -167,19 +177,15 @@ testParameterized(
         await assertAdjacent(t, windows[0], windows[1], side);
         await assertGrouped(t, windows[0], windows[1]);
 
-
-        // Check that the windows are (not) now the same width/height (depending on constraints)
+        
         const bounds = [await getBounds(windows[0]), await getBounds(windows[1])];
-        let windowResized: boolean;
-        if (side === 'top' || side === 'bottom') {
-            windowResized = bounds[0].left === bounds[1].left && bounds[0].right === bounds[1].right;
-        } else {
-            windowResized = bounds[0].top === bounds[1].top && bounds[0].bottom === bounds[1].bottom;
-        }
 
-        if (windowResized === shouldResize) {
-            t.pass();
+        t.true((boundsBefore.height !== bounds[1].height || boundsBefore.width !== bounds[1].width) === shouldResize, `Window${shouldResize ? ' not' : ''} resized when it should${shouldResize ? '' : 'n\'t'}`);
+
+        // Check that the windows are (not) aligned (depending on constraints)
+        if (side === 'top' || side === 'bottom') {
+            t.true((bounds[0].left === bounds[1].left && bounds[0].right === bounds[1].right) === shouldResize, `Windows${shouldResize ? ' not' : ''} aligned when they should${shouldResize ? '' : 'n\'t'} be`);
         } else {
-            t.fail(`Window was expected${shouldResize ? ' ' : ' not '}to resize, but did ${windowResized ? '' : 'not'}`);
+            t.true((bounds[0].top === bounds[1].top && bounds[0].bottom === bounds[1].bottom) === shouldResize, `Windows${shouldResize ? ' not' : ''} aligned when they should${shouldResize ? '' : 'n\'t'} be`);
         }
     }, {defaultHeight: WINDOW_SIZE, defaultWidth: WINDOW_SIZE}));

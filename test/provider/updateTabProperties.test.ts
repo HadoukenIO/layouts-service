@@ -36,6 +36,30 @@ test.afterEach.always(async () => {
     wins = [];
 });
 
+test('Update Tab Properties - property changes reflected in service', async t => {
+    // Drag wins[0] over wins[1] to make a tabset (in valid drop region)
+    await tabWindowsTogether(wins[0], wins[1]);
+
+    const newProps = {title: '' + Math.random() * 10, icon: 'https://thumbs.gfycat.com/HeftyLightHorsemouse-size_restricted.gif'};
+
+    // Update first windows Tab Properties (icon, title);
+    await updateTabProperties(wins[0].identity, newProps);
+
+    function remoteFunc(this: ProviderWindow, identity: WindowIdentity) {
+        const tabWindow = this.model.getWindow(identity as WindowIdentity);
+
+        //@ts-ignore Accessing private variables in the name of testing.
+        return tabWindow.getTabGroup().getTabProperties(tabWindow);
+    }
+
+    // Execute remote to fetch our windows tab properties from service.
+    const result = await executeJavascriptOnService(remoteFunc, wins[0].identity as WindowIdentity);
+
+    // Assert that the properties we get back are equal to the ones we updated with.
+    t.deepEqual(result, newProps);
+});
+
+
 test('Update Tab Properties - property changes reflected in tabstrip DOM', async t => {
     // Drag wins[0] over wins[1] to make a tabset (in valid drop region)
     await tabWindowsTogether(wins[0], wins[1]);
@@ -67,5 +91,5 @@ test('Update Tab Properties - property changes reflected in tabstrip DOM', async
     const result = await executeJavascriptOnService(remoteFunc, wins[0].identity as WindowIdentity);
 
     // Assert that at least one of the tabs match the properties we updated with.
-    await t.true(result.some(el => el.title === newProps.title && el.icon!.includes(newProps.icon)));
+    t.true(result.some(el => el.title === newProps.title && el.icon!.includes(newProps.icon)));
 });

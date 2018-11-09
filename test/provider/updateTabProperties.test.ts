@@ -26,11 +26,7 @@ test.beforeEach(async () => {
 test.afterEach.always(async () => {
     // Try and close all the windows.  If the window is already closed then it will throw an error which we catch and ignore.
     await Promise.all(wins.map(win => {
-        try {
-            return win.close();
-        } catch (e) {
-            return;
-        }
+        return win.close().catch(() => {});
     }));
 
     wins = [];

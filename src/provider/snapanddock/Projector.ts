@@ -13,6 +13,12 @@ export enum eDirection {
     BOTTOM
 }
 
+interface AxisResizeConstraint {
+    resizable: boolean;
+    min: number;
+    max: number;
+}
+
 /**
  * Specialised util class for determining the closest windows in each direction of an active group.
  *
@@ -112,20 +118,12 @@ export class Projector {
                                 Math.abs((activeState.center[border.opposite] + activeState.halfSize[border.opposite]) - border.max) < ANCHOR_DISTANCE;
 
                             if (snapToMin && snapToMax) {
-                                // Determine if a resize would violate any constraints
-                                const resizeRegions = activeState.resizeRegion.sides;
+                                const {min, max, resizable} = this.getResizeConstraint(activeState, border.orientation);
                                 const targetBorderLength = (border.max - border.min);
-                                // tslint:disable-next-line:prefer-const
-                                let [min, max] =
-                                    border.orientation === 'x' ? [activeState.minHeight, activeState.maxHeight] : [activeState.minWidth, activeState.maxWidth];
-                                max = max < 0 ? Number.MAX_SAFE_INTEGER : max;
 
-                                const violatesSizeConstraints = targetBorderLength < min || targetBorderLength > max;
-                                const canResizeInAxis =
-                                    border.orientation === 'x' ? resizeRegions.top || resizeRegions.bottom : resizeRegions.left || resizeRegions.right;
-
-                                if (activeState.resizable && !violatesSizeConstraints && canResizeInAxis) {
-                                    halfSize[border.opposite] = (border.max - border.min) / 2;
+                                // Only resize if it would not violate any constraints
+                                if (resizable && targetBorderLength > min && targetBorderLength < max) {
+                                    halfSize[border.opposite] = targetBorderLength / 2;
                                 }
                                 snapOffset[border.opposite] = ((border.min + border.max) / 2) - activeState.center[border.opposite];
                                 snapOffset[border.opposite] = ((border.min + border.max) / 2) - activeState.center[border.opposite] +
@@ -189,6 +187,22 @@ export class Projector {
             borders[i].clip(borders[(i + 1) % 4]);
             borders[i].clip(borders[(i + 3) % 4]);
         }
+    }
+
+    private getResizeConstraint(state: WindowState, orientation: 'x'|'y'): AxisResizeConstraint {
+        let min: number, max: number;
+        let resizable: boolean = state.resizable;
+
+        if (orientation === 'x') {
+            resizable = resizable && (state.resizeRegion.sides.top || state.resizeRegion.sides.bottom);
+            [min, max] = [state.minHeight, state.maxHeight];
+        } else {
+            resizable = resizable && state.resizeRegion.sides.left && state.resizeRegion.sides.right;
+            [min, max] = [state.minWidth, state.maxWidth];
+        }
+        max = max < 0 ? Number.MAX_SAFE_INTEGER : max;
+
+        return {resizable, min, max};
     }
 }
 

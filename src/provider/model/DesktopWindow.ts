@@ -11,7 +11,7 @@ import {Rectangle} from '../snapanddock/utils/RectUtils';
 
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
-import {DesktopSnapGroup, Snappable, ResizeConstraints} from './DesktopSnapGroup';
+import {DesktopSnapGroup, ResizeConstraints, Snappable} from './DesktopSnapGroup';
 import {DesktopTabGroup} from './DesktopTabGroup';
 
 export interface WindowState extends Rectangle {
@@ -510,7 +510,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         }
     }
 
-    public getResizeConstraints(orientation: 'x' | 'y'): ResizeConstraints {
+    public getResizeConstraints(orientation: 'x'|'y'): ResizeConstraints {
         let min: number, max: number;
         let resizable: boolean = this.windowState.resizable;
 

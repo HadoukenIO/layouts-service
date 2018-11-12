@@ -42,7 +42,7 @@ export interface Snappable {
     getState(): WindowState;
     getTabGroup(): DesktopTabGroup|null;
     getSnapGroup(): DesktopSnapGroup;
-    getResizeConstraints(orientation: 'x' | 'y'): ResizeConstraints;
+    getResizeConstraints(orientation: 'x'|'y'): ResizeConstraints;
 
     // tslint:disable-next-line:no-any
     applyOverride(property: keyof WindowState, value: any): Promise<void>;

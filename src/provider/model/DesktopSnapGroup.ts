@@ -30,12 +30,19 @@ interface TabState {
     previousState: TabData;
 }
 
+export interface ResizeConstraints {
+    resizable: boolean;
+    min: number;
+    max: number;
+}
+
 export interface Snappable {
     getId(): string;
     getIdentity(): WindowIdentity;
     getState(): WindowState;
     getTabGroup(): DesktopTabGroup|null;
     getSnapGroup(): DesktopSnapGroup;
+    getResizeConstraints(orientation: 'x' | 'y'): ResizeConstraints;
 
     // tslint:disable-next-line:no-any
     applyOverride(property: keyof WindowState, value: any): Promise<void>;

@@ -13,12 +13,6 @@ export enum eDirection {
     BOTTOM
 }
 
-interface AxisResizeConstraint {
-    resizable: boolean;
-    min: number;
-    max: number;
-}
-
 /**
  * Specialised util class for determining the closest windows in each direction of an active group.
  *
@@ -118,7 +112,7 @@ export class Projector {
                                 Math.abs((activeState.center[border.opposite] + activeState.halfSize[border.opposite]) - border.max) < ANCHOR_DISTANCE;
 
                             if (snapToMin && snapToMax) {
-                                const {min, max, resizable} = this.getResizeConstraint(activeState, border.orientation);
+                                const {min, max, resizable} = activeWindow.getResizeConstraints(border.orientation);
                                 const targetBorderLength = (border.max - border.min);
 
                                 // Only resize if it would not violate any constraints
@@ -187,22 +181,6 @@ export class Projector {
             borders[i].clip(borders[(i + 1) % 4]);
             borders[i].clip(borders[(i + 3) % 4]);
         }
-    }
-
-    private getResizeConstraint(state: WindowState, orientation: 'x'|'y'): AxisResizeConstraint {
-        let min: number, max: number;
-        let resizable: boolean = state.resizable;
-
-        if (orientation === 'x') {
-            resizable = resizable && (state.resizeRegion.sides.top || state.resizeRegion.sides.bottom);
-            [min, max] = [state.minHeight, state.maxHeight];
-        } else {
-            resizable = resizable && state.resizeRegion.sides.left && state.resizeRegion.sides.right;
-            [min, max] = [state.minWidth, state.maxWidth];
-        }
-        max = max < 0 ? Number.MAX_SAFE_INTEGER : max;
-
-        return {resizable, min, max};
     }
 }
 

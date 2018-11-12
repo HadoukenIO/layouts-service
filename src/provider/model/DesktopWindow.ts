@@ -11,7 +11,7 @@ import {Rectangle} from '../snapanddock/utils/RectUtils';
 
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
-import {DesktopSnapGroup, Snappable} from './DesktopSnapGroup';
+import {DesktopSnapGroup, Snappable, ResizeConstraints} from './DesktopSnapGroup';
 import {DesktopTabGroup} from './DesktopTabGroup';
 
 export interface WindowState extends Rectangle {
@@ -508,6 +508,22 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         } else {
             return Promise.resolve();
         }
+    }
+
+    public getResizeConstraints(orientation: 'x' | 'y'): ResizeConstraints {
+        let min: number, max: number;
+        let resizable: boolean = this.windowState.resizable;
+
+        if (orientation === 'x') {
+            resizable = this.windowState.resizable && (this.windowState.resizeRegion.sides.top || this.windowState.resizeRegion.sides.bottom);
+            [min, max] = [this.windowState.minHeight, this.windowState.maxHeight];
+        } else {
+            resizable = this.windowState.resizable && (this.windowState.resizeRegion.sides.left || this.windowState.resizeRegion.sides.right);
+            [min, max] = [this.windowState.minWidth, this.windowState.maxWidth];
+        }
+        max = max < 0 ? Number.MAX_SAFE_INTEGER : max;
+
+        return {resizable, min, max};
     }
 
     private isModified(key: keyof WindowState, prevState: Partial<WindowState>, newState: WindowState): boolean {

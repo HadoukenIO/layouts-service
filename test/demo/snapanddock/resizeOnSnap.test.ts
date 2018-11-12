@@ -177,15 +177,21 @@ testParameterized(
         await assertAdjacent(t, windows[0], windows[1], side);
         await assertGrouped(t, windows[0], windows[1]);
 
-        
+
         const bounds = [await getBounds(windows[0]), await getBounds(windows[1])];
 
-        t.true((boundsBefore.height !== bounds[1].height || boundsBefore.width !== bounds[1].width) === shouldResize, `Window${shouldResize ? ' not' : ''} resized when it should${shouldResize ? '' : 'n\'t'}`);
+        t.true(
+            (boundsBefore.height !== bounds[1].height || boundsBefore.width !== bounds[1].width) === shouldResize,
+            `Window${shouldResize ? ' not' : ''} resized when it should${shouldResize ? '' : 'n\'t'}`);
 
         // Check that the windows are (not) aligned (depending on constraints)
         if (side === 'top' || side === 'bottom') {
-            t.true((bounds[0].left === bounds[1].left && bounds[0].right === bounds[1].right) === shouldResize, `Windows${shouldResize ? ' not' : ''} aligned when they should${shouldResize ? '' : 'n\'t'} be`);
+            t.true(
+                (bounds[0].left === bounds[1].left && bounds[0].right === bounds[1].right) === shouldResize,
+                `Windows${shouldResize ? ' not' : ''} aligned when they should${shouldResize ? '' : 'n\'t'} be`);
         } else {
-            t.true((bounds[0].top === bounds[1].top && bounds[0].bottom === bounds[1].bottom) === shouldResize, `Windows${shouldResize ? ' not' : ''} aligned when they should${shouldResize ? '' : 'n\'t'} be`);
+            t.true(
+                (bounds[0].top === bounds[1].top && bounds[0].bottom === bounds[1].bottom) === shouldResize,
+                `Windows${shouldResize ? ' not' : ''} aligned when they should${shouldResize ? '' : 'n\'t'} be`);
         }
     }, {defaultHeight: WINDOW_SIZE, defaultWidth: WINDOW_SIZE}));

@@ -116,11 +116,13 @@ export class Projector {
                                 const resizeRegions = activeState.resizeRegion.sides;
                                 const targetBorderLength = (border.max - border.min);
                                 // tslint:disable-next-line:prefer-const
-                                let [min, max] = border.orientation === 'x' ? [activeState.minHeight, activeState.maxHeight] : [activeState.minWidth, activeState.maxWidth];
+                                let [min, max] =
+                                    border.orientation === 'x' ? [activeState.minHeight, activeState.maxHeight] : [activeState.minWidth, activeState.maxWidth];
                                 max = max < 0 ? Number.MAX_SAFE_INTEGER : max;
 
                                 const violatesSizeConstraints = targetBorderLength < min || targetBorderLength > max;
-                                const canResizeInAxis = border.orientation === 'x' ? resizeRegions.top || resizeRegions.bottom : resizeRegions.left || resizeRegions.right;                                
+                                const canResizeInAxis =
+                                    border.orientation === 'x' ? resizeRegions.top || resizeRegions.bottom : resizeRegions.left || resizeRegions.right;
 
                                 if (activeState.resizable && !violatesSizeConstraints && canResizeInAxis) {
                                     halfSize[border.opposite] = (border.max - border.min) / 2;

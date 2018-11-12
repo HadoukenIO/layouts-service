@@ -42,20 +42,6 @@ export function getId(): Identity {
     return id;
 }
 
-export enum TabApiEvents {
-    TABADDED = 'TABADDED',
-    TABREMOVED = 'TABREMOVED',
-    PROPERTIESUPDATED = 'PROPERTIESUPDATED',
-    TABACTIVATED = 'TABACTIVATED'
-}
-
-export enum AppApiEvents {
-    CLIENTINIT = 'CLIENTINIT',
-    TABBED = 'TABBED',
-    UNTABBED = 'UNTABBED',
-    DEREGISTER = 'DEREGISTER'
-}
-
 export enum TabAPI {
     CREATETABGROUP = 'CREATETABGROUP',
     SETTABCLIENT = 'SETTABCLIENT',

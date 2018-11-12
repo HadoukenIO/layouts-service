@@ -14,7 +14,7 @@
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
 import {SERVICE_CHANNEL} from './internal';
-import {JoinTabGroupPayload, TabGroupEventPayload} from './tabbing';
+import {JoinTabGroupPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload} from './tabbing';
 
 
 /**
@@ -45,6 +45,9 @@ export const channelPromise: Promise<ChannelClient> =
         });
         channel.register('tab-activated', (payload: TabGroupEventPayload) => {
             window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('tab-activated', {detail: payload}));
+        });
+        channel.register('tab-properties-updated', (payload: TabPropertiesUpdatedPayload) => {
+            window.dispatchEvent(new CustomEvent<TabPropertiesUpdatedPayload>('tab-properties-updated', {detail: payload}));
         });
 
         // Any unregistered action will simply return false

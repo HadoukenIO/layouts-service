@@ -1,10 +1,11 @@
 import {Identity} from 'hadouken-js-adapter';
 
-import {WindowIdentity} from '../../../src/client/types';
+import {TabAPI, UpdateTabPropertiesPayload} from '../../../src/client/internal';
+import {TabProperties, WindowIdentity} from '../../../src/client/types';
 import {DesktopTabGroup} from '../../../src/provider/model/DesktopTabGroup';
 import {DesktopWindow} from '../../../src/provider/model/DesktopWindow';
 
-import {executeJavascriptOnService} from './serviceUtils';
+import {executeJavascriptOnService, sendServiceMessage} from './serviceUtils';
 
 export async function getTabGroupID(identity: Identity): Promise<string|null> {
     function remoteFunc(this: ProviderWindow, identity: WindowIdentity): string|null {
@@ -31,4 +32,12 @@ export async function getTabbedWindows(identity: Identity): Promise<Identity[]> 
         }
     }
     return executeJavascriptOnService<WindowIdentity, Identity[]>(remoteFunc, identity as WindowIdentity);
+}
+
+
+/**
+ * Send a message to the service requesting a provided tabs properties be updated, aka updateTabProperties API call.
+ */
+export async function updateTabProperties(identity: Identity, properties: Partial<TabProperties>) {
+    await sendServiceMessage<UpdateTabPropertiesPayload, void>(TabAPI.UPDATETABPROPERTIES, {window: identity, properties});
 }

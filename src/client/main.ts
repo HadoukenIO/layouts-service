@@ -6,7 +6,7 @@ import {Identity} from 'hadouken-js-adapter';
 import {tryServiceDispatch} from './connection';
 import {getId} from './internal';
 import {undockGroup, undockWindow} from './snapanddock';
-import {addTab, closeTab, closeTabGroup, createTabGroup, getTabs, JoinTabGroupPayload, maximizeTabGroup, TabGroupEventPayload} from './tabbing';
+import {addTab, closeTab, closeTabGroup, createTabGroup, getTabs, JoinTabGroupPayload, maximizeTabGroup, TabGroupEventPayload, TabPropertiesUpdatedPayload} from './tabbing';
 import {minimizeTabGroup, removeTab, restoreTabGroup, setActiveTab, setTabClient, tabStrip} from './tabbing';
 import {generateLayout, onApplicationSave, onAppRestore, onLayoutRestore, onLayoutSave, ready, restoreLayout} from './workspaces';
 
@@ -112,7 +112,7 @@ export type LeaveSnapGroupEvent = Event&{type: 'leave-snap-group'};
  * ```ts
  * import {addEventListener, getTabs} from 'openfin-layouts';
  *
- * addEventListener('join-tab-group', async (event: Event) => {
+ * addEventListener('join-tab-group', async (event: CustomEvent<JoinTabGroupPayload>) => {
  *     console.log("Window added to tab group");
  *     console.log("Windows in current group: ", await getTabs());
  * });
@@ -131,7 +131,7 @@ export type JoinTabGroupEvent = CustomEvent<JoinTabGroupPayload>&{type: 'join-ta
  * To find out which other windows are in the tabset, use the `getTabs()` method.
  *
  * ```ts
- * import {addEventListener, getTabs} from 'openfin-layouts';
+ * import {addEventListener} from 'openfin-layouts';
  *
  * addEventListener('leave-tab-group', async (event: Event) => {
  *     console.log("Window removed from tab group");
@@ -165,6 +165,26 @@ export type LeaveTabGroupEvent = CustomEvent<TabGroupEventPayload>&{type: 'leave
 export type TabActivatedEvent = CustomEvent<TabGroupEventPayload>&{type: 'tab-activated'};
 
 /**
+ * Event fired whenever a tabs properties are updated (via {@link updateTabProperties}).
+ * 
+ * The event will always contain the full properties of the tab, even if only a subset of them were updated.
+ *
+ * ```ts
+ * import {addEventListener, getTabs} from 'openfin-layouts';
+ *
+ * addEventListener('tab-properties-updated', async (event: CustomEvent<TabPropertiesUpdatedPayload>) => {
+ *     const tabID = event.detail.tabID;
+ *     const properties = event.detail.properties;
+ *     console.log(`Properties for ${tabID.uuid}/${tabID.name} are:`, properties);
+ * });
+ * ```
+ *
+ * @type tab-properties-updated
+ * @event
+ */
+export type TabPropertiesUpdatedEvent = CustomEvent<TabPropertiesUpdatedPayload>&{type: 'tab-properties-updated'};
+
+/**
  * @hidden
  */
 export interface EventMap {
@@ -173,4 +193,5 @@ export interface EventMap {
     'join-tab-group': JoinTabGroupEvent;
     'leave-tab-group': LeaveTabGroupEvent;
     'tab-activated': TabActivatedEvent;
+    'tab-properties-updated': TabPropertiesUpdatedEvent;
 }

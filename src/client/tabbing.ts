@@ -46,6 +46,19 @@ export interface JoinTabGroupPayload extends TabGroupEventPayload {
 }
 
 /**
+ * Details of the {@link TabPropertiesUpdatedEvent|'tab-properties-updated'} event
+ */
+export interface TabPropertiesUpdatedPayload extends TabGroupEventPayload {
+    /**
+     * New tab properties.
+     * 
+     * This will always contain the full set of properties for the tab, even if only a subset of the properties were 
+     * updated in the {@link updateTabProperties} call.
+     */
+    properties: TabProperties;
+}
+
+/**
  * Returns array of window references for tabs belonging to the tab group of the provided window context.
  *
  * If no Identity is provided as an argument, the current window context will be used.

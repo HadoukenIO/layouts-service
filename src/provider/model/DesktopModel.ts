@@ -5,6 +5,7 @@ import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {SignalSlot} from '../Signal';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {RectUtils} from '../snapanddock/utils/RectUtils';
+import {deregisterWindow as deregisterFromWorkspaces} from '../workspaces/create';
 
 import {DesktopTabGroup} from './DesktopTabGroup';
 import {DesktopWindow, WindowIdentity, WindowState} from './DesktopWindow';
@@ -40,6 +41,13 @@ export class DesktopModel {
 
         // Listen for any new windows created and register them with the service
         fin.System.addListener('window-created', (evt: WindowEvent<'system', 'window-created'>) => {
+            // Filter out error windows (which should never register)
+            if (this.isErrorWindow(evt.uuid)) {
+                console.log('Ignoring error window: ' + evt.uuid);
+                deregisterFromWorkspaces({name: evt.name, uuid: evt.uuid});
+                return;
+            }
+
             if (evt.uuid !== serviceUUID || evt.name.indexOf('Placeholder-') === 0) {
                 this.registerWindow({name: evt.name, uuid: evt.uuid});
             }
@@ -47,8 +55,8 @@ export class DesktopModel {
 
         fin.System.getAllWindows().then(apps => {
             apps.forEach((app) => {
-                // Ignore the main service window and all of it's children
-                if (app.uuid !== serviceUUID) {
+                // Ignore openfin error windows, the main service window, and all of it's children
+                if (!this.isErrorWindow(app.uuid) && app.uuid !== serviceUUID) {
                     // Register the main window
                     this.registerWindow({uuid: app.uuid, name: app.mainWindow.name});
 
@@ -272,5 +280,9 @@ export class DesktopModel {
             }
             this.snapGroups.splice(index, 1);
         }
+    }
+
+    private isErrorWindow(uuid: string): boolean {
+        return /error-app-[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}/g.test(uuid);
     }
 }

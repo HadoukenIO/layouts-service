@@ -1,5 +1,5 @@
 import * as layouts from '../../../client/main';
-import {JoinTabGroupPayload, TabGroupEventPayload} from '../../../client/tabbing';
+import {JoinTabGroupPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload} from '../../../client/tabbing';
 import {WindowIdentity} from '../../../client/types';
 
 import {TabManager} from './TabManager';
@@ -30,6 +30,18 @@ const createLayoutsEventListeners = () => {
     layouts.addEventListener('tab-activated', (event: CustomEvent<TabGroupEventPayload>) => {
         const tabInfo: WindowIdentity = event.detail.tabID;
         tabManager.setActiveTab(tabInfo);
+    });
+
+    layouts.addEventListener('tab-properties-updated', (event: CustomEvent<TabPropertiesUpdatedPayload>|Event) => {
+        const customEvent: CustomEvent<TabPropertiesUpdatedPayload> = event as CustomEvent<TabPropertiesUpdatedPayload>;
+
+        const tab = tabManager.getTab(customEvent.detail.tabID);
+        const props = customEvent.detail.properties;
+
+        if (tab) {
+            if (props.icon) tab.updateIcon(props.icon);
+            if (props.title) tab.updateText(props.title);
+        }
     });
 };
 

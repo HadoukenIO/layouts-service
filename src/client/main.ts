@@ -166,7 +166,7 @@ export type TabActivatedEvent = CustomEvent<TabGroupEventPayload>&{type: 'tab-ac
 
 /**
  * Event fired whenever a tabs properties are updated (via {@link updateTabProperties}).
- * 
+ *
  * The event will always contain the full properties of the tab, even if only a subset of them were updated.
  *
  * ```ts

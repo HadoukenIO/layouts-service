@@ -51,8 +51,8 @@ export interface JoinTabGroupPayload extends TabGroupEventPayload {
 export interface TabPropertiesUpdatedPayload extends TabGroupEventPayload {
     /**
      * New tab properties.
-     * 
-     * This will always contain the full set of properties for the tab, even if only a subset of the properties were 
+     *
+     * This will always contain the full set of properties for the tab, even if only a subset of the properties were
      * updated in the {@link updateTabProperties} call.
      */
     properties: TabProperties;

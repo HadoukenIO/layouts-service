@@ -26,13 +26,19 @@ export interface WindowState extends Rectangle {
     title: string;
     showTaskbarIcon: boolean;
 
-    minWidth: number;
-    maxWidth: number;
-    minHeight: number;
-    maxHeight: number;
+    resizeConstraints: Point<ResizeConstraint>;
 
     opacity: number;
     frameEnabled: boolean;  // If window will respond to move/resize events. Corresponds to enable/disableFrame, not WindowOptions.frame.
+}
+
+export interface ResizeConstraint {
+    // Window is resizable by the edge closest to the origin (left/top)
+    resizableMin: boolean;
+    // Window is resizable by the edge furthest from the origin (right/bottom)
+    resizableMax: boolean;
+    minSize: number;
+    maxSize: number;
 }
 
 export interface WindowIdentity extends Identity {
@@ -155,19 +161,32 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
                     center.y -= 3.5;
                 }
 
+                // Map resize constraints to a more useful format
+                const resizeConstraints: Point<ResizeConstraint> = {
+                    x: {
+                        resizableMin: !!options.resizable && (options.resizeRegion ? options.resizeRegion.sides.left : true),
+                        resizableMax: !!options.resizable && (options.resizeRegion ? options.resizeRegion.sides.right : true),
+                        minSize: options.minWidth || 0,
+                        maxSize: options.maxWidth && options.maxWidth > 0 ? options.maxWidth : Number.MAX_SAFE_INTEGER,
+                    },
+                    y: {
+                        resizableMin: !!options.resizable && (options.resizeRegion ? options.resizeRegion.sides.top : true),
+                        resizableMax: !!options.resizable && (options.resizeRegion ? options.resizeRegion.sides.bottom : true),
+                        minSize: options.minHeight || 0,
+                        maxSize: options.maxHeight && options.maxHeight > 0 ? options.maxHeight : Number.MAX_SAFE_INTEGER,
+                    }
+                };
+
                 return {
                     center,
                     halfSize,
+                    resizeConstraints,
                     frame: options.frame!,
                     hidden: !results[1],
                     state: options.state!,
                     icon: options.icon || `https://www.google.com/s2/favicons?domain=${options.url}`,
                     title: options.name!,
                     showTaskbarIcon: options.showTaskbarIcon!,
-                    minWidth: options.minWidth!,
-                    maxWidth: options.maxWidth!,
-                    minHeight: options.minHeight!,
-                    maxHeight: options.maxHeight!,
                     opacity: options.opacity!,
                     frameEnabled: true  // No way to query frame enabled/disabled state from API. Assume frame is enabled
                 };
@@ -334,10 +353,10 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             icon: '',
             title: '',
             showTaskbarIcon: true,
-            minWidth: -1,
-            maxWidth: -1,
-            minHeight: 0,
-            maxHeight: 0,
+            resizeConstraints: {
+                x: {minSize: 0, maxSize: Number.MAX_SAFE_INTEGER, resizableMin: true, resizableMax: true},
+                y: {minSize: 0, maxSize: Number.MAX_SAFE_INTEGER, resizableMin: true, resizableMax: true}
+            },
             opacity: 1,
             frameEnabled: true
         };

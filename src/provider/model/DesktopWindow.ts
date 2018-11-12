@@ -1,7 +1,7 @@
 import deepEqual from 'fast-deep-equal';
 import {Identity, Window} from 'hadouken-js-adapter';
 
-import {TabServiceID} from '../../client/types';
+import {SERVICE_IDENTITY} from '../../client/internal';
 import {apiHandler} from '../main';
 import {Signal1, Signal2} from '../Signal';
 import {promiseMap} from '../snapanddock/utils/async';
@@ -182,7 +182,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         if (this.isWindow(window)) {
             return window.identity as WindowIdentity;
         } else {
-            return {uuid: TabServiceID.UUID, name: window.name!};
+            return {uuid: SERVICE_IDENTITY.uuid, name: window.name!};
         }
     }
 
@@ -436,7 +436,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         this.tabGroup = group;
 
         // Hide tabbed windows in the task bar (except for tabstrip windows)
-        if (this.identity.uuid !== TabServiceID.UUID) {
+        if (this.identity.uuid !== SERVICE_IDENTITY.uuid) {
             if (group) {
                 // Hide tabbed windows in taskbar
                 return this.ready ? this.updateState({showTaskbarIcon: false}, ActionOrigin.SERVICE) : Promise.resolve();
@@ -776,7 +776,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
                 }
             }
 
-            if (this.identity.uuid === TabServiceID.UUID || !DesktopWindow.disableBoundsDelay) {
+            if (this.identity.uuid === SERVICE_IDENTITY.uuid || !DesktopWindow.disableBoundsDelay) {
                 // Can disable frame on tabstrips immediately, without waiting to see what application does.
                 disableFrame.call(this);
             } else {

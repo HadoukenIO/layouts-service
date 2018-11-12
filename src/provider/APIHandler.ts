@@ -2,8 +2,9 @@ import {Identity} from 'hadouken-js-adapter';
 import {ProviderIdentity} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/channel';
 import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
 
-import {TabAPI} from '../client/APITypes';
-import {ApplicationUIConfig, CHANNEL_NAME, DropPosition, TabIdentifier, TabProperties} from '../client/types';
+import {TabAPI} from '../client/internal';
+import {DropPosition, SERVICE_CHANNEL} from '../client/internal';
+import {ApplicationUIConfig, TabProperties} from '../client/types';
 
 import {model, snapService, tabService} from './main';
 import {DesktopTabGroup} from './model/DesktopTabGroup';
@@ -47,7 +48,7 @@ export class APIHandler {
     }
 
     public async register(): Promise<void> {
-        const providerChannel: ChannelProvider = this.providerChannel = await fin.InterApplicationBus.Channel.create(CHANNEL_NAME);
+        const providerChannel: ChannelProvider = this.providerChannel = await fin.InterApplicationBus.Channel.create(SERVICE_CHANNEL);
 
         // Common
         providerChannel.onConnection(this.onConnection);
@@ -134,7 +135,7 @@ export class APIHandler {
         return tabService.applicationConfigManager.addApplicationUIConfig(payload.id.uuid, payload.config);
     }
 
-    private getTabs(tabId: TabIdentifier): TabIdentifier[]|null {
+    private getTabs(tabId: WindowIdentity): WindowIdentity[]|null {
         const tab: DesktopWindow|null = model.getWindow(tabId);
         const group: DesktopTabGroup|null = tab && tab.getTabGroup();
 
@@ -145,11 +146,11 @@ export class APIHandler {
         return group.tabs.map(tab => tab.getIdentity());
     }
 
-    private async createTabGroup(tabs: TabIdentifier[]): Promise<void> {
+    private async createTabGroup(tabs: WindowIdentity[]): Promise<void> {
         return tabService.createTabGroupWithTabs(tabs);
     }
 
-    private async addTab(payload: {targetWindow: TabIdentifier, windowToAdd: TabIdentifier}): Promise<void> {
+    private async addTab(payload: {targetWindow: WindowIdentity, windowToAdd: WindowIdentity}): Promise<void> {
         const tabToAdd: DesktopWindow|null = model.getWindow(payload.windowToAdd);
         const targetTab: DesktopWindow|null = model.getWindow(payload.targetWindow);
         const targetGroup: DesktopTabGroup|null = targetTab && targetTab.getTabGroup();
@@ -172,7 +173,7 @@ export class APIHandler {
         }
     }
 
-    private removeTab(tab: TabIdentifier): Promise<void> {
+    private removeTab(tab: WindowIdentity): Promise<void> {
         const ejectedTab: DesktopWindow|null = model.getWindow(tab);
         const tabGroup: DesktopTabGroup|null = ejectedTab && ejectedTab.getTabGroup();
 
@@ -185,7 +186,7 @@ export class APIHandler {
         }
     }
 
-    private setActiveTab(tabId: TabIdentifier): Promise<void> {
+    private setActiveTab(tabId: WindowIdentity): Promise<void> {
         const tab: DesktopWindow|null = model.getWindow(tabId);
         const group: DesktopTabGroup|null = tab && tab.getTabGroup();
 
@@ -197,7 +198,7 @@ export class APIHandler {
         return group.switchTab(tab!);
     }
 
-    private async closeTab(tabId: TabIdentifier): Promise<void> {
+    private async closeTab(tabId: WindowIdentity): Promise<void> {
         const tab: DesktopWindow|null = model.getWindow(tabId);
 
         if (tab) {
@@ -207,7 +208,7 @@ export class APIHandler {
         }
     }
 
-    private async minimizeTabGroup(tabId: TabIdentifier): Promise<void> {
+    private async minimizeTabGroup(tabId: WindowIdentity): Promise<void> {
         const tab: DesktopWindow|null = model.getWindow(tabId);
         const group: DesktopTabGroup|null = tab && tab.getTabGroup();
 
@@ -219,7 +220,7 @@ export class APIHandler {
         return group.minimize();
     }
 
-    private async maximizeTabGroup(tabId: TabIdentifier): Promise<void> {
+    private async maximizeTabGroup(tabId: WindowIdentity): Promise<void> {
         const tab: DesktopWindow|null = model.getWindow(tabId);
         const group: DesktopTabGroup|null = tab && tab.getTabGroup();
 
@@ -231,7 +232,7 @@ export class APIHandler {
         return group.maximize();
     }
 
-    private async closeTabGroup(tabId: TabIdentifier): Promise<void> {
+    private async closeTabGroup(tabId: WindowIdentity): Promise<void> {
         const tab: DesktopWindow|null = model.getWindow(tabId);
         const group: DesktopTabGroup|null = tab && tab.getTabGroup();
 
@@ -244,7 +245,7 @@ export class APIHandler {
         return group.removeAllTabs(true);
     }
 
-    private async restoreTabGroup(tabId: TabIdentifier): Promise<void> {
+    private async restoreTabGroup(tabId: WindowIdentity): Promise<void> {
         const tab: DesktopWindow|null = model.getWindow(tabId);
         const group: DesktopTabGroup|null = tab && tab.getTabGroup();
 
@@ -260,7 +261,7 @@ export class APIHandler {
         }
     }
 
-    private reorderTabs(newOrdering: TabIdentifier[], tabId: ProviderIdentity): void {
+    private reorderTabs(newOrdering: WindowIdentity[], tabId: ProviderIdentity): void {
         const tab: DesktopWindow|null = model.getWindow(tabId as WindowIdentity);
         const group: DesktopTabGroup|null = tab && tab.getTabGroup();
 
@@ -272,7 +273,7 @@ export class APIHandler {
         return group.reOrderTabArray(newOrdering);
     }
 
-    private updateTabProperties(payload: {window: TabIdentifier, properties: Partial<TabProperties>}): void {
+    private updateTabProperties(payload: {window: WindowIdentity, properties: Partial<TabProperties>}): void {
         const tab: DesktopWindow|null = model.getWindow(payload.window);
         const group: DesktopTabGroup|null = tab && tab.getTabGroup();
 
@@ -289,7 +290,7 @@ export class APIHandler {
         tabService.dragWindowManager.showWindow(id as WindowIdentity);
     }
 
-    private async endDrag(payload: {event: DropPosition, window: TabIdentifier}): Promise<void> {
+    private async endDrag(payload: {event: DropPosition, window: WindowIdentity}): Promise<void> {
         const tab: DesktopWindow|null = model.getWindow(payload.window);
         const group: DesktopTabGroup|null = tab && tab.getTabGroup();
 

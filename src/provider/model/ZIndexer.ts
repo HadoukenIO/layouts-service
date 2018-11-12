@@ -2,20 +2,20 @@ import {ApplicationEvent, WindowEvent} from 'hadouken-js-adapter/out/types/src/a
 import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/system/application';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import {TabIdentifier} from '../../client/types';
+import {WindowIdentity} from '../../client/types';
 
 import {DesktopModel} from './DesktopModel';
 import {DesktopSnapGroup} from './DesktopSnapGroup';
-import {DesktopWindow, WindowIdentity} from './DesktopWindow';
+import {DesktopWindow} from './DesktopWindow';
 
 export interface ZIndex {
     timestamp: number;
     id: string;
-    identity: TabIdentifier;
+    identity: WindowIdentity;
 }
 
 interface ObjectWithIdentity {
-    getIdentity(): TabIdentifier;
+    getIdentity(): WindowIdentity;
 }
 
 /**
@@ -69,7 +69,7 @@ export class ZIndexer {
      * Updates the windows index in the stack and sorts array.
      * @param identity ID of the window to update (uuid, name)
      */
-    public update(identity: TabIdentifier) {
+    public update(identity: WindowIdentity) {
         const id: string = this._model.getId(identity);
         const entry: ZIndex|undefined = this._stack.find(i => i.id === id);
         const time = Date.now();
@@ -93,7 +93,7 @@ export class ZIndexer {
      * @param items Array of window or identity objects
      * @return The top-most of the input items, when sorted by z-index
      */
-    public getTopMost<T extends(TabIdentifier|ObjectWithIdentity)>(items: T[]): T|null {
+    public getTopMost<T extends(WindowIdentity|ObjectWithIdentity)>(items: T[]): T|null {
         const ids: string[] = this.getIds(items);
 
         for (const item of this._stack) {
@@ -113,7 +113,7 @@ export class ZIndexer {
      *
      * @param items
      */
-    public sort<T extends(TabIdentifier|ObjectWithIdentity)>(items: T[]): T[] {
+    public sort<T extends(WindowIdentity|ObjectWithIdentity)>(items: T[]): T[] {
         const ids: string[] = this.getIds(items);
         const result: T[] = [];
 
@@ -162,17 +162,17 @@ export class ZIndexer {
         win.addListener('closed', onClose);
     }
 
-    private getIds<T extends(TabIdentifier|ObjectWithIdentity)>(items: T[]): string[] {
+    private getIds<T extends(WindowIdentity|ObjectWithIdentity)>(items: T[]): string[] {
         return items.map((item: T) => {
             if (this.hasIdentity(item)) {
                 return this._model.getId(item.getIdentity());
             } else {
-                return this._model.getId(item as TabIdentifier);
+                return this._model.getId(item as WindowIdentity);
             }
         });
     }
 
-    private hasIdentity(item: (TabIdentifier|ObjectWithIdentity)): item is ObjectWithIdentity {
+    private hasIdentity(item: (WindowIdentity|ObjectWithIdentity)): item is ObjectWithIdentity {
         return (item as ObjectWithIdentity).getIdentity !== undefined;
     }
 }

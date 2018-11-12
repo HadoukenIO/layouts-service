@@ -1,9 +1,9 @@
 import {Identity} from 'hadouken-js-adapter';
 
-import {TabAPI} from '../../../src/client/APITypes';
-import {TabProperties, UpdateTabPropertiesPayload} from '../../../src/client/types';
+import {TabAPI, UpdateTabPropertiesPayload} from '../../../src/client/internal';
+import {TabProperties, WindowIdentity} from '../../../src/client/types';
 import {DesktopTabGroup} from '../../../src/provider/model/DesktopTabGroup';
-import {DesktopWindow, WindowIdentity} from '../../../src/provider/model/DesktopWindow';
+import {DesktopWindow} from '../../../src/provider/model/DesktopWindow';
 
 import {executeJavascriptOnService, sendServiceMessage} from './serviceUtils';
 

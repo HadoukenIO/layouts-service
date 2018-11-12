@@ -76,7 +76,7 @@ Options:
     process.exit();
 }
 
-const fileNamesArg = testFileNames.slice(testFileNames.length > 1 ? 1 : 0).map(testFileName => `build/test/**/${testFileName}.test.js`).join(" ");
+const fileNamesArg = testFileNames.slice(testFileNames.length > 1 ? 1 : 0).map(testFileName => `dist/test/**/${testFileName}.test.js`).join(" ");
 const testCommand = `ava --serial ${fileNamesArg} ${testNameFilter ? '--match ' + testNameFilter: ''} ${unusedArgs.join(' ')}`;
 
 const cleanup = async res => {
@@ -118,7 +118,7 @@ async function serve() {
     return new Promise((resolve, reject) => {
         const app = express();
         
-        app.use(express.static('build'));
+        app.use(express.static('dist'));
         app.use(express.static('res'));
         
         console.log("Starting test server...");

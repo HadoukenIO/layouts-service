@@ -26,7 +26,7 @@ const windowOptions = {
     saveWindowState: false,
     defaultHeight: 200,
     defaultWidth: 200,
-    url: 'http://localhost:1337/demo/frameless-window.html',
+    url: 'http://localhost:1337/demo/popup.html',
     frame: false
 };
 

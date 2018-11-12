@@ -1,6 +1,6 @@
 import {Window} from 'hadouken-js-adapter';
 
-import {TabIdentifier} from '../../client/types';
+import {WindowIdentity} from '../../client/types';
 
 const DRAG_WINDOW_URL = (() => {
     let providerLocation = window.location.href;
@@ -33,7 +33,7 @@ export class DragWindowManager {
     /**
      * Shows the drag window overlay.
      */
-    public showWindow(source: TabIdentifier): void {
+    public showWindow(source: WindowIdentity): void {
         this._window.show();
         this._window.focus();
 

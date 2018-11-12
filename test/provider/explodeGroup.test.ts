@@ -1,7 +1,7 @@
 import {AnyContext, GenericTestContext, test} from 'ava';
 import {Fin, Window} from 'hadouken-js-adapter';
 
-import {WindowIdentity} from '../../src/provider/model/DesktopWindow';
+import {WindowIdentity} from '../../src/client/types';
 import {explodeGroup} from '../demo/utils/snapServiceUtils';
 
 import {getConnection} from './utils/connect';

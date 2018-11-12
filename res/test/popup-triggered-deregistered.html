@@ -1,0 +1,24 @@
+<html>
+<head>
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+    <link rel="stylesheet" href="../demo/base.css">
+    <link rel="stylesheet" href="../demo/popup.css">
+    <script src="../demo/popup-bundle.js"></script>
+</head>
+<body>
+    <div>
+        <h1 id="title">Popup Window</h1>
+        <div class="center">
+            <button id="undockWindow">Undock Window</button>
+            <button id="undockGroup">Undock Group</button>
+        </div>
+    </div>
+
+    <script>
+        // Will deregister from the layouts service on receiving a message on the 'deregister' IAB channel.
+        fin.desktop.InterApplicationBus.subscribe('*', 'deregister', () => {
+            popup.deregister();
+        });
+    </script>
+</body>
+</html>

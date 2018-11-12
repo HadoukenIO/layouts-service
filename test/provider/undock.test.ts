@@ -1,7 +1,7 @@
 import {test, TestContext} from 'ava';
 import {Fin, Window} from 'hadouken-js-adapter';
 
-import {WindowIdentity} from '../../src/provider/model/DesktopWindow';
+import {WindowIdentity} from '../../src/client/types';
 import {UNDOCK_MOVE_DISTANCE} from '../../src/provider/snapanddock/Config';
 import {undockWindow} from '../demo/utils/snapServiceUtils';
 
@@ -24,7 +24,7 @@ const windowOptions = {
     saveWindowState: false,
     defaultHeight: 200,
     defaultWidth: 200,
-    url: 'http://localhost:1337/demo/frameless-window.html',
+    url: 'http://localhost:1337/demo/popup.html',
     frame: false
 };
 

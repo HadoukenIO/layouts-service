@@ -1,32 +1,102 @@
-const CopyWebpackPlugin = require('copy-webpack-plugin');
 const path = require('path')
+const webpack = require('webpack');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
-const utils = require('./buildutils');
+const version = require("./package.json").version;
+const outputDir = path.resolve(__dirname, './dist');
 
-const outputDir = path.resolve(__dirname, './build');
+/**
+ * Shared function to create a webpack config for an entry point
+ * 
+ * Options ('options' object is optional, as are all members within):
+ *  - minify {boolean}
+ *      If webpack should minify this module
+ *      Defaults to true
+ *  - isLibrary {boolean}
+ *      If the resulting module should inject itself into the window object to make 
+ *      itself easily accessible within HTML.
+ *      Defaults to false
+ *  - plugins {...object[]}
+ *      Optional list of plugins to add to the config object
+ *      Defaults to empty list
+ */
+function createConfig(outPath, entryPoint, options, ...plugins) {
+    const config = {
+        entry: entryPoint,
+        optimization: {
+            minimize: !options || options.minify !== false
+        },
+        output: {
+            path: outPath,
+            filename: '[name]-bundle.js'
+        },
+        resolve: {
+            extensions: ['.ts', '.tsx', '.js']
+        },
+        module: {
+            rules: [
+                {
+                    test: /\.tsx?$/,
+                    loader: 'ts-loader'
+                }
+            ]
+        },
+        plugins: []
+    };
+
+    if (options && options.isLibrary === true) {
+        config.output.library = '[name]';
+        config.output.libraryTarget = 'window';
+    }
+    if (plugins && plugins.length) {
+        config.plugins.push.apply(config.plugins, plugins);
+    }
+
+    return config;
+}
+
+/**
+ * Provider temporarily requires an extra plugin to override index.html within provider app.json
+ * Will be removed once the RVM supports relative paths within app.json files
+ */
+const manifestPlugin = new CopyWebpackPlugin([{
+    from: 'res/provider/app.json',
+    to: '.',
+    transform: (content) => {
+        const config = JSON.parse(content);
+
+        if (typeof process.env.SERVICE_VERSION !== 'undefined' && process.env.SERVICE_VERSION !== "") {
+            config.startup_app.url = 'https://cdn.openfin.co/services/openfin/layouts/' + process.env.SERVICE_VERSION + '/provider.html';
+            config.startup_app.autoShow = false;
+        } else {
+            console.warn("Using 'npm run build' (or build:dev) when running locally. Can debug without building first by running 'npm start'.");
+            config.startup_app.url = 'http://localhost:1337/provider/provider.html';
+        }
+
+        return JSON.stringify(config, null, 4);
+    }
+}]);
+
+/**
+ * Replaces 'PACKAGE_VERSION' constant in source files with the current version of the service,
+ * taken from the 'package.json' file.
+ * 
+ * This embeds the package version into the source file as a string constant.
+ */
+const versionPlugin = new webpack.DefinePlugin({PACKAGE_VERSION: `'${version}'`});
 
 module.exports = [
-    utils.createConfig(`${outputDir}/provider`, './staging/provider/main.js', false, 
-        new CopyWebpackPlugin([{ from: './res/provider/provider.html' }]),
-        new CopyWebpackPlugin([{ from: './res/provider/tabbing/', to: './tabbing' }]),
-        new CopyWebpackPlugin(
-        [{
-            // Provider temporarily requires an extra plugin to override index.html within provider app.json
-            // Will be removed once the RVM supports relative paths within app.json files
-            from: 'res/provider/app.json',
-            to: '.',
-            transform: (content) => {
-                const config = JSON.parse(content);
-                const newConfig = utils.prepConfig(config, 'http://localhost:1337/provider/provider.html');
-                return JSON.stringify(newConfig, null, 4);
-            }
-            }]
-    )),
-    utils.createConfig(`${outputDir}/provider`, {tabStrip: './src/provider/tabbing/tabstrip/main.ts'}, false),
-    utils.createConfig(`${outputDir}/demo`, {LayoutsUI: './src/demo/LayoutsUI.ts'}, true, new CopyWebpackPlugin( [{ from: './res/demo' }]) ),
-    utils.createConfig(`${outputDir}/demo`, {Snappable: './src/demo/Snappable.ts'}, true),
-    utils.createConfig(`${outputDir}/demo`, {deregisteredApp: './src/demo/deregisteredApp.ts'}, true),
-    utils.createConfig(`${outputDir}/demo`, {normalApp: './src/demo/normalApp.ts'}, true),
-    utils.createConfig(`${outputDir}/demo`, {tabapp1: './src/demo/tabapp1.ts'}, true),
-    utils.createConfig(`${outputDir}/demo`, {tabapp2: './src/demo/tabapp2.ts'}, true)
+    createConfig(`${outputDir}/client`, './src/client/main.ts', {minify: false}, versionPlugin),
+    createConfig(`${outputDir}/provider`, {
+        main: './src/provider/main.ts',
+        tabStrip: './src/provider/tabbing/tabstrip/main.ts'
+    }, undefined, manifestPlugin, versionPlugin),
+    createConfig(`${outputDir}/demo`, {
+        LayoutsUI: './src/demo/LayoutsUI.ts',
+        popup: './src/demo/popup.ts',
+        deregisteredApp: './src/demo/deregisteredApp.ts',
+        normalApp: './src/demo/normalApp.ts',
+        tabapp1: './src/demo/tabapp1.ts',
+        tabapp2: './src/demo/tabapp2.ts'
+    }, {isLibrary: true}, versionPlugin)
 ];

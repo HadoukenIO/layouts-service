@@ -1,14 +1,8 @@
+.vs
 .vscode
+.DS_STORE
 dist
 docs
 node_modules
-build
-staging
-.DS_STORE
-.vscode
-example/resources/fonts
 npm-debug.log
-/.vs
-/test/coverage
-src/client/version.ts
-/module_dist
+test/coverage

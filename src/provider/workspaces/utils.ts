@@ -2,13 +2,13 @@ import {Window} from 'hadouken-js-adapter';
 import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/application/application';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
-import {LayoutApp, TabIdentifier, WindowState} from '../../client/types';
+import {LayoutApp, LayoutWindow} from '../../client/types';
 import {model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {WindowIdentity} from '../model/DesktopWindow';
 
 // Positions a window when it is restored.
-export const positionWindow = async (win: WindowState) => {
+export const positionWindow = async (win: LayoutWindow) => {
     try {
         const ofWin = await fin.Window.wrap(win);
         await ofWin.setBounds(win);
@@ -38,7 +38,7 @@ export const positionWindow = async (win: WindowState) => {
 };
 
 // Creates a placeholder for a normal, non-tabbed window.
-export const createNormalPlaceholder = async (win: WindowState) => {
+export const createNormalPlaceholder = async (win: LayoutWindow) => {
     if (!win.isShowing || win.state === 'minimized') {
         return;
     }
@@ -73,7 +73,7 @@ export const createNormalPlaceholder = async (win: WindowState) => {
 
 // Creates a placeholder for a tabbed window.
 // When the window that is supposed to be tabbed comes up, swaps the placeholder tab with the real window tab and closes the placeholder.
-export const createTabPlaceholder = async (win: WindowState) => {
+export const createTabPlaceholder = async (win: LayoutWindow) => {
     const {name, height, width, left, top, uuid} = win;
 
     const placeholderName = 'Placeholder-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -95,7 +95,7 @@ export const createTabPlaceholder = async (win: WindowState) => {
     const updateOptionsAndShow = async () => {
         await actualWindow.removeListener('shown', updateOptionsAndShow);
         await model.expect(actualWindow.identity as WindowIdentity);
-        await tabService.swapTab({uuid: placeholder.identity.uuid, name: placeholderName}, actualWindow.identity as TabIdentifier);
+        await tabService.swapTab({uuid: placeholder.identity.uuid, name: placeholderName}, actualWindow.identity as WindowIdentity);
         await placeholder.close();
     };
     await actualWindow.addListener('shown', updateOptionsAndShow);
@@ -172,7 +172,7 @@ export function addToWindowObject(identity: WindowIdentity, windowObject: Window
 }
 
 // Creates a tabbing placeholder and records the information for its corresponding window.
-export async function createTabbedPlaceholderAndRecord(win: WindowState, tabbedPlaceholdersToWindows: TabbedPlaceholders) {
+export async function createTabbedPlaceholderAndRecord(win: LayoutWindow, tabbedPlaceholdersToWindows: TabbedPlaceholders) {
     const tabPlaceholder = await createTabPlaceholder(win);
     tabbedPlaceholdersToWindows[win.uuid] =
         Object.assign({}, tabbedPlaceholdersToWindows[win.uuid], {[win.name]: {name: tabPlaceholder.identity.name, uuid: tabPlaceholder.identity.uuid}});

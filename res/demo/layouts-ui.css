@@ -10,18 +10,14 @@
 
 body {
     font-family: 'AkkuratPro', 'Roboto', arial, sans-serif;
-    align-items: center;
     user-select: none;
     -webkit-user-select: none;
     background-color: #7B7BFF;
-}
-
-h1 {
-    color: #ffffff;
+    margin-top: 16px;
 }
 
 h3 {
-    margin: 5px;
+    margin-bottom: 0px;
 }
 
 button {
@@ -36,15 +32,6 @@ button {
     background-color: var(--main-bg-color);
     color: #ffffff;
     text-align: center;
-}
-
-button:hover {
-    cursor: pointer;
-    background-color: var(--border-color);
-}
-
-button:active {
-    background-color: #6D6A82;
 }
 
 #layoutName {

@@ -28,7 +28,7 @@ test('normal deregister, snap with registered', async t => {
         defaultLeft: 100,
         defaultHeight: 200,
         defaultWidth: 200,
-        url: 'http://localhost:1337/demo/frameless-window.html',
+        url: 'http://localhost:1337/demo/popup.html',
         frame: false
     });
     win2 = await createChildWindow({
@@ -38,7 +38,7 @@ test('normal deregister, snap with registered', async t => {
         defaultLeft: 400,
         defaultHeight: 200,
         defaultWidth: 200,
-        url: 'http://localhost:1337/demo/frameless-window-deregistered.html',
+        url: 'http://localhost:1337/test/popup-deregistered.html',
         frame: false
     });
 
@@ -63,7 +63,7 @@ test('normal deregister, snap with degistered', async t => {
         defaultLeft: 100,
         defaultHeight: 200,
         defaultWidth: 200,
-        url: 'http://localhost:1337/demo/frameless-window.html',
+        url: 'http://localhost:1337/demo/popup.html',
         frame: false
     });
     win2 = await createChildWindow({
@@ -73,7 +73,7 @@ test('normal deregister, snap with degistered', async t => {
         defaultLeft: 400,
         defaultHeight: 200,
         defaultWidth: 200,
-        url: 'http://localhost:1337/demo/frameless-window-deregistered.html',
+        url: 'http://localhost:1337/test/popup-deregistered.html',
         frame: false
     });
 
@@ -97,7 +97,7 @@ test('delayed deregister, snap with registered', async t => {
         defaultLeft: 100,
         defaultHeight: 200,
         defaultWidth: 200,
-        url: 'http://localhost:1337/demo/frameless-window.html',
+        url: 'http://localhost:1337/demo/popup.html',
         frame: false
     });
     win2 = await createChildWindow({
@@ -107,7 +107,7 @@ test('delayed deregister, snap with registered', async t => {
         defaultLeft: 400,
         defaultHeight: 200,
         defaultWidth: 200,
-        url: 'http://localhost:1337/demo/frameless-window-delayed-deregistered.html',
+        url: 'http://localhost:1337/test/popup-delayed-deregistered.html',
         frame: false
     });
 
@@ -131,7 +131,7 @@ test('delayed deregister, snap with deregistered', async t => {
         defaultLeft: 100,
         defaultHeight: 200,
         defaultWidth: 200,
-        url: 'http://localhost:1337/demo/frameless-window.html',
+        url: 'http://localhost:1337/demo/popup.html',
         frame: false
     });
     win2 = await createChildWindow({
@@ -141,7 +141,7 @@ test('delayed deregister, snap with deregistered', async t => {
         defaultLeft: 400,
         defaultHeight: 200,
         defaultWidth: 200,
-        url: 'http://localhost:1337/demo/frameless-window-delayed-deregistered.html',
+        url: 'http://localhost:1337/test/popup-delayed-deregistered.html',
         frame: false
     });
 
@@ -165,7 +165,7 @@ test('deregister snapped window', async t => {
         defaultLeft: 100,
         defaultHeight: 200,
         defaultWidth: 200,
-        url: 'http://localhost:1337/demo/frameless-window.html',
+        url: 'http://localhost:1337/demo/popup.html',
         frame: false
     });
     win2 = await createChildWindow({
@@ -175,7 +175,7 @@ test('deregister snapped window', async t => {
         defaultLeft: 400,
         defaultHeight: 200,
         defaultWidth: 200,
-        url: 'http://localhost:1337/demo/frameless-window-triggered-deregistered.html',
+        url: 'http://localhost:1337/test/popup-triggered-deregistered.html',
         frame: false
     });
 
@@ -219,7 +219,7 @@ test('no preview when deregistered - dragging registered', async t => {
         defaultLeft: 100,
         defaultHeight: 200,
         defaultWidth: 200,
-        url: 'http://localhost:1337/demo/frameless-window.html',
+        url: 'http://localhost:1337/demo/popup.html',
         frame: false
     });
     win2 = await createChildWindow({
@@ -229,7 +229,7 @@ test('no preview when deregistered - dragging registered', async t => {
         defaultLeft: 400,
         defaultHeight: 200,
         defaultWidth: 200,
-        url: 'http://localhost:1337/demo/frameless-window-deregistered.html',
+        url: 'http://localhost:1337/test/popup-deregistered.html',
         frame: false
     });
 
@@ -256,7 +256,7 @@ test('no preview when deregistered - dragging deregistered', async t => {
         defaultLeft: 100,
         defaultHeight: 200,
         defaultWidth: 200,
-        url: 'http://localhost:1337/demo/frameless-window-deregistered.html',
+        url: 'http://localhost:1337/test/popup-deregistered.html',
         frame: false
     });
     win2 = await createChildWindow({
@@ -266,7 +266,7 @@ test('no preview when deregistered - dragging deregistered', async t => {
         defaultLeft: 400,
         defaultHeight: 200,
         defaultWidth: 200,
-        url: 'http://localhost:1337/demo/frameless-window.html',
+        url: 'http://localhost:1337/demo/popup.html',
         frame: false
     });
 

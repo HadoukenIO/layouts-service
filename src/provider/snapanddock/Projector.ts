@@ -116,7 +116,7 @@ export class Projector {
                                 const targetBorderLength = (border.max - border.min);
 
                                 // Only resize if it would not violate any constraints
-                                if ((resizableMin || resizableMax) && targetBorderLength > minSize && targetBorderLength < maxSize) {
+                                if ((resizableMin || resizableMax) && targetBorderLength >= minSize && targetBorderLength <= maxSize) {
                                     halfSize[border.opposite] = targetBorderLength / 2;
                                 }
                                 snapOffset[border.opposite] = ((border.min + border.max) / 2) - activeState.center[border.opposite];

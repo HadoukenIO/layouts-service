@@ -352,8 +352,8 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             title: '',
             showTaskbarIcon: true,
             resizeConstraints: {
-                x: {minSize: 0, maxSize: Number.MAX_SAFE_INTEGER, resizableMin: true, resizableMax: false},
-                y: {minSize: 0, maxSize: Number.MAX_SAFE_INTEGER, resizableMin: true, resizableMax: false}
+                x: {minSize: 0, maxSize: Number.MAX_SAFE_INTEGER, resizableMin: true, resizableMax: true},
+                y: {minSize: 0, maxSize: Number.MAX_SAFE_INTEGER, resizableMin: true, resizableMax: true}
             },
             opacity: 1,
             frameEnabled: true

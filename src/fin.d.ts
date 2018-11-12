@@ -295,26 +295,7 @@ declare namespace fin {
         /**
          * Defines a region in pixels that will respond to user mouse interaction for resizing a frameless window.
          */
-        resizeRegion?: {
-            /**
-             * The size in pixels (Default: 2),
-             */
-            size?: number;
-            /**
-             * The size in pixels of an additional
-             * square resizable region located at the
-             * bottom right corner of a
-             * frameless window. (Default: 4)
-             */
-            bottomRightCorner?: number;
-
-            sides: {
-                top: boolean;
-                bottom: boolean;
-                left: boolean;
-                right: boolean;
-            }
-        };
+        resizeRegion?: ResizeRegion;
         /**
          * A flag to show the Window's icon in the taskbar. Default: true.
          */
@@ -346,6 +327,27 @@ declare namespace fin {
         backgroundThrottling?: boolean;
 
         backgroundColor?: string;
+    }
+
+    interface ResizeRegion {
+        /**
+         * The size in pixels (Default: 2),
+         */
+        size?: number;
+        /**
+         * The size in pixels of an additional
+         * square resizable region located at the
+         * bottom right corner of a
+         * frameless window. (Default: 4)
+         */
+        bottomRightCorner?: number;
+        
+        sides: {
+            top: boolean;
+            bottom: boolean;
+            left: boolean;
+            right: boolean;
+        };
     }
 
     /**

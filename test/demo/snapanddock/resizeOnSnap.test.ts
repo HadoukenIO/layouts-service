@@ -25,13 +25,8 @@ interface Constraints {
     minHeight?: number;
     minWidth?: number;
     resizable?: boolean;
-    resizeRegion?: ResizeRegion;
+    resizeRegion?: fin.ResizeRegion;
 }
-
-interface ResizeRegion {
-    sides: {[K in ResizeSides]: boolean;};
-}
-type ResizeSides = 'top'|'bottom'|'left'|'right';
 
 interface ResizeWithConstrainsOptions extends ResizeOnSnapOptions {
     constraints: Constraints;
@@ -49,7 +44,7 @@ testParameterized(
                 constraintsString = 'No Constraints';
             } else if (!!testOptions.constraints.resizeRegion) {
                 const sides = testOptions.constraints.resizeRegion.sides;
-                constraintsString = `Resize regions: ${(Object.keys(sides) as ResizeSides[]).filter((side) => sides[side]).join(', ')}`;
+                constraintsString = `Resize regions: ${(Object.keys(sides) as (keyof fin.ResizeRegion['sides'])[]).filter((side) => sides[side]).join(', ')}`;
             } else {
                 constraintsString = `Constraints: ${JSON.stringify(testOptions.constraints).slice(1, -1)}`;
             }

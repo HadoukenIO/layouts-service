@@ -33,7 +33,9 @@ export interface WindowState extends Rectangle {
 }
 
 export interface ResizeConstraint {
+    // Window is resizable by the edge closest to the origin (left/top)
     resizableMin: boolean;
+    // Window is resizable by the edge furthest from the origin (right/bottom)
     resizableMax: boolean;
     minSize: number;
     maxSize: number;

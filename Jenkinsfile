@@ -26,8 +26,9 @@ pipeline {
                 }
                 sh "npm i --ignore-scripts"
                 sh "SERVICE_VERSION=${PREREL_VERSION} npm run build"
-                sh "npm run docs"
                 sh "echo ${GIT_SHORT_SHA} > ./dist/SHA.txt"
+                sh "npm run zip"
+                sh "npm run docs"
                 sh "aws s3 cp ./res/provider ${S3_LOC}/ --recursive"
                 sh "aws s3 cp ./dist/provider ${S3_LOC}/ --recursive"
                 sh "aws s3 cp ./dist/docs ${S3_LOC}/docs/ --recursive"
@@ -54,8 +55,9 @@ pipeline {
                     PROD_JSON = env.DSERVICE_S3_ROOT + "layouts/app.json"
                 }
                 sh "SERVICE_VERSION=${VERSION} npm run build"
-                sh "npm run docs"
                 sh "echo ${GIT_SHORT_SHA} > ./dist/SHA.txt"
+                sh "npm run zip"
+                sh "npm run docs"
                 sh "aws s3 cp ./res/provider ${S3_LOC}/ --recursive"
                 sh "aws s3 cp ./dist/provider ${S3_LOC}/ --recursive"
                 sh "aws s3 cp ./dist/docs ${S3_LOC}/docs/ --recursive"

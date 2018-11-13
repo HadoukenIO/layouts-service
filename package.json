@@ -20,7 +20,8 @@
     "build:dev": "webpack --mode development",
     "watch": "webpack --watch --mode development",
     "start": "node server.js",
-    "launch": "node launch.js"
+    "launch": "node launch.js",
+    "zip": "node scripts/createProviderZip.js"
   },
   "keywords": [],
   "license": "Apache-2.0",
@@ -29,6 +30,7 @@
     "@types/jest": "^23.3.0",
     "@types/mocha": "^2.2.48",
     "@types/sortablejs": "^1.3.32",
+    "archiver": "^3.0.0",
     "ava": "^0.25.0",
     "concurrently": "^3.5.1",
     "copy-webpack-plugin": "^4.5.1",

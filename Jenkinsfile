@@ -27,6 +27,7 @@ pipeline {
                 sh "npm i --ignore-scripts"
                 sh "SERVICE_VERSION=${PREREL_VERSION} npm run build"
                 sh "npm run docs"
+                sh "npm run zip"
                 sh "echo ${GIT_SHORT_SHA} > ./dist/SHA.txt"
                 sh "aws s3 cp ./res/provider ${S3_LOC}/ --recursive"
                 sh "aws s3 cp ./dist/provider ${S3_LOC}/ --recursive"
@@ -55,6 +56,7 @@ pipeline {
                 }
                 sh "SERVICE_VERSION=${VERSION} npm run build"
                 sh "npm run docs"
+                sh "npm run zip"
                 sh "echo ${GIT_SHORT_SHA} > ./dist/SHA.txt"
                 sh "aws s3 cp ./res/provider ${S3_LOC}/ --recursive"
                 sh "aws s3 cp ./dist/provider ${S3_LOC}/ --recursive"

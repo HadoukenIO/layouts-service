@@ -6,7 +6,7 @@ var output = fs.createWriteStream(path.resolve(__dirname,'..','dist','provider',
 var archive = archiver('zip', {zlib: {level: 9}});
 
 output.on('close', () => {
-    console.log(`Zip file created at 'dist/provider/layouts-service.zip`);
+    console.log(`Zip file created at '${output.path}'`);
     console.log(`${archive.pointer()} total bytes written`);
 })
 

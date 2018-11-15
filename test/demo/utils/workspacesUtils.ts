@@ -31,7 +31,7 @@ export async function createApp(t: SaveRestoreTestContext, uuid: string, registr
     return app;
 }
 
-export async function createCloseAndRestoreLayout(t: SaveRestoreTestContext, windowCreationFunction: PassFunction, pass: boolean) {
+export async function createCloseAndRestoreLayoutOLD(t: SaveRestoreTestContext, windowCreationFunction: PassFunction, pass: boolean) {
     const fin = await getConnection();
     const generatedLayout = await sendServiceMessage('generateLayout', undefined);
     await Promise.all(t.context.apps.map((app: Application) => app.close()));
@@ -47,4 +47,44 @@ export async function createCloseAndRestoreLayout(t: SaveRestoreTestContext, win
         }
     }, 3000);
     await t.context.p;
+}
+
+async function isWindowActive(uuid: string, name: string) {
+    const fin = await getConnection();
+    const allWindows = await fin.System.getAllWindows();
+
+    let pass = false;
+
+    allWindows.forEach((win) => {
+        if (win.uuid === uuid) {
+            if (uuid === name) {
+                pass = true;
+                return;
+            }
+            win.childWindows.forEach((childWin) => {
+                if (childWin.name === name) {
+                    pass = true;
+                    return;
+                }
+            });
+        }
+    });
+
+    return pass;
+}
+
+export async function assertWindowRestored(t: SaveRestoreTestContext, uuid: string, name: string) {
+    const active = await isWindowActive(uuid, name);
+    active ? t.pass() : t.fail(`Window ${uuid}:${name} was not restored`);
+}
+
+export async function assertWindowNotRestored(t: SaveRestoreTestContext, uuid: string, name: string) {
+    const active = await isWindowActive(uuid, name);
+    active ? t.fail(`Window ${uuid}:${name} was restored when it should not have been`) : t.pass();
+}
+
+export async function createCloseAndRestoreLayout(t: SaveRestoreTestContext) {
+    const generatedLayout = await sendServiceMessage('generateLayout', undefined);
+    await Promise.all(t.context.apps.map((app: Application) => app.close(true)));
+    await sendServiceMessage('restoreLayout', generatedLayout);
 }

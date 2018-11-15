@@ -7,7 +7,7 @@ import {WindowIdentity} from './DesktopWindow';
  *
  * Also includes common functionality for tracking asynchronous changes to window objects.
  */
-export abstract class DesktopEntity /*implements Snappable*/ {  // Will eventually implement Snappable, still WIP.
+export abstract class DesktopEntity {
     protected readonly model: DesktopModel;
     protected readonly identity: WindowIdentity;
     protected readonly id: string;  // Created from window uuid and name

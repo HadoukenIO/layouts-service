@@ -1,6 +1,7 @@
 import {tabService} from '../main';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
+import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {DesktopWindow, eTransformType, Mask, WindowIdentity} from '../model/DesktopWindow';
 
 import {EXPLODE_MOVE_SCALE, MIN_OVERLAP, UNDOCK_MOVE_DISTANCE} from './Config';
@@ -78,10 +79,12 @@ export class SnapService {
         const window: DesktopWindow|null = this.model.getWindow(target);
 
         // Do nothing for tabbed windows until tab/snap is properly integrated
-        if (window && window.getSnapGroup().length > 1 && window.getTabGroup() === null) {
+        if (window && window.getSnapGroup().snappables.length > 1) {
+            const snappable: Snappable = window.getTabGroup() || window;
+
             try {
                 // Calculate undock offset
-                const offset = this.calculateUndockMoveDirection(window);
+                const offset = this.calculateUndockMoveDirection(snappable);
 
                 if (offset.x || offset.y) {
                     offset.x = Math.sign(offset.x) * UNDOCK_MOVE_DISTANCE;
@@ -91,7 +94,7 @@ export class SnapService {
                 }
 
                 // Move window to it's own group, whilst applying offset
-                window.dockToGroup(new DesktopSnapGroup(), offset);
+                snappable.dockToGroup(new DesktopSnapGroup(), offset);
             } catch (error) {
                 console.error(`Unexpected error when undocking window: ${error}`);
                 throw new Error(`Unexpected error when undocking window: ${error}`);
@@ -112,14 +115,8 @@ export class SnapService {
         // identifying groups, this can be changed
 
         // Get the group containing the targetWindow
-        const targetWindow = this.model.getWindow(target);
-
-        // This function does nothing for tabbed windows.
-        if (targetWindow && targetWindow.getTabGroup()) {
-            return;
-        }
-
-        const group = targetWindow ? targetWindow.getSnapGroup() : null;
+        const window = this.model.getWindow(target);
+        const group = window && window.getSnapGroup();
 
         if (!group) {
             console.error(`Unable to undock - no group found for window with identity "${target.uuid}/${target.name}"`);
@@ -128,21 +125,17 @@ export class SnapService {
 
         try {
             // Exploding only makes sense if there is more than one window in the group.
-            if (group && group.length > 1) {
-                const windows = group.windows;
-                // Determine the offset for each window before modifying and window state
-                const offsets: Point[] = [];
+            const snappables = group.snappables;
+            if (snappables.length > 1) {
                 // group.center is recalculated on each call, so we assign it here once and use the value.
                 const groupCenter = group.center;
-                for (let i = 0; i < windows.length; i++) {
-                    const windowState = windows[i].getState();
-                    offsets[i] = PointUtils.scale(PointUtils.difference(groupCenter, windowState.center), EXPLODE_MOVE_SCALE);
-                }
 
-                for (let i = 0; i < windows.length; i++) {
-                    const window = windows[i];
-                    // Undock the windows, applying previously calculated offset
-                    window.dockToGroup(new DesktopSnapGroup(), offsets[i]);
+                for (let i = 0; i < snappables.length; i++) {
+                    // Determine the offset for each window before modifying and window state
+                    const offset = PointUtils.scale(PointUtils.difference(groupCenter, snappables[i].getState().center), EXPLODE_MOVE_SCALE);
+
+                    // Detach snappable from it's previous group, and apply the calculated offset
+                    snappables[i].dockToGroup(new DesktopSnapGroup(), offset);
                 }
             }
         } catch (error) {
@@ -190,18 +183,18 @@ export class SnapService {
 
         if (snapTarget && snapTarget.validity === eSnapValidity.VALID) {  // SNAP WINDOWS
             if (this.disableDockingOperations) {
+                // Snap all windows in activeGroup to snapTarget.group
+                snapTarget.activeWindow.snapToGroup(snapTarget.group, snapTarget.snapOffset, snapTarget.halfSize!);
                 activeGroup.windows.forEach((window: Snappable) => {
-                    if (window === snapTarget.activeWindow && snapTarget.halfSize) {
-                        window.snapToGroup(snapTarget.group, snapTarget.snapOffset, snapTarget.halfSize);
-                    } else {
+                    if (window !== snapTarget.activeWindow) {
                         window.snapToGroup(snapTarget.group, snapTarget.snapOffset);
                     }
                 });
             } else {
-                activeGroup.windows.forEach((window: Snappable) => {  // Move all windows in activeGroup to snapTarget.group
-                    if (window === snapTarget.activeWindow && snapTarget.halfSize) {
-                        window.dockToGroup(snapTarget.group, snapTarget.snapOffset, snapTarget.halfSize);
-                    } else {
+                // Dock all windows in activeGroup to snapTarget.group
+                snapTarget.activeWindow.dockToGroup(snapTarget.group, snapTarget.snapOffset, snapTarget.halfSize!);
+                activeGroup.windows.forEach((window: Snappable) => {
+                    if (window !== snapTarget.activeWindow) {
                         window.dockToGroup(snapTarget.group, snapTarget.snapOffset);
                     }
                 });
@@ -209,8 +202,7 @@ export class SnapService {
                 // The active group should now have been removed (since it is empty)
                 if (groups.indexOf(activeGroup) >= 0) {
                     console.warn(
-                        'Expected group to have been removed, but still exists (' + activeGroup.id + ': ' + activeGroup.windows.map(w => w.getId()).join() +
-                        ')');
+                        `Expected group to have been removed, but still exists (${activeGroup.id}: ${activeGroup.windows.map(w => w.getId()).join()})`);
                 }
             }
         } else if (activeGroup.length === 1 && !activeGroup.windows[0].getTabGroup()) {  // TAB WINDOWS
@@ -223,10 +215,10 @@ export class SnapService {
         this.view.update(null, null);
     }
 
-    private calculateUndockMoveDirection(window: DesktopWindow): Point {
+    private calculateUndockMoveDirection(window: Snappable): Point {
         const group = window.getSnapGroup();
         const totalOffset: Point = {x: 0, y: 0};
-        for (const groupedWindow of group.windows) {
+        for (const groupedWindow of group.snappables) {
             // Exclude window being unsnapped
             if (groupedWindow !== window) {
                 const distance: MeasureResult = RectUtils.distance(window.getState(), groupedWindow.getState());

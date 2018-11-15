@@ -107,7 +107,7 @@ export class Resolver {
         const targets: SnapTarget[] = [];
 
         // Group-to-Group snapping not yet supported
-        if (activeGroup.windows.length > 1) {
+        if (activeGroup.snappables.length > 1) {
             return null;
         }
 
@@ -119,12 +119,12 @@ export class Resolver {
                     projector.reset();
 
                     // Need to iterate over every window in both groups
-                    activeGroup.windows.forEach(activeWindow => {
+                    activeGroup.snappables.forEach(activeWindow => {
                         const activeState: WindowState = activeWindow.getState();
 
                         // Only do the next loop if there's a chance that this window can intersect with the other group
                         if (this.isSnappable(activeWindow, activeState) && RectUtils.distance(candidateGroup, activeState).within(SNAP_DISTANCE)) {
-                            candidateGroup.windows.forEach(candidateWindow => {
+                            candidateGroup.snappables.forEach(candidateWindow => {
                                 const candidateState: WindowState = candidateWindow.getState();
 
                                 if (this.isSnappable(candidateWindow, candidateState)) {
@@ -135,7 +135,7 @@ export class Resolver {
                     });
 
                     // Create snap target
-                    const target: SnapTarget|null = projector.createTarget(candidateGroup, activeGroup.windows[0]);
+                    const target: SnapTarget|null = projector.createTarget(candidateGroup, activeGroup.snappables[0]);
                     if (target) {
                         targets.push(target);
                     }
@@ -186,6 +186,6 @@ export class Resolver {
      * @param windowState State of the window object we are considering for snapping
      */
     private isSnappable(window: Snappable, windowState: WindowState): boolean {
-        return !windowState.hidden && windowState.opacity > 0 && windowState.state === 'normal' && !window.getTabGroup();
+        return !windowState.hidden && windowState.opacity > 0 && windowState.state === 'normal';
     }
 }

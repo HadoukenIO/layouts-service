@@ -3,18 +3,18 @@ import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {JoinTabGroupPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload} from '../../client/tabbing';
 import {ApplicationUIConfig, TabProperties, WindowIdentity} from '../../client/types';
 import {Signal1} from '../Signal';
-import {Point} from '../snapanddock/utils/PointUtils';
+import {Point, PointUtils} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 
 import {DesktopModel} from './DesktopModel';
-import {DesktopSnapGroup} from './DesktopSnapGroup';
+import {DesktopSnapGroup, Snappable} from './DesktopSnapGroup';
 import {DesktopTabGroupWindowFactory} from './DesktopTabGroupWindowFactory';
-import {DesktopWindow, WindowMessages, WindowState} from './DesktopWindow';
+import {DesktopWindow, eTransformType, Mask, WindowMessages, WindowState} from './DesktopWindow';
 
 /**
  * Handles functionality for the TabSet
  */
-export class DesktopTabGroup {
+export class DesktopTabGroup implements Snappable {
     public static readonly onCreated: Signal1<DesktopTabGroup> = new Signal1();
     public static readonly onDestroyed: Signal1<DesktopTabGroup> = new Signal1();
 
@@ -31,6 +31,13 @@ export class DesktopTabGroup {
      * Handle to this tabgroups window.
      */
     private _window: DesktopWindow;
+
+    /**
+     * State of all windows within the tab group.
+     *
+     * Updated on tab added/removed/transformed.
+     */
+    private _windowState: WindowState;
 
     /**
      * Tabs currently in this tab group.
@@ -64,6 +71,10 @@ export class DesktopTabGroup {
 
         this._model = model;
         this._window = new DesktopWindow(model, group, windowSpec);
+        this._window.onModified.add((window: DesktopWindow) => this.updateBounds());
+        this._window.onTransform.add((window: DesktopWindow, type: Mask<eTransformType>) => this.updateBounds());
+        this._window.onCommit.add((window: DesktopWindow, type: Mask<eTransformType>) => this.updateBounds());
+        this._windowState = {...this._window.getState()};
         this.ID = this._window.getIdentity().name;
         this._window.setTabGroup(this);
         this._tabs = [];
@@ -107,8 +118,59 @@ export class DesktopTabGroup {
         return this._isMaximized;
     }
 
+    public getId(): string {
+        return this._window.getId();
+    }
+
+    public getIdentity(): WindowIdentity {
+        return this._window.getIdentity();
+    }
+
+    public getState(): WindowState {
+        return this._windowState;
+    }
+
     public getSnapGroup(): DesktopSnapGroup {
         return this._window.getSnapGroup();
+    }
+
+    public getTabGroup(): DesktopTabGroup {
+        return this;
+    }
+
+    public applyOverride<K extends keyof WindowState>(property: K, value: WindowState[K]): Promise<void> {
+        return this.updateWindows(window => window.applyOverride(property, value));
+    }
+
+    public resetOverride(property: keyof WindowState): Promise<void> {
+        return this.updateWindows(window => window.resetOverride(property));
+    }
+
+    public dockToGroup(group: DesktopSnapGroup, offset?: Point, newHalfSize?: Point): Promise<void> {
+        const groupState = this._windowState;
+
+        return this.updateWindows((window: DesktopWindow) => {
+            if (!newHalfSize) {
+                // No half size specified, no special handling required
+                return window.dockToGroup(group, offset);
+            } else if (window === this._window) {
+                // Apply the new width, but leave the tabstrip height as-is
+                return window.dockToGroup(group, offset, {x: newHalfSize.x, y: this._config.height});
+            } else {
+                // We want to apply 'newHalfSize' to the tabgroup as a whole.
+                // Subtract the tabstrip half-height from the app window
+                const windowState = window.getState();
+                const adjustedOffset = offset && {
+                    x: groupState.center.x - windowState.center.x + offset.x,
+                    y: groupState.center.y - windowState.center.y + offset.y + (this._config.height / 2)
+                };
+                return window.dockToGroup(group, adjustedOffset, {x: newHalfSize.x, y: newHalfSize.y - (this._config.height / 2)});
+            }
+        });
+    }
+
+    public snapToGroup(group: DesktopSnapGroup, offset?: Point, newHalfSize?: Point): Promise<void> {
+        return this.updateWindows(window => window.snapToGroup(group, offset, newHalfSize));
     }
 
     public updateTabProperties(tab: DesktopWindow, properties: Partial<TabProperties>): void {
@@ -363,6 +425,28 @@ export class DesktopTabGroup {
         return Promise.all(promises).then(() => {});
     }
 
+    private updateBounds(): void {
+        if (!this._activeTab) {
+            console.warn(`No active tab for ${this.ID}: ${this._tabs.map(t => t.getId()).join(', ')}`, new Error());
+            return;
+        }
+        const state: WindowState = this._windowState;
+        const tabState = this._activeTab.getState();
+        const tabstripState = this._window.getState();
+
+        state.center.x = tabstripState.center.x;
+        state.halfSize.x = tabstripState.halfSize.x;
+        state.center.y = tabState.center.y - tabstripState.halfSize.y;
+        state.halfSize.y = tabState.halfSize.y + tabstripState.halfSize.y;
+    }
+
+    private updateWindows(action: (window: DesktopWindow) => Promise<void>): Promise<void> {
+        const promises: Promise<void>[] = this._tabs.map(action);
+        promises.concat(action(this._window));
+
+        return Promise.all(promises).then(() => {});
+    }
+
     private async addTabInternal(tab: DesktopWindow, setActive: boolean, index: number = this.tabs.length): Promise<void> {
         let remove: Promise<void>|null = null;
         const existingGroup: DesktopTabGroup|null = tab.getTabGroup();
@@ -409,8 +493,8 @@ export class DesktopTabGroup {
             await tab.applyProperties({center, halfSize, frame: false});
         }
 
-        tab.dockToGroup(this._window.getSnapGroup());
         await tab.setTabGroup(this);
+        tab.dockToGroup(this._window.getSnapGroup());
 
         const addTabPromise: Promise<void> = (async () => {
             const payload: JoinTabGroupPayload =
@@ -431,9 +515,9 @@ export class DesktopTabGroup {
     private async removeTabInternal(tab: DesktopWindow, index: number): Promise<void> {
         this._tabs.splice(index, 1);
         delete this._tabProperties[tab.getId()];
+        await tab.setTabGroup(null);
         tab.dockToGroup(new DesktopSnapGroup());
         tab.onTeardown.remove(this.onWindowTeardown, this);
-        await tab.setTabGroup(null);
 
         const payload: TabGroupEventPayload = {tabGroupId: this.ID, tabID: tab.getIdentity()};
         await this.sendTabEvent(tab, WindowMessages.LEAVE_TAB_GROUP, payload);

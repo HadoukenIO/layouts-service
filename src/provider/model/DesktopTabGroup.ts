@@ -10,7 +10,7 @@ import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
 import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {DesktopTabstripFactory} from './DesktopTabstripFactory';
-import {DesktopWindow, EntityState, eTransformType, Mask, WindowMessages} from './DesktopWindow';
+import {DesktopWindow, EntityState, eTransformType, Mask, WindowMessages, ResizeConstraint} from './DesktopWindow';
 
 /**
  * Handles functionality for the TabSet
@@ -512,6 +512,8 @@ export class DesktopTabGroup implements DesktopEntity {
             await this.switchTab(tab);
         }
         await Promise.all([tab.sync(), this._window.sync()]);
+
+        this.updateNetConstraints();
     }
 
     private async removeTabInternal(tab: DesktopWindow, index: number): Promise<void> {
@@ -578,5 +580,30 @@ export class DesktopTabGroup implements DesktopEntity {
             // Send event to tabstrip
             this._window.sendMessage(event, payload)
         ]);
+    }
+
+    private updateNetConstraints(): void {
+        const result: Point<ResizeConstraint> = {
+            x: {minSize: 0, maxSize: Number.MAX_SAFE_INTEGER, resizableMin: true, resizableMax: true},
+            y: {minSize: 0, maxSize: Number.MAX_SAFE_INTEGER, resizableMin: true, resizableMax: true}
+        };
+
+        for (const tab of this.tabs) {
+            let orientation: keyof typeof result;
+            for (orientation in result) {
+                if (result.hasOwnProperty(orientation)) {
+                    const tabConstratins = tab.applicationState.resizeConstraints[orientation];
+                    result[orientation] = {
+                        minSize: Math.max(result[orientation].minSize, tabConstratins.minSize),
+                        maxSize: Math.min(result[orientation].maxSize, tabConstratins.maxSize),
+                        resizableMin: result[orientation].resizableMin && tabConstratins.resizableMin,
+                        resizableMax: result[orientation].resizableMax && tabConstratins.resizableMax
+                    };
+                }
+            }
+        }
+        
+        
+        this.currentState.resizeConstraints = result;
     }
 }

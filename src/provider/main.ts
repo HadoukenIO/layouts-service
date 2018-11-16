@@ -7,17 +7,18 @@ import {DesktopWindow} from './model/DesktopWindow';
 import {SnapService} from './snapanddock/SnapService';
 import {win10Check} from './snapanddock/utils/platform';
 import {TabService} from './tabbing/TabService';
+import { WindowHandler } from './WindowHandler';
 
 export let model: DesktopModel;
 export let snapService: SnapService;
 export let tabService: TabService;
 export let apiHandler: APIHandler;
+export let windowHandler: WindowHandler;
 
 declare const window: Window&{
     model: DesktopModel;
     snapService: SnapService;
     tabService: TabService;
-
     apiHandler: APIHandler;
 };
 
@@ -36,6 +37,7 @@ type Stringified<T> = {
 
 export async function main() {
     model = window.model = new DesktopModel();
+    windowHandler = new WindowHandler(model);
     snapService = window.snapService = new SnapService(model);
     tabService = window.tabService = new TabService(model);
     apiHandler = window.apiHandler = new APIHandler();

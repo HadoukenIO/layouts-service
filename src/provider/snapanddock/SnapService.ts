@@ -40,6 +40,8 @@ export class SnapService {
      */
     private static VALIDATE_GROUP_DISTANCE = 14;
 
+    public readonly resolver: Resolver;
+
     /**
      * Flag to disable / enable docking.
      */
@@ -47,7 +49,6 @@ export class SnapService {
 
     private model: DesktopModel;
 
-    private resolver: Resolver;
     private view: SnapView;
 
     constructor(model: DesktopModel) {
@@ -153,14 +154,10 @@ export class SnapService {
 
     private onSnapGroupCreated(group: DesktopSnapGroup): void {
         group.onModified.add(this.validateGroup, this);
-        group.onTransform.add(this.snapGroup, this);
-        group.onCommit.add(this.applySnapTarget, this);
     }
 
     private onSnapGroupDestroyed(group: DesktopSnapGroup): void {
         group.onModified.remove(this.validateGroup, this);
-        group.onTransform.remove(this.snapGroup, this);
-        group.onCommit.remove(this.applySnapTarget, this);
     }
 
     private validateGroup(group: DesktopSnapGroup, modifiedWindow: DesktopWindow): void {
@@ -177,14 +174,14 @@ export class SnapService {
         }
     }
 
-    private snapGroup(activeGroup: DesktopSnapGroup, type: Mask<eTransformType>): void {
+    public snapGroup(activeGroup: DesktopSnapGroup, type: Mask<eTransformType>): void {
         const groups: ReadonlyArray<DesktopSnapGroup> = this.model.getSnapGroups();
         const snapTarget: SnapTarget|null = this.resolver.getSnapTarget(groups, activeGroup);
 
         this.view.update(activeGroup, snapTarget);
     }
 
-    private applySnapTarget(activeGroup: DesktopSnapGroup): void {
+    public applySnapTarget(activeGroup: DesktopSnapGroup): void {
         const groups: ReadonlyArray<DesktopSnapGroup> = this.model.getSnapGroups();
         const snapTarget: SnapTarget|null = this.resolver.getSnapTarget(groups, activeGroup);
 

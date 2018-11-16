@@ -513,7 +513,7 @@ export class DesktopTabGroup implements DesktopEntity {
         }
         await Promise.all([tab.sync(), this._window.sync()]);
 
-        this.updateNetConstraints();
+        this.updateConstraints();
     }
 
     private async removeTabInternal(tab: DesktopWindow, index: number): Promise<void> {
@@ -532,6 +532,8 @@ export class DesktopTabGroup implements DesktopEntity {
             // Window is being destroyed. Remove from tabstrip, but undock will happen as part of window destruction.
             await tab.setTabGroup(null);
         }
+
+        this.updateConstraints();
 
         const payload: TabGroupEventPayload = {tabGroupId: this.id, tabID: tab.identity};
         await this.sendTabEvent(tab, WindowMessages.LEAVE_TAB_GROUP, payload);
@@ -582,7 +584,7 @@ export class DesktopTabGroup implements DesktopEntity {
         ]);
     }
 
-    private updateNetConstraints(): void {
+    private updateConstraints(): void {
         const result: Point<ResizeConstraint> = {
             x: {minSize: 0, maxSize: Number.MAX_SAFE_INTEGER, resizableMin: true, resizableMax: true},
             y: {minSize: 0, maxSize: Number.MAX_SAFE_INTEGER, resizableMin: true, resizableMax: true}

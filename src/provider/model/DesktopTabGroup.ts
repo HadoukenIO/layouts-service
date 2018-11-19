@@ -514,7 +514,6 @@ export class DesktopTabGroup implements DesktopEntity {
         await Promise.all([tab.sync(), this._window.sync()]);
 
         await this.updateGroupConstraints();
-
     }
 
     private async removeTabInternal(tab: DesktopWindow, index: number): Promise<void> {
@@ -605,22 +604,22 @@ export class DesktopTabGroup implements DesktopEntity {
                 }
             }
         }
-        
+
         this.currentState.resizeConstraints = result;
 
         // Apply the new constraints to all windows
-        await Promise.all(this.tabs.map((tab:DesktopWindow) =>  
-            tab.applyProperties({resizeConstraints: this.currentState.resizeConstraints})
-        ));
+        await Promise.all(this.tabs.map((tab: DesktopWindow) => tab.applyProperties({resizeConstraints: this.currentState.resizeConstraints})));
         // Update the tabStrip constraints accordingly
-        await this._window.applyProperties({resizeConstraints: {
-            x: result.x, 
-            y: {
-                minSize: this._config.height,
-                maxSize: this._config.height,
-                resizableMin: false,
-                resizableMax: false,
+        await this._window.applyProperties({
+            resizeConstraints: {
+                x: result.x,
+                y: {
+                    minSize: this._config.height,
+                    maxSize: this._config.height,
+                    resizableMin: false,
+                    resizableMax: false,
+                }
             }
-        }});
+        });
     }
 }

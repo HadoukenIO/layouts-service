@@ -764,8 +764,8 @@ export class DesktopWindow implements DesktopEntity {
 
             if (resizeConstraints) {
                 actions.push(window.updateOptions({
-                    resizable: resizeConstraints.x.resizableMin || resizeConstraints.x.resizableMax || 
-                        resizeConstraints.y.resizableMin || resizeConstraints.y.resizableMax,
+                    resizable: resizeConstraints.x.resizableMin || resizeConstraints.x.resizableMax || resizeConstraints.y.resizableMin ||
+                        resizeConstraints.y.resizableMax,
                     resizeRegion: {
                         sides: {
                             left: resizeConstraints.x.resizableMin,
@@ -775,9 +775,9 @@ export class DesktopWindow implements DesktopEntity {
                         }
                     },
                     minWidth: resizeConstraints.x.minSize,
-                    maxWidth: resizeConstraints.x.maxSize === Number.MAX_SAFE_INTEGER? -1 : resizeConstraints.x.maxSize,
+                    maxWidth: resizeConstraints.x.maxSize === Number.MAX_SAFE_INTEGER ? -1 : resizeConstraints.x.maxSize,
                     minHeight: resizeConstraints.y.minSize,
-                    maxHeight: resizeConstraints.y.maxSize === Number.MAX_SAFE_INTEGER? -1 : resizeConstraints.y.maxSize,
+                    maxHeight: resizeConstraints.y.maxSize === Number.MAX_SAFE_INTEGER ? -1 : resizeConstraints.y.maxSize,
                 }));
             }
 

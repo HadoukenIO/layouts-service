@@ -334,22 +334,22 @@ export class DesktopTabGroup implements DesktopEntity {
 
             // Update tab window
             if (tab.isReady) {
-                const frame: boolean = tab.applicationState.frame;
+                const {frame, resizeConstraints} = tab.applicationState;
 
                 if (bounds) {
-                    // Eject tab and apply custom bounds
-                    promises.push(tab.applyProperties({hidden: false, frame, ...bounds}));
+                    // Eject tab, apply custom bounds, and reset resizeConstraints to their original value
+                    promises.push(tab.applyProperties({hidden: false, frame, resizeConstraints, ...bounds}));
                 } else if (bounds === null) {
-                    // Eject tab without modifying window bounds
-                    promises.push(tab.applyProperties({hidden: false, frame}));
+                    // Eject tab without modifying window bounds and reset resizeConstraints to their original value
+                    promises.push(tab.applyProperties({hidden: false, frame, resizeConstraints}));
                 } else {
                     const tabStripHalfSize: Point = this._window.currentState.halfSize;
                     const state: EntityState = tab.currentState;
                     const center: Point = {x: state.center.x, y: state.center.y - tabStripHalfSize.y};
                     const halfSize: Point = {x: state.halfSize.x, y: state.halfSize.y + tabStripHalfSize.y};
 
-                    // Eject tab and apply default bounds
-                    promises.push(tab.applyProperties({hidden: false, frame, center, halfSize}));
+                    // Eject tab, apply default bounds, and reset resizeConstraint to their original value
+                    promises.push(tab.applyProperties({hidden: false, frame, resizeConstraints, center, halfSize}));
                 }
             }
 
@@ -513,7 +513,10 @@ export class DesktopTabGroup implements DesktopEntity {
         }
         await Promise.all([tab.sync(), this._window.sync()]);
 
-        this.updateConstraints();
+        // Determine the new resizeConstraints for the tabgroup
+        this.updateGroupConstraints();
+        // Apply the new constraints to all windows
+        await this.updateWindows((window: DesktopWindow) => window.applyProperties({resizeConstraints: this.currentState.resizeConstraints}));
     }
 
     private async removeTabInternal(tab: DesktopWindow, index: number): Promise<void> {
@@ -533,7 +536,10 @@ export class DesktopTabGroup implements DesktopEntity {
             await tab.setTabGroup(null);
         }
 
-        this.updateConstraints();
+        // Determine the new resizeConstraints for the tabgroup
+        this.updateGroupConstraints();
+        // Apply the new constraints to all remaining windows
+        await this.updateWindows((window: DesktopWindow) => window.applyProperties({resizeConstraints: this.currentState.resizeConstraints}));
 
         const payload: TabGroupEventPayload = {tabGroupId: this.id, tabID: tab.identity};
         await this.sendTabEvent(tab, WindowMessages.LEAVE_TAB_GROUP, payload);
@@ -584,7 +590,7 @@ export class DesktopTabGroup implements DesktopEntity {
         ]);
     }
 
-    private updateConstraints(): void {
+    private updateGroupConstraints(): void {
         const result: Point<ResizeConstraint> = {
             x: {minSize: 0, maxSize: Number.MAX_SAFE_INTEGER, resizableMin: true, resizableMax: true},
             y: {minSize: 0, maxSize: Number.MAX_SAFE_INTEGER, resizableMin: true, resizableMax: true}
@@ -604,7 +610,6 @@ export class DesktopTabGroup implements DesktopEntity {
                 }
             }
         }
-        
         
         this.currentState.resizeConstraints = result;
     }

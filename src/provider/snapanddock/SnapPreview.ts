@@ -1,6 +1,7 @@
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
-import {eSnapValidity, SnapTarget} from './Resolver';
+import {eSnapValidity} from './Resolver';
 import {Point, PointUtils} from './utils/PointUtils';
+import { Target } from '../WindowHandler';
 
 const PREVIEW_SUCCESS = '#3D4059';
 const PREVIEW_SUCCESS_RESIZE = PREVIEW_SUCCESS;
@@ -43,7 +44,7 @@ export class SnapPreview {
      * The 'isValid' parameter determines the color of the rectangles. The class also caches the group
      * argument to avoid having to re-create the rectangle objects on every call if the group hasn't changed.
      */
-    public show(target: SnapTarget): void {
+    public show(target: Target): void {
         const activeGroup = target.activeWindow.getSnapGroup();
         const groupHalfSize = activeGroup.halfSize;  // TODO: Will need to change once 'activeGroup' can have multiple windows (SERVICE-128)
 
@@ -114,7 +115,7 @@ export class SnapPreview {
             frame: false,
             state: 'normal',
             autoShow: false,
-            alwaysOnTop: false
+            alwaysOnTop: true
         };
 
         const preview: PreviewWindow = {

@@ -4,6 +4,7 @@ import {SNAP_DISTANCE} from './Config';
 import {Projector} from './Projector';
 import {Point, PointUtils} from './utils/PointUtils';
 import {RectUtils} from './utils/RectUtils';
+import { SnapTarget } from '../WindowHandler';
 
 export enum eSnapValidity {
     /**
@@ -49,39 +50,39 @@ export type Orientation = keyof Point;
  * The service will create a SnapTarget for each possible snap candidate, and then select the "best" candidate as
  * being the current target. The selected target will then be passed to the UI for rendering/highlighting.
  */
-export interface SnapTarget {
-    /**
-     * The group that has been selected as the snap candidate.
-     *
-     * This is not the group that the user is currently dragging, it is the group that has been selected as the snap
-     * target.
-     */
-    group: DesktopSnapGroup;
+// export interface SnapTarget {
+//     /**
+//      * The group that has been selected as the snap candidate.
+//      *
+//      * This is not the group that the user is currently dragging, it is the group that has been selected as the snap
+//      * target.
+//      */
+//     group: DesktopSnapGroup;
 
-    /**
-     * The window within the active group that was used to find this candidate
-     */
-    activeWindow: Snappable;
+//     /**
+//      * The window within the active group that was used to find this candidate
+//      */
+//     activeWindow: Snappable;
 
-    /**
-     * The offset that will be applied to the active group, in order to correctly align it with this target.
-     */
-    snapOffset: Point;
+//     /**
+//      * The offset that will be applied to the active group, in order to correctly align it with this target.
+//      */
+//     snapOffset: Point;
 
-    /**
-     * If 'activeWindow' should be resized as part of this snap, it's new halfSize will be specified here. This only
-     * happens when the active group contains a single window, and the two closest corners of that window are both
-     * within the anchor distance of the corresponding corners of the candidate window.
-     *
-     * Will be null if we don't want the window to resize as part of the snap.
-     */
-    halfSize: Point|null;
+//     /**
+//      * If 'activeWindow' should be resized as part of this snap, it's new halfSize will be specified here. This only
+//      * happens when the active group contains a single window, and the two closest corners of that window are both
+//      * within the anchor distance of the corresponding corners of the candidate window.
+//      *
+//      * Will be null if we don't want the window to resize as part of the snap.
+//      */
+//     halfSize: Point|null;
 
-    /**
-     * A snap target is always generated for any groups within range of the target window.
-     */
-    validity: eSnapValidity;
-}
+//     /**
+//      * A snap target is always generated for any groups within range of the target window.
+//      */
+//     validity: eSnapValidity;
+// }
 
 /**
  * State-less class that contains all the main snap and dock logic.

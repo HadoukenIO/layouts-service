@@ -1,10 +1,11 @@
 import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
 import {WindowState} from '../model/DesktopWindow';
 import {ANCHOR_DISTANCE, MIN_OVERLAP, SNAP_DISTANCE} from './Config';
-import {eSnapValidity, Orientation, SnapTarget} from './Resolver';
+import {eSnapValidity, Orientation} from './Resolver';
 import {Point, PointUtils} from './utils/PointUtils';
 import {Range, RangeUtils} from './utils/RangeUtils';
 import {MeasureResult, RectUtils} from './utils/RectUtils';
+import { SnapTarget } from '../WindowHandler';
 
 export enum eDirection {
     LEFT,
@@ -139,7 +140,7 @@ export class Projector {
                     }
                 });
 
-                return {group: candidateGroup, activeWindow, snapOffset, halfSize, validity: eSnapValidity.VALID};
+                return {group: candidateGroup, activeWindow, snapOffset, halfSize, validity: eSnapValidity.VALID, type: "SNAP"};
             }
         }
 

@@ -1,11 +1,10 @@
 import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
-
-import {SnapTarget} from './Resolver';
 import {SnapPreview} from './SnapPreview';
+import { Target } from '../WindowHandler';
 
 export class SnapView {
     private activeGroup: DesktopSnapGroup|null;  // The group being moved
-    private target: SnapTarget|null;             // The current snap candidate (target may be valid or invalid. Will be null if there are no candidates)
+    private target: Target|null;             // The current snap candidate (target may be valid or invalid. Will be null if there are no candidates)
     private preview: SnapPreview;                // For displaying where the active group will snap to (the red/green boxes)
 
     constructor() {
@@ -24,7 +23,7 @@ export class SnapView {
      * SnapView also stores these parameters as members. This allows it to revert the active/target windows to their
      * original opacities once the active/target group(s) change or get reset.
      */
-    public update(activeGroup: DesktopSnapGroup|null, target: SnapTarget|null): void {
+    public update(activeGroup: DesktopSnapGroup|null, target: Target|null): void {
         // Handle change of active group
         if (activeGroup !== this.activeGroup) {
             this.setGroupOpacity(this.activeGroup, false);

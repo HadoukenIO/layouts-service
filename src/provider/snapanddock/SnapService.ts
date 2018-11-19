@@ -4,10 +4,11 @@ import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
 import {DesktopWindow, eTransformType, Mask, WindowIdentity} from '../model/DesktopWindow';
 
 import {EXPLODE_MOVE_SCALE, MIN_OVERLAP, UNDOCK_MOVE_DISTANCE} from './Config';
-import {eSnapValidity, Resolver, SnapTarget} from './Resolver';
+import {eSnapValidity, Resolver} from './Resolver';
 import {SnapView} from './SnapView';
 import {Point, PointUtils} from './utils/PointUtils';
 import {MeasureResult, RectUtils} from './utils/RectUtils';
+import { SnapTarget } from '../WindowHandler';
 
 /**
  * For passing state between service and view.

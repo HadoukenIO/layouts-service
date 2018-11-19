@@ -722,7 +722,7 @@ export class DesktopWindow implements DesktopEntity {
         // Apply changes to the window (unless we're reacting to an external change that has already happened)
         if (origin !== ActionOrigin.APPLICATION) {
             const window = this._window;
-            const {center, halfSize, state, hidden, ...options} = delta;
+            const {center, halfSize, state, hidden, resizeConstraints, ...options} = delta;
             const optionsToChange: (keyof EntityState)[] = Object.keys(options) as (keyof EntityState)[];
 
             // Apply visibility
@@ -760,6 +760,25 @@ export class DesktopWindow implements DesktopEntity {
 
                 const bounds = {left: newCenter.x - newHalfSize.x, top: newCenter.y - newHalfSize.y, width: newHalfSize.x * 2, height: newHalfSize.y * 2};
                 actions.push(window.setBounds(bounds));
+            }
+
+            if (resizeConstraints) {
+                actions.push(window.updateOptions({
+                    resizable: resizeConstraints.x.resizableMin || resizeConstraints.x.resizableMax || 
+                        resizeConstraints.y.resizableMin || resizeConstraints.y.resizableMax,
+                    resizeRegion: {
+                        sides: {
+                            left: resizeConstraints.x.resizableMin,
+                            right: resizeConstraints.x.resizableMax,
+                            top: resizeConstraints.y.resizableMin,
+                            bottom: resizeConstraints.y.resizableMax,
+                        }
+                    },
+                    minWidth: resizeConstraints.x.minSize,
+                    maxWidth: resizeConstraints.x.maxSize === Number.MAX_SAFE_INTEGER? -1 : resizeConstraints.x.maxSize,
+                    minHeight: resizeConstraints.y.minSize,
+                    maxHeight: resizeConstraints.y.maxSize === Number.MAX_SAFE_INTEGER? -1 : resizeConstraints.y.maxSize,
+                }));
             }
 
             // Apply options

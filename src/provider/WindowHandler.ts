@@ -13,6 +13,8 @@ export interface TabTarget {
     type: "TAB",
     window: DesktopWindow;
     group: DesktopSnapGroup;
+    halfSize: Point,
+    center: Point;
 }
 
 /**

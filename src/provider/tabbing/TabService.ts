@@ -9,7 +9,7 @@ import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 
 import {ApplicationConfigManager} from './components/ApplicationConfigManager';
 import {DragWindowManager} from './DragWindowManager';
-
+import { TabTarget } from '../WindowHandler';
 
 /**
  * The overarching class for the Tab Service.
@@ -315,5 +315,33 @@ export class TabService {
         const dropAreaHalfSize = {x: state.halfSize.x, y: config.height / 2};
 
         return RectUtils.isPointInRect(dropAreaCenter, dropAreaHalfSize, position);
+    }
+
+    private getWindowDropArea(window: DesktopWindow): {center: Point, halfSize: Point} {
+        const isTabbed = window.getTabGroup();
+        if(isTabbed) {
+            const {halfSize, center} = isTabbed.window.getState();
+            return {halfSize, center};
+        } else {
+            const state: WindowState = window.getState();
+            const config: ApplicationUIConfig = this.mApplicationConfigManager.getApplicationUIConfig(window.getIdentity().uuid);
+            const center: Point = {x: state.center.x, y: (state.center.y - state.halfSize.y) + (config.height / 2)};
+            const halfSize = {x: state.halfSize.x, y: config.height / 2};
+
+            return {center, halfSize};
+        }
+    }
+
+    public getTarget(activeGroup: DesktopSnapGroup): TabTarget | null {
+        const position = this._model.getMouseTracker().getPosition();
+        const targetWindow = position && this._model.getWindowAt(position.x, position.y, activeGroup.windows[0].getIdentity()); // TODO: Verify window exclude (window being moved in activeGroup ?) 
+        const isOverWindowValid = targetWindow && this.isOverWindowDropArea(targetWindow, position!); // Position implied to be valid if targetWindow is truthy
+        const dropArea = isOverWindowValid && this.getWindowDropArea(targetWindow!); // TargetWindow implied to be valid if isOverWindowValid is truthy;
+
+        if(dropArea){
+            return {type: "TAB", window: targetWindow!, group: activeGroup, center: dropArea.center, halfSize: dropArea.halfSize};
+        }
+
+        return null;
     }
 }

@@ -513,10 +513,8 @@ export class DesktopTabGroup implements DesktopEntity {
         }
         await Promise.all([tab.sync(), this._window.sync()]);
 
-        // Determine the new resizeConstraints for the tabgroup
-        this.updateGroupConstraints();
-        // Apply the new constraints to all windows
-        await this.updateWindows((window: DesktopWindow) => window.applyProperties({resizeConstraints: this.currentState.resizeConstraints}));
+        await this.updateGroupConstraints();
+
     }
 
     private async removeTabInternal(tab: DesktopWindow, index: number): Promise<void> {
@@ -536,10 +534,7 @@ export class DesktopTabGroup implements DesktopEntity {
             await tab.setTabGroup(null);
         }
 
-        // Determine the new resizeConstraints for the tabgroup
-        this.updateGroupConstraints();
-        // Apply the new constraints to all remaining windows
-        await this.updateWindows((window: DesktopWindow) => window.applyProperties({resizeConstraints: this.currentState.resizeConstraints}));
+        await this.updateGroupConstraints();
 
         const payload: TabGroupEventPayload = {tabGroupId: this.id, tabID: tab.identity};
         await this.sendTabEvent(tab, WindowMessages.LEAVE_TAB_GROUP, payload);
@@ -590,7 +585,7 @@ export class DesktopTabGroup implements DesktopEntity {
         ]);
     }
 
-    private updateGroupConstraints(): void {
+    private async updateGroupConstraints(): Promise<void> {
         const result: Point<ResizeConstraint> = {
             x: {minSize: 0, maxSize: Number.MAX_SAFE_INTEGER, resizableMin: true, resizableMax: true},
             y: {minSize: 0, maxSize: Number.MAX_SAFE_INTEGER, resizableMin: true, resizableMax: true}
@@ -612,5 +607,20 @@ export class DesktopTabGroup implements DesktopEntity {
         }
         
         this.currentState.resizeConstraints = result;
+
+        // Apply the new constraints to all windows
+        await Promise.all(this.tabs.map((tab:DesktopWindow) =>  
+            tab.applyProperties({resizeConstraints: this.currentState.resizeConstraints})
+        ));
+        // Update the tabStrip constraints accordingly
+        await this._window.applyProperties({resizeConstraints: {
+            x: result.x, 
+            y: {
+                minSize: this._config.height,
+                maxSize: this._config.height,
+                resizableMin: false,
+                resizableMax: false,
+            }
+        }});
     }
 }

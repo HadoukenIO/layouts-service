@@ -49,12 +49,12 @@ export class SnapService {
 
     private model: DesktopModel;
 
-    private view: SnapView;
+    //private view: SnapView;
 
     constructor(model: DesktopModel) {
         this.model = model;
         this.resolver = new Resolver();
-        this.view = new SnapView();
+        //this.view = new SnapView();
 
         // Register lifecycle listeners
         DesktopSnapGroup.onCreated.add(this.onSnapGroupCreated, this);
@@ -178,7 +178,7 @@ export class SnapService {
         const groups: ReadonlyArray<DesktopSnapGroup> = this.model.getSnapGroups();
         const snapTarget: SnapTarget|null = this.resolver.getSnapTarget(groups, activeGroup);
 
-        this.view.update(activeGroup, snapTarget);
+        //this.view.update(activeGroup, snapTarget);
     }
 
     public applySnapTarget(activeGroup: DesktopSnapGroup): void {
@@ -217,7 +217,7 @@ export class SnapService {
         }
 
         // Reset view
-        this.view.update(null, null);
+        //this.view.update(null, null);
     }
 
     private calculateUndockMoveDirection(window: DesktopWindow): Point {

@@ -89,7 +89,17 @@ export class WindowHandler {
     }
 
     private onGroupCommit(activeGroup: DesktopSnapGroup) {
-        snapService.applySnapTarget(activeGroup);
+        const groups: ReadonlyArray<DesktopSnapGroup> = this.model.getSnapGroups();
+        const snapTarget: SnapTarget|null = snapService.resolver.getSnapTarget(groups, activeGroup);
+        const tabTarget = activeGroup.windows.length === 1 && tabService.getTarget(activeGroup);
+        
+        if(tabTarget){
+            const activeWindow: DesktopWindow = activeGroup.windows[0] as DesktopWindow;
+            tabService.tabDroppedWindow(activeWindow);
+        } else if(snapTarget){
+            snapService.applySnapTarget(activeGroup);
+        }
+
         this.view.update(null, null);
     }
 

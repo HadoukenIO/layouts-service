@@ -211,15 +211,9 @@ export class SnapService {
                         ')');
                 }
             }
-        } else if (activeGroup.length === 1 && !activeGroup.windows[0].getTabGroup()) {  // TAB WINDOWS
-            // Check if we can add this window to a (new or existing) tab group
-            const activeWindow: DesktopWindow = activeGroup.windows[0] as DesktopWindow;
-            tabService.tabDroppedWindow(activeWindow);
-        }
 
-        // Reset view
-        //this.view.update(null, null);
     }
+}
 
     private calculateUndockMoveDirection(window: DesktopWindow): Point {
         const group = window.getSnapGroup();

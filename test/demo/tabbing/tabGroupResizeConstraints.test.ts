@@ -3,12 +3,12 @@ import {Fin} from 'hadouken-js-adapter';
 
 import {assertAllTabbed} from '../../provider/utils/assertions';
 import {getConnection} from '../../provider/utils/connect';
+import {delay} from '../../provider/utils/delay';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 import {Constraints} from '../snapanddock/resizeOnSnap.test';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
 import {refreshWindowState} from '../utils/modelUtils';
 import {testParameterized} from '../utils/parameterizedTestUtils';
-import { delay } from '../../provider/utils/delay';
 
 interface TabConstraintsOptions extends CreateWindowData {
     constraints: Constraints;

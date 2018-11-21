@@ -5,7 +5,7 @@ import {DesktopWindow, eTransformType, Mask, WindowIdentity} from '../model/Desk
 
 import {EXPLODE_MOVE_SCALE, MIN_OVERLAP, UNDOCK_MOVE_DISTANCE} from './Config';
 import {Resolver} from './Resolver';
-import {SnapView} from './SnapView';
+import {View} from '../View';
 import {Point, PointUtils} from './utils/PointUtils';
 import {MeasureResult, RectUtils} from './utils/RectUtils';
 import { Target } from '../WindowHandler';

@@ -1,16 +1,16 @@
-import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
-import {SnapPreview} from './SnapPreview';
-import { Target } from '../WindowHandler';
+import {DesktopSnapGroup, Snappable} from './model/DesktopSnapGroup';
+import {Preview} from './Preview';
+import { Target } from './WindowHandler';
 
-export class SnapView {
+export class View {
     private activeGroup: DesktopSnapGroup|null;  // The group being moved
     private target: Target|null;             // The current snap candidate (target may be valid or invalid. Will be null if there are no candidates)
-    private preview: SnapPreview;                // For displaying where the active group will snap to (the red/green boxes)
+    private preview: Preview;                // For displaying where the active group will snap to (the red/green boxes)
 
     constructor() {
         this.activeGroup = null;
         this.target = null;
-        this.preview = new SnapPreview();
+        this.preview = new Preview();
     }
 
     /**

@@ -3,7 +3,7 @@ import { Mask, eTransformType, DesktopWindow } from "./model/DesktopWindow";
 import { snapService, tabService } from "./main";
 import { DesktopModel } from "./model/DesktopModel";
 import { Point } from "./snapanddock/utils/PointUtils";
-import { SnapView } from "./snapanddock/SnapView";
+import { View } from "./View";
 
 export enum eTargetType {
     TAB = "TAB",
@@ -57,11 +57,11 @@ export interface Target {
 
 export class WindowHandler {
     private model: DesktopModel;
-    private view: SnapView;
+    private view: View;
 
     constructor(model: DesktopModel){
         this.model = model;
-        this.view = new SnapView();
+        this.view = new View();
 
         // Register lifecycle listeners
         DesktopSnapGroup.onCreated.add(this.onSnapGroupCreated, this);

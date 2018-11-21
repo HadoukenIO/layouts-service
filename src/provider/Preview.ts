@@ -1,6 +1,6 @@
-import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
-import {Point, PointUtils} from './utils/PointUtils';
-import { Target } from '../WindowHandler';
+import {DesktopSnapGroup} from './model/DesktopSnapGroup';
+import {Point, PointUtils} from './snapanddock/utils/PointUtils';
+import { Target } from './WindowHandler';
 
 const PREVIEW_SUCCESS = '#3D4059';
 const PREVIEW_SUCCESS_RESIZE = PREVIEW_SUCCESS;
@@ -17,7 +17,7 @@ interface PreviewWindow {
  *
  * Will create colored rectangles based on the given group. Rectangle color will be set according to snap validity.
  */
-export class SnapPreview {
+export class Preview {
     private pool: {active: fin.OpenFinWindow[]; free: fin.OpenFinWindow[]};
 
     private activeGroup: DesktopSnapGroup|null;

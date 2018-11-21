@@ -9,8 +9,7 @@ import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 
 import {ApplicationConfigManager} from './components/ApplicationConfigManager';
 import {DragWindowManager} from './DragWindowManager';
-import { TabTarget } from '../WindowHandler';
-import { eSnapValidity } from '../snapanddock/Resolver';
+import { Target, eTargetType } from '../WindowHandler';
 import { PointUtils } from '../snapanddock/utils/PointUtils';
 
 /**
@@ -335,7 +334,7 @@ export class TabService {
         }
     }
 
-    public getTarget(activeGroup: DesktopSnapGroup): TabTarget | null {
+    public getTarget(activeGroup: DesktopSnapGroup): Target | null {
         const position: Point | null = this._model.getMouseTracker().getPosition();
         const targetWindow: DesktopWindow | null = position && this._model.getWindowAt(position.x, position.y, activeGroup.windows[0].getIdentity()); // TODO: Verify window exclude (window being moved in activeGroup ?) 
         const isOverWindowValid = targetWindow && this.isOverWindowDropArea(targetWindow, position!); // Position implied to be valid if targetWindow is truthy
@@ -357,17 +356,16 @@ export class TabService {
                 });
 
             // Check if the target and active window have same tab config.
-            // TODO: Clear up eSnapValidity options
-            const validity: eSnapValidity = this.applicationConfigManager.compareConfigBetweenApplications(
-                isTargetTabbed ? isTargetTabbed.config : targetWindow.getIdentity().uuid, activeGroup.windows[0].getIdentity().uuid) ? eSnapValidity.VALID : eSnapValidity.OVERLAP
+            const valid: boolean = this.applicationConfigManager.compareConfigBetweenApplications(
+                isTargetTabbed ? isTargetTabbed.config : targetWindow.getIdentity().uuid, activeGroup.windows[0].getIdentity().uuid);
 
             return {
-                type: "TAB", 
+                type: eTargetType.TAB, 
                 activeWindow: activeGroup.windows[0], 
                 group: targetWindow!.getSnapGroup(), 
                 halfSize: dropArea.halfSize, 
-                snapOffset: offset,
-                validity
+                offset,
+                valid
             };
         }
 

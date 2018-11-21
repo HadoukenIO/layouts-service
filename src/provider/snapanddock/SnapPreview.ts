@@ -1,5 +1,4 @@
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
-import {eSnapValidity} from './Resolver';
 import {Point, PointUtils} from './utils/PointUtils';
 import { Target } from '../WindowHandler';
 
@@ -74,8 +73,8 @@ export class SnapPreview {
             }
         }
 
-        this.setWindowPosition(this.tempWindow, activeGroup.center, groupHalfSize, target.snapOffset);
-        if (target.validity === eSnapValidity.VALID) {
+        this.setWindowPosition(this.tempWindow, activeGroup.center, groupHalfSize, target.offset);
+        if (target.valid) {
             if (PointUtils.isEqual(this.activeWindowPreview.halfSize, groupHalfSize)) {
                 this.activeWindowPreview.nativeWindow!.document.body.style.background = PREVIEW_SUCCESS;
             } else {
@@ -115,7 +114,7 @@ export class SnapPreview {
             frame: false,
             state: 'normal',
             autoShow: false,
-            alwaysOnTop: true
+            alwaysOnTop: false
         };
 
         const preview: PreviewWindow = {

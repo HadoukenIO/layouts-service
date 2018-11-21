@@ -4,11 +4,11 @@ import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
 import {DesktopWindow, eTransformType, Mask, WindowIdentity} from '../model/DesktopWindow';
 
 import {EXPLODE_MOVE_SCALE, MIN_OVERLAP, UNDOCK_MOVE_DISTANCE} from './Config';
-import {eSnapValidity, Resolver} from './Resolver';
+import {Resolver} from './Resolver';
 import {SnapView} from './SnapView';
 import {Point, PointUtils} from './utils/PointUtils';
 import {MeasureResult, RectUtils} from './utils/RectUtils';
-import { SnapTarget } from '../WindowHandler';
+import { Target } from '../WindowHandler';
 
 /**
  * For passing state between service and view.
@@ -30,7 +30,7 @@ export interface SnapState {
      *
      * Will be null when there is no valid snap target.
      */
-    target: SnapTarget|null;
+    target: Target|null;
 }
 
 export class SnapService {
@@ -177,30 +177,30 @@ export class SnapService {
 
     public snapGroup(activeGroup: DesktopSnapGroup, type: Mask<eTransformType>): void {
         const groups: ReadonlyArray<DesktopSnapGroup> = this.model.getSnapGroups();
-        const snapTarget: SnapTarget|null = this.resolver.getSnapTarget(groups, activeGroup);
+        const snapTarget: Target|null = this.resolver.getSnapTarget(groups, activeGroup);
 
         //this.view.update(activeGroup, snapTarget);
     }
 
     public applySnapTarget(activeGroup: DesktopSnapGroup): void {
         const groups: ReadonlyArray<DesktopSnapGroup> = this.model.getSnapGroups();
-        const snapTarget: SnapTarget|null = this.resolver.getSnapTarget(groups, activeGroup);
+        const snapTarget: Target|null = this.resolver.getSnapTarget(groups, activeGroup);
 
-        if (snapTarget && snapTarget.validity === eSnapValidity.VALID) {  // SNAP WINDOWS
+        if (snapTarget && snapTarget.valid) {  // SNAP WINDOWS
             if (this.disableDockingOperations) {
                 activeGroup.windows.forEach((window: Snappable) => {
                     if (window === snapTarget.activeWindow && snapTarget.halfSize) {
-                        window.snapToGroup(snapTarget.group, snapTarget.snapOffset, snapTarget.halfSize);
+                        window.snapToGroup(snapTarget.group, snapTarget.offset, snapTarget.halfSize);
                     } else {
-                        window.snapToGroup(snapTarget.group, snapTarget.snapOffset);
+                        window.snapToGroup(snapTarget.group, snapTarget.offset);
                     }
                 });
             } else {
                 activeGroup.windows.forEach((window: Snappable) => {  // Move all windows in activeGroup to snapTarget.group
                     if (window === snapTarget.activeWindow && snapTarget.halfSize) {
-                        window.dockToGroup(snapTarget.group, snapTarget.snapOffset, snapTarget.halfSize);
+                        window.dockToGroup(snapTarget.group, snapTarget.offset, snapTarget.halfSize);
                     } else {
-                        window.dockToGroup(snapTarget.group, snapTarget.snapOffset);
+                        window.dockToGroup(snapTarget.group, snapTarget.offset);
                     }
                 });
 

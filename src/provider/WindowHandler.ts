@@ -2,36 +2,42 @@ import { DesktopSnapGroup, Snappable } from "./model/DesktopSnapGroup";
 import { Mask, eTransformType, DesktopWindow } from "./model/DesktopWindow";
 import { snapService, tabService } from "./main";
 import { DesktopModel } from "./model/DesktopModel";
-import { eSnapValidity } from "./snapanddock/Resolver";
 import { Point } from "./snapanddock/utils/PointUtils";
 import { SnapView } from "./snapanddock/SnapView";
 
+export enum eTargetType {
+    TAB = "TAB",
+    SNAP = "SNAP"
+}
 /**
  * Interface that represents a valid candidate group for the group that the user is currently manipulating.
  *
- * As a window is dragged around, it is possible that it will be within the snapping distance of several other groups.
- * The service will create a SnapTarget for each possible snap candidate, and then select the "best" candidate as
+ * As a window is dragged around, it is possible that it will be within the snapping distance of several other groups, or the abiltiy to be tabbed.
+ * The service will create a Target for each possible snap & tab candidate, and then select the "best" candidate as
  * being the current target. The selected target will then be passed to the UI for rendering/highlighting.
  */
 export interface Target {
-    type: "TAB" | "SNAP"
     /**
-     * The group that has been selected as the snap candidate.
+     * The type that this target represents.
+     */
+    type: eTargetType;
+
+    /**
+     * The group that has been selected as the target candidate.
      *
-     * This is not the group that the user is currently dragging, it is the group that has been selected as the snap
-     * target.
+     * This is not the group that the user is currently dragging, it is the group that has been selected as the target.
      */
     group: DesktopSnapGroup;
 
     /**
-     * The window within the active group that was used to find this candidate
+     * The window within the active group that was used to find this candidate.
      */
     activeWindow: Snappable;
 
     /**
-     * The offset that will be applied to the active group, in order to correctly align it with this target.
+     * The offset that will be applied to the active window, in order to correctly align it with this target.
      */
-    snapOffset: Point;
+    offset: Point;
 
     /**
      * If 'activeWindow' should be resized as part of this snap, it's new halfSize will be specified here. This only
@@ -43,17 +49,9 @@ export interface Target {
     halfSize: Point|null;
 
     /**
-     * A snap target is always generated for any groups within range of the target window.
+     * The validity of the target.  This will produce visual feedback indicating if the move is accepted or not.
      */
-    validity: eSnapValidity;
-}
-
-export interface TabTarget extends Target {
-    type: "TAB"
-}
-
-export interface SnapTarget extends Target {
-    type: "SNAP"
+    valid: boolean;
 }
 
 
@@ -82,7 +80,7 @@ export class WindowHandler {
 
     private onGroupTransform(activeGroup: DesktopSnapGroup, type: Mask<eTransformType>) {
         const groups: ReadonlyArray<DesktopSnapGroup> = this.model.getSnapGroups();
-        const snapTarget: SnapTarget|null = snapService.resolver.getSnapTarget(groups, activeGroup);
+        const snapTarget: Target|null = snapService.resolver.getSnapTarget(groups, activeGroup);
         const tabTarget = activeGroup.windows.length === 1 && tabService.getTarget(activeGroup);
 
         this.view.update(activeGroup, tabTarget || snapTarget);
@@ -90,7 +88,7 @@ export class WindowHandler {
 
     private onGroupCommit(activeGroup: DesktopSnapGroup) {
         const groups: ReadonlyArray<DesktopSnapGroup> = this.model.getSnapGroups();
-        const snapTarget: SnapTarget|null = snapService.resolver.getSnapTarget(groups, activeGroup);
+        const snapTarget: Target|null = snapService.resolver.getSnapTarget(groups, activeGroup);
         const tabTarget = activeGroup.windows.length === 1 && tabService.getTarget(activeGroup);
         
         if(tabTarget){

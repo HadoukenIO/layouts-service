@@ -1,11 +1,11 @@
 import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
 import {WindowState} from '../model/DesktopWindow';
 import {ANCHOR_DISTANCE, MIN_OVERLAP, SNAP_DISTANCE} from './Config';
-import {eSnapValidity, Orientation} from './Resolver';
+import {Orientation} from './Resolver';
 import {Point, PointUtils} from './utils/PointUtils';
 import {Range, RangeUtils} from './utils/RangeUtils';
 import {MeasureResult, RectUtils} from './utils/RectUtils';
-import { SnapTarget } from '../WindowHandler';
+import { Target, eTargetType } from '../WindowHandler';
 
 export enum eDirection {
     LEFT,
@@ -82,7 +82,7 @@ export class Projector {
      * @param candidateGroup The group that was used to build this projection
      * @param activeWindow The window that is being moved by the user
      */
-    public createTarget(candidateGroup: DesktopSnapGroup, activeWindow: Snappable): SnapTarget|null {
+    public createTarget(candidateGroup: DesktopSnapGroup, activeWindow: Snappable): Target|null {
         const borders: BorderProjection[] = this.borders;
 
         if (!this.blocked) {
@@ -140,7 +140,7 @@ export class Projector {
                     }
                 });
 
-                return {group: candidateGroup, activeWindow, snapOffset, halfSize, validity: eSnapValidity.VALID, type: "SNAP"};
+                return {group: candidateGroup, activeWindow, offset: snapOffset, halfSize, valid: true, type: eTargetType.SNAP};
             }
         }
 

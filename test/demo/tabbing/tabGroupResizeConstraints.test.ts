@@ -11,7 +11,7 @@ import {refreshWindowState} from '../utils/modelUtils';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 
 interface TabConstraintsOptions extends CreateWindowData {
-    constraints: Constraints;
+    windowConstraints: Constraints[];
 }
 
 // Some questionable code that allows using the layouts client directly in tests
@@ -27,26 +27,123 @@ test.before(async () => {
 testParameterized(
     'Constraints applied to all tabs in group',
     [
-        {frame: true, windowCount: 2, constraints: {resizable: false}},
+        {frame: true, windowCount: 2, windowConstraints: [{resizable: false}]},
+        {frame: true, windowCount: 2, windowConstraints: [{maxHeight: 500, minWidth: 100}]},
+        {
+            frame: true,
+            windowCount: 3,
+            windowConstraints: [
+                {resizeRegion: {sides: {top: false, left: false, bottom: true, right: true}}},
+                {resizeRegion: {sides: {top: true, left: true, bottom: false, right: false}}}
+            ]
+        },
+        {
+            frame: true,
+            windowCount: 3,
+            windowConstraints: [
+                {resizeRegion: {sides: {top: false, left: false, bottom: true, right: true}}},
+                {resizeRegion: {sides: {top: true, left: true, bottom: false, right: false}}}
+            ]
+        },
+        {
+            frame: true,
+            windowCount: 3,
+            windowConstraints: [
+                {resizeRegion: {sides: {top: false, left: false, bottom: true, right: true}}},
+                {resizeRegion: {sides: {top: true, left: true, bottom: false, right: false}}}
+            ]
+        },
+        {
+            frame: true,
+            windowCount: 3,
+            windowConstraints: [
+                {resizeRegion: {sides: {top: false, left: false, bottom: true, right: true}}},
+                {resizeRegion: {sides: {top: true, left: true, bottom: false, right: false}}}
+            ]
+        },
+        {
+            frame: true,
+            windowCount: 3,
+            windowConstraints: [
+                {resizeRegion: {sides: {top: false, left: false, bottom: true, right: true}}},
+                {resizeRegion: {sides: {top: true, left: true, bottom: false, right: false}}}
+            ]
+        },
+        {
+            frame: true,
+            windowCount: 3,
+            windowConstraints: [
+                {resizeRegion: {sides: {top: false, left: false, bottom: true, right: true}}},
+                {resizeRegion: {sides: {top: true, left: true, bottom: false, right: false}}}
+            ]
+        },
     ],
     createWindowTest(async (t, options: TabConstraintsOptions) => {
         const windows = t.context.windows;
 
-        await windows[1].updateOptions({...options.constraints});
-        await refreshWindowState(windows[1].identity);
+        await Promise.all(windows.map((win, index) => win.updateOptions(options.windowConstraints[index])));
+        await Promise.all(windows.map((win) => refreshWindowState(win.identity)));
+
+        await refreshWindowState(windows[0].identity);
 
         await layoutsClient.createTabGroup(windows.map(win => win.identity));
 
-        await delay(200);
+        await delay(1000);
 
         await assertAllTabbed(t, ...windows);
 
-        const windowOptions = await Promise.all(windows.map(win => win.getOptions()));
+        const resultingConstraints = constraintsUnion(...options.windowConstraints);
 
-        for (const key of Object.keys(options.constraints) as (keyof typeof options.constraints)[]) {
-            if (options.constraints.hasOwnProperty(key)) {
-                t.is(windowOptions[0][key], options.constraints[key]);
-                t.is(windowOptions[1][key], options.constraints[key]);
+        for (let i = 0; i < windows.length; i++) {
+            const windowOptions = await windows[i].getOptions().then(options => {
+                if (options.maxHeight < 0) {
+                    options.maxHeight = Number.MAX_SAFE_INTEGER;
+                }
+                if (options.maxWidth < 0) {
+                    options.maxWidth = Number.MAX_SAFE_INTEGER;
+                }
+                return options;
+            });
+
+            for (const key of Object.keys(resultingConstraints) as (keyof typeof resultingConstraints)[]) {
+                if (resultingConstraints.hasOwnProperty(key)) {
+                    if (typeof resultingConstraints[key] === 'object') {
+                        t.deepEqual(windowOptions[key], resultingConstraints[key], `${key} does not match for window ${i}. Expected: ${JSON.stringify(resultingConstraints[key])}. Received: ${JSON.stringify(windowOptions[key])}`);
+                    } else {
+                        t.is(windowOptions[key], resultingConstraints[key], `${key} does not match.`);
+                    }
+                }
             }
         }
+
+        
     }));
+
+function constraintsUnion(...windowConstraints: Constraints[]): Constraints {
+    const result: Constraints = {};
+
+    for (const constraint of windowConstraints) {
+        result.minWidth = Math.max(result.minWidth || 0, constraint.minWidth || 0);
+        result.maxWidth = Math.min(
+            result.maxWidth || Number.MAX_SAFE_INTEGER, (!constraint.maxWidth || constraint.maxWidth < 0) ? Number.MAX_SAFE_INTEGER : constraint.maxWidth);
+        result.minHeight = Math.max(result.minHeight || 0, constraint.minHeight || 0);
+        result.maxHeight = Math.min(
+            result.maxHeight || Number.MAX_SAFE_INTEGER, (!constraint.maxHeight || constraint.maxHeight < 0) ? Number.MAX_SAFE_INTEGER : constraint.maxHeight);
+
+        let resizableSide = !constraint.resizeRegion;
+        if (constraint.resizeRegion) {
+            if (!result.resizeRegion) {
+                result.resizeRegion = {sides: {top: true, bottom: true, left: true, right: true}};
+            }
+            for (const key of Object.keys(constraint.resizeRegion.sides) as ('top' | 'bottom' | 'left' | 'right')[]) {
+                result.resizeRegion.sides[key] = result.resizeRegion.sides[key] && constraint.resizeRegion.sides[key];
+                resizableSide = resizableSide || result.resizeRegion.sides[key];
+            }
+        }
+
+
+        result.resizable = !(result.resizable === false) && !(constraint.resizable === false) && resizableSide;
+    }
+
+    return result;
+}

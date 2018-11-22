@@ -22,8 +22,8 @@ test.afterEach.always(async () => {
 
 test('Create tab group from 2 windows', async (assert) => {
     // Arrange
-    const app1: Application = await createTabbingWindow('default', 'App0', 200);
-    const app2: Application = await createTabbingWindow('default', 'App1', 500);
+    const app1: Application = await createTabbingWindow('default', 'tabapp1', 200);
+    const app2: Application = await createTabbingWindow('default', 'tabapp2', 500);
 
     await Promise.all([app1.run(), app2.run()]);
 
@@ -95,7 +95,7 @@ test('Create tab group from 2 windows', async (assert) => {
  */
 async function createTabbingWindow(page: string, uuid: string, left: number): Promise<Application> {
     return fin.Application.create({
-        url: `http://localhost:1337/demo/tabbing/App/${page}.html`,
+        url: `http://localhost:1337/demo/tabbing/${page}.html`,
         uuid,
         name: uuid,
         mainWindowOptions: {

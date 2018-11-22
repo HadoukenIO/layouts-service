@@ -45,7 +45,7 @@ This project consist of 3 parts:
 
 ```bash
 npm install --ignore-scripts
-npm run dev
+npm start
 ```
 ## Getting Started
 

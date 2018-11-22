@@ -114,7 +114,7 @@ export class Preview {
             frame: false,
             state: 'normal',
             autoShow: false,
-            alwaysOnTop: false
+            alwaysOnTop: true
         };
 
         const preview: PreviewWindow = {

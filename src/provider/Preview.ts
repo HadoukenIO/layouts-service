@@ -1,6 +1,6 @@
 import {DesktopSnapGroup} from './model/DesktopSnapGroup';
 import {Point, PointUtils} from './snapanddock/utils/PointUtils';
-import { Target } from './WindowHandler';
+import {Target} from './WindowHandler';
 
 const PREVIEW_SUCCESS = '#3D4059';
 const PREVIEW_SUCCESS_RESIZE = PREVIEW_SUCCESS;

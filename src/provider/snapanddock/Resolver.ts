@@ -1,10 +1,11 @@
 import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
 import {WindowState} from '../model/DesktopWindow';
+import {Target} from '../WindowHandler';
+
 import {SNAP_DISTANCE} from './Config';
 import {Projector} from './Projector';
 import {Point, PointUtils} from './utils/PointUtils';
 import {RectUtils} from './utils/RectUtils';
-import { Target } from '../WindowHandler';
 
 
 /**

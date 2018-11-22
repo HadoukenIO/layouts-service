@@ -1,14 +1,12 @@
-import {tabService} from '../main';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
 import {DesktopWindow, eTransformType, Mask, WindowIdentity} from '../model/DesktopWindow';
+import {Target} from '../WindowHandler';
 
 import {EXPLODE_MOVE_SCALE, MIN_OVERLAP, UNDOCK_MOVE_DISTANCE} from './Config';
 import {Resolver} from './Resolver';
-import {View} from '../View';
 import {Point, PointUtils} from './utils/PointUtils';
 import {MeasureResult, RectUtils} from './utils/RectUtils';
-import { Target } from '../WindowHandler';
 
 /**
  * For passing state between service and view.
@@ -50,12 +48,12 @@ export class SnapService {
 
     private model: DesktopModel;
 
-    //private view: SnapView;
+    // private view: SnapView;
 
     constructor(model: DesktopModel) {
         this.model = model;
         this.resolver = new Resolver();
-        //this.view = new SnapView();
+        // this.view = new SnapView();
 
         // Register lifecycle listeners
         DesktopSnapGroup.onCreated.add(this.onSnapGroupCreated, this);
@@ -179,7 +177,7 @@ export class SnapService {
         const groups: ReadonlyArray<DesktopSnapGroup> = this.model.getSnapGroups();
         const snapTarget: Target|null = this.resolver.getSnapTarget(groups, activeGroup);
 
-        //this.view.update(activeGroup, snapTarget);
+        // this.view.update(activeGroup, snapTarget);
     }
 
     public applySnapTarget(activeGroup: DesktopSnapGroup): void {
@@ -211,9 +209,8 @@ export class SnapService {
                         ')');
                 }
             }
-
+        }
     }
-}
 
     private calculateUndockMoveDirection(window: DesktopWindow): Point {
         const group = window.getSnapGroup();

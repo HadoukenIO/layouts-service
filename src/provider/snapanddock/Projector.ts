@@ -1,11 +1,12 @@
 import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
 import {WindowState} from '../model/DesktopWindow';
+import {eTargetType, Target} from '../WindowHandler';
+
 import {ANCHOR_DISTANCE, MIN_OVERLAP, SNAP_DISTANCE} from './Config';
 import {Orientation} from './Resolver';
 import {Point, PointUtils} from './utils/PointUtils';
 import {Range, RangeUtils} from './utils/RangeUtils';
 import {MeasureResult, RectUtils} from './utils/RectUtils';
-import { Target, eTargetType } from '../WindowHandler';
 
 export enum eDirection {
     LEFT,

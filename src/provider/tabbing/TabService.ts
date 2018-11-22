@@ -5,12 +5,12 @@ import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {DesktopWindow, WindowState} from '../model/DesktopWindow';
+import {PointUtils} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
+import {eTargetType, Target} from '../WindowHandler';
 
 import {ApplicationConfigManager} from './components/ApplicationConfigManager';
 import {DragWindowManager} from './DragWindowManager';
-import { Target, eTargetType } from '../WindowHandler';
-import { PointUtils } from '../snapanddock/utils/PointUtils';
 
 /**
  * The overarching class for the Tab Service.
@@ -316,12 +316,13 @@ export class TabService {
     }
 
     /**
-     * Returns the Center and HalfSize of a valid tabbing area on a window.  If the window has a tabset, this will be the dimensions of the tab group window, if not the dimensions will be tab group window inset.
+     * Returns the Center and HalfSize of a valid tabbing area on a window.  If the window has a tabset, this will be the dimensions of the tab group window, if
+     * not the dimensions will be tab group window inset.
      * @param {DesktopWindow} window The window to get area for.
      */
     private getWindowDropArea(window: DesktopWindow): Rectangle {
         const isTabbed = window.getTabGroup();
-        if(isTabbed) {
+        if (isTabbed) {
             const {halfSize, center} = isTabbed.window.getState();
             return {center, halfSize};
         } else {
@@ -334,36 +335,35 @@ export class TabService {
         }
     }
 
-    public getTarget(activeGroup: DesktopSnapGroup): Target | null {
-        const position: Point | null = this._model.getMouseTracker().getPosition();
-        const targetWindow: DesktopWindow | null = position && this._model.getWindowAt(position.x, position.y, activeGroup.windows[0].getIdentity()); // TODO: Verify window exclude (window being moved in activeGroup ?) 
-        const isOverWindowValid = targetWindow && this.isOverWindowDropArea(targetWindow, position!); // Position implied to be valid if targetWindow is truthy
-        const dropArea = isOverWindowValid && this.getWindowDropArea(targetWindow!); // TargetWindow implied to be valid if isOverWindowValid is truthy;
+    /**
+     * Generates a valid tabbing target for a given active group in its current position.
+     * @param {DesktopSnapGroup} activeGroup The current active group being moved by the user.
+     */
+    public getTarget(activeGroup: DesktopSnapGroup): Target|null {
+        const position: Point|null = this._model.getMouseTracker().getPosition();
+        const targetWindow: DesktopWindow|null = position && this._model.getWindowAt(position.x, position.y, activeGroup.windows[0].getIdentity());
+        const isOverWindowValid = targetWindow && this.isOverWindowDropArea(targetWindow, position!);  // Position implied to be valid if targetWindow is truthy
+        const dropArea = isOverWindowValid && this.getWindowDropArea(targetWindow!);  // TargetWindow implied to be valid if isOverWindowValid is truthy;
 
-        if(targetWindow && dropArea){
+        if (targetWindow && dropArea) {
             const isTargetTabbed = targetWindow.getTabGroup();
             const targetWindowState = isTargetTabbed && isTargetTabbed.window.getState() || targetWindow.getState();
+            const activeWindowState = activeGroup.windows[0].getState();
 
-            // Calculates offset to top left corners
-            // TODO: Do we need to use top left corners?  Issue when using .center
-            const offset: Point = PointUtils.difference({
-                    x: activeGroup.windows[0].getState().center.x - activeGroup.windows[0].getState().halfSize.x,
-                    y: activeGroup.windows[0].getState().center.y - activeGroup.windows[0].getState().halfSize.y
-                }, 
-                {
-                    x: targetWindowState.center.x - targetWindowState.halfSize.x, 
-                    y: targetWindowState.center.y - targetWindowState.halfSize.y
-                });
+            // Calculate offset between the target window & the active Window
+            const offset: Point = PointUtils.difference(
+                RectUtils.getCorner('top-left', activeWindowState.center, activeWindowState.halfSize),
+                RectUtils.getCorner('top-left', targetWindowState.center, targetWindowState.halfSize));
 
             // Check if the target and active window have same tab config.
             const valid: boolean = this.applicationConfigManager.compareConfigBetweenApplications(
                 isTargetTabbed ? isTargetTabbed.config : targetWindow.getIdentity().uuid, activeGroup.windows[0].getIdentity().uuid);
 
             return {
-                type: eTargetType.TAB, 
-                activeWindow: activeGroup.windows[0], 
-                group: targetWindow!.getSnapGroup(), 
-                halfSize: dropArea.halfSize, 
+                type: eTargetType.TAB,
+                activeWindow: activeGroup.windows[0],
+                group: targetWindow.getSnapGroup(),
+                halfSize: dropArea.halfSize,
                 offset,
                 valid
             };

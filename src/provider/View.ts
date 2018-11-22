@@ -1,12 +1,11 @@
 import {DesktopSnapGroup, Snappable} from './model/DesktopSnapGroup';
 import {Preview} from './Preview';
-import { Target } from './WindowHandler';
-import { DesktopWindow } from './model/DesktopWindow';
+import {Target} from './WindowHandler';
 
 export class View {
     private activeGroup: DesktopSnapGroup|null;  // The group being moved
-    private target: Target|null;             // The current snap candidate (target may be valid or invalid. Will be null if there are no candidates)
-    private preview: Preview;                // For displaying where the active group will snap to (the red/green boxes)
+    private target: Target|null;                 // The current snap candidate (target may be valid or invalid. Will be null if there are no candidates)
+    private preview: Preview;                    // For displaying where the active group will snap to (the red/green boxes)
 
     constructor() {
         this.activeGroup = null;
@@ -27,7 +26,6 @@ export class View {
     public update(activeGroup: DesktopSnapGroup|null, target: Target|null): void {
         // Handle change of active group
         if (activeGroup !== this.activeGroup) {
-
             // Reset active window always on top property.
             this.setAlwaysOnTop(this.activeGroup, false);
 
@@ -68,9 +66,9 @@ export class View {
                     window.applyOverride('opacity', 0.8);
                 });
             } else {
-                //group.windows[0].applyOverride('alwaysOnTop', false);
+                // group.windows[0].applyOverride('alwaysOnTop', false);
                 group.windows.forEach((window: Snappable) => {
-                    window.resetOverride('opacity'); 
+                    window.resetOverride('opacity');
                 });
             }
         }
@@ -82,11 +80,11 @@ export class View {
      * @param {boolean} applyOnTop Apply alwaysOnTop or not.
      */
     private setAlwaysOnTop(group: DesktopSnapGroup|null, applyOnTop: boolean): void {
-        if(group && group.windows[0]){
-            if(applyOnTop){
-                group.windows[0].applyOverride("alwaysOnTop", true);
+        if (group && group.windows[0]) {
+            if (applyOnTop) {
+                group.windows[0].applyOverride('alwaysOnTop', true);
             } else {
-                group.windows[0].resetOverride("alwaysOnTop");
+                group.windows[0].resetOverride('alwaysOnTop');
             }
         }
     }

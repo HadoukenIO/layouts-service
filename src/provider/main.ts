@@ -7,7 +7,7 @@ import {DesktopWindow} from './model/DesktopWindow';
 import {SnapService} from './snapanddock/SnapService';
 import {win10Check} from './snapanddock/utils/platform';
 import {TabService} from './tabbing/TabService';
-import { WindowHandler } from './WindowHandler';
+import {WindowHandler} from './WindowHandler';
 
 export let model: DesktopModel;
 export let snapService: SnapService;

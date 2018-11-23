@@ -106,8 +106,8 @@ export class WindowHandler {
     private getTarget(activeGroup: DesktopSnapGroup): Target|null {
         const groups: ReadonlyArray<DesktopSnapGroup> = this.model.getSnapGroups();
         const snapTarget: Target|null = snapService.resolver.getSnapTarget(groups, activeGroup);
-        const tabTarget = tabService.getTarget(activeGroup);
+        const tabTarget = (activeGroup.windows.length === 1 || activeGroup.windows[0].getTabGroup()) && tabService.getTarget(activeGroup);
 
-        return tabTarget || snapTarget;
+        return snapTarget || tabTarget;
     }
 }

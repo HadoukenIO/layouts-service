@@ -43,6 +43,9 @@ export class View {
 
         // Detect change of target group
         if ((this.target && this.target.group) !== (target && target.group)) {
+            // Reset alwaysOnTop override, as our activeGroup window is now in the target group.
+            this.setAlwaysOnTop(this.target && this.target.group, false);
+
             // Restore opacity of previous target group (if any)
             this.setGroupOpacity(this.target && this.target.group, false);
 
@@ -80,11 +83,15 @@ export class View {
      * @param {boolean} applyOnTop Apply alwaysOnTop or not.
      */
     private setAlwaysOnTop(group: DesktopSnapGroup|null, applyOnTop: boolean): void {
-        if (group && group.windows[0]) {
+        if (group) {
             if (applyOnTop) {
-                group.windows[0].applyOverride('alwaysOnTop', true);
+                group.windows.forEach((window: Snappable) => {
+                    window.applyOverride('alwaysOnTop', true);
+                });
             } else {
-                group.windows[0].resetOverride('alwaysOnTop');
+                group.windows.forEach((window: Snappable) => {
+                    window.resetOverride('alwaysOnTop');
+                });
             }
         }
     }

@@ -48,12 +48,9 @@ export class SnapService {
 
     private model: DesktopModel;
 
-    // private view: SnapView;
-
     constructor(model: DesktopModel) {
         this.model = model;
         this.resolver = new Resolver();
-        // this.view = new SnapView();
 
         // Register lifecycle listeners
         DesktopSnapGroup.onCreated.add(this.onSnapGroupCreated, this);
@@ -171,13 +168,6 @@ export class SnapService {
                 }
             }
         }
-    }
-
-    public snapGroup(activeGroup: DesktopSnapGroup, type: Mask<eTransformType>): void {
-        const groups: ReadonlyArray<DesktopSnapGroup> = this.model.getSnapGroups();
-        const snapTarget: Target|null = this.resolver.getSnapTarget(groups, activeGroup);
-
-        // this.view.update(activeGroup, snapTarget);
     }
 
     public applySnapTarget(activeGroup: DesktopSnapGroup): void {

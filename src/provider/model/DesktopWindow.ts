@@ -608,6 +608,8 @@ export class DesktopWindow implements DesktopEntity {
         } else if (key === 'center' || key === 'halfSize') {
             const prevPoint: Point = prevState[key] as Point, newPoint: Point = newState[key] as Point;
             return prevPoint.x !== newPoint.x || prevPoint.y !== newPoint.y;
+        } else if (typeof prevState[key] === 'object') {
+            return !deepEqual(prevState[key], newState[key]);
         } else {
             return prevState[key] !== newState[key];
         }
@@ -684,7 +686,11 @@ export class DesktopWindow implements DesktopEntity {
             Object.keys(delta).forEach((key: string) => {
                 const property: keyof EntityState = key as keyof EntityState;
                 if (this.isModified(property, delta, this._currentState)) {
-                    this._applicationState[property] = delta[property]!;
+                    if(typeof delta[property] === 'object') {
+                        Object.assign(this.applicationState[property], delta[property]);
+                    } else {
+                        this.applicationState[property] = delta[property]!;
+                    }
                 }
             });
         }

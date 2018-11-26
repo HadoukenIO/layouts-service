@@ -251,7 +251,10 @@ export class DesktopTabGroup implements DesktopEntity {
         await DesktopWindow.transaction(allWindows, async () => {
             await this.addTabInternal(firstTab, true);
             await Promise.all([firstTab.sync(), this._window.sync()]);
-            await Promise.all(tabs.map(tab => this.addTabInternal(tab, false)));
+            // Add the tabs one-at-a-time to avoid potential race conditions with constraints updates.
+            for (const tab of tabs) {
+                await this.addTabInternal(tab,false);
+            }
         });
 
         if (activeTab !== firstTab) {
@@ -610,16 +613,18 @@ export class DesktopTabGroup implements DesktopEntity {
         // Apply the new constraints to all windows
         await Promise.all(this.tabs.map((tab: DesktopWindow) => tab.applyProperties({resizeConstraints: this.currentState.resizeConstraints})));
         // Update the tabStrip constraints accordingly
-        await this._window.applyProperties({
-            resizeConstraints: {
-                x: result.x,
-                y: {
-                    minSize: this._config.height,
-                    maxSize: this._config.height,
-                    resizableMin: false,
-                    resizableMax: false,
+        if (this._window.isReady) {
+            await this._window.applyProperties({
+                resizeConstraints: {
+                    x: result.x,
+                    y: {
+                        minSize: this._config.height,
+                        maxSize: this._config.height,
+                        resizableMin: false,
+                        resizableMax: false,
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 }

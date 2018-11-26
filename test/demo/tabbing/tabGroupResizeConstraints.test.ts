@@ -35,7 +35,7 @@ testParameterized(
                 {resizeRegion: {sides: {top: false, left: false, bottom: true, right: true}}},
                 {resizeRegion: {sides: {top: true, left: true, bottom: false, right: false}}}
             ]
-        }
+        },
     ],
     createWindowTest(async (t, options: TabConstraintsOptions) => {
         const windows = t.context.windows;
@@ -67,15 +67,20 @@ testParameterized(
             for (const key of Object.keys(resultingConstraints) as (keyof typeof resultingConstraints)[]) {
                 if (resultingConstraints.hasOwnProperty(key)) {
                     if (typeof resultingConstraints[key] === 'object') {
-                        t.deepEqual(windowOptions[key], resultingConstraints[key], `${key} does not match for window ${i}. Expected: ${JSON.stringify(resultingConstraints[key])}. Received: ${JSON.stringify(windowOptions[key])}`);
+                        t.deepEqual(
+                            windowOptions[key],
+                            resultingConstraints[key],
+                            `${key} does not match for window ${i} (name: ${windows[i].identity.name}). Expected: ${
+                                JSON.stringify(resultingConstraints[key])}. Received: ${JSON.stringify(windowOptions[key])}`);
                     } else {
-                        t.is(windowOptions[key], resultingConstraints[key], `${key} does not match.`);
+                        t.is(
+                            windowOptions[key],
+                            resultingConstraints[key],
+                            `${key} does not match. Expected: ${resultingConstraints[key]}. Received ${windowOptions[key]}`);
                     }
                 }
             }
         }
-
-        
     }));
 
 function constraintsUnion(...windowConstraints: Constraints[]): Constraints {

@@ -87,7 +87,7 @@ export class TabService {
      * Creates a new tab group with provided tabs.  Will use the UI and position of the first Identity provided for positioning.
      * @param tabIdentities An array of Identities to add to a group.
      */
-    public async createTabGroupWithTabs(tabIdentities: WindowIdentity[], activeTab?: WindowIdentity) {
+    public async createTabGroupWithTabs(tabIdentities: WindowIdentity[], activeTab?: WindowIdentity):Promise<void> {
         if (tabIdentities.length < 2) {
             console.error('createTabGroup called fewer than 2 tab identifiers');
             throw new Error('Must provide at least 2 Tab Identifiers');

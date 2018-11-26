@@ -340,14 +340,25 @@ export class TabService {
      * @param {DesktopSnapGroup} activeGroup The current active group being moved by the user.
      */
     public getTarget(activeGroup: DesktopSnapGroup): Target|null {
-
         const position: Point|null = this._model.getMouseTracker().getPosition();
         const targetWindow: DesktopWindow|null = position && this._model.getWindowAt(position.x, position.y, activeGroup.windows[0].getIdentity());
-        const isOverWindowValid = targetWindow && this.isOverWindowDropArea(targetWindow, position!);  // Position implied to be valid if targetWindow is truthy
-        const dropArea = isOverWindowValid && this.getWindowDropArea(targetWindow!);  // TargetWindow implied to be valid if isOverWindowValid is truthy;
-        const noTabGroupTabbing = activeGroup.windows.length === 1 || !activeGroup.windows[0].getTabGroup(); // Ensures you are not able to tab two tab groups together.
 
-        if (targetWindow && dropArea && noTabGroupTabbing) {
+        /**
+         * Checks the mouse position is over a valid window drop area.
+         */
+        const isOverWindowValid = targetWindow && this.isOverWindowDropArea(targetWindow, position!);
+
+        /**
+         * Checks if the window we are dragging is a tab group.
+         */
+        const isActiveWindowTabbed = activeGroup.windows[0].getTabGroup();
+
+        /**
+         * Checks if our target is a snapped window (non tab);
+         */
+        const isTargetSnapped = targetWindow && targetWindow.getSnapGroup().length > 1 && !targetWindow.getTabGroup();
+
+        if (targetWindow && isOverWindowValid && !isActiveWindowTabbed && !isTargetSnapped) {
             const isTargetTabbed = targetWindow.getTabGroup();
             const targetWindowState = isTargetTabbed && isTargetTabbed.window.getState() || targetWindow.getState();
             const activeWindowState = activeGroup.windows[0].getState();
@@ -365,7 +376,7 @@ export class TabService {
                 type: eTargetType.TAB,
                 activeWindow: activeGroup.windows[0],
                 group: targetWindow.getSnapGroup(),
-                halfSize: dropArea.halfSize,
+                halfSize: this.getWindowDropArea(targetWindow).halfSize,
                 offset,
                 valid
             };

@@ -69,7 +69,6 @@ export class View {
                     window.applyOverride('opacity', 0.8);
                 });
             } else {
-                // group.windows[0].applyOverride('alwaysOnTop', false);
                 group.windows.forEach((window: Snappable) => {
                     window.resetOverride('opacity');
                 });
@@ -79,8 +78,8 @@ export class View {
 
     /**
      * Applys alwaysOnTop to the primary window of a desktop snap group.  Required to keep the preview window in proper z-index order under the active window.
-     * @param {DesktopSnapGroup} group The activeGroup being dragged by the user.
-     * @param {boolean} applyOnTop Apply alwaysOnTop or not.
+     * @param group The activeGroup being dragged by the user.
+     * @param applyOnTop Apply alwaysOnTop or not.
      */
     private setAlwaysOnTop(group: DesktopSnapGroup|null, applyOnTop: boolean): void {
         if (group) {

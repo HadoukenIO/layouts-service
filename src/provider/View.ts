@@ -69,7 +69,6 @@ export class View {
                     window.applyOverride('opacity', 0.8);
                 });
             } else {
-                // group.windows[0].applyOverride('alwaysOnTop', false);
                 group.windows.forEach((window: Snappable) => {
                     window.resetOverride('opacity');
                 });

@@ -4,7 +4,6 @@ import {Fin} from 'hadouken-js-adapter';
 import {assertAllTabbed} from '../../provider/utils/assertions';
 import {getConnection} from '../../provider/utils/connect';
 import {delay} from '../../provider/utils/delay';
-import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 import {Constraints} from '../snapanddock/resizeOnSnap.test';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
 import {refreshWindowState} from '../utils/modelUtils';
@@ -36,47 +35,7 @@ testParameterized(
                 {resizeRegion: {sides: {top: false, left: false, bottom: true, right: true}}},
                 {resizeRegion: {sides: {top: true, left: true, bottom: false, right: false}}}
             ]
-        },
-        {
-            frame: true,
-            windowCount: 3,
-            windowConstraints: [
-                {resizeRegion: {sides: {top: false, left: false, bottom: true, right: true}}},
-                {resizeRegion: {sides: {top: true, left: true, bottom: false, right: false}}}
-            ]
-        },
-        {
-            frame: true,
-            windowCount: 3,
-            windowConstraints: [
-                {resizeRegion: {sides: {top: false, left: false, bottom: true, right: true}}},
-                {resizeRegion: {sides: {top: true, left: true, bottom: false, right: false}}}
-            ]
-        },
-        {
-            frame: true,
-            windowCount: 3,
-            windowConstraints: [
-                {resizeRegion: {sides: {top: false, left: false, bottom: true, right: true}}},
-                {resizeRegion: {sides: {top: true, left: true, bottom: false, right: false}}}
-            ]
-        },
-        {
-            frame: true,
-            windowCount: 3,
-            windowConstraints: [
-                {resizeRegion: {sides: {top: false, left: false, bottom: true, right: true}}},
-                {resizeRegion: {sides: {top: true, left: true, bottom: false, right: false}}}
-            ]
-        },
-        {
-            frame: true,
-            windowCount: 3,
-            windowConstraints: [
-                {resizeRegion: {sides: {top: false, left: false, bottom: true, right: true}}},
-                {resizeRegion: {sides: {top: true, left: true, bottom: false, right: false}}}
-            ]
-        },
+        }
     ],
     createWindowTest(async (t, options: TabConstraintsOptions) => {
         const windows = t.context.windows;

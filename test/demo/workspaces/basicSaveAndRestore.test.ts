@@ -16,8 +16,8 @@ export const OPTIONS_BASE = {
     saveWindowState: false,
     defaultTop: 100,
     defaultLeft: 100,
-    defaultHeight: 300,
-    defaultWidth: 300
+    defaultHeight: 250,
+    defaultWidth: 250
 };
 
 export const APP_INITIALIZER_BASE = {
@@ -28,44 +28,48 @@ export const APP_INITIALIZER_BASE = {
 
 let appNumber = 0;
 
-export function randomCoordinate() {
-    return Math.floor(Math.random() * (700 - 100 + 1)) + 100;
+export function appXCoordinate(appNumber: number) {
+    return (appNumber * 275);
 }
 
-function createNewAppOptions(children?: number) {
-    appNumber++;
-    const id = 'test-app' + appNumber;
-    let childNumber = children !== undefined && children > 0 ? children : 0;
-    const childWindows = [];
-    while (childNumber > 0) {
-        childWindows.push({name: `test${appNumber}-child${childNumber}`});
-        childNumber--;
+function createTest(numApps: number, children: number): {apps: AppInitializerInfo[]} {
+    const testArray = [];
+
+    while (numApps > 0) {
+        // Set the app information
+        appNumber++;
+        const id = 'test-app' + appNumber;
+
+        // Set the child window information
+        const childWindows = [];
+        let childNumber = children;
+        while (childNumber > 0) {
+            childWindows.push({name: `test${appNumber}-child${childNumber}`});
+            childNumber--;
+        }
+
+        // Save the app information
+        const defaultLeft = appXCoordinate(numApps);
+        const appOptions = {...OPTIONS_BASE, uuid: id, name: id, defaultTop: 100, defaultLeft};
+        testArray.push({...APP_INITIALIZER_BASE, appOptions, childWindows});
+
+        numApps--;
     }
-    return {
-        ...APP_INITIALIZER_BASE,
-        appOptions: {...OPTIONS_BASE, uuid: id, name: id, defaultTop: randomCoordinate(), defaultLeft: randomCoordinate()},
-        childWindows
-    };
+
+    return {apps: testArray as AppInitializerInfo[]};
 }
 
 const basicTestOptionsArray: BasicSaveRestoreTestOptions[] = [];
 
-function addTestToAppsArray(testOptions: AppInitializerInfo[]) {
-    basicTestOptionsArray.push({apps: testOptions});
-}
+const appNumbers = [1, 2];
+const childNumbers = [0, 1, 2, 3];
 
-addTestToAppsArray([createNewAppOptions() as AppInitializerInfo]);
-addTestToAppsArray([createNewAppOptions(1) as AppInitializerInfo]);
-addTestToAppsArray([createNewAppOptions(2) as AppInitializerInfo]);
-addTestToAppsArray([createNewAppOptions(3) as AppInitializerInfo]);
-addTestToAppsArray([createNewAppOptions() as AppInitializerInfo, createNewAppOptions() as AppInitializerInfo]);
-addTestToAppsArray([createNewAppOptions(1) as AppInitializerInfo, createNewAppOptions(1) as AppInitializerInfo]);
-addTestToAppsArray([createNewAppOptions(2) as AppInitializerInfo, createNewAppOptions(2) as AppInitializerInfo]);
-addTestToAppsArray([createNewAppOptions(3) as AppInitializerInfo, createNewAppOptions(3) as AppInitializerInfo]);
-addTestToAppsArray([createNewAppOptions() as AppInitializerInfo, createNewAppOptions() as AppInitializerInfo, createNewAppOptions() as AppInitializerInfo]);
-addTestToAppsArray([createNewAppOptions(1) as AppInitializerInfo, createNewAppOptions(1) as AppInitializerInfo, createNewAppOptions(1) as AppInitializerInfo]);
-addTestToAppsArray([createNewAppOptions(2) as AppInitializerInfo, createNewAppOptions(2) as AppInitializerInfo, createNewAppOptions(2) as AppInitializerInfo]);
-addTestToAppsArray([createNewAppOptions(3) as AppInitializerInfo, createNewAppOptions(3) as AppInitializerInfo, createNewAppOptions(3) as AppInitializerInfo]);
+appNumbers.forEach(appNumber => {
+    childNumbers.forEach(childNumber => {
+        const test = createTest(appNumber, childNumber);
+        basicTestOptionsArray.push(test);
+    });
+});
 
 testParameterized<CreateAppData, AppContext>(
     (testOptions: CreateAppData): string => `Basic SaveAndRestore - ${testOptions.apps.length} App(s) - ${testOptions.apps[0].childWindows.length} Children`,

@@ -17,7 +17,7 @@ export async function createChild(parentWindowName: string): Promise<void> {
 
 export async function openChild(name: string, i: number, frame = true, url?: string, bounds?: Bounds) {
     numChildren++;
-    
+
     if (bounds) {
         return await fin.Window.create({
             url: url || `${launchDir}/child.html`,

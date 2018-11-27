@@ -2,7 +2,7 @@ import {Application} from 'hadouken-js-adapter';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {getConnection} from '../../provider/utils/connect';
 import {createChildWindow} from '../../provider/utils/createChildWindow';
-import { randomCoordinate } from '../workspaces/basicSaveAndRestore.test';
+// import { randomCoordinate } from '../workspaces/basicSaveAndRestore.test';
 
 interface ParamBase {
     childWindows: fin.WindowOptions[];
@@ -30,8 +30,8 @@ export interface TestApp {
 const CHILD_WINDOW_BASE = {
     url: `http://localhost:1337/test/demo-window.html`,
     autoShow: true,
-    defaultHeight: 300,
-    defaultWidth: 300,
+    defaultHeight: 250,
+    defaultWidth: 250,
     defaultLeft: 200,
     defaultTop: 200,
     saveWindowState: false,
@@ -39,30 +39,47 @@ const CHILD_WINDOW_BASE = {
     name: 'BASE'
 };
 
-export class AppInitializer {
+function childYCoordinate(appNum: number, childNum: number) {
+    return (appNum * 275) + (childNum * 50) + 275;
+}
 
+function childXCoordinate(appNum: number, childNum: number) {
+    return ((appNum + childNum) * 275) + 100;
+}
+
+export class AppInitializer {
     constructor() {}
 
     public async initApps(params: AppInitializerInfo[]): Promise<TestApp[]> {
         const fin = await getConnection();
         const result: TestApp[] = [];
-        for (const param of params) {
+
+        for (let appIdx = 0; appIdx < params.length; appIdx++) {
+            const param = params[appIdx];
+
+            // Create the parent app
             let createdApp: Application;
             if (param.createType === 'programmatic') {
                 createdApp = await fin.Application.create(param.appOptions);
-                await createdApp.run();
             } else {
                 createdApp = await fin.Application.createFromManifest(param.manifestUrl);
-                await createdApp.run();
             }
 
+            await createdApp.run();
+
+            // Create its child windows
             const childWindows: _Window[] = [];
-            for (let index = 0; index < param.childWindows.length; index++) {
-                const child = param.childWindows[index];
-                childWindows.push(await createChildWindow(
-                    {...CHILD_WINDOW_BASE, defaultTop: randomCoordinate(), defaultLeft: randomCoordinate(), ...child}, createdApp.identity.uuid));
+            for (let childIdx = 0; childIdx < param.childWindows.length; childIdx++) {
+                const child = param.childWindows[childIdx];
+                const defaultTop = childYCoordinate(appIdx, childIdx);
+                const defaultLeft = childXCoordinate(appIdx, childIdx);
+                const childOptions = {...CHILD_WINDOW_BASE, defaultLeft, defaultTop, ...child};
+                const childWindow = await createChildWindow(childOptions, createdApp.identity.uuid);
+
+                childWindows.push(childWindow);
             }
 
+            // Save the information in the array
             result.push({
                 uuid: createdApp.identity.uuid,
                 app: createdApp,
@@ -70,6 +87,7 @@ export class AppInitializer {
                 children: childWindows,
             });
         }
+
         return result;
     }
 }

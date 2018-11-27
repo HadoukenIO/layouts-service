@@ -5,9 +5,10 @@ import {getConnection} from './connect';
 
 let childWindowCount = 1;
 
-const getClientConnection = async () => {
+const getClientConnection = async (uuid?: string) => {
+    uuid = uuid || 'test-app-comms';
     const fin = await getConnection();
-    return fin.InterApplicationBus.Channel.connect('test-app-comms');
+    return fin.InterApplicationBus.Channel.connect(uuid);
 };
 
 getConnection().then(fin => {
@@ -18,12 +19,13 @@ getConnection().then(fin => {
     });
 });
 
-export const createChildWindow = async (windowOptions: fin.WindowOptions) => {
+export const createChildWindow = async (windowOptions: fin.WindowOptions, uuid?: string) => {
+    uuid = uuid || 'testapp';
     const fin = await getConnection();
-    const client = await getClientConnection();
-    const windowName = 'win' + childWindowCount++;
-    await client.dispatch('createWindow', {...windowOptions, uuid: 'testApp', name: windowName});
+    const client = await getClientConnection(uuid);
+    const windowName = windowOptions.name ? windowOptions.name : 'win' + childWindowCount++;
+    await client.dispatch('createWindow', {...windowOptions, uuid, name: windowName});
 
-    const newWin = fin.Window.wrapSync({uuid: 'testApp', name: windowName});
+    const newWin = fin.Window.wrapSync({uuid, name: windowName});
     return newWin;
 };

@@ -17,7 +17,7 @@ export async function createChild(parentWindowName: string): Promise<void> {
 
 export async function openChild(name: string, i: number, frame = true, url?: string, bounds?: Bounds) {
     numChildren++;
-
+    
     if (bounds) {
         return await fin.Window.create({
             url: url || `${launchDir}/child.html`,
@@ -30,7 +30,6 @@ export async function openChild(name: string, i: number, frame = true, url?: str
             frame,
             name
         });
-
     } else {
         return await fin.Window.create({
             url: url || `${launchDir}/child.html`,
@@ -44,6 +43,20 @@ export async function openChild(name: string, i: number, frame = true, url?: str
             name
         });
     }
+}
+
+export async function createTestChild(options: fin.WindowOptions): Promise<_Window> {
+    return await fin.Window.create({
+        url: options.url || `${launchDir}/demo-window.html`,
+        autoShow: true,
+        defaultHeight: options.defaultHeight,
+        defaultWidth: options.defaultWidth,
+        defaultLeft: options.defaultLeft,
+        defaultTop: options.defaultTop,
+        saveWindowState: options.saveWindowState,
+        frame: options.frame,
+        name: options.name
+    });
 }
 
 export async function onAppRes(layoutApp: LayoutApp): Promise<LayoutApp> {

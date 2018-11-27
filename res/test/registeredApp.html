@@ -16,7 +16,7 @@
         fin.desktop.main(async () => {
             let thisWindow = fin.desktop.Window.getCurrent();
             let provider = await fin.InterApplicationBus.Channel.create(thisWindow.uuid);
-            provider.register('createWindow', () => normalApp.createChild('Child-1'));
+            provider.register('createWindow', (options) => normalApp.createTestChild(options));
         })
     </script>
 </body>

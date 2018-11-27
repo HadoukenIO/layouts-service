@@ -167,3 +167,16 @@ export function createSnapTests(numApps: number, children: number): {apps: AppIn
 
     return result;
 }
+
+export function createTabTests(numApps: number, children: number): {apps: AppInitializerInfo[], tabWindowGrouping: number[][]}[] {
+    const windowGroupings = createWindowGroupings(numApps, children);
+    const appsArray = createAppsArray(numApps, children);
+
+    const result = [];
+
+    for (const windowGrouping of windowGroupings) {
+        result.push({apps: appsArray as AppInitializerInfo[], tabWindowGrouping: windowGrouping});
+    }
+
+    return result;
+}

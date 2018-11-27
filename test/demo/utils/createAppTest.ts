@@ -9,6 +9,7 @@ import {TestMacro} from './parameterizedTestUtils';
 export interface CreateAppData {
     apps: AppInitializerInfo[];
     snapWindowGrouping?: number[][];
+    tabWindowGrouping?: number[][];
 }
 
 export interface AppContext {
@@ -40,6 +41,12 @@ export function createAppTest<T extends CreateAppData, C extends AppContext = Ap
 
         data.snapWindowGrouping = data.snapWindowGrouping || [];
         await appInitializer.snapWindows(data.snapWindowGrouping, windows);
+
+        // Delay slightly to allow windows to settle
+        await delay(300);
+
+        data.tabWindowGrouping = data.tabWindowGrouping || [];
+        await appInitializer.tabWindows(data.tabWindowGrouping, windows);
 
         // Delay slightly to allow windows to settle
         await delay(300);

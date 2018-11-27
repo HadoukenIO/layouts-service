@@ -5,6 +5,7 @@ import {getConnection} from '../../provider/utils/connect';
 import {createChildWindow} from '../../provider/utils/createChildWindow';
 import {delay} from '../../provider/utils/delay';
 import {dragSideToSide} from '../../provider/utils/dragWindowTo';
+import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 
 // import { randomCoordinate } from '../workspaces/basicSaveAndRestore.test';
 
@@ -103,6 +104,14 @@ export class AppInitializer {
             const win1 = windows[group[0]];
             const win2 = windows[group[1]];
             await dragSideToSide(win1, 'left', win2, 'right');
+        }
+    }
+
+    public async tabWindows(tabWindowGrouping: number[][], windows: _Window[]): Promise<void> {
+        for (const group of tabWindowGrouping) {
+            const win1 = windows[group[0]];
+            const win2 = windows[group[1]];
+            await tabWindowsTogether(win1, win2);
         }
     }
 }

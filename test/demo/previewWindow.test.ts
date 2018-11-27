@@ -3,13 +3,13 @@ import * as robot from 'robotjs';
 
 import {CreateWindowData, createWindowTest} from '../demo/utils/createWindowTest';
 import {testParameterized} from '../demo/utils/parameterizedTestUtils';
-
 import {assertAdjacent} from '../provider/utils/assertions';
 import {getConnection} from '../provider/utils/connect';
 import {delay} from '../provider/utils/delay';
 import {dragWindowAndHover} from '../provider/utils/dragWindowAndHover';
+import {dragSideToSide} from '../provider/utils/dragWindowTo';
 import {getBounds} from '../provider/utils/getBounds';
-import {Side} from '../provider/utils/SideUtils';
+import {opposite, Side} from '../provider/utils/SideUtils';
 import {tabWindowsTogether} from '../provider/utils/tabWindowsTogether';
 
 
@@ -33,22 +33,8 @@ testParameterized(
         const previewWin: _Window = await fin.Window.wrap({name: 'previewWindow-', uuid: 'layouts-service'});
         const windowBounds = await Promise.all([getBounds(windows[0]), getBounds(windows[1])]);
 
-        switch (side) {
-            case 'top':
-                await dragWindowAndHover(windows[1], windowBounds[0].left, windowBounds[0].top - windowBounds[0].height);
-                break;
-            case 'bottom':
-                await dragWindowAndHover(windows[1], windowBounds[0].left, windowBounds[0].bottom);
-                break;
-            case 'left':
-                await dragWindowAndHover(windows[1], windowBounds[0].left - windowBounds[0].width, windowBounds[0].top + 5);
-                break;
-            case 'right':
-                await dragWindowAndHover(windows[1], windowBounds[0].right, windowBounds[0].top);
-                break;
-            default:
-                throw new Error(`Invalid side specified: ${side}`);
-        }
+        await dragSideToSide(windows[1], opposite(side), windows[0], side, {x: 5, y: 5}, false);
+
         const previewBounds = await getBounds(previewWin);
         robot.mouseToggle('up');
 
@@ -77,7 +63,7 @@ testParameterized(
     createWindowTest(async (t, testOptions: PreviewResizeTestOptions) => {
         const {dimension, direction} = testOptions;
         const {windows} = t.context;
-        console.log(dimension, direction);
+
         const fin = await getConnection();
         const previewWin: _Window = await fin.Window.wrap({name: 'previewWindow-', uuid: 'layouts-service'});
         const windowBounds = await Promise.all([getBounds(windows[0]), getBounds(windows[1])]);
@@ -97,19 +83,14 @@ testParameterized(
         dimension === 'height' ? t.is(previewBounds.height, windowBounds[0].height) : t.is(previewBounds.width, windowBounds[0].width);
     }, {defaultCentered: true, defaultWidth: 250, defaultHeight: 150}));
 
-
-interface PreviewTabTest extends CreateWindowData {
-    tab: boolean;
-}
-
 testParameterized(
-    (testOptions: PreviewTabTest): string => `Preview tab - ${testOptions.tab ? 'tabbed' : 'single'} window`,
+    (testOptions: CreateWindowData): string => `Preview tab - ${testOptions.windowCount > 2 ? 'tabbed' : 'single'} window`,
     [
-        {frame: true, tab: false, windowCount: 2},
-        {frame: true, tab: true, windowCount: 3},
+        {frame: true, windowCount: 2},
+        {frame: true, windowCount: 3},
     ],
-    createWindowTest(async (t, testOptions: PreviewTabTest) => {
-        const {tab} = testOptions;
+    createWindowTest(async (t, testOptions: CreateWindowData) => {
+        const {windowCount} = testOptions;
         const {windows} = t.context;
 
         const fin = await getConnection();
@@ -118,12 +99,13 @@ testParameterized(
 
         await delay(500);
 
-        if (tab) {
+        if (windowCount > 2) {
+            // Tab windows together
             await windows[2].moveTo(20, 20);
             await tabWindowsTogether(windows[0], windows[1]);
         }
 
-        await dragWindowAndHover(tab ? windows[2] : windows[1], windowBounds[0].left + 10, windowBounds[0].top + 5);
+        await dragWindowAndHover(windowCount > 2 ? windows[2] : windows[1], windowBounds[0].left + 10, windowBounds[0].top + 5);
 
         const previewBounds = await getBounds(previewWin);
 

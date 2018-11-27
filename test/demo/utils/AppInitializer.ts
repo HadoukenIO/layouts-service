@@ -1,7 +1,11 @@
 import {Application} from 'hadouken-js-adapter';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
+
 import {getConnection} from '../../provider/utils/connect';
 import {createChildWindow} from '../../provider/utils/createChildWindow';
+import {delay} from '../../provider/utils/delay';
+import {dragSideToSide} from '../../provider/utils/dragWindowTo';
+
 // import { randomCoordinate } from '../workspaces/basicSaveAndRestore.test';
 
 interface ParamBase {
@@ -44,7 +48,7 @@ function childYCoordinate(appNum: number, childNum: number) {
 }
 
 function childXCoordinate(appNum: number, childNum: number) {
-    return ((appNum + childNum) * 275) + 100;
+    return ((appNum + childNum) * 280) + 300;
 }
 
 export class AppInitializer {
@@ -66,6 +70,9 @@ export class AppInitializer {
             }
 
             await createdApp.run();
+
+            // Delay to give the app time to start up
+            await delay(300);
 
             // Create its child windows
             const childWindows: _Window[] = [];
@@ -89,5 +96,13 @@ export class AppInitializer {
         }
 
         return result;
+    }
+
+    public async snapWindows(snapWindowGrouping: number[][], windows: _Window[]): Promise<void> {
+        for (const group of snapWindowGrouping) {
+            const win1 = windows[group[0]];
+            const win2 = windows[group[1]];
+            await dragSideToSide(win1, 'left', win2, 'right');
+        }
     }
 }

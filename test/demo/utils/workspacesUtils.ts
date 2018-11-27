@@ -1,6 +1,8 @@
 import {Context, GenericTestContext, Test, TestContext} from 'ava';
+
 import {getConnection} from '../../provider/utils/connect';
-import {TestApp} from './AppInitializer';
+
+import {AppInitializerInfo, TestApp} from './AppInitializer';
 import {AppContext} from './createAppTest';
 import {sendServiceMessage} from './serviceUtils';
 
@@ -81,4 +83,87 @@ export async function createCloseAndRestoreLayout(t: SaveRestoreTestContext) {
     const generatedLayout = await sendServiceMessage('generateLayout', undefined);
     await Promise.all(t.context.testAppData.map(async (appData: TestApp) => await appData.app.close(true)));
     await sendServiceMessage('restoreLayout', generatedLayout);
+}
+
+export const OPTIONS_BASE = {
+    uuid: 'BASE',
+    url: 'http://localhost:1337/test/registeredApp.html',
+    name: 'BASE',
+    autoShow: true,
+    saveWindowState: false,
+    defaultTop: 100,
+    defaultLeft: 100,
+    defaultHeight: 250,
+    defaultWidth: 250
+};
+
+export const APP_INITIALIZER_BASE = {
+    appOptions: OPTIONS_BASE,
+    createType: 'programmatic',
+    childWindows: []
+};
+
+export function appXCoordinate(appTitleNumber: number) {
+    return (appTitleNumber * 275);
+}
+
+let appTitleNumber = 0;
+
+export function createAppsArray(numAppsToCreate: number, numberOfChildren: number) {
+    const appsArray = [];
+    while (numAppsToCreate > 0) {
+        // Set the app information
+        appTitleNumber++;
+        const id = 'test-app' + appTitleNumber;
+
+        // Set the child window information
+        const childWindows = [];
+        let childTitleNumber = numberOfChildren;
+        while (childTitleNumber > 0) {
+            childWindows.push({name: `test${appTitleNumber}-child${childTitleNumber}`});
+            childTitleNumber--;
+        }
+
+        // Save the app information
+        const defaultLeft = appXCoordinate(numAppsToCreate);
+        const appOptions = {...OPTIONS_BASE, uuid: id, name: id, defaultTop: 100, defaultLeft};
+        appsArray.push({...APP_INITIALIZER_BASE, appOptions, childWindows});
+
+        numAppsToCreate--;
+    }
+
+    return appsArray;
+}
+
+
+export function createBasicSaveAndRestoreTest(numAppsToCreate: number, numberOfChildren: number): {apps: AppInitializerInfo[]} {
+    const appsArray = createAppsArray(numAppsToCreate, numberOfChildren);
+
+    return {apps: appsArray as AppInitializerInfo[]};
+}
+
+export function createWindowGroupings(numApps: number, children: number) {
+    const totalWindows = (numApps) + (numApps * children);
+
+    switch (totalWindows) {
+        case 2:
+            return [[[0, 1]]];
+        case 4:
+            return [[[0, 1], [2, 3]], [[0, 2], [1, 3]], [[0, 3], [1, 2]]];
+        default:
+            return [];
+    }
+}
+
+export function createSnapTests(numApps: number, children: number): {apps: AppInitializerInfo[], snapWindowGrouping: number[][]}[] {
+    const windowGroupings = createWindowGroupings(numApps, children);
+    const appsArray = createAppsArray(numApps, children);
+
+    const result = [];
+
+    for (const windowGrouping of windowGroupings) {
+        result.push({apps: appsArray as AppInitializerInfo[], snapWindowGrouping: windowGrouping});
+    }
+
+    return result;
 }

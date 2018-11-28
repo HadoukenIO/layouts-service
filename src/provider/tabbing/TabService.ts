@@ -1,16 +1,23 @@
 import {Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
-
 import {ApplicationUIConfig, TabGroup, TabGroupDimensions, WindowIdentity} from '../../client/types';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {DesktopWindow, WindowState} from '../model/DesktopWindow';
-import {PointUtils} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
-import {eTargetType, Target} from '../WindowHandler';
-
+import {eTargetType, TargetBase} from '../WindowHandler';
 import {ApplicationConfigManager} from './components/ApplicationConfigManager';
 import {DragWindowManager} from './DragWindowManager';
+
+
+export interface TabTarget extends TargetBase {
+    type: eTargetType.TAB;
+
+    /**
+     * Represents the target window tabbing space;
+     */
+    dropArea: Rectangle;
+}
 
 /**
  * The overarching class for the Tab Service.
@@ -339,7 +346,7 @@ export class TabService {
      * Generates a valid tabbing target for a given active group in its current position.
      * @param {DesktopSnapGroup} activeGroup The current active group being moved by the user.
      */
-    public getTarget(activeGroup: DesktopSnapGroup): Target|null {
+    public getTarget(activeGroup: DesktopSnapGroup): TabTarget|null {
         const position: Point|null = this._model.getMouseTracker().getPosition();
         const targetWindow: DesktopWindow|null = position && this._model.getWindowAt(position.x, position.y, activeGroup.windows[0].getIdentity());
 
@@ -360,13 +367,6 @@ export class TabService {
 
         if (targetWindow && isOverWindowValid && !isActiveWindowTabbed && !isTargetSnapped) {
             const isTargetTabbed = targetWindow.getTabGroup();
-            const targetWindowState = isTargetTabbed && isTargetTabbed.window.getState() || targetWindow.getState();
-            const activeWindowState = activeGroup.windows[0].getState();
-
-            // Calculate offset between the target window & the active Window
-            const offset: Point = PointUtils.difference(
-                RectUtils.getCorner('top-left', activeWindowState.center, activeWindowState.halfSize),
-                RectUtils.getCorner('top-left', targetWindowState.center, targetWindowState.halfSize));
 
             // Check if the target and active window have same tab config.
             const valid: boolean = this.applicationConfigManager.compareConfigBetweenApplications(
@@ -376,8 +376,7 @@ export class TabService {
                 type: eTargetType.TAB,
                 activeWindow: activeGroup.windows[0],
                 group: targetWindow.getSnapGroup(),
-                halfSize: this.getWindowDropArea(targetWindow).halfSize,
-                offset,
+                dropArea: this.getWindowDropArea(targetWindow),
                 valid
             };
         }

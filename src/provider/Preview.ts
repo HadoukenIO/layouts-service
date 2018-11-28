@@ -1,6 +1,7 @@
 import {DesktopSnapGroup} from './model/DesktopSnapGroup';
 import {Point, PointUtils} from './snapanddock/utils/PointUtils';
-import {Target} from './WindowHandler';
+import {Rectangle} from './snapanddock/utils/RectUtils';
+import {eTargetType, Target} from './WindowHandler';
 
 const PREVIEW_SUCCESS = '#3D4059';
 const PREVIEW_SUCCESS_RESIZE = PREVIEW_SUCCESS;
@@ -47,33 +48,17 @@ export class Preview {
         const activeGroup = target.activeWindow.getSnapGroup();
         const groupHalfSize = activeGroup.halfSize;  // TODO: Will need to change once 'activeGroup' can have multiple windows (SERVICE-128)
 
+        const previewWindowRect = this.generatePreviewRect(target);
+
         if (!this.tempWindowIsActive || this.activeGroup !== activeGroup) {
             this.tempWindowIsActive = true;
-
-            this.setWindowSize(this.tempWindow, groupHalfSize).then(() => {
-                if (this.tempWindowIsActive) {
-                    this.tempWindow.window.show();
-                }
-            });
+            this.tempWindow.window.show();
         }
 
         this.activeWindowPreview = this.tempWindow;
 
-        if (target.halfSize) {
-            // Resize window to the size chosen in the snap target
-            if (!PointUtils.isEqual(this.activeWindowPreview.halfSize, target.halfSize)) {
-                this.setWindowSize(this.activeWindowPreview, target.halfSize);
-            }
-        } else {
-            // Ensure the size of the preview matches the size of the window it represents
-            const halfSize = target.activeWindow.getState().halfSize;
+        this.positionPreview(target);
 
-            if (!PointUtils.isEqual(this.activeWindowPreview.halfSize, halfSize)) {
-                this.setWindowSize(this.activeWindowPreview, halfSize);
-            }
-        }
-
-        this.setWindowPosition(this.tempWindow, activeGroup.center, groupHalfSize, target.offset);
         if (target.valid) {
             if (PointUtils.isEqual(this.activeWindowPreview.halfSize, groupHalfSize)) {
                 this.activeWindowPreview.nativeWindow!.document.body.style.background = PREVIEW_SUCCESS;
@@ -131,23 +116,34 @@ export class Preview {
         return preview;
     }
 
-    private setWindowSize(preview: PreviewWindow, halfSize: Point): Promise<void> {
-        return new Promise((resolve: () => void, reject: (reason: string) => void) => {
-            // Update cached halfSize (do this immediately)
-            PointUtils.assign(this.tempWindow.halfSize, halfSize);
+    private positionPreview(target: Target) {
+        const previewRect = this.generatePreviewRect(target);
+        PointUtils.assign(this.tempWindow.halfSize, previewRect.halfSize);
 
-            // Resize OpenFin window
-            preview.window.resizeTo(halfSize.x * 2, halfSize.y * 2, 'top-left', resolve, reject);
-        });
+        this.tempWindow.window.setBounds(
+            previewRect.center.x - previewRect.halfSize.x,
+            previewRect.center.y - previewRect.halfSize.y,
+            previewRect.halfSize.x * 2,
+            previewRect.halfSize.y * 2);
     }
 
-    private setWindowPosition(preview: PreviewWindow, center: Point, halfSize: Point, snapOffset: Point): void {
-        // Move OpenFin window
-        preview.window.moveTo(center.x - halfSize.x + snapOffset.x, center.y - halfSize.y + snapOffset.y);
+    private generatePreviewRect(target: Target): Rectangle {
+        if (target.type === eTargetType.SNAP) {
+            const activeGroup = target.activeWindow.getSnapGroup();
+            const prevHalfSize = target.activeWindow.getSnapGroup().halfSize;
 
-        // preview.window.animate(
-        //     {position: {left: center.x - halfSize.x + snapOffset.x, top: center.y - halfSize.y + snapOffset.y, duration: 100}},
-        //     {interrupt: true}
-        // );
+            const halfSize = target.halfSize || prevHalfSize;
+
+            const center = {
+                x: activeGroup.center.x + target.offset.x + (halfSize.x - prevHalfSize.x),
+                y: activeGroup.center.y + target.offset.y + (halfSize.y - prevHalfSize.y)
+            };
+
+            return {center, halfSize};
+
+        } else {
+            // The target type here is "TAB"
+            return target.dropArea;
+        }
     }
 }

@@ -35,13 +35,12 @@ testParameterized(
 
         await dragSideToSide(windows[1], opposite(side), windows[0], side, {x: 5, y: 5}, false);
 
+        await assertAdjacent(t, windows[0], previewWin);
         const previewBounds = await getBounds(previewWin);
         robot.mouseToggle('up');
 
         t.is(windowBounds[1].width, previewBounds.width);
         t.is(windowBounds[1].height, previewBounds.height);
-
-        await assertAdjacent(t, windows[0], previewWin);
     }, {defaultCentered: true, defaultWidth: 250, defaultHeight: 150}));
 
 
@@ -80,7 +79,7 @@ testParameterized(
 
         robot.mouseToggle('up');
 
-        dimension === 'height' ? t.is(previewBounds.height, windowBounds[0].height) : t.is(previewBounds.width, windowBounds[0].width);
+        t.is(previewBounds[dimension], windowBounds[0][dimension]);
     }, {defaultCentered: true, defaultWidth: 250, defaultHeight: 150}));
 
 testParameterized(
@@ -97,13 +96,13 @@ testParameterized(
         const previewWin: _Window = await fin.Window.wrap({name: 'previewWindow-', uuid: 'layouts-service'});
         const windowBounds = await Promise.all([getBounds(windows[0]), getBounds(windows[1])]);
 
-        await delay(500);
-
         if (windowCount > 2) {
             // Tab windows together
             await windows[2].moveTo(20, 20);
             await tabWindowsTogether(windows[0], windows[1]);
         }
+
+        await delay(500);
 
         await dragWindowAndHover(windowCount > 2 ? windows[2] : windows[1], windowBounds[0].left + 10, windowBounds[0].top + 5);
 

@@ -1,6 +1,6 @@
 import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
 import {WindowState} from '../model/DesktopWindow';
-import {Target} from '../WindowHandler';
+import {eTargetType, TargetBase} from '../WindowHandler';
 
 import {SNAP_DISTANCE} from './Config';
 import {Projector} from './Projector';
@@ -26,6 +26,30 @@ export type Direction = Point<-1|0|1>;
  */
 export type Orientation = keyof Point;
 
+/**
+ * Interface that represents a valid candidate group for the group that the user is currently manipulating.
+ *
+ * As a window is dragged around, it is possible that it will be within the snapping distance of several other groups.
+ * The service will create a SnapTarget for each possible snap candidate, and then select the "best" candidate as
+ * being the current target. The selected target will then be passed to the UI for rendering/highlighting.
+ */
+export interface SnapTarget extends TargetBase {
+    type: eTargetType.SNAP;
+
+    /**
+     * The offset that will be applied to the active group, in order to correctly align it with this target.
+     */
+    offset: Point;
+
+    /**
+     * If 'activeWindow' should be resized as part of this snap, it's new halfSize will be specified here. This only
+     * happens when the active group contains a single window, and the two closest corners of that window are both
+     * within the anchor distance of the corresponding corners of the candidate window.
+     *
+     * Will be null if we don't want the window to resize as part of the snap.
+     */
+    halfSize: Point|null;
+}
 
 /**
  * State-less class that contains all the main snap and dock logic.
@@ -46,9 +70,9 @@ export class Resolver {
      * @param groups A list of all groups within the system
      * @param activeGroup The group that is currently being moved
      */
-    public getSnapTarget(groups: ReadonlyArray<DesktopSnapGroup>, activeGroup: DesktopSnapGroup): Target|null {
+    public getSnapTarget(groups: ReadonlyArray<DesktopSnapGroup>, activeGroup: DesktopSnapGroup): SnapTarget|null {
         const projector: Projector = this.projector;
-        const targets: Target[] = [];
+        const targets: SnapTarget[] = [];
 
         // Group-to-Group snapping not yet supported
         if (activeGroup.windows.length > 1) {
@@ -79,7 +103,7 @@ export class Resolver {
                     });
 
                     // Create snap target
-                    const target: Target|null = projector.createTarget(candidateGroup, activeGroup.windows[0]);
+                    const target: SnapTarget|null = projector.createTarget(candidateGroup, activeGroup.windows[0]);
                     if (target) {
                         targets.push(target);
                     }
@@ -97,9 +121,9 @@ export class Resolver {
         }
     }
 
-    private findBestTarget(targets: Target[]): Target|null {
+    private findBestTarget(targets: SnapTarget[]): SnapTarget|null {
         // Sort candidates so that most preferable is at start of array
-        targets = targets.sort((a: Target, b: Target) => {
+        targets = targets.sort((a: SnapTarget, b: SnapTarget) => {
             const offsetA: Point = a.offset, offsetB: Point = b.offset;
 
             if (a.valid !== b.valid && (a.valid || b.valid)) {
@@ -117,7 +141,7 @@ export class Resolver {
         return targets[0] || null;
     }
 
-    private isAnchorSnap(target: Target): boolean {
+    private isAnchorSnap(target: SnapTarget): boolean {
         return target.offset.x !== 0 && target.offset.y !== 0;
     }
 

@@ -5,31 +5,6 @@ import {Point, PointUtils} from '../snapanddock/utils/PointUtils';
 import {DesktopTabGroup} from './DesktopTabGroup';
 import {DesktopWindow, eTransformType, Mask, WindowIdentity, WindowMessages, WindowState} from './DesktopWindow';
 
-/**
- * Key-value store for saving the state of each window before it was added to the tab group.
- *
- * When a window gets converted into a tab, the service will have to override most of it's properties, but we want to
- * be able to restore each window to it's original state when you "pop" or "tear" the tab out of the group.
- *
- * Whilst a tab is within a group, this will be the only place that has the original pre-tab state of the window. The
- * DesktopWindow state will all reflect the size/appearance of the tabbed version of the window.
- */
-type TabData = {
-    [id: string]: WindowState
-};
-
-interface TabState {
-    tabBar: DesktopWindow;
-
-    /**
-     * Maps DesktopWindow ID's to the cached state for that window.
-     *
-     * The tab bar is a DesktopWindow the same as any other window in the group, but that window will not appear in this
-     * map, as we won't ever need to "un-tab" or "restore" that window.
-     */
-    previousState: TabData;
-}
-
 export interface Snappable {
     getId(): string;
     getIdentity(): WindowIdentity;
@@ -39,8 +14,8 @@ export interface Snappable {
 
     applyOverride<K extends keyof WindowState>(property: K, value: WindowState[K]): Promise<void>;
     resetOverride(property: keyof WindowState): Promise<void>;
-    dockToGroup(group: DesktopSnapGroup, offset?: Point, newHalfSize?: Point): Promise<void>;
-    snapToGroup(group: DesktopSnapGroup, offset?: Point, newHalfSize?: Point): Promise<void>;
+    setSnapGroup(group: DesktopSnapGroup): Promise<void>;
+    applyOffset(offset: Point, halfSize?: Point): Promise<void>;
 }
 
 export class DesktopSnapGroup {
@@ -103,21 +78,11 @@ export class DesktopSnapGroup {
 
     private rootWindow: DesktopWindow|null;
 
-    /**
-     * If this is non-null then the windows in this group are tabbed, and so have some special behaviour.
-     *
-     * A group with n tabs will contain n+1 windows - the n applications that the user has "tabbed" together, amd an
-     * additional window that is created by the Snap & Dock service. This window acts as the tab bar - it will be a
-     * DesktopWindow same as any other window, and other windows will also be able to snap to it.
-     */
-    private tabData: TabData|null;
-
     constructor() {
         this._id = DesktopSnapGroup.nextId++;
         this._snappables = [];
         this._windows = [];
         this.rootWindow = null;
-        this.tabData = null;
 
         const refreshFunc = this.calculateProperties.bind(this);
         this._origin = new CalculatedProperty(refreshFunc);
@@ -153,10 +118,6 @@ export class DesktopSnapGroup {
         return this._windows.length;
     }
 
-    public get isTabGroup(): boolean {
-        return this.tabData !== null;
-    }
-
     public get snappables(): Snappable[] {
         return this._snappables.slice();
     }
@@ -183,7 +144,7 @@ export class DesktopSnapGroup {
             this.buildSnappables();
             this.checkRoot();
             if (window.getSnapGroup() !== this) {
-                window.dockToGroup(this);
+                window.setSnapGroup(this);
             }
 
             // Will need to re-calculate cached properties
@@ -242,7 +203,14 @@ export class DesktopSnapGroup {
 
         snappables.length = 0;
         this._windows.forEach((window: DesktopWindow) => {
-            const snappable: Snappable = window.getTabGroup() || window;
+            let snappable: Snappable;
+            const tabGroup = window.getTabGroup();
+
+            if (tabGroup && tabGroup.tabs.length > 1) {
+                snappable = tabGroup;
+            } else {
+                snappable = window;
+            }
 
             if (!snappables.includes(snappable)) {
                 snappables.push(snappable);
@@ -255,11 +223,12 @@ export class DesktopSnapGroup {
      */
     private checkRoot(): void {
         let root = this._windows[0] || null;
+        const tabGroup: DesktopTabGroup|null = root && root.getTabGroup();
 
         // If the root window becomes hidden the group center will stop updating.
         // Tabbed windows are likely to be hidden a large amount of the time, so prefer the tabstrip window as the root.
-        if (root && root.getTabGroup()) {
-            root = root.getTabGroup()!.window;
+        if (tabGroup && tabGroup.tabs.length >= 2) {
+            root = tabGroup.window;
         }
 
         if (this.rootWindow !== root) {

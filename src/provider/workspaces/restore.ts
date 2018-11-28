@@ -99,7 +99,7 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
             const mainWindowModel = model.getWindow(app.mainWindow);
             await tabService.removeTab(app.mainWindow);
             if (mainWindowModel!.getSnapGroup().length > 1) {
-                mainWindowModel!.dockToGroup(new DesktopSnapGroup());
+                mainWindowModel!.setSnapGroup(new DesktopSnapGroup());
             }
 
 

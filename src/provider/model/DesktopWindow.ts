@@ -193,6 +193,24 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             });
     }
 
+    /**
+     * Util for "pseudo-atomically" applying a set of window transformations, without the runtime applying window constraints as each window is modified.
+     *
+     * This util will break the given windows from their current window groups (whilst still preserving model state - snapGroup's, etc), then invoke the given
+     * transformation on each window, and then re-group the windows once all transformations have been applied.
+     *
+     * @param windows The windows involved in the transaction
+     * @param transform Promisified transformation function. Will be applied after all the windows have been detached from their previous window groups.
+     */
+    public static async transaction(windows: DesktopWindow[], transform: (windows: DesktopWindow[]) => Promise<void>): Promise<void> {
+        await Promise.all(windows.map(w => w.sync()));
+        await Promise.all(windows.map(w => w.unsnap()));
+        // await Promise.all(windows.map(w => w.sync()));
+        await transform(windows);
+        await Promise.all(windows.map(w => w.snap()));
+        // await Promise.all(windows.map(w => w.sync()));
+    }
+
     private static isWindow(window: Window|fin.WindowOptions): window is Window {
         return window.hasOwnProperty('identity');
     }
@@ -406,40 +424,38 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
      * @param offset An offset to apply to this windows position (use this to enusre window is in correct position)
      * @param newHalfSize Can also simultaneously change the size of the window
      */
-    public dockToGroup(group: DesktopSnapGroup, offset?: Point, newHalfSize?: Point): Promise<void> {
+    public async setSnapGroup(group: DesktopSnapGroup): Promise<void> {
         if (group !== this.snapGroup) {
+            const wasSnapped = this.snapGroup.snappables.length > 1;
+
+            // Update state synchronously
             this.addToSnapGroup(group);
-            // Leave previous snap group
-            if (this.snapGroup === group && this.ready) {
-                // TODO: Ensure returned promise includes this change. Need to await this?..
-                this.addPendingActions('setSnapGroup - leave existing group', this.window.leaveGroup());
+
+            // Unsnap from any existing windows
+            if (wasSnapped) {
+                await this.unsnap();
             }
 
-            if (offset || newHalfSize) {
-                return this.snapToGroup(group, offset, newHalfSize).then(async () => {
-                    if (group.windows.length >= 2) {
-                        await this.snap();
-                    }
-                });
-            } else if (group.windows.length >= 2) {
-                return this.snap();
+            // Snap to any other windows in the new group
+            if (this.snapGroup.windows.length > 1) {
+                await this.snap();
             }
         }
         return Promise.resolve();
     }
 
-    public snapToGroup(group: DesktopSnapGroup, offset?: Point, newHalfSize?: Point): Promise<void> {
+    public applyOffset(offset: Point, halfSize?: Point): Promise<void> {
         const delta: Partial<WindowState> = {};
 
         if (offset) {
             delta.center = {x: this.windowState.center.x + offset.x, y: this.windowState.center.y + offset.y};
         }
-        if (newHalfSize) {
+        if (halfSize) {
             delta.center = delta.center || {...this.windowState.center};
-            delta.halfSize = newHalfSize;
+            delta.halfSize = halfSize;
 
-            delta.center.x += newHalfSize.x - this.windowState.halfSize.x;
-            delta.center.y += newHalfSize.y - this.windowState.halfSize.y;
+            delta.center.x += halfSize.x - this.windowState.halfSize.x;
+            delta.center.y += halfSize.y - this.windowState.halfSize.y;
         }
 
         return this.updateState(delta, ActionOrigin.SERVICE);
@@ -531,13 +547,18 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         }
     }
 
+    private unsnap(): Promise<void> {
+        // TODO: Wrap with 'addPendingActions'?..
+        return this.window.leaveGroup();
+    }
+
     private snap(): Promise<void> {
         const group: DesktopSnapGroup = this.snapGroup;
         const windows: DesktopWindow[] = this.snapGroup.windows as DesktopWindow[];
         const count = windows.length;
         const index = windows.indexOf(this);
 
-        if (count >= 2 && index >= 0) {
+        if (count >= 2 && index >= 0 && this.ready) {
             const other: DesktopWindow = windows[index === 0 ? 1 : 0];
 
             // Merge window groups
@@ -545,8 +566,10 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
                 const joinGroupPromise: Promise<void> = (async () => {
                     if (this.ready && group === this.snapGroup) {
                         await this.window.joinGroup(other.window);
+
                         // Re-fetch window list in case it has changed during sync
                         const windows: DesktopWindow[] = this.snapGroup.windows as DesktopWindow[];
+
                         // Bring other windows in group to front
                         await windows.map(groupWindow => groupWindow.window.bringToFront());
                     }
@@ -657,8 +680,8 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
                     newHalfSize = {x: newHalfSize.x + 7, y: newHalfSize.y + 3.5};
                 }
 
-                actions.push(window.setBounds(
-                    {left: newCenter.x - newHalfSize.x, top: newCenter.y - newHalfSize.y, width: newHalfSize.x * 2, height: newHalfSize.y * 2}));
+                const bounds = {left: newCenter.x - newHalfSize.x, top: newCenter.y - newHalfSize.y, width: newHalfSize.x * 2, height: newHalfSize.y * 2};
+                actions.push(window.setBounds(bounds));
             }
 
             // Apply options
@@ -731,8 +754,8 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         this.registerListener('bounds-changed', this.handleBoundsChanged.bind(this));
         this.registerListener('bounds-changing', this.handleBoundsChanging.bind(this));
         this.registerListener('closed', this.handleClosed.bind(this));
-        this.registerListener('disabled-frame-bounds-changed', this.handleDisabledFrameBoundsChanged.bind(this));
-        this.registerListener('disabled-frame-bounds-changing', this.handleDisabledFrameBoundsChanging.bind(this));
+        // this.registerListener('disabled-frame-bounds-changed', this.handleDisabledFrameBoundsChanged.bind(this));
+        // this.registerListener('disabled-frame-bounds-changing', this.handleDisabledFrameBoundsChanging.bind(this));
         this.registerListener('focused', this.handleFocused.bind(this));
         this.registerListener('frame-disabled', () => {
             this.updateState({frameEnabled: false}, ActionOrigin.APPLICATION);
@@ -936,9 +959,9 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
 
         switch (event.reason) {
             case 'leave':
-                const mofifiedSourceGroup = event.sourceGroup.concat({appUuid: this.identity.uuid, windowName: this.identity.name});
-                if (this.snapGroup.length > 1 && compareSnapAndEventWindowArrays(this.snapGroup.windows, mofifiedSourceGroup)) {
-                    return this.dockToGroup(new DesktopSnapGroup());
+                const modifiedSourceGroup = event.sourceGroup.concat({appUuid: this.identity.uuid, windowName: this.identity.name});
+                if (this.snapGroup.length > 1 && compareSnapAndEventWindowArrays(this.snapGroup.windows, modifiedSourceGroup)) {
+                    return this.setSnapGroup(new DesktopSnapGroup());
                 } else {
                     return Promise.resolve();
                 }
@@ -952,7 +975,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
                 if (targetWindow && targetGroup) {
                     this.snapGroup.windows.forEach((window: Snappable) => {  // TODO (SERVICE-200): Test snap groups that contain tabs
                         // Merge events are never triggered inside the service, so we do not need the same guards as join/leave
-                        return window.dockToGroup(targetGroup);
+                        return window.setSnapGroup(targetGroup);
                     });
                 }
                 break;

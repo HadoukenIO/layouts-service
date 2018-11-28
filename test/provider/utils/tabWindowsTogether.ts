@@ -10,6 +10,6 @@ export async function tabWindowsTogether(target: _Window, windowToTab: _Window) 
         return win.identity.name!.includes('TABSET-');
     }) >= 0;
 
-    await dragWindowToOtherWindow(windowToTab, 'top-left', target, 'top-left', {x: 10, y: startingInGroup ? -20 : 20});
+    await dragWindowToOtherWindow(windowToTab, 'top-left', target, 'top-left', {x: 10, y: startingInGroup ? -20 : 10});
     await delay(500);
 }

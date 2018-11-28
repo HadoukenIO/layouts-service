@@ -1,9 +1,11 @@
 import {Identity} from 'hadouken-js-adapter';
+import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {TabAPI, UpdateTabPropertiesPayload} from '../../../src/client/internal';
 import {TabProperties, WindowIdentity} from '../../../src/client/types';
 import {DesktopTabGroup} from '../../../src/provider/model/DesktopTabGroup';
 import {DesktopWindow} from '../../../src/provider/model/DesktopWindow';
+import {getConnection} from '../../provider/utils/connect';
 
 import {executeJavascriptOnService, sendServiceMessage} from './serviceUtils';
 
@@ -14,6 +16,23 @@ export async function getTabGroupID(identity: Identity): Promise<string|null> {
         return tabGroup && tabGroup.ID ? tabGroup.ID : null;
     }
     return executeJavascriptOnService<WindowIdentity, string|null>(remoteFunc, identity as WindowIdentity);
+}
+
+/**
+ * Takes a window identity (typically an application window, but tabstrip will work too) and returns the Window object
+ * of the tabstrip. This method assumes that 'identity' is tabbed. An exception will be thrown if that is not the case.
+ *
+ * @param identity Identity of any valid window
+ */
+export async function getTabstrip(identity: Identity): Promise<_Window> {
+    const tabGroupId: string|null = await getTabGroupID(identity);
+
+    if (tabGroupId) {
+        const fin = await getConnection();
+        return fin.Window.wrapSync({uuid: 'layouts-service', name: tabGroupId});
+    } else {
+        throw new Error(`Window ${identity.uuid}/${identity.name} either doesn't exist or isn't tabbed`);
+    }
 }
 
 /**

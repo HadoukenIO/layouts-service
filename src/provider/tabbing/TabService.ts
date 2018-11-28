@@ -2,7 +2,7 @@ import {Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
 
 import {ApplicationUIConfig, TabGroup, TabGroupDimensions, WindowIdentity} from '../../client/types';
 import {DesktopModel} from '../model/DesktopModel';
-import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
+import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {DesktopWindow, WindowState} from '../model/DesktopWindow';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
@@ -83,7 +83,7 @@ export class TabService {
         }
 
         const config: ApplicationUIConfig = this.mApplicationConfigManager.getApplicationUIConfig(tabIdentities[0].uuid);
-        const snapGroup: DesktopSnapGroup = new DesktopSnapGroup();
+        const snapGroup: DesktopSnapGroup = tabs[0].getSnapGroup();
         const tabGroup: DesktopTabGroup = new DesktopTabGroup(this._model, snapGroup, config);
         await tabGroup.addTabs(tabs, activeTab);
 
@@ -260,6 +260,9 @@ export class TabService {
         const tabAllowed = windowUnderPoint &&
             this.applicationConfigManager.compareConfigBetweenApplications(
                 tabGroupUnderPoint ? tabGroupUnderPoint.config : windowUnderPoint.getIdentity().uuid, activeIdentity.uuid);
+        const willDisbandTabGroup: boolean = existingTabGroup ? existingTabGroup.tabs.length <= 2 : false;
+        const existingTabs: DesktopWindow[]|null = existingTabGroup && existingTabGroup.tabs.slice();
+        const existingSnappables: Snappable[]|null = existingTabGroup && existingTabGroup.getSnapGroup().snappables;
 
         if (tabGroupUnderPoint && windowUnderPoint === tabGroupUnderPoint.window) {
             // If we are over a tab group
@@ -279,7 +282,9 @@ export class TabService {
         } else if (tabAllowed && position && windowUnderPoint && !tabGroupUnderPoint && this.isOverWindowDropArea(windowUnderPoint, position)) {
             // If there is a window under our Point, and its not part of a tab group, and we are over a valid drop area
 
-            if (existingTabGroup) await existingTabGroup.removeTab(window);
+            if (existingTabGroup) {
+                await existingTabGroup.removeTab(window);
+            }
 
             // Create new tab group
             await this.createTabGroupWithTabs([windowUnderPoint.getIdentity(), activeIdentity], activeIdentity);
@@ -298,6 +303,16 @@ export class TabService {
 
             // Eject tab at its current position
             await existingTabGroup.removeTab(window);
+        }
+
+        if (willDisbandTabGroup && existingSnappables!.length > 1) {
+            const joinedSnappable = existingSnappables![0] === existingTabGroup ? existingSnappables![1] : existingSnappables![0];
+            const remainingTab = existingTabs![0] === window ? existingTabs![1] : existingTabs![0];
+
+            console.log('Re-attaching remaining tab: ' + remainingTab.getId() + ' => ' + joinedSnappable.getId());
+            remainingTab.setSnapGroup(joinedSnappable.getSnapGroup());
+        } else if (willDisbandTabGroup) {
+            console.log('No snappables previously joined onto tab group');
         }
 
         await window.bringToFront();

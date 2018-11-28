@@ -1,12 +1,12 @@
 import {tabService} from '../main';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
-import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {DesktopWindow, eTransformType, Mask, WindowIdentity} from '../model/DesktopWindow';
 
 import {EXPLODE_MOVE_SCALE, MIN_OVERLAP, UNDOCK_MOVE_DISTANCE} from './Config';
 import {eSnapValidity, Resolver, SnapTarget} from './Resolver';
 import {SnapView} from './SnapView';
+import {Debounced} from './utils/Debounced';
 import {Point, PointUtils} from './utils/PointUtils';
 import {MeasureResult, RectUtils} from './utils/RectUtils';
 
@@ -51,10 +51,13 @@ export class SnapService {
     private resolver: Resolver;
     private view: SnapView;
 
+    private validateGroups: Debounced<(group: DesktopSnapGroup) => void, SnapService, [DesktopSnapGroup]>;
+
     constructor(model: DesktopModel) {
         this.model = model;
         this.resolver = new Resolver();
         this.view = new SnapView();
+        this.validateGroups = new Debounced(this.validateGroupInternal, this);
 
         // Register lifecycle listeners
         DesktopSnapGroup.onCreated.add(this.onSnapGroupCreated, this);
@@ -75,7 +78,7 @@ export class SnapService {
             .catch(console.error);
     }
 
-    public undock(target: WindowIdentity): void {
+    public async undock(target: WindowIdentity): Promise<void> {
         const window: DesktopWindow|null = this.model.getWindow(target);
 
         // Do nothing for tabbed windows until tab/snap is properly integrated
@@ -94,7 +97,9 @@ export class SnapService {
                 }
 
                 // Move window to it's own group, whilst applying offset
-                snappable.dockToGroup(new DesktopSnapGroup(), offset);
+                const group = new DesktopSnapGroup();
+                await snappable.setSnapGroup(group);
+                await snappable.applyOffset(offset, snappable.getState().halfSize);
             } catch (error) {
                 console.error(`Unexpected error when undocking window: ${error}`);
                 throw new Error(`Unexpected error when undocking window: ${error}`);
@@ -109,7 +114,7 @@ export class SnapService {
      * Explodes a group. All windows in the group are unlocked.
      * @param target A window which is a member of the group to be exploded.
      */
-    public explodeGroup(target: WindowIdentity): void {
+    public async explodeGroup(target: WindowIdentity): Promise<void> {
         // NOTE: Since there is currently not a schema to identify a group, this method
         // accepts a window that is a member of the group. Once there is a way of uniquely
         // identifying groups, this can be changed
@@ -130,13 +135,17 @@ export class SnapService {
                 // group.center is recalculated on each call, so we assign it here once and use the value.
                 const groupCenter = group.center;
 
-                for (let i = 0; i < snappables.length; i++) {
+                await Promise.all(snappables.map((snappable: Snappable) => {
+                    return snappable.setSnapGroup(new DesktopSnapGroup());
+                }));
+
+                await Promise.all(snappables.map((snappable: Snappable) => {
                     // Determine the offset for each window before modifying and window state
-                    const offset = PointUtils.scale(PointUtils.difference(groupCenter, snappables[i].getState().center), EXPLODE_MOVE_SCALE);
+                    const offset = PointUtils.scale(PointUtils.difference(groupCenter, snappable.getState().center), EXPLODE_MOVE_SCALE);
 
                     // Detach snappable from it's previous group, and apply the calculated offset
-                    snappables[i].dockToGroup(new DesktopSnapGroup(), offset);
-                }
+                    return snappable.applyOffset(offset, snappable.getState().halfSize);
+                }));
             }
         } catch (error) {
             console.error(`Unexpected error when undocking group: ${error}`);
@@ -157,14 +166,18 @@ export class SnapService {
     }
 
     private validateGroup(group: DesktopSnapGroup, modifiedWindow: DesktopWindow): void {
+        this.validateGroups.postpone();
+    }
+
+    private validateGroupInternal(group: DesktopSnapGroup): void {
         // Ensure 'group' is still a valid, contiguous group.
         // NOTE: 'modifiedWindow' may no longer exist (if validation is being performed because a window was closed)
-        const contiguousWindowSets = this.getContiguousWindows(group.windows);
+        const contiguousWindowSets = this.getContiguousWindows(group.snappables);
         if (contiguousWindowSets.length > 1) {                             // Group is disjointed. Need to split.
             for (const windowsToGroup of contiguousWindowSets.slice(1)) {  // Leave first set as-is. Move others into own groups.
                 const newGroup = new DesktopSnapGroup();
                 for (const windowToGroup of windowsToGroup) {
-                    windowToGroup.dockToGroup(newGroup);
+                    windowToGroup.setSnapGroup(newGroup);
                 }
             }
         }
@@ -174,30 +187,25 @@ export class SnapService {
         const groups: ReadonlyArray<DesktopSnapGroup> = this.model.getSnapGroups();
         const snapTarget: SnapTarget|null = this.resolver.getSnapTarget(groups, activeGroup);
 
+        this.validateGroups.postpone();
         this.view.update(activeGroup, snapTarget);
     }
 
-    private applySnapTarget(activeGroup: DesktopSnapGroup): void {
+    private async applySnapTarget(activeGroup: DesktopSnapGroup): Promise<void> {
         const groups: ReadonlyArray<DesktopSnapGroup> = this.model.getSnapGroups();
         const snapTarget: SnapTarget|null = this.resolver.getSnapTarget(groups, activeGroup);
 
         if (snapTarget && snapTarget.validity === eSnapValidity.VALID) {  // SNAP WINDOWS
-            if (this.disableDockingOperations) {
-                // Snap all windows in activeGroup to snapTarget.group
-                snapTarget.activeWindow.snapToGroup(snapTarget.group, snapTarget.snapOffset, snapTarget.halfSize!);
-                activeGroup.windows.forEach((window: Snappable) => {
-                    if (window !== snapTarget.activeWindow) {
-                        window.snapToGroup(snapTarget.group, snapTarget.snapOffset);
-                    }
-                });
-            } else {
+            if (activeGroup.snappables.length > 1) {
+                throw new Error('Cannot snap two groups together');
+            }
+
+            // Snap all windows in activeGroup to snapTarget.group
+            await snapTarget.activeWindow.applyOffset(snapTarget.snapOffset, snapTarget.halfSize!);
+
+            if (!this.disableDockingOperations) {
                 // Dock all windows in activeGroup to snapTarget.group
-                snapTarget.activeWindow.dockToGroup(snapTarget.group, snapTarget.snapOffset, snapTarget.halfSize!);
-                activeGroup.windows.forEach((window: Snappable) => {
-                    if (window !== snapTarget.activeWindow) {
-                        window.dockToGroup(snapTarget.group, snapTarget.snapOffset);
-                    }
-                });
+                await snapTarget.activeWindow.setSnapGroup(snapTarget.group);
 
                 // The active group should now have been removed (since it is empty)
                 if (groups.indexOf(activeGroup) >= 0) {
@@ -208,11 +216,12 @@ export class SnapService {
         } else if (activeGroup.length === 1 && !activeGroup.windows[0].getTabGroup()) {  // TAB WINDOWS
             // Check if we can add this window to a (new or existing) tab group
             const activeWindow: DesktopWindow = activeGroup.windows[0] as DesktopWindow;
-            tabService.tabDroppedWindow(activeWindow);
+            await tabService.tabDroppedWindow(activeWindow);
         }
 
         // Reset view
         this.view.update(null, null);
+        this.validateGroups.call(activeGroup);
     }
 
     private calculateUndockMoveDirection(window: Snappable): Point {

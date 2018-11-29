@@ -1,11 +1,10 @@
-import {tabService} from '../main';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
 import {DesktopWindow, eTransformType, Mask, WindowIdentity} from '../model/DesktopWindow';
+import {Target} from '../WindowHandler';
 
 import {EXPLODE_MOVE_SCALE, MIN_OVERLAP, UNDOCK_MOVE_DISTANCE} from './Config';
-import {eSnapValidity, Resolver, SnapTarget} from './Resolver';
-import {SnapView} from './SnapView';
+import {Resolver, SnapTarget} from './Resolver';
 import {Point, PointUtils} from './utils/PointUtils';
 import {MeasureResult, RectUtils} from './utils/RectUtils';
 
@@ -29,7 +28,7 @@ export interface SnapState {
      *
      * Will be null when there is no valid snap target.
      */
-    target: SnapTarget|null;
+    target: Target|null;
 }
 
 export class SnapService {
@@ -40,6 +39,8 @@ export class SnapService {
      */
     private static VALIDATE_GROUP_DISTANCE = 14;
 
+    private resolver: Resolver;
+
     /**
      * Flag to disable / enable docking.
      */
@@ -47,13 +48,9 @@ export class SnapService {
 
     private model: DesktopModel;
 
-    private resolver: Resolver;
-    private view: SnapView;
-
     constructor(model: DesktopModel) {
         this.model = model;
         this.resolver = new Resolver();
-        this.view = new SnapView();
 
         // Register lifecycle listeners
         DesktopSnapGroup.onCreated.add(this.onSnapGroupCreated, this);
@@ -153,14 +150,10 @@ export class SnapService {
 
     private onSnapGroupCreated(group: DesktopSnapGroup): void {
         group.onModified.add(this.validateGroup, this);
-        group.onTransform.add(this.snapGroup, this);
-        group.onCommit.add(this.applySnapTarget, this);
     }
 
     private onSnapGroupDestroyed(group: DesktopSnapGroup): void {
         group.onModified.remove(this.validateGroup, this);
-        group.onTransform.remove(this.snapGroup, this);
-        group.onCommit.remove(this.applySnapTarget, this);
     }
 
     private validateGroup(group: DesktopSnapGroup, modifiedWindow: DesktopWindow): void {
@@ -177,50 +170,39 @@ export class SnapService {
         }
     }
 
-    private snapGroup(activeGroup: DesktopSnapGroup, type: Mask<eTransformType>): void {
-        const groups: ReadonlyArray<DesktopSnapGroup> = this.model.getSnapGroups();
-        const snapTarget: SnapTarget|null = this.resolver.getSnapTarget(groups, activeGroup);
-
-        this.view.update(activeGroup, snapTarget);
+    public getTarget(activeGroup: DesktopSnapGroup): SnapTarget|null {
+        return this.resolver.getSnapTarget(this.model.getSnapGroups(), activeGroup);
     }
 
-    private applySnapTarget(activeGroup: DesktopSnapGroup): void {
-        const groups: ReadonlyArray<DesktopSnapGroup> = this.model.getSnapGroups();
-        const snapTarget: SnapTarget|null = this.resolver.getSnapTarget(groups, activeGroup);
+    public applySnapTarget(snapTarget: SnapTarget): void {
+        if (snapTarget && snapTarget.valid) {  // SNAP WINDOWS
+            const activeGroup = snapTarget.activeWindow.getSnapGroup();
 
-        if (snapTarget && snapTarget.validity === eSnapValidity.VALID) {  // SNAP WINDOWS
             if (this.disableDockingOperations) {
                 activeGroup.windows.forEach((window: Snappable) => {
                     if (window === snapTarget.activeWindow && snapTarget.halfSize) {
-                        window.snapToGroup(snapTarget.group, snapTarget.snapOffset, snapTarget.halfSize);
+                        window.snapToGroup(snapTarget.group, snapTarget.offset, snapTarget.halfSize);
                     } else {
-                        window.snapToGroup(snapTarget.group, snapTarget.snapOffset);
+                        window.snapToGroup(snapTarget.group, snapTarget.offset);
                     }
                 });
             } else {
                 activeGroup.windows.forEach((window: Snappable) => {  // Move all windows in activeGroup to snapTarget.group
                     if (window === snapTarget.activeWindow && snapTarget.halfSize) {
-                        window.dockToGroup(snapTarget.group, snapTarget.snapOffset, snapTarget.halfSize);
+                        window.dockToGroup(snapTarget.group, snapTarget.offset, snapTarget.halfSize);
                     } else {
-                        window.dockToGroup(snapTarget.group, snapTarget.snapOffset);
+                        window.dockToGroup(snapTarget.group, snapTarget.offset);
                     }
                 });
 
                 // The active group should now have been removed (since it is empty)
-                if (groups.indexOf(activeGroup) >= 0) {
+                if (this.model.getSnapGroups().indexOf(activeGroup) >= 0) {
                     console.warn(
                         'Expected group to have been removed, but still exists (' + activeGroup.id + ': ' + activeGroup.windows.map(w => w.getId()).join() +
                         ')');
                 }
             }
-        } else if (activeGroup.length === 1 && !activeGroup.windows[0].getTabGroup()) {  // TAB WINDOWS
-            // Check if we can add this window to a (new or existing) tab group
-            const activeWindow: DesktopWindow = activeGroup.windows[0] as DesktopWindow;
-            tabService.tabDroppedWindow(activeWindow);
         }
-
-        // Reset view
-        this.view.update(null, null);
     }
 
     private calculateUndockMoveDirection(window: DesktopWindow): Point {

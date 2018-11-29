@@ -103,8 +103,8 @@ export const APP_INITIALIZER_BASE = {
     childWindows: []
 };
 
-export function appXCoordinate(appTitleNumber: number) {
-    return (appTitleNumber * 275);
+export function appYCoordinate(appTitleNumber: number) {
+    return ((appTitleNumber - 1) * 275) + 50;
 }
 
 let appTitleNumber = 0;
@@ -125,8 +125,8 @@ export function createAppsArray(numAppsToCreate: number, numberOfChildren: numbe
         }
 
         // Save the app information
-        const defaultLeft = appXCoordinate(numAppsToCreate);
-        const appOptions = {...OPTIONS_BASE, uuid: id, name: id, defaultTop: 100, defaultLeft};
+        const defaultTop = appYCoordinate(numAppsToCreate);
+        const appOptions = {...OPTIONS_BASE, uuid: id, name: id, defaultTop, defaultLeft: 100};
         appsArray.push({...APP_INITIALIZER_BASE, appOptions, childWindows});
 
         numAppsToCreate--;

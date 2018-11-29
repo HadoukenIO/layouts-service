@@ -45,7 +45,7 @@ const CHILD_WINDOW_BASE = {
 };
 
 function childYCoordinate(appNum: number, childNum: number) {
-    return (appNum * 275) + (childNum * 50) + 275;
+    return (appNum * 275) + (childNum * 50) + 100;
 }
 
 function childXCoordinate(appNum: number, childNum: number) {

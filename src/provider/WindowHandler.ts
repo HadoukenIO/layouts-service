@@ -73,7 +73,7 @@ export class WindowHandler {
 
         if (target) {
             if (target.type === eTargetType.TAB) {
-                // TODO: Change this to accept a target
+                // TODO: Change this to accept a target (SERVICE-279)
                 tabService.tabDroppedWindow(activeGroup.windows[0] as DesktopWindow);
             } else if (target.type === eTargetType.SNAP) {
                 snapService.applySnapTarget(target);
@@ -88,8 +88,7 @@ export class WindowHandler {
      * @param {DesktopSnapGroup} activeGroup The active group being moved by the user.
      */
     private getTarget(activeGroup: DesktopSnapGroup): Target|null {
-        const groups: ReadonlyArray<DesktopSnapGroup> = this.model.getSnapGroups();
-        const snapTarget: Target|null = snapService.getTarget(groups, activeGroup);
+        const snapTarget: Target|null = snapService.getTarget(activeGroup);
         const tabTarget: Target|null = tabService.getTarget(activeGroup);
 
         return snapTarget || tabTarget;

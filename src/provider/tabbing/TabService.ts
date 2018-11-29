@@ -367,7 +367,7 @@ export class TabService {
          * Checks if our target is a snapped window (non tab);
          */
         const isTargetSnapped = targetWindow && targetWindow.getSnapGroup().length > 1 && !targetWindow.getTabGroup();
-        if (targetWindow && isOverWindowValid && !isActiveWindowTabbed && !isTargetSnapped) {
+        if (targetWindow && isOverWindowValid && !isTargetSnapped && (!isActiveWindowTabbed || !RectUtils.isPointInRect(activeGroup.center, activeGroup.halfSize, position!))) {
             const isTargetTabbed = targetWindow.getTabGroup();
 
             // Check if the target and active window have same tab config.

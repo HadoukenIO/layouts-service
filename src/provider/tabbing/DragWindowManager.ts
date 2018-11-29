@@ -1,7 +1,7 @@
 import {Window} from 'hadouken-js-adapter';
 
 import {WindowIdentity} from '../../client/types';
-import { Signal2 } from '../Signal';
+import { Signal2, Signal0 } from '../Signal';
 import { Point } from 'hadouken-js-adapter/out/types/src/api/system/point';
 import { _Window } from 'hadouken-js-adapter/out/types/src/api/window/window';
 import { DesktopWindow } from '../model/DesktopWindow';
@@ -12,7 +12,7 @@ import { DesktopModel } from '../model/DesktopModel';
  */
 export class DragWindowManager {
     public static readonly onDragOver: Signal2<DesktopWindow, Point> = new Signal2();
-    public static readonly onDragDrop: Signal2<DesktopWindow, Point> = new Signal2();
+    public static readonly onDragDrop: Signal0 = new Signal0();
 
     // tslint:disable-next-line:no-any setTimout return Type is confused by VSC
     private _hideTimeout: any;
@@ -56,6 +56,7 @@ export class DragWindowManager {
      * Hides the drag window overlay.
      */
     public hideWindow(): void {
+        DragWindowManager.onDragDrop.emit();
         this._window.hide();
         clearTimeout(this._hideTimeout);
     }
@@ -76,7 +77,7 @@ export class DragWindowManager {
             opacity: 0.01,
             frame: false,
             waitForPageLoad: false,
-            alwaysOnTop: false,
+            alwaysOnTop: true,
             showTaskbarIcon: false,
             smallWindow: true
         });
@@ -92,7 +93,7 @@ export class DragWindowManager {
         });
 
         nativeWin.document.body.addEventListener("drop", (ev: DragEvent)=>{
-            DragWindowManager.onDragDrop.emit(this.sourceWindow!, {x: ev.screenX, y: ev.screenY});
+            DragWindowManager.onDragDrop.emit();
             ev.preventDefault();
             ev.stopPropagation();
             return true;

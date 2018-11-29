@@ -38,7 +38,7 @@ export class MouseTracker {
         this.knownPosition = position;
     }
 
-    private onTabDrop(window: DesktopWindow, position: Point){
+    private onTabDrop(){
         this.knownPosition = null;
     }
 

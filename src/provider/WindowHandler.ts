@@ -93,7 +93,7 @@ export class WindowHandler {
         this.view.update(activeGroup, target);
     }
 
-    private onTabDrop(window: DesktopWindow, mousePosition: Point) {
+    private onTabDrop() {
         this.view.update(null, null);
     }
 

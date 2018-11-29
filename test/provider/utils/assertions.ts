@@ -3,8 +3,9 @@ import deepEqual from 'fast-deep-equal';
 import {Window} from 'hadouken-js-adapter';
 
 import {promiseMap} from '../../../src/provider/snapanddock/utils/async';
+import {getTopmostWindow} from '../../demo/utils/modelUtils';
 import {getGroupedWindows, getSnapGroupID} from '../../demo/utils/snapServiceUtils';
-import {getTabGroupID} from '../../demo/utils/tabServiceUtils';
+import {getActiveTab, getTabbedWindows, getTabGroupID} from '../../demo/utils/tabServiceUtils';
 
 import {getBounds, NormalizedBounds} from './getBounds';
 import {Win} from './getWindow';
@@ -153,5 +154,28 @@ export async function assertAllContiguous(t: TestContext, windows: Window[]) {
         t.fail(`Windows do not form a contiguous group. \nExpected: ${expectedGroupsString} \nActual: ${actualGroupsString}`);
     } else {
         t.pass();
+    }
+}
+
+/**
+ * Assert that the given window is both tabbed and the active tab in its tabset.
+ */
+export async function assertActiveTab(t: TestContext, window: Window) {
+    // For a tab to be active it must be a tab.
+    await assertAllTabbed(t, window);
+
+    t.deepEqual(await getActiveTab(window.identity), window.identity);
+
+    // Active tab is not hidden
+    t.true(await window.isShowing());
+    // Active tab is on top
+    const bounds = await getBounds(window);
+    t.deepEqual(await getTopmostWindow({x: bounds.left + bounds.width / 2, y: bounds.top + bounds.height / 2}), window.identity, `Active tab not on top.`);
+    // All other tabs are hidden
+    const tabbedWindows = await getTabbedWindows(window.identity);
+    for (const tab of tabbedWindows) {
+        if (!deepEqual(tab, window.identity)) {
+            t.false(await fin.Window.wrapSync(tab).isShowing());
+        }
     }
 }

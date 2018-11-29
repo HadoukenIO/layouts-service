@@ -54,6 +54,28 @@ export async function getTabbedWindows(identity: Identity): Promise<Identity[]> 
 }
 
 
+export async function getActiveTab(identity: Identity): Promise<Identity> {
+    function remoteFunc(this: ProviderWindow, identity: WindowIdentity): Identity {
+        const desktopWindow = this.model.getWindow(identity);
+
+        if (desktopWindow) {
+            const tabGroup = desktopWindow.getTabGroup();
+
+            if (tabGroup) {
+                return tabGroup.activeTab.getIdentity();
+
+            } else {
+                throw new Error(`Error when getting active tab: window ${desktopWindow.getId()} is not in a tab group`);
+            }
+
+        } else {
+            throw new Error(`Attempted to get the tabGroup of non-existent or deregistered window: ${identity.uuid}/${identity.name}`);
+        }
+    }
+
+    return executeJavascriptOnService<WindowIdentity, Identity>(remoteFunc, identity as WindowIdentity);
+}
+
 /**
  * Send a message to the service requesting a provided tabs properties be updated, aka updateTabProperties API call.
  */

@@ -126,7 +126,7 @@ export class Resolver {
         targets = targets.sort((a: SnapTarget, b: SnapTarget) => {
             const offsetA: Point = a.offset, offsetB: Point = b.offset;
 
-            if (a.valid !== b.valid && (a.valid || b.valid)) {
+            if (a.valid !== b.valid) {
                 // Prefer valid targets
                 return a.valid ? 1 : -1;
             } else if (this.isAnchorSnap(a) !== this.isAnchorSnap(b)) {

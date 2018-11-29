@@ -4,7 +4,7 @@ import {DesktopWindow, eTransformType, Mask, WindowIdentity} from '../model/Desk
 import {Target} from '../WindowHandler';
 
 import {EXPLODE_MOVE_SCALE, MIN_OVERLAP, UNDOCK_MOVE_DISTANCE} from './Config';
-import {Resolver} from './Resolver';
+import {Resolver, SnapTarget} from './Resolver';
 import {Point, PointUtils} from './utils/PointUtils';
 import {MeasureResult, RectUtils} from './utils/RectUtils';
 
@@ -39,7 +39,7 @@ export class SnapService {
      */
     private static VALIDATE_GROUP_DISTANCE = 14;
 
-    public readonly resolver: Resolver;
+    private resolver: Resolver;
 
     /**
      * Flag to disable / enable docking.
@@ -170,11 +170,14 @@ export class SnapService {
         }
     }
 
-    public applySnapTarget(activeGroup: DesktopSnapGroup): void {
-        const groups: ReadonlyArray<DesktopSnapGroup> = this.model.getSnapGroups();
-        const snapTarget: Target|null = this.resolver.getSnapTarget(groups, activeGroup);
+    public getTarget(groups: ReadonlyArray<DesktopSnapGroup>, activeGroup: DesktopSnapGroup): SnapTarget|null{
+        return this.resolver.getSnapTarget(groups, activeGroup);
+    }
 
+    public applySnapTarget(snapTarget: SnapTarget): void {
         if (snapTarget && snapTarget.valid) {  // SNAP WINDOWS
+            const activeGroup = snapTarget.activeWindow.getSnapGroup();
+
             if (this.disableDockingOperations) {
                 activeGroup.windows.forEach((window: Snappable) => {
                     if (window === snapTarget.activeWindow && snapTarget.halfSize) {
@@ -193,7 +196,7 @@ export class SnapService {
                 });
 
                 // The active group should now have been removed (since it is empty)
-                if (groups.indexOf(activeGroup) >= 0) {
+                if (this.model.getSnapGroups().indexOf(activeGroup) >= 0) {
                     console.warn(
                         'Expected group to have been removed, but still exists (' + activeGroup.id + ': ' + activeGroup.windows.map(w => w.getId()).join() +
                         ')');

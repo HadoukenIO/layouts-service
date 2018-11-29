@@ -100,22 +100,4 @@ export class RectUtils {
     public static isEqual(rect1: Rectangle, rect2: Rectangle): boolean {
         return PointUtils.isEqual(rect1.center, rect2.center) && PointUtils.isEqual(rect1.halfSize, rect2.halfSize);
     }
-
-    public static getCorner(corner: fin.OpenFinAnchor, center: Point, halfSize: Point): Point {
-        switch (corner) {
-            case 'top-right': {
-                return {x: center.x + halfSize.x, y: center.y - halfSize.y};
-            }
-            case 'bottom-left': {
-                return {x: center.x - halfSize.x, y: center.y + halfSize.y};
-            }
-            case 'bottom-right': {
-                return {x: center.x + halfSize.x, y: center.y + halfSize.y};
-            }
-            default: {
-                // "top-left"
-                return {x: center.x - halfSize.x, y: center.y - halfSize.y};
-            }
-        }
-    }
 }

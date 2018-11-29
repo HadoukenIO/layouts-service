@@ -110,9 +110,5 @@ testParameterized(
 
         robot.mouseToggle('up');
 
-        t.is(previewBounds.width, windowBounds[0].width);
-        t.is(previewBounds.top, windowBounds[0].top);
-        t.is(previewBounds.left, windowBounds[0].left);
-        t.is(previewBounds.right, windowBounds[0].right);
-        t.is(previewBounds.height, 60);
+        t.deepEqual(previewBounds, {...windowBounds[0], height: 60, bottom: windowBounds[0].top + previewBounds.height});
     }, {defaultCentered: true, defaultWidth: 250, defaultHeight: 150}));

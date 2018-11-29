@@ -130,7 +130,7 @@ export class Preview {
     private generatePreviewRect(target: Target): Rectangle {
         if (target.type === eTargetType.SNAP) {
             const activeGroup = target.activeWindow.getSnapGroup();
-            const prevHalfSize = target.activeWindow.getSnapGroup().halfSize;
+            const prevHalfSize = activeGroup.halfSize;
 
             const halfSize = target.halfSize || prevHalfSize;
 

@@ -43,11 +43,13 @@ export class View {
 
         // Detect change of target group
         if ((this.target && this.target.group) !== (target && target.group)) {
+            const targetGroup = this.target && this.target.group;
+            
             // Reset alwaysOnTop override, as our activeGroup window is now in the target group.
-            this.setAlwaysOnTop(this.target && this.target.group, false);
+            this.setAlwaysOnTop(targetGroup, false);
 
             // Restore opacity of previous target group (if any)
-            this.setGroupOpacity(this.target && this.target.group, false);
+            this.setGroupOpacity(targetGroup, false);
 
             // Reduce opacity of new target group (if any)
             this.setGroupOpacity(target && target.group, true);

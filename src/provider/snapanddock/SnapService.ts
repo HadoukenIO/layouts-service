@@ -170,7 +170,7 @@ export class SnapService {
         }
     }
 
-    public getTarget(groups: ReadonlyArray<DesktopSnapGroup>, activeGroup: DesktopSnapGroup): SnapTarget|null{
+    public getTarget(groups: ReadonlyArray<DesktopSnapGroup>, activeGroup: DesktopSnapGroup): SnapTarget|null {
         return this.resolver.getSnapTarget(groups, activeGroup);
     }
 

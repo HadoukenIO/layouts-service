@@ -44,7 +44,7 @@ export class View {
         // Detect change of target group
         if ((this.target && this.target.group) !== (target && target.group)) {
             const targetGroup = this.target && this.target.group;
-            
+
             // Reset alwaysOnTop override, as our activeGroup window is now in the target group.
             this.setAlwaysOnTop(targetGroup, false);
 

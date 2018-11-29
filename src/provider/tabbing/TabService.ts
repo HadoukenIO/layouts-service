@@ -11,7 +11,7 @@ import {DragWindowManager} from './DragWindowManager';
 
 
 /**
- * TabTarget constructs an interface which represents an area on a window where a tab strip will be placed.  
+ * TabTarget constructs an interface which represents an area on a window where a tab strip will be placed.
  */
 export interface TabTarget extends TargetBase {
     type: eTargetType.TAB;

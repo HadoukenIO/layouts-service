@@ -102,7 +102,7 @@ testParameterized(
             await tabWindowsTogether(windows[0], windows[1]);
         }
 
-        await delay(500);
+        await delay(1000);
 
         await dragWindowAndHover(windowCount > 2 ? windows[2] : windows[1], windowBounds[0].left + 10, windowBounds[0].top + 5);
 

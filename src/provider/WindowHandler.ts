@@ -5,6 +5,8 @@ import {DesktopWindow, eTransformType, Mask} from './model/DesktopWindow';
 import {SnapTarget} from './snapanddock/Resolver';
 import {TabTarget} from './tabbing/TabService';
 import {View} from './View';
+import { DragWindowManager } from './tabbing/DragWindowManager';
+import { Point } from './snapanddock/utils/PointUtils';
 
 /**
  * The existing interfaces for what a target can be.
@@ -49,6 +51,8 @@ export class WindowHandler {
         this.model = model;
         this.view = new View();
 
+        DragWindowManager.onDragOver.add(this.onTabDrag, this);
+        DragWindowManager.onDragDrop.add(this.onTabDrop, this);
         // Register lifecycle listeners
         DesktopSnapGroup.onCreated.add(this.onSnapGroupCreated, this);
         DesktopSnapGroup.onDestroyed.add(this.onSnapGroupDestroyed, this);
@@ -80,6 +84,16 @@ export class WindowHandler {
             }
         }
 
+        this.view.update(null, null);
+    }
+
+    private onTabDrag(window: DesktopWindow, mousePosition: Point) {
+        const activeGroup = window.getSnapGroup();
+        const target = tabService.getTarget(activeGroup);
+        this.view.update(activeGroup, target);
+    }
+
+    private onTabDrop(window: DesktopWindow, mousePosition: Point) {
         this.view.update(null, null);
     }
 

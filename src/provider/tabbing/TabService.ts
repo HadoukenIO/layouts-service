@@ -49,7 +49,7 @@ export class TabService {
      */
     constructor(model: DesktopModel) {
         this._model = model;
-        this._dragWindowManager = new DragWindowManager();
+        this._dragWindowManager = new DragWindowManager(model);
         this._dragWindowManager.init();
 
         this.mApplicationConfigManager = new ApplicationConfigManager();
@@ -367,7 +367,6 @@ export class TabService {
          * Checks if our target is a snapped window (non tab);
          */
         const isTargetSnapped = targetWindow && targetWindow.getSnapGroup().length > 1 && !targetWindow.getTabGroup();
-
         if (targetWindow && isOverWindowValid && !isActiveWindowTabbed && !isTargetSnapped) {
             const isTargetTabbed = targetWindow.getTabGroup();
 

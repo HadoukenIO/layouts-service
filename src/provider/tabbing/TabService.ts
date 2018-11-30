@@ -1,7 +1,7 @@
 import {Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
 import {ApplicationUIConfig, TabGroup, TabGroupDimensions, WindowIdentity} from '../../client/types';
 import {DesktopModel} from '../model/DesktopModel';
-import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
+import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {DesktopWindow, WindowState} from '../model/DesktopWindow';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
@@ -349,9 +349,21 @@ export class TabService {
      * Generates a valid tabbing target for a given active group in its current position.
      * @param {DesktopSnapGroup} activeGroup The current active group being moved by the user.
      */
-    public getTarget(activeGroup: DesktopSnapGroup): TabTarget|null {
+    public getTarget(activeWindow: Snappable): TabTarget|null {
         const position: Point|null = this._model.getMouseTracker().getPosition();
-        const targetWindow: DesktopWindow|null = position && this._model.getWindowAt(position.x, position.y, activeGroup.windows[0].getIdentity());
+
+        if(!position){
+            // We should get a mouse position whenever we are running a getTarget op.
+            return null;
+        }
+
+        const activeGroup = activeWindow.getSnapGroup();
+        const targetWindow: DesktopWindow|null = this._model.getWindowAt(position.x, position.y, activeWindow.getIdentity());
+
+        /**
+         * Checks if the mouse position is outside of the activeWindows group bounds.  Needed for tab drag & drop validity check.
+         */
+        const isMouseInsideGroupBounds = RectUtils.isPointInRect(activeGroup.center, activeGroup.halfSize, position);
 
         /**
          * Checks the mouse position is over a valid window drop area.
@@ -361,22 +373,22 @@ export class TabService {
         /**
          * Checks if the window we are dragging is a tab group.
          */
-        const isActiveWindowTabbed = activeGroup.windows[0].getTabGroup();
+        const isActiveWindowTabbed = activeWindow.getTabGroup();
 
         /**
          * Checks if our target is a snapped window (non tab);
          */
         const isTargetSnapped = targetWindow && targetWindow.getSnapGroup().length > 1 && !targetWindow.getTabGroup();
-        if (targetWindow && isOverWindowValid && !isTargetSnapped && (!isActiveWindowTabbed || !RectUtils.isPointInRect(activeGroup.center, activeGroup.halfSize, position!))) {
+
+        if (targetWindow && isOverWindowValid && !isTargetSnapped && (!isActiveWindowTabbed || !isMouseInsideGroupBounds)) {
             const isTargetTabbed = targetWindow.getTabGroup();
 
             // Check if the target and active window have same tab config.
             const valid: boolean = this.applicationConfigManager.compareConfigBetweenApplications(
-                isTargetTabbed ? isTargetTabbed.config : targetWindow.getIdentity().uuid, activeGroup.windows[0].getIdentity().uuid);
-
+                isTargetTabbed ? isTargetTabbed.config : targetWindow.getIdentity().uuid, activeWindow.getIdentity().uuid);
             return {
                 type: eTargetType.TAB,
-                activeWindow: activeGroup.windows[0],
+                activeWindow,
                 group: targetWindow.getSnapGroup(),
                 dropArea: this.getWindowDropArea(targetWindow),
                 valid

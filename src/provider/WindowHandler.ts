@@ -89,7 +89,7 @@ export class WindowHandler {
 
     private onTabDrag(window: DesktopWindow, mousePosition: Point) {
         const activeGroup = window.getSnapGroup();
-        const target = tabService.getTarget(activeGroup);
+        const target = tabService.getTarget(window);
         this.view.update(activeGroup, target);
     }
 
@@ -103,7 +103,9 @@ export class WindowHandler {
      */
     private getTarget(activeGroup: DesktopSnapGroup): Target|null {
         const snapTarget: Target|null = snapService.getTarget(activeGroup);
-        const tabTarget: Target|null = tabService.getTarget(activeGroup);
+
+        // activeGroup.windows[0] we know is the activeWindow as you cannot tab a tab group (only a single window);  Case of Drag & Drop targets are handled above.
+        const tabTarget: Target|null = tabService.getTarget(activeGroup.windows[0]);
 
         return snapTarget || tabTarget;
     }

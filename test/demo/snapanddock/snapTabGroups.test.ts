@@ -4,7 +4,7 @@ import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {assertActiveTab, assertGrouped, assertNotTabbed, assertTabbed} from '../../provider/utils/assertions';
 import {dragSideToSide, dragWindowTo} from '../../provider/utils/dragWindowTo';
 import {opposite, Side, Sides} from '../../provider/utils/SideUtils';
-import {switchTab, tearoutTab, tearoutToOtherTabstrip} from '../../provider/utils/switchTab';
+import {switchTab, tearoutTab, tearoutToOtherTabstrip} from '../utils/tabstripUtils';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 import {CreateWindowData, createWindowTest, WindowContext} from '../utils/createWindowTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';

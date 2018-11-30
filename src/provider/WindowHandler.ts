@@ -3,7 +3,7 @@ import {DesktopModel} from './model/DesktopModel';
 import {DesktopSnapGroup, Snappable} from './model/DesktopSnapGroup';
 import {DesktopWindow, eTransformType, Mask} from './model/DesktopWindow';
 import {SnapTarget} from './snapanddock/Resolver';
-import {TabTarget} from './tabbing/TabService';
+import {TabTarget, EjectTarget} from './tabbing/TabService';
 import {View} from './View';
 import { DragWindowManager } from './tabbing/DragWindowManager';
 import { Point } from './snapanddock/utils/PointUtils';
@@ -15,18 +15,12 @@ export type Target = SnapTarget|TabTarget;
 
 export enum eTargetType {
     TAB = 'TAB',
-    SNAP = 'SNAP'
+    SNAP = 'SNAP',
+    EJECT = 'EJECT'
 }
 
 export interface TargetBase {
     type: eTargetType;
-
-    /**
-     * The group that has been selected as the target candidate.
-     *
-     * This is not the group that the user is currently dragging, it is the group that has been selected as the target.
-     */
-    group: DesktopSnapGroup;
 
     /**
      * The window within the active group that was used to find this candidate.

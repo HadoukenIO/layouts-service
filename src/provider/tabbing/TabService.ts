@@ -20,6 +20,19 @@ export interface TabTarget extends TargetBase {
      * Represents the target window tabbing space;
      */
     dropArea: Rectangle;
+
+
+    /**
+     * The group that has been selected as the target candidate.
+     *
+     * This is not the group that the user is currently dragging, it is the group that has been selected as the target.
+     */
+    group: DesktopSnapGroup;
+}
+
+export interface EjectTarget extends TargetBase {
+    type: eTargetType.EJECT;
+    position: Point;
 }
 
 /**

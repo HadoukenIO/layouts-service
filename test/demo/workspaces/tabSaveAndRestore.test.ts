@@ -12,7 +12,7 @@ export interface TabSaveRestoreTestOptions {
 
 const basicTestOptionsArray: TabSaveRestoreTestOptions[] = [];
 
-// Currently only supports this number of windows max (4). Need to update createWindowGroupings in workspacesUtils if you want more groups.
+// Currently only supports this number of windows max (4). Need to update createWindowGroupings in AppInitializer if you want more groups.
 const appNumbers = [1, 2];
 const childNumbers = [0, 1];
 
@@ -36,11 +36,8 @@ testParameterized<CreateAppData, AppContext>(
         await createCloseAndRestoreLayout(t);
 
         for (const group of applicationData.tabWindowGrouping!) {
-            let win1 = t.context.windows[group[0]];
-            let win2 = t.context.windows[group[1]];
-
-            win1 = await getWindow({uuid: win1.identity.uuid, name: win1.identity.name});
-            win2 = await getWindow({uuid: win2.identity.uuid, name: win2.identity.name});
+            const win1 = t.context.windows[group[0]];
+            const win2 = t.context.windows[group[1]];
 
             await assertTabbed(win1, win2, t);
             await assertGrouped(t, win1, win2);

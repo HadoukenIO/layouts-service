@@ -8,7 +8,7 @@
     "startup_app": {
         "name": "registeredApp1",
         "uuid": "registeredApp1",
-        "url": "http://localhost:1337/test/registeredApp.html",
+        "url": "http://localhost:1337/test/saveRestoreTestingApp.html",
         "autoShow": true,
         "saveWindowState": false
     }

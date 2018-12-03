@@ -2,7 +2,7 @@ import {Context, GenericTestContext, Test, TestContext} from 'ava';
 
 import {getConnection} from '../../provider/utils/connect';
 
-import {AppInitializerInfo, TestApp, createAppsArray, createWindowGroupings, WindowGrouping} from './AppInitializer';
+import {AppInitializerInfo, createAppsArray, createWindowGroupings, TestApp, WindowGrouping} from './AppInitializer';
 import {AppContext} from './createAppTest';
 import {sendServiceMessage} from './serviceUtils';
 

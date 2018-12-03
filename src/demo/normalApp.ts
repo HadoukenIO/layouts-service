@@ -45,20 +45,6 @@ export async function openChild(name: string, i: number, frame = true, url?: str
     }
 }
 
-export async function createTestChild(options: fin.WindowOptions): Promise<_Window> {
-    return await fin.Window.create({
-        url: options.url || `${launchDir}/demo-window.html`,
-        autoShow: true,
-        defaultHeight: options.defaultHeight,
-        defaultWidth: options.defaultWidth,
-        defaultLeft: options.defaultLeft,
-        defaultTop: options.defaultTop,
-        saveWindowState: options.saveWindowState,
-        frame: options.frame,
-        name: options.name
-    });
-}
-
 export async function onAppRes(layoutApp: LayoutApp): Promise<LayoutApp> {
     console.log('Apprestore called:', layoutApp);
     const ofApp = fin.Application.getCurrentSync();

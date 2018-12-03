@@ -8,7 +8,7 @@
     "startup_app": {
         "name": "deregisteredApp2",
         "uuid": "deregisteredApp2",
-        "url": "http://localhost:1337/test/deregisteredApp.html",
+        "url": "http://localhost:1337/test/saveRestoreTestingApp.html?deregistered=true",
         "autoShow": true,
         "saveWindowState": false
     }

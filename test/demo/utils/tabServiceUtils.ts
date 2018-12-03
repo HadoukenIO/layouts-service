@@ -17,12 +17,7 @@ export async function getTabGroupID(identity: Identity): Promise<string|null> {
 }
 
 export async function removeTab(identity: Identity): Promise<void> {
-    function remoteFunc(this: ProviderWindow, identity: WindowIdentity): void {
-        const tab: DesktopWindow|null = this.model.getWindow(identity);
-        const tabGroup: DesktopTabGroup|null = tab ? tab.getTabGroup() : null;
-        tabGroup && tab ? tabGroup.removeTab(tab) : console.log('No Tab Group Found for', tab);
-    }
-    return executeJavascriptOnService<WindowIdentity, void>(remoteFunc, identity as WindowIdentity);
+    await sendServiceMessage<WindowIdentity, void>(TabAPI.REMOVETAB, identity as WindowIdentity);
 }
 
 /**

@@ -208,7 +208,7 @@ testParameterized(
     [
         // No constraints. Normal resizing behaviour expected
         {frame: true, windowCount: 4, resizeDirection: 'big-to-small', side: 'right'},
-        {frame: true, windowCount: 4, resizeDirection: 'big-to-small', side: 'bottom', failing: true}, // Fails due to weird 1-2px offset when snapping
+        {frame: true, windowCount: 4, resizeDirection: 'big-to-small', side: 'bottom', failing: true},  // Fails due to weird 1-2px offset when snapping
         {frame: true, windowCount: 4, resizeDirection: 'small-to-big', side: 'right'},
         {frame: true, windowCount: 4, resizeDirection: 'small-to-big', side: 'bottom'},
     ],
@@ -239,7 +239,7 @@ testParameterized(
         const boundsBefore = await getTabsetBounds(activeTabs[1]);
 
         // Snap the windows together
-        await dragSideToSide(activeTabs[1], SideUtils.opposite(side), activeTabs[0], side, {x: 10, y: side === 'bottom'? 70 : 10});
+        await dragSideToSide(activeTabs[1], SideUtils.opposite(side), activeTabs[0], side, {x: 10, y: side === 'bottom' ? 70 : 10});
 
         // Assert snapped and docked
         await assertGrouped(t, ...[...windows, ...tabstrips]);
@@ -258,4 +258,3 @@ testParameterized(
             t.true((bounds[0].top === bounds[1].top && bounds[0].bottom === bounds[1].bottom), `Windows not aligned when they should be`);
         }
     }, {defaultHeight: WINDOW_SIZE, defaultWidth: WINDOW_SIZE}));
-

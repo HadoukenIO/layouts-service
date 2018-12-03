@@ -23,10 +23,6 @@ interface ManifestParams extends ParamBase {
 
 export type AppInitializerInfo = ProgrammaticParams|ManifestParams;
 
-// A WindowGrouping is an array of array of numbers that corresponds to two windows grouped. 
-// e.g. [[0, 1], [2, 3]] would mean that out of an array of 4 windows, win0 and win1 should be grouped, and win2 and win3 should be grouped.
-export type WindowGrouping = number[][];
-
 export interface TestApp {
     uuid: string;
     app: Application;
@@ -104,7 +100,13 @@ export function createAppsArray(numAppsToCreate: number, numberOfChildren: numbe
     return appsArray;
 }
 
-export function createWindowGroupings(numApps: number, children: number) {
+// A WindowGrouping is an array of array of numbers that corresponds to two windows grouped. 
+// e.g. [[0, 1], [2, 3]] would mean that out of an array of 4 windows, win0 and win1 should be grouped, and win2 and win3 should be grouped.
+export type WindowGrouping = number[][];
+
+// createWindowGroupings takes a number of apps and children, and creates a 1-to-1 mapping of all combinations of apps and child windows.
+// For simplicity, we're supporting up to 4 windows right now, but this is meant to be extended.
+export function createWindowGroupings(numApps: number, children: number): WindowGrouping[] {
     const totalWindows = (numApps) + (numApps * children);
 
     switch (totalWindows) {

@@ -1,7 +1,7 @@
 import {Identity} from 'hadouken-js-adapter';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import {TabAPI, UpdateTabPropertiesPayload} from '../../../src/client/internal';
+import {SERVICE_IDENTITY, TabAPI, UpdateTabPropertiesPayload} from '../../../src/client/internal';
 import {TabProperties, WindowIdentity} from '../../../src/client/types';
 import {DesktopTabGroup} from '../../../src/provider/model/DesktopTabGroup';
 import {DesktopWindow} from '../../../src/provider/model/DesktopWindow';
@@ -29,7 +29,7 @@ export async function getTabstrip(identity: Identity): Promise<_Window> {
 
     if (tabGroupId) {
         const fin = await getConnection();
-        return fin.Window.wrapSync({uuid: 'layouts-service', name: tabGroupId});
+        return fin.Window.wrapSync({uuid: SERVICE_IDENTITY.uuid, name: tabGroupId});
     } else {
         throw new Error(`Window ${identity.uuid}/${identity.name} either doesn't exist or isn't tabbed`);
     }

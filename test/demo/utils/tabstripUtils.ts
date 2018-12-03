@@ -2,11 +2,10 @@ import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import * as robot from 'robotjs';
 
+import {Point} from '../../../src/provider/snapanddock/utils/PointUtils';
 import {getTabbedWindows} from '../../demo/utils/tabServiceUtils';
-
 import {delay} from '../../provider/utils/delay';
 import {getBounds, NormalizedBounds} from '../../provider/utils/getBounds';
-import { Point } from '../../../src/provider/snapanddock/utils/PointUtils';
 
 const MAX_TAB_WIDTH = 220;  // From tabstrip CSS
 
@@ -36,7 +35,7 @@ export async function tearoutToOtherTabstrip(sourceTabstrip: _Window, tabIndex: 
 }
 
 /**
- * Util using RobotJS to drag a tab handle to a specific point, ejecting from the tabset. 
+ * Util using RobotJS to drag a tab handle to a specific point, ejecting from the tabset.
  */
 export async function tearoutToPoint(sourceTabstrip: _Window, tabIndex: number, target: Point<number>) {
     await mouseOverTabHandle(sourceTabstrip, tabIndex);

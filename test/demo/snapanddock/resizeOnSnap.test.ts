@@ -1,22 +1,26 @@
-import {assertAdjacent, assertGrouped} from '../../provider/utils/assertions';
+import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
+
+import {assertAdjacent, assertAllContiguous, assertGrouped, assertTabbed} from '../../provider/utils/assertions';
 import {delay} from '../../provider/utils/delay';
 import {dragSideToSide} from '../../provider/utils/dragWindowTo';
-import {getBounds} from '../../provider/utils/getBounds';
+import {getBounds, getTabsetBounds} from '../../provider/utils/getBounds';
 import * as SideUtils from '../../provider/utils/SideUtils';
 import {Side} from '../../provider/utils/SideUtils';
+import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
 import {refreshWindowState} from '../utils/modelUtils';
 import {testParameterized} from '../utils/parameterizedTestUtils';
+import {getActiveTab, getTabstrip} from '../utils/tabServiceUtils';
 
 // Width and Height of the windows when spawned
 const WINDOW_SIZE = 250;
 // Amount by which windows will grow/shrink before snapping.
-const RESIZE_AMOUNT = 50;
+const RESIZE_AMOUNT = 25;
 
 interface ResizeOnSnapOptions extends CreateWindowData {
     side: Side;
     resizeDirection: 'small-to-big'|'big-to-small';
-    windowCount: 2;
+    windowCount: 2|4;
 }
 
 interface Constraints {
@@ -31,6 +35,7 @@ interface Constraints {
 interface ResizeWithConstrainsOptions extends ResizeOnSnapOptions {
     constraints: Constraints;
     shouldResize: boolean;
+    windowCount: 2;
 }
 
 // With window constraints
@@ -190,3 +195,69 @@ testParameterized(
                 `Windows${shouldResize ? ' not' : ''} aligned when they should${shouldResize ? '' : 'n\'t'} be`);
         }
     }, {defaultHeight: WINDOW_SIZE, defaultWidth: WINDOW_SIZE}));
+
+
+// With tabsets
+testParameterized(
+    (testOptions: ResizeOnSnapOptions):
+        string => {
+            const resizeDirectionString = testOptions.resizeDirection.split('-').join(' ');
+
+            return `Resize on Snap - Tabbed Windows - ${testOptions.side} - ${resizeDirectionString}`;
+        },
+    [
+        // No constraints. Normal resizing behaviour expected
+        {frame: true, windowCount: 4, resizeDirection: 'big-to-small', side: 'right'},
+        {frame: true, windowCount: 4, resizeDirection: 'big-to-small', side: 'bottom'},
+        {frame: true, windowCount: 4, resizeDirection: 'small-to-big', side: 'right'},
+        {frame: true, windowCount: 4, resizeDirection: 'small-to-big', side: 'bottom'},
+    ],
+    createWindowTest(async (t, testOptions: ResizeOnSnapOptions) => {
+        const {resizeDirection, side} = testOptions;
+        const windows = t.context.windows;
+
+        // Resize the second window based on the test params
+        if (resizeDirection === 'big-to-small') {
+            await windows[2].resizeBy(RESIZE_AMOUNT, RESIZE_AMOUNT, 'top-left');
+        } else {
+            await windows[2].resizeBy(-RESIZE_AMOUNT, -RESIZE_AMOUNT, 'top-left');
+        }
+
+        await delay(500);
+
+        await tabWindowsTogether(windows[0], windows[1]);
+        await tabWindowsTogether(windows[2], windows[3]);
+
+        await delay(500);
+
+        await assertTabbed(windows[0], windows[1], t);
+        await assertTabbed(windows[2], windows[3], t);
+
+        const tabstrips = [await getTabstrip(windows[0].identity), await getTabstrip(windows[2].identity)];
+        const activeTabs = await Promise.all([windows[0], windows[2]].map(async win => fin.Window.wrap(await getActiveTab(win.identity))));
+
+        const boundsBefore = await getTabsetBounds(activeTabs[1]);
+
+        // Snap the windows together
+        await dragSideToSide(tabstrips[1], SideUtils.opposite(side), activeTabs[0], side, {x: 5, y: -5});
+
+        // Assert snapped and docked
+        await assertAdjacent(t, activeTabs[0], activeTabs[1], side);
+        await assertAdjacent(t, tabstrips[0], tabstrips[1], side);
+        await assertGrouped(t, ...[...windows, ...tabstrips]);
+        await assertAllContiguous(t, [...windows, ...tabstrips]);
+
+        // CHANGES BELOW
+
+        const bounds = [await getTabsetBounds(activeTabs[0]), await getTabsetBounds(activeTabs[1])];
+
+        t.true(boundsBefore.height !== bounds[1].height || boundsBefore.width !== bounds[1].width, `Window not resized when it should`);
+
+        // Check that the windows are (not) aligned (depending on constraints)
+        if (side === 'top' || side === 'bottom') {
+            t.true((bounds[0].left === bounds[1].left && bounds[0].right === bounds[1].right), `Windows not aligned when they should be`);
+        } else {
+            t.true((bounds[0].top === bounds[1].top && bounds[0].bottom === bounds[1].bottom), `Windows not aligned when they should be`);
+        }
+    }, {defaultHeight: WINDOW_SIZE, defaultWidth: WINDOW_SIZE}));
+

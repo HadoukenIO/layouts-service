@@ -3,13 +3,13 @@ import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {delay} from '../../provider/utils/delay';
 
-import {AppInitializer, AppInitializerInfo, TestApp} from './AppInitializer';
+import {AppInitializer, AppInitializerInfo, TestApp, WindowGrouping} from './AppInitializer';
 import {TestMacro} from './parameterizedTestUtils';
 
 export interface CreateAppData {
     apps: AppInitializerInfo[];
-    snapWindowGrouping?: number[][];
-    tabWindowGrouping?: number[][];
+    snapWindowGrouping?: WindowGrouping;
+    tabWindowGrouping?: WindowGrouping;
 }
 
 export interface AppContext {

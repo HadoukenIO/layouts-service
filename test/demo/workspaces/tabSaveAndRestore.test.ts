@@ -1,13 +1,13 @@
 import {assertGrouped, assertTabbed} from '../../provider/utils/assertions';
 import {getWindow} from '../../provider/utils/getWindow';
-import {AppInitializerInfo} from '../utils/AppInitializer';
+import {AppInitializerInfo, WindowGrouping} from '../utils/AppInitializer';
 import {AppContext, CreateAppData, createAppTest} from '../utils/createAppTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {createCloseAndRestoreLayout, createTabTests} from '../utils/workspacesUtils';
 
 export interface TabSaveRestoreTestOptions {
     apps: AppInitializerInfo[];
-    tabWindowGrouping: number[][];
+    tabWindowGrouping: WindowGrouping;
 }
 
 const basicTestOptionsArray: TabSaveRestoreTestOptions[] = [];

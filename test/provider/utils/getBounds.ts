@@ -1,9 +1,10 @@
 import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
+import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import * as os from 'os';
 
+import {getActiveTab, getTabstrip} from '../../demo/utils/tabServiceUtils';
+
 import {getWindow, Win} from './getWindow';
-import { _Window } from 'hadouken-js-adapter/out/types/src/api/window/window';
-import { getTabstrip, getActiveTab } from '../../demo/utils/tabServiceUtils';
 
 const isWin10 = os.type() === 'Windows_NT' && os.release().slice(0, 2) === '10';
 

@@ -14,7 +14,7 @@
     },
     "runtime": {
         "arguments": "--v=1 --enable-crash-reporting --inspect=9222 --enable-aggressive-domstorage-flushing",
-        "version": "9.61.37.34"
+        "version": "9.61.37.36"
     },
     "services": [{"name": "layouts", "manifestUrl": "http://localhost:1337/provider/app.json"}],
     "shortcut": {

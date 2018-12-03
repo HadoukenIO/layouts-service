@@ -514,10 +514,12 @@ export class DesktopTabGroup implements Snappable {
         this._tabs.splice(index, 1);
         delete this._tabProperties[tab.getId()];
 
-        tab.setSnapGroup(new DesktopSnapGroup());
         tab.onTeardown.remove(this.onWindowTeardown, this);
         tab.onTransform.remove(this.onTabTransform, this);
-        await tab.setTabGroup(null);
+        await Promise.all([
+            tab.setSnapGroup(new DesktopSnapGroup()),
+            tab.setTabGroup(null)
+        ]);
 
         const payload: TabGroupEventPayload = {tabGroupId: this.ID, tabID: tab.getIdentity()};
         await this.sendTabEvent(tab, WindowMessages.LEAVE_TAB_GROUP, payload);

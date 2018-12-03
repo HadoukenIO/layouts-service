@@ -426,8 +426,8 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
      */
     public async setSnapGroup(group: DesktopSnapGroup): Promise<void> {
         if (group !== this.snapGroup) {
-            const wasSnapped = this.snapGroup.snappables.length > 1;
-
+            const wasSnapped = this.snapGroup.windows.length > 1;
+            
             // Update state synchronously
             this.addToSnapGroup(group);
 
@@ -441,6 +441,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
                 await this.snap();
             }
         }
+
         return Promise.resolve();
     }
 
@@ -547,11 +548,6 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         }
     }
 
-    private unsnap(): Promise<void> {
-        // TODO: Wrap with 'addPendingActions'?..
-        return this.window.leaveGroup();
-    }
-
     private snap(): Promise<void> {
         const group: DesktopSnapGroup = this.snapGroup;
         const windows: DesktopWindow[] = this.snapGroup.windows as DesktopWindow[];
@@ -582,6 +578,11 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         } else {
             return Promise.reject('Need at least 2 windows in group to snap');
         }
+    }
+
+    private unsnap(): Promise<void> {
+        // TODO: Wrap with 'addPendingActions'?..
+        return this.window.leaveGroup();
     }
 
     private addToSnapGroup(group: DesktopSnapGroup): void {

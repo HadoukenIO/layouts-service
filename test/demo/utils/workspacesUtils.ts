@@ -12,24 +12,15 @@ async function isWindowActive(uuid: string, name: string) {
     const fin = await getConnection();
     const allWindows = await fin.System.getAllWindows();
 
-    let pass = false;
-
-    allWindows.forEach((win) => {
-        if (win.uuid === uuid) {
-            if (uuid === name) {
-                pass = true;
-                return;
-            }
-            win.childWindows.forEach((childWin) => {
-                if (childWin.name === name) {
-                    pass = true;
-                    return;
-                }
-            });
+    return allWindows.some(win => {
+        if (win.uuid !== uuid) {
+            return false;
+        } else if (uuid === name) {
+            return true;
+        } else {
+            return win.childWindows.some(childWin => childWin.name === name);
         }
     });
-
-    return pass;
 }
 
 export async function assertWindowRestored(t: SaveRestoreTestContext, uuid: string, name: string) {

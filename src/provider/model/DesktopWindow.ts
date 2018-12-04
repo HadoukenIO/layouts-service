@@ -758,7 +758,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         this.registerListener('begin-user-bounds-changing', this.handleBeginUserBoundsChanging.bind(this));
         this.registerListener('bounds-changed', this.handleBoundsChanged.bind(this));
         this.registerListener('bounds-changing', this.handleBoundsChanging.bind(this));
-        this.registerListener('closed', this.handleClosed.bind(this));
+        this.registerListener('closing', this.handleClosing.bind(this));
         // this.registerListener('disabled-frame-bounds-changed', this.handleDisabledFrameBoundsChanged.bind(this));
         // this.registerListener('disabled-frame-bounds-changing', this.handleDisabledFrameBoundsChanging.bind(this));
         this.registerListener('focused', this.handleFocused.bind(this));
@@ -918,7 +918,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         this.userInitiatedBoundsChange = true;
     }
 
-    private handleClosed(): void {
+    private handleClosing(): void {
         // If 'onclose' event has fired, we shouldn't attempt to call any OpenFin API on the window.
         // Will immediately reset ready flag, to prevent any API calls as part of clean-up/destroy process.
         this.ready = false;

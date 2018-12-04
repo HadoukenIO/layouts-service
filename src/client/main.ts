@@ -15,10 +15,6 @@ export {addTab, closeTab, closeTabGroup, createTabGroup, getTabs, maximizeTabGro
 export {minimizeTabGroup, removeTab, restoreTabGroup, setActiveTab, setTabClient, tabStrip};
 export {generateLayout, onApplicationSave, onAppRestore, onLayoutRestore, onLayoutSave, ready, restoreLayout};
 
-if (typeof fin === 'undefined') {
-    throw new Error('fin is not defined, This module is only intended for use in an OpenFin application.');
-}
-
 /**
  * Allows a window to opt-out of this service.
  *
@@ -37,6 +33,9 @@ export async function deregister(identity: Identity = getId()): Promise<void> {
  * @param callback Function to be executed on event firing. Takes no arguments and returns void.
  */
 export async function addEventListener<K extends keyof EventMap>(type: K, listener: (event: EventMap[K]) => void): Promise<void> {
+    if (typeof fin === 'undefined') {
+        throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
+    }
     // Use native js event system to pass internal events around.
     // Without this we would need to handle multiple registration ourselves.
     window.addEventListener(type, listener as EventListener);

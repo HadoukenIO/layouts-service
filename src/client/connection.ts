@@ -27,7 +27,8 @@ declare const PACKAGE_VERSION: string;
 /**
  * Promise to the channel object that allows us to connect to the client
  */
-export const channelPromise: Promise<ChannelClient> =
+export const channelPromise: Promise<ChannelClient> = typeof fin === 'undefined' ?
+    Promise.reject('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.') :
     fin.InterApplicationBus.Channel.connect(SERVICE_CHANNEL, {payload: {version: PACKAGE_VERSION}}).then((channel: ChannelClient) => {
         // Register service listeners
         channel.register('WARN', (payload: any) => console.warn(payload));  // tslint:disable-line:no-any

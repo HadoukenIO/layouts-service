@@ -1,13 +1,13 @@
 import {assertAdjacent, assertGrouped} from '../../provider/utils/assertions';
 import {dragWindowTo} from '../../provider/utils/dragWindowTo';
 import {getWindow} from '../../provider/utils/getWindow';
-import {AppInitializerInfo, WindowGrouping} from '../utils/AppInitializer';
+import {AppInitializerParams, WindowGrouping} from '../utils/AppInitializer';
 import {AppContext, CreateAppData, createAppTest} from '../utils/createAppTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {createCloseAndRestoreLayout, createSnapTests} from '../utils/workspacesUtils';
 
 export interface SnapSaveRestoreTestOptions {
-    apps: AppInitializerInfo[];
+    apps: AppInitializerParams[];
     snapWindowGrouping: WindowGrouping;
 }
 

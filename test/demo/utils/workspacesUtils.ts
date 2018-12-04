@@ -2,7 +2,7 @@ import {Context, GenericTestContext, Test, TestContext} from 'ava';
 
 import {getConnection} from '../../provider/utils/connect';
 
-import {AppInitializerInfo, createAppsArray, createWindowGroupings, TestAppData, WindowGrouping} from './AppInitializer';
+import {AppInitializerParams, createAppsArray, createWindowGroupings, TestAppData, WindowGrouping} from './AppInitializer';
 import {AppContext} from './createAppTest';
 import {sendServiceMessage} from './serviceUtils';
 
@@ -39,26 +39,26 @@ export async function createCloseAndRestoreLayout(t: SaveRestoreTestContext) {
     await sendServiceMessage('restoreLayout', generatedLayout);
 }
 
-export function createBasicSaveAndRestoreTest(numAppsToCreate: number, numberOfChildren: number): {apps: AppInitializerInfo[]} {
+export function createBasicSaveAndRestoreTest(numAppsToCreate: number, numberOfChildren: number): {apps: AppInitializerParams[]} {
     const appsArray = createAppsArray(numAppsToCreate, numberOfChildren);
 
-    return {apps: appsArray as AppInitializerInfo[]};
+    return {apps: appsArray as AppInitializerParams[]};
 }
 
-export function createSnapTests(numApps: number, children: number): {apps: AppInitializerInfo[], snapWindowGrouping: WindowGrouping}[] {
+export function createSnapTests(numApps: number, children: number): {apps: AppInitializerParams[], snapWindowGrouping: WindowGrouping}[] {
     const windowGroupings = createWindowGroupings(numApps, children);
     const appsArray = createAppsArray(numApps, children);
 
     return windowGroupings.map(windowGrouping => {
-        return {apps: appsArray as AppInitializerInfo[], snapWindowGrouping: windowGrouping};
+        return {apps: appsArray as AppInitializerParams[], snapWindowGrouping: windowGrouping};
     });
 }
 
-export function createTabTests(numApps: number, children: number): {apps: AppInitializerInfo[], tabWindowGrouping: WindowGrouping}[] {
+export function createTabTests(numApps: number, children: number): {apps: AppInitializerParams[], tabWindowGrouping: WindowGrouping}[] {
     const windowGroupings = createWindowGroupings(numApps, children);
     const appsArray = createAppsArray(numApps, children);
 
     return windowGroupings.map(windowGrouping => {
-        return {apps: appsArray as AppInitializerInfo[], tabWindowGrouping: windowGrouping};
+        return {apps: appsArray as AppInitializerParams[], tabWindowGrouping: windowGrouping};
     });
 }

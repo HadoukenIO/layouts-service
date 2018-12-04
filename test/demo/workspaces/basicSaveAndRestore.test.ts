@@ -1,10 +1,10 @@
-import {AppInitializerInfo} from '../utils/AppInitializer';
+import {AppInitializerParams} from '../utils/AppInitializer';
 import {AppContext, CreateAppData, createAppTest} from '../utils/createAppTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {assertWindowRestored, createBasicSaveAndRestoreTest, createCloseAndRestoreLayout} from '../utils/workspacesUtils';
 
 export interface BasicSaveRestoreTestOptions {
-    apps: AppInitializerInfo[];
+    apps: AppInitializerParams[];
 }
 
 const basicTestOptionsArray: BasicSaveRestoreTestOptions[] = [];

@@ -21,7 +21,7 @@ interface ManifestTestParams extends TestParamBase {
     manifestUrl: string;
 }
 
-export type AppInitializerInfo = ProgrammaticTestParams|ManifestTestParams;
+export type AppInitializerParams = ProgrammaticTestParams|ManifestTestParams;
 
 export interface TestAppData {
     uuid: string;
@@ -122,7 +122,7 @@ export function createWindowGroupings(numApps: number, children: number): Window
 export class AppInitializer {
     constructor() {}
 
-    public async initApps(params: AppInitializerInfo[]): Promise<TestAppData[]> {
+    public async initApps(params: AppInitializerParams[]): Promise<TestAppData[]> {
         const fin = await getConnection();
         const result: TestAppData[] = [];
 

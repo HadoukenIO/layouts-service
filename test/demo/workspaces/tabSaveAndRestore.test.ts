@@ -1,12 +1,12 @@
 import {assertGrouped, assertTabbed} from '../../provider/utils/assertions';
 import {getWindow} from '../../provider/utils/getWindow';
-import {AppInitializerInfo, WindowGrouping} from '../utils/AppInitializer';
+import {AppInitializerParams, WindowGrouping} from '../utils/AppInitializer';
 import {AppContext, CreateAppData, createAppTest} from '../utils/createAppTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {createCloseAndRestoreLayout, createTabTests} from '../utils/workspacesUtils';
 
 export interface TabSaveRestoreTestOptions {
-    apps: AppInitializerInfo[];
+    apps: AppInitializerParams[];
     tabWindowGrouping: WindowGrouping;
 }
 

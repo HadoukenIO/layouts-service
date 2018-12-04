@@ -255,7 +255,7 @@ export class DesktopTabGroup implements Snappable {
         const firstTab: DesktopWindow = tabs.shift()!;
         const activeTab: DesktopWindow = (activeTabId && this._model.getWindow(activeTabId)) || firstTab;
 
-        DesktopWindow.transaction(allWindows, async () => {
+        await DesktopWindow.transaction(allWindows, async () => {
             await this.addTabInternal(firstTab, true);
             await Promise.all([firstTab.sync(), this._window.sync()]);
             await Promise.all(tabs.map(tab => this.addTabInternal(tab, false)));
@@ -516,10 +516,7 @@ export class DesktopTabGroup implements Snappable {
 
         tab.onTeardown.remove(this.onWindowTeardown, this);
         tab.onTransform.remove(this.onTabTransform, this);
-        await Promise.all([
-            tab.setSnapGroup(new DesktopSnapGroup()),
-            tab.setTabGroup(null)
-        ]);
+        await Promise.all([tab.setSnapGroup(new DesktopSnapGroup()), tab.setTabGroup(null)]);
 
         const payload: TabGroupEventPayload = {tabGroupId: this.ID, tabID: tab.getIdentity()};
         await this.sendTabEvent(tab, WindowMessages.LEAVE_TAB_GROUP, payload);

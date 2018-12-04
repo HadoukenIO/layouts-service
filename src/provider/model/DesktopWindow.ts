@@ -427,7 +427,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
     public async setSnapGroup(group: DesktopSnapGroup): Promise<void> {
         if (group !== this.snapGroup) {
             const wasSnapped = this.snapGroup.windows.length > 1;
-            
+
             // Update state synchronously
             this.addToSnapGroup(group);
 
@@ -582,7 +582,11 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
 
     private unsnap(): Promise<void> {
         // TODO: Wrap with 'addPendingActions'?..
-        return this.window.leaveGroup();
+        if (this.ready) {
+            return this.window.leaveGroup();
+        } else {
+            return Promise.resolve();
+        }
     }
 
     private addToSnapGroup(group: DesktopSnapGroup): void {

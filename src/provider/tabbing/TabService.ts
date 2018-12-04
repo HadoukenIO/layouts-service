@@ -310,7 +310,7 @@ export class TabService {
             const remainingTab = existingTabs![0] === window ? existingTabs![1] : existingTabs![0];
 
             console.log('Re-attaching remaining tab: ' + remainingTab.getId() + ' => ' + joinedSnappable.getId());
-            remainingTab.setSnapGroup(joinedSnappable.getSnapGroup());
+            await remainingTab.setSnapGroup(joinedSnappable.getSnapGroup());
         } else if (willDisbandTabGroup) {
             console.log('No snappables previously joined onto tab group');
         }

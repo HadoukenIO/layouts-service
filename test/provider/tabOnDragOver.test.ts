@@ -336,8 +336,8 @@ test('3 tab tabgroup, Tab closed - should retain tabgroup', async t => {
     const win3 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
-        defaultTop: 500,
-        defaultLeft: 500,
+        defaultTop: 600,
+        defaultLeft: 600,
         defaultHeight: 200,
         defaultWidth: 200,
         url: 'http://localhost:1337/demo/tabbing/default.html',
@@ -362,8 +362,8 @@ test('3 tab tabgroup, Tab tearout - should retain tabgroup', async t => {
     const win3 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
-        defaultTop: 500,
-        defaultLeft: 500,
+        defaultTop: 600,
+        defaultLeft: 600,
         defaultHeight: 200,
         defaultWidth: 200,
         url: 'http://localhost:1337/demo/tabbing/default.html',

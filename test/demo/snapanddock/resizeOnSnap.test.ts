@@ -208,9 +208,9 @@ testParameterized(
     [
         // No constraints. Normal resizing behaviour expected
         {frame: true, windowCount: 4, resizeDirection: 'big-to-small', side: 'right'},
-        {frame: true, windowCount: 4, resizeDirection: 'big-to-small', side: 'bottom', failing: true},  // Fails due to weird 1-2px offset when snapping
+        {frame: true, windowCount: 4, resizeDirection: 'big-to-small', side: 'bottom'},
         {frame: true, windowCount: 4, resizeDirection: 'small-to-big', side: 'right'},
-        {frame: true, windowCount: 4, resizeDirection: 'small-to-big', side: 'bottom'},
+        {frame: true, windowCount: 4, resizeDirection: 'small-to-big', side: 'bottom'}
     ],
     createWindowTest(async (t, testOptions: ResizeOnSnapOptions) => {
         const {resizeDirection, side} = testOptions;

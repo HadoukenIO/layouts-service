@@ -134,6 +134,10 @@ testParameterized<SnapTabInstanceData&CreateWindowData, WindowContext>(
         // Tab remaining window to snapped window
         await tearoutToOtherTabstrip(tabstrip, 2, windows[3]);
 
+        // Move window to visually verify windows are still grouped
+        const bounds: Bounds = await tabstrip.getBounds();
+        await dragWindowTo(tabstrip, bounds.left + -300, bounds.top + -200);
+
         await assertTabbed(windows[0], windows[1], t);
         await assertTabbed(windows[2], windows[3], t);
         await assertGrouped(t, ...windows);

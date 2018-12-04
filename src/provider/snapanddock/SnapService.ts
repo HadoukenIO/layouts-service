@@ -166,7 +166,13 @@ export class SnapService {
     }
 
     private validateGroup(group: DesktopSnapGroup, modifiedWindow: DesktopWindow): void {
-        this.validateGroups.postpone();
+        if (group.windows.includes(modifiedWindow)) {
+            // If a validate is already scheduled, postpone it. But no need to trigger a validation.
+            this.validateGroups.postpone();
+        } else {
+            // Window has been removed from group, definitely need to validate.
+            this.validateGroups.call(group);
+        }
     }
 
     private validateGroupInternal(group: DesktopSnapGroup): void {

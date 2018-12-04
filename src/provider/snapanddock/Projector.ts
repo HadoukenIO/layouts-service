@@ -1,7 +1,8 @@
 import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
 import {WindowState} from '../model/DesktopWindow';
+import {eTargetType} from '../WindowHandler';
 import {ANCHOR_DISTANCE, MIN_OVERLAP, SNAP_DISTANCE} from './Config';
-import {eSnapValidity, Orientation, SnapTarget} from './Resolver';
+import {Orientation, SnapTarget} from './Resolver';
 import {Point, PointUtils} from './utils/PointUtils';
 import {Range, RangeUtils} from './utils/RangeUtils';
 import {MeasureResult, RectUtils} from './utils/RectUtils';
@@ -139,7 +140,7 @@ export class Projector {
                     }
                 });
 
-                return {group: candidateGroup, activeWindow, snapOffset, halfSize, validity: eSnapValidity.VALID};
+                return {group: candidateGroup, activeWindow, offset: snapOffset, halfSize, valid: true, type: eTargetType.SNAP};
             }
         }
 

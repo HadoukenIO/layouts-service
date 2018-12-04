@@ -21,7 +21,8 @@ enum CornerEnum {
 
 export type Corner = keyof typeof CornerEnum;
 
-export const dragWindowToOtherWindow = async (draggedWindow: Win, draggedCorner: Corner, targetWindow: Win, targetCorner: Corner, offset?: Point) => {
+export const dragWindowToOtherWindow =
+    async (draggedWindow: Win, draggedCorner: Corner, targetWindow: Win, targetCorner: Corner, offset?: Point, dropWindow = true) => {
     const draggedBounds = await getBounds(draggedWindow);
     const targetBounds = await getBounds(targetWindow);
 
@@ -72,10 +73,14 @@ export const dragWindowToOtherWindow = async (draggedWindow: Win, draggedCorner:
         y: draggedAdjustment.y + targetAdjustment.y + (offset ? offset.y : 0)
     };
 
-    await dragWindowTo(draggedWindow, targetBounds.left + finalAdjustment.x, targetBounds.top + finalAdjustment.y);
+    if (dropWindow) {
+        await dragWindowTo(draggedWindow, targetBounds.left + finalAdjustment.x, targetBounds.top + finalAdjustment.y);
+    } else {
+        await dragWindowAndHover(draggedWindow, targetBounds.left + finalAdjustment.x, targetBounds.top + finalAdjustment.y);
+    }
 };
 
-export const dragSideToSide = async (draggedWindow: Win, draggedSide: Side, targetWindow: Win, targetSide: Side, offset?: Point) => {
+export const dragSideToSide = async (draggedWindow: Win, draggedSide: Side, targetWindow: Win, targetSide: Side, offset?: Point, dropWindow = true) => {
     let draggedCorner: Corner, targetCorner: Corner;
     if (draggedSide === 'top' || draggedSide === 'bottom') {
         draggedCorner = draggedSide + '-left' as Corner;
@@ -88,5 +93,5 @@ export const dragSideToSide = async (draggedWindow: Win, draggedSide: Side, targ
         targetCorner = 'top-' + targetSide as Corner;
     }
 
-    await dragWindowToOtherWindow(draggedWindow, draggedCorner, targetWindow, targetCorner, (offset ? offset : undefined));
+    await dragWindowToOtherWindow(draggedWindow, draggedCorner, targetWindow, targetCorner, offset, dropWindow);
 };

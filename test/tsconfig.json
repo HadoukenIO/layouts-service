@@ -18,7 +18,8 @@
       "demo/**/*.ts"
     ],
     "exclude": [
-      "../node_modules"
+      "../node_modules",
+      "**/*.unittest.ts"
     ]
   }
   

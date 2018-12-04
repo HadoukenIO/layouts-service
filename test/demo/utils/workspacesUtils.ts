@@ -2,7 +2,7 @@ import {Context, GenericTestContext, Test, TestContext} from 'ava';
 
 import {getConnection} from '../../provider/utils/connect';
 
-import {AppInitializerInfo, createAppsArray, createWindowGroupings, TestApp, WindowGrouping} from './AppInitializer';
+import {AppInitializerInfo, createAppsArray, createWindowGroupings, TestAppData, WindowGrouping} from './AppInitializer';
 import {AppContext} from './createAppTest';
 import {sendServiceMessage} from './serviceUtils';
 
@@ -35,7 +35,7 @@ export async function assertWindowNotRestored(t: SaveRestoreTestContext, uuid: s
 
 export async function createCloseAndRestoreLayout(t: SaveRestoreTestContext) {
     const generatedLayout = await sendServiceMessage('generateLayout', undefined);
-    await Promise.all(t.context.testAppData.map(async (appData: TestApp) => await appData.app.close(true)));
+    await Promise.all(t.context.testAppData.map(async (appData: TestAppData) => await appData.app.close(true)));
     await sendServiceMessage('restoreLayout', generatedLayout);
 }
 
@@ -49,24 +49,16 @@ export function createSnapTests(numApps: number, children: number): {apps: AppIn
     const windowGroupings = createWindowGroupings(numApps, children);
     const appsArray = createAppsArray(numApps, children);
 
-    const result = [];
-
-    for (const windowGrouping of windowGroupings) {
-        result.push({apps: appsArray as AppInitializerInfo[], snapWindowGrouping: windowGrouping});
-    }
-
-    return result;
+    return windowGroupings.map(windowGrouping => {
+        return {apps: appsArray as AppInitializerInfo[], snapWindowGrouping: windowGrouping};
+    });
 }
 
 export function createTabTests(numApps: number, children: number): {apps: AppInitializerInfo[], tabWindowGrouping: WindowGrouping}[] {
     const windowGroupings = createWindowGroupings(numApps, children);
     const appsArray = createAppsArray(numApps, children);
 
-    const result = [];
-
-    for (const windowGrouping of windowGroupings) {
-        result.push({apps: appsArray as AppInitializerInfo[], tabWindowGrouping: windowGrouping});
-    }
-
-    return result;
+    return windowGroupings.map(windowGrouping => {
+        return {apps: appsArray as AppInitializerInfo[], tabWindowGrouping: windowGrouping};
+    });
 }

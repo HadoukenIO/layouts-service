@@ -3,7 +3,7 @@ import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {delay} from '../../provider/utils/delay';
 
-import {AppInitializer, AppInitializerInfo, TestApp, WindowGrouping} from './AppInitializer';
+import {AppInitializer, AppInitializerInfo, TestAppData, WindowGrouping} from './AppInitializer';
 import {TestMacro} from './parameterizedTestUtils';
 
 export interface CreateAppData {
@@ -13,7 +13,7 @@ export interface CreateAppData {
 }
 
 export interface AppContext {
-    testAppData: TestApp[];
+    testAppData: TestAppData[];
     appInitializer: AppInitializer;
     windows: _Window[];
 }
@@ -24,7 +24,7 @@ export function createAppTest<T extends CreateAppData, C extends AppContext = Ap
 
     return async (t: GenericTestContext<Context<C>>, data: T) => {
         // Create all apps
-        const testAppData: TestApp[] = await appInitializer.initApps(data.apps);
+        const testAppData: TestAppData[] = await appInitializer.initApps(data.apps);
 
 
         // Delay slightly to allow windows to initialize

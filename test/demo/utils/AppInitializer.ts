@@ -7,23 +7,23 @@ import {delay} from '../../provider/utils/delay';
 import {dragSideToSide} from '../../provider/utils/dragWindowTo';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 
-interface ParamBase {
+interface TestParamBase {
     childWindows: fin.WindowOptions[];
 }
 
-interface ProgrammaticParams extends ParamBase {
+interface ProgrammaticTestParams extends TestParamBase {
     createType: 'programmatic';
     appOptions: fin.ApplicationOptions;
 }
 
-interface ManifestParams extends ParamBase {
+interface ManifestTestParams extends TestParamBase {
     createType: 'manifest';
     manifestUrl: string;
 }
 
-export type AppInitializerInfo = ProgrammaticParams|ManifestParams;
+export type AppInitializerInfo = ProgrammaticTestParams|ManifestTestParams;
 
-export interface TestApp {
+export interface TestAppData {
     uuid: string;
     app: Application;
     mainWindow: _Window;
@@ -42,7 +42,7 @@ const CHILD_WINDOW_BASE = {
     name: 'BASE'
 };
 
-export const OPTIONS_BASE = {
+const OPTIONS_BASE = {
     uuid: 'BASE',
     url: 'http://localhost:1337/test/saveRestoreTestingApp.html?deregistered=false',
     name: 'BASE',
@@ -54,7 +54,7 @@ export const OPTIONS_BASE = {
     defaultWidth: 250
 };
 
-export const APP_INITIALIZER_BASE = {
+const APP_INITIALIZER_BASE = {
     appOptions: OPTIONS_BASE,
     createType: 'programmatic',
     childWindows: []
@@ -68,7 +68,7 @@ function childXCoordinate(appNum: number, childNum: number) {
     return ((appNum + childNum) * 280) + 300;
 }
 
-export function appYCoordinate(appTitleNumber: number) {
+function appYCoordinate(appTitleNumber: number) {
     return ((appTitleNumber - 1) * 275) + 50;
 }
 
@@ -122,9 +122,9 @@ export function createWindowGroupings(numApps: number, children: number): Window
 export class AppInitializer {
     constructor() {}
 
-    public async initApps(params: AppInitializerInfo[]): Promise<TestApp[]> {
+    public async initApps(params: AppInitializerInfo[]): Promise<TestAppData[]> {
         const fin = await getConnection();
-        const result: TestApp[] = [];
+        const result: TestAppData[] = [];
 
         for (let appIdx = 0; appIdx < params.length; appIdx++) {
             const param = params[appIdx];

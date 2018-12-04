@@ -5,7 +5,7 @@ import {getWindow, Win} from './getWindow';
 const xOffset = 30;
 const yOffset = 30;
 
-export const dragTabOut = async (identityOrWindow: Win, x: number, y: number) => {
+export async function dragTabOut(identityOrWindow: Win, x: number, y: number) {
     // Focus the window to make sure it's on top.
     const win = await getWindow(identityOrWindow);
     await win.focus();
@@ -18,4 +18,4 @@ export const dragTabOut = async (identityOrWindow: Win, x: number, y: number) =>
     robot.mouseToggle('up');
 
     await delay(500);
-};
+}

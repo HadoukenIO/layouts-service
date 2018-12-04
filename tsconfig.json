@@ -5,7 +5,7 @@
         "outDir": "dist",
         "rootDir": "src",
         "lib": ["dom", "es2017"],
-        "types": ["node", "jest"],
+        "types": ["node"],
         "sourceMap": true,
         "declaration": false
     },

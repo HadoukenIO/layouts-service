@@ -1,15 +1,26 @@
 import {Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
-
 import {ApplicationUIConfig, TabGroup, TabGroupDimensions, WindowIdentity} from '../../client/types';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {DesktopWindow, WindowState} from '../model/DesktopWindow';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
-
+import {eTargetType, TargetBase} from '../WindowHandler';
 import {ApplicationConfigManager} from './components/ApplicationConfigManager';
 import {DragWindowManager} from './DragWindowManager';
 
+
+/**
+ * TabTarget constructs an interface which represents an area on a window where a tab strip will be placed.
+ */
+export interface TabTarget extends TargetBase {
+    type: eTargetType.TAB;
+
+    /**
+     * Represents the target window tabbing space;
+     */
+    dropArea: Rectangle;
+}
 
 /**
  * The overarching class for the Tab Service.
@@ -324,11 +335,67 @@ export class TabService {
      * @param {Point} position
      */
     private isOverWindowDropArea(window: DesktopWindow, position: Point): boolean {
-        const state: WindowState = window.getState();
-        const config: ApplicationUIConfig = this.mApplicationConfigManager.getApplicationUIConfig(window.getIdentity().uuid);
-        const dropAreaCenter: Point = {x: state.center.x, y: (state.center.y - state.halfSize.y) + (config.height / 2)};
-        const dropAreaHalfSize = {x: state.halfSize.x, y: config.height / 2};
+        const {center, halfSize} = this.getWindowDropArea(window);
 
-        return RectUtils.isPointInRect(dropAreaCenter, dropAreaHalfSize, position);
+        return RectUtils.isPointInRect(center, halfSize, position);
+    }
+
+    /**
+     * Returns the Center and HalfSize of a valid tabbing area on a window.  If the window has a tabset, this will be the dimensions of the tab group window, if
+     * not the dimensions will be tab group window inset.
+     * @param {DesktopWindow} window The window to get area for.
+     */
+    private getWindowDropArea(window: DesktopWindow): Rectangle {
+        const isTabbed = window.getTabGroup();
+        if (isTabbed) {
+            const {halfSize, center} = isTabbed.window.getState();
+            return {center, halfSize};
+        } else {
+            const state: WindowState = window.getState();
+            const config: ApplicationUIConfig = this.mApplicationConfigManager.getApplicationUIConfig(window.getIdentity().uuid);
+            const center: Point = {x: state.center.x, y: (state.center.y - state.halfSize.y) + (config.height / 2)};
+            const halfSize = {x: state.halfSize.x, y: config.height / 2};
+
+            return {center, halfSize};
+        }
+    }
+
+    /**
+     * Generates a valid tabbing target for a given active group in its current position.
+     * @param {DesktopSnapGroup} activeGroup The current active group being moved by the user.
+     */
+    public getTarget(activeGroup: DesktopSnapGroup): TabTarget|null {
+        const position: Point|null = this._model.getMouseTracker().getPosition();
+        const targetWindow: DesktopWindow|null = position && this._model.getWindowAt(position.x, position.y, activeGroup.windows[0].getIdentity());
+
+        if (targetWindow) {
+            /**
+             * Checks the mouse position is over a valid window drop area.
+             */
+            const isOverWindowValid: boolean = this.isOverWindowDropArea(targetWindow, position!);
+    
+            /**
+             * Prevent snapped windows from tabbing together - only tab windows that are in different snap groups
+             */
+            const targetAlreadySnapped: boolean = targetWindow.getSnapGroup() === activeGroup;
+    
+            if (isOverWindowValid && !targetAlreadySnapped) {
+                const isTargetTabbed = targetWindow.getTabGroup();
+
+                // Check if the target and active window have same tab config.
+                const valid: boolean = this.applicationConfigManager.compareConfigBetweenApplications(
+                    isTargetTabbed ? isTargetTabbed.config : targetWindow.getIdentity().uuid, activeGroup.windows[0].getIdentity().uuid);
+
+                return {
+                    type: eTargetType.TAB,
+                    activeWindow: activeGroup.windows[0],
+                    group: targetWindow.getSnapGroup(),
+                    dropArea: this.getWindowDropArea(targetWindow),
+                    valid
+                };
+            }
+        }
+
+        return null;
     }
 }

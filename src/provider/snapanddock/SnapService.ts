@@ -1,11 +1,10 @@
-import {tabService} from '../main';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
 import {DesktopWindow, eTransformType, Mask, WindowIdentity} from '../model/DesktopWindow';
+import {Target} from '../WindowHandler';
 
 import {EXPLODE_MOVE_SCALE, MIN_OVERLAP, UNDOCK_MOVE_DISTANCE} from './Config';
-import {eSnapValidity, Resolver, SnapTarget} from './Resolver';
-import {SnapView} from './SnapView';
+import {Resolver, SnapTarget} from './Resolver';
 import {Debounced} from './utils/Debounced';
 import {Point, PointUtils} from './utils/PointUtils';
 import {MeasureResult, RectUtils} from './utils/RectUtils';
@@ -30,7 +29,7 @@ export interface SnapState {
      *
      * Will be null when there is no valid snap target.
      */
-    target: SnapTarget|null;
+    target: Target|null;
 }
 
 export class SnapService {
@@ -41,6 +40,8 @@ export class SnapService {
      */
     private static VALIDATE_GROUP_DISTANCE = 14;
 
+    private resolver: Resolver;
+
     /**
      * Flag to disable / enable docking.
      */
@@ -48,15 +49,11 @@ export class SnapService {
 
     private model: DesktopModel;
 
-    private resolver: Resolver;
-    private view: SnapView;
-
     private validateGroups: Debounced<(group: DesktopSnapGroup) => void, SnapService, [DesktopSnapGroup]>;
 
     constructor(model: DesktopModel) {
         this.model = model;
         this.resolver = new Resolver();
-        this.view = new SnapView();
         this.validateGroups = new Debounced(this.validateGroupInternal, this);
 
         // Register lifecycle listeners
@@ -154,18 +151,16 @@ export class SnapService {
     }
 
     private onSnapGroupCreated(group: DesktopSnapGroup): void {
-        group.onModified.add(this.validateGroup, this);
-        group.onTransform.add(this.snapGroup, this);
-        group.onCommit.add(this.applySnapTarget, this);
+        group.onModified.add(this.onGroupModified, this);
+        group.onTransform.add(this.onGroupTransform, this);
     }
 
     private onSnapGroupDestroyed(group: DesktopSnapGroup): void {
-        group.onModified.remove(this.validateGroup, this);
-        group.onTransform.remove(this.snapGroup, this);
-        group.onCommit.remove(this.applySnapTarget, this);
+        group.onModified.remove(this.onGroupModified, this);
+        group.onTransform.remove(this.onGroupTransform, this);
     }
 
-    private validateGroup(group: DesktopSnapGroup, modifiedWindow: DesktopWindow): void {
+    private onGroupModified(group: DesktopSnapGroup, modifiedWindow: DesktopWindow): void {
         if (group.windows.includes(modifiedWindow)) {
             // If a validate is already scheduled, postpone it. But no need to trigger a validation.
             this.validateGroups.postpone();
@@ -173,6 +168,10 @@ export class SnapService {
             // Window has been removed from group, definitely need to validate.
             this.validateGroups.call(group);
         }
+    }
+
+    private onGroupTransform(group: DesktopSnapGroup, type: Mask<eTransformType>): void {
+        this.validateGroups.postpone();
     }
 
     private validateGroupInternal(group: DesktopSnapGroup): void {
@@ -189,45 +188,34 @@ export class SnapService {
         }
     }
 
-    private snapGroup(activeGroup: DesktopSnapGroup, type: Mask<eTransformType>): void {
-        const groups: ReadonlyArray<DesktopSnapGroup> = this.model.getSnapGroups();
-        const snapTarget: SnapTarget|null = this.resolver.getSnapTarget(groups, activeGroup);
-
-        this.validateGroups.postpone();
-        this.view.update(activeGroup, snapTarget);
+    public getTarget(activeGroup: DesktopSnapGroup): SnapTarget|null {
+        return this.resolver.getSnapTarget(this.model.getSnapGroups(), activeGroup);
     }
 
-    private async applySnapTarget(activeGroup: DesktopSnapGroup): Promise<void> {
-        const groups: ReadonlyArray<DesktopSnapGroup> = this.model.getSnapGroups();
-        const snapTarget: SnapTarget|null = this.resolver.getSnapTarget(groups, activeGroup);
+    public applySnapTarget(snapTarget: SnapTarget): void {
+        if (snapTarget.valid) {  // SNAP WINDOWS
+            const activeGroup = snapTarget.activeWindow.getSnapGroup();
 
-        if (snapTarget && snapTarget.validity === eSnapValidity.VALID) {  // SNAP WINDOWS
             if (activeGroup.snappables.length > 1) {
                 throw new Error('Cannot snap two groups together');
             }
 
             // Snap all windows in activeGroup to snapTarget.group
-            await snapTarget.activeWindow.applyOffset(snapTarget.snapOffset, snapTarget.halfSize!);
+            snapTarget.activeWindow.applyOffset(snapTarget.offset, snapTarget.halfSize!);
 
             if (!this.disableDockingOperations) {
                 // Dock all windows in activeGroup to snapTarget.group
-                await snapTarget.activeWindow.setSnapGroup(snapTarget.group);
+                snapTarget.activeWindow.setSnapGroup(snapTarget.group);
 
                 // The active group should now have been removed (since it is empty)
-                if (groups.indexOf(activeGroup) >= 0) {
+                if (this.model.getSnapGroups().indexOf(activeGroup) >= 0) {
                     console.warn(
                         `Expected group to have been removed, but still exists (${activeGroup.id}: ${activeGroup.windows.map(w => w.getId()).join()})`);
                 }
             }
-        } else if (activeGroup.length === 1 && !activeGroup.windows[0].getTabGroup()) {  // TAB WINDOWS
-            // Check if we can add this window to a (new or existing) tab group
-            const activeWindow: DesktopWindow = activeGroup.windows[0] as DesktopWindow;
-            await tabService.tabDroppedWindow(activeWindow);
         }
 
-        // Reset view
-        this.view.update(null, null);
-        this.validateGroups.call(activeGroup);
+        this.validateGroups.call(snapTarget.group);
     }
 
     private calculateUndockMoveDirection(window: Snappable): Point {

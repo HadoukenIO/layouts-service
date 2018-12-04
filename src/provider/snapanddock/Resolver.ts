@@ -1,28 +1,12 @@
 import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
 import {WindowState} from '../model/DesktopWindow';
+import {eTargetType, TargetBase} from '../WindowHandler';
+
 import {SNAP_DISTANCE} from './Config';
 import {Projector} from './Projector';
 import {Point, PointUtils} from './utils/PointUtils';
 import {RectUtils} from './utils/RectUtils';
 
-export enum eSnapValidity {
-    /**
-     * This is a valid snap target
-     */
-    VALID,
-
-    /**
-     * Can't snap two windows together corner-to-corner.
-     *
-     * Windows must have at least one overlapping edge.
-     */
-    CORNERS,
-
-    /**
-     * This snap would result in two windows in the same group overlapping each other.
-     */
-    OVERLAP
-}
 
 /**
  * A Point instance that is used to only specify a direction in each axis, rather than a physical offset/distance.
@@ -49,24 +33,13 @@ export type Orientation = keyof Point;
  * The service will create a SnapTarget for each possible snap candidate, and then select the "best" candidate as
  * being the current target. The selected target will then be passed to the UI for rendering/highlighting.
  */
-export interface SnapTarget {
-    /**
-     * The group that has been selected as the snap candidate.
-     *
-     * This is not the group that the user is currently dragging, it is the group that has been selected as the snap
-     * target.
-     */
-    group: DesktopSnapGroup;
-
-    /**
-     * The window within the active group that was used to find this candidate
-     */
-    activeWindow: Snappable;
+export interface SnapTarget extends TargetBase {
+    type: eTargetType.SNAP;
 
     /**
      * The offset that will be applied to the active group, in order to correctly align it with this target.
      */
-    snapOffset: Point;
+    offset: Point;
 
     /**
      * If 'activeWindow' should be resized as part of this snap, it's new halfSize will be specified here. This only
@@ -76,11 +49,6 @@ export interface SnapTarget {
      * Will be null if we don't want the window to resize as part of the snap.
      */
     halfSize: Point|null;
-
-    /**
-     * A snap target is always generated for any groups within range of the target window.
-     */
-    validity: eSnapValidity;
 }
 
 /**
@@ -156,17 +124,17 @@ export class Resolver {
     private findBestTarget(targets: SnapTarget[]): SnapTarget|null {
         // Sort candidates so that most preferable is at start of array
         targets = targets.sort((a: SnapTarget, b: SnapTarget) => {
-            const offsetA: Point = a.snapOffset, offsetB: Point = b.snapOffset;
+            const offsetA: Point = a.offset, offsetB: Point = b.offset;
 
-            if (a.validity !== b.validity && (a.validity === eSnapValidity.VALID || b.validity === eSnapValidity.VALID)) {
+            if (a.valid !== b.valid) {
                 // Prefer valid targets
-                return a.validity - b.validity;
+                return a.valid ? 1 : -1;
             } else if (this.isAnchorSnap(a) !== this.isAnchorSnap(b)) {
                 // Prefer snaps to anchor points
                 return (offsetA.x && offsetA.y) ? -1 : 1;
             } else {
                 // If both candidates are valid, prefer candidate with smallest offset
-                return PointUtils.lengthSquared(a.snapOffset) - PointUtils.lengthSquared(b.snapOffset);
+                return PointUtils.lengthSquared(a.offset) - PointUtils.lengthSquared(b.offset);
             }
         });
 
@@ -174,7 +142,7 @@ export class Resolver {
     }
 
     private isAnchorSnap(target: SnapTarget): boolean {
-        return target.snapOffset.x !== 0 && target.snapOffset.y !== 0;
+        return target.offset.x !== 0 && target.offset.y !== 0;
     }
 
     /**

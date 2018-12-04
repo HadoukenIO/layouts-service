@@ -30,6 +30,8 @@ export interface WindowState extends Rectangle {
 
     opacity: number;
     frameEnabled: boolean;  // If window will respond to move/resize events. Corresponds to enable/disableFrame, not WindowOptions.frame.
+
+    alwaysOnTop: boolean;
 }
 
 export interface ResizeConstraint {
@@ -188,7 +190,8 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
                     title: options.name!,
                     showTaskbarIcon: options.showTaskbarIcon!,
                     opacity: options.opacity!,
-                    frameEnabled: true  // No way to query frame enabled/disabled state from API. Assume frame is enabled
+                    frameEnabled: true,  // No way to query frame enabled/disabled state from API. Assume frame is enabled
+                    alwaysOnTop: options.alwaysOnTop!
                 };
             });
     }
@@ -376,7 +379,8 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
                 y: {minSize: 0, maxSize: Number.MAX_SAFE_INTEGER, resizableMin: true, resizableMax: true}
             },
             opacity: 1,
-            frameEnabled: true
+            frameEnabled: true,
+            alwaysOnTop: false
         };
     }
 

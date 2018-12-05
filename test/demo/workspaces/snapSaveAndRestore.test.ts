@@ -36,11 +36,13 @@ testParameterized<CreateAppData, AppContext>(
     createAppTest(async (t, applicationData: CreateAppData) => {
         await createCloseAndRestoreLayout(t);
 
-        for (const group of applicationData.snapWindowGrouping!) {
+        for (let index = 0; index < applicationData.snapWindowGrouping!.length; index++) {
+            const group = applicationData.snapWindowGrouping![index];
+
             const win1 = t.context.windows[group[0]];
             const win2 = t.context.windows[group[1]];
 
-            await dragWindowTo(win1, 500, 500);
+            await dragWindowTo(win1, 500, ((260 * index) + 100));
             await assertAdjacent(t, win1, win2);
             await assertGrouped(t, win1, win2);
         }

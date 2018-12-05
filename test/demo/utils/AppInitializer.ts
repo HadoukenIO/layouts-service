@@ -33,8 +33,8 @@ export interface TestAppData {
 const CHILD_WINDOW_BASE = {
     url: `http://localhost:1337/test/demo-window.html`,
     autoShow: true,
-    defaultHeight: 250,
-    defaultWidth: 250,
+    defaultHeight: 225,
+    defaultWidth: 225,
     defaultLeft: 200,
     defaultTop: 200,
     saveWindowState: false,
@@ -50,8 +50,8 @@ const OPTIONS_BASE = {
     saveWindowState: false,
     defaultTop: 100,
     defaultLeft: 100,
-    defaultHeight: 250,
-    defaultWidth: 250
+    defaultHeight: 225,
+    defaultWidth: 225
 };
 
 const APP_INITIALIZER_BASE = {
@@ -65,18 +65,19 @@ function childYCoordinate(appNum: number, childNum: number) {
 }
 
 function childXCoordinate(appNum: number, childNum: number) {
-    return ((appNum + childNum) * 280) + 300;
+    return ((appNum + childNum) * 280) + 450;
 }
 
 function appYCoordinate(appTitleNumber: number) {
-    return ((appTitleNumber - 1) * 275) + 50;
+    return ((appTitleNumber) * 290) + 50;
 }
 
 let appTitleNumber = 0;
 
 export function createAppsArray(numAppsToCreate: number, numberOfChildren: number) {
     const appsArray = [];
-    while (numAppsToCreate > 0) {
+    let appsCreated = 0;
+    while (appsCreated < numAppsToCreate) {
         // Set the app information
         appTitleNumber++;
         const id = 'test-app' + appTitleNumber;
@@ -90,11 +91,11 @@ export function createAppsArray(numAppsToCreate: number, numberOfChildren: numbe
         }
 
         // Save the app information
-        const defaultTop = appYCoordinate(numAppsToCreate);
+        const defaultTop = appYCoordinate(appsCreated);
         const appOptions = {...OPTIONS_BASE, uuid: id, name: id, defaultTop, defaultLeft: 100};
         appsArray.push({...APP_INITIALIZER_BASE, appOptions, childWindows});
 
-        numAppsToCreate--;
+        appsCreated++;
     }
 
     return appsArray;

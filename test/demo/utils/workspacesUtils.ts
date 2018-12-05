@@ -1,5 +1,6 @@
 import {Context, GenericTestContext, Test, TestContext} from 'ava';
 
+import {Layout} from '../../../src/client/types';
 import {getConnection} from '../../provider/utils/connect';
 
 import {AppInitializerParams, createAppsArray, createWindowGroupings, TestAppData, WindowGrouping} from './AppInitializer';
@@ -33,9 +34,25 @@ export async function assertWindowNotRestored(t: SaveRestoreTestContext, uuid: s
     active ? t.fail(`Window ${uuid}:${name} was restored when it should not have been`) : t.pass();
 }
 
+function assertIsLayoutObject(t: SaveRestoreTestContext, layout: Layout) {
+    layout.type === 'layout' ? t.pass() : t.fail('Layout object has an incorrect type!');
+}
+
+async function assertAllAppsClosed(t: SaveRestoreTestContext) {
+    t.context.testAppData.forEach(async (appData: TestAppData) => {
+        const appRunning = await appData.app.isRunning();
+        if (appRunning) {
+            t.fail(`Application ${appData.uuid} is running, but it should have been closed.`);
+            return;
+        }
+    });
+}
+
 export async function createCloseAndRestoreLayout(t: SaveRestoreTestContext) {
-    const generatedLayout = await sendServiceMessage('generateLayout', undefined);
+    const generatedLayout = await sendServiceMessage('generateLayout', undefined) as Layout;
+    assertIsLayoutObject(t, generatedLayout);
     await Promise.all(t.context.testAppData.map(async (appData: TestAppData) => await appData.app.close(true)));
+    await assertAllAppsClosed(t);
     await sendServiceMessage('restoreLayout', generatedLayout);
 }
 

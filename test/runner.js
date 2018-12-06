@@ -70,11 +70,12 @@ if (showHelp) {
 NOTE: When running through 'npm test', pass -- before any test runner options, to stop NPM from consuming those arguments. For example, 'npm test -- -b'.
 
 Options:
---file-name <file>      Runs all tests in the given file
---filter <pattern>      Only runs tests whose names match the given pattern. Can be used with --file-name.
---help | -h             Displays this help
---run | -r              Skips the build step, and will *only* run the tests - rather than the default 'build & run' behaviour.
---debug | -d            Builds the test/application code using 'development' webpack mode for easier debugging. Has no effect when used with -r.
+--file-name <file>              Runs all tests in the given file
+--filter <pattern>              Only runs tests whose names match the given pattern. Can be used with --file-name.
+--runtime-version <version>     Runs the tests on a specified runtime version.
+--help | -h                     Displays this help
+--run | -r                      Skips the build step, and will *only* run the tests - rather than the default 'build & run' behaviour.
+--debug | -d                    Builds the test/application code using 'development' webpack mode for easier debugging. Has no effect when used with -r.
 `);
     process.exit();
 }

@@ -12,6 +12,8 @@
 const execa = require('execa');
 const os = require('os');
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
 
 const {launch} = require('hadouken-js-adapter');
 
@@ -55,6 +57,7 @@ const testNameFilter = getArg('--filter', true);
 const showHelp = getArg('--help') || getArg('-h');
 const skipBuild = getArg('--run') || getArg('-r');
 const debugMode = getArg('--debug') || getArg('-d');
+const runtimeVersion = getArg('--runtime-version', true);
 
 let testFileName;
 while(testFileName = getArg('--file-name', true)) {
@@ -118,6 +121,16 @@ async function serve() {
     return new Promise((resolve, reject) => {
         const app = express();
         
+        // Intercepts requests for app manifests and replaces the runtime version with the one
+        // given as a command line parameter.
+        app.get('/*/*.json', (req, res) => {
+            let configData = JSON.parse(fs.readFileSync(path.join('res', req.path.substr(1))));
+            if (runtimeVersion && configData.runtime && configData.runtime.version) {
+                configData.runtime.version = runtimeVersion;
+            }
+            res.json(configData);
+        });
+
         app.use(express.static('dist'));
         app.use(express.static('res'));
         
@@ -139,4 +152,3 @@ buildStep
     .then(OF_PORT => run(testCommand , { env: { OF_PORT } }))
     .then(cleanup)
     .catch(cleanup);
-    

@@ -60,18 +60,6 @@ const APP_INITIALIZER_BASE = {
     childWindows: []
 };
 
-function childYCoordinate(appNum: number, childNum: number) {
-    return (appNum * 275) + (childNum * 50) + 100;
-}
-
-function childXCoordinate(appNum: number, childNum: number) {
-    return ((appNum + childNum) * 280) + 450;
-}
-
-function appYCoordinate(appTitleNumber: number) {
-    return ((appTitleNumber) * 290) + 50;
-}
-
 let appTitleNumber = 0;
 
 export function createAppsArray(numAppsToCreate: number, numberOfChildren: number) {
@@ -91,7 +79,7 @@ export function createAppsArray(numAppsToCreate: number, numberOfChildren: numbe
         }
 
         // Save the app information
-        const defaultTop = appYCoordinate(appsCreated);
+        const defaultTop = (appsCreated * 290) + 50;
         const appOptions = {...OPTIONS_BASE, uuid: id, name: id, defaultTop, defaultLeft: 100};
         appsArray.push({...APP_INITIALIZER_BASE, appOptions, childWindows});
 
@@ -109,15 +97,33 @@ export type WindowGrouping = number[][];
 // For simplicity, we're supporting up to 4 windows right now, but this is meant to be extended.
 export function createWindowGroupings(numApps: number, children: number): WindowGrouping[] {
     const totalWindows = (numApps) + (numApps * children);
+    const indexArray = [];
 
-    switch (totalWindows) {
-        case 2:
-            return [[[0, 1]]];
-        case 4:
-            return [[[0, 1], [2, 3]], [[0, 2], [1, 3]], [[0, 3], [1, 2]]];
-        default:
-            return [];
+    for (let index = 0; index < totalWindows; index++) {
+        indexArray.push(index);
     }
+
+    return createWindowPairs(indexArray);
+}
+
+function createWindowPairs(windows: number[]): WindowGrouping[] {
+    const result: WindowGrouping[] = [];
+    if (windows.length <= 2) {
+        return [[windows]];
+    } else {
+        const a = windows[0];
+        for (let index = 1; index < windows.length; index++) {
+            const b = windows[index];
+            const pair = [a, b];
+            const newArray = windows.slice(1, index).concat(windows.slice(index + 1, windows.length));
+
+            const subCombinations = createWindowPairs(newArray);
+            subCombinations.forEach(subCombo => {
+                result.push([pair].concat(subCombo));
+            });
+        }
+    }
+    return result;
 }
 
 export class AppInitializer {
@@ -147,8 +153,8 @@ export class AppInitializer {
             const childWindows: _Window[] = [];
             for (let childIdx = 0; childIdx < param.childWindows.length; childIdx++) {
                 const child = param.childWindows[childIdx];
-                const defaultTop = childYCoordinate(appIdx, childIdx);
-                const defaultLeft = childXCoordinate(appIdx, childIdx);
+                const defaultTop = (appIdx * 275) + (childIdx * 50) + 100;
+                const defaultLeft = ((appIdx + childIdx) * 280) + 450;
                 const childOptions = {...CHILD_WINDOW_BASE, defaultLeft, defaultTop, ...child};
                 const childWindow = await createChildWindow(childOptions, createdApp.identity.uuid);
 

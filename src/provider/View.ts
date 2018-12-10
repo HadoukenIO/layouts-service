@@ -1,6 +1,6 @@
 import {DesktopSnapGroup, Snappable} from './model/DesktopSnapGroup';
-import {Preview} from './Preview';
-import {Target} from './WindowHandler';
+import {Preview, PreviewableTarget} from './Preview';
+import {Target, eTargetType} from './WindowHandler';
 
 export class View {
     private activeGroup: DesktopSnapGroup|null;  // The group being moved
@@ -24,6 +24,10 @@ export class View {
      * original opacities once the active/target group(s) change or get reset.
      */
     public update(activeGroup: DesktopSnapGroup|null, target: Target|null): void {
+        if(target && target.type === eTargetType.EJECT){
+            activeGroup = target = null;
+        }
+
         // Handle change of active group
         if (activeGroup !== this.activeGroup) {
             // Reset active window always on top property.
@@ -42,8 +46,8 @@ export class View {
         }
 
         // Detect change of target group
-        if ((this.target && this.target.group) !== (target && target.group)) {
-            const targetGroup = this.target && this.target.group;
+        if ((this.target && this.isPreviewable(this.target) && this.target.group) !== (target && target.group)) {
+            const targetGroup = this.target && this.isPreviewable(this.target) ? this.target.group : null;// && this.target.type !== eTargetType.EJECT ? this.target.group : null;
 
             // Reset alwaysOnTop override, as our activeGroup window is now in the target group.
             this.setAlwaysOnTop(targetGroup, false);
@@ -57,11 +61,15 @@ export class View {
 
         // Update preview window
         this.target = target;
-        if (activeGroup && target) {
+        if (activeGroup && target && this.isPreviewable(target)) {
             this.preview.show(target);
         } else {
             this.preview.hide();
         }
+    }
+
+    private isPreviewable(target: Target|null): target is PreviewableTarget {
+        return !!target && (target.type === eTargetType.SNAP || target.type === eTargetType.TAB);
     }
 
     private setGroupOpacity(group: DesktopSnapGroup|null, transparent: boolean): void {

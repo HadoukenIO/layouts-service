@@ -2,6 +2,8 @@ import {DesktopSnapGroup} from './model/DesktopSnapGroup';
 import {Point, PointUtils} from './snapanddock/utils/PointUtils';
 import {Rectangle} from './snapanddock/utils/RectUtils';
 import {eTargetType, Target} from './WindowHandler';
+import { TabTarget } from './tabbing/TabService';
+import { SnapTarget } from './snapanddock/Resolver';
 
 const PREVIEW_SUCCESS = '#3D4059';
 const PREVIEW_SUCCESS_RESIZE = PREVIEW_SUCCESS;
@@ -12,6 +14,8 @@ interface PreviewWindow {
     nativeWindow: Window|null;
     halfSize: Point;
 }
+
+export type PreviewableTarget = SnapTarget|TabTarget;
 
 /**
  * Visual indicator of the current stap target.
@@ -44,11 +48,9 @@ export class Preview {
      * The 'isValid' parameter determines the color of the rectangles. The class also caches the group
      * argument to avoid having to re-create the rectangle objects on every call if the group hasn't changed.
      */
-    public show(target: Target): void {
+    public show(target: PreviewableTarget): void {
         const activeGroup = target.activeWindow.getSnapGroup();
         const groupHalfSize = activeGroup.halfSize;  // TODO: Will need to change once 'activeGroup' can have multiple windows (SERVICE-128)
-
-        const previewWindowRect = this.generatePreviewRect(target);
 
         if (!this.tempWindowIsActive || this.activeGroup !== activeGroup) {
             this.tempWindowIsActive = true;
@@ -116,7 +118,7 @@ export class Preview {
         return preview;
     }
 
-    private positionPreview(target: Target) {
+    private positionPreview(target: PreviewableTarget) {
         const previewRect = this.generatePreviewRect(target);
         PointUtils.assign(this.tempWindow.halfSize, previewRect.halfSize);
 
@@ -127,7 +129,7 @@ export class Preview {
             previewRect.halfSize.y * 2);
     }
 
-    private generatePreviewRect(target: Target): Rectangle {
+    private generatePreviewRect(target: PreviewableTarget): Rectangle {
         if (target.type === eTargetType.SNAP) {
             const activeGroup = target.activeWindow.getSnapGroup();
             const prevHalfSize = activeGroup.halfSize;

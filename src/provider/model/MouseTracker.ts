@@ -39,7 +39,10 @@ export class MouseTracker {
     }
 
     private onTabDrop(){
-        this.knownPosition = null;
+        // Timeout because the position will be cleared once a tab drop has occurred.  In the event of an tab eject this information is needed at drop.
+        setTimeout(()=>{
+            this.knownPosition = null;
+        }, 500);
     }
 
     /**

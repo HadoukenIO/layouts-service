@@ -11,7 +11,7 @@ import { Point } from './snapanddock/utils/PointUtils';
 /**
  * The existing interfaces for what a target can be.
  */
-export type Target = SnapTarget|TabTarget;
+export type Target = SnapTarget|TabTarget|EjectTarget;
 
 export enum eTargetType {
     TAB = 'TAB',
@@ -84,7 +84,9 @@ export class WindowHandler {
     private onTabDrag(window: DesktopWindow, mousePosition: Point) {
         const activeGroup = window.getSnapGroup();
         const target = tabService.getTarget(window);
+
         this.view.update(activeGroup, target);
+
     }
 
     private onTabDrop() {

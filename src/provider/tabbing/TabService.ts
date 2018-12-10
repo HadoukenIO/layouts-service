@@ -362,7 +362,7 @@ export class TabService {
      * Generates a valid tabbing target for a given active group in its current position.
      * @param {DesktopSnapGroup} activeGroup The current active group being moved by the user.
      */
-    public getTarget(activeWindow: Snappable): TabTarget|null {
+    public getTarget(activeWindow: Snappable): TabTarget|EjectTarget|null {
         const position: Point|null = this._model.getMouseTracker().getPosition();
 
         if(!position){
@@ -406,6 +406,13 @@ export class TabService {
                 dropArea: this.getWindowDropArea(targetWindow),
                 valid
             };
+        } else if(!isMouseInsideGroupBounds && !targetWindow){
+            return {
+                type: eTargetType.EJECT,
+                activeWindow,
+                position,
+                valid: true
+            }
         }
 
         return null;

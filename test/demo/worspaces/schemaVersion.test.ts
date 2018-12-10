@@ -23,6 +23,7 @@ testParameterized(
     async (t, testOptions: SchemaVersionTestOptions) => {
         const layoutToRestore = {...layoutBase, schemaVersion: testOptions.versionString};
 
+        // This should be replaced with a proper client call once SERVICE-200 is merged (it has the import logic)
         const restorePromise = sendServiceMessage<Layout, Layout>('restoreLayout', layoutToRestore as Layout);
         if (testOptions.shouldError) {
             await t.throws(restorePromise);

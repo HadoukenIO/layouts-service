@@ -37,11 +37,12 @@ export const groupWindow = async (win: LayoutWindow) => {
         if (w.uuid === 'layouts-service') {
             return;
         }
+
+        // If window has a tabGroup, we should group it instead of the window itself.
         const snappableTarget = await model.expect(win as WindowIdentity).then(w => w.getTabGroup() || w);
         const snappableToGroup = await model.expect(w as WindowIdentity).then(w => w.getTabGroup() || w);
 
         if (snappableToGroup.getSnapGroup().id !== snappableTarget.getSnapGroup().id) {
-            console.log(`Grouping ${snappableToGroup.getId()} to ${snappableTarget.getId()}`);
             await snappableToGroup.setSnapGroup(snappableTarget.getSnapGroup());
         }
     });

@@ -86,6 +86,11 @@ export interface Layout {
     type: 'layout';
 
     /**
+     * TODO: document this
+     */
+    schemaVersion: string;
+
+    /**
      * Stores details about any connected monitors.
      *
      * Note: This data isn't yet used by the service, it is here to allow for future improvements to the workspaces

@@ -12,6 +12,8 @@ import {promiseMap} from '../snapanddock/utils/async';
 import {getGroup} from './group';
 import {addToWindowObject, inWindowObject, wasCreatedFromManifest, wasCreatedProgrammatically, WindowObject} from './utils';
 
+export const LAYOUTS_SCHEMA_VERSION = '1.0.0';
+
 const deregisteredWindows: WindowObject = {};
 
 /**
@@ -144,7 +146,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
     console.log('Pre-Layout Save Apps:', apps);
     console.log('Post-Layout Valid Apps:', validApps);
 
-    const layoutObject: Layout = {type: 'layout', apps: validApps, monitorInfo, tabGroups: filteredTabGroups};
+    const layoutObject: Layout = {type: 'layout', schemaVersion: LAYOUTS_SCHEMA_VERSION, apps: validApps, monitorInfo, tabGroups: filteredTabGroups};
     return layoutObject;
 };
 

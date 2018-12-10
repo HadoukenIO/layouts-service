@@ -1,12 +1,15 @@
 import {Application} from 'hadouken-js-adapter/out/types/src/api/application/application';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
+
 import {Layout, LayoutApp, TabGroup} from '../../client/types';
 import {apiHandler, model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {promiseMap} from '../snapanddock/utils/async';
+
+import {LAYOUTS_SCHEMA_VERSION, SCHEMA_MAJOR_VERSION} from './create';
 import {regroupLayout} from './group';
-import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, positionWindow, TabbedPlaceholders, wasCreatedProgrammatically, WindowObject} from './utils';
+import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, parseVersionString, positionWindow, TabbedPlaceholders, wasCreatedProgrammatically, WindowObject} from './utils';
 
 const appsToRestore = new Map();
 const appsCurrentlyRestoring = new Map();
@@ -57,6 +60,24 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
     if (!payload) {
         throw new Error('Received invalid layout object');
     }
+    if (!payload.schemaVersion) {
+        throw new Error('Received invalid layout object: layout.schemaVersion is undefined');
+    } else {
+        try {
+            const providedSchemaVersion = parseVersionString(payload.schemaVersion);
+            // Only checks major version. Serivce is assumed to work with minor and patch version changes.
+            if (providedSchemaVersion.major > SCHEMA_MAJOR_VERSION) {
+                throw new Error(`Received incompatible layout object. Provided schemaVersion is ${
+                    payload.schemaVersion}, but the service only supports versions ${SCHEMA_MAJOR_VERSION}.x.x`);
+            }
+        } catch (e) {
+            if (e.message.includes('semver')) {
+                throw new Error('Received invalid layout object: schemaVersion string does not comply with semver format ("a.b.c")');
+            }
+            throw new Error('Unexpected error restoring layout: ' + e.message);
+        }
+    }
+
     if (!payload.apps) {
         throw new Error('Received invalid layout object: layout.apps is undefined');
     }

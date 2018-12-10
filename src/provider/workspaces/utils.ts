@@ -220,3 +220,12 @@ export async function childWindowPlaceholderCheckRunningApp(
         return;
     }
 }
+
+export function parseVersionString(versionString: string) {
+    const match = /([1-9]+)\.([0-9]+)\.([0-9]+)/.exec(versionString);
+    if (!match) {
+        throw new Error('Invalid version string. Must be in semver format ("a.b.c")');
+    }
+
+    return {major: match[1], minor: match[2], patch: match[3]};
+}

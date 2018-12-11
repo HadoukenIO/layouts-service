@@ -7,6 +7,12 @@ import {model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {WindowIdentity} from '../model/DesktopWindow';
 
+export interface SchemaVersion {
+    major: number;
+    minor: number;
+    patch: number;
+}
+
 // Positions a window when it is restored.
 export const positionWindow = async (win: LayoutWindow) => {
     try {
@@ -221,11 +227,11 @@ export async function childWindowPlaceholderCheckRunningApp(
     }
 }
 
-export function parseVersionString(versionString: string) {
+export function parseVersionString(versionString: string): SchemaVersion {
     const match = /([1-9]+)\.([0-9]+)\.([0-9]+)/.exec(versionString);
     if (!match) {
         throw new Error('Invalid version string. Must be in semver format ("a.b.c")');
     }
 
-    return {major: match[1], minor: match[2], patch: match[3]};
+    return {major: Number.parseInt(match[1], 10), minor: Number.parseInt(match[2], 10), patch: Number.parseInt(match[3], 10)};
 }

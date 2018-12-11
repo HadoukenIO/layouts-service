@@ -9,7 +9,7 @@ import {promiseMap} from '../snapanddock/utils/async';
 
 import {LAYOUTS_SCHEMA_VERSION, SCHEMA_MAJOR_VERSION} from './create';
 import {regroupLayout} from './group';
-import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, parseVersionString, positionWindow, TabbedPlaceholders, wasCreatedProgrammatically, WindowObject} from './utils';
+import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, parseVersionString, positionWindow, TabbedPlaceholders, wasCreatedProgrammatically, WindowObject, SchemaVersion} from './utils';
 
 const appsToRestore = new Map();
 const appsCurrentlyRestoring = new Map();
@@ -64,11 +64,11 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
         throw new Error('Received invalid layout object: layout.schemaVersion is undefined');
     } else {
         try {
-            const providedSchemaVersion = parseVersionString(payload.schemaVersion);
-            // Only checks major version. Serivce is assumed to work with minor and patch version changes.
+            const providedSchemaVersion: SchemaVersion = parseVersionString(payload.schemaVersion);
+            // Only checks major version. Service is assumed to work with minor and patch version changes.
             if (providedSchemaVersion.major > SCHEMA_MAJOR_VERSION) {
                 throw new Error(`Received incompatible layout object. Provided schemaVersion is ${
-                    payload.schemaVersion}, but the service only supports versions ${SCHEMA_MAJOR_VERSION}.x.x`);
+                    payload.schemaVersion}, but this version of the service only supports versions up to ${SCHEMA_MAJOR_VERSION}.x.x`);
             }
         } catch (e) {
             if (e.message.includes('semver')) {

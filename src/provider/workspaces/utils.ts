@@ -7,7 +7,7 @@ import {model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {WindowIdentity} from '../model/DesktopWindow';
 
-export interface SchemaVersion {
+export interface Semver {
     major: number;
     minor: number;
     patch: number;
@@ -227,7 +227,7 @@ export async function childWindowPlaceholderCheckRunningApp(
     }
 }
 
-export function parseVersionString(versionString: string): SchemaVersion {
+export function parseVersionString(versionString: string): Semver {
     const match = /([1-9]+)\.([0-9]+)\.([0-9]+)/.exec(versionString);
     if (!match) {
         throw new Error('Invalid version string. Must be in semver format ("a.b.c")');

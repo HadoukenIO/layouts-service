@@ -16,6 +16,10 @@ export async function getTabGroupID(identity: Identity): Promise<string|null> {
     return executeJavascriptOnService<WindowIdentity, string|null>(remoteFunc, identity as WindowIdentity);
 }
 
+export async function removeTab(identity: Identity): Promise<void> {
+    await sendServiceMessage<WindowIdentity, void>(TabAPI.REMOVETAB, identity as WindowIdentity);
+}
+
 /**
  * Queries the service for all windows in the same tabGroup as the given identity. If the window
  * is not in a tab group, only that window is returned.

@@ -1,0 +1,15 @@
+{
+    "devtools_port": 9090,
+    "runtime": {
+        "arguments": "--v=1 --enable-crash-reporting",
+        "version": "9.61.36.36"
+    },
+    "services":[{"name": "layouts", "manifestUrl": "http://localhost:1337/test/provider.json"}],
+    "startup_app": {
+        "name": "registeredApp1",
+        "uuid": "registeredApp1",
+        "url": "http://localhost:1337/test/saveRestoreTestingApp.html",
+        "autoShow": true,
+        "saveWindowState": false
+    }
+}

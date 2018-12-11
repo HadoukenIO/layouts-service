@@ -5,9 +5,13 @@ import {getConnection} from './connect';
 
 let childWindowCount = 1;
 
-const getClientConnection = async () => {
+const getClientConnection = async (uuid: string) => {
     const fin = await getConnection();
-    return fin.InterApplicationBus.Channel.connect('test-app-comms');
+    // Snap&Dock and Tabbing use a single app (`testApp`) to spawn child windows, while S&R uses multiple apps
+    // Thus, our connection strings are different
+    const connectionString = uuid === 'testApp' ? 'test-app-comms' : `test-comms-${uuid}`;
+
+    return fin.InterApplicationBus.Channel.connect(connectionString);
 };
 
 getConnection().then(fin => {
@@ -18,12 +22,14 @@ getConnection().then(fin => {
     });
 });
 
-export const createChildWindow = async (windowOptions: fin.WindowOptions) => {
+export const createChildWindow = async (windowOptions: fin.WindowOptions, uuid?: string) => {
+    uuid = uuid || 'testApp';
     const fin = await getConnection();
-    const client = await getClientConnection();
-    const windowName = 'win' + childWindowCount++;
-    await client.dispatch('createWindow', {...windowOptions, uuid: 'testApp', name: windowName});
+    const client = await getClientConnection(uuid);
 
-    const newWin = fin.Window.wrapSync({uuid: 'testApp', name: windowName});
+    const windowName: string = windowOptions.name || 'win' + childWindowCount++;
+    await client.dispatch('createWindow', {...windowOptions, uuid, name: windowName});
+
+    const newWin = fin.Window.wrapSync({uuid, name: windowName});
     return newWin;
 };

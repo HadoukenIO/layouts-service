@@ -51,7 +51,7 @@ export class Projector {
     public reset(): void {
         this.blocked = false;
         this.borders.forEach(border => {
-            border.limit = 0;
+            border.limit = border.direction < 2 ? Number.MAX_SAFE_INTEGER : Number.MIN_SAFE_INTEGER;
             border.distance = Number.MAX_SAFE_INTEGER;
             border.min = Number.MAX_SAFE_INTEGER;
             border.max = Number.MIN_SAFE_INTEGER;
@@ -90,18 +90,19 @@ export class Projector {
             const snapOffset: Point = {x: 0, y: 0};
             const halfSize: Point = PointUtils.clone(activeState.halfSize);
             const validDirections: BorderProjection[] = borders.filter((border: BorderProjection) => {
-                return border.distance < Number.MAX_SAFE_INTEGER && border.getOverlap(activeState) >= MIN_OVERLAP;
+                return border.distance < Number.MAX_SAFE_INTEGER && border.getOverlap(activeState) >= MIN_OVERLAP && border.distance <= SNAP_DISTANCE;
             });
 
             if (validDirections.length > 0) {
                 // Clip each range to each of its neighbours
                 this.clipProjections();
 
+
                 // Snap active window to each active border
                 validDirections.forEach((border: BorderProjection) => {
                     const opposite: BorderProjection = borders[(border.direction + 2) % 4];
 
-                    if (opposite.distance === Number.MAX_SAFE_INTEGER) {
+                    if (opposite.distance > SNAP_DISTANCE) {
                         // Move rectangle to touch this edge
                         snapOffset[border.orientation] = border.distance * Math.sign(0.5 - Math.floor(border.direction / 2));
 
@@ -221,7 +222,7 @@ class BorderProjection implements Range {
         this.orientation = (direction % 2) ? 'y' : 'x';
         this.opposite = (direction % 2) ? 'x' : 'y';
 
-        this.limit = 0;
+        this.limit = this.direction < 2 ? Number.MAX_SAFE_INTEGER : Number.MIN_SAFE_INTEGER;
         this.distance = Number.MAX_SAFE_INTEGER;
         this.min = Number.MAX_SAFE_INTEGER;
         this.max = Number.MIN_SAFE_INTEGER;
@@ -238,10 +239,11 @@ class BorderProjection implements Range {
     public project(activeState: WindowState, candidateState: WindowState, distBtwnWindows: MeasureResult): boolean {
         if (distBtwnWindows.x < -SNAP_DISTANCE && distBtwnWindows.y < -SNAP_DISTANCE) {
             return false;
-        } else if (distBtwnWindows.border(SNAP_DISTANCE)) {
+        } else if (distBtwnWindows.border(Math.max(SNAP_DISTANCE, ANCHOR_DISTANCE))) {
             const orientation: Orientation = this.orientation;
-            this.limit = candidateState.center[orientation] +
+            const candidateLimit = candidateState.center[orientation] +
                 (candidateState.halfSize[orientation] * Math.sign(activeState.center[orientation] - candidateState.center[orientation]));
+            this.limit = (this.direction < 2) ? Math.min(this.limit, candidateLimit) : Math.max(this.limit, candidateLimit);
             return this.addToRange(activeState, candidateState, distBtwnWindows[orientation]);
         }
 
@@ -273,8 +275,12 @@ class BorderProjection implements Range {
     public clip(other: BorderProjection): void {
         if (other.distance < Number.MAX_SAFE_INTEGER && RangeUtils.within(this, other.limit)) {
             // Constrain this range by the limits of the intersecting range
-            this.min = Math.max(this.min, other.limit);
-            this.max = Math.min(this.max, other.limit);
+            const mid = (this.min + this.max) / 2;
+            if (other.limit < mid) {
+                this.min = Math.max(this.min, other.limit);
+            } else {
+                this.max = Math.min(this.min, other.limit);
+            }
         }
     }
 

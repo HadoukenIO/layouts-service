@@ -10,6 +10,7 @@ import {getBounds, NormalizedBounds} from './getBounds';
 import {Win} from './getWindow';
 import {isAdjacentTo} from './isAdjacentTo';
 import {getContiguousWindows} from './isContiguousGroup';
+import {isOverlappedWith} from './isOverlappedWith';
 import {Side} from './SideUtils';
 
 /**
@@ -153,5 +154,13 @@ export async function assertAllContiguous(t: TestContext, windows: Window[]) {
         t.fail(`Windows do not form a contiguous group. \nExpected: ${expectedGroupsString} \nActual: ${actualGroupsString}`);
     } else {
         t.pass();
+    }
+}
+
+export async function assertNoOverlap(t: TestContext, windows: Window[]) {
+    for (let i = 0; i < windows.length - 1; i++) {
+        for (let j = i + 1; j < windows.length; j++) {
+            t.false(await isOverlappedWith(windows[i], windows[j]), `Window ${i} is overlapped with window ${j}`);
+        }
     }
 }

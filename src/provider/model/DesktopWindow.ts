@@ -565,7 +565,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             return Promise.all([this.sync(), other.sync()]).then(() => {
                 const joinGroupPromise: Promise<void> = (async () => {
                     if (this.ready && group === this.snapGroup) {
-                        await this.window.joinGroup(other.window);
+                        await this.window.joinGroup(other.window).catch((error) => this.checkClose(error));
 
                         // Re-fetch window list in case it has changed during sync
                         const windows: DesktopWindow[] = this.snapGroup.windows as DesktopWindow[];
@@ -581,6 +581,17 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             return Promise.reject('Attempting to snap, but window isn\'t in the target group');
         } else {
             return Promise.reject('Need at least 2 windows in group to snap');
+        }
+    }
+
+    private checkClose(error: Error): void {
+        if (error) {
+            if (error.message.includes('Could not locate the requested window')) {
+                // Pre-emptively clear ready flag to prevent future window interactions, but postpone teardown until 'handleClosed'.
+                this.ready = false;
+            } else {
+                throw error;
+            }
         }
     }
 

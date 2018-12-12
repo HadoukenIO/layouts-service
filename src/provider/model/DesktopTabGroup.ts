@@ -127,6 +127,7 @@ export class DesktopTabGroup implements Snappable {
     }
 
     public getState(): WindowState {
+        this.updateBounds();
         return this._windowState;
     }
 

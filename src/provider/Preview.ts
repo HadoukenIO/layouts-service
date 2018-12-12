@@ -129,18 +129,17 @@ export class Preview {
 
     private generatePreviewRect(target: Target): Rectangle {
         if (target.type === eTargetType.SNAP) {
-            const activeGroup = target.activeWindow.getSnapGroup();
-            const prevHalfSize = activeGroup.halfSize;
+            const activeState = target.activeWindow.getState();
+            const prevHalfSize = activeState.halfSize;
 
             const halfSize = target.halfSize || prevHalfSize;
 
             const center = {
-                x: activeGroup.center.x + target.offset.x + (halfSize.x - prevHalfSize.x),
-                y: activeGroup.center.y + target.offset.y + (halfSize.y - prevHalfSize.y)
+                x: activeState.center.x + target.offset.x + (halfSize.x - prevHalfSize.x),
+                y: activeState.center.y + target.offset.y + (halfSize.y - prevHalfSize.y)
             };
 
             return {center, halfSize};
-
         } else {
             // The target type here is "TAB"
             return target.dropArea;

@@ -1,7 +1,7 @@
 import {snapService, tabService} from './main';
 import {DesktopModel} from './model/DesktopModel';
 import {DesktopSnapGroup, Snappable} from './model/DesktopSnapGroup';
-import {DesktopWindow, eTransformType, Mask} from './model/DesktopWindow';
+import {eTransformType, Mask} from './model/DesktopWindow';
 import {SnapTarget} from './snapanddock/Resolver';
 import {TabTarget} from './tabbing/TabService';
 import {View} from './View';

@@ -373,12 +373,12 @@ export class TabService {
              * Checks the mouse position is over a valid window drop area.
              */
             const isOverWindowValid: boolean = this.isOverWindowDropArea(targetWindow, position!);
-    
+
             /**
              * Prevent snapped windows from tabbing together - only tab windows that are in different snap groups
              */
             const targetAlreadySnapped: boolean = targetWindow.getSnapGroup() === activeGroup;
-    
+
             if (isOverWindowValid && !targetAlreadySnapped) {
                 const isTargetTabbed = targetWindow.getTabGroup();
 

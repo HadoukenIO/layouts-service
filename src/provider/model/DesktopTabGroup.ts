@@ -334,6 +334,8 @@ export class DesktopTabGroup implements Snappable {
         const index: number = this._tabs.indexOf(tab);
         if (tab && index >= 0) {
             const promises: Promise<void>[] = [];
+            const existingTabs: DesktopWindow[] = this._tabs.slice();
+            const existingSnappables: Snappable[] = this.getSnapGroup().snappables;
 
             // Remove tab
             promises.push(this.removeTabInternal(tab, index));
@@ -367,6 +369,15 @@ export class DesktopTabGroup implements Snappable {
             }
 
             await Promise.all(promises);
+
+            // If removing the tab caused tab group to disband, re-attach remaining tab to any previously-snapped windows
+            if (existingTabs.length === 2 && existingSnappables.length > 1) {
+                const joinedSnappable = existingSnappables[0] === this ? existingSnappables[1] : existingSnappables[0];
+                const remainingTab = existingTabs[0] === tab ? existingTabs[1] : existingTabs[0];
+
+                console.log('Re-attaching remaining tab: ' + remainingTab.getId() + ' => ' + joinedSnappable.getId());
+                await remainingTab.setSnapGroup(joinedSnappable.getSnapGroup());
+            }
         }
     }
 

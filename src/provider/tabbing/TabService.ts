@@ -271,9 +271,6 @@ export class TabService {
         const tabAllowed = windowUnderPoint &&
             this.applicationConfigManager.compareConfigBetweenApplications(
                 tabGroupUnderPoint ? tabGroupUnderPoint.config : windowUnderPoint.getIdentity().uuid, activeIdentity.uuid);
-        const willDisbandTabGroup: boolean = existingTabGroup ? existingTabGroup.tabs.length <= 2 : false;
-        const existingTabs: DesktopWindow[]|null = existingTabGroup && existingTabGroup.tabs.slice();
-        const existingSnappables: Snappable[]|null = existingTabGroup && existingTabGroup.getSnapGroup().snappables;
 
         if (tabGroupUnderPoint && windowUnderPoint === tabGroupUnderPoint.window) {
             // If we are over a tab group
@@ -314,16 +311,6 @@ export class TabService {
 
             // Eject tab at its current position
             await existingTabGroup.removeTab(window);
-        }
-
-        if (willDisbandTabGroup && existingSnappables!.length > 1) {
-            const joinedSnappable = existingSnappables![0] === existingTabGroup ? existingSnappables![1] : existingSnappables![0];
-            const remainingTab = existingTabs![0] === window ? existingTabs![1] : existingTabs![0];
-
-            console.log('Re-attaching remaining tab: ' + remainingTab.getId() + ' => ' + joinedSnappable.getId());
-            await remainingTab.setSnapGroup(joinedSnappable.getSnapGroup());
-        } else if (willDisbandTabGroup) {
-            console.log('No snappables previously joined onto tab group');
         }
 
         await window.bringToFront();

@@ -517,22 +517,31 @@ export class DesktopTabGroup implements Snappable {
 
         tab.onTeardown.remove(this.onWindowTeardown, this);
         tab.onTransform.remove(this.onTabTransform, this);
-        await Promise.all([tab.setSnapGroup(new DesktopSnapGroup()), tab.setTabGroup(null)]);
+        if (tab.isReady()) {
+            // Remove tab from group by undocking and removing tab strip.
+            await Promise.all([tab.setSnapGroup(new DesktopSnapGroup()), tab.setTabGroup(null)]);
+        } else {
+            // Window is being destroyed. Remove from tabstrip, but undock will happen as part of window destruction.
+            await tab.setTabGroup(null);
+        }
 
         const payload: TabGroupEventPayload = {tabGroupId: this.ID, tabID: tab.getIdentity()};
         await this.sendTabEvent(tab, WindowMessages.LEAVE_TAB_GROUP, payload);
 
-        if (this._tabs.length < 2 && this._window.isReady()) {
-            // Note: Sensitive order of operations, change with caution.
-            const closePromise = this._window.close();
-            const removeTabPromises = this._tabs.map(async (tab) => {
-                // We don't receive bounds updates when windows are hidden, so cached position of inactive tabs are likely to be incorrect.
-                // Update cached position before removing tab, so that we can correctly resize the window to re-add the tabstrip height onto the window.
-                await tab.refresh();
-                await this.removeTab(tab);
-            });
-            await Promise.all(removeTabPromises.concat(closePromise));
+        if (this._tabs.length < 2) {
+            if (this._window.isReady()) {
+                // Note: Sensitive order of operations, change with caution.
+                const closePromise = this._window.close();
+                const removeTabPromises = this._tabs.map(async (tab) => {
+                    // We don't receive bounds updates when windows are hidden, so cached position of inactive tabs are likely to be incorrect.
+                    // Update cached position before removing tab, so that we can correctly resize the window to re-add the tabstrip height onto the window.
+                    await tab.refresh();
+                    await this.removeTab(tab);
+                });
+                await Promise.all(removeTabPromises.concat(closePromise));
+            }
 
+            this._window.setTabGroup(null);
             DesktopTabGroup.onDestroyed.emit(this);
         }
     }

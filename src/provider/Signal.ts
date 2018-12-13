@@ -144,7 +144,7 @@ export class Signal2<A1, A2, R = void, R2 = R> extends SignalBase<R, R2> {
     }
 }
 
-export class Signal3<A1, A2, A3, A4, R = void, R2 = R> extends SignalBase<R, R2> {
+export class Signal3<A1, A2, A3, R = void, R2 = R> extends SignalBase<R, R2> {
     constructor(aggregator?: Aggregator<R, R2>) {
         super(3, aggregator);
     }

@@ -10,7 +10,12 @@ import {WindowIdentity} from '../model/DesktopWindow';
 import {promiseMap} from '../snapanddock/utils/async';
 
 import {getGroup} from './group';
-import {addToWindowObject, inWindowObject, wasCreatedFromManifest, wasCreatedProgrammatically, WindowObject} from './utils';
+import {addToWindowObject, inWindowObject, parseVersionString, wasCreatedFromManifest, wasCreatedProgrammatically, WindowObject} from './utils';
+
+// This value should be updated any time changes are made to the layout schema.
+// Major version indicates breaking changes.
+export const LAYOUTS_SCHEMA_VERSION = '1.0.0';
+export const SCHEMA_MAJOR_VERSION = parseVersionString(LAYOUTS_SCHEMA_VERSION).major;
 
 const deregisteredWindows: WindowObject = {};
 
@@ -144,7 +149,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
     console.log('Pre-Layout Save Apps:', apps);
     console.log('Post-Layout Valid Apps:', validApps);
 
-    const layoutObject: Layout = {type: 'layout', apps: validApps, monitorInfo, tabGroups: filteredTabGroups};
+    const layoutObject: Layout = {type: 'layout', schemaVersion: LAYOUTS_SCHEMA_VERSION, apps: validApps, monitorInfo, tabGroups: filteredTabGroups};
     return layoutObject;
 };
 

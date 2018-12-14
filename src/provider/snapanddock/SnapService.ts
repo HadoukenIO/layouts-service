@@ -71,7 +71,7 @@ export class SnapService {
             .catch(console.error);
     }
 
-    public undock(target: WindowIdentity): void {
+    public async undock(target: WindowIdentity): Promise<void> {
         const window: DesktopWindow|null = this.model.getWindow(target);
 
         // Do nothing for tabbed windows until tab/snap is properly integrated
@@ -88,7 +88,7 @@ export class SnapService {
                 }
 
                 // Move window to it's own group, whilst applying offset
-                window.dockToGroup(new DesktopSnapGroup(), offset);
+                await window.dockToGroup(new DesktopSnapGroup(), offset);
             } catch (error) {
                 console.error(`Unexpected error when undocking window: ${error}`);
                 throw new Error(`Unexpected error when undocking window: ${error}`);

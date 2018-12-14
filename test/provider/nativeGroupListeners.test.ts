@@ -161,7 +161,10 @@ function runNativeGroupListenerTest(groupType: GroupingType, firstUngroupType: U
         });
 }
 
-test('Native window group works the same as snapService grouping  (native merge, undock, native, 1)', async t => {
+test.failing('Native window group works the same as snapService grouping  (native merge, undock, native, 1)', async t => {
+    // FAILING - Runtime behaviour: native group merge does not raise an event
+    // when grouping two ungrouped windows
+
     // Native group the windows
     win1.mergeGroups(win2);
 

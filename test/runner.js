@@ -134,6 +134,31 @@ async function serve() {
 
         app.use(express.static('dist'));
         app.use(express.static('res'));
+
+        // Add route to dynamically generate app manifests
+        app.use('/create-manifest', (() => (req, res) => {
+            const { uuid, url, defaultTop } = req.query;
+
+            res.contentType('application/json')
+            res.json({
+                "devtools_port": 9090,
+                "runtime": {
+                    "arguments": "--v=1 --enable-crash-reporting",
+                    "version": "9.61.37.42"
+                },
+                "services": [{ "name": "layouts", "manifestUrl": "http://localhost:1337/test/provider.json" }],
+                "startup_app": {
+                    "uuid": uuid || 'save-restore-test-app-' + Math.random().toString(36).substring(2),                    
+                    "url": url || 'http://localhost:1337/test/saveRestoreTestingApp.html?deregistered=false',
+                    "autoShow": true,
+                    "saveWindowState": false,
+                    "defaultTop": defaultTop ? JSON.parse(defaultTop): 100,
+                    "defaultLeft": 100,
+                    "defaultHeight": 225,
+                    "defaultWidth": 225
+                }
+            });
+        })());
         
         console.log("Starting test server...");
         app.listen(1337, resolve);

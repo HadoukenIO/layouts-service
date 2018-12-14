@@ -2,7 +2,6 @@ import test from 'ava';
 
 import {assertAdjacent, assertGrouped} from '../../provider/utils/assertions';
 import {dragWindowTo} from '../../provider/utils/dragWindowTo';
-import {getWindow} from '../../provider/utils/getWindow';
 import {AppInitializerParams, WindowGrouping} from '../utils/AppInitializer';
 import {AppContext, CreateAppData, createAppTest} from '../utils/createAppTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
@@ -13,7 +12,7 @@ export interface SnapSaveRestoreTestOptions {
     snapWindowGrouping: WindowGrouping;
 }
 
-const basicTestOptionsArray: SnapSaveRestoreTestOptions[] = [];
+const snapTestOptionsArray: SnapSaveRestoreTestOptions[] = [];
 
 // Currently only supports this number of windows max (4). Need to update createWindowGroupings in AppInitializer if you want more groups.
 const appNumbers = [1, 2];
@@ -24,17 +23,24 @@ appNumbers.forEach(appNumber => {
         if (appNumber === 1 && childNumber === 0) {
             return;
         }
-        const tests = createSnapTests(appNumber, childNumber);
-        for (const test of tests) {
-            basicTestOptionsArray.push(test);
+
+        const programmaticSnapTests = createSnapTests(appNumber, childNumber);
+        for (const programmaticSnapTest of programmaticSnapTests) {
+            snapTestOptionsArray.push(programmaticSnapTest);
+        }
+
+        const manifestSnapTests =
+            createSnapTests(appNumber, childNumber, {manifest: true, url: 'http://localhost:1337/test/saveRestoreTestingApp.html?deregistered=false'});
+        for (const manifestSnapTest of manifestSnapTests) {
+            snapTestOptionsArray.push(manifestSnapTest);
         }
     });
 });
 
 testParameterized<CreateAppData, AppContext>(
-    (testOptions: CreateAppData): string =>
-        `Snap SaveAndRestore - ${testOptions.apps.length} App(s) - ${testOptions.apps[0].childWindows.length} Child(ren) Each`,
-    basicTestOptionsArray,
+    (testOptions: CreateAppData): string => `Snap SaveAndRestore - ${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - ${
+        testOptions.apps.length} App(s) - ${testOptions.apps[0].childWindows.length} Child(ren) Each`,
+    snapTestOptionsArray,
     createAppTest(async (t, applicationData: CreateAppData) => {
         await createCloseAndRestoreLayout(t);
 

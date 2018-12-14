@@ -1,8 +1,8 @@
 {
     "devtools_port": 9090,
     "runtime": {
-        "arguments": "--v=1 --enable-crash-reporting",
-        "version": "9.61.36.36"
+        "arguments": "--v=1 --enable-crash-reporting --disabled-frame-groups",
+        "version": "9.61.37.42"
     },
     "services":[{"name": "layouts", "manifestUrl": "http://localhost:1337/test/provider.json"}],
     "startup_app": {

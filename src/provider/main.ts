@@ -27,9 +27,6 @@ fin.desktop.main(main);
 interface SupportedArguments {
     disableTabbingOperations: boolean;
     disableDockingOperations: boolean;
-    emulateDragEvents: boolean;
-    disableBoundsDelay: number;
-    disableBoundsRateLimit: number;
 }
 type Stringified<T> = {
     [P in keyof T]?: string;
@@ -66,15 +63,6 @@ export async function main() {
             }
             if (args.disableDockingOperations) {
                 snapService.disableDockingOperations = args.disableDockingOperations === 'true';
-            }
-            if (args.emulateDragEvents) {
-                DesktopWindow.emulateDragEvents = args.emulateDragEvents === 'true';
-            }
-            if (args.disableBoundsDelay) {
-                DesktopWindow.disableBoundsDelay = Number.parseInt(args.disableBoundsDelay, 10);
-            }
-            if (args.disableBoundsRateLimit) {
-                DesktopWindow.disableBoundsRateLimit = Number.parseInt(args.disableBoundsRateLimit, 10);
             }
         }
     }

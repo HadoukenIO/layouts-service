@@ -11,6 +11,7 @@ import {getBounds, NormalizedBounds} from './getBounds';
 import {Win} from './getWindow';
 import {isAdjacentTo} from './isAdjacentTo';
 import {getContiguousWindows} from './isContiguousGroup';
+import {isOverlappedWith} from './isOverlappedWith';
 import {Side} from './SideUtils';
 
 /**
@@ -176,6 +177,14 @@ export async function assertActiveTab(t: TestContext, window: Window) {
     for (const tab of tabbedWindows) {
         if (!deepEqual(tab, window.identity)) {
             t.false(await fin.Window.wrapSync(tab).isShowing());
+        }
+    }
+}
+
+export async function assertNoOverlap(t: TestContext, windows: Window[]) {
+    for (let i = 0; i < windows.length - 1; i++) {
+        for (let j = i + 1; j < windows.length; j++) {
+            t.false(await isOverlappedWith(windows[i], windows[j]), `Window ${i} is overlapped with window ${j}`);
         }
     }
 }

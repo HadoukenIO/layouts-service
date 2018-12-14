@@ -14,6 +14,6 @@
     },
     "runtime": {
         "arguments": "--enable-aggressive-domstorage-flushing --high-dpi-support=1 --force-device-scale-factor=1 --disabled-frame-groups",
-        "version": "9.61.37.36"
+        "version": "9.61.37.42"
     }
 }

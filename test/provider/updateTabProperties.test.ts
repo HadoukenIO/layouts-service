@@ -55,7 +55,6 @@ test('Update Tab Properties - property changes reflected in service', async t =>
     t.deepEqual(result, newProps);
 });
 
-
 /**
  * Cannot access document in Runtime 37+
  *

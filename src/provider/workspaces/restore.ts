@@ -1,12 +1,15 @@
 import {Application} from 'hadouken-js-adapter/out/types/src/api/application/application';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
+
 import {Layout, LayoutApp, TabGroup} from '../../client/types';
 import {apiHandler, model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {promiseMap} from '../snapanddock/utils/async';
+
+import {SCHEMA_MAJOR_VERSION} from './create';
 import {regroupLayout} from './group';
-import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, positionWindow, TabbedPlaceholders, wasCreatedProgrammatically, WindowObject} from './utils';
+import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, parseVersionString, positionWindow, SemVer, TabbedPlaceholders, wasCreatedProgrammatically, WindowObject} from './utils';
 
 const appsToRestore = new Map();
 const appsCurrentlyRestoring = new Map();
@@ -57,6 +60,23 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
     if (!payload) {
         throw new Error('Received invalid layout object');
     }
+    if (!payload.schemaVersion) {
+        throw new Error('Received invalid layout object: layout.schemaVersion is undefined');
+    } else {
+        let providedSchemaVersion: SemVer;
+        try {
+            providedSchemaVersion = parseVersionString(payload.schemaVersion);
+        } catch (e) {
+            throw new Error('Received invalid layout object: schemaVersion string does not comply with semver format ("a.b.c")');
+        }
+
+        // Only checks major version. Service is assumed to work with minor and patch version changes.
+        if (providedSchemaVersion.major > SCHEMA_MAJOR_VERSION) {
+            throw new Error(`Received incompatible layout object. Provided schemaVersion is ${
+                payload.schemaVersion}, but this version of the service only supports versions up to ${SCHEMA_MAJOR_VERSION}.x.x`);
+        }
+    }
+
     if (!payload.apps) {
         throw new Error('Received invalid layout object: layout.apps is undefined');
     }

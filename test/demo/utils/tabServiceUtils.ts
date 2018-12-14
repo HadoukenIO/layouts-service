@@ -18,6 +18,10 @@ export async function getTabGroupID(identity: Identity): Promise<string|null> {
     return executeJavascriptOnService<WindowIdentity, string|null>(remoteFunc, identity as WindowIdentity);
 }
 
+export async function removeTab(identity: Identity): Promise<void> {
+    await sendServiceMessage<WindowIdentity, void>(TabAPI.REMOVETAB, identity as WindowIdentity);
+}
+
 /**
  * Takes a window identity (typically an application window, but tabstrip will work too) and returns the Window object
  * of the tabstrip. This method assumes that 'identity' is tabbed. An exception will be thrown if that is not the case.

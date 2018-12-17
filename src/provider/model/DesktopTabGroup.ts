@@ -3,18 +3,19 @@ import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {JoinTabGroupPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload} from '../../client/tabbing';
 import {ApplicationUIConfig, TabProperties, WindowIdentity} from '../../client/types';
 import {Signal1} from '../Signal';
-import {Point, PointUtils} from '../snapanddock/utils/PointUtils';
+import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 
+import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
-import {DesktopSnapGroup, Snappable} from './DesktopSnapGroup';
+import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {DesktopTabstripFactory} from './DesktopTabstripFactory';
-import {DesktopWindow, eTransformType, Mask, WindowMessages, WindowState} from './DesktopWindow';
+import {DesktopWindow, EntityState, eTransformType, Mask, WindowMessages} from './DesktopWindow';
 
 /**
  * Handles functionality for the TabSet
  */
-export class DesktopTabGroup implements Snappable {
+export class DesktopTabGroup implements DesktopEntity {
     public static readonly onCreated: Signal1<DesktopTabGroup> = new Signal1();
     public static readonly onDestroyed: Signal1<DesktopTabGroup> = new Signal1();
 
@@ -37,7 +38,7 @@ export class DesktopTabGroup implements Snappable {
      *
      * Updated on tab added/removed/transformed.
      */
-    private _windowState: WindowState;
+    private _groupState: EntityState;
 
     /**
      * Tabs currently in this tab group.
@@ -74,7 +75,7 @@ export class DesktopTabGroup implements Snappable {
         this._window.onModified.add((window: DesktopWindow) => this.updateBounds());
         this._window.onTransform.add((window: DesktopWindow, type: Mask<eTransformType>) => this.updateBounds());
         this._window.onCommit.add((window: DesktopWindow, type: Mask<eTransformType>) => this.updateBounds());
-        this._windowState = {...this._window.getState()};
+        this._groupState = {...this._window.getState()};
         this.ID = this._window.getIdentity().name;
         this._window.setTabGroup(this);
         this._tabs = [];
@@ -126,9 +127,9 @@ export class DesktopTabGroup implements Snappable {
         return this._window.getIdentity();
     }
 
-    public getState(): WindowState {
+    public getState(): EntityState {
         this.updateBounds();
-        return this._windowState;
+        return this._groupState;
     }
 
     public getSnapGroup(): DesktopSnapGroup {
@@ -139,11 +140,11 @@ export class DesktopTabGroup implements Snappable {
         return this;
     }
 
-    public applyOverride<K extends keyof WindowState>(property: K, value: WindowState[K]): Promise<void> {
+    public applyOverride<K extends keyof EntityState>(property: K, value: EntityState[K]): Promise<void> {
         return this.updateWindows(window => window.applyOverride(property, value));
     }
 
-    public resetOverride(property: keyof WindowState): Promise<void> {
+    public resetOverride(property: keyof EntityState): Promise<void> {
         return this.updateWindows(window => window.resetOverride(property));
     }
 
@@ -335,7 +336,7 @@ export class DesktopTabGroup implements Snappable {
         if (tab && index >= 0) {
             const promises: Promise<void>[] = [];
             const existingTabs: DesktopWindow[] = this._tabs.slice();
-            const existingSnappables: Snappable[] = this.getSnapGroup().snappables;
+            const existingSnappables: DesktopEntity[] = this.getSnapGroup().entities;
 
             // Remove tab
             promises.push(this.removeTabInternal(tab, index));
@@ -352,7 +353,7 @@ export class DesktopTabGroup implements Snappable {
                     promises.push(tab.applyProperties({hidden: false, frame}));
                 } else {
                     const tabStripHalfSize: Point = this._window.getState().halfSize;
-                    const state: WindowState = tab.getState();
+                    const state: EntityState = tab.getState();
                     const center: Point = {x: state.center.x, y: state.center.y - tabStripHalfSize.y};
                     const halfSize: Point = {x: state.halfSize.x, y: state.halfSize.y + tabStripHalfSize.y};
 
@@ -435,7 +436,7 @@ export class DesktopTabGroup implements Snappable {
             console.warn(`No tabs for group ${this.ID}`, new Error());
             return;
         }
-        const state: WindowState = this._windowState;
+        const state: EntityState = this._groupState;
         const tabState = activeTab.getState();
         const tabstripState = this._window.getState();
 
@@ -482,7 +483,7 @@ export class DesktopTabGroup implements Snappable {
 
         // Position window
         if (this._tabs.length === 1) {
-            const tabState: WindowState = tab.getState();
+            const tabState: EntityState = tab.getState();
 
             // Align tabstrip to this tab
             await this._window.applyProperties({
@@ -496,7 +497,7 @@ export class DesktopTabGroup implements Snappable {
             const halfSize: Point = {x: tabState.halfSize.x, y: tabState.halfSize.y - (this._config.height / 2)};
             await tab.applyProperties({center, halfSize, frame: false});
         } else {
-            const existingTabState: WindowState = this._activeTab.getState();
+            const existingTabState: EntityState = this._activeTab.getState();
             const {center, halfSize} = existingTabState;
 
             // Align tab with existing tab

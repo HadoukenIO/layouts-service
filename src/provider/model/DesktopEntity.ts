@@ -1,78 +1,23 @@
-import {DesktopModel} from './DesktopModel';
-import {WindowIdentity} from './DesktopWindow';
+import {Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
+
+import {DesktopSnapGroup} from './DesktopSnapGroup';
+import {DesktopTabGroup} from './DesktopTabGroup';
+import {EntityState, WindowIdentity} from './DesktopWindow';
 
 /**
- * Base class for windows and tab sets. Represents any entity that should be considered as a single window for the
- * purposes of snap & dock.
- *
- * Also includes common functionality for tracking asynchronous changes to window objects.
+ * Interface for anything that can be snapped - namely windows and tab sets. Represents any entity that should be 
+ * considered as a single window for the purposes of snap & dock.
  */
-export abstract class DesktopEntity {
-    protected readonly model: DesktopModel;
-    protected readonly identity: WindowIdentity;
-    protected readonly id: string;  // Created from window uuid and name
+export interface DesktopEntity {
+    getId(): string;
+    getIdentity(): WindowIdentity;
 
-    private pendingActions: Promise<void>[];
-    private actionTags: WeakMap<Promise<void>, string>;
+    getState(): EntityState;
+    getTabGroup(): DesktopTabGroup|null;
+    getSnapGroup(): DesktopSnapGroup;
 
-    constructor(model: DesktopModel, identity: WindowIdentity) {
-        this.model = model;
-        this.identity = identity;
-        this.id = `${identity.uuid}/${identity.name!}`;
-        this.pendingActions = [];
-        this.actionTags = new WeakMap();
-    }
-
-    public getId(): string {
-        return this.id;
-    }
-
-    public getIdentity(): WindowIdentity {
-        return this.identity;
-    }
-
-    public async sync(): Promise<void> {
-        const MAX_AWAITS = 10;
-        let awaitCount = 0;
-
-        while (this.pendingActions.length > 0) {
-            if (++awaitCount <= MAX_AWAITS) {
-                // Wait for pending operations to finish
-                await Promise.all(this.pendingActions);
-            } else {
-                // If we've looped this many times, we're probably in some kind of deadlock scenario
-                return Promise.reject(`Couldn't sync ${this.id} after ${awaitCount} attempts`);
-            }
-        }
-    }
-
-    protected async addPendingActions(tag: string, actions: Promise<void>|Promise<void>[]): Promise<void> {
-        if (actions instanceof Array) {
-            this.pendingActions.push.apply(this.pendingActions, actions);
-            actions.forEach((action: Promise<void>, index: number) => {
-                this.actionTags.set(action, `${tag} (${index + 1} of ${actions.length})`);
-                action.then(this.onActionComplete.bind(this, action));
-            });
-
-            if (actions.length > 1) {
-                return Promise.all(actions).then(() => {});
-            } else if (actions.length === 1) {
-                return actions[0];
-            }
-        } else {
-            this.pendingActions.push(actions);
-            this.actionTags.set(actions, tag);
-            actions.then(this.onActionComplete.bind(this, actions));
-            return actions;
-        }
-    }
-
-    private onActionComplete(action: Promise<void>): void {
-        const index = this.pendingActions.indexOf(action);
-        if (index >= 0) {
-            this.pendingActions.splice(index, 1);
-        } else {
-            console.warn('Action completed but couldn\'t find it in pending action list');
-        }
-    }
+    applyOverride<K extends keyof EntityState>(property: K, value: EntityState[K]): Promise<void>;
+    resetOverride(property: keyof EntityState): Promise<void>;
+    setSnapGroup(group: DesktopSnapGroup): Promise<void>;
+    applyOffset(offset: Point, halfSize?: Point): Promise<void>;
 }

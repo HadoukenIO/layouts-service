@@ -1,7 +1,7 @@
 import {Identity} from 'hadouken-js-adapter';
 
 import {WindowIdentity} from '../../../src/client/types';
-import {Snappable} from '../../../src/provider/model/DesktopSnapGroup';
+import {DesktopEntity} from '../../../src/provider/model/DesktopEntity';
 import {DesktopWindow} from '../../../src/provider/model/DesktopWindow';
 
 import {executeJavascriptOnService, sendServiceMessage} from './serviceUtils';
@@ -27,7 +27,7 @@ export async function getGroupedWindows(identity: Identity): Promise<Identity[]>
     function remoteFunc(this: ProviderWindow, identity: WindowIdentity): Identity[] {
         const snapWindow: DesktopWindow|null = this.model.getWindow(identity);
         if (snapWindow) {
-            return snapWindow.getSnapGroup().windows.map((win: Snappable) => {
+            return snapWindow.getSnapGroup().windows.map((win: DesktopEntity) => {
                 return win.getIdentity();
             });
         } else {

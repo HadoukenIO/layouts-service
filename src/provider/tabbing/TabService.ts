@@ -1,9 +1,10 @@
 import {Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
 import {ApplicationUIConfig, TabGroup, TabGroupDimensions, WindowIdentity} from '../../client/types';
+import {DesktopEntity} from '../model/DesktopEntity';
 import {DesktopModel} from '../model/DesktopModel';
-import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
+import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
-import {DesktopWindow, WindowState} from '../model/DesktopWindow';
+import {DesktopWindow, EntityState} from '../model/DesktopWindow';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 import {eTargetType, TargetBase} from '../WindowHandler';
 import {ApplicationConfigManager} from './components/ApplicationConfigManager';
@@ -338,7 +339,7 @@ export class TabService {
             const {halfSize, center} = isTabbed.window.getState();
             return {center, halfSize};
         } else {
-            const state: WindowState = window.getState();
+            const state: EntityState = window.getState();
             const config: ApplicationUIConfig = this.mApplicationConfigManager.getApplicationUIConfig(window.getIdentity().uuid);
             const center: Point = {x: state.center.x, y: (state.center.y - state.halfSize.y) + (config.height / 2)};
             const halfSize = {x: state.halfSize.x, y: config.height / 2};

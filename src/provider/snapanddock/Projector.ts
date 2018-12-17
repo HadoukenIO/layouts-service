@@ -1,11 +1,12 @@
-import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
-import {WindowState} from '../model/DesktopWindow';
+import {DesktopEntity} from '../model/DesktopEntity';
+import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
+import {EntityState} from '../model/DesktopWindow';
 import {eTargetType} from '../WindowHandler';
 import {ANCHOR_DISTANCE, MIN_OVERLAP, SNAP_DISTANCE} from './Config';
 import {Orientation, SnapTarget} from './Resolver';
 import {Point, PointUtils} from './utils/PointUtils';
 import {Range, RangeUtils} from './utils/RangeUtils';
-import {MeasureResult, RectUtils} from './utils/RectUtils';
+import {MeasureResult, RectUtils, Rectangle} from './utils/RectUtils';
 
 export enum eDirection {
     LEFT,
@@ -66,7 +67,7 @@ export class Projector {
      * @param candidateState A window that 'activeWindow' may be able to snap to
      * @param snapDistance The maximum distance between two windows for them to snap together
      */
-    public project(activeState: WindowState, candidateState: WindowState): void {
+    public project(activeState: Rectangle, candidateState: Rectangle): void {
         const distBtwnWindows: MeasureResult = RectUtils.distance(activeState, candidateState);
         const direction: eDirection = this.getDirectionFromOffset(distBtwnWindows, activeState, candidateState);
         const isValid: boolean = this.borders[direction].project(activeState, candidateState, distBtwnWindows);
@@ -82,11 +83,11 @@ export class Projector {
      * @param candidateGroup The group that was used to build this projection
      * @param activeWindow The window that is being moved by the user
      */
-    public createTarget(candidateGroup: DesktopSnapGroup, activeWindow: Snappable): SnapTarget|null {
+    public createTarget(candidateGroup: DesktopSnapGroup, activeWindow: DesktopEntity): SnapTarget|null {
         const borders: BorderProjection[] = this.borders;
 
         if (!this.blocked) {
-            const activeState: WindowState = activeWindow.getState();
+            const activeState: EntityState = activeWindow.getState();
             const snapOffset: Point = {x: 0, y: 0};
             const halfSize: Point = PointUtils.clone(activeState.halfSize);
             const validDirections: BorderProjection[] = borders.filter((border: BorderProjection) => {
@@ -158,7 +159,7 @@ export class Projector {
      * @param activeState The state of the active window
      * @param candidateState The state of the candidate window
      */
-    private getDirectionFromOffset(offset: Point, activeState: WindowState, candidateState: WindowState): eDirection {
+    private getDirectionFromOffset(offset: Point, activeState: Rectangle, candidateState: Rectangle): eDirection {
         let orientation: Orientation;
 
         // Dertermine orientation
@@ -236,7 +237,7 @@ class BorderProjection implements Range {
      * @param candidateState Window that is being projected
      * @param distBtwnWindows The offset between the two windows
      */
-    public project(activeState: WindowState, candidateState: WindowState, distBtwnWindows: MeasureResult): boolean {
+    public project(activeState: Rectangle, candidateState: Rectangle, distBtwnWindows: MeasureResult): boolean {
         if (distBtwnWindows.x < -SNAP_DISTANCE && distBtwnWindows.y < -SNAP_DISTANCE) {
             return false;
         } else if (distBtwnWindows.border(Math.max(SNAP_DISTANCE, ANCHOR_DISTANCE))) {
@@ -255,7 +256,7 @@ class BorderProjection implements Range {
      *
      * @param activeState The window that this projection is based on
      */
-    public getOverlap(activeState: WindowState): number {
+    public getOverlap(activeState: Rectangle): number {
         const center: number = (this.min + this.max) / 2;
         const halfSize: number = (this.max - this.min) / 2;
 
@@ -284,7 +285,7 @@ class BorderProjection implements Range {
         }
     }
 
-    private addToRange(activeState: WindowState, candidateState: WindowState, distance: number): boolean {
+    private addToRange(activeState: Rectangle, candidateState: Rectangle, distance: number): boolean {
         if (distance <= this.distance) {
             const opposite: Orientation = this.opposite;
 
@@ -319,7 +320,7 @@ class BorderProjection implements Range {
      * @param activeWindow Window that is currently being projected onto surrounding candidates
      * @param otherRange The projection of a candidate window onto activeWindow
      */
-    private windowBridgesRanges(activeWindow: WindowState, otherRange: Range): boolean {
+    private windowBridgesRanges(activeWindow: Rectangle, otherRange: Range): boolean {
         const gapMin: number = Math.min(this.max, otherRange.max);
         const gapMax: number = Math.max(this.min, otherRange.min);
 

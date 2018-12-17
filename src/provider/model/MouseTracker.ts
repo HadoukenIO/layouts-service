@@ -1,6 +1,6 @@
 import {Point, PointTopLeft} from 'hadouken-js-adapter/out/types/src/api/system/point';
 
-import {DesktopWindow, eTransformType, Mask, WindowState} from './DesktopWindow';
+import {DesktopWindow, EntityState, eTransformType, Mask} from './DesktopWindow';
 
 /**
  * A helper to keep track of mouse position when a window is being dragged via user movement
@@ -52,7 +52,7 @@ export class MouseTracker {
         // Asynchronously get the mouse position and offset
         const mousePosition: PointTopLeft = await fin.System.getMousePosition();
         if (this.window === window) {
-            const state: WindowState = window.getState();
+            const state: EntityState = window.getState();
 
             this.mouseOffset = {x: mousePosition.left - (state.center.x - state.halfSize.x), y: mousePosition.top - (state.center.y - state.halfSize.y)};
         }
@@ -74,7 +74,7 @@ export class MouseTracker {
      */
     public getPosition(): Point|null {
         if (this.window && this.mouseOffset) {
-            const currentWindowState: WindowState = this.window.getState();
+            const currentWindowState: EntityState = this.window.getState();
 
             return {
                 x: this.mouseOffset.x + (currentWindowState.center.x - currentWindowState.halfSize.x),

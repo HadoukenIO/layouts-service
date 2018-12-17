@@ -11,10 +11,10 @@ import {Rectangle} from '../snapanddock/utils/RectUtils';
 
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
-import {DesktopSnapGroup, Snappable} from './DesktopSnapGroup';
+import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {DesktopTabGroup} from './DesktopTabGroup';
 
-export interface WindowState extends Rectangle {
+export interface EntityState extends Rectangle {
     center: Point;
     halfSize: Point;
 
@@ -109,13 +109,13 @@ enum ActionOrigin {
 
 type OpenFinWindowEventHandler = <K extends keyof fin.OpenFinWindowEventMap>(event: fin.OpenFinWindowEventMap[K]) => void;
 
-export class DesktopWindow extends DesktopEntity implements Snappable {
+export class DesktopWindow implements DesktopEntity {
     public static readonly onCreated: Signal1<DesktopWindow> = new Signal1();
     public static readonly onDestroyed: Signal1<DesktopWindow> = new Signal1();
 
-    public static async getWindowState(window: Window): Promise<WindowState> {
+    public static async getWindowState(window: Window): Promise<EntityState> {
         return Promise.all([window.getOptions(), window.isShowing(), window.getBounds()])
-            .then((results: [fin.WindowOptions, boolean, fin.WindowBounds]): WindowState => {
+            .then((results: [fin.WindowOptions, boolean, fin.WindowBounds]): EntityState => {
                 const options: fin.WindowOptions = results[0];
                 const bounds: fin.WindowBounds = results[2];
                 const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
@@ -225,23 +225,27 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
      */
     public readonly onTeardown: Signal1<DesktopWindow> = new Signal1();
 
+    private model: DesktopModel;
+    private identity: WindowIdentity;
+    private id: string;  // Created from window uuid and name
+
     private window: Window;
 
     /**
      * Cached state. Reflects the current state of the *actual* window object - basically, what you would get if you called any of the OpenFin API functions on
      * the window object.
      */
-    private windowState: WindowState;
+    private currentState: EntityState;
 
     /**
      * What the application "thinks" the state of this window is. This is the state of the window, excluding any changes made to the window by the service.
      */
-    private applicationState: WindowState;
+    private applicationState: EntityState;
 
     /**
-     * Lists all the modifications made to the window by the service. This is effectively a 'diff' between windowState and applicationState.
+     * Lists all the modifications made to the window by the service. This is effectively a 'diff' between currentState and applicationState.
      */
-    private modifiedState: Partial<WindowState>;
+    private modifiedState: Partial<EntityState>;
 
     /**
      * A subset of modifiedState - changes made to the window on a very short-term basis, which will soon be reverted.
@@ -249,22 +253,31 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
      * When reverting, the property may go back to a value set by the application, or an earlier value set by the service.
      *
      * NOTE: The values within this object are the *previous* values of each property - what the property should be set to when reverting the temporary change.
-     * The temporary value can be found by looking up the keys of this object within 'windowState'.
+     * The temporary value can be found by looking up the keys of this object within 'currentState'.
      */
-    private temporaryState: Partial<WindowState>;
+    private temporaryState: Partial<EntityState>;
 
     private snapGroup: DesktopSnapGroup;
     private tabGroup: DesktopTabGroup|null;
     private prevGroup: DesktopSnapGroup|null;
     private ready: boolean;
 
+    private pendingActions: Promise<void>[];
+    private actionTags: WeakMap<Promise<void>, string>;
+
     // Tracks event listeners registered on the fin window for easier cleanup.
     private registeredListeners: Map<keyof fin.OpenFinWindowEventMap, OpenFinWindowEventHandler> = new Map();
 
     private userInitiatedBoundsChange = false;
 
-    constructor(model: DesktopModel, group: DesktopSnapGroup, window: fin.WindowOptions|Window, initialState?: WindowState) {
-        super(model, DesktopWindow.getIdentity(window));
+    constructor(model: DesktopModel, group: DesktopSnapGroup, window: fin.WindowOptions|Window, initialState?: EntityState) {
+        const identity = DesktopWindow.getIdentity(window);
+
+        this.model = model;
+        this.identity = identity;
+        this.id = `${identity.uuid}/${identity.name!}`;
+        this.pendingActions = [];
+        this.actionTags = new WeakMap();
 
         this.ready = false;
 
@@ -272,17 +285,17 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             this.window = fin.Window.wrapSync({uuid: fin.Application.me.uuid, name: window.name});
             this.addPendingActions('Add window ' + this.id, fin.Window.create(window).then(async (window: Window) => {
                 this.window = window;
-                this.windowState = await DesktopWindow.getWindowState(window);
-                this.applicationState = {...this.windowState};
+                this.currentState = await DesktopWindow.getWindowState(window);
+                this.applicationState = {...this.currentState};
 
                 this.ready = true;
                 this.addListeners();
             }));
         } else if (!initialState) {
             this.window = window as Window;
-            this.addPendingActions('Fetch initial window state ' + this.id, DesktopWindow.getWindowState(this.window).then((state: WindowState) => {
-                this.windowState = state;
-                this.applicationState = {...this.windowState};
+            this.addPendingActions('Fetch initial window state ' + this.id, DesktopWindow.getWindowState(this.window).then((state: EntityState) => {
+                this.currentState = state;
+                this.applicationState = {...this.currentState};
 
                 this.ready = true;
                 this.addListeners();
@@ -295,7 +308,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         if (!initialState) {
             initialState = this.createTemporaryState();
         }
-        this.windowState = {...initialState};
+        this.currentState = {...initialState};
         this.applicationState = {...initialState};
         this.modifiedState = {};
         this.temporaryState = {};
@@ -328,7 +341,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         this.ready = false;
     }
 
-    private createTemporaryState(): WindowState {
+    private createTemporaryState(): EntityState {
         return {
             center: {x: 500, y: 300},
             halfSize: {x: 200, y: 100},
@@ -413,17 +426,17 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
     }
 
     public applyOffset(offset: Point, halfSize?: Point): Promise<void> {
-        const delta: Partial<WindowState> = {};
+        const delta: Partial<EntityState> = {};
 
         if (offset) {
-            delta.center = {x: this.windowState.center.x + offset.x, y: this.windowState.center.y + offset.y};
+            delta.center = {x: this.currentState.center.x + offset.x, y: this.currentState.center.y + offset.y};
         }
         if (halfSize) {
-            delta.center = delta.center || {...this.windowState.center};
+            delta.center = delta.center || {...this.currentState.center};
             delta.halfSize = halfSize;
 
-            delta.center.x += halfSize.x - this.windowState.halfSize.x;
-            delta.center.y += halfSize.y - this.windowState.halfSize.y;
+            delta.center.x += halfSize.x - this.currentState.halfSize.x;
+            delta.center.y += halfSize.y - this.currentState.halfSize.y;
         }
 
         return this.updateState(delta, ActionOrigin.SERVICE);
@@ -443,7 +456,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
             if (group) {
                 // Hide tabbed windows in taskbar
                 return this.ready ? this.updateState({showTaskbarIcon: false}, ActionOrigin.SERVICE) : Promise.resolve();
-            } else if (this.windowState.showTaskbarIcon !== this.applicationState.showTaskbarIcon) {
+            } else if (this.currentState.showTaskbarIcon !== this.applicationState.showTaskbarIcon) {
                 // Revert taskbar icon to application-specified state
                 return this.ready ? this.updateState({showTaskbarIcon: this.applicationState.showTaskbarIcon}, ActionOrigin.SERVICE) : Promise.resolve();
             }
@@ -453,11 +466,11 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         return Promise.resolve();
     }
 
-    public getState(): WindowState {
-        return this.windowState;
+    public getState(): EntityState {
+        return this.currentState;
     }
 
-    public getApplicationState(): WindowState {
+    public getApplicationState(): EntityState {
         return this.applicationState;
     }
 
@@ -466,22 +479,37 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
     }
 
     public getIsActive(): boolean {
-        const state: WindowState = this.windowState;
+        const state: EntityState = this.currentState;
         return !state.hidden && state.opacity > 0 && state.state !== 'minimized';
+    }
+
+    public async sync(): Promise<void> {
+        const MAX_AWAITS = 10;
+        let awaitCount = 0;
+
+        while (this.pendingActions.length > 0) {
+            if (++awaitCount <= MAX_AWAITS) {
+                // Wait for pending operations to finish
+                await Promise.all(this.pendingActions);
+            } else {
+                // If we've looped this many times, we're probably in some kind of deadlock scenario
+                return Promise.reject(`Couldn't sync ${this.id} after ${awaitCount} attempts`);
+            }
+        }
     }
 
     public refresh(): Promise<void> {
         const window: Window = this.window;
 
         if (this.ready) {
-            return DesktopWindow.getWindowState(window).then((state: WindowState) => {
-                const appState: WindowState = this.applicationState;
-                const modifications: Partial<WindowState> = {};
+            return DesktopWindow.getWindowState(window).then((state: EntityState) => {
+                const appState: EntityState = this.applicationState;
+                const modifications: Partial<EntityState> = {};
                 let hasChanges = false;
 
                 for (const iter in state) {
                     if (state.hasOwnProperty(iter)) {
-                        const key = iter as keyof WindowState;
+                        const key = iter as keyof EntityState;
 
                         if (this.isModified(key, appState, state) &&
                             (!this.modifiedState.hasOwnProperty(key) || this.isModified(key, this.modifiedState, state))) {
@@ -504,7 +532,37 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         }
     }
 
-    private isModified(key: keyof WindowState, prevState: Partial<WindowState>, newState: WindowState): boolean {
+    protected async addPendingActions(tag: string, actions: Promise<void>|Promise<void>[]): Promise<void> {
+        if (actions instanceof Array) {
+            this.pendingActions.push.apply(this.pendingActions, actions);
+            actions.forEach((action: Promise<void>, index: number) => {
+                this.actionTags.set(action, `${tag} (${index + 1} of ${actions.length})`);
+                action.then(this.onActionComplete.bind(this, action));
+            });
+
+            if (actions.length > 1) {
+                return Promise.all(actions).then(() => {});
+            } else if (actions.length === 1) {
+                return actions[0];
+            }
+        } else {
+            this.pendingActions.push(actions);
+            this.actionTags.set(actions, tag);
+            actions.then(this.onActionComplete.bind(this, actions));
+            return actions;
+        }
+    }
+
+    private onActionComplete(action: Promise<void>): void {
+        const index = this.pendingActions.indexOf(action);
+        if (index >= 0) {
+            this.pendingActions.splice(index, 1);
+        } else {
+            console.warn('Action completed but couldn\'t find it in pending action list');
+        }
+    }
+
+    private isModified(key: keyof EntityState, prevState: Partial<EntityState>, newState: EntityState): boolean {
         if (prevState[key] === undefined) {
             return true;
         } else if (key === 'center' || key === 'halfSize') {
@@ -573,7 +631,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         group.addWindow(this);
     }
 
-    private async updateState(delta: Partial<WindowState>, origin: ActionOrigin): Promise<void> {
+    private async updateState(delta: Partial<EntityState>, origin: ActionOrigin): Promise<void> {
         const actions: Promise<void>[] = [];
 
         if (origin !== ActionOrigin.APPLICATION) {
@@ -584,8 +642,8 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         } else {
             // Find changes from the application that weren't already known to the service
             Object.keys(delta).forEach((key: string) => {
-                const property: keyof WindowState = key as keyof WindowState;
-                if (this.isModified(property, delta, this.windowState)) {
+                const property: keyof EntityState = key as keyof EntityState;
+                if (this.isModified(property, delta, this.currentState)) {
                     this.applicationState[property] = delta[property]!;
                 }
             });
@@ -595,14 +653,14 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         if (origin === ActionOrigin.SERVICE_TEMPORARY) {
             // Back-up existing values, so they can be restored later
             Object.keys(delta).forEach((key: string) => {
-                const property: keyof WindowState = key as keyof WindowState;
+                const property: keyof EntityState = key as keyof EntityState;
                 if (!this.temporaryState.hasOwnProperty(property)) {
-                    this.temporaryState[property] = this.windowState[property];
+                    this.temporaryState[property] = this.currentState[property];
                 }
             });
         } else {
             Object.keys(delta).forEach((key: string) => {
-                const property: keyof WindowState = key as keyof WindowState;
+                const property: keyof EntityState = key as keyof EntityState;
 
                 // These changes will undo any temporary changes that have been applied
                 if (this.temporaryState.hasOwnProperty(property)) {
@@ -617,21 +675,21 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
                 }
             });
         }
-        Object.assign(this.windowState, delta);
+        Object.assign(this.currentState, delta);
 
         // Apply changes to the window (unless we're reacting to an external change that has already happened)
         if (origin !== ActionOrigin.APPLICATION) {
             const window = this.window;
             const {center, halfSize, state, hidden, ...options} = delta;
-            const optionsToChange: (keyof WindowState)[] = Object.keys(options) as (keyof WindowState)[];
+            const optionsToChange: (keyof EntityState)[] = Object.keys(options) as (keyof EntityState)[];
 
             // Apply visibility
-            if (hidden !== undefined) {  // && hidden !== this.windowState.hidden) {
+            if (hidden !== undefined) {
                 actions.push(hidden ? window.hide() : window.show());
             }
 
             // Apply window state
-            if (state !== undefined) {  // && state !== this.windowState.state) {
+            if (state !== undefined) {
                 switch (state) {
                     case 'normal':
                         actions.push(window.restore());
@@ -650,7 +708,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
 
             // Apply bounds
             if (center || halfSize) {
-                const state: WindowState = this.windowState;
+                const state: EntityState = this.currentState;
                 let newCenter = center || state.center, newHalfSize = halfSize || state.halfSize;
 
                 if (isWin10() && state.frame) {
@@ -681,23 +739,23 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
         return this.addPendingActions('close ' + this.id, this.window.close(true));
     }
 
-    public async applyProperties(properties: Partial<WindowState>): Promise<void> {
+    public async applyProperties(properties: Partial<EntityState>): Promise<void> {
         this.updateState(properties, ActionOrigin.SERVICE);
     }
 
-    public async applyOverride<K extends keyof WindowState>(property: K, value: WindowState[K]): Promise<void> {
-        if (value !== this.windowState[property]) {
-            this.temporaryState[property] = this.temporaryState[property] || this.windowState[property];
-            this.windowState[property] = value;
+    public async applyOverride<K extends keyof EntityState>(property: K, value: EntityState[K]): Promise<void> {
+        if (value !== this.currentState[property]) {
+            this.temporaryState[property] = this.temporaryState[property] || this.currentState[property];
+            this.currentState[property] = value;
 
             return this.updateState({[property]: value}, ActionOrigin.SERVICE_TEMPORARY);
         }
     }
 
-    public async resetOverride(property: keyof WindowState): Promise<void> {
+    public async resetOverride(property: keyof EntityState): Promise<void> {
         if (this.temporaryState.hasOwnProperty(property)) {
             const value = this.temporaryState[property]!;
-            this.windowState[property] = value;
+            this.currentState[property] = value;
             return this.updateState({[property]: value}, ActionOrigin.SERVICE);  // TODO: Is this the right origin type?
         }
     }
@@ -720,7 +778,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
      * @param bounds Bounds that need to be validated
      */
     private checkBounds(bounds: fin.WindowBounds): fin.WindowBounds {
-        if (isWin10() && this.windowState.frame) {
+        if (isWin10() && this.currentState.frame) {
             return {left: bounds.left + 7, top: bounds.top, width: bounds.width - 14, height: bounds.height - 7};
         } else {
             return bounds;
@@ -876,7 +934,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
 
             case 'merge':
                 if (targetWindow && targetGroup) {
-                    this.snapGroup.windows.forEach((window: Snappable) => {  // TODO (SERVICE-200): Test snap groups that contain tabs
+                    this.snapGroup.windows.forEach((window: DesktopEntity) => {  // TODO (SERVICE-200): Test snap groups that contain tabs
                         // Merge events are never triggered inside the service, so we do not need the same guards as join/leave
                         return window.setSnapGroup(targetGroup);
                     });
@@ -891,7 +949,7 @@ export class DesktopWindow extends DesktopEntity implements Snappable {
                 break;
         }
 
-        function compareSnapAndEventWindowArrays(snapWindows: Snappable[], eventWindows: {appUuid: string, windowName: string}[]): boolean {
+        function compareSnapAndEventWindowArrays(snapWindows: DesktopEntity[], eventWindows: {appUuid: string, windowName: string}[]): boolean {
             return deepEqual(
                 snapWindows.map(w => w.getIdentity()).sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid)),
                 eventWindows.map(w => ({uuid: w.appUuid, name: w.windowName}))

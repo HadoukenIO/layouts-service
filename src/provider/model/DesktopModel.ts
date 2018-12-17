@@ -8,7 +8,7 @@ import {RectUtils} from '../snapanddock/utils/RectUtils';
 import {deregisterWindow as deregisterFromWorkspaces} from '../workspaces/create';
 
 import {DesktopTabGroup} from './DesktopTabGroup';
-import {DesktopWindow, WindowIdentity, WindowState} from './DesktopWindow';
+import {DesktopWindow, EntityState, WindowIdentity} from './DesktopWindow';
 import {MouseTracker} from './MouseTracker';
 import {ZIndexer} from './ZIndexer';
 
@@ -105,7 +105,7 @@ export class DesktopModel {
         const point: Point = {x, y};
         const excludeId: string|undefined = exclude && this.getId(exclude);
         const windowsAtPoint: DesktopWindow[] = this.windows.filter((window: DesktopWindow) => {
-            const state: WindowState = window.getState();
+            const state: EntityState = window.getState();
             return window.getIsActive() && RectUtils.isPointInRect(state.center, state.halfSize, point) && window.getId() !== excludeId;
         });
 
@@ -209,7 +209,7 @@ export class DesktopModel {
         // Set the window as pending registration  (Fix for race condition between register/deregister)
         const identity: WindowIdentity = window.identity as WindowIdentity;
         this.pendingRegistrations.push({...identity});
-        return DesktopWindow.getWindowState(window).then<DesktopWindow|null>((state: WindowState): DesktopWindow|null => {
+        return DesktopWindow.getWindowState(window).then<DesktopWindow|null>((state: EntityState): DesktopWindow|null => {
             if (!this.pendingRegistrations.some(w => w.name === identity.name && w.uuid === identity.uuid)) {
                 // If pendingRegistrations does not contain the window, then deregister has been called on it
                 // and we should do nothing.

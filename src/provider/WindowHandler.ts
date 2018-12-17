@@ -1,6 +1,7 @@
 import {snapService, tabService} from './main';
+import {DesktopEntity} from './model/DesktopEntity';
 import {DesktopModel} from './model/DesktopModel';
-import {DesktopSnapGroup, Snappable} from './model/DesktopSnapGroup';
+import {DesktopSnapGroup} from './model/DesktopSnapGroup';
 import {eTransformType, Mask} from './model/DesktopWindow';
 import {SnapTarget} from './snapanddock/Resolver';
 import {TabTarget} from './tabbing/TabService';
@@ -29,7 +30,7 @@ export interface TargetBase {
     /**
      * The window within the active group that was used to find this candidate.
      */
-    activeWindow: Snappable;
+    activeWindow: DesktopEntity;
 
     /**
      * The validity of the target.  This will produce visual feedback indicating if the move is accepted or not.

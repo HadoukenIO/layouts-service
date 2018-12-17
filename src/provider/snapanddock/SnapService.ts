@@ -1,5 +1,6 @@
+import {DesktopEntity} from '../model/DesktopEntity';
 import {DesktopModel} from '../model/DesktopModel';
-import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
+import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopWindow, eTransformType, Mask, WindowIdentity} from '../model/DesktopWindow';
 import {Target} from '../WindowHandler';
 
@@ -79,12 +80,12 @@ export class SnapService {
         const window: DesktopWindow|null = this.model.getWindow(target);
 
         // Do nothing for tabbed windows until tab/snap is properly integrated
-        if (window && window.getSnapGroup().snappables.length > 1) {
-            const snappable: Snappable = window.getTabGroup() || window;
+        if (window && window.getSnapGroup().entities.length > 1) {
+            const entity: DesktopEntity = window.getTabGroup() || window;
 
             try {
                 // Calculate undock offset
-                const offset = this.calculateUndockMoveDirection(snappable);
+                const offset = this.calculateUndockMoveDirection(entity);
 
                 if (offset.x || offset.y) {
                     offset.x = Math.sign(offset.x) * UNDOCK_MOVE_DISTANCE;
@@ -95,8 +96,8 @@ export class SnapService {
 
                 // Move window to it's own group, whilst applying offset
                 const group = new DesktopSnapGroup();
-                await snappable.setSnapGroup(group);
-                await snappable.applyOffset(offset, snappable.getState().halfSize);
+                await entity.setSnapGroup(group);
+                await entity.applyOffset(offset, entity.getState().halfSize);
             } catch (error) {
                 console.error(`Unexpected error when undocking window: ${error}`);
                 throw new Error(`Unexpected error when undocking window: ${error}`);
@@ -127,21 +128,21 @@ export class SnapService {
 
         try {
             // Exploding only makes sense if there is more than one window in the group.
-            const snappables = group.snappables;
-            if (snappables.length > 1) {
+            const entities = group.entities;
+            if (entities.length > 1) {
                 // group.center is recalculated on each call, so we assign it here once and use the value.
                 const groupCenter = group.center;
 
-                await Promise.all(snappables.map((snappable: Snappable) => {
-                    return snappable.setSnapGroup(new DesktopSnapGroup());
+                await Promise.all(entities.map((entity: DesktopEntity) => {
+                    return entity.setSnapGroup(new DesktopSnapGroup());
                 }));
 
-                await Promise.all(snappables.map((snappable: Snappable) => {
+                await Promise.all(entities.map((entity: DesktopEntity) => {
                     // Determine the offset for each window before modifying and window state
-                    const offset = PointUtils.scale(PointUtils.difference(groupCenter, snappable.getState().center), EXPLODE_MOVE_SCALE);
+                    const offset = PointUtils.scale(PointUtils.difference(groupCenter, entity.getState().center), EXPLODE_MOVE_SCALE);
 
-                    // Detach snappable from it's previous group, and apply the calculated offset
-                    return snappable.applyOffset(offset, snappable.getState().halfSize);
+                    // Detach entity from it's previous group, and apply the calculated offset
+                    return entity.applyOffset(offset, entity.getState().halfSize);
                 }));
             }
         } catch (error) {
@@ -177,7 +178,7 @@ export class SnapService {
     private validateGroupInternal(group: DesktopSnapGroup): void {
         // Ensure 'group' is still a valid, contiguous group.
         // NOTE: 'modifiedWindow' may no longer exist (if validation is being performed because a window was closed)
-        const contiguousWindowSets = this.getContiguousWindows(group.snappables);
+        const contiguousWindowSets = this.getContiguousWindows(group.entities);
         if (contiguousWindowSets.length > 1) {                             // Group is disjointed. Need to split.
             for (const windowsToGroup of contiguousWindowSets.slice(1)) {  // Leave first set as-is. Move others into own groups.
                 const newGroup = new DesktopSnapGroup();
@@ -196,7 +197,7 @@ export class SnapService {
         if (snapTarget.valid) {  // SNAP WINDOWS
             const activeGroup = snapTarget.activeWindow.getSnapGroup();
 
-            if (activeGroup.snappables.length > 1) {
+            if (activeGroup.entities.length > 1) {
                 throw new Error('Cannot snap two groups together');
             }
 
@@ -218,10 +219,10 @@ export class SnapService {
         this.validateGroups.call(snapTarget.group);
     }
 
-    private calculateUndockMoveDirection(window: Snappable): Point {
+    private calculateUndockMoveDirection(window: DesktopEntity): Point {
         const group = window.getSnapGroup();
         const totalOffset: Point = {x: 0, y: 0};
-        for (const groupedWindow of group.snappables) {
+        for (const groupedWindow of group.entities) {
             // Exclude window being unsnapped
             if (groupedWindow !== window) {
                 const distance: MeasureResult = RectUtils.distance(window.getState(), groupedWindow.getState());
@@ -235,8 +236,8 @@ export class SnapService {
         return totalOffset;
     }
 
-    private getContiguousWindows(windows: Snappable[]): Snappable[][] {
-        const adjacencyList: Snappable[][] = new Array<Snappable[]>(windows.length);
+    private getContiguousWindows(windows: DesktopEntity[]): DesktopEntity[][] {
+        const adjacencyList: DesktopEntity[][] = new Array<DesktopEntity[]>(windows.length);
 
         // Build adjacency list
         for (let i = 0; i < windows.length; i++) {
@@ -249,18 +250,18 @@ export class SnapService {
         }
 
         // Find all contiguous sets
-        const contiguousSets: Snappable[][] = [];
-        const unvisited: Snappable[] = windows.slice();
+        const contiguousSets: DesktopEntity[][] = [];
+        const unvisited: DesktopEntity[] = windows.slice();
 
         while (unvisited.length > 0) {
-            const visited: Snappable[] = [];
+            const visited: DesktopEntity[] = [];
             dfs(unvisited[0], visited);
             contiguousSets.push(visited);
         }
 
         return contiguousSets;
 
-        function dfs(startWindow: Snappable, visited: Snappable[]) {
+        function dfs(startWindow: DesktopEntity, visited: DesktopEntity[]) {
             const startIndex = windows.indexOf(startWindow);
             if (visited.includes(startWindow)) {
                 return;
@@ -272,7 +273,7 @@ export class SnapService {
             }
         }
 
-        function isAdjacent(win1: Snappable, win2: Snappable) {
+        function isAdjacent(win1: DesktopEntity, win2: DesktopEntity) {
             const distance = RectUtils.distance(win1.getState(), win2.getState());
             if (win1.getTabGroup() && win1.getTabGroup() === win2.getTabGroup()) {
                 // Special handling for tab groups. When validating, all windows in a tabgroup are

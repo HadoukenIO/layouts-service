@@ -2,21 +2,9 @@ import {Signal1, Signal2} from '../Signal';
 import {CalculatedProperty} from '../snapanddock/utils/CalculatedProperty';
 import {Point, PointUtils} from '../snapanddock/utils/PointUtils';
 
+import {DesktopEntity} from './DesktopEntity';
 import {DesktopTabGroup} from './DesktopTabGroup';
-import {DesktopWindow, eTransformType, Mask, WindowIdentity, WindowMessages, WindowState} from './DesktopWindow';
-
-export interface Snappable {
-    getId(): string;
-    getIdentity(): WindowIdentity;
-    getState(): WindowState;
-    getTabGroup(): DesktopTabGroup|null;
-    getSnapGroup(): DesktopSnapGroup;
-
-    applyOverride<K extends keyof WindowState>(property: K, value: WindowState[K]): Promise<void>;
-    resetOverride(property: keyof WindowState): Promise<void>;
-    setSnapGroup(group: DesktopSnapGroup): Promise<void>;
-    applyOffset(offset: Point, halfSize?: Point): Promise<void>;
-}
+import {DesktopWindow, EntityState, eTransformType, Mask, WindowIdentity, WindowMessages} from './DesktopWindow';
 
 export class DesktopSnapGroup {
     private static nextId = 1;
@@ -73,14 +61,14 @@ export class DesktopSnapGroup {
     private _halfSize: CalculatedProperty<Point>;
 
     private _id: number;
-    private _snappables: Snappable[];
+    private _entities: DesktopEntity[];
     private _windows: DesktopWindow[];
 
     private rootWindow: DesktopWindow|null;
 
     constructor() {
         this._id = DesktopSnapGroup.nextId++;
-        this._snappables = [];
+        this._entities = [];
         this._windows = [];
         this.rootWindow = null;
 
@@ -118,8 +106,8 @@ export class DesktopSnapGroup {
         return this._windows.length;
     }
 
-    public get snappables(): Snappable[] {
-        return this._snappables.slice();
+    public get entities(): DesktopEntity[] {
+        return this._entities.slice();
     }
 
     public get windows(): DesktopWindow[] {
@@ -133,6 +121,7 @@ export class DesktopSnapGroup {
             if (prevGroup) {
                 prevGroup.removeWindow(window);
             }
+
             // Add listeners to window
             window.onModified.add(this.onWindowModified, this);
             window.onTransform.add(this.onWindowTransform, this);
@@ -141,7 +130,7 @@ export class DesktopSnapGroup {
 
             // Setup hierarchy
             this._windows.push(window);
-            this.buildSnappables();
+            this.buildEntities();
             this.checkRoot();
             if (window.getSnapGroup() !== this) {
                 window.setSnapGroup(this);
@@ -167,7 +156,7 @@ export class DesktopSnapGroup {
 
         if (index >= 0) {
             this._windows.splice(index, 1);
-            this.buildSnappables();
+            this.buildEntities();
 
             window.onModified.remove(this.onWindowModified, this);
             window.onTransform.remove(this.onWindowTransform, this);
@@ -198,22 +187,22 @@ export class DesktopSnapGroup {
         }
     }
 
-    private buildSnappables(): void {
-        const snappables: Snappable[] = this._snappables;
+    private buildEntities(): void {
+        const entities: DesktopEntity[] = this._entities;
 
-        snappables.length = 0;
+        entities.length = 0;
         this._windows.forEach((window: DesktopWindow) => {
-            let snappable: Snappable;
+            let entity: DesktopEntity;
             const tabGroup = window.getTabGroup();
 
             if (tabGroup && tabGroup.tabs.length > 1) {
-                snappable = tabGroup;
+                entity = tabGroup;
             } else {
-                snappable = window;
+                entity = window;
             }
 
-            if (!snappables.includes(snappable)) {
-                snappables.push(snappable);
+            if (!entities.includes(entity)) {
+                entities.push(entity);
             }
         });
     }
@@ -294,7 +283,7 @@ export class DesktopSnapGroup {
             this._origin.updateValue({x: 0, y: 0});
             this._halfSize.updateValue(PointUtils.clone(this.rootWindow!.getState().halfSize));
         } else {
-            let state: WindowState = windows[0].getState();
+            let state: EntityState = windows[0].getState();
             const min: Point = {x: state.center.x - state.halfSize.x, y: state.center.y - state.halfSize.y};
             const max: Point = {x: state.center.x + state.halfSize.x, y: state.center.y + state.halfSize.y};
 

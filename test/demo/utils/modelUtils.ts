@@ -23,7 +23,7 @@ export async function getTopmostWindow(position: Point<number>): Promise<Identit
     function remoteFunc(this: ProviderWindow, position: Point<number>): Identity|null {
         const windowAt = this.model.getWindowAt(position.x, position.y);
 
-        return windowAt && windowAt.getIdentity();
+        return windowAt && windowAt.identity;
     }
 
     return executeJavascriptOnService<Point<number>, Identity|null>(remoteFunc, position);

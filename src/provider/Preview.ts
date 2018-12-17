@@ -45,7 +45,7 @@ export class Preview {
      * argument to avoid having to re-create the rectangle objects on every call if the group hasn't changed.
      */
     public show(target: Target): void {
-        const activeGroup = target.activeWindow.getSnapGroup();
+        const activeGroup = target.activeWindow.snapGroup;
         const groupHalfSize = activeGroup.halfSize;  // TODO: Will need to change once 'activeGroup' can have multiple windows (SERVICE-128)
 
         const previewWindowRect = this.generatePreviewRect(target);
@@ -129,7 +129,7 @@ export class Preview {
 
     private generatePreviewRect(target: Target): Rectangle {
         if (target.type === eTargetType.SNAP) {
-            const activeState = target.activeWindow.getState();
+            const activeState = target.activeWindow.currentState;
             const prevHalfSize = activeState.halfSize;
 
             const halfSize = target.halfSize || prevHalfSize;

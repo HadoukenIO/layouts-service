@@ -27,8 +27,8 @@ export async function getGroupedWindows(identity: Identity): Promise<Identity[]>
     function remoteFunc(this: ProviderWindow, identity: WindowIdentity): Identity[] {
         const snapWindow: DesktopWindow|null = this.model.getWindow(identity);
         if (snapWindow) {
-            return snapWindow.getSnapGroup().windows.map((win: DesktopEntity) => {
-                return win.getIdentity();
+            return snapWindow.snapGroup.windows.map((win: DesktopEntity) => {
+                return win.identity;
             });
         } else {
             throw new Error(`Attempted to get window group of non-existent or deregistered window: ${identity.uuid}/${identity.name}`);
@@ -44,7 +44,7 @@ export async function getSnapGroupID(identity: Identity) {
     function remoteFunc(this: ProviderWindow, identity: WindowIdentity) {
         const snapWindow: DesktopWindow|null = this.model.getWindow(identity);
         if (snapWindow) {
-            return snapWindow.getSnapGroup().id;
+            return snapWindow.snapGroup.id;
         } else {
             throw new Error(`Attempted to get snapGroup id of non-existent or deregistered window: ${identity.uuid}/${identity.name}`);
         }

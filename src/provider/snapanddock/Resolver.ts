@@ -6,7 +6,7 @@ import {eTargetType, TargetBase} from '../WindowHandler';
 import {SNAP_DISTANCE} from './Config';
 import {Projector} from './Projector';
 import {Point, PointUtils} from './utils/PointUtils';
-import {RectUtils, Rectangle} from './utils/RectUtils';
+import {Rectangle, RectUtils} from './utils/RectUtils';
 
 
 /**
@@ -62,7 +62,7 @@ export class Resolver {
     /**
      * Util that is reset and re-used with each candidate group.
      */
-    private projector: Projector = new Projector();
+    private _projector: Projector = new Projector();
 
     /**
      * The only publicly-exposed function of this class - determines if 'activeGroup', in it's current location, should
@@ -72,7 +72,7 @@ export class Resolver {
      * @param activeGroup The group that is currently being moved
      */
     public getSnapTarget(groups: ReadonlyArray<DesktopSnapGroup>, activeGroup: DesktopSnapGroup): SnapTarget|null {
-        const projector: Projector = this.projector;
+        const projector: Projector = this._projector;
         const targets: SnapTarget[] = [];
 
         // Group-to-Group snapping not yet supported
@@ -89,12 +89,12 @@ export class Resolver {
 
                     // Need to iterate over every window in both groups
                     activeGroup.entities.forEach(activeWindow => {
-                        const activeState: EntityState = activeWindow.getState();
+                        const activeState: EntityState = activeWindow.currentState;
 
                         // Only do the next loop if there's a chance that this window can intersect with the other group
                         if (this.isSnappable(activeWindow, activeState) && RectUtils.distance(candidateGroup, activeState).within(SNAP_DISTANCE)) {
                             candidateGroup.entities.forEach(candidateWindow => {
-                                const candidateState: EntityState = candidateWindow.getState();
+                                const candidateState: EntityState = candidateWindow.currentState;
 
                                 if (this.isSnappable(candidateWindow, candidateState)) {
                                     projector.project(activeState, candidateState);

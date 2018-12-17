@@ -225,27 +225,27 @@ export class DesktopWindow implements DesktopEntity {
      */
     public readonly onTeardown: Signal1<DesktopWindow> = new Signal1();
 
-    private model: DesktopModel;
-    private identity: WindowIdentity;
-    private id: string;  // Created from window uuid and name
+    private _model: DesktopModel;
+    private _identity: WindowIdentity;
+    private _id: string;  // Created from window uuid and name
 
-    private window: Window;
+    private _window: Window;
 
     /**
      * Cached state. Reflects the current state of the *actual* window object - basically, what you would get if you called any of the OpenFin API functions on
      * the window object.
      */
-    private currentState: EntityState;
+    private _currentState: EntityState;
 
     /**
      * What the application "thinks" the state of this window is. This is the state of the window, excluding any changes made to the window by the service.
      */
-    private applicationState: EntityState;
+    private _applicationState: EntityState;
 
     /**
      * Lists all the modifications made to the window by the service. This is effectively a 'diff' between currentState and applicationState.
      */
-    private modifiedState: Partial<EntityState>;
+    private _modifiedState: Partial<EntityState>;
 
     /**
      * A subset of modifiedState - changes made to the window on a very short-term basis, which will soon be reverted.
@@ -255,69 +255,69 @@ export class DesktopWindow implements DesktopEntity {
      * NOTE: The values within this object are the *previous* values of each property - what the property should be set to when reverting the temporary change.
      * The temporary value can be found by looking up the keys of this object within 'currentState'.
      */
-    private temporaryState: Partial<EntityState>;
+    private _temporaryState: Partial<EntityState>;
 
-    private snapGroup: DesktopSnapGroup;
-    private tabGroup: DesktopTabGroup|null;
-    private prevGroup: DesktopSnapGroup|null;
-    private ready: boolean;
+    private _snapGroup: DesktopSnapGroup;
+    private _tabGroup: DesktopTabGroup|null;
+    private _prevGroup: DesktopSnapGroup|null;
+    private _ready: boolean;
 
-    private pendingActions: Promise<void>[];
-    private actionTags: WeakMap<Promise<void>, string>;
+    private _pendingActions: Promise<void>[];
+    private _actionTags: WeakMap<Promise<void>, string>;
 
     // Tracks event listeners registered on the fin window for easier cleanup.
-    private registeredListeners: Map<keyof fin.OpenFinWindowEventMap, OpenFinWindowEventHandler> = new Map();
+    private _registeredListeners: Map<keyof fin.OpenFinWindowEventMap, OpenFinWindowEventHandler> = new Map();
 
-    private userInitiatedBoundsChange = false;
+    private _userInitiatedBoundsChange = false;
 
     constructor(model: DesktopModel, group: DesktopSnapGroup, window: fin.WindowOptions|Window, initialState?: EntityState) {
         const identity = DesktopWindow.getIdentity(window);
 
-        this.model = model;
-        this.identity = identity;
-        this.id = `${identity.uuid}/${identity.name!}`;
-        this.pendingActions = [];
-        this.actionTags = new WeakMap();
+        this._model = model;
+        this._identity = identity;
+        this._id = `${identity.uuid}/${identity.name!}`;
+        this._pendingActions = [];
+        this._actionTags = new WeakMap();
 
-        this.ready = false;
+        this._ready = false;
 
         if (!DesktopWindow.isWindow(window)) {
-            this.window = fin.Window.wrapSync({uuid: fin.Application.me.uuid, name: window.name});
-            this.addPendingActions('Add window ' + this.id, fin.Window.create(window).then(async (window: Window) => {
-                this.window = window;
-                this.currentState = await DesktopWindow.getWindowState(window);
-                this.applicationState = {...this.currentState};
+            this._window = fin.Window.wrapSync({uuid: fin.Application.me.uuid, name: window.name});
+            this.addPendingActions('Add window ' + this._id, fin.Window.create(window).then(async (window: Window) => {
+                this._window = window;
+                this._currentState = await DesktopWindow.getWindowState(window);
+                this._applicationState = {...this._currentState};
 
-                this.ready = true;
+                this._ready = true;
                 this.addListeners();
             }));
         } else if (!initialState) {
-            this.window = window as Window;
-            this.addPendingActions('Fetch initial window state ' + this.id, DesktopWindow.getWindowState(this.window).then((state: EntityState) => {
-                this.currentState = state;
-                this.applicationState = {...this.currentState};
+            this._window = window as Window;
+            this.addPendingActions('Fetch initial window state ' + this._id, DesktopWindow.getWindowState(this._window).then((state: EntityState) => {
+                this._currentState = state;
+                this._applicationState = {...this._currentState};
 
-                this.ready = true;
+                this._ready = true;
                 this.addListeners();
             }));
         } else {
-            this.window = window as Window;
-            this.ready = true;
+            this._window = window as Window;
+            this._ready = true;
         }
 
         if (!initialState) {
             initialState = this.createTemporaryState();
         }
-        this.currentState = {...initialState};
-        this.applicationState = {...initialState};
-        this.modifiedState = {};
-        this.temporaryState = {};
-        this.snapGroup = group;
-        this.tabGroup = null;
-        this.prevGroup = null;
+        this._currentState = {...initialState};
+        this._applicationState = {...initialState};
+        this._modifiedState = {};
+        this._temporaryState = {};
+        this._snapGroup = group;
+        this._tabGroup = null;
+        this._prevGroup = null;
         group.addWindow(this);
 
-        if (this.ready) {
+        if (this._ready) {
             this.addListeners();
         }
 
@@ -332,13 +332,13 @@ export class DesktopWindow implements DesktopEntity {
      * manage it's own destruction in the former case, so that it can mark itself as not-ready before starting the clean-up of the model.
      */
     public teardown(): void {
-        if (this.ready) {
-            this.window.leaveGroup();
+        if (this._ready) {
+            this._window.leaveGroup();
         }
         this.cleanupListeners();
         this.onTeardown.emit(this);
         DesktopWindow.onDestroyed.emit(this);
-        this.ready = false;
+        this._ready = false;
     }
 
     private createTemporaryState(): EntityState {
@@ -361,15 +361,24 @@ export class DesktopWindow implements DesktopEntity {
     }
 
     public get[Symbol.toStringTag]() {
-        return this.id;
+        return this._id;
     }
 
-    public getId(): string {
-        return this.id;
+    public get id(): string {
+        return this._id;
     }
 
-    public isReady(): boolean {
-        return this.ready;
+    public get identity(): WindowIdentity {
+        return this._identity;
+    }
+
+    public get isReady(): boolean {
+        return this._ready;
+    }
+
+    public get isActive(): boolean {
+        const state: EntityState = this._currentState;
+        return !state.hidden && state.opacity > 0 && state.state !== 'minimized';
     }
 
     /**
@@ -378,16 +387,24 @@ export class DesktopWindow implements DesktopEntity {
      * Windows and groups have a bi-directional relationship. You will also find this window within the group's list
      * of windows.
      */
-    public getSnapGroup(): DesktopSnapGroup {
-        return this.snapGroup;
+    public get snapGroup(): DesktopSnapGroup {
+        return this._snapGroup;
     }
 
-    public getTabGroup(): DesktopTabGroup|null {
-        return this.tabGroup;
+    public get tabGroup(): DesktopTabGroup|null {
+        return this._tabGroup;
     }
 
-    public getPrevGroup(): DesktopSnapGroup|null {
-        return this.prevGroup;
+    public get prevGroup(): DesktopSnapGroup|null {
+        return this._prevGroup;
+    }
+
+    public get currentState(): EntityState {
+        return this._currentState;
+    }
+
+    public get applicationState(): EntityState {
+        return this._applicationState;
     }
 
     /**
@@ -405,8 +422,8 @@ export class DesktopWindow implements DesktopEntity {
      * @param newHalfSize Can also simultaneously change the size of the window
      */
     public async setSnapGroup(group: DesktopSnapGroup): Promise<void> {
-        if (group !== this.snapGroup) {
-            const wasSnapped = this.snapGroup.windows.length > 1;
+        if (group !== this._snapGroup) {
+            const wasSnapped = this._snapGroup.windows.length > 1;
 
             // Update state synchronously
             this.addToSnapGroup(group);
@@ -417,7 +434,7 @@ export class DesktopWindow implements DesktopEntity {
             }
 
             // Snap to any other windows in the new group
-            if (this.snapGroup.windows.length > 1) {
+            if (this._snapGroup.windows.length > 1) {
                 await this.snap();
             }
         }
@@ -429,14 +446,14 @@ export class DesktopWindow implements DesktopEntity {
         const delta: Partial<EntityState> = {};
 
         if (offset) {
-            delta.center = {x: this.currentState.center.x + offset.x, y: this.currentState.center.y + offset.y};
+            delta.center = {x: this._currentState.center.x + offset.x, y: this._currentState.center.y + offset.y};
         }
         if (halfSize) {
-            delta.center = delta.center || {...this.currentState.center};
+            delta.center = delta.center || {...this._currentState.center};
             delta.halfSize = halfSize;
 
-            delta.center.x += halfSize.x - this.currentState.halfSize.x;
-            delta.center.y += halfSize.y - this.currentState.halfSize.y;
+            delta.center.x += halfSize.x - this._currentState.halfSize.x;
+            delta.center.y += halfSize.y - this._currentState.halfSize.y;
         }
 
         return this.updateState(delta, ActionOrigin.SERVICE);
@@ -444,21 +461,21 @@ export class DesktopWindow implements DesktopEntity {
 
     public setTabGroup(group: DesktopTabGroup|null): Promise<void> {
         if (group) {
-            console.log('Added ' + this.id + ' to ' + group.ID);
-        } else if (this.tabGroup) {
-            console.log('Removed ' + this.id + ' from ' + this.tabGroup.ID);
+            console.log('Added ' + this._id + ' to ' + group.id);
+        } else if (this._tabGroup) {
+            console.log('Removed ' + this._id + ' from ' + this._tabGroup.id);
         }
 
-        this.tabGroup = group;
+        this._tabGroup = group;
 
         // Hide tabbed windows in the task bar (except for tabstrip windows)
-        if (this.identity.uuid !== SERVICE_IDENTITY.uuid) {
+        if (this._identity.uuid !== SERVICE_IDENTITY.uuid) {
             if (group) {
                 // Hide tabbed windows in taskbar
-                return this.ready ? this.updateState({showTaskbarIcon: false}, ActionOrigin.SERVICE) : Promise.resolve();
-            } else if (this.currentState.showTaskbarIcon !== this.applicationState.showTaskbarIcon) {
+                return this._ready ? this.updateState({showTaskbarIcon: false}, ActionOrigin.SERVICE) : Promise.resolve();
+            } else if (this._currentState.showTaskbarIcon !== this._applicationState.showTaskbarIcon) {
                 // Revert taskbar icon to application-specified state
-                return this.ready ? this.updateState({showTaskbarIcon: this.applicationState.showTaskbarIcon}, ActionOrigin.SERVICE) : Promise.resolve();
+                return this._ready ? this.updateState({showTaskbarIcon: this._applicationState.showTaskbarIcon}, ActionOrigin.SERVICE) : Promise.resolve();
             }
         }
 
@@ -466,44 +483,27 @@ export class DesktopWindow implements DesktopEntity {
         return Promise.resolve();
     }
 
-    public getState(): EntityState {
-        return this.currentState;
-    }
-
-    public getApplicationState(): EntityState {
-        return this.applicationState;
-    }
-
-    public getIdentity(): WindowIdentity {
-        return this.identity;
-    }
-
-    public getIsActive(): boolean {
-        const state: EntityState = this.currentState;
-        return !state.hidden && state.opacity > 0 && state.state !== 'minimized';
-    }
-
     public async sync(): Promise<void> {
         const MAX_AWAITS = 10;
         let awaitCount = 0;
 
-        while (this.pendingActions.length > 0) {
+        while (this._pendingActions.length > 0) {
             if (++awaitCount <= MAX_AWAITS) {
                 // Wait for pending operations to finish
-                await Promise.all(this.pendingActions);
+                await Promise.all(this._pendingActions);
             } else {
                 // If we've looped this many times, we're probably in some kind of deadlock scenario
-                return Promise.reject(`Couldn't sync ${this.id} after ${awaitCount} attempts`);
+                return Promise.reject(`Couldn't sync ${this._id} after ${awaitCount} attempts`);
             }
         }
     }
 
     public refresh(): Promise<void> {
-        const window: Window = this.window;
+        const window: Window = this._window;
 
-        if (this.ready) {
+        if (this._ready) {
             return DesktopWindow.getWindowState(window).then((state: EntityState) => {
-                const appState: EntityState = this.applicationState;
+                const appState: EntityState = this._applicationState;
                 const modifications: Partial<EntityState> = {};
                 let hasChanges = false;
 
@@ -512,7 +512,7 @@ export class DesktopWindow implements DesktopEntity {
                         const key = iter as keyof EntityState;
 
                         if (this.isModified(key, appState, state) &&
-                            (!this.modifiedState.hasOwnProperty(key) || this.isModified(key, this.modifiedState, state))) {
+                            (!this._modifiedState.hasOwnProperty(key) || this.isModified(key, this._modifiedState, state))) {
                             modifications[key] = state[key];
                             hasChanges = true;
                         }
@@ -520,10 +520,10 @@ export class DesktopWindow implements DesktopEntity {
                 }
 
                 if (hasChanges) {
-                    console.log('Window refresh found changes: ', this.id, modifications);
+                    console.log('Window refresh found changes: ', this._id, modifications);
                     return this.updateState(modifications, ActionOrigin.APPLICATION);
                 } else {
-                    console.log('Refreshed window, no changes were found', this.id);
+                    console.log('Refreshed window, no changes were found', this._id);
                     return Promise.resolve();
                 }
             });
@@ -532,11 +532,51 @@ export class DesktopWindow implements DesktopEntity {
         }
     }
 
+    public async bringToFront(): Promise<void> {
+        return this.addPendingActions('bringToFront ' + this._id, this._window.bringToFront());
+    }
+
+    public async close(): Promise<void> {
+        this._ready = false;
+        return this.addPendingActions('close ' + this._id, this._window.close(true));
+    }
+
+    public async applyProperties(properties: Partial<EntityState>): Promise<void> {
+        this.updateState(properties, ActionOrigin.SERVICE);
+    }
+
+    public async applyOverride<K extends keyof EntityState>(property: K, value: EntityState[K]): Promise<void> {
+        if (value !== this._currentState[property]) {
+            this._temporaryState[property] = this._temporaryState[property] || this._currentState[property];
+            this._currentState[property] = value;
+
+            return this.updateState({[property]: value}, ActionOrigin.SERVICE_TEMPORARY);
+        }
+    }
+
+    public async resetOverride(property: keyof EntityState): Promise<void> {
+        if (this._temporaryState.hasOwnProperty(property)) {
+            const value = this._temporaryState[property]!;
+            this._currentState[property] = value;
+            return this.updateState({[property]: value}, ActionOrigin.SERVICE);  // TODO: Is this the right origin type?
+        }
+    }
+
+    // tslint:disable-next-line:no-any
+    public async sendMessage(action: WindowMessages, payload: any): Promise<void> {
+        if (this._ready) {
+            // TODO: Revisit this timeout after we bump to V.35
+            // Current hypothesis is that, in sendToClient, we're trying to dispatch to a tabstrip that no longer
+            // exists, but hasn't been removed from the .connections array.
+            await Promise.race([apiHandler.sendToClient(this._identity, action, payload), new Promise((res) => setTimeout(res, 15))]);
+        }
+    }
+
     protected async addPendingActions(tag: string, actions: Promise<void>|Promise<void>[]): Promise<void> {
         if (actions instanceof Array) {
-            this.pendingActions.push.apply(this.pendingActions, actions);
+            this._pendingActions.push.apply(this._pendingActions, actions);
             actions.forEach((action: Promise<void>, index: number) => {
-                this.actionTags.set(action, `${tag} (${index + 1} of ${actions.length})`);
+                this._actionTags.set(action, `${tag} (${index + 1} of ${actions.length})`);
                 action.then(this.onActionComplete.bind(this, action));
             });
 
@@ -546,17 +586,17 @@ export class DesktopWindow implements DesktopEntity {
                 return actions[0];
             }
         } else {
-            this.pendingActions.push(actions);
-            this.actionTags.set(actions, tag);
+            this._pendingActions.push(actions);
+            this._actionTags.set(actions, tag);
             actions.then(this.onActionComplete.bind(this, actions));
             return actions;
         }
     }
 
     private onActionComplete(action: Promise<void>): void {
-        const index = this.pendingActions.indexOf(action);
+        const index = this._pendingActions.indexOf(action);
         if (index >= 0) {
-            this.pendingActions.splice(index, 1);
+            this._pendingActions.splice(index, 1);
         } else {
             console.warn('Action completed but couldn\'t find it in pending action list');
         }
@@ -574,25 +614,25 @@ export class DesktopWindow implements DesktopEntity {
     }
 
     private snap(): Promise<void> {
-        const group: DesktopSnapGroup = this.snapGroup;
-        const windows: DesktopWindow[] = this.snapGroup.windows as DesktopWindow[];
+        const group: DesktopSnapGroup = this._snapGroup;
+        const windows: DesktopWindow[] = this._snapGroup.windows as DesktopWindow[];
         const count = windows.length;
         const index = windows.indexOf(this);
 
-        if (count >= 2 && index >= 0 && this.ready) {
+        if (count >= 2 && index >= 0 && this._ready) {
             const other: DesktopWindow = windows[index === 0 ? 1 : 0];
 
             // Merge window groups
             return Promise.all([this.sync(), other.sync()]).then(() => {
                 const joinGroupPromise: Promise<void> = (async () => {
-                    if (this.ready && group === this.snapGroup) {
-                        await this.window.joinGroup(other.window).catch((error) => this.checkClose(error));
+                    if (this._ready && group === this._snapGroup) {
+                        await this._window.joinGroup(other._window).catch((error) => this.checkClose(error));
 
                         // Re-fetch window list in case it has changed during sync
-                        const windows: DesktopWindow[] = this.snapGroup.windows as DesktopWindow[];
+                        const windows: DesktopWindow[] = this._snapGroup.windows as DesktopWindow[];
 
                         // Bring other windows in group to front
-                        await windows.map(groupWindow => groupWindow.window.bringToFront());
+                        await windows.map(groupWindow => groupWindow._window.bringToFront());
                     }
                 })();
 
@@ -609,7 +649,7 @@ export class DesktopWindow implements DesktopEntity {
         if (error) {
             if (error.message.includes('Could not locate the requested window')) {
                 // Pre-emptively clear ready flag to prevent future window interactions, but postpone teardown until 'handleClosed'.
-                this.ready = false;
+                this._ready = false;
             } else {
                 throw error;
             }
@@ -618,16 +658,16 @@ export class DesktopWindow implements DesktopEntity {
 
     private unsnap(): Promise<void> {
         // TODO: Wrap with 'addPendingActions'?..
-        if (this.ready) {
-            return this.window.leaveGroup();
+        if (this._ready) {
+            return this._window.leaveGroup();
         } else {
             return Promise.resolve();
         }
     }
 
     private addToSnapGroup(group: DesktopSnapGroup): void {
-        this.prevGroup = this.snapGroup;
-        this.snapGroup = group;
+        this._prevGroup = this._snapGroup;
+        this._snapGroup = group;
         group.addWindow(this);
     }
 
@@ -636,15 +676,15 @@ export class DesktopWindow implements DesktopEntity {
 
         if (origin !== ActionOrigin.APPLICATION) {
             // Ensure we can modify window before we update our cache
-            if (!this.ready) {
-                throw new Error('Cannot modify window, window not in ready state ' + this.id);
+            if (!this._ready) {
+                throw new Error('Cannot modify window, window not in ready state ' + this._id);
             }
         } else {
             // Find changes from the application that weren't already known to the service
             Object.keys(delta).forEach((key: string) => {
                 const property: keyof EntityState = key as keyof EntityState;
-                if (this.isModified(property, delta, this.currentState)) {
-                    this.applicationState[property] = delta[property]!;
+                if (this.isModified(property, delta, this._currentState)) {
+                    this._applicationState[property] = delta[property]!;
                 }
             });
         }
@@ -654,8 +694,8 @@ export class DesktopWindow implements DesktopEntity {
             // Back-up existing values, so they can be restored later
             Object.keys(delta).forEach((key: string) => {
                 const property: keyof EntityState = key as keyof EntityState;
-                if (!this.temporaryState.hasOwnProperty(property)) {
-                    this.temporaryState[property] = this.currentState[property];
+                if (!this._temporaryState.hasOwnProperty(property)) {
+                    this._temporaryState[property] = this._currentState[property];
                 }
             });
         } else {
@@ -663,23 +703,23 @@ export class DesktopWindow implements DesktopEntity {
                 const property: keyof EntityState = key as keyof EntityState;
 
                 // These changes will undo any temporary changes that have been applied
-                if (this.temporaryState.hasOwnProperty(property)) {
-                    delete this.temporaryState[property];
+                if (this._temporaryState.hasOwnProperty(property)) {
+                    delete this._temporaryState[property];
                 }
 
                 // Track which properties have been modified by the service
-                if (this.isModified(property, delta, this.applicationState)) {
-                    this.modifiedState[property] = delta[property];
+                if (this.isModified(property, delta, this._applicationState)) {
+                    this._modifiedState[property] = delta[property];
                 } else {
-                    delete this.modifiedState[property];
+                    delete this._modifiedState[property];
                 }
             });
         }
-        Object.assign(this.currentState, delta);
+        Object.assign(this._currentState, delta);
 
         // Apply changes to the window (unless we're reacting to an external change that has already happened)
         if (origin !== ActionOrigin.APPLICATION) {
-            const window = this.window;
+            const window = this._window;
             const {center, halfSize, state, hidden, ...options} = delta;
             const optionsToChange: (keyof EntityState)[] = Object.keys(options) as (keyof EntityState)[];
 
@@ -708,7 +748,7 @@ export class DesktopWindow implements DesktopEntity {
 
             // Apply bounds
             if (center || halfSize) {
-                const state: EntityState = this.currentState;
+                const state: EntityState = this._currentState;
                 let newCenter = center || state.center, newHalfSize = halfSize || state.halfSize;
 
                 if (isWin10() && state.frame) {
@@ -726,47 +766,7 @@ export class DesktopWindow implements DesktopEntity {
             }
 
             // Track these changes
-            return this.addPendingActions('updateState ' + this.id + ' ' + JSON.stringify(delta), actions);
-        }
-    }
-
-    public async bringToFront(): Promise<void> {
-        return this.addPendingActions('bringToFront ' + this.id, this.window.bringToFront());
-    }
-
-    public async close(): Promise<void> {
-        this.ready = false;
-        return this.addPendingActions('close ' + this.id, this.window.close(true));
-    }
-
-    public async applyProperties(properties: Partial<EntityState>): Promise<void> {
-        this.updateState(properties, ActionOrigin.SERVICE);
-    }
-
-    public async applyOverride<K extends keyof EntityState>(property: K, value: EntityState[K]): Promise<void> {
-        if (value !== this.currentState[property]) {
-            this.temporaryState[property] = this.temporaryState[property] || this.currentState[property];
-            this.currentState[property] = value;
-
-            return this.updateState({[property]: value}, ActionOrigin.SERVICE_TEMPORARY);
-        }
-    }
-
-    public async resetOverride(property: keyof EntityState): Promise<void> {
-        if (this.temporaryState.hasOwnProperty(property)) {
-            const value = this.temporaryState[property]!;
-            this.currentState[property] = value;
-            return this.updateState({[property]: value}, ActionOrigin.SERVICE);  // TODO: Is this the right origin type?
-        }
-    }
-
-    // tslint:disable-next-line:no-any
-    public async sendMessage(action: WindowMessages, payload: any): Promise<void> {
-        if (this.ready) {
-            // TODO: Revisit this timeout after we bump to V.35
-            // Current hypothesis is that, in sendToClient, we're trying to dispatch to a tabstrip that no longer
-            // exists, but hasn't been removed from the .connections array.
-            await Promise.race([apiHandler.sendToClient(this.identity, action, payload), new Promise((res) => setTimeout(res, 15))]);
+            return this.addPendingActions('updateState ' + this._id + ' ' + JSON.stringify(delta), actions);
         }
     }
 
@@ -778,7 +778,7 @@ export class DesktopWindow implements DesktopEntity {
      * @param bounds Bounds that need to be validated
      */
     private checkBounds(bounds: fin.WindowBounds): fin.WindowBounds {
-        if (isWin10() && this.currentState.frame) {
+        if (isWin10() && this._currentState.frame) {
             return {left: bounds.left + 7, top: bounds.top, width: bounds.width - 14, height: bounds.height - 7};
         } else {
             return bounds;
@@ -798,7 +798,7 @@ export class DesktopWindow implements DesktopEntity {
         });
         this.registerListener('minimized', () => {
             this.updateState({state: 'minimized'}, ActionOrigin.APPLICATION);
-            this.snapGroup.windows.forEach(window => {
+            this._snapGroup.windows.forEach(window => {
                 if (window !== this) {
                     (window as DesktopWindow).applyProperties({state: 'minimized'});
                 }
@@ -806,9 +806,9 @@ export class DesktopWindow implements DesktopEntity {
         });
         this.registerListener('restored', () => {
             this.updateState({state: 'normal'}, ActionOrigin.APPLICATION);
-            this.snapGroup.windows.forEach(window => {
+            this._snapGroup.windows.forEach(window => {
                 if (window !== this) {
-                    if (this.tabGroup && window !== this.tabGroup.window) {
+                    if (this._tabGroup && window !== this._tabGroup.window) {
                         // Window will set a window to visible when minimizing. Need to restore window visibility.
                         (window as DesktopWindow).applyProperties({state: 'normal', hidden: true});
                     } else {
@@ -822,18 +822,18 @@ export class DesktopWindow implements DesktopEntity {
     }
 
     private registerListener<K extends keyof fin.OpenFinWindowEventMap>(eventType: K, handler: (event: fin.OpenFinWindowEventMap[K]) => void) {
-        this.window.addListener(eventType, handler);
-        this.registeredListeners.set(eventType, handler);
+        this._window.addListener(eventType, handler);
+        this._registeredListeners.set(eventType, handler);
     }
 
     private cleanupListeners(): void {
-        const window: Window = this.window;
+        const window: Window = this._window;
 
-        for (const [key, listener] of this.registeredListeners) {
+        for (const [key, listener] of this._registeredListeners) {
             window.removeListener(key, listener);
         }
 
-        this.registeredListeners.clear();
+        this._registeredListeners.clear();
     }
 
     private handleBoundsChanged(event: fin.WindowBoundsEvent): void {
@@ -843,11 +843,11 @@ export class DesktopWindow implements DesktopEntity {
 
         this.updateState({center, halfSize}, ActionOrigin.APPLICATION);
 
-        if (this.userInitiatedBoundsChange) {
+        if (this._userInitiatedBoundsChange) {
             this.onCommit.emit(this, this.getTransformType(event));
 
             // Setting this here instead of in 'end-user-bounds-changing' event to ensure we are still synced when this method is called.
-            this.userInitiatedBoundsChange = false;
+            this._userInitiatedBoundsChange = false;
         } else {
             this.onModified.emit(this);
         }
@@ -860,7 +860,7 @@ export class DesktopWindow implements DesktopEntity {
 
         this.updateState({center, halfSize}, ActionOrigin.APPLICATION);
 
-        if (this.userInitiatedBoundsChange) {
+        if (this._userInitiatedBoundsChange) {
             this.onTransform.emit(this, this.getTransformType(event));
         }
     }
@@ -871,13 +871,13 @@ export class DesktopWindow implements DesktopEntity {
     }
 
     private handleBeginUserBoundsChanging(event: fin.WindowBoundsEvent) {
-        this.userInitiatedBoundsChange = true;
+        this._userInitiatedBoundsChange = true;
     }
 
     private handleClosing(): void {
         // If 'onclose' event has fired, we shouldn't attempt to call any OpenFin API on the window.
         // Will immediately reset ready flag, to prevent any API calls as part of clean-up/destroy process.
-        this.ready = false;
+        this._ready = false;
 
         // Clean-up model state
         this.teardown();
@@ -886,7 +886,7 @@ export class DesktopWindow implements DesktopEntity {
     private async handleFocused(): Promise<void> {
         // Loop through all windows in the same group as the focused window and bring them
         // all to front
-        const window: fin.OpenFinWindow = fin.desktop.Window.wrap(this.identity.uuid, this.identity.name);
+        const window: fin.OpenFinWindow = fin.desktop.Window.wrap(this._identity.uuid, this._identity.name);
         const group: fin.OpenFinWindow[] = await new Promise<fin.OpenFinWindow[]>((res, rej) => {
             window.getGroup(res, rej);
         });
@@ -915,26 +915,26 @@ export class DesktopWindow implements DesktopEntity {
 
         console.log('Received window group changed event: ', event);
 
-        const targetWindow: DesktopWindow|null = this.model.getWindow({uuid: event.targetWindowAppUuid, name: event.targetWindowName});
-        const targetGroup: DesktopSnapGroup|null = targetWindow ? targetWindow.getSnapGroup() : null;
+        const targetWindow: DesktopWindow|null = this._model.getWindow({uuid: event.targetWindowAppUuid, name: event.targetWindowName});
+        const targetGroup: DesktopSnapGroup|null = targetWindow ? targetWindow.snapGroup : null;
 
         switch (event.reason) {
             case 'leave':
-                const modifiedSourceGroup = event.sourceGroup.concat({appUuid: this.identity.uuid, windowName: this.identity.name});
-                if (this.snapGroup.length > 1 && compareSnapAndEventWindowArrays(this.snapGroup.windows, modifiedSourceGroup)) {
+                const modifiedSourceGroup = event.sourceGroup.concat({appUuid: this._identity.uuid, windowName: this._identity.name});
+                if (this._snapGroup.length > 1 && compareSnapAndEventWindowArrays(this._snapGroup.windows, modifiedSourceGroup)) {
                     return this.setSnapGroup(new DesktopSnapGroup());
                 } else {
                     return Promise.resolve();
                 }
             case 'join':
                 if (targetWindow && targetGroup) {
-                    return compareSnapAndEventWindowArrays(this.snapGroup.windows, event.targetGroup) ? Promise.resolve() : this.addToSnapGroup(targetGroup);
+                    return compareSnapAndEventWindowArrays(this._snapGroup.windows, event.targetGroup) ? Promise.resolve() : this.addToSnapGroup(targetGroup);
                 }
                 break;
 
             case 'merge':
                 if (targetWindow && targetGroup) {
-                    this.snapGroup.windows.forEach((window: DesktopEntity) => {  // TODO (SERVICE-200): Test snap groups that contain tabs
+                    this._snapGroup.windows.forEach((window: DesktopEntity) => {  // TODO (SERVICE-200): Test snap groups that contain tabs
                         // Merge events are never triggered inside the service, so we do not need the same guards as join/leave
                         return window.setSnapGroup(targetGroup);
                     });
@@ -951,7 +951,7 @@ export class DesktopWindow implements DesktopEntity {
 
         function compareSnapAndEventWindowArrays(snapWindows: DesktopEntity[], eventWindows: {appUuid: string, windowName: string}[]): boolean {
             return deepEqual(
-                snapWindows.map(w => w.getIdentity()).sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid)),
+                snapWindows.map(w => w.identity).sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid)),
                 eventWindows.map(w => ({uuid: w.appUuid, name: w.windowName}))
                     .sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid)));
         }

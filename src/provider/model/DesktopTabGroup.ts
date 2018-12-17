@@ -21,11 +21,6 @@ export class DesktopTabGroup implements DesktopEntity {
 
     private static _windowPool: DesktopTabstripFactory = new DesktopTabstripFactory();
 
-    /**
-     * The ID for the TabGroup.
-     */
-    public readonly ID: string;
-
     private _model: DesktopModel;
 
     /**
@@ -75,8 +70,7 @@ export class DesktopTabGroup implements DesktopEntity {
         this._window.onModified.add((window: DesktopWindow) => this.updateBounds());
         this._window.onTransform.add((window: DesktopWindow, type: Mask<eTransformType>) => this.updateBounds());
         this._window.onCommit.add((window: DesktopWindow, type: Mask<eTransformType>) => this.updateBounds());
-        this._groupState = {...this._window.getState()};
-        this.ID = this._window.getIdentity().name;
+        this._groupState = {...this._window.currentState};
         this._window.setTabGroup(this);
         this._tabs = [];
         this._tabProperties = {};
@@ -85,6 +79,27 @@ export class DesktopTabGroup implements DesktopEntity {
         this._isMaximized = false;
 
         DesktopTabGroup.onCreated.emit(this);
+    }
+
+    public get id(): string {
+        return this._window.id;
+    }
+
+    public get identity(): WindowIdentity {
+        return this._window.identity;
+    }
+
+    public get currentState(): EntityState {
+        this.updateBounds();
+        return this._groupState;
+    }
+
+    public get snapGroup(): DesktopSnapGroup {
+        return this._window.snapGroup;
+    }
+
+    public get tabGroup(): DesktopTabGroup {
+        return this;
     }
 
     public get config(): ApplicationUIConfig {
@@ -119,27 +134,6 @@ export class DesktopTabGroup implements DesktopEntity {
         return this._isMaximized;
     }
 
-    public getId(): string {
-        return this._window.getId();
-    }
-
-    public getIdentity(): WindowIdentity {
-        return this._window.getIdentity();
-    }
-
-    public getState(): EntityState {
-        this.updateBounds();
-        return this._groupState;
-    }
-
-    public getSnapGroup(): DesktopSnapGroup {
-        return this._window.getSnapGroup();
-    }
-
-    public getTabGroup(): DesktopTabGroup {
-        return this;
-    }
-
     public applyOverride<K extends keyof EntityState>(property: K, value: EntityState[K]): Promise<void> {
         return this.updateWindows(window => window.applyOverride(property, value));
     }
@@ -165,11 +159,11 @@ export class DesktopTabGroup implements DesktopEntity {
     }
 
     public updateTabProperties(tab: DesktopWindow, properties: Partial<TabProperties>): void {
-        const tabProps: TabProperties = this._tabProperties[tab.getId()];
+        const tabProps: TabProperties = this._tabProperties[tab.id];
         Object.assign(tabProps, properties);
-        localStorage.setItem(tab.getId(), JSON.stringify(tabProps));
+        localStorage.setItem(tab.id, JSON.stringify(tabProps));
 
-        const payload: TabPropertiesUpdatedPayload = {tabGroupId: this.ID, tabID: tab.getIdentity(), properties: tabProps};
+        const payload: TabPropertiesUpdatedPayload = {tabGroupId: this.id, tabID: tab.identity, properties: tabProps};
         this.sendTabEvent(tab, WindowMessages.TAB_PROPERTIES_UPDATED, payload);
     }
 
@@ -189,7 +183,7 @@ export class DesktopTabGroup implements DesktopEntity {
      */
     public async maximize(): Promise<void> {
         if (!this._isMaximized) {
-            const {center, halfSize} = this._activeTab.getState();
+            const {center, halfSize} = this._activeTab.currentState;
             this._beforeMaximizeBounds = {center: {...center}, halfSize: {...halfSize}};
 
             await this._window.applyProperties(
@@ -208,7 +202,7 @@ export class DesktopTabGroup implements DesktopEntity {
      */
     public async restore(): Promise<void> {
         if (this._isMaximized) {
-            if (await this.activeTab.getState().state === 'minimized') {
+            if (await this.activeTab.currentState.state === 'minimized') {
                 await Promise.all(this._tabs.map(tab => tab.applyProperties({state: 'normal'})));
             } else if (this._beforeMaximizeBounds) {
                 this._isMaximized = false;
@@ -269,7 +263,7 @@ export class DesktopTabGroup implements DesktopEntity {
         } else {
             // Need to re-send tab-activated event to ensure tab is active within tabstrip
             // TODO: See if this can be avoided
-            const payload: TabGroupEventPayload = {tabGroupId: this.ID, tabID: activeTab.getIdentity()};
+            const payload: TabGroupEventPayload = {tabGroupId: this.id, tabID: activeTab.identity};
             this._window.sendMessage(WindowMessages.TAB_ACTIVATED, payload);
         }
     }
@@ -281,7 +275,7 @@ export class DesktopTabGroup implements DesktopEntity {
             await this.addTabInternal(tabToAdd, false, this._tabs.indexOf(tabToRemove!) + 1);
             await this.removeTabInternal(tabToRemove, this._tabs.indexOf(tabToRemove!));
 
-            if (this._activeTab.getId() === tabToRemove.getId()) {
+            if (this._activeTab.id === tabToRemove.id) {
                 // if the switchedwith tab was the active one, we make the added tab active
                 this.switchTab(tabToAdd);
             } else {
@@ -289,7 +283,7 @@ export class DesktopTabGroup implements DesktopEntity {
                 tabToAdd.applyProperties({hidden: true});
             }
         } else {
-            throw new Error(`Cannot swap tabs - ${tabToRemove && tabToRemove.getId()} doesn't exist within tab set`);
+            throw new Error(`Cannot swap tabs - ${tabToRemove && tabToRemove.id} doesn't exist within tab set`);
         }
     }
 
@@ -303,7 +297,7 @@ export class DesktopTabGroup implements DesktopEntity {
                                                       // Look-up each given identity within list of tabs
                                                       const refId = this._model.getId(ref);
                                                       return this._tabs.find((tab: DesktopWindow) => {
-                                                          return tab.getId() === refId;
+                                                          return tab.id === refId;
                                                       });
                                                   })
                                                   .filter((tab: DesktopWindow|undefined): tab is DesktopWindow => {
@@ -336,14 +330,14 @@ export class DesktopTabGroup implements DesktopEntity {
         if (tab && index >= 0) {
             const promises: Promise<void>[] = [];
             const existingTabs: DesktopWindow[] = this._tabs.slice();
-            const existingSnappables: DesktopEntity[] = this.getSnapGroup().entities;
+            const existingSnappables: DesktopEntity[] = this.snapGroup.entities;
 
             // Remove tab
             promises.push(this.removeTabInternal(tab, index));
 
             // Update tab window
-            if (tab.isReady()) {
-                const frame: boolean = tab.getApplicationState().frame;
+            if (tab.isReady) {
+                const frame: boolean = tab.applicationState.frame;
 
                 if (bounds) {
                     // Eject tab and apply custom bounds
@@ -352,8 +346,8 @@ export class DesktopTabGroup implements DesktopEntity {
                     // Eject tab without modifying window bounds
                     promises.push(tab.applyProperties({hidden: false, frame}));
                 } else {
-                    const tabStripHalfSize: Point = this._window.getState().halfSize;
-                    const state: EntityState = tab.getState();
+                    const tabStripHalfSize: Point = this._window.currentState.halfSize;
+                    const state: EntityState = tab.currentState;
                     const center: Point = {x: state.center.x, y: state.center.y - tabStripHalfSize.y};
                     const halfSize: Point = {x: state.halfSize.x, y: state.halfSize.y + tabStripHalfSize.y};
 
@@ -363,7 +357,7 @@ export class DesktopTabGroup implements DesktopEntity {
             }
 
             // Activate next tab
-            if (this._tabs.length >= 2 && this.activeTab.getId() === tab.getId()) {
+            if (this._tabs.length >= 2 && this.activeTab.id === tab.id) {
                 const nextTab: DesktopWindow = this._tabs[index] ? this._tabs[index] : this._tabs[index - 1];
 
                 promises.push(this.switchTab(nextTab));
@@ -376,8 +370,8 @@ export class DesktopTabGroup implements DesktopEntity {
                 const joinedSnappable = existingSnappables[0] === this ? existingSnappables[1] : existingSnappables[0];
                 const remainingTab = existingTabs[0] === tab ? existingTabs[1] : existingTabs[0];
 
-                console.log('Re-attaching remaining tab: ' + remainingTab.getId() + ' => ' + joinedSnappable.getId());
-                await remainingTab.setSnapGroup(joinedSnappable.getSnapGroup());
+                console.log('Re-attaching remaining tab: ' + remainingTab.id + ' => ' + joinedSnappable.id);
+                await remainingTab.setSnapGroup(joinedSnappable.snapGroup);
             }
         }
     }
@@ -389,7 +383,7 @@ export class DesktopTabGroup implements DesktopEntity {
     public async switchTab(tab: DesktopWindow): Promise<void> {
         if (tab && tab !== this._activeTab) {
             const prevTab: DesktopWindow = this._activeTab;
-            const redrawRequired: boolean = prevTab && !RectUtils.isEqual(tab.getState(), this._activeTab.getState());
+            const redrawRequired: boolean = prevTab && !RectUtils.isEqual(tab.currentState, this._activeTab.currentState);
             this._activeTab = tab;
 
             if (redrawRequired) {
@@ -403,12 +397,12 @@ export class DesktopTabGroup implements DesktopEntity {
                 await tab.applyProperties({hidden: false});
                 await tab.bringToFront();
             }
-            if (prevTab && prevTab.getTabGroup() === this) {
+            if (prevTab && prevTab.tabGroup === this) {
                 await prevTab.applyProperties({hidden: true});
             }
 
             await Promise.all([this._window!.sync(), tab.sync()]).catch(e => console.error(e));
-            const payload: TabGroupEventPayload = {tabGroupId: this.ID, tabID: tab.getIdentity()};
+            const payload: TabGroupEventPayload = {tabGroupId: this.id, tabID: tab.identity};
             this._window.sendMessage(WindowMessages.TAB_ACTIVATED, payload);
         }
     }
@@ -433,12 +427,12 @@ export class DesktopTabGroup implements DesktopEntity {
     private updateBounds(): void {
         const activeTab = this.activeTab;
         if (!activeTab) {
-            console.warn(`No tabs for group ${this.ID}`, new Error());
+            console.warn(`No tabs for group ${this.id}`, new Error());
             return;
         }
         const state: EntityState = this._groupState;
-        const tabState = activeTab.getState();
-        const tabstripState = this._window.getState();
+        const tabState = activeTab.currentState;
+        const tabstripState = this._window.currentState;
 
         state.center.x = tabstripState.center.x;
         state.halfSize.x = tabstripState.halfSize.x;
@@ -459,7 +453,7 @@ export class DesktopTabGroup implements DesktopEntity {
 
     private async addTabInternal(tab: DesktopWindow, setActive: boolean, index: number = this._tabs.length): Promise<void> {
         let remove: Promise<void>|null = null;
-        const existingGroup: DesktopTabGroup|null = tab.getTabGroup();
+        const existingGroup: DesktopTabGroup|null = tab.tabGroup;
         if (existingGroup === this) {
             // Nothing to do
             return;
@@ -469,7 +463,7 @@ export class DesktopTabGroup implements DesktopEntity {
         }
 
         // Add tab
-        this._tabProperties[tab.getId()] = this.getTabProperties(tab);
+        this._tabProperties[tab.id] = this.getTabProperties(tab);
         this._tabs.splice(index, 0, tab);
         tab.onTeardown.add(this.onWindowTeardown, this);
         tab.onTransform.add(this.onTabTransform, this);
@@ -483,7 +477,7 @@ export class DesktopTabGroup implements DesktopEntity {
 
         // Position window
         if (this._tabs.length === 1) {
-            const tabState: EntityState = tab.getState();
+            const tabState: EntityState = tab.currentState;
 
             // Align tabstrip to this tab
             await this._window.applyProperties({
@@ -497,7 +491,7 @@ export class DesktopTabGroup implements DesktopEntity {
             const halfSize: Point = {x: tabState.halfSize.x, y: tabState.halfSize.y - (this._config.height / 2)};
             await tab.applyProperties({center, halfSize, frame: false});
         } else {
-            const existingTabState: EntityState = this._activeTab.getState();
+            const existingTabState: EntityState = this._activeTab.currentState;
             const {center, halfSize} = existingTabState;
 
             // Align tab with existing tab
@@ -505,11 +499,11 @@ export class DesktopTabGroup implements DesktopEntity {
         }
 
         await tab.setTabGroup(this);
-        tab.setSnapGroup(this._window.getSnapGroup());
+        tab.setSnapGroup(this._window.snapGroup);
 
         const addTabPromise: Promise<void> = (async () => {
-            const payload: JoinTabGroupPayload =
-                {tabGroupId: this.ID, tabID: tab.getIdentity(), tabProps: this._tabProperties[tab.getId()], index: this._tabs.indexOf(tab)};
+            const payload:
+                JoinTabGroupPayload = {tabGroupId: this.id, tabID: tab.identity, tabProps: this._tabProperties[tab.id], index: this._tabs.indexOf(tab)};
 
             this.sendTabEvent(tab, WindowMessages.JOIN_TAB_GROUP, payload);
             await tab.applyProperties({hidden: tab !== this._activeTab});
@@ -525,11 +519,11 @@ export class DesktopTabGroup implements DesktopEntity {
 
     private async removeTabInternal(tab: DesktopWindow, index: number): Promise<void> {
         this._tabs.splice(index, 1);
-        delete this._tabProperties[tab.getId()];
+        delete this._tabProperties[tab.id];
 
         tab.onTeardown.remove(this.onWindowTeardown, this);
         tab.onTransform.remove(this.onTabTransform, this);
-        if (tab.isReady()) {
+        if (tab.isReady) {
             // Remove tab from group by undocking and removing tab strip.
             await Promise.all([tab.setSnapGroup(new DesktopSnapGroup()), tab.setTabGroup(null)]);
         } else {
@@ -537,11 +531,11 @@ export class DesktopTabGroup implements DesktopEntity {
             await tab.setTabGroup(null);
         }
 
-        const payload: TabGroupEventPayload = {tabGroupId: this.ID, tabID: tab.getIdentity()};
+        const payload: TabGroupEventPayload = {tabGroupId: this.id, tabID: tab.identity};
         await this.sendTabEvent(tab, WindowMessages.LEAVE_TAB_GROUP, payload);
 
         if (this._tabs.length < 2) {
-            if (this._window.isReady()) {
+            if (this._window.isReady) {
                 // Note: Sensitive order of operations, change with caution.
                 const closePromise = this._window.close();
                 const removeTabPromises = this._tabs.map(async (tab) => {
@@ -559,14 +553,14 @@ export class DesktopTabGroup implements DesktopEntity {
     }
 
     private getTabProperties(tab: DesktopWindow): TabProperties {
-        const savedProperties: string|null = localStorage.getItem(tab.getId());
+        const savedProperties: string|null = localStorage.getItem(tab.id);
         if (savedProperties) {
             return JSON.parse(savedProperties);
         }
 
-        const {icon, title} = tab.getState();
+        const {icon, title} = tab.currentState;
         // Special handling for S&R placeholder windows
-        const modifiedTitle = tab.getIdentity().uuid === fin.Window.me.uuid && title.startsWith('Placeholder-') ? 'Loading...' : title;
+        const modifiedTitle = tab.identity.uuid === fin.Window.me.uuid && title.startsWith('Placeholder-') ? 'Loading...' : title;
         return {icon, title: modifiedTitle};
     }
 

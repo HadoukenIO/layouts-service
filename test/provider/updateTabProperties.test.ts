@@ -45,7 +45,7 @@ test('Update Tab Properties - property changes reflected in service', async t =>
         const tabWindow = this.model.getWindow(identity as WindowIdentity);
 
         //@ts-ignore Accessing private variables in the name of testing.
-        return tabWindow.getTabGroup().getTabProperties(tabWindow);
+        return tabWindow.tabGroup.getTabProperties(tabWindow);
     }
 
     // Execute remote to fetch our windows tab properties from service.
@@ -70,7 +70,7 @@ test.failing('Update Tab Properties - property changes reflected in tabstrip DOM
     await updateTabProperties(wins[0].identity, newProps);
 
     function remoteFunc(this: ProviderWindow, identity: WindowIdentity) {
-        const tabGroup = this.model.getWindow(identity as WindowIdentity)!.getTabGroup();
+        const tabGroup = this.model.getWindow(identity as WindowIdentity)!.tabGroup;
 
         if (tabGroup) {
             //@ts-ignore Accessing private variables in the name of testing.

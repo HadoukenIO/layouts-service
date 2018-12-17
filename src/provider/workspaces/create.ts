@@ -203,7 +203,7 @@ const getLayoutWindowData = async(ofWin: Window, tabbedWindows: WindowObject): P
     if (desktopWindow === null) {
         throw Error(`No desktop window for window. Name: ${identity.name}, UUID: ${identity.uuid}`);
     }
-    const applicationState = desktopWindow.getApplicationState();
+    const applicationState = desktopWindow.applicationState;
 
     // If a window is tabbed (based on filtered tabGroups), tab it.
     const isTabbed = inWindowObject(ofWin.identity, tabbedWindows) ? true : false;

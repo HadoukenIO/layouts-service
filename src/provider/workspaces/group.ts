@@ -39,11 +39,11 @@ export const groupWindow = async (win: LayoutWindow) => {
         }
 
         // If window has a tabGroup, we should group it instead of the window itself.
-        const targetEntity = await model.expect(win as WindowIdentity).then(w => w.getTabGroup() || w);
-        const curEntity = await model.expect(w as WindowIdentity).then(w => w.getTabGroup() || w);
+        const targetEntity = await model.expect(win as WindowIdentity).then(w => w.tabGroup || w);
+        const curEntity = await model.expect(w as WindowIdentity).then(w => w.tabGroup || w);
 
-        if (curEntity.getSnapGroup().id !== targetEntity.getSnapGroup().id) {
-            await curEntity.setSnapGroup(targetEntity.getSnapGroup());
+        if (curEntity.snapGroup.id !== targetEntity.snapGroup.id) {
+            await curEntity.setSnapGroup(targetEntity.snapGroup);
         }
     });
 };

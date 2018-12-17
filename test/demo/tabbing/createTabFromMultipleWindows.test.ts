@@ -50,7 +50,7 @@ test('Create tab group from 2 windows', async (assert) => {
     // Act
     function scriptToExecute(this: ProviderWindow, tabGroups: TabGroup[]): Promise<string> {
         return this.tabService.createTabGroupsFromLayout(tabGroups).then((addedGroups: DesktopTabGroup[]) => {
-            return addedGroups[0].ID;
+            return addedGroups[0].id;
         });
     }
     const tabGroupId: string = await executeJavascriptOnService<TabGroup[], string>(scriptToExecute, tabGroups);

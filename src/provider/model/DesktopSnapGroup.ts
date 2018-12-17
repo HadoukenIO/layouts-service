@@ -7,7 +7,7 @@ import {DesktopTabGroup} from './DesktopTabGroup';
 import {DesktopWindow, EntityState, eTransformType, Mask, WindowIdentity, WindowMessages} from './DesktopWindow';
 
 export class DesktopSnapGroup {
-    private static nextId = 1;
+    private static _nextId = 1;
 
     public static readonly onCreated: Signal1<DesktopSnapGroup> = new Signal1();
     public static readonly onDestroyed: Signal1<DesktopSnapGroup> = new Signal1();
@@ -67,7 +67,7 @@ export class DesktopSnapGroup {
     private rootWindow: DesktopWindow|null;
 
     constructor() {
-        this._id = DesktopSnapGroup.nextId++;
+        this._id = DesktopSnapGroup._nextId++;
         this._entities = [];
         this._windows = [];
         this.rootWindow = null;
@@ -94,7 +94,7 @@ export class DesktopSnapGroup {
     public get center(): Point {
         if (this.rootWindow) {
             const origin: Point = this._origin.value;
-            const rootCenter: Point = this.rootWindow!.getState().center;
+            const rootCenter: Point = this.rootWindow!.currentState.center;
 
             return {x: rootCenter.x + origin.x, y: rootCenter.y + origin.y};
         } else {
@@ -117,7 +117,7 @@ export class DesktopSnapGroup {
     public addWindow(window: DesktopWindow): void {
         if (!this._windows.includes(window)) {
             // Remove window from it's previous group
-            const prevGroup = (window.getSnapGroup() === this) ? window.getPrevGroup() : window.getSnapGroup();
+            const prevGroup = (window.snapGroup === this) ? window.prevGroup : window.snapGroup;
             if (prevGroup) {
                 prevGroup.removeWindow(window);
             }
@@ -132,7 +132,7 @@ export class DesktopSnapGroup {
             this._windows.push(window);
             this.buildEntities();
             this.checkRoot();
-            if (window.getSnapGroup() !== this) {
+            if (window.snapGroup !== this) {
                 window.setSnapGroup(this);
             }
 
@@ -171,7 +171,7 @@ export class DesktopSnapGroup {
 
             // Inform window of removal
             // Note that client API only considers windows to belong to a group if it contains two or more windows
-            if (this._windows.length > 0 && window.isReady()) {
+            if (this._windows.length > 0 && window.isReady) {
                 window.sendMessage(WindowMessages.LEAVE_SNAP_GROUP, {});
             }
 
@@ -193,7 +193,7 @@ export class DesktopSnapGroup {
         entities.length = 0;
         this._windows.forEach((window: DesktopWindow) => {
             let entity: DesktopEntity;
-            const tabGroup = window.getTabGroup();
+            const tabGroup: DesktopTabGroup|null = window.tabGroup;
 
             if (tabGroup && tabGroup.tabs.length > 1) {
                 entity = tabGroup;
@@ -212,7 +212,7 @@ export class DesktopSnapGroup {
      */
     private checkRoot(): void {
         let root = this._windows[0] || null;
-        const tabGroup: DesktopTabGroup|null = root && root.getTabGroup();
+        const tabGroup: DesktopTabGroup|null = root && root.tabGroup;
 
         // If the root window becomes hidden the group center will stop updating.
         // Tabbed windows are likely to be hidden a large amount of the time, so prefer the tabstrip window as the root.
@@ -258,7 +258,7 @@ export class DesktopSnapGroup {
     }
 
     private onWindowTeardown(window: DesktopWindow) {
-        const group: DesktopSnapGroup = window.getSnapGroup();
+        const group: DesktopSnapGroup = window.snapGroup;
 
         // Ensure window is removed from it's snap group, so that the group doesn't contain any de-registered or non-existant windows.
         group.removeWindow(window);
@@ -270,7 +270,7 @@ export class DesktopSnapGroup {
 
         if (windows.length > 1) {
             windows = windows.filter((window: DesktopWindow) => {
-                const state = window.getState();
+                const state = window.currentState;
                 return !state.hidden && state.state === 'normal';
             });
             numWindows = windows.length;
@@ -281,14 +281,14 @@ export class DesktopSnapGroup {
             this._halfSize.updateValue({x: 0, y: 0});
         } else if (numWindows === 1) {
             this._origin.updateValue({x: 0, y: 0});
-            this._halfSize.updateValue(PointUtils.clone(this.rootWindow!.getState().halfSize));
+            this._halfSize.updateValue(PointUtils.clone(this.rootWindow!.currentState.halfSize));
         } else {
-            let state: EntityState = windows[0].getState();
+            let state: EntityState = windows[0].currentState;
             const min: Point = {x: state.center.x - state.halfSize.x, y: state.center.y - state.halfSize.y};
             const max: Point = {x: state.center.x + state.halfSize.x, y: state.center.y + state.halfSize.y};
 
             for (let i = 1; i < numWindows; i++) {
-                state = windows[i].getState();
+                state = windows[i].currentState;
 
                 min.x = Math.min(min.x, state.center.x - state.halfSize.x);
                 min.y = Math.min(min.y, state.center.y - state.halfSize.y);
@@ -296,7 +296,7 @@ export class DesktopSnapGroup {
                 max.y = Math.max(max.y, state.center.y + state.halfSize.y);
             }
 
-            const rootPosition: Point = this.rootWindow!.getState().center;
+            const rootPosition: Point = this.rootWindow!.currentState.center;
             this._origin.updateValue({x: ((min.x + max.x) / 2) - rootPosition.x, y: ((min.y + max.y) / 2) - rootPosition.y});
             this._halfSize.updateValue({x: (max.x - min.x) / 2, y: (max.y - min.y) / 2});
         }

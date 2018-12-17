@@ -2,11 +2,12 @@ import {DesktopEntity} from '../model/DesktopEntity';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {EntityState} from '../model/DesktopWindow';
 import {eTargetType} from '../WindowHandler';
+
 import {ANCHOR_DISTANCE, MIN_OVERLAP, SNAP_DISTANCE} from './Config';
 import {Orientation, SnapTarget} from './Resolver';
 import {Point, PointUtils} from './utils/PointUtils';
 import {Range, RangeUtils} from './utils/RangeUtils';
-import {MeasureResult, RectUtils, Rectangle} from './utils/RectUtils';
+import {MeasureResult, Rectangle, RectUtils} from './utils/RectUtils';
 
 export enum eDirection {
     LEFT,
@@ -26,17 +27,17 @@ export class Projector {
      * Specifies if the active window is being blocked from snapping in the current position due to a candidate window
      * being in the way.
      */
-    private blocked: boolean;
+    private _blocked: boolean;
 
     /**
      * This util manages each of the four cardinal directions independently, before clipping each of the edges against
      * it's neighbours at the end of the process.
      */
-    private borders: [BorderProjection, BorderProjection, BorderProjection, BorderProjection];
+    private _borders: [BorderProjection, BorderProjection, BorderProjection, BorderProjection];
 
     constructor() {
-        this.blocked = false;
-        this.borders = [
+        this._blocked = false;
+        this._borders = [
             new BorderProjection(eDirection.LEFT),
             new BorderProjection(eDirection.TOP),
             new BorderProjection(eDirection.RIGHT),
@@ -50,8 +51,8 @@ export class Projector {
      * Resets the state of this util, so it can be re-used for a different candidate group
      */
     public reset(): void {
-        this.blocked = false;
-        this.borders.forEach(border => {
+        this._blocked = false;
+        this._borders.forEach(border => {
             border.limit = border.direction < 2 ? Number.MAX_SAFE_INTEGER : Number.MIN_SAFE_INTEGER;
             border.distance = Number.MAX_SAFE_INTEGER;
             border.min = Number.MAX_SAFE_INTEGER;
@@ -70,9 +71,9 @@ export class Projector {
     public project(activeState: Rectangle, candidateState: Rectangle): void {
         const distBtwnWindows: MeasureResult = RectUtils.distance(activeState, candidateState);
         const direction: eDirection = this.getDirectionFromOffset(distBtwnWindows, activeState, candidateState);
-        const isValid: boolean = this.borders[direction].project(activeState, candidateState, distBtwnWindows);
+        const isValid: boolean = this._borders[direction].project(activeState, candidateState, distBtwnWindows);
 
-        this.blocked = this.blocked || !isValid;
+        this._blocked = this._blocked || !isValid;
     }
 
     /**
@@ -84,10 +85,10 @@ export class Projector {
      * @param activeWindow The window that is being moved by the user
      */
     public createTarget(candidateGroup: DesktopSnapGroup, activeWindow: DesktopEntity): SnapTarget|null {
-        const borders: BorderProjection[] = this.borders;
+        const borders: BorderProjection[] = this._borders;
 
-        if (!this.blocked) {
-            const activeState: EntityState = activeWindow.getState();
+        if (!this._blocked) {
+            const activeState: EntityState = activeWindow.currentState;
             const snapOffset: Point = {x: 0, y: 0};
             const halfSize: Point = PointUtils.clone(activeState.halfSize);
             const validDirections: BorderProjection[] = borders.filter((border: BorderProjection) => {
@@ -178,7 +179,7 @@ export class Projector {
     }
 
     private clipProjections(): void {
-        const borders: BorderProjection[] = this.borders;
+        const borders: BorderProjection[] = this._borders;
 
         for (let i = 0; i < 4; i++) {
             borders[i].clip(borders[(i + 1) % 4]);

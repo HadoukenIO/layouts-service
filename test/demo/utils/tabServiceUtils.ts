@@ -12,8 +12,8 @@ import {executeJavascriptOnService, sendServiceMessage} from './serviceUtils';
 export async function getTabGroupID(identity: Identity): Promise<string|null> {
     function remoteFunc(this: ProviderWindow, identity: WindowIdentity): string|null {
         const tab: DesktopWindow|null = this.model.getWindow(identity);
-        const tabGroup: DesktopTabGroup|null = tab ? tab.getTabGroup() : null;
-        return tabGroup && tabGroup.ID ? tabGroup.ID : null;
+        const tabGroup: DesktopTabGroup|null = tab ? tab.tabGroup : null;
+        return tabGroup && tabGroup.id ? tabGroup.id : null;
     }
     return executeJavascriptOnService<WindowIdentity, string|null>(remoteFunc, identity as WindowIdentity);
 }
@@ -47,9 +47,9 @@ export async function getTabstrip(identity: Identity): Promise<_Window> {
 export async function getTabbedWindows(identity: Identity): Promise<Identity[]> {
     function remoteFunc(this: ProviderWindow, identity: WindowIdentity): Identity[] {
         const tab: DesktopWindow|null = this.model.getWindow(identity);
-        const tabGroup: DesktopTabGroup|null = tab ? tab.getTabGroup() : null;
+        const tabGroup: DesktopTabGroup|null = tab ? tab.tabGroup : null;
         if (tabGroup && tabGroup.tabs) {
-            return tabGroup.tabs.map((tab: DesktopWindow) => tab.getIdentity());
+            return tabGroup.tabs.map((tab: DesktopWindow) => tab.identity);
         } else {
             return [identity];
         }
@@ -63,13 +63,13 @@ export async function getActiveTab(identity: Identity): Promise<Identity> {
         const desktopWindow = this.model.getWindow(identity);
 
         if (desktopWindow) {
-            const tabGroup = desktopWindow.getTabGroup();
+            const tabGroup = desktopWindow.tabGroup;
 
             if (tabGroup) {
-                return tabGroup.activeTab.getIdentity();
+                return tabGroup.activeTab.identity;
 
             } else {
-                throw new Error(`Error when getting active tab: window ${desktopWindow.getId()} is not in a tab group`);
+                throw new Error(`Error when getting active tab: window ${desktopWindow.id} is not in a tab group`);
             }
 
         } else {

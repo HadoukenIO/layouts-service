@@ -12,6 +12,8 @@
 const execa = require('execa');
 const os = require('os');
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
 
 const {launch} = require('hadouken-js-adapter');
 
@@ -55,6 +57,7 @@ const testNameFilter = getArg('--filter', true);
 const showHelp = getArg('--help') || getArg('-h');
 const skipBuild = getArg('--run') || getArg('-r');
 const debugMode = getArg('--debug') || getArg('-d');
+const runtimeVersion = getArg('--runtime-version', true);
 
 let testFileName;
 while(testFileName = getArg('--file-name', true)) {
@@ -67,16 +70,17 @@ if (showHelp) {
 NOTE: When running through 'npm test', pass -- before any test runner options, to stop NPM from consuming those arguments. For example, 'npm test -- -b'.
 
 Options:
---file-name <file>      Runs all tests in the given file
---filter <pattern>      Only runs tests whose names match the given pattern. Can be used with --file-name.
---help | -h             Displays this help
---run | -r              Skips the build step, and will *only* run the tests - rather than the default 'build & run' behaviour.
---debug | -d            Builds the test/application code using 'development' webpack mode for easier debugging. Has no effect when used with -r.
+--file-name <file>              Runs all tests in the given file
+--filter <pattern>              Only runs tests whose names match the given pattern. Can be used with --file-name.
+--runtime-version <version>     Runs the tests on a specified runtime version.
+--help | -h                     Displays this help
+--run | -r                      Skips the build step, and will *only* run the tests - rather than the default 'build & run' behaviour.
+--debug | -d                    Builds the test/application code using 'development' webpack mode for easier debugging. Has no effect when used with -r.
 `);
     process.exit();
 }
 
-const fileNamesArg = testFileNames.slice(testFileNames.length > 1 ? 1 : 0).map(testFileName => `build/test/**/${testFileName}.test.js`).join(" ");
+const fileNamesArg = testFileNames.slice(testFileNames.length > 1 ? 1 : 0).map(testFileName => `dist/test/**/${testFileName}.test.js`).join(" ");
 const testCommand = `ava --serial ${fileNamesArg} ${testNameFilter ? '--match ' + testNameFilter: ''} ${unusedArgs.join(' ')}`;
 
 const cleanup = async res => {
@@ -118,7 +122,17 @@ async function serve() {
     return new Promise((resolve, reject) => {
         const app = express();
         
-        app.use(express.static('build'));
+        // Intercepts requests for app manifests and replaces the runtime version with the one
+        // given as a command line parameter.
+        app.get('/*/*.json', (req, res) => {
+            let configData = JSON.parse(fs.readFileSync(path.join('res', req.path.substr(1))));
+            if (runtimeVersion && configData.runtime && configData.runtime.version) {
+                configData.runtime.version = runtimeVersion;
+            }
+            res.json(configData);
+        });
+
+        app.use(express.static('dist'));
         app.use(express.static('res'));
         
         console.log("Starting test server...");
@@ -139,4 +153,3 @@ buildStep
     .then(OF_PORT => run(testCommand , { env: { OF_PORT } }))
     .then(cleanup)
     .catch(cleanup);
-    

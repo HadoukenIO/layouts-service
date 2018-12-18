@@ -2,8 +2,7 @@
 import {Fin} from 'hadouken-js-adapter';
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
-import {CHANNEL_NAME} from '../../../src/client/types';
-
+import {SERVICE_CHANNEL} from '../../../src/client/internal';
 import {getConnection} from '../../provider/utils/connect';
 
 interface RemoteExecSuccess<R> {
@@ -43,11 +42,17 @@ export async function executeJavascriptOnService<T, R>(func: ((data: T) => R | P
 }
 
 export async function sendServiceMessage<T, R>(message: string, payload: T): Promise<R> {
-    const client = await getServiceClient();
+    const client = await getChannelClient();
     return client.dispatch(message, payload);
 }
 
-async function getServiceClient() {
+async function getChannelClient() {
     const fin: Fin = await getConnection();
-    return fin.InterApplicationBus.Channel.connect(CHANNEL_NAME);
+    return fin.InterApplicationBus.Channel.connect(SERVICE_CHANNEL);
 }
+
+export const layoutsClientPromise = getConnection().then(fin => {
+    (global as NodeJS.Global & {fin: Fin}).fin = fin;
+    (global as NodeJS.Global & {PACKAGE_VERSION: string}).PACKAGE_VERSION = 'TEST-CLIENT';
+    return import('../../../src/client/main');
+});

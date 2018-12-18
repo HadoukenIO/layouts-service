@@ -23,7 +23,7 @@ test.beforeEach(async () => {
         defaultLeft: 100,
         defaultHeight: 200,
         defaultWidth: 200,
-        url: 'http://localhost:1337/demo/frameless-window.html',
+        url: 'http://localhost:1337/demo/popup.html',
         frame: false
     });
     wins[1] = await createChildWindow({
@@ -33,7 +33,7 @@ test.beforeEach(async () => {
         defaultLeft: 400,
         defaultHeight: 200,
         defaultWidth: 200,
-        url: 'http://localhost:1337/demo/tabbing/App/default.html',
+        url: 'http://localhost:1337/demo/tabbing/default.html',
         frame: true
     });
     await delay(500);

@@ -1,21 +1,19 @@
 {
+    "licenseKey": "64605fac-add3-48a0-8710-64b38e96a2dd",
     "devtools_port": 9091,
     "startup_app": {
         "name": "layouts-service",
         "description": "OpenFin Layouts Managing Service",
-        "url": "https://cdn.openfin.co/services/openfin/layouts/stable/index.html",
+        "url": "https://cdn.openfin.co/services/openfin/layouts/provider.html",
         "uuid": "layouts-service",
         "autoShow": true,
         "showTaskbarIcon": true,
         "defaultHeight": 300,
         "defaultWidth": 400,
-        "enableAppLogging": true,
-        "logManagement": {
-            "enabled": true
-        }
+        "enableAppLogging": true
     },
     "runtime": {
-        "arguments": "--enable-aggressive-domstorage-flushing --high-dpi-support=1 --force-device-scale-factor=1",
-        "version": "9.61.36.36"
+        "arguments": "--enable-aggressive-domstorage-flushing --high-dpi-support=1 --force-device-scale-factor=1 --disabled-frame-groups",
+        "version": "9.61.37.46"
     }
 }

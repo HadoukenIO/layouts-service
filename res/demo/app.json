@@ -5,8 +5,8 @@
         "uuid": "Layouts-Manager",
         "autoShow": true,
         "saveWindowState": false,
-        "defaultHeight": 500,
-        "defaultWidth": 700,
+        "defaultHeight": 540,
+        "defaultWidth": 716,
         "defaultCentered": true,
         "_experimental": {
             "v2Api": true
@@ -14,7 +14,7 @@
     },
     "runtime": {
         "arguments": "--v=1 --enable-crash-reporting --inspect=9222 --enable-aggressive-domstorage-flushing",
-        "version": "9.61.36.36"
+        "version": "9.61.37.46"
     },
     "services": [{"name": "layouts", "manifestUrl": "http://localhost:1337/provider/app.json"}],
     "shortcut": {

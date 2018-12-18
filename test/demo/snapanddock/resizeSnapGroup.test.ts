@@ -14,13 +14,12 @@ testParameterized(
     (testOptions: ResizeGroupOptions): string =>
         `Resize SnapGroup - ${testOptions.windowCount} windows - ${testOptions.frame ? 'framed' : 'frameless'} - ${testOptions.resizeType.join('-')} resize`,
     [
-        // These two tests are passing, but for the wrong reasons. Should be revisited once win10 bounds fix is in place.
-        {frame: true, windowCount: 2, resizeType: ['inner', 'horizontal'], skip: true},
-        {frame: true, windowCount: 2, resizeType: ['inner', 'vertical'], skip: true},
+        {frame: true, windowCount: 2, resizeType: ['inner', 'horizontal']},
+        {frame: true, windowCount: 2, resizeType: ['inner', 'vertical']},
         {frame: true, windowCount: 2, resizeType: ['outer', 'horizontal']},
         {frame: true, windowCount: 2, resizeType: ['outer', 'vertical']},
-        {frame: true, windowCount: 4, resizeType: ['inner', 'horizontal'], failing: true},
-        {frame: true, windowCount: 4, resizeType: ['inner', 'vertical'], failing: true},
+        {frame: true, windowCount: 4, resizeType: ['inner', 'horizontal']},
+        {frame: true, windowCount: 4, resizeType: ['inner', 'vertical']},
         {frame: true, windowCount: 4, resizeType: ['outer', 'horizontal']},
         {frame: true, windowCount: 4, resizeType: ['outer', 'vertical']},
         {frame: false, windowCount: 2, resizeType: ['inner', 'horizontal']},
@@ -29,8 +28,7 @@ testParameterized(
         {frame: false, windowCount: 2, resizeType: ['outer', 'vertical']},
         {frame: false, windowCount: 4, resizeType: ['inner', 'horizontal']},
         {frame: false, windowCount: 4, resizeType: ['inner', 'vertical']},
-        // Runs fine locally, but consistently fails when running on CI. Needs further investigation:
-        {frame: false, windowCount: 4, resizeType: ['outer', 'horizontal'], skip: true},
+        {frame: false, windowCount: 4, resizeType: ['outer', 'horizontal']},
         {frame: false, windowCount: 4, resizeType: ['outer', 'vertical']},
     ],
     createWindowTest(async (t, testOptions: ResizeGroupOptions) => {

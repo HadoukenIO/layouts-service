@@ -1,4 +1,3 @@
-import {Identity} from 'hadouken-js-adapter';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import * as Layouts from '../client/main';
@@ -11,13 +10,8 @@ export interface Workspace {
     layout: Layout;
 }
 
-declare var window: _Window&{forgetMe: (identity: Identity) => void};
-
 let numTabbedWindows = 0;
 const launchDir = location.href.slice(0, location.href.lastIndexOf('/'));
-const forgetWindows: Identity[] = [];
-
-window.forgetMe = forgetMe;
 
 export async function setLayout(layoutParam?: Layout) {
     const id = (document.getElementById('layoutName') as HTMLTextAreaElement).value;
@@ -111,7 +105,8 @@ export async function createAppProgrammatically4() {
         },
         () => {
             app.run();
-        });
+        },
+        console.error);
 }
 
 export async function createAppProgrammatically5() {
@@ -124,11 +119,8 @@ export async function createAppProgrammatically5() {
         },
         () => {
             app.run();
-        });
-}
-
-export function forgetMe(identity: Identity) {
-    forgetWindows.push(identity);
+        },
+        console.error);
 }
 
 export function createSnapWindows(): void {
@@ -137,7 +129,7 @@ export function createSnapWindows(): void {
         for (let i = 0; i < 6; i++) {
             fin.Window
                 .create({
-                    url: `${launchDir}/frameless-window.html`,
+                    url: `${launchDir}/popup.html`,
                     autoShow: true,
                     defaultHeight: i > 2 ? 275 : 200,
                     defaultWidth: i > 4 ? 400 : 300,
@@ -145,7 +137,7 @@ export function createSnapWindows(): void {
                     defaultTop: i > 2 ? 300 : 50,
                     saveWindowState: false,
                     frame: false,
-                    name: 'Window' + (i + 1),
+                    name: 'Window' + (i + 1)
                 })
                 .then(console.log)
                 .catch(console.log);
@@ -157,7 +149,7 @@ export function createTabbedWindow(page: string) {
     const uuid = `App${numTabbedWindows}`;
     const app = new fin.desktop.Application(
         {
-            url: `http://localhost:1337/demo/tabbing/App/${page}.html`,
+            url: `http://localhost:1337/demo/tabbing/${page}.html`,
             uuid,
             name: uuid,
             mainWindowOptions: {defaultWidth: 400, defaultHeight: 300, saveWindowState: false, autoShow: true, defaultCentered: true}
@@ -165,7 +157,8 @@ export function createTabbedWindow(page: string) {
         () => {
             app.run();
             numTabbedWindows++;
-        });
+        },
+        console.error);
 }
 
 function addLayoutNamesToDropdown() {
@@ -200,3 +193,6 @@ Layouts.ready();
 fin.desktop.main(() => {
     addLayoutNamesToDropdown();
 });
+
+// Expose layouts API on window for debugging/demoing
+(window as Window & {layouts: typeof Layouts}).layouts = Layouts;

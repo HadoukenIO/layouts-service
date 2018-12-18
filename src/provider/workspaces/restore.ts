@@ -1,12 +1,15 @@
 import {Application} from 'hadouken-js-adapter/out/types/src/api/application/application';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
-import {Layout, LayoutApp} from '../../client/types';
+
+import {Layout, LayoutApp, TabGroup} from '../../client/types';
 import {apiHandler, model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {promiseMap} from '../snapanddock/utils/async';
+
+import {SCHEMA_MAJOR_VERSION} from './create';
 import {regroupLayout} from './group';
-import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, positionWindow, TabbedPlaceholders, wasCreatedProgrammatically, WindowObject} from './utils';
+import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, parseVersionString, positionWindow, SemVer, TabbedPlaceholders, wasCreatedProgrammatically, WindowObject} from './utils';
 
 const appsToRestore = new Map();
 const appsCurrentlyRestoring = new Map();
@@ -57,6 +60,23 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
     if (!payload) {
         throw new Error('Received invalid layout object');
     }
+    if (!payload.schemaVersion) {
+        throw new Error('Received invalid layout object: layout.schemaVersion is undefined');
+    } else {
+        let providedSchemaVersion: SemVer;
+        try {
+            providedSchemaVersion = parseVersionString(payload.schemaVersion);
+        } catch (e) {
+            throw new Error('Received invalid layout object: schemaVersion string does not comply with semver format ("a.b.c")');
+        }
+
+        // Only checks major version. Service is assumed to work with minor and patch version changes.
+        if (providedSchemaVersion.major > SCHEMA_MAJOR_VERSION) {
+            throw new Error(`Received incompatible layout object. Provided schemaVersion is ${
+                payload.schemaVersion}, but this version of the service only supports versions up to ${SCHEMA_MAJOR_VERSION}.x.x`);
+        }
+    }
+
     if (!payload.apps) {
         throw new Error('Received invalid layout object: layout.apps is undefined');
     }
@@ -70,7 +90,7 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
     const openWindows: WindowObject = {};
     const tabbedPlaceholdersToWindows: TabbedPlaceholders = {};
 
-    // Create tabbedWindows list so we don't have to iterate over all of the tabGroup/TabBlob arrays.
+    // Create tabbedWindows list so we don't have to iterate over all of the tabGroup arrays.
     layout.tabGroups.forEach((tabGroup) => {
         tabGroup.tabs.forEach(tabWindow => {
             addToWindowObject(tabWindow, tabbedWindows);
@@ -98,8 +118,8 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
             // Should de-tab here.
             const mainWindowModel = model.getWindow(app.mainWindow);
             await tabService.removeTab(app.mainWindow);
-            if (mainWindowModel!.getSnapGroup().length > 1) {
-                mainWindowModel!.dockToGroup(new DesktopSnapGroup());
+            if (mainWindowModel!.snapGroup.length > 1) {
+                mainWindowModel!.setSnapGroup(new DesktopSnapGroup());
             }
 
 
@@ -121,21 +141,21 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
 
     // Edit the tabGroups object with the placeholder window names/uuids, so we can create a Tab Group with a combination of open applications and placeholder
     // windows.
-    layout.tabGroups.forEach((tabBlob) => {
-        const activeWindow = tabBlob.groupInfo.active;
+    layout.tabGroups.forEach((groupDef: TabGroup) => {
+        const activeWindow = groupDef.groupInfo.active;
         // Active Window could be a placeholder window.
         if (inWindowObject(activeWindow, tabbedPlaceholdersToWindows)) {
-            tabBlob.groupInfo.active = tabbedPlaceholdersToWindows[activeWindow.uuid][activeWindow.name];
+            groupDef.groupInfo.active = tabbedPlaceholdersToWindows[activeWindow.uuid][activeWindow.name];
         }
 
-        tabBlob.tabs.forEach((tabWindow, windowIdx) => {
+        groupDef.tabs.forEach((tabWindow, windowIdx) => {
             if (inWindowObject(tabWindow, tabbedPlaceholdersToWindows)) {
-                tabBlob.tabs[windowIdx] = tabbedPlaceholdersToWindows[tabWindow.uuid][tabWindow.name];
+                groupDef.tabs[windowIdx] = tabbedPlaceholdersToWindows[tabWindow.uuid][tabWindow.name];
             }
         });
     });
 
-    await tabService.createTabGroupsFromTabBlob(layout.tabGroups);
+    await tabService.createTabGroupsFromLayout(layout.tabGroups);
 
     const apps = await promiseMap(layout.apps, async(app: LayoutApp): Promise<LayoutApp> => {
         // Get rid of childWindows for default response (anything else?)

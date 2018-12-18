@@ -1,28 +1,13 @@
-import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
-import {WindowState} from '../model/DesktopWindow';
+import {DesktopEntity} from '../model/DesktopEntity';
+import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
+import {EntityState} from '../model/DesktopWindow';
+import {eTargetType, TargetBase} from '../WindowHandler';
+
 import {SNAP_DISTANCE} from './Config';
 import {Projector} from './Projector';
 import {Point, PointUtils} from './utils/PointUtils';
-import {RectUtils} from './utils/RectUtils';
+import {Rectangle, RectUtils} from './utils/RectUtils';
 
-export enum eSnapValidity {
-    /**
-     * This is a valid snap target
-     */
-    VALID,
-
-    /**
-     * Can't snap two windows together corner-to-corner.
-     *
-     * Windows must have at least one overlapping edge.
-     */
-    CORNERS,
-
-    /**
-     * This snap would result in two windows in the same group overlapping each other.
-     */
-    OVERLAP
-}
 
 /**
  * A Point instance that is used to only specify a direction in each axis, rather than a physical offset/distance.
@@ -49,24 +34,13 @@ export type Orientation = keyof Point;
  * The service will create a SnapTarget for each possible snap candidate, and then select the "best" candidate as
  * being the current target. The selected target will then be passed to the UI for rendering/highlighting.
  */
-export interface SnapTarget {
-    /**
-     * The group that has been selected as the snap candidate.
-     *
-     * This is not the group that the user is currently dragging, it is the group that has been selected as the snap
-     * target.
-     */
-    group: DesktopSnapGroup;
-
-    /**
-     * The window within the active group that was used to find this candidate
-     */
-    activeWindow: Snappable;
+export interface SnapTarget extends TargetBase {
+    type: eTargetType.SNAP;
 
     /**
      * The offset that will be applied to the active group, in order to correctly align it with this target.
      */
-    snapOffset: Point;
+    offset: Point;
 
     /**
      * If 'activeWindow' should be resized as part of this snap, it's new halfSize will be specified here. This only
@@ -76,11 +50,6 @@ export interface SnapTarget {
      * Will be null if we don't want the window to resize as part of the snap.
      */
     halfSize: Point|null;
-
-    /**
-     * A snap target is always generated for any groups within range of the target window.
-     */
-    validity: eSnapValidity;
 }
 
 /**
@@ -93,7 +62,7 @@ export class Resolver {
     /**
      * Util that is reset and re-used with each candidate group.
      */
-    private projector: Projector = new Projector();
+    private _projector: Projector = new Projector();
 
     /**
      * The only publicly-exposed function of this class - determines if 'activeGroup', in it's current location, should
@@ -103,11 +72,11 @@ export class Resolver {
      * @param activeGroup The group that is currently being moved
      */
     public getSnapTarget(groups: ReadonlyArray<DesktopSnapGroup>, activeGroup: DesktopSnapGroup): SnapTarget|null {
-        const projector: Projector = this.projector;
+        const projector: Projector = this._projector;
         const targets: SnapTarget[] = [];
 
         // Group-to-Group snapping not yet supported
-        if (activeGroup.windows.length > 1) {
+        if (activeGroup.entities.length > 1) {
             return null;
         }
 
@@ -119,13 +88,13 @@ export class Resolver {
                     projector.reset();
 
                     // Need to iterate over every window in both groups
-                    activeGroup.windows.forEach(activeWindow => {
-                        const activeState: WindowState = activeWindow.getState();
+                    activeGroup.entities.forEach(activeWindow => {
+                        const activeState: EntityState = activeWindow.currentState;
 
                         // Only do the next loop if there's a chance that this window can intersect with the other group
                         if (this.isSnappable(activeWindow, activeState) && RectUtils.distance(candidateGroup, activeState).within(SNAP_DISTANCE)) {
-                            candidateGroup.windows.forEach(candidateWindow => {
-                                const candidateState: WindowState = candidateWindow.getState();
+                            candidateGroup.entities.forEach(candidateWindow => {
+                                const candidateState: EntityState = candidateWindow.currentState;
 
                                 if (this.isSnappable(candidateWindow, candidateState)) {
                                     projector.project(activeState, candidateState);
@@ -135,7 +104,7 @@ export class Resolver {
                     });
 
                     // Create snap target
-                    const target: SnapTarget|null = projector.createTarget(candidateGroup, activeGroup.windows[0]);
+                    const target: SnapTarget|null = projector.createTarget(candidateGroup, activeGroup.entities[0]);
                     if (target) {
                         targets.push(target);
                     }
@@ -156,17 +125,17 @@ export class Resolver {
     private findBestTarget(targets: SnapTarget[]): SnapTarget|null {
         // Sort candidates so that most preferable is at start of array
         targets = targets.sort((a: SnapTarget, b: SnapTarget) => {
-            const offsetA: Point = a.snapOffset, offsetB: Point = b.snapOffset;
+            const offsetA: Point = a.offset, offsetB: Point = b.offset;
 
-            if (a.validity !== b.validity && (a.validity === eSnapValidity.VALID || b.validity === eSnapValidity.VALID)) {
+            if (a.valid !== b.valid) {
                 // Prefer valid targets
-                return a.validity - b.validity;
+                return a.valid ? 1 : -1;
             } else if (this.isAnchorSnap(a) !== this.isAnchorSnap(b)) {
                 // Prefer snaps to anchor points
                 return (offsetA.x && offsetA.y) ? -1 : 1;
             } else {
                 // If both candidates are valid, prefer candidate with smallest offset
-                return PointUtils.lengthSquared(a.snapOffset) - PointUtils.lengthSquared(b.snapOffset);
+                return PointUtils.lengthSquared(a.offset) - PointUtils.lengthSquared(b.offset);
             }
         });
 
@@ -174,7 +143,7 @@ export class Resolver {
     }
 
     private isAnchorSnap(target: SnapTarget): boolean {
-        return target.snapOffset.x !== 0 && target.snapOffset.y !== 0;
+        return target.offset.x !== 0 && target.offset.y !== 0;
     }
 
     /**
@@ -183,9 +152,9 @@ export class Resolver {
      * If this check fails, we shouldn't be doing any bounds-checking or creating and snap targets for this window.
      *
      * @param identity Handle to the window we are considering for snapping
-     * @param windowState State of the window object we are considering for snapping
+     * @param state State of the window object we are considering for snapping
      */
-    private isSnappable(window: Snappable, windowState: WindowState): boolean {
-        return !windowState.hidden && windowState.opacity > 0 && windowState.state === 'normal' && !window.getTabGroup();
+    private isSnappable(window: DesktopEntity, state: EntityState): boolean {
+        return !state.hidden && state.opacity > 0 && state.state === 'normal';
     }
 }

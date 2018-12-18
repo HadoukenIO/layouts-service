@@ -1,0 +1,16 @@
+<html>
+    
+<body>
+
+    <script>
+        const randomColor = () => {
+            return '#' + ((1 << 24) * Math.random() | 0).toString(16);
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.style.backgroundColor = randomColor();
+        });
+    </script>
+</body>
+
+</html>

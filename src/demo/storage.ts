@@ -1,12 +1,10 @@
-import {LayoutName} from '../client/types';
 import {Workspace} from './LayoutsUI';
 
-/*tslint:disable:no-any*/
-
 // STORAGE - TODO: use indexedDB?
-class Storage {
-    protected storage: any;
-    constructor(externalStorage?: any) {
+class LayoutStore {
+    protected storage!: Storage;
+
+    constructor(externalStorage?: Storage) {
         if (externalStorage) {
             this.storage = externalStorage;
         } else if (window.localStorage) {
@@ -14,16 +12,16 @@ class Storage {
         }
     }
 
-    public get(key: string) {
-        return JSON.parse(this.storage.getItem(key));
+    public get(key: string): Workspace {
+        return JSON.parse(this.storage.getItem(key) || '');
     }
 
-    public set(key: string, value: any) {
+    public set(key: string, value: Workspace) {
         this.storage.setItem(key, JSON.stringify(value));
     }
 }
 
-export const getLayout = (layoutName: LayoutName): Workspace /* Layout */ => {
+export const getLayout = (layoutName: string): Workspace => {
     return layouts.get(layoutName);
 };
 
@@ -31,21 +29,8 @@ export const saveLayout = (layout: Workspace) => {
     layouts.set(layout.id, layout);
 };
 
-export const flexibleGetLayout = async(input: LayoutName): Promise<Workspace> => {
-    if (typeof input === 'string') {
-        const workspace = getLayout(input);
-        if (workspace && typeof workspace === 'object') {
-            return workspace;
-        }
-    } else if (typeof input === 'object') {
-        // some validation here?
-        return input;
-    }
-    throw new Error('layout not found');
-};
-
 export const getAllLayoutIDs = (): string[] => {
     return Object.keys(localStorage);
 };
 
-export const layouts = new Storage();
+export const layouts = new LayoutStore();

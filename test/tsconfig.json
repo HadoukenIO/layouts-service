@@ -2,7 +2,7 @@
     "extends": "../node_modules/gts/tsconfig-google.json",
     "compilerOptions": {
       "rootDir": "..",
-      "outDir": "../build/test",
+      "outDir": "../dist/test",
       "target": "es2017",
       "module": "commonjs",
       "lib": [
@@ -11,14 +11,15 @@
       ]
     },
     "include": [
-      "provider/**/*.ts",
-      "demo/**/*.ts",
       "../src/fin.d.ts",
       "../src/finV2.d.ts",
-      "providerTypes.d.ts"
+      "providerTypes.d.ts",
+      "provider/**/*.ts",
+      "demo/**/*.ts"
     ],
     "exclude": [
-      "../node_modules"
+      "../node_modules",
+      "**/*.unittest.ts"
     ]
   }
   

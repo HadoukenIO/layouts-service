@@ -1,14 +1,27 @@
 import {Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
-import {ApplicationUIConfig, Dimensions, TabBlob, TabIdentifier} from '../../client/types';
+import {ApplicationUIConfig, TabGroup, TabGroupDimensions, WindowIdentity} from '../../client/types';
+import {DesktopEntity} from '../model/DesktopEntity';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
-import {DesktopWindow, WindowIdentity, WindowState} from '../model/DesktopWindow';
+import {DesktopWindow, EntityState} from '../model/DesktopWindow';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
-
+import {eTargetType, TargetBase} from '../WindowHandler';
 import {ApplicationConfigManager} from './components/ApplicationConfigManager';
 import {DragWindowManager} from './DragWindowManager';
 
+
+/**
+ * TabTarget constructs an interface which represents an area on a window where a tab strip will be placed.
+ */
+export interface TabTarget extends TargetBase {
+    type: eTargetType.TAB;
+
+    /**
+     * Represents the target window tabbing space;
+     */
+    dropArea: Rectangle;
+}
 
 /**
  * The overarching class for the Tab Service.
@@ -38,7 +51,6 @@ export class TabService {
     constructor(model: DesktopModel) {
         this._model = model;
         this._dragWindowManager = new DragWindowManager();
-        this._dragWindowManager.init();
 
         this.mApplicationConfigManager = new ApplicationConfigManager();
     }
@@ -61,7 +73,7 @@ export class TabService {
      * Creates a new tab group with provided tabs.  Will use the UI and position of the first Identity provided for positioning.
      * @param tabIdentities An array of Identities to add to a group.
      */
-    public async createTabGroupWithTabs(tabIdentities: TabIdentifier[], activeTab?: TabIdentifier) {
+    public async createTabGroupWithTabs(tabIdentities: WindowIdentity[], activeTab?: WindowIdentity) {
         if (tabIdentities.length < 2) {
             console.error('createTabGroup called fewer than 2 tab identifiers');
             throw new Error('Must provide at least 2 Tab Identifiers');
@@ -77,16 +89,16 @@ export class TabService {
                     tabIdentities.map(identity => `${identity.uuid}/${identity.name}`).join('\n'));
             } else {
                 console.warn(
-                    'Tab list contained ' + (tabIdentities.length - tabs.length) + ' invalid identities', tabIdentities, tabs.map(tab => tab.getIdentity()));
+                    'Tab list contained ' + (tabIdentities.length - tabs.length) + ' invalid identities', tabIdentities, tabs.map(tab => tab.identity));
             }
         }
 
         const config: ApplicationUIConfig = this.mApplicationConfigManager.getApplicationUIConfig(tabIdentities[0].uuid);
-        const snapGroup: DesktopSnapGroup = new DesktopSnapGroup();
+        const snapGroup: DesktopSnapGroup = tabs[0].snapGroup;
         const tabGroup: DesktopTabGroup = new DesktopTabGroup(this._model, snapGroup, config);
         await tabGroup.addTabs(tabs, activeTab);
 
-        if (tabs[0].getState().state === 'maximized') {
+        if (tabs[0].currentState.state === 'maximized') {
             tabGroup.maximize();
         }
     }
@@ -96,21 +108,21 @@ export class TabService {
      *
      * If given ID is invalid or doesn't belong to a tab set, method call has no effect.
      *
-     * @param {TabIdentifier} tabID The identity of the tab to remove.
+     * @param {WindowIdentity} tabID The identity of the tab to remove.
      */
-    public async removeTab(tabID: TabIdentifier): Promise<void> {
+    public async removeTab(tabID: WindowIdentity): Promise<void> {
         const tab: DesktopWindow|null = this._model.getWindow(tabID);
-        const group: DesktopTabGroup|null = tab && tab.getTabGroup();
+        const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
         if (group) {
             await group.removeTab(tab!);
         }
     }
 
-    public async swapTab(toRemove: TabIdentifier, toAdd: TabIdentifier): Promise<void> {
+    public async swapTab(toRemove: WindowIdentity, toAdd: WindowIdentity): Promise<void> {
         const tabToAdd: DesktopWindow|null = this._model.getWindow(toAdd);
         const tabToRemove: DesktopWindow|null = this._model.getWindow(toRemove);
-        const group: DesktopTabGroup|null = tabToRemove && tabToRemove.getTabGroup();
+        const group: DesktopTabGroup|null = tabToRemove && tabToRemove.tabGroup;
 
         if (!tabToRemove || !group) {
             throw new Error(`No tab group found for ${toRemove.uuid} - ${toRemove.name}`);
@@ -124,19 +136,19 @@ export class TabService {
     /**
      * Gathers information from tab sets and their tabs, and returns as a JSON object back to the requesting application/window.
      */
-    public async getTabSaveInfo(): Promise<TabBlob[]> {
-        const tabGroups: ReadonlyArray<DesktopTabGroup> = this._model.getTabGroups();
+    public async getTabSaveInfo(): Promise<TabGroup[]> {
+        const tabGroups: ReadonlyArray<DesktopTabGroup> = this._model.tabGroups;
 
         return Promise.all(tabGroups.map(async (group: DesktopTabGroup) => {
-            const tabs: TabIdentifier[] = group.tabs.map((tab: DesktopWindow) => {
-                return tab.getIdentity();
+            const tabs: WindowIdentity[] = group.tabs.map((tab: DesktopWindow) => {
+                return tab.identity;
             });
 
-            const appRect: Rectangle = group.activeTab.getState();
-            const groupRect: Rectangle = group.window.getState();
+            const appRect: Rectangle = group.activeTab.currentState;
+            const groupRect: Rectangle = group.window.currentState;
             const groupInfo = {
                 url: group.config.url,
-                active: group.activeTab.getIdentity(),
+                active: group.activeTab.identity,
                 dimensions: {
                     x: groupRect.center.x - groupRect.halfSize.x,
                     y: groupRect.center.y - groupRect.halfSize.y,
@@ -150,28 +162,22 @@ export class TabService {
         }));
     }
 
-
-    /**
-     * Takes a tabblob and restores windows based on the blob
-     * @function createTabGroupsFromMultipleWindows
-     * @param tabBlob[] Restoration data
-     */
-    public async createTabGroupsFromTabBlob(tabBlob: TabBlob[]): Promise<DesktopTabGroup[]> {
+    public async createTabGroupsFromLayout(groupDefs: TabGroup[]): Promise<DesktopTabGroup[]> {
         const model: DesktopModel = this._model;
         const tabGroups: DesktopTabGroup[] = [];
 
-        if (!tabBlob) {
+        if (!groupDefs) {
             console.error('Unable to create tabgroup - no blob supplied');
             throw new Error('Unable to create tabgroup - no blob supplied');
         }
 
-        for (const blob of tabBlob) {
-            const tabs: DesktopWindow[] = blob.tabs.map(tab => model.getWindow(tab)).filter((tab): tab is DesktopWindow => !!tab);
-            const dimensions: Dimensions = blob.groupInfo.dimensions;
+        for (const groupDef of groupDefs) {
+            const tabs: DesktopWindow[] = groupDef.tabs.map(tab => model.getWindow(tab)).filter((tab): tab is DesktopWindow => !!tab);
+            const dimensions: TabGroupDimensions = groupDef.groupInfo.dimensions;
 
             if (tabs.length >= 2) {
                 // Create a tabstrip window in the correct position
-                const tabstripOptions: ApplicationUIConfig = {url: blob.groupInfo.url, height: dimensions.tabGroupHeight};
+                const tabstripOptions: ApplicationUIConfig = {url: groupDef.groupInfo.url, height: dimensions.tabGroupHeight};
 
                 // Each tab group will be a stand-alone snap group
                 const snapGroup: DesktopSnapGroup = new DesktopSnapGroup();
@@ -188,12 +194,12 @@ export class TabService {
 
                 // Add tabs to group
                 await tabGroup.window.sync();
-                await tabGroup.addTabs(tabs, blob.groupInfo.active);
+                await tabGroup.addTabs(tabs, groupDef.groupInfo.active);
                 await tabGroup.window.sync();
 
                 tabGroups.push(tabGroup);
             } else {
-                console.error('Not enough valid tab identifiers within tab blob to form a tab group', blob.tabs);
+                console.error('Not enough valid tab identifiers within tab blob to form a tab group', groupDef.tabs);
             }
         }
 
@@ -207,7 +213,7 @@ export class TabService {
      */
     public async tabDroppedWindow(window: DesktopWindow): Promise<void> {
         if (!this.disableTabbingOperations) {
-            await this.internalHandleWindowDrop(window, this._model.getMouseTracker().getPosition());
+            await this.internalHandleWindowDrop(window, this._model.mouseTracker.getPosition());
         }
     }
 
@@ -229,10 +235,10 @@ export class TabService {
      * @param ejectPosition The current position of the mouse (if known). Ejected tab will be moved to this location, and tabbed with any other (compatible)
      * window/tabgroup at this position.
      */
-    public async ejectTab(tab: TabIdentifier, ejectPosition?: Point): Promise<void> {
+    public async ejectTab(tab: WindowIdentity, ejectPosition?: Point): Promise<void> {
         // Get the tab that was ejected.
         const ejectedTab: DesktopWindow|null = this._model.getWindow(tab);
-        const tabGroup: DesktopTabGroup|null = ejectedTab && ejectedTab.getTabGroup();
+        const tabGroup: DesktopTabGroup|null = ejectedTab && ejectedTab.tabGroup;
 
         // if the tab is not valid then return out of here!
         if (!ejectedTab || !tabGroup) {
@@ -258,13 +264,13 @@ export class TabService {
      * @param position The point where the window is being dropped at. If nothing is passed the window will be ejected at its current spot.
      */
     private async internalHandleWindowDrop(window: DesktopWindow, position: Point|null = null): Promise<void> {
-        const activeIdentity: WindowIdentity = window.getIdentity();
-        const existingTabGroup: DesktopTabGroup|null = window.getTabGroup();
+        const activeIdentity: WindowIdentity = window.identity;
+        const existingTabGroup: DesktopTabGroup|null = window.tabGroup;
         const windowUnderPoint: DesktopWindow|null = position && this._model.getWindowAt(position.x, position.y, activeIdentity);
-        const tabGroupUnderPoint: DesktopTabGroup|null = windowUnderPoint && windowUnderPoint.getTabGroup();
+        const tabGroupUnderPoint: DesktopTabGroup|null = windowUnderPoint && windowUnderPoint.tabGroup;
         const tabAllowed = windowUnderPoint &&
             this.applicationConfigManager.compareConfigBetweenApplications(
-                tabGroupUnderPoint ? tabGroupUnderPoint.config : windowUnderPoint.getIdentity().uuid, activeIdentity.uuid);
+                tabGroupUnderPoint ? tabGroupUnderPoint.config : windowUnderPoint.identity.uuid, activeIdentity.uuid);
 
         if (tabGroupUnderPoint && windowUnderPoint === tabGroupUnderPoint.window) {
             // If we are over a tab group
@@ -284,16 +290,18 @@ export class TabService {
         } else if (tabAllowed && position && windowUnderPoint && !tabGroupUnderPoint && this.isOverWindowDropArea(windowUnderPoint, position)) {
             // If there is a window under our Point, and its not part of a tab group, and we are over a valid drop area
 
-            if (existingTabGroup) await existingTabGroup.removeTab(window);
+            if (existingTabGroup) {
+                await existingTabGroup.removeTab(window);
+            }
 
             // Create new tab group
-            await this.createTabGroupWithTabs([windowUnderPoint.getIdentity(), activeIdentity], activeIdentity);
+            await this.createTabGroupWithTabs([windowUnderPoint.identity, activeIdentity], activeIdentity);
 
         } else if (position && existingTabGroup) {
             // If there are no windows under the point and we are being ejected from a tab group
 
             // We eject at the Point
-            const prevHalfSize = window.getState().halfSize;
+            const prevHalfSize = window.currentState.halfSize;
             const halfSize = {x: prevHalfSize.x, y: prevHalfSize.y + existingTabGroup.config.height / 2};
             const center = {x: position.x + halfSize.x, y: position.y + halfSize.y};
             await existingTabGroup.removeTab(window, {center, halfSize});
@@ -314,11 +322,72 @@ export class TabService {
      * @param {Point} position
      */
     private isOverWindowDropArea(window: DesktopWindow, position: Point): boolean {
-        const state: WindowState = window.getState();
-        const config: ApplicationUIConfig = this.mApplicationConfigManager.getApplicationUIConfig(window.getIdentity().uuid);
-        const dropAreaCenter: Point = {x: state.center.x, y: (state.center.y - state.halfSize.y) + (config.height / 2)};
-        const dropAreaHalfSize = {x: state.halfSize.x, y: config.height / 2};
+        const {center, halfSize} = this.getWindowDropArea(window);
 
-        return RectUtils.isPointInRect(dropAreaCenter, dropAreaHalfSize, position);
+        return RectUtils.isPointInRect(center, halfSize, position);
+    }
+
+    /**
+     * Returns the Center and HalfSize of a valid tabbing area on a window.  If the window has a tabset, this will be the dimensions of the tab group window, if
+     * not the dimensions will be tab group window inset.
+     * @param {DesktopWindow} window The window to get area for.
+     */
+    private getWindowDropArea(window: DesktopWindow): Rectangle {
+        const isTabbed = window.tabGroup;
+        if (isTabbed) {
+            const {halfSize, center} = isTabbed.window.currentState;
+            return {center, halfSize};
+        } else {
+            const state: EntityState = window.currentState;
+            const config: ApplicationUIConfig = this.mApplicationConfigManager.getApplicationUIConfig(window.identity.uuid);
+            const center: Point = {x: state.center.x, y: (state.center.y - state.halfSize.y) + (config.height / 2)};
+            const halfSize = {x: state.halfSize.x, y: config.height / 2};
+
+            return {center, halfSize};
+        }
+    }
+
+    /**
+     * Generates a valid tabbing target for a given active group in its current position.
+     * @param {DesktopSnapGroup} activeGroup The current active group being moved by the user.
+     */
+    public getTarget(activeGroup: DesktopSnapGroup): TabTarget|null {
+        const position: Point|null = this._model.mouseTracker.getPosition();
+        const targetWindow: DesktopWindow|null = position && this._model.getWindowAt(position.x, position.y, activeGroup.windows[0].identity);
+
+        if (targetWindow) {
+            /**
+             * Checks the mouse position is over a valid window drop area.
+             */
+            const isOverWindowValid: boolean = this.isOverWindowDropArea(targetWindow, position!);
+
+            /**
+             * Prevent snapped windows from tabbing to other windows/groups
+             */
+            const targetAlreadySnapped: boolean = activeGroup.entities.length > 1;
+
+            /**
+             * Prevent windows that are snapped together from tabbing - only tab windows that are in different snap groups
+             */
+            const alreadyTabbed: boolean = targetWindow.snapGroup === activeGroup;
+
+            if (isOverWindowValid && !targetAlreadySnapped && !alreadyTabbed) {
+                const isTargetTabbed = targetWindow.tabGroup;
+
+                // Check if the target and active window have same tab config.
+                const valid: boolean = this.applicationConfigManager.compareConfigBetweenApplications(
+                    isTargetTabbed ? isTargetTabbed.config : targetWindow.identity.uuid, activeGroup.windows[0].identity.uuid);
+
+                return {
+                    type: eTargetType.TAB,
+                    activeWindow: activeGroup.windows[0],
+                    group: targetWindow.snapGroup,
+                    dropArea: this.getWindowDropArea(targetWindow),
+                    valid
+                };
+            }
+        }
+
+        return null;
     }
 }

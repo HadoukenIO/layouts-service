@@ -1,6 +1,6 @@
 import {Window} from 'hadouken-js-adapter';
 
-import {TabIdentifier} from '../../client/types';
+import {WindowIdentity} from '../../client/types';
 
 const DRAG_WINDOW_URL = (() => {
     let providerLocation = window.location.href;
@@ -18,22 +18,20 @@ const DRAG_WINDOW_URL = (() => {
  * Handles the Drag Window which appears when API drag and drop is initialized.
  */
 export class DragWindowManager {
-    // tslint:disable-next-line:no-any setTimout return Type is confused by VSC
-    private _hideTimeout: any;
+    // Multiple definitions of setTimeout/clearTimeout, and not possible to point TSC at the correct (non-Node) definition
+    private _hideTimeout: number|NodeJS.Timer;
 
     private _window!: Window;
 
-    /**
-     * Initializes Async Methods required by this class.
-     */
-    public async init(): Promise<void> {
-        await this._createDragWindow();
+    constructor() {
+        this._hideTimeout = -1;
+        this._createDragWindow();
     }
 
     /**
      * Shows the drag window overlay.
      */
-    public showWindow(source: TabIdentifier): void {
+    public showWindow(source: WindowIdentity): void {
         this._window.show();
         this._window.focus();
 
@@ -50,7 +48,9 @@ export class DragWindowManager {
      */
     public hideWindow(): void {
         this._window.hide();
-        clearTimeout(this._hideTimeout);
+
+        clearTimeout(this._hideTimeout as number);
+        this._hideTimeout = -1;
     }
 
     /**

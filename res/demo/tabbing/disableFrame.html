@@ -1,0 +1,31 @@
+<html>
+
+<body>
+    <script>
+        const randomColor = () => {
+            return '#' + ((1 << 24) * Math.random() | 0).toString(16);
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.style.backgroundColor = randomColor();
+        });
+
+        fin.desktop.main(() => {
+            const win = fin.Window.getCurrentSync();
+
+            win.addListener('disabled-frame-bounds-changed', handleDisabledFrameBoundsChanged.bind(win));
+            win.addListener('disabled-frame-bounds-changing', handleDisabledFrameBoundsChanging.bind(win));
+            win.disableFrame();
+        });
+
+        function handleDisabledFrameBoundsChanged(event) {
+            this.setBounds(event);
+        }
+
+        function handleDisabledFrameBoundsChanging(event) {
+            this.setBounds(event);
+        }
+    </script>
+</body>
+
+</html>

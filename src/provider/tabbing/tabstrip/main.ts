@@ -1,5 +1,6 @@
-import * as layouts from '../../../client/main';  //The equivalent of 'openfin-layouts' NPM package outside of this project.
-import {JoinTabGroupPayload, TabGroupEventPayload, TabIdentifier} from '../../../client/types';
+import * as layouts from '../../../client/main';
+import {JoinTabGroupPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload} from '../../../client/tabbing';
+import {WindowIdentity} from '../../../client/types';
 
 import {TabManager} from './TabManager';
 
@@ -12,26 +13,35 @@ tabManager = new TabManager();
  * Creates event listeners for events fired from the openfin layouts service.
  */
 const createLayoutsEventListeners = () => {
-    layouts.addEventListener('join-tab-group', (event: CustomEvent<TabGroupEventPayload>|Event) => {
-        const customEvent: CustomEvent<JoinTabGroupPayload> = event as CustomEvent<JoinTabGroupPayload>;
-        const tabInfo: JoinTabGroupPayload = customEvent.detail;
+    layouts.addEventListener('join-tab-group', (event: CustomEvent<JoinTabGroupPayload>) => {
+        const tabInfo: JoinTabGroupPayload = event.detail;
         tabManager.addTab(tabInfo.tabID, tabInfo.tabProps!, tabInfo.index!);
 
         document.title = tabManager.getTabs.map(tab => tab.ID.name).join(', ');
     });
 
-    layouts.addEventListener('leave-tab-group', (event: CustomEvent<TabGroupEventPayload>|Event) => {
-        const customEvent: CustomEvent<TabGroupEventPayload> = event as CustomEvent<TabGroupEventPayload>;
-        const tabInfo: TabGroupEventPayload = customEvent.detail;
+    layouts.addEventListener('leave-tab-group', (event: CustomEvent<TabGroupEventPayload>) => {
+        const tabInfo: TabGroupEventPayload = event.detail;
         tabManager.removeTab(tabInfo.tabID);
 
         document.title = tabManager.getTabs.map(tab => tab.ID.name).join(', ');
     });
 
-    layouts.addEventListener('tab-activated', (event: CustomEvent<TabGroupEventPayload>|Event) => {
-        const customEvent: CustomEvent<TabGroupEventPayload> = event as CustomEvent<TabGroupEventPayload>;
-        const tabInfo: TabIdentifier = customEvent.detail.tabID;
+    layouts.addEventListener('tab-activated', (event: CustomEvent<TabGroupEventPayload>) => {
+        const tabInfo: WindowIdentity = event.detail.tabID;
         tabManager.setActiveTab(tabInfo);
+    });
+
+    layouts.addEventListener('tab-properties-updated', (event: CustomEvent<TabPropertiesUpdatedPayload>|Event) => {
+        const customEvent: CustomEvent<TabPropertiesUpdatedPayload> = event as CustomEvent<TabPropertiesUpdatedPayload>;
+
+        const tab = tabManager.getTab(customEvent.detail.tabID);
+        const props = customEvent.detail.properties;
+
+        if (tab) {
+            if (props.icon) tab.updateIcon(props.icon);
+            if (props.title) tab.updateText(props.title);
+        }
     });
 };
 

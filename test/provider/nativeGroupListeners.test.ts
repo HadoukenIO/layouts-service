@@ -1,7 +1,7 @@
 import {test, TestContext} from 'ava';
 import {Fin, Window} from 'hadouken-js-adapter';
 
-import {WindowIdentity} from '../../src/provider/model/DesktopWindow';
+import {WindowIdentity} from '../../src/client/types';
 import {undockWindow} from '../demo/utils/snapServiceUtils';
 
 import {assertGrouped, assertMoved, assertNotGrouped, assertNotMoved} from './utils/assertions';
@@ -46,7 +46,7 @@ test.beforeEach(async () => {
         defaultLeft: 100,
         defaultHeight: 200,
         defaultWidth: 200,
-        url: 'http://localhost:1337/demo/frameless-window.html',
+        url: 'http://localhost:1337/demo/popup.html',
         frame: false
     });
     win2 = await createChildWindow({
@@ -56,7 +56,7 @@ test.beforeEach(async () => {
         defaultLeft: 400,
         defaultHeight: 200,
         defaultWidth: 200,
-        url: 'http://localhost:1337/demo/frameless-window.html',
+        url: 'http://localhost:1337/demo/popup.html',
         frame: false
     });
     windows = [win1, win2];
@@ -161,10 +161,7 @@ function runNativeGroupListenerTest(groupType: GroupingType, firstUngroupType: U
         });
 }
 
-test.failing('Native window group works the same as snapService grouping  (native merge, undock, native, 1)', async t => {
-    // FAILING - Runtime behaviour: native group merge does not raise an event
-    // when grouping two ungrouped windows
-
+test('Native window group works the same as snapService grouping (native merge, undock, native, 1)', async t => {
     // Native group the windows
     win1.mergeGroups(win2);
 

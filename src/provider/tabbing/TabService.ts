@@ -362,11 +362,16 @@ export class TabService {
             const isOverWindowValid: boolean = this.isOverWindowDropArea(targetWindow, position!);
 
             /**
-             * Prevent snapped windows from tabbing together - only tab windows that are in different snap groups
+             * Prevent snapped windows from tabbing to other windows/groups
              */
-            const targetAlreadySnapped: boolean = targetWindow.snapGroup === activeGroup;
+            const targetAlreadySnapped: boolean = activeGroup.entities.length > 1;
 
-            if (isOverWindowValid && !targetAlreadySnapped) {
+            /**
+             * Prevent windows that are snapped together from tabbing - only tab windows that are in different snap groups
+             */
+            const alreadyTabbed: boolean = targetWindow.snapGroup === activeGroup;
+
+            if (isOverWindowValid && !targetAlreadySnapped && !alreadyTabbed) {
                 const isTargetTabbed = targetWindow.tabGroup;
 
                 // Check if the target and active window have same tab config.

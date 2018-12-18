@@ -33,9 +33,9 @@ export class DesktopSnapGroup {
      *
      * Any active snap target can now be applied.
      *
-     * Arguments: (group: DesktopSnapGroup)
+     * Arguments: (group: DesktopSnapGroup, type: Mask<eTransformType>)
      */
-    public readonly onCommit: Signal1<DesktopSnapGroup> = new Signal1();
+    public readonly onCommit: Signal2<DesktopSnapGroup, Mask<eTransformType>> = new Signal2();
 
     /**
      * A window has been added to this group.
@@ -254,7 +254,7 @@ export class DesktopSnapGroup {
     }
 
     private onWindowCommit(window: DesktopWindow, type: Mask<eTransformType>): void {
-        this.onCommit.emit(this);
+        this.onCommit.emit(this, type);
     }
 
     private onWindowTeardown(window: DesktopWindow) {

@@ -66,11 +66,11 @@ export class WindowHandler {
     }
 
     private onGroupTransform(activeGroup: DesktopSnapGroup, type: Mask<eTransformType>) {
-        this.view.update(activeGroup, this.getTarget(activeGroup));
+        this.view.update(activeGroup, this.getTarget(activeGroup, type));
     }
 
-    private onGroupCommit(activeGroup: DesktopSnapGroup) {
-        const target = this.getTarget(activeGroup);
+    private onGroupCommit(activeGroup: DesktopSnapGroup, type: Mask<eTransformType>) {
+        const target = this.getTarget(activeGroup, type);
 
         if (target) {
             if (target.type === eTargetType.TAB) {
@@ -88,9 +88,9 @@ export class WindowHandler {
      * Fetches the appropriate target from different services.
      * @param {DesktopSnapGroup} activeGroup The active group being moved by the user.
      */
-    private getTarget(activeGroup: DesktopSnapGroup): Target|null {
+    private getTarget(activeGroup: DesktopSnapGroup, type: Mask<eTransformType>): Target|null {
         const snapTarget: Target|null = snapService.getTarget(activeGroup);
-        const tabTarget: Target|null = tabService.getTarget(activeGroup);
+        const tabTarget: Target|null = (type & eTransformType.RESIZE) === 0 ? tabService.getTarget(activeGroup) : null;
 
         return snapTarget || tabTarget;
     }

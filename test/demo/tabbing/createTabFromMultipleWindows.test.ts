@@ -6,6 +6,7 @@ import {DesktopTabGroup} from '../../../src/provider/model/DesktopTabGroup';
 import {getConnection} from '../../provider/utils/connect';
 import {getBounds, NormalizedBounds} from '../../provider/utils/getBounds';
 import {executeJavascriptOnService} from '../utils/serviceUtils';
+import {getId} from '../utils/tabServiceUtils';
 
 let win1: Window;
 let win2: Window;
@@ -50,7 +51,7 @@ test('Create tab group from 2 windows', async (assert) => {
     // Act
     function scriptToExecute(this: ProviderWindow, tabGroups: TabGroup[]): Promise<string> {
         return this.tabService.createTabGroupsFromLayout(tabGroups).then((addedGroups: DesktopTabGroup[]) => {
-            return addedGroups[0].ID;
+            return addedGroups[0].id;
         });
     }
     const tabGroupId: string = await executeJavascriptOnService<TabGroup[], string>(scriptToExecute, tabGroups);
@@ -59,7 +60,7 @@ test('Create tab group from 2 windows', async (assert) => {
     // Tab group should have been created
     const serviceChildWindows: Window[] = await serviceApplication.getChildWindows();
     const newTabGroupWindow: Window|undefined = serviceChildWindows.find((window: Window) => {
-        return window.identity.uuid === 'layouts-service' && window.identity.name === tabGroupId;
+        return getId(window.identity) === tabGroupId;
     });
     assert.truthy(newTabGroupWindow);
 

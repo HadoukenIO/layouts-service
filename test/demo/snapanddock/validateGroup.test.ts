@@ -1,6 +1,7 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {assertAllContiguous, assertGrouped, assertNotGrouped} from '../../provider/utils/assertions';
+import {delay} from '../../provider/utils/delay';
 import {ArrangementsType, defaultArrangements} from '../../provider/utils/WindowInitializer';
 import {CreateWindowData, createWindowTest, WindowContext} from '../utils/createWindowTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
@@ -102,6 +103,10 @@ testParameterized<ValidateGroupOptions, WindowContext>(
         await assertAllContiguous(t, windows);
 
         await undockFunctions[testOptions.undockBy](windows[testOptions.undockIndex]);
+
+        // The validation is delayed slightly, to ensure all bounds-changed events have been recieved from modified windows
+        // See SERVICE-284 for details.
+        await delay(500);
 
         await assertNotGrouped(windows[testOptions.undockIndex], t);
 

@@ -1,11 +1,12 @@
-import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
-import {WindowState} from '../model/DesktopWindow';
+import {DesktopEntity} from '../model/DesktopEntity';
+import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
+import {EntityState} from '../model/DesktopWindow';
 import {eTargetType, TargetBase} from '../WindowHandler';
 
 import {SNAP_DISTANCE} from './Config';
 import {Projector} from './Projector';
 import {Point, PointUtils} from './utils/PointUtils';
-import {RectUtils} from './utils/RectUtils';
+import {Rectangle, RectUtils} from './utils/RectUtils';
 
 
 /**
@@ -61,7 +62,7 @@ export class Resolver {
     /**
      * Util that is reset and re-used with each candidate group.
      */
-    private projector: Projector = new Projector();
+    private _projector: Projector = new Projector();
 
     /**
      * The only publicly-exposed function of this class - determines if 'activeGroup', in it's current location, should
@@ -71,11 +72,11 @@ export class Resolver {
      * @param activeGroup The group that is currently being moved
      */
     public getSnapTarget(groups: ReadonlyArray<DesktopSnapGroup>, activeGroup: DesktopSnapGroup): SnapTarget|null {
-        const projector: Projector = this.projector;
+        const projector: Projector = this._projector;
         const targets: SnapTarget[] = [];
 
         // Group-to-Group snapping not yet supported
-        if (activeGroup.windows.length > 1) {
+        if (activeGroup.entities.length > 1) {
             return null;
         }
 
@@ -87,13 +88,13 @@ export class Resolver {
                     projector.reset();
 
                     // Need to iterate over every window in both groups
-                    activeGroup.windows.forEach(activeWindow => {
-                        const activeState: WindowState = activeWindow.getState();
+                    activeGroup.entities.forEach(activeWindow => {
+                        const activeState: EntityState = activeWindow.currentState;
 
                         // Only do the next loop if there's a chance that this window can intersect with the other group
                         if (this.isSnappable(activeWindow, activeState) && RectUtils.distance(candidateGroup, activeState).within(SNAP_DISTANCE)) {
-                            candidateGroup.windows.forEach(candidateWindow => {
-                                const candidateState: WindowState = candidateWindow.getState();
+                            candidateGroup.entities.forEach(candidateWindow => {
+                                const candidateState: EntityState = candidateWindow.currentState;
 
                                 if (this.isSnappable(candidateWindow, candidateState)) {
                                     projector.project(activeState, candidateState);
@@ -103,7 +104,7 @@ export class Resolver {
                     });
 
                     // Create snap target
-                    const target: SnapTarget|null = projector.createTarget(candidateGroup, activeGroup.windows[0]);
+                    const target: SnapTarget|null = projector.createTarget(candidateGroup, activeGroup.entities[0]);
                     if (target) {
                         targets.push(target);
                     }
@@ -151,9 +152,9 @@ export class Resolver {
      * If this check fails, we shouldn't be doing any bounds-checking or creating and snap targets for this window.
      *
      * @param identity Handle to the window we are considering for snapping
-     * @param windowState State of the window object we are considering for snapping
+     * @param state State of the window object we are considering for snapping
      */
-    private isSnappable(window: Snappable, windowState: WindowState): boolean {
-        return !windowState.hidden && windowState.opacity > 0 && windowState.state === 'normal' && !window.getTabGroup();
+    private isSnappable(window: DesktopEntity, state: EntityState): boolean {
+        return !state.hidden && state.opacity > 0 && state.state === 'normal';
     }
 }

@@ -1,10 +1,11 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {ApplicationUIConfig} from '../../client/types';
 import {ApplicationConfigManager} from '../tabbing/components/ApplicationConfigManager';
+
 /**
  * Handles creation and pooling of Tab Group Windows
  */
-export class DesktopTabGroupWindowFactory {
+export class DesktopTabstripFactory {
     /**
      * The window pool
      */
@@ -21,10 +22,7 @@ export class DesktopTabGroupWindowFactory {
             frame: false,
             maximizable: false,
             resizable: true,
-            resizeRegion: {
-                //@ts-ignore 'sides' missing from TypeScript interface
-                sides: {left: true, top: false, right: true, bottom: false}
-            },
+            resizeRegion: {sides: {left: true, top: false, right: true, bottom: false}},
             saveWindowState: false,
             taskbarIconGroup: name,
             backgroundThrottling: true,
@@ -86,6 +84,6 @@ export class DesktopTabGroupWindowFactory {
      * @param {ApplicationUIConfig} options The configuration to create the windows against.
      */
     private createWindow(options: ApplicationUIConfig) {
-        return fin.Window.create(DesktopTabGroupWindowFactory.generateTabStripOptions(options));
+        return fin.Window.create(DesktopTabstripFactory.generateTabStripOptions(options));
     }
 }

@@ -217,8 +217,8 @@ export async function childWindowPlaceholderCheckRunningApp(
             } else {
                 const childWindowModel = model.getWindow(win);
                 await tabService.removeTab(win);
-                if (childWindowModel!.getSnapGroup().length > 1) {
-                    childWindowModel!.dockToGroup(new DesktopSnapGroup());
+                if (childWindowModel!.snapGroup.length > 1) {
+                    childWindowModel!.setSnapGroup(new DesktopSnapGroup());
                 }
             }
         }

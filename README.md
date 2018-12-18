@@ -10,8 +10,8 @@ This project consist of 3 parts:
 3. Layout Service Demo app, demonstrating the different features of OpenFin Layout
 
 ### Dependencies
-- OpenFin version for applications using Layouts = 9.61.37.42
-- OpenFin version used in the Layouts Service = 9.61.37.42
+- OpenFin version for applications using Layouts = 9.61.37.46
+- OpenFin version used in the Layouts Service = 9.61.37.46
 - RVM >= 4.4.1.1
 
 ### Features
@@ -45,7 +45,7 @@ This project consist of 3 parts:
 
 ```bash
 npm install --ignore-scripts
-npm run dev
+npm start
 ```
 ## Getting Started
 

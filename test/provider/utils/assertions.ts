@@ -5,7 +5,7 @@ import {Window} from 'hadouken-js-adapter';
 import {promiseMap} from '../../../src/provider/snapanddock/utils/async';
 import {getTopmostWindow} from '../../demo/utils/modelUtils';
 import {getGroupedWindows, getSnapGroupID} from '../../demo/utils/snapServiceUtils';
-import {getActiveTab, getTabbedWindows, getTabGroupID} from '../../demo/utils/tabServiceUtils';
+import {getActiveTab, getId, getTabbedWindows, getTabGroupID, getTabGroupIdentity} from '../../demo/utils/tabServiceUtils';
 
 import {getBounds, NormalizedBounds} from './getBounds';
 import {Win} from './getWindow';
@@ -88,11 +88,12 @@ export async function assertTabbed(win1: Window, win2: Window, t: TestContext): 
     t.deepEqual(bounds1, bounds2, 'Tabbed windows do not have the same bounds');
 
     // Both windows are attached to the tabStrip
-    const tabStripWindow = group1.find((win: Window) => win.identity.name! === tabGroupID1);
+    const tabStripWindow = group1.find((win: Window) => getId(win.identity) === tabGroupID1);
     if (tabStripWindow) {
         await assertAdjacent(t, tabStripWindow, win1, 'bottom');
     } else {
-        t.fail('Windows are not native grouped to the tabStrip');
+        t.fail('Windows are not native grouped to the tabStrip A');
+        return Promise.reject('Windows are not native grouped to the tabStrip B');
     }
 }
 
@@ -104,7 +105,7 @@ export async function assertAllTabbed(t: TestContext, ...windows: Window[]): Pro
         return getTabGroupID(win.identity);
     });
     for (let i = 0; i < tabGroupIDs.length; i++) {
-        t.is(tabGroupIDs[i], tabGroupIDs[0], `Window ${i} is in a different snapGroup to window 0: expected ${tabGroupIDs[0]}, got ${tabGroupIDs[i]}`);
+        t.is(tabGroupIDs[i], tabGroupIDs[0], `Window ${i} is in a different tabGroup to window 0: expected ${tabGroupIDs[0]}, got ${tabGroupIDs[i]}`);
     }
 }
 
@@ -113,7 +114,7 @@ export async function assertAllTabbed(t: TestContext, ...windows: Window[]): Pro
  */
 export async function assertNotTabbed(win: Window, t: TestContext): Promise<void> {
     // Get the tabGroup ID for the window
-    const tabGroupID = await getTabGroupID(win.identity);
+    const tabGroupID = await getTabGroupIdentity(win.identity);
     // Untabbed windows will return null
     t.is(tabGroupID, null);
 }

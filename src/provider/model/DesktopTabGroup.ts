@@ -525,7 +525,10 @@ export class DesktopTabGroup implements DesktopEntity {
         tab.onTransform.remove(this.onTabTransform, this);
         if (tab.isReady) {
             // Remove tab from group by undocking and removing tab strip.
-            await Promise.all([tab.setSnapGroup(new DesktopSnapGroup()), tab.setTabGroup(null)]);
+            // NOTE: Must remove from tab group first, to ensure snap group treats 'tab' as a single window, and not as part of a tab group.
+            const untab: Promise<void> = tab.setTabGroup(null);
+            const undock: Promise<void> = tab.setSnapGroup(new DesktopSnapGroup());
+            await Promise.all([untab, undock]);
         } else {
             // Window is being destroyed. Remove from tabstrip, but undock will happen as part of window destruction.
             await tab.setTabGroup(null);

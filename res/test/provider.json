@@ -21,7 +21,7 @@
     },
   "runtime": {
     "arguments": "--v=1 --enable-crash-reporting --disabled-frame-groups",
-    "version": "9.61.37.46"
+    "version": "alpha"
   },
     "shortcut": {}
 }

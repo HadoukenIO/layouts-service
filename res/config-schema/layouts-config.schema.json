@@ -1,0 +1,88 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "layouts-config",
+    "type": "object",
+    "title": "Layouts Config",
+    "description": "Configuration for the OpenFin Layouts Service, allowing the service and/or specific features to be enabled/disabled.",
+    "definitions": {
+        "rule": {
+            "$ref": "./rule.schema.json#"
+        },
+        "scope": {
+            "title": "Scope",
+            "$ref": "./scope.schema.json#"
+        },
+        "configuration-object": {
+            "title": "ConfigurationObject",
+            "description": "An instance of Layouts Service configuration.",
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enables/disables all Layouts Service behaviour for the given scope."
+                },
+                "features": {
+                    "properties": {
+                        "dock": {
+                            "type": "boolean",
+                            "description": "Disables the docking functionality of the service. Windows will still snap side-by-side, but will not be grouped as a result."
+                        },
+                        "tab": {
+                            "type": "boolean",
+                            "description": "Disables the ability to tab windows by drag-and-drop. Windows can still be tabbed programmatically using the layouts client api."
+                        }
+                    },
+                    "default": {
+                        "dock": true,
+                        "tab": true
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        },
+        "scoped-configuration-object": {
+            "title": "ScopedConfigurationObject",
+            "description": "A set of service options and a scope specifying where they should be applied.",
+            "type": "object",
+            "allOf": [
+                {
+                    "properties": {
+                        "scope": {
+                            "$ref": "#/definitions/rule"
+                        }
+                    },
+                    "required": [
+                        "scope"
+                    ],
+                    "additionalProperties": false
+                },
+                {
+                    "$ref": "#/definitions/configuration-object"
+                }
+            ],
+            "additionalProperties": false
+        }
+    },
+    "allOf": [
+        {
+            "$ref": "#/definitions/configuration-object"
+        },
+        {
+            "type": "object",
+            "properties": {
+                "rules": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/scoped-configuration-object"
+                    },
+                    "minItems": 0,
+                    "default": []
+                }
+            },
+            "additionalProperties": false
+        }
+    ],
+    "additionalProperties": false
+}

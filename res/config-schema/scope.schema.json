@@ -1,0 +1,78 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "title": "Scope",
+    "type": "object",
+    "oneOf": [
+        {
+            "$ref": "#/definitions/scope-app"
+        },
+        {
+            "$ref": "#/definitions/scope-window"
+        },
+        {
+            "$ref": "#/definitions/scope-other"
+        }
+    ],
+    "definitions": {
+        "scope-app": {
+            "title": "ApplicationScope",
+            "properties": {
+                "level": {
+                    "type": "string",
+                    "enum": [
+                        "application"
+                    ]
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "level",
+                "uuid"
+            ],
+            "additionalProperties": false
+        },
+        "scope-window": {
+            "title": "WindowScope",
+            "properties": {
+                "level": {
+                    "type": "string",
+                    "enum": [
+                        "window"
+                    ]
+                },
+                "uuid": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "level",
+                "uuid",
+                "name"
+            ],
+            "additionalProperties": false
+        },
+        "scope-other": {
+            "title": "OtherScope",
+            "properties": {
+                "level": {
+                    "type": "string",
+                    "enum": [
+                        "service",
+                        "desktop",
+                        "realm",
+                        "platform"
+                    ]
+                }
+            },
+            "required": [
+                "level"
+            ],
+            "additionalProperties": false
+        }
+    }
+}

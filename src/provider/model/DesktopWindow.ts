@@ -623,7 +623,7 @@ export class DesktopWindow implements DesktopEntity {
             return Promise.all([this.sync(), other.sync()]).then(() => {
                 const joinGroupPromise: Promise<void> = (async () => {
                     if (this._ready && group === this._snapGroup) {
-                        await this._window.joinGroup(other._window).catch((error) => this.checkClose(error));
+                        await this._window.mergeGroups(other._window).catch((error) => this.checkClose(error));
 
                         // Re-fetch window list in case it has changed during sync
                         const windows: DesktopWindow[] = this._snapGroup.windows as DesktopWindow[];

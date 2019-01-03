@@ -13,7 +13,7 @@ output.on('close', () => {
 archive.pipe(output);
 
 // Include all provider res files except app.json (which is also in dist)
-archive.glob('**/*.!(app.json)', {cwd: path.resolve(__dirname, '..', 'res', 'provider')});
+archive.glob('**/!(app.json)', {cwd: path.resolve(__dirname, '..', 'res', 'provider')});
 // Include all provider dist files except the zip itself
 archive.glob('**/*.!(zip)', {cwd: path.resolve(__dirname, '..', 'dist', 'provider')});
 

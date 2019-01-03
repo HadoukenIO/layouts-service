@@ -23,14 +23,15 @@
                     "description": "Enables/disables all Layouts Service behaviour for the given scope."
                 },
                 "features": {
+                    "description": "A set of specific features that can be toggled on/off as desired",
                     "properties": {
                         "dock": {
                             "type": "boolean",
-                            "description": "Disables the docking functionality of the service. Windows will still snap side-by-side, but will not be grouped as a result."
+                            "description": "Toggles the docking functionality of the service. Windows will still snap side-by-side, but will not be grouped as a result."
                         },
                         "tab": {
                             "type": "boolean",
-                            "description": "Disables the ability to tab windows by drag-and-drop. Windows can still be tabbed programmatically using the layouts client api."
+                            "description": "Toggles the ability to tab windows by drag-and-drop. Windows can still be tabbed programmatically using the layouts client api."
                         }
                     },
                     "default": {

@@ -6,7 +6,7 @@
             "description": "JSON representation of a regular expression.",
             "type": "object",
             "required": [
-                "regex"
+                "expression"
             ],
             "properties": {
                 "expression": {

@@ -16,6 +16,7 @@
     "definitions": {
         "scope-app": {
             "title": "ApplicationScope",
+            "description": "A scope targeting a specific OpenFin application and all of its windows",
             "properties": {
                 "level": {
                     "type": "string",
@@ -35,6 +36,7 @@
         },
         "scope-window": {
             "title": "WindowScope",
+            "description": "A scope targeting a specific OpenFin window",
             "properties": {
                 "level": {
                     "type": "string",
@@ -58,6 +60,7 @@
         },
         "scope-other": {
             "title": "OtherScope",
+            "description": "A scope for all levels with no extra data required (e.g. desktop-level configuration)",
             "properties": {
                 "level": {
                     "type": "string",

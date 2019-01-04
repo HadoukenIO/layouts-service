@@ -1,0 +1,81 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "title": "Scope",
+    "type": "object",
+    "oneOf": [
+        {
+            "$ref": "#/definitions/scope-app"
+        },
+        {
+            "$ref": "#/definitions/scope-window"
+        },
+        {
+            "$ref": "#/definitions/scope-other"
+        }
+    ],
+    "definitions": {
+        "scope-app": {
+            "title": "ApplicationScope",
+            "description": "A scope targeting a specific OpenFin application and all of its windows",
+            "properties": {
+                "level": {
+                    "type": "string",
+                    "enum": [
+                        "application"
+                    ]
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "level",
+                "uuid"
+            ],
+            "additionalProperties": false
+        },
+        "scope-window": {
+            "title": "WindowScope",
+            "description": "A scope targeting a specific OpenFin window",
+            "properties": {
+                "level": {
+                    "type": "string",
+                    "enum": [
+                        "window"
+                    ]
+                },
+                "uuid": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "level",
+                "uuid",
+                "name"
+            ],
+            "additionalProperties": false
+        },
+        "scope-other": {
+            "title": "OtherScope",
+            "description": "A scope for all levels with no extra data required (e.g. desktop-level configuration)",
+            "properties": {
+                "level": {
+                    "type": "string",
+                    "enum": [
+                        "service",
+                        "desktop",
+                        "realm",
+                        "platform"
+                    ]
+                }
+            },
+            "required": [
+                "level"
+            ],
+            "additionalProperties": false
+        }
+    }
+}

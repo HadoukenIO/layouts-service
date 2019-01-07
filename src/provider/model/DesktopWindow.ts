@@ -715,6 +715,8 @@ export class DesktopWindow implements DesktopEntity {
                 }
             });
         }
+        // Keep a copy of the previous state around temporarily to compare and avoid event loops.
+        const prevState = this._currentState.state;
         Object.assign(this._currentState, delta);
 
         // Apply changes to the window (unless we're reacting to an external change that has already happened)
@@ -729,7 +731,7 @@ export class DesktopWindow implements DesktopEntity {
             }
 
             // Apply window state
-            if (state !== undefined) {
+            if (state !== undefined && state !== prevState) {
                 switch (state) {
                     case 'normal':
                         actions.push(window.restore());
@@ -808,8 +810,8 @@ export class DesktopWindow implements DesktopEntity {
             this.updateState({state: 'normal'}, ActionOrigin.APPLICATION);
             this._snapGroup.windows.forEach(window => {
                 if (window !== this) {
-                    if (this._tabGroup && window !== this._tabGroup.window) {
-                        // Window will set a window to visible when minimizing. Need to restore window visibility.
+                    if (window.tabGroup && window !== window.tabGroup.window && window !== window.tabGroup.activeTab) {
+                        // Window will set a window to visible when minimizing. Need to restore window visibility for non-active and non-tabstrip windows.
                         (window as DesktopWindow).applyProperties({state: 'normal', hidden: true});
                     } else {
                         // Restore window, without affecting visibility

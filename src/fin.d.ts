@@ -1435,6 +1435,7 @@ declare namespace fin {
         'bounds-changing': WindowBoundsEvent;
         'close-requested': WindowBaseEvent;
         'closed': WindowBaseEvent;
+        'closing': WindowBaseEvent;
         'disabled-frame-bounds-changed': WindowBoundsEvent;
         'disabled-frame-bounds-changing': WindowBoundsEvent;
         'embedded': WindowBaseEvent;

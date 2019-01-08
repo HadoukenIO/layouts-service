@@ -36,7 +36,7 @@ test.beforeEach(async () => {
         defaultLeft: 400,
         defaultHeight: 200,
         defaultWidth: 200,
-        url: 'http://localhost:1337/demo/tabbing/App/default.html',
+        url: 'http://localhost:1337/demo/tabbing/default.html',
         frame: true
     });
     await delay(500);
@@ -79,7 +79,7 @@ test('Drag window into tabgroup - should create 3 tab tabgroup', async t => {
         defaultLeft: 500,
         defaultHeight: 200,
         defaultWidth: 200,
-        url: 'http://localhost:1337/demo/tabbing/App/default.html',
+        url: 'http://localhost:1337/demo/tabbing/default.html',
         frame: true
     });
 
@@ -105,7 +105,7 @@ test('Drag window into tabgroup, invalid region - should not create 3 tab tabgro
         defaultLeft: 50,
         defaultHeight: 200,
         defaultWidth: 200,
-        url: 'http://localhost:1337/demo/tabbing/App/default.html',
+        url: 'http://localhost:1337/demo/tabbing/default.html',
         frame: true
     });
 
@@ -153,7 +153,7 @@ test('Tearout tab dragged into singleton window - should create new tab group', 
         defaultLeft: 500,
         defaultHeight: 200,
         defaultWidth: 200,
-        url: 'http://localhost:1337/demo/tabbing/App/default.html',
+        url: 'http://localhost:1337/demo/tabbing/default.html',
         frame: true
     });
 
@@ -188,7 +188,7 @@ test('Tearout tab dragged into singleton window, invalid ragion - should not cre
         defaultLeft: 500,
         defaultHeight: 200,
         defaultWidth: 200,
-        url: 'http://localhost:1337/demo/tabbing/App/default.html',
+        url: 'http://localhost:1337/demo/tabbing/default.html',
         frame: true
     });
 
@@ -222,7 +222,7 @@ test('test Tearout tab dragged into tab group - should add tab to tabgroup', asy
         defaultLeft: 500,
         defaultHeight: 200,
         defaultWidth: 200,
-        url: 'http://localhost:1337/demo/tabbing/App/default.html',
+        url: 'http://localhost:1337/demo/tabbing/default.html',
         frame: true
     });
 
@@ -233,7 +233,7 @@ test('test Tearout tab dragged into tab group - should add tab to tabgroup', asy
         defaultLeft: 600,
         defaultHeight: 200,
         defaultWidth: 200,
-        url: 'http://localhost:1337/demo/tabbing/App/default.html',
+        url: 'http://localhost:1337/demo/tabbing/default.html',
         frame: true
     });
 
@@ -268,7 +268,7 @@ test('Tearout tab dragged into tab group, invalid region - should not add tab to
         defaultLeft: 500,
         defaultHeight: 200,
         defaultWidth: 200,
-        url: 'http://localhost:1337/demo/tabbing/App/default.html',
+        url: 'http://localhost:1337/demo/tabbing/default.html',
         frame: true
     });
 
@@ -279,7 +279,7 @@ test('Tearout tab dragged into tab group, invalid region - should not add tab to
         defaultLeft: 600,
         defaultHeight: 200,
         defaultWidth: 200,
-        url: 'http://localhost:1337/demo/tabbing/App/default.html',
+        url: 'http://localhost:1337/demo/tabbing/default.html',
         frame: true
     });
 
@@ -336,11 +336,11 @@ test('3 tab tabgroup, Tab closed - should retain tabgroup', async t => {
     const win3 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
-        defaultTop: 500,
-        defaultLeft: 500,
+        defaultTop: 600,
+        defaultLeft: 600,
         defaultHeight: 200,
         defaultWidth: 200,
-        url: 'http://localhost:1337/demo/tabbing/App/default.html',
+        url: 'http://localhost:1337/demo/tabbing/default.html',
         frame: true
     });
 
@@ -362,11 +362,11 @@ test('3 tab tabgroup, Tab tearout - should retain tabgroup', async t => {
     const win3 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
-        defaultTop: 500,
-        defaultLeft: 500,
+        defaultTop: 600,
+        defaultLeft: 600,
         defaultHeight: 200,
         defaultWidth: 200,
-        url: 'http://localhost:1337/demo/tabbing/App/default.html',
+        url: 'http://localhost:1337/demo/tabbing/default.html',
         frame: true
     });
 
@@ -428,7 +428,7 @@ test('Close tab then retab - should create tabgroup', async t => {
         defaultLeft: 500,
         defaultHeight: 200,
         defaultWidth: 200,
-        url: 'http://localhost:1337/demo/tabbing/App/default.html',
+        url: 'http://localhost:1337/demo/tabbing/default.html',
         frame: true
     });
 

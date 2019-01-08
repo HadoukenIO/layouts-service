@@ -94,7 +94,7 @@ export class APIHandler {
         try {
             // Must first clean-up any usage of this window
             const tab: DesktopWindow|null = model.getWindow(identity);
-            const group: DesktopTabGroup|null = tab && tab.getTabGroup();
+            const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
             if (group) {
                 await group.removeTab(tab!);
@@ -137,13 +137,13 @@ export class APIHandler {
 
     private getTabs(tabId: WindowIdentity): WindowIdentity[]|null {
         const tab: DesktopWindow|null = model.getWindow(tabId);
-        const group: DesktopTabGroup|null = tab && tab.getTabGroup();
+        const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
         if (!group) {
             return null;
         }
 
-        return group.tabs.map(tab => tab.getIdentity());
+        return group.tabs.map(tab => tab.identity);
     }
 
     private async createTabGroup(tabs: WindowIdentity[]): Promise<void> {
@@ -153,7 +153,7 @@ export class APIHandler {
     private async addTab(payload: {targetWindow: WindowIdentity, windowToAdd: WindowIdentity}): Promise<void> {
         const tabToAdd: DesktopWindow|null = model.getWindow(payload.windowToAdd);
         const targetTab: DesktopWindow|null = model.getWindow(payload.targetWindow);
-        const targetGroup: DesktopTabGroup|null = targetTab && targetTab.getTabGroup();
+        const targetGroup: DesktopTabGroup|null = targetTab && targetTab.tabGroup;
 
         if (!targetGroup) {
             console.error('Target Window not in a group. Try createTabGroup instead.');
@@ -175,20 +175,20 @@ export class APIHandler {
 
     private removeTab(tab: WindowIdentity): Promise<void> {
         const ejectedTab: DesktopWindow|null = model.getWindow(tab);
-        const tabGroup: DesktopTabGroup|null = ejectedTab && ejectedTab.getTabGroup();
+        const tabGroup: DesktopTabGroup|null = ejectedTab && ejectedTab.tabGroup;
 
         if (tabGroup) {
             return tabGroup.removeTab(ejectedTab!);
         } else if (!ejectedTab) {
             throw new Error(`No tab with ID ${tab ? `${tab.uuid}/${tab.name}` : tab}`);
         } else {
-            throw new Error(`Tab with ID ${ejectedTab.getId()} doesn't belong to a tab group`);
+            throw new Error(`Tab with ID ${ejectedTab.id} doesn't belong to a tab group`);
         }
     }
 
     private setActiveTab(tabId: WindowIdentity): Promise<void> {
         const tab: DesktopWindow|null = model.getWindow(tabId);
-        const group: DesktopTabGroup|null = tab && tab.getTabGroup();
+        const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
         if (!group) {
             console.error('No tab group found for window');
@@ -210,7 +210,7 @@ export class APIHandler {
 
     private async minimizeTabGroup(tabId: WindowIdentity): Promise<void> {
         const tab: DesktopWindow|null = model.getWindow(tabId);
-        const group: DesktopTabGroup|null = tab && tab.getTabGroup();
+        const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
         if (!group) {
             console.error('No tab group found for window');
@@ -222,7 +222,7 @@ export class APIHandler {
 
     private async maximizeTabGroup(tabId: WindowIdentity): Promise<void> {
         const tab: DesktopWindow|null = model.getWindow(tabId);
-        const group: DesktopTabGroup|null = tab && tab.getTabGroup();
+        const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
         if (!group) {
             console.error('No tab group found for window');
@@ -234,7 +234,7 @@ export class APIHandler {
 
     private async closeTabGroup(tabId: WindowIdentity): Promise<void> {
         const tab: DesktopWindow|null = model.getWindow(tabId);
-        const group: DesktopTabGroup|null = tab && tab.getTabGroup();
+        const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
         if (!group) {
             console.error('No tab group found for window');
@@ -247,14 +247,14 @@ export class APIHandler {
 
     private async restoreTabGroup(tabId: WindowIdentity): Promise<void> {
         const tab: DesktopWindow|null = model.getWindow(tabId);
-        const group: DesktopTabGroup|null = tab && tab.getTabGroup();
+        const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
         if (!group) {
             console.error('No tab group found for window');
             throw new Error('No tab group found for window');
         }
 
-        if (await group.window.getState().state === 'minimized') {
+        if (await group.window.currentState.state === 'minimized') {
             return group.window.applyProperties({state: 'normal'});
         } else {
             return group.restore();
@@ -263,7 +263,7 @@ export class APIHandler {
 
     private reorderTabs(newOrdering: WindowIdentity[], tabId: ProviderIdentity): void {
         const tab: DesktopWindow|null = model.getWindow(tabId as WindowIdentity);
-        const group: DesktopTabGroup|null = tab && tab.getTabGroup();
+        const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
         if (!group) {
             console.error('No tab group found for window');
@@ -275,7 +275,7 @@ export class APIHandler {
 
     private updateTabProperties(payload: {window: WindowIdentity, properties: Partial<TabProperties>}): void {
         const tab: DesktopWindow|null = model.getWindow(payload.window);
-        const group: DesktopTabGroup|null = tab && tab.getTabGroup();
+        const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
         if (!group) {
             console.error('No tab found for window');
@@ -292,7 +292,7 @@ export class APIHandler {
 
     private async endDrag(payload: {event: DropPosition, window: WindowIdentity}): Promise<void> {
         const tab: DesktopWindow|null = model.getWindow(payload.window);
-        const group: DesktopTabGroup|null = tab && tab.getTabGroup();
+        const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
         if (!group) {
             console.error('Window is not registered for tabbing');

@@ -45,7 +45,7 @@ test('Update Tab Properties - property changes reflected in service', async t =>
         const tabWindow = this.model.getWindow(identity as WindowIdentity);
 
         //@ts-ignore Accessing private variables in the name of testing.
-        return tabWindow.getTabGroup().getTabProperties(tabWindow);
+        return tabWindow.tabGroup.getTabProperties(tabWindow);
     }
 
     // Execute remote to fetch our windows tab properties from service.
@@ -55,8 +55,12 @@ test('Update Tab Properties - property changes reflected in service', async t =>
     t.deepEqual(result, newProps);
 });
 
-
-test('Update Tab Properties - property changes reflected in tabstrip DOM', async t => {
+/**
+ * Cannot access document in Runtime 37+
+ *
+ * TODO: See if there is an alternate way of testing this.
+ */
+test.failing('Update Tab Properties - property changes reflected in tabstrip DOM', async t => {
     // Drag wins[0] over wins[1] to make a tabset (in valid drop region)
     await tabWindowsTogether(wins[0], wins[1]);
 
@@ -66,7 +70,7 @@ test('Update Tab Properties - property changes reflected in tabstrip DOM', async
     await updateTabProperties(wins[0].identity, newProps);
 
     function remoteFunc(this: ProviderWindow, identity: WindowIdentity) {
-        const tabGroup = this.model.getWindow(identity as WindowIdentity)!.getTabGroup();
+        const tabGroup = this.model.getWindow(identity as WindowIdentity)!.tabGroup;
 
         if (tabGroup) {
             //@ts-ignore Accessing private variables in the name of testing.

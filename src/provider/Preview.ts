@@ -49,7 +49,8 @@ export class Preview {
      * argument to avoid having to re-create the rectangle objects on every call if the group hasn't changed.
      */
     public show(target: PreviewableTarget): void {
-        const activeGroup = target.activeWindow.getSnapGroup();
+        const activeGroup = target.activeWindow.snapGroup;
+
         const groupHalfSize = activeGroup.halfSize;  // TODO: Will need to change once 'activeGroup' can have multiple windows (SERVICE-128)
 
         if (!this.tempWindowIsActive || this.activeGroup !== activeGroup) {
@@ -131,18 +132,17 @@ export class Preview {
 
     private generatePreviewRect(target: PreviewableTarget): Rectangle {
         if (target.type === eTargetType.SNAP) {
-            const activeGroup = target.activeWindow.getSnapGroup();
-            const prevHalfSize = activeGroup.halfSize;
+            const activeState = target.activeWindow.currentState;
+            const prevHalfSize = activeState.halfSize;
 
             const halfSize = target.halfSize || prevHalfSize;
 
             const center = {
-                x: activeGroup.center.x + target.offset.x + (halfSize.x - prevHalfSize.x),
-                y: activeGroup.center.y + target.offset.y + (halfSize.y - prevHalfSize.y)
+                x: activeState.center.x + target.offset.x + (halfSize.x - prevHalfSize.x),
+                y: activeState.center.y + target.offset.y + (halfSize.y - prevHalfSize.y)
             };
 
             return {center, halfSize};
-
         } else {
             // The target type here is "TAB"
             return target.dropArea;

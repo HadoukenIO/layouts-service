@@ -1,78 +1,86 @@
-import {DesktopModel} from './DesktopModel';
-import {WindowIdentity} from './DesktopWindow';
+import {Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
+
+import {DesktopSnapGroup} from './DesktopSnapGroup';
+import {DesktopTabGroup} from './DesktopTabGroup';
+import {EntityState, WindowIdentity} from './DesktopWindow';
 
 /**
- * Base class for windows and tab sets. Represents any entity that should be considered as a single window for the
- * purposes of snap & dock.
- *
- * Also includes common functionality for tracking asynchronous changes to window objects.
+ * Interface for anything that can be snapped - namely windows and tab sets. Represents any entity that should be
+ * considered as a single window for the purposes of snap & dock.
  */
-export abstract class DesktopEntity /*implements Snappable*/ {  // Will eventually implement Snappable, still WIP.
-    protected readonly model: DesktopModel;
-    protected readonly identity: WindowIdentity;
-    protected readonly id: string;  // Created from window uuid and name
+export interface DesktopEntity {
+    /**
+     * Concatenation of window UUID and name, a string that uniquely identifies this window.
+     *
+     * @see DesktopModel.getId
+     */
+    id: string;
 
-    private pendingActions: Promise<void>[];
-    private actionTags: WeakMap<Promise<void>, string>;
+    /**
+     * The OpenFin identity for this entity.
+     *
+     * TabGroups are identified by the WindowIdentity of the tabstrip window.
+     */
+    identity: WindowIdentity;
 
-    constructor(model: DesktopModel, identity: WindowIdentity) {
-        this.model = model;
-        this.identity = identity;
-        this.id = `${identity.uuid}/${identity.name!}`;
-        this.pendingActions = [];
-        this.actionTags = new WeakMap();
-    }
+    /**
+     * The current cached state of this entity.
+     *
+     * This is updated by adding listeners to the underlying window object(s). Due to the asynchronous nature of window
+     * operations, there is no guarentee that this state isn't stale, but this state is always updated as soon as is
+     * possible.
+     */
+    currentState: EntityState;
 
-    public getId(): string {
-        return this.id;
-    }
+    /**
+     * The tab group to which this entity belongs, or null if the entity is not tabbed.
+     *
+     * TabGroups are also entities, and the `tabGroup` of these will always be itself.
+     */
+    tabGroup: DesktopTabGroup|null;
 
-    public getIdentity(): WindowIdentity {
-        return this.identity;
-    }
+    /**
+     * The snap group to which this entity belongs. An entity will always belong to exactly one snap group.
+     *
+     * If an entity isn't currently snapped to anything, it belongs to a snap group with just a single entity.
+     */
+    snapGroup: DesktopSnapGroup;
 
-    public async sync(): Promise<void> {
-        const MAX_AWAITS = 10;
-        let awaitCount = 0;
+    /**
+     * Overrides a single property on this entity. This change can then be reverted by calling `resetOverride` with
+     * the same property name.
+     *
+     * @param property Property to change
+     * @param value Value to apply. The type of this value must match the type of 'property'
+     */
+    applyOverride<K extends keyof EntityState>(property: K, value: EntityState[K]): Promise<void>;
 
-        while (this.pendingActions.length > 0) {
-            if (++awaitCount <= MAX_AWAITS) {
-                // Wait for pending operations to finish
-                await Promise.all(this.pendingActions);
-            } else {
-                // If we've looped this many times, we're probably in some kind of deadlock scenario
-                return Promise.reject(`Couldn't sync ${this.id} after ${awaitCount} attempts`);
-            }
-        }
-    }
+    /**
+     * Resets an override that was previously set using `applyOverride`.
+     *
+     * Has no effect if there is no override in place on that property, or if the override has already been reset.
+     *
+     * @param property The property to reset
+     */
+    resetOverride(property: keyof EntityState): Promise<void>;
 
-    protected async addPendingActions(tag: string, actions: Promise<void>|Promise<void>[]): Promise<void> {
-        if (actions instanceof Array) {
-            this.pendingActions.push.apply(this.pendingActions, actions);
-            actions.forEach((action: Promise<void>, index: number) => {
-                this.actionTags.set(action, `${tag} (${index + 1} of ${actions.length})`);
-                action.then(this.onActionComplete.bind(this, action));
-            });
+    /**
+     * Moves this entity into a new snap group.
+     *
+     * The change will immediately be applied to the model, and will trigger async operations to (re-)group the entity
+     * at the OpenFin/window level.
+     *
+     * @param group The new snap group for this entity
+     */
+    setSnapGroup(group: DesktopSnapGroup): Promise<void>;
 
-            if (actions.length > 1) {
-                return Promise.all(actions).then(() => {});
-            } else if (actions.length === 1) {
-                return actions[0];
-            }
-        } else {
-            this.pendingActions.push(actions);
-            this.actionTags.set(actions, tag);
-            actions.then(this.onActionComplete.bind(this, actions));
-            return actions;
-        }
-    }
-
-    private onActionComplete(action: Promise<void>): void {
-        const index = this.pendingActions.indexOf(action);
-        if (index >= 0) {
-            this.pendingActions.splice(index, 1);
-        } else {
-            console.warn('Action completed but couldn\'t find it in pending action list');
-        }
-    }
+    /**
+     * Will move and/or resize this entity. Both operations are performed using the centre of the entity as the reference point.
+     *
+     * If window needs to be resized from a different "anchor point", the `offset` value will need to be updated accordingly.
+     *
+     * @param offset Distance to move the entity by
+     * @param halfSize Optional new (half)size of the entity
+     */
+    applyOffset(offset: Point, halfSize?: Point): Promise<void>;
 }

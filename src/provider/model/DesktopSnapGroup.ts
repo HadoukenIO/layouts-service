@@ -1,51 +1,13 @@
 import {Signal1, Signal2} from '../Signal';
 import {CalculatedProperty} from '../snapanddock/utils/CalculatedProperty';
-import {Point} from '../snapanddock/utils/PointUtils';
+import {Point, PointUtils} from '../snapanddock/utils/PointUtils';
 
+import {DesktopEntity} from './DesktopEntity';
 import {DesktopTabGroup} from './DesktopTabGroup';
-import {DesktopWindow, eTransformType, Mask, WindowIdentity, WindowMessages, WindowState} from './DesktopWindow';
-
-/**
- * Key-value store for saving the state of each window before it was added to the tab group.
- *
- * When a window gets converted into a tab, the service will have to override most of it's properties, but we want to
- * be able to restore each window to it's original state when you "pop" or "tear" the tab out of the group.
- *
- * Whilst a tab is within a group, this will be the only place that has the original pre-tab state of the window. The
- * DesktopWindow state will all reflect the size/appearance of the tabbed version of the window.
- */
-type TabData = {
-    [id: string]: WindowState
-};
-
-interface TabState {
-    tabBar: DesktopWindow;
-
-    /**
-     * Maps DesktopWindow ID's to the cached state for that window.
-     *
-     * The tab bar is a DesktopWindow the same as any other window in the group, but that window will not appear in this
-     * map, as we won't ever need to "un-tab" or "restore" that window.
-     */
-    previousState: TabData;
-}
-
-export interface Snappable {
-    getId(): string;
-    getIdentity(): WindowIdentity;
-    getState(): WindowState;
-    getTabGroup(): DesktopTabGroup|null;
-    getSnapGroup(): DesktopSnapGroup;
-
-    // tslint:disable-next-line:no-any
-    applyOverride(property: keyof WindowState, value: any): Promise<void>;
-    resetOverride(property: keyof WindowState): Promise<void>;
-    dockToGroup(group: DesktopSnapGroup, offset?: Point, newHalfSize?: Point): Promise<void>;
-    snapToGroup(group: DesktopSnapGroup, offset?: Point, newHalfSize?: Point): Promise<void>;
-}
+import {DesktopWindow, EntityState, eTransformType, Mask, WindowIdentity, WindowMessages} from './DesktopWindow';
 
 export class DesktopSnapGroup {
-    private static nextId = 1;
+    private static _nextId = 1;
 
     public static readonly onCreated: Signal1<DesktopSnapGroup> = new Signal1();
     public static readonly onDestroyed: Signal1<DesktopSnapGroup> = new Signal1();
@@ -71,9 +33,9 @@ export class DesktopSnapGroup {
      *
      * Any active snap target can now be applied.
      *
-     * Arguments: (group: DesktopSnapGroup)
+     * Arguments: (group: DesktopSnapGroup, type: Mask<eTransformType>)
      */
-    public readonly onCommit: Signal1<DesktopSnapGroup> = new Signal1();
+    public readonly onCommit: Signal2<DesktopSnapGroup, Mask<eTransformType>> = new Signal2();
 
     /**
      * A window has been added to this group.
@@ -99,24 +61,16 @@ export class DesktopSnapGroup {
     private _halfSize: CalculatedProperty<Point>;
 
     private _id: number;
+    private _entities: DesktopEntity[];
     private _windows: DesktopWindow[];
 
     private rootWindow: DesktopWindow|null;
 
-    /**
-     * If this is non-null then the windows in this group are tabbed, and so have some special behaviour.
-     *
-     * A group with n tabs will contain n+1 windows - the n applications that the user has "tabbed" together, amd an
-     * additional window that is created by the Snap & Dock service. This window acts as the tab bar - it will be a
-     * DesktopWindow same as any other window, and other windows will also be able to snap to it.
-     */
-    private tabData: TabData|null;
-
     constructor() {
-        this._id = DesktopSnapGroup.nextId++;
+        this._id = DesktopSnapGroup._nextId++;
+        this._entities = [];
         this._windows = [];
         this.rootWindow = null;
-        this.tabData = null;
 
         const refreshFunc = this.calculateProperties.bind(this);
         this._origin = new CalculatedProperty(refreshFunc);
@@ -140,7 +94,7 @@ export class DesktopSnapGroup {
     public get center(): Point {
         if (this.rootWindow) {
             const origin: Point = this._origin.value;
-            const rootCenter: Point = this.rootWindow!.getState().center;
+            const rootCenter: Point = this.rootWindow!.currentState.center;
 
             return {x: rootCenter.x + origin.x, y: rootCenter.y + origin.y};
         } else {
@@ -152,21 +106,22 @@ export class DesktopSnapGroup {
         return this._windows.length;
     }
 
-    public get isTabGroup(): boolean {
-        return this.tabData !== null;
+    public get entities(): DesktopEntity[] {
+        return this._entities.slice();
     }
 
-    public get windows(): Snappable[] {
+    public get windows(): DesktopWindow[] {
         return this._windows.slice();
     }
 
     public addWindow(window: DesktopWindow): void {
         if (!this._windows.includes(window)) {
             // Remove window from it's previous group
-            const prevGroup = (window.getSnapGroup() === this) ? window.getPrevGroup() : window.getSnapGroup();
+            const prevGroup = (window.snapGroup === this) ? window.prevGroup : window.snapGroup;
             if (prevGroup) {
                 prevGroup.removeWindow(window);
             }
+
             // Add listeners to window
             window.onModified.add(this.onWindowModified, this);
             window.onTransform.add(this.onWindowTransform, this);
@@ -175,11 +130,11 @@ export class DesktopSnapGroup {
 
             // Setup hierarchy
             this._windows.push(window);
+            this.buildEntities();
             this.checkRoot();
-            if (window.getSnapGroup() !== this) {
-                window.dockToGroup(this);
+            if (window.snapGroup !== this) {
+                window.setSnapGroup(this);
             }
-
 
             // Will need to re-calculate cached properties
             this._origin.markStale();
@@ -201,6 +156,8 @@ export class DesktopSnapGroup {
 
         if (index >= 0) {
             this._windows.splice(index, 1);
+            this.buildEntities();
+
             window.onModified.remove(this.onWindowModified, this);
             window.onTransform.remove(this.onWindowTransform, this);
             window.onCommit.remove(this.onWindowCommit, this);
@@ -214,7 +171,7 @@ export class DesktopSnapGroup {
 
             // Inform window of removal
             // Note that client API only considers windows to belong to a group if it contains two or more windows
-            if (this._windows.length > 0 && window.isReady()) {
+            if (this._windows.length > 0 && window.isReady) {
                 window.sendMessage(WindowMessages.LEAVE_SNAP_GROUP, {});
             }
 
@@ -230,11 +187,39 @@ export class DesktopSnapGroup {
         }
     }
 
+    private buildEntities(): void {
+        const entities: DesktopEntity[] = this._entities;
+
+        entities.length = 0;
+        this._windows.forEach((window: DesktopWindow) => {
+            let entity: DesktopEntity;
+            const tabGroup: DesktopTabGroup|null = window.tabGroup;
+
+            if (tabGroup && tabGroup.tabs.length > 1) {
+                entity = tabGroup;
+            } else {
+                entity = window;
+            }
+
+            if (!entities.includes(entity)) {
+                entities.push(entity);
+            }
+        });
+    }
+
     /**
      * Ensures the root is valid. If the group is empty, the root will be null.
      */
     private checkRoot(): void {
-        const root = this._windows[0] || null;
+        let root = this._windows[0] || null;
+        const tabGroup: DesktopTabGroup|null = root && root.tabGroup;
+
+        // If the root window becomes hidden the group center will stop updating.
+        // Tabbed windows are likely to be hidden a large amount of the time, so prefer the tabstrip window as the root.
+        if (tabGroup && tabGroup.tabs.length >= 2) {
+            root = tabGroup.window;
+        }
+
         if (this.rootWindow !== root) {
             this.rootWindow = root;
 
@@ -254,9 +239,7 @@ export class DesktopSnapGroup {
         if (type === eTransformType.MOVE) {
             // When a grouped window is moved, all windows in the group will fire a move event.
             // We want to filter these to ensure the group only fires onTransform once
-            if (window === this.rootWindow) {
-                this.onTransform.emit(this, type);
-            }
+            this.onTransform.emit(this, type);
         } else {
             // If a window is resized, that event will only ever fire from that one window. Safe to re-broadcast at the group level.
             this.onTransform.emit(this, type);
@@ -271,35 +254,41 @@ export class DesktopSnapGroup {
     }
 
     private onWindowCommit(window: DesktopWindow, type: Mask<eTransformType>): void {
-        if (window === this.rootWindow || (type & eTransformType.RESIZE) !== 0) {
-            this.onCommit.emit(this);
-        }
+        this.onCommit.emit(this, type);
     }
 
     private onWindowTeardown(window: DesktopWindow) {
-        const group: DesktopSnapGroup = window.getSnapGroup();
+        const group: DesktopSnapGroup = window.snapGroup;
 
         // Ensure window is removed from it's snap group, so that the group doesn't contain any de-registered or non-existant windows.
         group.removeWindow(window);
     }
 
     private calculateProperties(): void {
-        const windows: DesktopWindow[] = this._windows;
-        const numWindows: number = windows.length;
+        let windows: DesktopWindow[] = this._windows;
+        let numWindows: number = windows.length;
+
+        if (windows.length > 1) {
+            windows = windows.filter((window: DesktopWindow) => {
+                const state = window.currentState;
+                return !state.hidden && state.state === 'normal';
+            });
+            numWindows = windows.length;
+        }
 
         if (numWindows === 0) {
             this._origin.updateValue({x: 0, y: 0});
             this._halfSize.updateValue({x: 0, y: 0});
         } else if (numWindows === 1) {
             this._origin.updateValue({x: 0, y: 0});
-            this._halfSize.updateValue({...this.rootWindow!.getState().halfSize});
+            this._halfSize.updateValue(PointUtils.clone(this.rootWindow!.currentState.halfSize));
         } else {
-            let state: WindowState = windows[0].getState();
+            let state: EntityState = windows[0].currentState;
             const min: Point = {x: state.center.x - state.halfSize.x, y: state.center.y - state.halfSize.y};
             const max: Point = {x: state.center.x + state.halfSize.x, y: state.center.y + state.halfSize.y};
 
             for (let i = 1; i < numWindows; i++) {
-                state = windows[i].getState();
+                state = windows[i].currentState;
 
                 min.x = Math.min(min.x, state.center.x - state.halfSize.x);
                 min.y = Math.min(min.y, state.center.y - state.halfSize.y);
@@ -307,7 +296,7 @@ export class DesktopSnapGroup {
                 max.y = Math.max(max.y, state.center.y + state.halfSize.y);
             }
 
-            const rootPosition: Point = this.rootWindow!.getState().center;
+            const rootPosition: Point = this.rootWindow!.currentState.center;
             this._origin.updateValue({x: ((min.x + max.x) / 2) - rootPosition.x, y: ((min.y + max.y) / 2) - rootPosition.y});
             this._halfSize.updateValue({x: (max.x - min.x) / 2, y: (max.y - min.y) / 2});
         }

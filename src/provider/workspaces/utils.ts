@@ -7,6 +7,12 @@ import {model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {WindowIdentity} from '../model/DesktopWindow';
 
+export interface SemVer {
+    major: number;
+    minor: number;
+    patch: number;
+}
+
 // Positions a window when it is restored.
 export const positionWindow = async (win: LayoutWindow) => {
     try {
@@ -211,12 +217,21 @@ export async function childWindowPlaceholderCheckRunningApp(
             } else {
                 const childWindowModel = model.getWindow(win);
                 await tabService.removeTab(win);
-                if (childWindowModel!.getSnapGroup().length > 1) {
-                    childWindowModel!.dockToGroup(new DesktopSnapGroup());
+                if (childWindowModel!.snapGroup.length > 1) {
+                    childWindowModel!.setSnapGroup(new DesktopSnapGroup());
                 }
             }
         }
     } else {
         return;
     }
+}
+
+export function parseVersionString(versionString: string): SemVer {
+    const match = /([1-9]+)\.([0-9]+)\.([0-9]+)/.exec(versionString);
+    if (!match) {
+        throw new Error('Invalid version string. Must be in semver format ("a.b.c")');
+    }
+
+    return {major: Number.parseInt(match[1], 10), minor: Number.parseInt(match[2], 10), patch: Number.parseInt(match[3], 10)};
 }

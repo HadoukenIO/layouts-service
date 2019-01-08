@@ -1,6 +1,7 @@
 import {DesktopSnapGroup, Snappable} from './model/DesktopSnapGroup';
 import {Preview, PreviewableTarget} from './Preview';
 import {eTargetType, Target} from './WindowHandler';
+import {DesktopEntity} from './model/DesktopEntity';
 
 export class View {
     private activeGroup: DesktopSnapGroup|null;  // The group being moved
@@ -76,11 +77,11 @@ export class View {
     private setGroupOpacity(group: DesktopSnapGroup|null, transparent: boolean): void {
         if (group) {
             if (transparent) {
-                group.windows.forEach((window: Snappable) => {
+                group.windows.forEach((window: DesktopEntity) => {
                     window.applyOverride('opacity', 0.8);
                 });
             } else {
-                group.windows.forEach((window: Snappable) => {
+                group.windows.forEach((window: DesktopEntity) => {
                     window.resetOverride('opacity');
                 });
             }
@@ -95,11 +96,11 @@ export class View {
     private setAlwaysOnTop(group: DesktopSnapGroup|null, applyOnTop: boolean): void {
         if (group) {
             if (applyOnTop) {
-                group.windows.forEach((window: Snappable) => {
+                group.windows.forEach((window: DesktopEntity) => {
                     window.applyOverride('alwaysOnTop', true);
                 });
             } else {
-                group.windows.forEach((window: Snappable) => {
+                group.windows.forEach((window: DesktopEntity) => {
                     window.resetOverride('alwaysOnTop');
                 });
             }

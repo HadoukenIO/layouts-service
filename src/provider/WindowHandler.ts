@@ -1,7 +1,8 @@
 import {snapService, tabService} from './main';
+import {DesktopEntity} from './model/DesktopEntity';
 import {DesktopModel} from './model/DesktopModel';
-import {DesktopSnapGroup, Snappable} from './model/DesktopSnapGroup';
-import {DesktopWindow, eTransformType, Mask} from './model/DesktopWindow';
+import {DesktopSnapGroup} from './model/DesktopSnapGroup';
+import {eTransformType, Mask} from './model/DesktopWindow';
 import {SnapTarget} from './snapanddock/Resolver';
 import {Point} from './snapanddock/utils/PointUtils';
 import {DragWindowManager} from './tabbing/DragWindowManager';
@@ -25,7 +26,7 @@ export interface TargetBase {
     /**
      * The window within the active group that was used to find this candidate.
      */
-    activeWindow: Snappable;
+    activeWindow: DesktopEntity;
 
     /**
      * The validity of the target.  This will produce visual feedback indicating if the move is accepted or not.
@@ -63,16 +64,16 @@ export class WindowHandler {
     }
 
     private onGroupTransform(activeGroup: DesktopSnapGroup, type: Mask<eTransformType>) {
-        this.view.update(activeGroup, this.getTarget(activeGroup));
+        this.view.update(activeGroup, this.getTarget(activeGroup, type));
     }
 
-    private onGroupCommit(activeGroup: DesktopSnapGroup) {
-        const target = this.getTarget(activeGroup);
+    private onGroupCommit(activeGroup: DesktopSnapGroup, type: Mask<eTransformType>) {
+        const target = this.getTarget(activeGroup, type);
 
         if (target) {
             if (target.type === eTargetType.TAB) {
-                // TODO: Change this to accept a target (SERVICE-279)
                 tabService.tabDroppedWindow(target);
+
             } else if (target.type === eTargetType.SNAP) {
                 snapService.applySnapTarget(target);
             }
@@ -96,12 +97,9 @@ export class WindowHandler {
      * Fetches the appropriate target from different services.
      * @param {DesktopSnapGroup} activeGroup The active group being moved by the user.
      */
-    private getTarget(activeGroup: DesktopSnapGroup): Target|null {
+    private getTarget(activeGroup: DesktopSnapGroup, type: Mask<eTransformType>): Target|null {
         const snapTarget: Target|null = snapService.getTarget(activeGroup);
-
-        // activeGroup.windows[0] we know is the activeWindow as you cannot tab a tab group (only a single window);  Case of Drag & Drop targets are handled
-        // above.
-        const tabTarget: Target|null = tabService.getTarget(activeGroup.windows[0]);
+        const tabTarget: Target|null = (type & eTransformType.RESIZE) === 0 ? tabService.getTarget(activeGroup) : null;
 
         return snapTarget || tabTarget;
     }

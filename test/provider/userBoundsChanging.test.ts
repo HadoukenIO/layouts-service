@@ -33,7 +33,7 @@ test.beforeEach(async () => {
         defaultLeft: 400,
         defaultHeight: 200,
         defaultWidth: 200,
-        url: 'http://localhost:1337/demo/tabbing/App/default.html',
+        url: 'http://localhost:1337/demo/tabbing/default.html',
         frame: true
     });
     await delay(500);

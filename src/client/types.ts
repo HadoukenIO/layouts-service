@@ -86,6 +86,17 @@ export interface Layout {
     type: 'layout';
 
     /**
+     * Used to determine compatibility of generated layouts when restoring on different versions of the service.
+     *
+     * Any layout JSON produced by the service will contain a schema version number. This is a separate version number
+     * from the service itself, and is incremented only on any changes to the JSON format.
+     *
+     * The version string follows [semver conventions](https://semver.org), and any breaking changes to the schema will
+     * always coincide with a major version increment.
+     */
+    schemaVersion: string;
+
+    /**
      * Stores details about any connected monitors.
      *
      * Note: This data isn't yet used by the service, it is here to allow for future improvements to the workspaces

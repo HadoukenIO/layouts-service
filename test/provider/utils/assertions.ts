@@ -3,13 +3,15 @@ import deepEqual from 'fast-deep-equal';
 import {Window} from 'hadouken-js-adapter';
 
 import {promiseMap} from '../../../src/provider/snapanddock/utils/async';
+import {getTopmostWindow} from '../../demo/utils/modelUtils';
 import {getGroupedWindows, getSnapGroupID} from '../../demo/utils/snapServiceUtils';
-import {getTabGroupID} from '../../demo/utils/tabServiceUtils';
+import {getActiveTab, getId, getTabbedWindows, getTabGroupID, getTabGroupIdentity} from '../../demo/utils/tabServiceUtils';
 
 import {getBounds, NormalizedBounds} from './getBounds';
 import {Win} from './getWindow';
 import {isAdjacentTo} from './isAdjacentTo';
 import {getContiguousWindows} from './isContiguousGroup';
+import {isOverlappedWith} from './isOverlappedWith';
 import {Side} from './SideUtils';
 
 /**
@@ -86,11 +88,12 @@ export async function assertTabbed(win1: Window, win2: Window, t: TestContext): 
     t.deepEqual(bounds1, bounds2, 'Tabbed windows do not have the same bounds');
 
     // Both windows are attached to the tabStrip
-    const tabStripWindow = group1.find((win: Window) => win.identity.name! === tabGroupID1);
+    const tabStripWindow = group1.find((win: Window) => getId(win.identity) === tabGroupID1);
     if (tabStripWindow) {
         await assertAdjacent(t, tabStripWindow, win1, 'bottom');
     } else {
-        t.fail('Windows are not native grouped to the tabStrip');
+        t.fail('Windows are not native grouped to the tabStrip A');
+        return Promise.reject('Windows are not native grouped to the tabStrip B');
     }
 }
 
@@ -102,7 +105,7 @@ export async function assertAllTabbed(t: TestContext, ...windows: Window[]): Pro
         return getTabGroupID(win.identity);
     });
     for (let i = 0; i < tabGroupIDs.length; i++) {
-        t.is(tabGroupIDs[i], tabGroupIDs[0], `Window ${i} is in a different snapGroup to window 0: expected ${tabGroupIDs[0]}, got ${tabGroupIDs[i]}`);
+        t.is(tabGroupIDs[i], tabGroupIDs[0], `Window ${i} is in a different tabGroup to window 0: expected ${tabGroupIDs[0]}, got ${tabGroupIDs[i]}`);
     }
 }
 
@@ -111,7 +114,7 @@ export async function assertAllTabbed(t: TestContext, ...windows: Window[]): Pro
  */
 export async function assertNotTabbed(win: Window, t: TestContext): Promise<void> {
     // Get the tabGroup ID for the window
-    const tabGroupID = await getTabGroupID(win.identity);
+    const tabGroupID = await getTabGroupIdentity(win.identity);
     // Untabbed windows will return null
     t.is(tabGroupID, null);
 }
@@ -153,5 +156,36 @@ export async function assertAllContiguous(t: TestContext, windows: Window[]) {
         t.fail(`Windows do not form a contiguous group. \nExpected: ${expectedGroupsString} \nActual: ${actualGroupsString}`);
     } else {
         t.pass();
+    }
+}
+
+/**
+ * Assert that the given window is both tabbed and the active tab in its tabset.
+ */
+export async function assertActiveTab(t: TestContext, window: Window) {
+    // For a tab to be active it must be a tab.
+    await assertAllTabbed(t, window);
+
+    t.deepEqual(await getActiveTab(window.identity), window.identity);
+
+    // Active tab is not hidden
+    t.true(await window.isShowing());
+    // Active tab is on top
+    const bounds = await getBounds(window);
+    t.deepEqual(await getTopmostWindow({x: bounds.left + bounds.width / 2, y: bounds.top + bounds.height / 2}), window.identity, `Active tab not on top.`);
+    // All other tabs are hidden
+    const tabbedWindows = await getTabbedWindows(window.identity);
+    for (const tab of tabbedWindows) {
+        if (!deepEqual(tab, window.identity)) {
+            t.false(await fin.Window.wrapSync(tab).isShowing());
+        }
+    }
+}
+
+export async function assertNoOverlap(t: TestContext, windows: Window[]) {
+    for (let i = 0; i < windows.length - 1; i++) {
+        for (let j = i + 1; j < windows.length; j++) {
+            t.false(await isOverlappedWith(windows[i], windows[j]), `Window ${i} is overlapped with window ${j}`);
+        }
     }
 }

@@ -14,8 +14,8 @@ export class DragWindowManager {
     public static readonly onDragOver: Signal2<DesktopWindow, Point> = new Signal2();
     public static readonly onDragDrop: Signal0 = new Signal0();
 
-    // tslint:disable-next-line:no-any setTimout return Type is confused by VSC
-    private _hideTimeout: any;
+    // Multiple definitions of setTimeout/clearTimeout, and not possible to point TSC at the correct (non-Node) definition
+    private _hideTimeout: number|NodeJS.Timer;
 
     private _window!: Window;
 
@@ -25,13 +25,8 @@ export class DragWindowManager {
     constructor(model: DesktopModel) {
         this.model = model;
         this.sourceWindow = null;
-    }
-
-    /**
-     * Initializes Async Methods required by this class.
-     */
-    public async init(): Promise<void> {
-        await this._createDragWindow();
+        this._hideTimeout = -1;
+        this._createDragWindow();
     }
 
     /**
@@ -58,7 +53,9 @@ export class DragWindowManager {
     public hideWindow(): void {
         DragWindowManager.onDragDrop.emit();
         this._window.hide();
-        clearTimeout(this._hideTimeout);
+
+        clearTimeout(this._hideTimeout as number);
+        this._hideTimeout = -1;
     }
 
     /**

@@ -1,11 +1,17 @@
-enum SideEnum {
-    'top',
-    'bottom',
-    'left',
-    'right'
+import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
+
+export type Side = 'left'|'top'|'right'|'bottom';
+
+/**
+ * Can be used as an enum for available 'Side' values.
+ */
+export class Sides {
+    public static readonly left: Side = 'left';
+    public static readonly top: Side = 'top';
+    public static readonly right: Side = 'right';
+    public static readonly bottom: Side = 'bottom';
 }
 
-export type Side = keyof typeof SideEnum;
 
 export function opposite(side: Side): Side {
     switch (side) {

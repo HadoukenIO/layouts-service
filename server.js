@@ -120,20 +120,24 @@ async function createServer() {
  * Returns the URL of the manifest file for the requested version of the service.
  * 
  * @param {string} version Version number of the service, or a channel
+ * @param {string} manifestUrl The URL that was set in the application manifest (if any). Any querystring arguments will be persisted, but the rest of the URL will be ignored.
  */
-function getProviderUrl(version) {
+function getProviderUrl(version, manifestUrl) {
+    const index = manifestUrl && manifestUrl.indexOf("?");
+    const query = index >= 0 ? manifestUrl.substr(index) : "";
+
     if (version === 'local') {
         // Provider is running locally
-        return `http://localhost:${PORT}/provider/app.json`;
+        return `http://localhost:${PORT}/provider/app.json${query}`;
     } else if (version === 'stable') {
         // Use the latest stable version
-        return `${CDN_LOCATION}/app.json`;
+        return `${CDN_LOCATION}/app.json${query}`;
     } else if (version === 'staging') {
         // Use the latest staging build
-        return `${CDN_LOCATION}/app.staging.json`;
+        return `${CDN_LOCATION}/app.staging.json${query}`;
     } else if (/\d+\.\d+\.\d+/.test(version)) {
         // Use a specific public release of the service
-        return `${CDN_LOCATION}/${version}/app.json`;
+        return `${CDN_LOCATION}/${version}/app.json${query}`;
     } else {
         throw new Error(`Not a valid version number or channel: ${version}`);
     }
@@ -148,9 +152,9 @@ function getProviderUrl(version) {
  * @param {any} defaultValue Determines return value, if an argument with the given name doesn't exist. Only really makes sense when 'hasValue' is true.
  */
 function getArg(name, hasValue, defaultValue = hasValue ? null : false) {
-    const unusedArgs = global.unusedArgs = (global.unusedArgs || process.argv.slice(2));
+    const unusedArgs = global.unusedArgs = (global.unusedArgs || process.argv.slice(2).map(arg => arg.toLowerCase()));
     let value = defaultValue;
-    let argIndex = unusedArgs.indexOf(name);
+    let argIndex = unusedArgs.indexOf(name.toLowerCase());
 
     if (argIndex >= 0 && argIndex < unusedArgs.length - (hasValue ? 1 : 0)) {
         if (hasValue) {
@@ -216,7 +220,7 @@ function createAppJsonMiddleware() {
         }
         if (serviceDefinition) {
             // Replace provider manifest URL with the requested version
-            serviceDefinition.manifestUrl = getProviderUrl(providerVersion);
+            serviceDefinition.manifestUrl = getProviderUrl(providerVersion, serviceDefinition.manifestUrl);
         }
 
         // Return modified JSON to client

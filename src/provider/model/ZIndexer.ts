@@ -15,8 +15,10 @@ export interface ZIndex {
 }
 
 interface ObjectWithIdentity {
-    getIdentity(): WindowIdentity;
+    identity: WindowIdentity;
 }
+
+type Identifiable = WindowIdentity|ObjectWithIdentity;
 
 /**
  * Keeps track of window Z-indexes
@@ -93,7 +95,7 @@ export class ZIndexer {
      * @param items Array of window or identity objects
      * @return The top-most of the input items, when sorted by z-index
      */
-    public getTopMost<T extends(WindowIdentity|ObjectWithIdentity)>(items: T[]): T|null {
+    public getTopMost<T extends Identifiable>(items: T[]): T|null {
         const ids: string[] = this.getIds(items);
 
         for (const item of this._stack) {
@@ -113,7 +115,7 @@ export class ZIndexer {
      *
      * @param items
      */
-    public sort<T extends(WindowIdentity|ObjectWithIdentity)>(items: T[]): T[] {
+    public sort<T extends Identifiable>(items: T[]): T[] {
         const ids: string[] = this.getIds(items);
         const result: T[] = [];
 
@@ -136,11 +138,11 @@ export class ZIndexer {
 
         const bringToFront = () => {
             const modelWindow: DesktopWindow|null = this._model.getWindow(identity);
-            const modelGroup: DesktopSnapGroup|null = modelWindow && modelWindow.getSnapGroup();
+            const modelGroup: DesktopSnapGroup|null = modelWindow && modelWindow.snapGroup;
 
             if (modelGroup && modelGroup.length > 1) {
                 // Also bring-to-front any windows within the group
-                modelGroup.windows.forEach(window => this.update(window.getIdentity()));
+                modelGroup.windows.forEach(window => this.update(window.identity));
             } else {
                 // Just bring modified window to front
                 this.update(identity);
@@ -162,17 +164,17 @@ export class ZIndexer {
         win.addListener('closed', onClose);
     }
 
-    private getIds<T extends(WindowIdentity|ObjectWithIdentity)>(items: T[]): string[] {
-        return items.map((item: T) => {
+    private getIds(items: Identifiable[]): string[] {
+        return items.map((item: Identifiable) => {
             if (this.hasIdentity(item)) {
-                return this._model.getId(item.getIdentity());
+                return this._model.getId(item.identity);
             } else {
-                return this._model.getId(item as WindowIdentity);
+                return this._model.getId(item);
             }
         });
     }
 
-    private hasIdentity(item: (WindowIdentity|ObjectWithIdentity)): item is ObjectWithIdentity {
-        return (item as ObjectWithIdentity).getIdentity !== undefined;
+    private hasIdentity(item: Identifiable): item is ObjectWithIdentity {
+        return (item as ObjectWithIdentity).identity !== undefined;
     }
 }

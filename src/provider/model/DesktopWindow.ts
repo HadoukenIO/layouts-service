@@ -729,25 +729,25 @@ export class DesktopWindow implements DesktopEntity {
             if (hidden !== undefined) {
                 actions.push(hidden ? window.hide() : window.show());
             }
-
+            
             // Apply window state
             if (state !== undefined && state !== prevState) {
                 switch (state) {
                     case 'normal':
-                        actions.push(window.restore());
-                        break;
+                    actions.push(window.restore());
+                    break;
                     case 'minimized':
-                        actions.push(window.minimize());
-                        break;
+                    actions.push(window.minimize());
+                    break;
                     case 'maximized':
-                        actions.push(window.maximize());
-                        break;
+                    actions.push(window.maximize());
+                    break;
                     default:
-                        console.warn('Invalid window state: ' + state);
-                        break;
+                    console.warn('Invalid window state: ' + state);
+                    break;
                 }
             }
-
+            
             // Apply bounds
             if (center || halfSize) {
                 const state: EntityState = this._currentState;
@@ -801,7 +801,7 @@ export class DesktopWindow implements DesktopEntity {
         this.registerListener('minimized', () => {
             this.updateState({state: 'minimized'}, ActionOrigin.APPLICATION);
             this._snapGroup.windows.forEach(window => {
-                if (window !== this) {
+                if (window !== this && !window.currentState.hidden) {
                     (window as DesktopWindow).applyProperties({state: 'minimized'});
                 }
             });
@@ -809,14 +809,8 @@ export class DesktopWindow implements DesktopEntity {
         this.registerListener('restored', () => {
             this.updateState({state: 'normal'}, ActionOrigin.APPLICATION);
             this._snapGroup.windows.forEach(window => {
-                if (window !== this) {
-                    if (window.tabGroup && window !== window.tabGroup.window && window !== window.tabGroup.activeTab) {
-                        // Window will set a window to visible when minimizing. Need to restore window visibility for non-active and non-tabstrip windows.
-                        (window as DesktopWindow).applyProperties({state: 'normal', hidden: true});
-                    } else {
-                        // Restore window, without affecting visibility
-                        (window as DesktopWindow).applyProperties({state: 'normal'});
-                    }
+                if (window !== this && !window.currentState.hidden) {
+                    window.applyProperties({state: 'normal'});
                 }
             });
         });

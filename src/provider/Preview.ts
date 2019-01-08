@@ -1,9 +1,9 @@
 import {DesktopSnapGroup} from './model/DesktopSnapGroup';
+import {SnapTarget} from './snapanddock/Resolver';
 import {Point, PointUtils} from './snapanddock/utils/PointUtils';
 import {Rectangle} from './snapanddock/utils/RectUtils';
+import {TabTarget} from './tabbing/TabService';
 import {eTargetType, Target} from './WindowHandler';
-import { TabTarget } from './tabbing/TabService';
-import { SnapTarget } from './snapanddock/Resolver';
 
 const PREVIEW_SUCCESS = '#3D4059';
 const PREVIEW_SUCCESS_RESIZE = PREVIEW_SUCCESS;

@@ -1,6 +1,6 @@
 import {DesktopSnapGroup, Snappable} from './model/DesktopSnapGroup';
 import {Preview, PreviewableTarget} from './Preview';
-import {Target, eTargetType} from './WindowHandler';
+import {eTargetType, Target} from './WindowHandler';
 
 export class View {
     private activeGroup: DesktopSnapGroup|null;  // The group being moved
@@ -24,7 +24,7 @@ export class View {
      * original opacities once the active/target group(s) change or get reset.
      */
     public update(activeGroup: DesktopSnapGroup|null, target: Target|null): void {
-        if(target && target.type === eTargetType.EJECT){
+        if (target && target.type === eTargetType.EJECT) {
             activeGroup = target = null;
         }
 
@@ -47,7 +47,8 @@ export class View {
 
         // Detect change of target group
         if ((this.target && this.isPreviewable(this.target) && this.target.group) !== (target && target.group)) {
-            const targetGroup = this.target && this.isPreviewable(this.target) ? this.target.group : null;// && this.target.type !== eTargetType.EJECT ? this.target.group : null;
+            const targetGroup = this.target && this.isPreviewable(this.target) ? this.target.group :
+                                                                                 null;  // && this.target.type !== eTargetType.EJECT ? this.target.group : null;
 
             // Reset alwaysOnTop override, as our activeGroup window is now in the target group.
             this.setAlwaysOnTop(targetGroup, false);

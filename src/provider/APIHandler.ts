@@ -300,6 +300,6 @@ export class APIHandler {
         }
 
         tabService.dragWindowManager.hideWindow();
-        tabService.ejectTab(payload.window, {x: payload.event.screenX, y: payload.event.screenY});
+        tabService.ejectTab(payload.window);
     }
 }

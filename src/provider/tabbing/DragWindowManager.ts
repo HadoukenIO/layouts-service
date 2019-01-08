@@ -1,11 +1,11 @@
 import {Window} from 'hadouken-js-adapter';
+import {Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
+import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {WindowIdentity} from '../../client/types';
-import { Signal2, Signal0 } from '../Signal';
-import { Point } from 'hadouken-js-adapter/out/types/src/api/system/point';
-import { _Window } from 'hadouken-js-adapter/out/types/src/api/window/window';
-import { DesktopWindow } from '../model/DesktopWindow';
-import { DesktopModel } from '../model/DesktopModel';
+import {DesktopModel} from '../model/DesktopModel';
+import {DesktopWindow} from '../model/DesktopWindow';
+import {Signal0, Signal2} from '../Signal';
 
 /**
  * Handles the Drag Window which appears when API drag and drop is initialized.
@@ -19,10 +19,10 @@ export class DragWindowManager {
 
     private _window!: Window;
 
-    private sourceWindow: DesktopWindow | null;
+    private sourceWindow: DesktopWindow|null;
     private model: DesktopModel;
 
-    constructor(model: DesktopModel){
+    constructor(model: DesktopModel) {
         this.model = model;
         this.sourceWindow = null;
     }
@@ -67,7 +67,7 @@ export class DragWindowManager {
     private async _createDragWindow(): Promise<void> {
         this._window = await fin.Window.create({
             name: 'TabbingDragWindow',
-            url: "about:blank",
+            url: 'about:blank',
             defaultHeight: 1,
             defaultWidth: 1,
             defaultLeft: 0,
@@ -84,7 +84,7 @@ export class DragWindowManager {
 
         const nativeWin = await this._window.getNativeWindow();
 
-        nativeWin.document.body.addEventListener("dragover", (ev: DragEvent)=>{
+        nativeWin.document.body.addEventListener('dragover', (ev: DragEvent) => {
             DragWindowManager.onDragOver.emit(this.sourceWindow!, {x: ev.screenX, y: ev.screenY});
             ev.preventDefault();
             ev.stopPropagation();
@@ -92,7 +92,7 @@ export class DragWindowManager {
             return true;
         });
 
-        nativeWin.document.body.addEventListener("drop", (ev: DragEvent)=>{
+        nativeWin.document.body.addEventListener('drop', (ev: DragEvent) => {
             DragWindowManager.onDragDrop.emit();
             ev.preventDefault();
             ev.stopPropagation();

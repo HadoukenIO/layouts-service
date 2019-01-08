@@ -1,7 +1,8 @@
 import {Point, PointTopLeft} from 'hadouken-js-adapter/out/types/src/api/system/point';
 
+import {DragWindowManager} from '../tabbing/DragWindowManager';
+
 import {DesktopWindow, eTransformType, Mask, WindowState} from './DesktopWindow';
-import { DragWindowManager } from '../tabbing/DragWindowManager';
 
 /**
  * A helper to keep track of mouse position when a window is being dragged via user movement
@@ -34,13 +35,13 @@ export class MouseTracker {
         window.onCommit.remove(this.end, this);
     }
 
-    private onTabDrag(window: DesktopWindow, position: Point){
+    private onTabDrag(window: DesktopWindow, position: Point) {
         this.knownPosition = position;
     }
 
-    private onTabDrop(){
+    private onTabDrop() {
         // Timeout because the position will be cleared once a tab drop has occurred.  In the event of an tab eject this information is needed at drop.
-        setTimeout(()=>{
+        setTimeout(() => {
             this.knownPosition = null;
         }, 500);
     }
@@ -96,7 +97,7 @@ export class MouseTracker {
                 x: this.mouseOffset.x + (currentWindowState.center.x - currentWindowState.halfSize.x),
                 y: this.mouseOffset.y + (currentWindowState.center.y - currentWindowState.halfSize.y)
             };
-        } else if(this.knownPosition){
+        } else if (this.knownPosition) {
             return this.knownPosition;
         }
 

@@ -5,7 +5,7 @@ import {DesktopSnapGroup, Snappable} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {DesktopWindow, WindowState} from '../model/DesktopWindow';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
-import {eTargetType, TargetBase} from '../WindowHandler';
+import {eTargetType,  TargetBase} from '../WindowHandler';
 import {ApplicationConfigManager} from './components/ApplicationConfigManager';
 import {DragWindowManager} from './DragWindowManager';
 
@@ -224,9 +224,9 @@ export class TabService {
      *
      * @param window Window that has just been moved by the user
      */
-    public async tabDroppedWindow(window: DesktopWindow): Promise<void> {
+    public async tabDroppedWindow(target: TabTarget|EjectTarget): Promise<void> {
         if (!this.disableTabbingOperations) {
-            await this.internalHandleWindowDrop(window, this._model.getMouseTracker().getPosition());
+            await this.internalHandleWindowDrop(target);
         }
     }
 
@@ -248,7 +248,7 @@ export class TabService {
      * @param ejectPosition The current position of the mouse (if known). Ejected tab will be moved to this location, and tabbed with any other (compatible)
      * window/tabgroup at this position.
      */
-    public async ejectTab(tab: WindowIdentity, ejectPosition?: Point): Promise<void> {
+    public async ejectTab(tab: WindowIdentity): Promise<void> {
         // Get the tab that was ejected.
         const ejectedTab: DesktopWindow|null = this._model.getWindow(tab);
         const tabGroup: DesktopTabGroup|null = ejectedTab && ejectedTab.getTabGroup();
@@ -259,31 +259,23 @@ export class TabService {
             throw new Error('Specified window is not in a tabGroup.');
         }
 
-        await this.internalHandleWindowDrop(ejectedTab, ejectPosition);
+        const target = this.getTarget(ejectedTab);
+
+        if (!target) return;
+
+        await this.internalHandleWindowDrop(target);
     }
 
-    /**
-     * Handles all possible tabbing actions when a window/tab is dropped.  The possibilies are:
-     *
-     * 1. If there is a window under our point and its a tab group different to the one we're leaving, we join into it.
-     *
-     * 2. If there is a window under our point, and its not a tab group window, and we are in its valid drop area, then we create a new tab group with it.
-     *
-     * 3. If there are no windows under the point, then we move the ejecting window to the point.
-     *
-     * 4. If there is no point then we only eject in current position.
-     *
-     * @param window The window being ejected or dropped
-     * @param position The point where the window is being dropped at. If nothing is passed the window will be ejected at its current spot.
-     */
-    private async internalHandleWindowDrop(window: DesktopWindow, position: Point|null = null): Promise<void> {
-        const activeIdentity: WindowIdentity = window.getIdentity();
-        const existingTabGroup: DesktopTabGroup|null = window.getTabGroup();
-        const windowUnderPoint: DesktopWindow|null = position && this._model.getWindowAt(position.x, position.y, activeIdentity);
-        const tabGroupUnderPoint: DesktopTabGroup|null = windowUnderPoint && windowUnderPoint.getTabGroup();
-        const tabAllowed = windowUnderPoint &&
-            this.applicationConfigManager.compareConfigBetweenApplications(
-                tabGroupUnderPoint ? tabGroupUnderPoint.config : windowUnderPoint.getIdentity().uuid, activeIdentity.uuid);
+    private async internalHandleWindowDrop(target: TabTarget|EjectTarget): Promise<void> {
+        const activeIdentity: WindowIdentity = target.activeWindow.getIdentity();
+        const existingTabGroup: DesktopTabGroup|null = target.activeWindow.getTabGroup();
+        const windowUnderPoint = target.type === eTargetType.TAB && target.group.windows[0];
+        const tabGroupUnderPoint = windowUnderPoint && windowUnderPoint.getTabGroup();
+        const tabAllowed = target.valid;
+
+        const activeDesktopWindow = this._model.getWindow(activeIdentity);
+
+        if (!activeDesktopWindow) return;
 
         if (tabGroupUnderPoint && windowUnderPoint === tabGroupUnderPoint.window) {
             // If we are over a tab group
@@ -291,40 +283,34 @@ export class TabService {
             if (existingTabGroup !== tabGroupUnderPoint && tabAllowed) {
                 // And that tab group is not the one we are ejecting from
 
-                if (existingTabGroup) await existingTabGroup.removeTab(window);
+                if (existingTabGroup) await existingTabGroup.removeTab(activeDesktopWindow);
 
                 // Add ejected tab to tab group under Point.
-                await tabGroupUnderPoint.addTab(window);
+                await tabGroupUnderPoint.addTab(activeDesktopWindow);
 
             } else {
                 // Tab has been dragged and dropped onto the same tab group, do nothing.
                 // This was probably a tab re-ordering operation. This is handled separately
             }
-        } else if (tabAllowed && position && windowUnderPoint && !tabGroupUnderPoint && this.isOverWindowDropArea(windowUnderPoint, position)) {
+        } else if (tabAllowed && windowUnderPoint && !tabGroupUnderPoint && target.valid) {
             // If there is a window under our Point, and its not part of a tab group, and we are over a valid drop area
 
-            if (existingTabGroup) await existingTabGroup.removeTab(window);
+            if (existingTabGroup) await existingTabGroup.removeTab(activeDesktopWindow);
 
             // Create new tab group
             await this.createTabGroupWithTabs([windowUnderPoint.getIdentity(), activeIdentity], activeIdentity);
 
-        } else if (position && existingTabGroup) {
+        } else if (target.type === eTargetType.EJECT && existingTabGroup) {
             // If there are no windows under the point and we are being ejected from a tab group
 
             // We eject at the Point
-            const prevHalfSize = window.getState().halfSize;
+            const prevHalfSize = activeDesktopWindow.getState().halfSize;
             const halfSize = {x: prevHalfSize.x, y: prevHalfSize.y + existingTabGroup.config.height / 2};
-            const center = {x: position.x + halfSize.x, y: position.y + halfSize.y};
-            await existingTabGroup.removeTab(window, {center, halfSize});
-
-        } else if (existingTabGroup) {
-            // If we are provided no Point
-
-            // Eject tab at its current position
-            await existingTabGroup.removeTab(window);
+            const center = {x: target.position.x + halfSize.x, y: target.position.y + halfSize.y};
+            await existingTabGroup.removeTab(activeDesktopWindow, {center, halfSize});
         }
 
-        await window.bringToFront();
+        await activeDesktopWindow.bringToFront();
     }
 
     /**
@@ -365,7 +351,7 @@ export class TabService {
     public getTarget(activeWindow: Snappable): TabTarget|EjectTarget|null {
         const position: Point|null = this._model.getMouseTracker().getPosition();
 
-        if(!position){
+        if (!position) {
             // We should get a mouse position whenever we are running a getTarget op.
             return null;
         }
@@ -381,7 +367,7 @@ export class TabService {
         /**
          * Checks the mouse position is over a valid window drop area.
          */
-        const isOverWindowValid = targetWindow && this.isOverWindowDropArea(targetWindow, position!);
+        const isOverWindowValid = targetWindow && this.isOverWindowDropArea(targetWindow, position);
 
         /**
          * Checks if the window we are dragging is a tab group.
@@ -397,22 +383,15 @@ export class TabService {
             const isTargetTabbed = targetWindow.getTabGroup();
 
             // Check if the target and active window have same tab config.
-            const valid: boolean = this.applicationConfigManager.compareConfigBetweenApplications(
-                isTargetTabbed ? isTargetTabbed.config : targetWindow.getIdentity().uuid, activeWindow.getIdentity().uuid);
-            return {
-                type: eTargetType.TAB,
-                activeWindow,
-                group: targetWindow.getSnapGroup(),
-                dropArea: this.getWindowDropArea(targetWindow),
-                valid
-            };
-        } else if(!isMouseInsideGroupBounds && !targetWindow){
-            return {
-                type: eTargetType.EJECT,
-                activeWindow,
-                position,
-                valid: true
-            }
+            const valid = this.applicationConfigManager.compareConfigBetweenApplications(
+                isTargetTabbed ? isTargetTabbed.config : targetWindow.getIdentity().uuid,
+                isActiveWindowTabbed ? isActiveWindowTabbed.config : activeWindow.getIdentity().uuid);
+
+            return {type: eTargetType.TAB, activeWindow, group: targetWindow.getSnapGroup(), dropArea: this.getWindowDropArea(targetWindow), valid};
+        } else if (
+            !isMouseInsideGroupBounds ||
+            isMouseInsideGroupBounds && isActiveWindowTabbed && !this.isOverWindowDropArea(activeWindow as DesktopWindow, position)) {
+            return {type: eTargetType.EJECT, activeWindow, position, valid: true};
         }
 
         return null;

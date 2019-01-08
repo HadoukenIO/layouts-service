@@ -3,10 +3,10 @@ import {DesktopModel} from './model/DesktopModel';
 import {DesktopSnapGroup, Snappable} from './model/DesktopSnapGroup';
 import {DesktopWindow, eTransformType, Mask} from './model/DesktopWindow';
 import {SnapTarget} from './snapanddock/Resolver';
-import {TabTarget, EjectTarget} from './tabbing/TabService';
+import {Point} from './snapanddock/utils/PointUtils';
+import {DragWindowManager} from './tabbing/DragWindowManager';
+import {EjectTarget, TabTarget} from './tabbing/TabService';
 import {View} from './View';
-import { DragWindowManager } from './tabbing/DragWindowManager';
-import { Point } from './snapanddock/utils/PointUtils';
 
 /**
  * The existing interfaces for what a target can be.
@@ -72,7 +72,7 @@ export class WindowHandler {
         if (target) {
             if (target.type === eTargetType.TAB) {
                 // TODO: Change this to accept a target (SERVICE-279)
-                tabService.tabDroppedWindow(activeGroup.windows[0] as DesktopWindow);
+                tabService.tabDroppedWindow(target);
             } else if (target.type === eTargetType.SNAP) {
                 snapService.applySnapTarget(target);
             }
@@ -86,7 +86,6 @@ export class WindowHandler {
         const target = tabService.getTarget(window);
 
         this.view.update(activeGroup, target);
-
     }
 
     private onTabDrop() {
@@ -100,7 +99,8 @@ export class WindowHandler {
     private getTarget(activeGroup: DesktopSnapGroup): Target|null {
         const snapTarget: Target|null = snapService.getTarget(activeGroup);
 
-        // activeGroup.windows[0] we know is the activeWindow as you cannot tab a tab group (only a single window);  Case of Drag & Drop targets are handled above.
+        // activeGroup.windows[0] we know is the activeWindow as you cannot tab a tab group (only a single window);  Case of Drag & Drop targets are handled
+        // above.
         const tabTarget: Target|null = tabService.getTarget(activeGroup.windows[0]);
 
         return snapTarget || tabTarget;

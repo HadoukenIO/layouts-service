@@ -729,25 +729,25 @@ export class DesktopWindow implements DesktopEntity {
             if (hidden !== undefined) {
                 actions.push(hidden ? window.hide() : window.show());
             }
-            
+
             // Apply window state
             if (state !== undefined && state !== prevState) {
                 switch (state) {
                     case 'normal':
-                    actions.push(window.restore());
-                    break;
+                        actions.push(window.restore());
+                        break;
                     case 'minimized':
-                    actions.push(window.minimize());
-                    break;
+                        actions.push(window.minimize());
+                        break;
                     case 'maximized':
-                    actions.push(window.maximize());
-                    break;
+                        actions.push(window.maximize());
+                        break;
                     default:
-                    console.warn('Invalid window state: ' + state);
-                    break;
+                        console.warn('Invalid window state: ' + state);
+                        break;
                 }
             }
-            
+
             // Apply bounds
             if (center || halfSize) {
                 const state: EntityState = this._currentState;

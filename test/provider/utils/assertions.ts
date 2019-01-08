@@ -100,7 +100,11 @@ export async function assertTabbed(win1: Window, win2: Window, t: TestContext): 
     for (const win of [win1, win2]) {
         const isShowing = await win.isShowing();
         const shouldBeShowing = deepEqual(win.identity, await getActiveTab(win.identity));
-        t.is(isShowing, shouldBeShowing);
+        t.is(
+            isShowing,
+            shouldBeShowing,
+            `Window ${'"' + win.identity.uuid + '/' + win.identity.name + '"'} expected to ${shouldBeShowing ? 'not ' : ''}be hidden, but was${
+                isShowing ? ' not.' : '.'}`);
     }
 }
 
@@ -197,10 +201,11 @@ export async function assertNoOverlap(t: TestContext, windows: Window[]) {
     }
 }
 
-export async function assertAllMinimized(t: TestContext, windows: Window[]) {
+export async function assertAllMinimizedOrHidden(t: TestContext, windows: Window[]) {
     return Promise.all(windows.map(async win => {
+        const showing = await win.isShowing();
         const state = await win.getState();
-        t.is(state, 'minimized');
+        t.true(state === 'minimized' || !showing);
     }));
 }
 

@@ -225,7 +225,7 @@ export class DesktopTabGroup implements DesktopEntity {
     public async minimize(): Promise<void> {
         // Only minimize the tabstrip and active tab since minimizing hidden windows causes issues.
         // This may cause problems if switching tabs while minimized, but that would require a questionable custom tabstrip.
-        return Promise.all([this._window.applyProperties({state: 'minimized'}), this.activeTab.applyProperties({state: 'minimized'})]).then(() => {});
+        await Promise.all([this._window.applyProperties({state: 'minimized'}), this.activeTab.applyProperties({state: 'minimized'})]);
     }
 
     /**

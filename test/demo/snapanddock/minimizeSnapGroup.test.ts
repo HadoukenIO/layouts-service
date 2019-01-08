@@ -6,7 +6,6 @@ import { tabWindowsTogether } from '../../provider/utils/tabWindowsTogether';
 import { _Window } from 'hadouken-js-adapter/out/types/src/api/window/window';
 import { getTabstrip } from '../utils/tabServiceUtils';
 import { layoutsClientPromise } from '../utils/serviceUtils';
-import * as Sinon from 'sinon';
 
 interface MinimizeTestOptions extends CreateWindowData {
     // Index of the window on which restore is invoked (group will be minimized from index 0)

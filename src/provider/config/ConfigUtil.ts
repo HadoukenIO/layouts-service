@@ -35,14 +35,6 @@ export type RequiredRecursive<T> = {
 };
 
 /**
- * Helper type - like the built-in `Partial<T>` util, but will apply the modifier recursively, to any non-primitive
- * values within T.
- */
-export type PartialRecursive<T> = T;  //{
-//     [P in keyof T]?: T[P] extends number|string|boolean ? T[P] : PartialRecursive<T[P]>;
-// };
-
-/**
  * Helper type - takes any object type and transforms it into a "Mask" of that type.
  *
  * A mask type has all the same members as the original type, but all primitive values are replaced with `boolean`. Any
@@ -120,30 +112,29 @@ export class ConfigUtil {
     }
 
     /**
-     * Checks that the given rule can be executed in the given scope.
+     * Checks that `rule` is allowed to be defined within config with a source of `scope`.
      *
      * The service prevents config sources from specifying rules in scopes that are "higher" than the scope at which the
      * config is being loaded at. This util ensures the rule operates "at or below" the given scope.
      *
-     * @param rule The rule to execute
-     * @param scope The scope to execute the rule on
+     * @param rule The rule being added to the store
+     * @param scope The scope of whoever is trying to add this rule to the store
      */
-    // public static _validateRule(rule: Rule, scope: Scope): boolean {
-    //     return scopePriorityMap.get(rule.level)! <= scopePriorityMap.get(scope.level)!;
-    // }
-
-
     public static ruleCanBeAddedInScope(rule: Rule, scope: Scope): boolean {
         return scopePriorityMap.get(rule.level)! >= scopePriorityMap.get(scope.level)!;
     }
 
     /**
-     * Returns if `rule` can be used in the given scope.
+     * Returns if `rule` applies to `scope`.
+     * 
+     * Rules apply to the scope at which they are defined, and any scopes below that in the hierarchy. For example, an
+     * 'application'-scoped rule's config should be applied to application and window scopes only, and not a query at
+     * desktop or service scope.
      *
-     * Rules can be used in any
+     * Rules can be used in any scope that exists "at-or-above" the scope at which it acts.
      *
-     * @param rule
-     * @param scope
+     * @param rule The rule being considered for execution
+     * @param scope The scope being queried
      */
     public static ruleCanBeUsedInScope(rule: Rule, scope: Scope): boolean {
         return scopePriorityMap.get(rule.level)! <= scopePriorityMap.get(scope.level)!;
@@ -286,9 +277,6 @@ export class ConfigUtil {
         if (!(value[key] instanceof Object)) {
             // tslint:disable-next-line:no-any
             target[key] = value[key] as any;
-        } else if (!target.hasOwnProperty(key) && ConfigUtil.inMask(mask, key)) {
-            // tslint:disable-next-line:no-any
-            target[key] = ConfigUtil.deepCopy(value[key]) as any;
         } else if (value[key]) {
             if (!target.hasOwnProperty(key)) {
                 (target[key] as {}) = {};
@@ -303,7 +291,7 @@ export class ConfigUtil {
         if (typeof mask === 'boolean') {
             return mask;
         } else {
-            return mask[key] === true;
+            return (typeof mask[key] === 'object') || mask[key] === true;
         }
     }
 }

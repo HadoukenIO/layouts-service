@@ -1,7 +1,7 @@
 import {RegEx, Rule} from '../../../gen/provider/config/layouts-config';
 import {Scope} from '../../../gen/provider/config/scope';
 
-import {ConfigUtil, Mask, Masked, PartialRecursive, RequiredRecursive, scopePriorityLookup, scopePriorityMap} from './ConfigUtil';
+import {ConfigUtil, Mask, Masked, RequiredRecursive, scopePriorityLookup, scopePriorityMap} from './ConfigUtil';
 import {Watch} from './Watch';
 
 /**
@@ -14,15 +14,70 @@ export interface ScopedConfig<T> {
     config: T;
 }
 
-interface StoredConfig<T> {
-    source: Scope;
-    rule: Rule;
-    config: T;
-}
-
+/**
+ * A config object, with an optional list of rules to be applied on top.
+ * 
+ * This type is what developers can add to their application manifests. The top-level `T` object will be applied to 
+ * the application and all of it's windows, and the developer can also additionally define one or more rules that 
+ * apply additional snippets to a scope of their choosing.
+ * 
+ * ```json
+ * "services": [{
+ *     "name": "layouts",
+ *     "config": {
+ *         "param1": "value1",
+ *         "param2": "value2",
+ *         "rules": [{
+ *             "scope": {"level": "window", "name": "launcher"},
+ *             "config": {
+ *                 "param1": "valueA",
+ *                 "param2": "valueB"
+ *             }
+ *         }, {
+ *             "scope": {"level": "window", "name": {"expression": "popup-.*"}},
+ *             "config": {
+ *                 "param1": "valueX",
+ *                 "param2": "valueY"
+ *             }
+ *         }]
+ *     }
+ * }]
+ * ```
+ */
 type ConfigWithRules<T> = T&{
     rules?: ScopedConfig<T>[];
 };
+
+/**
+ * An entry within the config store. The store will track the source of every item added to the store, the rule that 
+ * defines what that config applies to, and the actual config data itself.
+ * 
+ * When querying, these entries will be applied on top of each other, from lowest priority to highest, to gradually 
+ * build-up an object that combines configuration data from many sources.
+ */
+interface StoredConfig<T> {
+    /**
+     * The source of this config object. Typically an 'application' scope, as it is expected most config will come from
+     * `app.json` files. Could also be desktop for anything set by a desktop owner, or window for anything set via a 
+     * client API call.
+     */
+    source: Scope;
+
+    /**
+     * A rule that defines when the config data within this object should be applied. When querying the store, it is
+     * this rule that determines if this entry contributes to the object that is returned by the store.
+     * 
+     * For any config that doesn't explicitly define a rule (for example, "top-level" config within an application
+     * manifest), this will be the same as source.
+     */
+    rule: Rule;
+
+    /**
+     * The config data itself. This will typically be a "partial" object, that only specifies a small subset of the 
+     * available config options.
+     */
+    config: T;
+}
 
 /**
  * A central config "database" that holds the default configuration of the service, and a number of
@@ -198,10 +253,11 @@ export class Store<T> {
 
         const priority = scopePriorityMap.get(scope.level)!;
         for (let i = 0; i <= priority; i++) {
-            const scopedLayouts: StoredConfig<T>[]|undefined = this._items.get(scopePriorityLookup[i]);
+            const rulesAtScope: StoredConfig<T>[] = this._items.get(scopePriorityLookup[i]) || [];
+            const applicableRules: StoredConfig<T>[] = rulesAtScope.filter(rule => ConfigUtil.matchesRule(rule.rule, scope));
 
-            if (scopedLayouts) {
-                scopedLayouts.forEach((config: StoredConfig<T>) => {
+            if (applicableRules) {
+                applicableRules.forEach((config: StoredConfig<T>) => {
                     if (ConfigUtil.matchesRule(config.rule, scope)) {
                         ConfigUtil.deepAssignMask<T, M>(result, config.config as T, mask);
                     }
@@ -212,7 +268,7 @@ export class Store<T> {
         return result;
     }
 
-    private addInternal(source: Scope, rule: Rule, config: T /*PartialRecursive<T>*/): void {
+    private addInternal(source: Scope, rule: Rule, config: T): void {
         let itemsWithScope: StoredConfig<T>[]|undefined = this._items.get(rule.level);
         if (!itemsWithScope) {
             itemsWithScope = [];
@@ -225,14 +281,18 @@ export class Store<T> {
         this.checkWatches({scope: rule, config}, 'onAdd');
     }
 
+    /**
+     * Sorts the given rules by priority, according to rule precedence logic. Sorted rules are returned as a new array.
+     * 
+     * Precedence rules are as follows (highest priority first):
+     *   • Whichever rule has the highest-precedence scope (as determined by `scopePriorityMap`)
+     *   • Whichever rule has the highest-precedence source (as determined by `scopePriorityMap`)
+     *   • Whichever rule has the most-specific scope (see {@link getSpecifity} for details)
+     *   • Whichever rule was most-recently added
+     * 
+     * @param applicableRules List of rules that should be sorted
+     */
     private applyPrecedenceRules(applicableRules: StoredConfig<T>[]): StoredConfig<T>[] {
-        /**
-         * Precedence rules are as follows (highest priority first):
-         *   - Whichever rule has the highest-precedence scope (as determined by `scopePriorityMap`)
-         *   - Whichever rule has the highest-precedence source (as determined by `scopePriorityMap`)
-         *   - Whichever rule has the most-specific scope (scope with the fewest regex parameters, applies only to application/window scopes)
-         *   - Whichever rule was most-recently added
-         */
         return applicableRules.sort((a: StoredConfig<T>, b: StoredConfig<T>) => {
             if (a.rule.level !== b.rule.level) {
                 // Sort by rule scope
@@ -251,6 +311,18 @@ export class Store<T> {
         });
     }
 
+    /**
+     * Returns a number that indicates how "specific" `rule` is.
+     * 
+     * Specifity is defined by the number of regexes within the rule - more regexes makes the rule broader, or more 
+     * generic; fewer regexes makes the rule narrower, or more specific.
+     * 
+     * Specifity is a concept that only applies to scopes that have parameters. Non-parameterised scopes (e.g. desktop)
+     * will always return 0. For this reason, comparing specifity values across scopes doesn't make much sense, this 
+     * metric is only really useful when comparing two rules of the same scope.
+     * 
+     * @param rule Rule to quantify
+     */
     private getSpecifity(rule: Rule): number {
         switch (rule.level) {
             case 'application':
@@ -263,6 +335,12 @@ export class Store<T> {
         }
     }
 
+    /**
+     * Checks for any active watches that match the given config, and then dispatch the specified signal on the watch.
+     * 
+     * @param config A config rule that has just been added or removed
+     * @param signal The action performed to `config` - defines which signal on the watch will be emitted
+     */
     private checkWatches(config: ScopedConfig<T>, signal: 'onAdd'|'onRemove'): void {
         this._watches.forEach((watch: Watch<T>) => {
             if (watch[signal].slots.length > 0 && watch.matches(config)) {

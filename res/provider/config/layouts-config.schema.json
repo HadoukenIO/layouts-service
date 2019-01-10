@@ -12,27 +12,27 @@
             "title": "Scope",
             "$ref": "./scope.schema.json#"
         },
-		"tabstrip": {
+        "tabstrip": {
             "type": "object",
             "description": "Specifies a custom tabstrip to be used whenever two windows are tabbed together. Windows can only be tabbed if their configurations both allow it - they must use the same tabstrip URL, and both have the 'tab' feature enabled.",
-			"properties": {
-				"url": {
-					"type": "string",
-					"title": "Tabstrip URL",
-					"description": "Sets a custom tabstrip URL",
-					"default": ""
-				},
-				"height": {
-					"type": "number",
-					"title": "Tabstrip Height",
-					"description": "Sets the height of the custom tabstrip, in pixels",
-					"minimum": 0,
-					"default": 60
-				}
-			},
-			"required": ["url", "height"],
-			"additionalProperties": false
-		},
+            "properties": {
+                "url": {
+                    "type": "string",
+                    "title": "Tabstrip URL",
+                    "description": "Sets a custom tabstrip URL",
+                    "default": ""
+                },
+                "height": {
+                    "type": "number",
+                    "title": "Tabstrip Height",
+                    "description": "Sets the height of the custom tabstrip, in pixels",
+                    "minimum": 0,
+                    "default": 60
+                }
+            },
+            "required": ["url", "height"],
+            "additionalProperties": false
+        },
         "configuration-object": {
             "title": "ConfigurationObject",
             "description": "An instance of Layouts Service configuration.",
@@ -66,9 +66,9 @@
                     },
                     "additionalProperties": false
                 },
-				"tabstrip": {
-					"$ref": "#/definitions/tabstrip"
-				}
+                "tabstrip": {
+                    "$ref": "#/definitions/tabstrip"
+                }
             },
             "additionalProperties": false
         },

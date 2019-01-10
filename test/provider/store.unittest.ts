@@ -187,6 +187,153 @@ describe('Store', () => {
         });
     });
 
+    describe('When querying using a mask', () => {
+        beforeEach(() => {
+            store.add(scopes.app_1, {
+                bool: false,
+                str: "Hello World",
+                theme: {
+                    scheme: "default",
+                    opacity: 0.5,
+                    backColour: "green",
+                    borderThickness: 5
+                }
+            });
+        });
+
+        it('Only the fields in the mask are returned', () => {
+            const mask = {
+                bool: true,
+                num: true
+            };
+            const result = {
+                bool: false,
+                num: 0
+            };
+
+            expect(store.queryPartial(scopes.app_1, mask)).toEqual(result);
+        });
+
+        it('Any "false" fields within the mask are ignored (not returned by query)', () => {
+            const mask = {
+                bool: false,
+                num: true
+            };
+            const result = {
+                num: 0
+            };
+
+            expect(store.queryPartial(scopes.app_1, mask)).toEqual(result);
+        });
+
+        it('Masks can be used recursively', () => {
+            const mask = {
+                bool: true,
+                num: true,
+                theme: {
+                    borderColour: true,
+                    borderThickness: true
+                }
+            };
+            const result = {
+                bool: false,
+                num: 0,
+                theme: {
+                    borderColour: "black",
+                    borderThickness: 5
+                }
+            };
+
+            expect(store.queryPartial(scopes.app_1, mask)).toEqual(result);
+        });
+
+        it('Can use true/false objects to mask the sub-tree below that point', () => {
+            const mask = {
+                bool: true,
+                num: true,
+                tabstrip: true,
+                theme: false
+            };
+            const result = {
+                bool: false,
+                num: 0,
+                tabstrip: {
+                    url: "http://localhost/tabstrip.html",
+                    height: 60
+                }
+            };
+
+            expect(store.queryPartial(scopes.app_1, mask)).toEqual(result);
+        });
+
+        it('Queries using masks still respect rules', () => {
+            store.add(scopes.app_2, {
+                // Top-level config doesn't apply to our queries below
+                num: 999,
+                rules: [{
+                    // Rule that applies to both queries, through application scope
+                    scope: scopes.app_1,
+                    config: {
+                        tabstrip: {
+                            url: "http://localhost/tabstrip2.html",
+                            height: 80
+                        },
+                        theme: {
+                            opacity: 0.5
+                        }
+                    }
+                }, {
+                    // Rule that applies to second query only, through window scope
+                    scope: scopes.win_1_1,
+                    config: {
+                        theme: {
+                            "scheme": "blue"
+                        }
+                    }
+                }]
+            });
+            
+            const mask = {
+                bool: false,
+                num: true,
+                tabstrip: true,
+                theme: {
+                    scheme: true,
+                    opacity: true,
+                    borderColour: false,
+                    borderThickness: true
+                }
+            };
+            const resultApp = {
+                num: 0,
+                tabstrip: {
+                    url: "http://localhost/tabstrip2.html",
+                    height: 80
+                },
+                theme: {
+                    scheme: "default",
+                    opacity: 0.5,
+                    borderThickness: 5
+                }
+            };
+            const resultWindow = {
+                num: 0,
+                tabstrip: {
+                    url: "http://localhost/tabstrip2.html",
+                    height: 80
+                },
+                theme: {
+                    scheme: "blue",
+                    opacity: 0.5,
+                    borderThickness: 5
+                }
+            };
+
+            expect(store.queryPartial(scopes.app_1, mask)).toEqual(resultApp);
+            expect(store.queryPartial(scopes.win_1_1, mask)).toEqual(resultWindow);
+        });
+    });
+
     describe('When removing config of a specific scope', () => {
         beforeEach(() => {
             store.add(scopes.desktop, {num: 99});
@@ -358,7 +505,7 @@ describe('Store', () => {
                     theme: {scheme: "red"}
                 });
 
-                // The top-level win_1_1 rule takes precendence over the top-level app_1 rule
+                // The top-level win_1_1 rule takes precedence over the top-level app_1 rule
                 expect(store.query(scopes.win_1_1)).toHaveProperty("theme.scheme", "red");
             });
 
@@ -371,7 +518,7 @@ describe('Store', () => {
                     }]
                 });
 
-                // The nested win_1_1 rule takes precendence over the top-level app_1 rule
+                // The nested win_1_1 rule takes precedence over the top-level app_1 rule
                 expect(store.query(scopes.win_1_1)).toHaveProperty("theme.scheme", "red");
             });
 
@@ -387,7 +534,7 @@ describe('Store', () => {
                     }]
                 });
 
-                // The nested win_1_1 rule takes precendence over the top-level app_1 rule, despite being nested under the lower-precedence 'desktop' source
+                // The nested win_1_1 rule takes precedence over the top-level app_1 rule, despite being nested under the lower-precedence 'desktop' source
                 expect(store.query(scopes.win_1_1)).toHaveProperty("theme.scheme", "red");
             });
 
@@ -403,7 +550,7 @@ describe('Store', () => {
                     }]
                 });
 
-                // The nested window rule takes precendence over the top-level app_1 rule, despite being a non-concrete regex rule
+                // The nested window rule takes precedence over the top-level app_1 rule, despite being a non-concrete regex rule
                 expect(store.query(scopes.win_1_1)).toHaveProperty("theme.scheme", "red");
             });
 
@@ -415,7 +562,7 @@ describe('Store', () => {
                     theme: {scheme: "blue"}
                 });
 
-                // The top-level win_1_1 rule takes precendence over the top-level app_1 rule, despite app_1 being added later
+                // The top-level win_1_1 rule takes precedence over the top-level app_1 rule, despite app_1 being added later
                 expect(store.query(scopes.win_1_1)).toHaveProperty("theme.scheme", "red");
             });
         });
@@ -435,7 +582,7 @@ describe('Store', () => {
                     }]
                 });
 
-                // The win_1_1 rule from the app_1 source takes precendence over the win_1 rule from 'desktop' source
+                // The win_1_1 rule from the app_1 source takes precedence over the win_1 rule from 'desktop' source
                 expect(store.query(scopes.win_1_1)).toHaveProperty("theme.scheme", "red");
             });
 
@@ -453,7 +600,7 @@ describe('Store', () => {
                     }]
                 });
 
-                // The rule coming from app_1 still takes precendence over the coming from 'desktop' source, despite being a non-concrete regex rule
+                // The rule coming from app_1 still takes precedence over the coming from 'desktop' source, despite being a non-concrete regex rule
                 expect(store.query(scopes.win_1_1)).toHaveProperty("theme.scheme", "red");
             });
 
@@ -471,7 +618,7 @@ describe('Store', () => {
                     }]
                 });
 
-                // The rule coming from app_1 takes precendence over the rule coming from 'desktop', despite the 'desktop' source being added later
+                // The rule coming from app_1 takes precedence over the rule coming from 'desktop', despite the 'desktop' source being added later
                 expect(store.query(scopes.win_1_1)).toHaveProperty("theme.scheme", "red");
             });
         });
@@ -497,7 +644,7 @@ describe('Store', () => {
                     }]
                 });
 
-                // The rule with fewest regex expressions takes precendence
+                // The rule with fewest regex expressions takes precedence
                 expect(store.query(scopes.win_1_1)).toHaveProperty("theme.scheme", "red");
             });
 
@@ -521,7 +668,7 @@ describe('Store', () => {
                     }]
                 });
 
-                // The rule with fewest regex expressions takes precendence, regardless of ordering of expressions
+                // The rule with fewest regex expressions takes precedence, regardless of ordering of expressions
                 expect(store.query(scopes.win_1_1)).toHaveProperty("theme.scheme", "red");
             });
         });

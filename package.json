@@ -8,27 +8,27 @@
     "dist/client"
   ],
   "scripts": {
-    "test:unit": "jest",
-    "test": "node test/runner.js",
+    "test:unit": "jest --color",
+    "test:int": "node test/runner.js",
+    "test": "npm run test:unit && npm run test:int",
     "check": "gts check && cd test && gts check",
-    "clean": "gts clean",
+    "clean": "gts clean && rimraf gen",
     "docs": "typedoc --name \"OpenFin Layouts\" --out ./dist/docs --excludeNotExported --excludePrivate --excludeProtected --hideGenerator --readme DOCS.md --tsconfig src/client/tsconfig.json --readme none",
     "fix": "gts fix && cd test && gts fix",
+    "prepare": "npm run generate",
     "posttest": "npm run check",
     "prepack": "npm run clean && npm run build && tsc -p src/client/tsconfig.types.json",
     "build": "webpack --mode production",
     "build:dev": "webpack --mode development",
     "watch": "webpack --watch --mode development",
-    "start": "node server.js",
-    "launch": "node launch.js",
+    "generate": "node scripts/generateCode.js",
     "zip": "node scripts/createProviderZip.js",
-    "generate": "mkdirp dist/config-schema && npm run gen:config && npm run gen:scope",
-    "gen:config": "json2ts --input res/config-schema/layouts-config.schema.json -o dist/config-schema/layouts-config.d.ts --cwd res/config-schema",
-    "gen:scope": "json2ts --input res/config-schema/scope.schema.json -o dist/config-schema/scope.d.ts --cwd res/config-schema"
+    "start": "node server.js"
   },
   "keywords": [],
   "license": "Apache-2.0",
   "devDependencies": {
+    "@types/jest": "^23.3.12",
     "@types/sortablejs": "^1.3.32",
     "archiver": "^3.0.0",
     "ava": "^0.25.0",
@@ -36,7 +36,14 @@
     "execa": "^0.10.0",
     "express": "^4.16.3",
     "gts": "^0.7.1",
+    "jest": "^23.6.0",
+    "jest-junit": "^5.2.0",
+    "json-schema-defaults": "^0.4.0",
+    "json-schema-to-typescript": "^6.1.0",
+    "mkdirp": "^0.5.1",
+    "rimraf": "^2.6.2",
     "robotjs": "^0.5.1",
+    "ts-jest": "^23.10.5",
     "ts-loader": "^4.4.2",
     "typedoc": "^0.12.0",
     "typedoc-plugin-external-module-name": "^1.1.3",
@@ -48,8 +55,6 @@
   "dependencies": {
     "fast-deep-equal": "^2.0.1",
     "hadouken-js-adapter": "0.36.1-alpha.1",
-    "json-schema-to-typescript": "^6.1.0",
-    "mkdirp": "^0.5.1",
     "sortablejs": "^1.7.0"
   },
   "jest": {
@@ -65,10 +70,13 @@
       "jsx",
       "json",
       "node"
-    ],
-    "collectCoverage": true,
-    "coverageReporters": [
-      "html"
     ]
+  },
+  "jest-junit": {
+    "outputDirectory": "./dist/test",
+    "outputName": "results-unit.xml",
+    "classNameTemplate": "{classname}",
+    "titleTemplate": "{title}",
+    "ancestorSeparator": " . "
   }
 }

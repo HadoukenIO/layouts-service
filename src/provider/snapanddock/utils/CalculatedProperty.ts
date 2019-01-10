@@ -1,9 +1,9 @@
 export class CalculatedProperty<T> {
     private lastValue: T|undefined;
     private requiresRefresh: boolean;
-    private refreshFunc: (property: CalculatedProperty<T>) => T;
+    private refreshFunc: (property: CalculatedProperty<T>) => T | void;
 
-    constructor(refreshFunc: () => T, initialValue?: T) {
+    constructor(refreshFunc: () => T | void, initialValue?: T) {
         this.lastValue = initialValue;
         this.requiresRefresh = arguments.length < 2;
         this.refreshFunc = refreshFunc;
@@ -11,7 +11,7 @@ export class CalculatedProperty<T> {
 
     public get value(): T {
         if (this.requiresRefresh) {
-            const value: T = this.refreshFunc(this);
+            const value: T = this.refreshFunc(this) as T;
 
             if (this.requiresRefresh) {
                 // Save the value returned by the callback

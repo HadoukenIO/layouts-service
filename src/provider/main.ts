@@ -1,14 +1,19 @@
 import {Identity} from 'hadouken-js-adapter';
 import {RunRequestedEvent} from 'hadouken-js-adapter/out/types/src/api/events/application';
 
+import {ConfigurationObject} from '../../gen/provider/config/layouts-config';
+
 import {APIHandler} from './APIHandler';
+import {Store} from './config/Store';
 import {DesktopModel} from './model/DesktopModel';
-import {DesktopWindow} from './model/DesktopWindow';
 import {SnapService} from './snapanddock/SnapService';
 import {win10Check} from './snapanddock/utils/platform';
 import {TabService} from './tabbing/TabService';
 import {WindowHandler} from './WindowHandler';
 
+export type ConfigStore = Store<ConfigurationObject>;
+
+export let config: Store<ConfigurationObject>;
 export let model: DesktopModel;
 export let snapService: SnapService;
 export let tabService: TabService;
@@ -16,6 +21,7 @@ export let apiHandler: APIHandler;
 export let windowHandler: WindowHandler;
 
 declare const window: Window&{
+    config: ConfigStore;
     model: DesktopModel;
     snapService: SnapService;
     tabService: TabService;
@@ -33,11 +39,12 @@ type Stringified<T> = {
 };
 
 export async function main() {
+    config = window.config = new Store(require('../../gen/provider/config/defaults.json'));
     model = window.model = new DesktopModel();
     windowHandler = new WindowHandler(model);
-    snapService = window.snapService = new SnapService(model);
-    tabService = window.tabService = new TabService(model);
-    apiHandler = window.apiHandler = new APIHandler();
+    snapService = window.snapService = new SnapService(model, config);
+    tabService = window.tabService = new TabService(model, config);
+    apiHandler = window.apiHandler = new APIHandler(model, config, snapService, tabService);
 
     fin.InterApplicationBus.subscribe({uuid: '*'}, 'layoutsService:experimental:disableTabbing', (message: boolean, source: Identity) => {
         tabService.disableTabbingOperations = message;

@@ -73,8 +73,8 @@ export class DesktopSnapGroup {
         this.rootWindow = null;
 
         const refreshFunc = this.calculateProperties.bind(this);
-        this._origin = new CalculatedProperty(refreshFunc);
-        this._halfSize = new CalculatedProperty(refreshFunc);
+        this._origin = new CalculatedProperty<Point>(refreshFunc);
+        this._halfSize = new CalculatedProperty<Point>(refreshFunc);
 
         DesktopSnapGroup.onCreated.emit(this);
     }
@@ -260,7 +260,7 @@ export class DesktopSnapGroup {
     private onWindowTeardown(window: DesktopWindow) {
         const group: DesktopSnapGroup = window.snapGroup;
 
-        // Ensure window is removed from it's snap group, so that the group doesn't contain any de-registered or non-existant windows.
+        // Ensure window is removed from it's snap group, so that the group doesn't contain any de-registered or non-existent windows.
         group.removeWindow(window);
     }
 

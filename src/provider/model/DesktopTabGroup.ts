@@ -19,12 +19,23 @@ export class DesktopTabGroup implements DesktopEntity {
     public static readonly onCreated: Signal1<DesktopTabGroup> = new Signal1();
     public static readonly onDestroyed: Signal1<DesktopTabGroup> = new Signal1();
 
-    private static _windowPool: DesktopTabstripFactory = new DesktopTabstripFactory();
+    /**
+     * Need to lazily-initialise the window pool, due to DesktopTabstripFactory's dependency on the config store.
+     */
+    public static get windowPool(): DesktopTabstripFactory {
+        if (!this._windowPool) {
+            this._windowPool = new DesktopTabstripFactory();
+        }
+
+        return this._windowPool;
+    }
+
+    private static _windowPool: DesktopTabstripFactory;
 
     private _model: DesktopModel;
 
     /**
-     * Handle to this tabgroups window.
+     * Handle to this tabgroup's window.
      */
     private _window: DesktopWindow;
 
@@ -62,8 +73,8 @@ export class DesktopTabGroup implements DesktopEntity {
      */
     constructor(model: DesktopModel, group: DesktopSnapGroup, config: ApplicationUIConfig) {
         // Fetch a window from the pool, if available. Otherwise, fetch the relevant window options and have DesktopWindow handle the window creation.
-        const windowSpec: _Window|fin.WindowOptions =
-            DesktopTabGroup._windowPool.getNextWindow(config) || DesktopTabstripFactory.generateTabStripOptions(config);
+        const pool: DesktopTabstripFactory = DesktopTabGroup.windowPool;
+        const windowSpec: _Window|fin.WindowOptions = pool.getNextWindow(config) || pool.generateTabStripOptions(config);
 
         this._model = model;
         this._window = new DesktopWindow(model, group, windowSpec);
@@ -276,7 +287,7 @@ export class DesktopTabGroup implements DesktopEntity {
             await this.removeTabInternal(tabToRemove, this._tabs.indexOf(tabToRemove!));
 
             if (this._activeTab.id === tabToRemove.id) {
-                // if the switchedwith tab was the active one, we make the added tab active
+                // if the switched-with tab was the active one, we make the added tab active
                 this.switchTab(tabToAdd);
             } else {
                 // else we hide it because the added tab might be visible.

@@ -210,6 +210,9 @@ export namespace tabStrip {  // tslint:disable-line:no-namespace
      * Updates a Tabs Properties on the Tab strip.
      */
     export async function updateTabProperties(window: Identity, properties: Partial<TabProperties>): Promise<void> {
+        if (!properties) {
+            return Promise.reject('Properties are required');
+        }
         if (!window || !window.name || !window.uuid) {
             return Promise.reject('Invalid window provided');
         }
@@ -228,6 +231,9 @@ export namespace tabStrip {  // tslint:disable-line:no-namespace
      * Ends the HTML5 Dragging Sequence.
      */
     export async function endDrag(event: DragEvent, window: Identity) {
+        if (!event) {
+            return Promise.reject('Event is required');
+        }
         if (!window || !window.name || !window.uuid) {
             return Promise.reject('Invalid window provided');
         }

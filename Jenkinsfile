@@ -3,13 +3,36 @@ pipeline {
     agent { label 'linux-slave' }
 
     stages {
-
-        stage ('test'){
-            agent { label 'win10-dservices' }
-            steps {
-                bat "npm i"
-                bat "npm run check"
-                bat "npm test -- --verbose"
+        stage ('test') {
+            parallel {
+                stage ('unit') {
+                    steps {
+                        bat "npm i"
+                        bat "npm run test:unit -- --color=false --reporters=default --reporters=jest-junit"
+                        bat "npm run check"
+                    }
+                    post {
+                        always {
+                            junit "$WORKSPACE/dist/test/results-unit.xml"
+                        }
+                    }
+                }
+                stage ('integration') {
+                    agent { label 'win10-dservices' }
+                    steps {
+                        bat "npm i"
+                        bat "npm test -- --verbose"
+                    }
+                    // Still needs some research:
+                    //   - No obvious way to have ava write to both console and file
+                    //   - Need to check that Jenkins env can read 'tap' output
+                    // 
+                    // post {
+                    //     always {
+                    //         step([$class: "TapPublisher", testResults: "$WORKSPACE/dist/test/results-int.txt"])
+                    //     }
+                    // }
+                }
             }
         }
 

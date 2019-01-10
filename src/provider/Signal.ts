@@ -17,32 +17,51 @@ export interface SignalSlot<T extends Function = Function> {
 }
 
 class SignalBase<R, R2> {
-    private length: number;
-    private slots: SignalSlot[];
+    private _length: number;
+    private _slots: SignalSlot[];
 
     private aggregator: Aggregator<R, R2>|null;
 
     constructor(length: number, aggregator?: Aggregator<R, R2>) {
-        this.length = length;
-        this.slots = [];
+        this._length = length;
+        this._slots = [];
         this.aggregator = aggregator || null;
     }
 
+    /**
+     * Returns the length of the signal, this is the number of arguments that are passed to each callback when this
+     * signal is emitted.
+     *
+     * Do not confuse with {@link slots.length}, which is the current number of listeners attached to the signal.
+     */
+    public get length(): number {
+        return this._length;
+    }
+
+    /**
+     * Provides read-only access to the current set of slots.
+     *
+     * This is an array of all callbacks that are currently attached to this signal.
+     */
+    public get slots(): ReadonlyArray<SignalSlot> {
+        return this._slots;
+    }
+
     protected addInternal<T extends Function>(callback: T, context?: Context): SignalSlot<T> {
-        if (callback.length === this.length) {
+        if (callback.length === this._length) {
             const slot = {callback, context, remove: () => this.removeSlot(slot)};
-            this.slots.push(slot);
+            this._slots.push(slot);
             return slot;
         } else {
-            throw new Error('Callback function must accept ' + this.length + ' arguments');
+            throw new Error('Callback function must accept ' + this._length + ' arguments');
         }
     }
 
     protected removeInternal<T extends Function>(callback: T, context?: Context): boolean {
-        const index: number = this.slots.findIndex((c) => c.callback === callback && c.context === context);
+        const index: number = this._slots.findIndex((c) => c.callback === callback && c.context === context);
 
         if (index >= 0) {
-            this.slots.splice(index, 1);
+            this._slots.splice(index, 1);
             return true;
         } else {
             return false;
@@ -50,12 +69,12 @@ class SignalBase<R, R2> {
     }
 
     protected hasInternal(callback: Function, context?: Context): boolean {
-        return this.slots.findIndex((c) => c.callback === callback && c.context === context) >= 0;
+        return this._slots.findIndex((c) => c.callback === callback && c.context === context) >= 0;
     }
 
     // tslint:disable-next-line:no-any
     protected emitInternal(...args: any[]): R2|null {
-        const callbacks = this.slots.slice();  // Clone array, in case a callback modifies this signal
+        const callbacks = this._slots.slice();  // Clone array, in case a callback modifies this signal
 
         if (!this.aggregator) {
             callbacks.forEach((callback) => {
@@ -68,10 +87,10 @@ class SignalBase<R, R2> {
     }
 
     private removeSlot(slot: SignalSlot): void {
-        const index: number = this.slots.indexOf(slot);
+        const index: number = this._slots.indexOf(slot);
 
         if (index >= 0) {
-            this.slots.splice(index, 1);
+            this._slots.splice(index, 1);
         }
     }
 }

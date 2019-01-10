@@ -1,9 +1,14 @@
 const path = require('path')
 const webpack = require('webpack');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const SchemaToDefaultsPlugin = require('./scripts/plugins/SchemaToDefaultsPlugin');
+const SchemaToTypeScriptPlugin = require('./scripts/plugins/SchemaToTypeScriptPlugin');
 
 const version = require("./package.json").version;
 const outputDir = path.resolve(__dirname, './dist');
+const schemaRoot = path.resolve(__dirname, './res/provider/config');
+const schemaOutput = path.resolve(__dirname, './gen/provider/config');
+const defaultsOutput = path.resolve(__dirname, './gen/provider/config/defaults.json');
 
 /**
  * Shared function to create a webpack config for an entry point
@@ -89,12 +94,38 @@ const manifestPlugin = new CopyWebpackPlugin([{
  */
 const versionPlugin = new webpack.DefinePlugin({PACKAGE_VERSION: `'${version}'`});
 
+/**
+ * Generate TypeScript definition files from the config schema files.
+ * 
+ * Generated code is placed inside a top-level 'gen' folder, whose structure mirrors that of 
+ * the 'src', 'res' and 'test' folders.
+ */
+const schemaDefaultsPlugin = new SchemaToDefaultsPlugin({
+    outputPath: defaultsOutput,
+    input: `${schemaRoot}/layouts-config.schema.json`
+});
+
+/**
+ * Generate TypeScript definition files from the config schema files.
+ * 
+ * Generated code is placed inside a top-level 'gen' folder, whose structure mirrors that of 
+ * the 'src', 'res' and 'test' folders.
+ */
+const schemaTypesPlugin = new SchemaToTypeScriptPlugin({
+    schemaRoot,
+    outputPath: schemaOutput,
+    input: [
+        `${schemaRoot}/layouts-config.schema.json`,
+        `${schemaRoot}/scope.schema.json`
+    ]
+});
+
 module.exports = [
     createConfig(`${outputDir}/client`, './src/client/main.ts', {minify: false, isLibrary: true, libraryName: 'OpenFinLayouts'}, versionPlugin),
     createConfig(`${outputDir}/provider`, {
         main: './src/provider/main.ts',
         tabStrip: './src/provider/tabbing/tabstrip/main.ts'
-    }, undefined, manifestPlugin, versionPlugin),
+    }, undefined, manifestPlugin, versionPlugin, schemaDefaultsPlugin, schemaTypesPlugin),
     createConfig(`${outputDir}/demo`, {
         LayoutsUI: './src/demo/LayoutsUI.ts',
         popup: './src/demo/popup.ts',

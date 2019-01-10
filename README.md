@@ -6,7 +6,7 @@ OpenFin Layouts delivers window management and layout user experience across the
 
 This project consist of 3 parts:
 1. The Layouts Service, which manages the state of windows, tabs and layouts
-2. The Layouts Client, which exposes calls to programatically control snap/dock, tabbing and save/restore.
+2. The Layouts Client, which exposes calls to programmatically control snap/dock, tabbing and save/restore.
 3. Layout Service Demo app, demonstrating the different features of OpenFin Layout
 
 ### Dependencies
@@ -21,9 +21,9 @@ This project consist of 3 parts:
    - Visible feedback on where the dragged window will be snapped/stretched to target window/group
    - Resize windows in group
    - Windows can be undocked by pressing `CTRL+SHIFT+U` or `CMD+SHIFT+U` when the window has focus.
-   - On inclusion of the client API, windows and groups can also be undocked programatically.
+   - On inclusion of the client API, windows and groups can also be undocked programmatically.
 - Tabbing
-   - Dropping a window ontop of another window will create tabbed windows with a tabstrip on top
+   - Dropping a window on-top of another window will create tabbed windows with a tabstrip on top
    - Tabs can be reorder and renamed.
    - Minimize / maximize / restore / close on the tabstrip affects the whole tabgroup (tabstrip and tabbed windows)
    - Application developers can provide their own tabstrip - simply by hosting a templated html, initiated on application startup
@@ -32,9 +32,9 @@ This project consist of 3 parts:
    - The service has APIs for getting and restoring layouts
    - The provided demo showcases how a layout manager application could use the APIs to manage layouts
 - APIs
-   - API available to undock, ungroup, tab / untab , save / restore a layout or opt-out of service functionality.
+   - API available to undock, ungroup, tab / un-tab , save / restore a layout or opt-out of service functionality.
 - Hosting
-   - The lastest production version OpenFin Layouts will by default be served from OpenFin's CDN
+   - The latest production version OpenFin Layouts will by default be served from OpenFin's CDN
    - For testing / dev purposes, a customers can specify an absolute version/location of a the service by providing the full URL in the services section of the app manifest (see 'Manifest declaration' below)
    - To self-host versions of the service, each release is also deployed to the CDN as a zip file, available at `https://cdn.openfin.co/services/openfin/layouts/<version>/layouts-service.zip`
 

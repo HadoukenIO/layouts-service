@@ -1,31 +1,46 @@
 import {Identity} from 'hadouken-js-adapter';
-import {ProviderIdentity} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/channel';
+import {Action, ProviderIdentity} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/channel';
 import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
 
 import {TabAPI} from '../client/internal';
 import {DropPosition, SERVICE_CHANNEL} from '../client/internal';
 import {ApplicationUIConfig, TabProperties} from '../client/types';
 
-import {model, snapService, tabService} from './main';
+import {ConfigStore} from './main';
+import {DesktopModel} from './model/DesktopModel';
 import {DesktopTabGroup} from './model/DesktopTabGroup';
 import {DesktopWindow, WindowIdentity} from './model/DesktopWindow';
+import {SnapService} from './snapanddock/SnapService';
+import {TabService} from './tabbing/TabService';
 import {deregisterWindow, generateLayout} from './workspaces/create';
 import {getAppToRestore, restoreApplication, restoreLayout} from './workspaces/restore';
 
 /**
- * Manages all communication with the client. Stateless class that listens for incomming messages, and handles sending of messages to connected client(s).
+ * Manages all communication with the client. Stateless class that listens for incoming messages, and handles sending of messages to connected client(s).
  *
  * Client communication is separated from the rest of the provider code to allow easier versioning of client-provider interaction, if required in the future.
  */
 export class APIHandler {
-    private providerChannel!: ChannelProvider;
+    private _providerChannel!: ChannelProvider;
+
+    private _model: DesktopModel;
+    private _config: ConfigStore;
+    private _snapService: SnapService;
+    private _tabService: TabService;
+
+    constructor(model: DesktopModel, config: ConfigStore, snapService: SnapService, tabService: TabService) {
+        this._model = model;
+        this._config = config;
+        this._snapService = snapService;
+        this._tabService = tabService;
+    }
 
     public get channel(): ChannelProvider {
-        return this.providerChannel;
+        return this._providerChannel;
     }
 
     public isClientConnection(identity: Identity): boolean {
-        return this.providerChannel.connections.some((conn: Identity) => {
+        return this._providerChannel.connections.some((conn: Identity) => {
             return identity.uuid === conn.uuid;
         });
     }
@@ -36,7 +51,7 @@ export class APIHandler {
      * Will fail silently if client with given identity doesn't exist and/or isn't connected to service.
      */
     public async sendToClient<T, R = void>(identity: Identity, action: string, payload: T): Promise<R|undefined> {
-        return this.providerChannel.dispatch(identity, action, payload);
+        return this._providerChannel.dispatch(identity, action, payload);
     }
 
     /**
@@ -44,41 +59,49 @@ export class APIHandler {
      */
     // tslint:disable-next-line:no-any
     public async sendToAll(action: string, payload: any): Promise<void> {
-        await this.providerChannel.publish(action, payload);
+        await this._providerChannel.publish(action, payload);
     }
 
     public async register(): Promise<void> {
-        const providerChannel: ChannelProvider = this.providerChannel = await fin.InterApplicationBus.Channel.create(SERVICE_CHANNEL);
+        const providerChannel: ChannelProvider = this._providerChannel = await fin.InterApplicationBus.Channel.create(SERVICE_CHANNEL);
 
         // Common
         providerChannel.onConnection(this.onConnection);
-        providerChannel.register('deregister', this.deregister);
+        this.registerListener('deregister', this.deregister);
 
         // Snap & Dock
-        providerChannel.register('undockWindow', this.undockWindow);
-        providerChannel.register('undockGroup', this.undockGroup);
+        this.registerListener('undockWindow', this.undockWindow);
+        this.registerListener('undockGroup', this.undockGroup);
 
         // Workspaces
-        providerChannel.register('generateLayout', generateLayout);
-        providerChannel.register('restoreLayout', restoreLayout);
-        providerChannel.register('appReady', this.appReady);
+        this.registerListener('generateLayout', generateLayout);
+        this.registerListener('restoreLayout', restoreLayout);
+        this.registerListener('appReady', this.appReady);
 
         // Tabbing
-        providerChannel.register(TabAPI.CLOSETABGROUP, this.closeTabGroup);
-        providerChannel.register(TabAPI.CREATETABGROUP, this.createTabGroup);
-        providerChannel.register(TabAPI.STARTDRAG, this.startDrag);
-        providerChannel.register(TabAPI.ENDDRAG, this.endDrag);
-        providerChannel.register(TabAPI.GETTABS, this.getTabs);
-        providerChannel.register(TabAPI.MAXIMIZETABGROUP, this.maximizeTabGroup);
-        providerChannel.register(TabAPI.MINIMIZETABGROUP, this.minimizeTabGroup);
-        providerChannel.register(TabAPI.REMOVETAB, this.removeTab);
-        providerChannel.register(TabAPI.CLOSETAB, this.closeTab);
-        providerChannel.register(TabAPI.REORDERTABS, this.reorderTabs);
-        providerChannel.register(TabAPI.RESTORETABGROUP, this.restoreTabGroup);
-        providerChannel.register(TabAPI.SETACTIVETAB, this.setActiveTab);
-        providerChannel.register(TabAPI.SETTABCLIENT, this.setTabClient);
-        providerChannel.register(TabAPI.UPDATETABPROPERTIES, this.updateTabProperties);
-        providerChannel.register(TabAPI.ADDTAB, this.addTab);
+        this.registerListener(TabAPI.CLOSETABGROUP, this.closeTabGroup);
+        this.registerListener(TabAPI.CREATETABGROUP, this.createTabGroup);
+        this.registerListener(TabAPI.STARTDRAG, this.startDrag);
+        this.registerListener(TabAPI.ENDDRAG, this.endDrag);
+        this.registerListener(TabAPI.GETTABS, this.getTabs);
+        this.registerListener(TabAPI.MAXIMIZETABGROUP, this.maximizeTabGroup);
+        this.registerListener(TabAPI.MINIMIZETABGROUP, this.minimizeTabGroup);
+        this.registerListener(TabAPI.REMOVETAB, this.removeTab);
+        this.registerListener(TabAPI.CLOSETAB, this.closeTab);
+        this.registerListener(TabAPI.REORDERTABS, this.reorderTabs);
+        this.registerListener(TabAPI.RESTORETABGROUP, this.restoreTabGroup);
+        this.registerListener(TabAPI.SETACTIVETAB, this.setActiveTab);
+        this.registerListener(TabAPI.SETTABCLIENT, this.setTabClient);
+        this.registerListener(TabAPI.UPDATETABPROPERTIES, this.updateTabProperties);
+        this.registerListener(TabAPI.ADDTAB, this.addTab);
+    }
+
+    private registerListener(topic: string, handler: Action) {
+        // Bind callback
+        handler = handler.bind(this) as Action;
+
+        // Add to underlying channel object
+        this._providerChannel.register(topic, handler);
     }
 
     // tslint:disable-next-line:no-any
@@ -93,7 +116,7 @@ export class APIHandler {
     private async deregister(identity: WindowIdentity): Promise<void> {
         try {
             // Must first clean-up any usage of this window
-            const tab: DesktopWindow|null = model.getWindow(identity);
+            const tab: DesktopWindow|null = this._model.getWindow(identity);
             const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
             if (group) {
@@ -103,17 +126,17 @@ export class APIHandler {
             console.error(error);
             throw new Error(`Unexpected error when deregistering: ${error}`);
         } finally {
-            model.deregister(identity);
+            this._model.deregister(identity);
             deregisterWindow(identity);
         }
     }
 
     private undockWindow(identity: WindowIdentity): void {
-        snapService.undock(identity);
+        this._snapService.undock(identity);
     }
 
     private undockGroup(identity: WindowIdentity): void {
-        snapService.explodeGroup(identity);
+        this._snapService.explodeGroup(identity);
     }
 
     private appReady(payload: void, identity: Identity): void {
@@ -126,17 +149,12 @@ export class APIHandler {
         }
     }
 
-    private setTabClient(payload: {config: ApplicationUIConfig, id: Identity}) {
-        if (tabService.applicationConfigManager.exists(payload.id.uuid)) {
-            console.error('Window already configured for tabbing');
-            throw new Error('Window already configured for tabbing');
-        }
-
-        return tabService.applicationConfigManager.addApplicationUIConfig(payload.id.uuid, payload.config);
+    private setTabClient(payload: {config: ApplicationUIConfig, id: Identity}): void {
+        this._config.add({level: 'application', uuid: payload.id.uuid}, {tabstrip: payload.config});
     }
 
     private getTabs(tabId: WindowIdentity): WindowIdentity[]|null {
-        const tab: DesktopWindow|null = model.getWindow(tabId);
+        const tab: DesktopWindow|null = this._model.getWindow(tabId);
         const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
         if (!group) {
@@ -147,12 +165,12 @@ export class APIHandler {
     }
 
     private async createTabGroup(tabs: WindowIdentity[]): Promise<void> {
-        return tabService.createTabGroupWithTabs(tabs);
+        return this._tabService.createTabGroupWithTabs(tabs);
     }
 
     private async addTab(payload: {targetWindow: WindowIdentity, windowToAdd: WindowIdentity}): Promise<void> {
-        const tabToAdd: DesktopWindow|null = model.getWindow(payload.windowToAdd);
-        const targetTab: DesktopWindow|null = model.getWindow(payload.targetWindow);
+        const tabToAdd: DesktopWindow|null = this._model.getWindow(payload.windowToAdd);
+        const targetTab: DesktopWindow|null = this._model.getWindow(payload.targetWindow);
         const targetGroup: DesktopTabGroup|null = targetTab && targetTab.tabGroup;
 
         if (!targetGroup) {
@@ -164,8 +182,7 @@ export class APIHandler {
             throw new Error('Could not find \'windowToAdd\'.');
         }
 
-        if (tabService.applicationConfigManager.compareConfigBetweenApplications(payload.targetWindow.uuid, payload.windowToAdd.uuid)) {
-            // return group.addTab(await new Tab({tabID: payload.windowToAdd}).init());
+        if (this._tabService.canTabTogether(payload.targetWindow, payload.windowToAdd)) {
             return targetGroup.addTab(tabToAdd);
         } else {
             console.error('The tabs provided have incompatible tabstrip URLs');
@@ -174,7 +191,7 @@ export class APIHandler {
     }
 
     private removeTab(tab: WindowIdentity): Promise<void> {
-        const ejectedTab: DesktopWindow|null = model.getWindow(tab);
+        const ejectedTab: DesktopWindow|null = this._model.getWindow(tab);
         const tabGroup: DesktopTabGroup|null = ejectedTab && ejectedTab.tabGroup;
 
         if (tabGroup) {
@@ -187,7 +204,7 @@ export class APIHandler {
     }
 
     private setActiveTab(tabId: WindowIdentity): Promise<void> {
-        const tab: DesktopWindow|null = model.getWindow(tabId);
+        const tab: DesktopWindow|null = this._model.getWindow(tabId);
         const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
         if (!group) {
@@ -199,7 +216,7 @@ export class APIHandler {
     }
 
     private async closeTab(tabId: WindowIdentity): Promise<void> {
-        const tab: DesktopWindow|null = model.getWindow(tabId);
+        const tab: DesktopWindow|null = this._model.getWindow(tabId);
 
         if (tab) {
             return tab.close();
@@ -209,7 +226,7 @@ export class APIHandler {
     }
 
     private async minimizeTabGroup(tabId: WindowIdentity): Promise<void> {
-        const tab: DesktopWindow|null = model.getWindow(tabId);
+        const tab: DesktopWindow|null = this._model.getWindow(tabId);
         const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
         if (!group) {
@@ -221,7 +238,7 @@ export class APIHandler {
     }
 
     private async maximizeTabGroup(tabId: WindowIdentity): Promise<void> {
-        const tab: DesktopWindow|null = model.getWindow(tabId);
+        const tab: DesktopWindow|null = this._model.getWindow(tabId);
         const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
         if (!group) {
@@ -233,7 +250,7 @@ export class APIHandler {
     }
 
     private async closeTabGroup(tabId: WindowIdentity): Promise<void> {
-        const tab: DesktopWindow|null = model.getWindow(tabId);
+        const tab: DesktopWindow|null = this._model.getWindow(tabId);
         const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
         if (!group) {
@@ -246,7 +263,7 @@ export class APIHandler {
     }
 
     private async restoreTabGroup(tabId: WindowIdentity): Promise<void> {
-        const tab: DesktopWindow|null = model.getWindow(tabId);
+        const tab: DesktopWindow|null = this._model.getWindow(tabId);
         const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
         if (!group) {
@@ -262,7 +279,7 @@ export class APIHandler {
     }
 
     private reorderTabs(newOrdering: WindowIdentity[], tabId: ProviderIdentity): void {
-        const tab: DesktopWindow|null = model.getWindow(tabId as WindowIdentity);
+        const tab: DesktopWindow|null = this._model.getWindow(tabId as WindowIdentity);
         const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
         if (!group) {
@@ -274,7 +291,7 @@ export class APIHandler {
     }
 
     private updateTabProperties(payload: {window: WindowIdentity, properties: Partial<TabProperties>}): void {
-        const tab: DesktopWindow|null = model.getWindow(payload.window);
+        const tab: DesktopWindow|null = this._model.getWindow(payload.window);
         const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
         if (!group) {
@@ -287,11 +304,11 @@ export class APIHandler {
 
     private startDrag(payload: {}, id: ProviderIdentity): void {
         // TODO assign uuid, name from provider
-        tabService.dragWindowManager.showWindow(id as WindowIdentity);
+        this._tabService.dragWindowManager.showWindow(id as WindowIdentity);
     }
 
     private async endDrag(payload: {event: DropPosition, window: WindowIdentity}): Promise<void> {
-        const tab: DesktopWindow|null = model.getWindow(payload.window);
+        const tab: DesktopWindow|null = this._model.getWindow(payload.window);
         const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
         if (!group) {
@@ -299,7 +316,7 @@ export class APIHandler {
             throw new Error('Window is not registered for tabbing');
         }
 
-        tabService.dragWindowManager.hideWindow();
-        tabService.ejectTab(payload.window, {x: payload.event.screenX, y: payload.event.screenY});
+        this._tabService.dragWindowManager.hideWindow();
+        this._tabService.ejectTab(payload.window, {x: payload.event.screenX, y: payload.event.screenY});
     }
 }

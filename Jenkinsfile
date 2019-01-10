@@ -25,15 +25,15 @@ pipeline {
                         bat "npm i"
                         bat "npm run test:int -- --verbose"
                     }
-                    post {
-                        always {
-                            // Still needs some research:
-                            //   - No obvious way to have ava write to both console and file
-                            //   - Need to check that Jenkins env can read 'tap' output
-                            // 
-                            // step([$class: "TapPublisher", testResults: "dist/test/results-int.txt"])
-                        }
-                    }
+                    // Still needs some research:
+                    //   - No obvious way to have ava write to both console and file
+                    //   - Need to check that Jenkins env can read 'tap' output
+                    // 
+                    // post {
+                    //     always {
+                    //         step([$class: "TapPublisher", testResults: "dist/test/results-int.txt"])
+                    //     }
+                    // }
                 }
             }
         }

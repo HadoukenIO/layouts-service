@@ -75,8 +75,8 @@
   "jest-junit": {
     "outputDirectory": "./dist/test",
     "outputName": "results-unit.xml",
-    "classNameTemplate": "{classname}",
+    "classNameTemplate": "{classname} > {title}",
     "titleTemplate": "{title}",
-    "ancestorSeparator": "."
+    "ancestorSeparator": " > "
   }
 }

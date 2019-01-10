@@ -59,7 +59,7 @@ export class DesktopTabstripFactory {
 
     /**
      * Generates a set of window options that will create a tabstrip that meets the given requirements.
-     * 
+     *
      * @param options Tabstrip configuration - either from a user application, or the default (service-defined) configuration.
      */
     public generateTabStripOptions(options: ApplicationUIConfig): fin.WindowOptions {

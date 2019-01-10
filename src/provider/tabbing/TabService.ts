@@ -213,7 +213,7 @@ export class TabService {
 
     /**
      * Determines if two windows can be tabbed together. The windows being tabbed can be identified in one of two ways.
-     * 
+     *
      * @param app1 Details about the first entity, either window identifier or the tabstrip config for a window
      * @param app2 Details about the second entity, either window identifier or the tabstrip config for a window
      */
@@ -230,7 +230,7 @@ export class TabService {
 
     /**
      * Returns the tabstrip configuration for the given window. This is a thin wrapper around the config store.
-     * 
+     *
      * @param identity Window identifier
      */
     private getTabstripConfig(identity: WindowIdentity): Tabstrip {

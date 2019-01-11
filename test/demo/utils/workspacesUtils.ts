@@ -81,12 +81,13 @@ export function createTabTests(numApps: number, children: number): {apps: AppIni
     });
 }
 
-export async function closeAllPreviews(): Promise<void> {
+export async function closeAllPreviews(t: TestContext): Promise<void> {
     const serviceApp = fin.Application.wrapSync(SERVICE_IDENTITY);
     const children = await serviceApp.getChildWindows();
     const actions: Promise<void>[] = [];
     for (const child of children) {
         if (child.identity.name!.startsWith('Placeholder-')) {
+            t.fail('Placeholder still exists after save/restore: ' + child.identity.name);
             actions.push(child.close());
         }
     }

@@ -1,6 +1,6 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import {assertAllMinimizedOrHidden, assertAllRestored, assertGrouped, assertTabbed} from '../../provider/utils/assertions';
+import {assertAllMinimizedOrHidden, assertAllNormalState, assertGrouped, assertTabbed} from '../../provider/utils/assertions';
 import {delay} from '../../provider/utils/delay';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
@@ -33,7 +33,7 @@ testParameterized(
         await windows[restoreIndex].restore();
         await delay(500);
 
-        await assertAllRestored(t, windows);
+        await assertAllNormalState(t, windows);
     }));
 
 // With tabsets
@@ -69,7 +69,7 @@ testParameterized(
         await tabStrips[restoreIndex].restore();
         await delay(500);
 
-        await assertAllRestored(t, [...windows, ...tabStrips]);
+        await assertAllNormalState(t, [...windows, ...tabStrips]);
         for (let i = 0; i < windowCount; i += 2) {
             await assertTabbed(windows[i], windows[i + 1], t);
         }

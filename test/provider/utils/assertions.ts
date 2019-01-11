@@ -209,7 +209,7 @@ export async function assertAllMinimizedOrHidden(t: TestContext, windows: Window
     }));
 }
 
-export async function assertAllRestored(t: TestContext, windows: Window[]) {
+export async function assertAllNormalState(t: TestContext, windows: Window[]) {
     return Promise.all(windows.map(async win => {
         const state = await win.getState();
         t.is(state, 'normal');

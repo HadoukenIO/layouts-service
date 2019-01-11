@@ -126,7 +126,7 @@ export class ConfigUtil {
 
     /**
      * Returns if `rule` applies to `scope`.
-     * 
+     *
      * Rules apply to the scope at which they are defined, and any scopes below that in the hierarchy. For example, an
      * 'application'-scoped rule's config should be applied to application and window scopes only, and not a query at
      * desktop or service scope.

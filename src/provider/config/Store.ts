@@ -16,11 +16,11 @@ export interface ScopedConfig<T> {
 
 /**
  * A config object, with an optional list of rules to be applied on top.
- * 
- * This type is what developers can add to their application manifests. The top-level `T` object will be applied to 
- * the application and all of it's windows, and the developer can also additionally define one or more rules that 
+ *
+ * This type is what developers can add to their application manifests. The top-level `T` object will be applied to
+ * the application and all of it's windows, and the developer can also additionally define one or more rules that
  * apply additional snippets to a scope of their choosing.
- * 
+ *
  * ```json
  * "services": [{
  *     "name": "layouts",
@@ -49,16 +49,16 @@ type ConfigWithRules<T> = T&{
 };
 
 /**
- * An entry within the config store. The store will track the source of every item added to the store, the rule that 
+ * An entry within the config store. The store will track the source of every item added to the store, the rule that
  * defines what that config applies to, and the actual config data itself.
- * 
- * When querying, these entries will be applied on top of each other, from lowest priority to highest, to gradually 
+ *
+ * When querying, these entries will be applied on top of each other, from lowest priority to highest, to gradually
  * build-up an object that combines configuration data from many sources.
  */
 interface StoredConfig<T> {
     /**
      * The source of this config object. Typically an 'application' scope, as it is expected most config will come from
-     * `app.json` files. Could also be desktop for anything set by a desktop owner, or window for anything set via a 
+     * `app.json` files. Could also be desktop for anything set by a desktop owner, or window for anything set via a
      * client API call.
      */
     source: Scope;
@@ -66,14 +66,14 @@ interface StoredConfig<T> {
     /**
      * A rule that defines when the config data within this object should be applied. When querying the store, it is
      * this rule that determines if this entry contributes to the object that is returned by the store.
-     * 
+     *
      * For any config that doesn't explicitly define a rule (for example, "top-level" config within an application
      * manifest), this will be the same as source.
      */
     rule: Rule;
 
     /**
-     * The config data itself. This will typically be a "partial" object, that only specifies a small subset of the 
+     * The config data itself. This will typically be a "partial" object, that only specifies a small subset of the
      * available config options.
      */
     config: T;
@@ -283,13 +283,13 @@ export class Store<T> {
 
     /**
      * Sorts the given rules by priority, according to rule precedence logic. Sorted rules are returned as a new array.
-     * 
+     *
      * Precedence rules are as follows (highest priority first):
      *   • Whichever rule has the highest-precedence scope (as determined by `scopePriorityMap`)
      *   • Whichever rule has the highest-precedence source (as determined by `scopePriorityMap`)
      *   • Whichever rule has the most-specific scope (see {@link getSpecifity} for details)
      *   • Whichever rule was most-recently added
-     * 
+     *
      * @param applicableRules List of rules that should be sorted
      */
     private applyPrecedenceRules(applicableRules: StoredConfig<T>[]): StoredConfig<T>[] {
@@ -313,14 +313,14 @@ export class Store<T> {
 
     /**
      * Returns a number that indicates how "specific" `rule` is.
-     * 
-     * Specifity is defined by the number of regexes within the rule - more regexes makes the rule broader, or more 
+     *
+     * Specifity is defined by the number of regexes within the rule - more regexes makes the rule broader, or more
      * generic; fewer regexes makes the rule narrower, or more specific.
-     * 
+     *
      * Specifity is a concept that only applies to scopes that have parameters. Non-parameterised scopes (e.g. desktop)
-     * will always return 0. For this reason, comparing specifity values across scopes doesn't make much sense, this 
+     * will always return 0. For this reason, comparing specifity values across scopes doesn't make much sense, this
      * metric is only really useful when comparing two rules of the same scope.
-     * 
+     *
      * @param rule Rule to quantify
      */
     private getSpecifity(rule: Rule): number {
@@ -337,7 +337,7 @@ export class Store<T> {
 
     /**
      * Checks for any active watches that match the given config, and then dispatch the specified signal on the watch.
-     * 
+     *
      * @param config A config rule that has just been added or removed
      * @param signal The action performed to `config` - defines which signal on the watch will be emitted
      */

@@ -6,6 +6,7 @@ import {ConfigurationObject} from '../../gen/provider/config/layouts-config';
 import {APIHandler} from './APIHandler';
 import {Store} from './config/Store';
 import {DesktopModel} from './model/DesktopModel';
+import {DesktopTabGroup} from './model/DesktopTabGroup';
 import {SnapService} from './snapanddock/SnapService';
 import {win10Check} from './snapanddock/utils/platform';
 import {TabService} from './tabbing/TabService';
@@ -45,6 +46,12 @@ export async function main() {
     snapService = window.snapService = new SnapService(model, config);
     tabService = window.tabService = new TabService(model, config);
     apiHandler = window.apiHandler = new APIHandler(model, config, snapService, tabService);
+
+
+    // Need to ensure that `DesktopTabstripFactory` is created synchronously at service startup.
+    // This ensures that it's watch listeners are active at the point where any application-specific tabstrips are configured.
+    DesktopTabGroup.windowPool;  // tslint:disable-line:no-unused-expression
+
 
     fin.InterApplicationBus.subscribe({uuid: '*'}, 'layoutsService:experimental:disableTabbing', (message: boolean, source: Identity) => {
         tabService.disableTabbingOperations = message;

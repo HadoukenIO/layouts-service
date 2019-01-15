@@ -38,18 +38,9 @@ This project consist of 3 parts:
    - For testing / dev purposes, a customers can specify an absolute version/location of a the service by providing the full URL in the services section of the app manifest (see 'Manifest declaration' below)
    - To self-host versions of the service, each release is also deployed to the CDN as a zip file, available at `https://cdn.openfin.co/services/openfin/layouts/<version>/layouts-service.zip`
 
-### Run Locally
-- Windows support only. 
-- Node 8.11 LTS.
-- Testing requires [robotjs](http://robotjs.io/docs/) and you may need to build it. See their docs for info on building if you are testing. `npm install --ignore-scripts` is fine if you are not running the tests.
-
-```bash
-npm install --ignore-scripts
-npm start
-```
 ## Getting Started
 
-Using the Layouts service is done in two steps, add the service to application manifest and import the API:
+Integrating the Layouts Service within an application is done in two steps, add the service to application manifest and import the API:
 
 ### Manifest declaration
 
@@ -86,12 +77,45 @@ The client module exports a set of functions - [API docs available](https://urls
 
 Using Layouts is described in detail in [our tutorial](https://openfin.co/documentation/layouts-tutorial).
 
-## Testing
+## Run Locally
 
+To preview the functionality of the service without integrating it into an existing application - or to start contributing to the service - the service can be ran locally. By checking out this repo and then running the project.
+
+### Setup
+
+After checkout, install project dependencies using `npm install`. The integration tests within the project rely on [robotjs](http://robotjs.io) in order to manipulate windows at the OS-level; this adds some caveats to being able to the standard "`npm install ; npm start`" convention:
+- Windows support only.
+- Node 8.11 LTS.
+- Installing the [pre-requisites](http://robotjs.io/docs/) of robotjs.
+  - A simple one-liner alternative is to use [windows-build-tools](https://www.npmjs.com/package/windows-build-tools), by running `npm install -g windows-build-tools` with Administrator privileges.
+
+To setup the project whilst avoiding the above dependencies, can instead be installed with `npm install --ignore-scripts`.
+
+### Startup
+Once dependencies are installed, start the "built-in" sample application with `npm start`. This uses `webpack-dev-middleware` to both build and host the application; a custom `server.js` script will start the OpenFin application once the server is up and running.
+
+The startup script has optional arguments which can be used to tweak the behavior of the build and the test server. See the constants at the top of `server.js` for details on the available parameters and their effects.
+
+### Build Process
+The service consists of several different components, unified into a single project. The `package.json` defines the combined dependencies of all components; anything required for the pre-built client to work within an application is included in the `"dependencies"` section, and the remaining dependencies - used to build the client, and to both build & run the provider and demo application - are included under `"devDependencies"`.
+
+Similarly, there is a single `webpack.config.js` script that will build the above components.
+
+### Testing
+To run the full test-suite for layouts-service, run:
 ```bash
 npm install
 npm test
 ```
+
+This will run unit tests followed by the integration tests. These steps can also be ran individually via `npm run test:unit` and `npm run test:int`. When running the tests separately in this way, both test runners support some optional arguments. Append `--help` to either of the above `npm run` commands to see the available options.
+
+### Deployment
+Staging and production builds are managed via the Jenkinsfile build script. This will build the project as usual (except with the `--production` argument) and then deploy the client and provider to their respective locations. The demo application exists only within this repo and is not deployed.
+
+The service client is deployed as an NPM module, so that it can be included as a dependency in any application that wishes to integrate with the service.
+
+The service provider is a standard OpenFin application, only its lifecycle is controlled by the RVM (based upon the requirements of user-launched applications) rather than being launched by users. The provider is deployed to the OpenFin CDN; a zip file is also provided to assist with re-deploying the provider to an alternate location. Direct links to each build are listed in the release notes, available on the [services versions page](https://developer.openfin.co/versions/?product=Services).
 
 ### Notes
 - If using Parallels Desktop, you have to be in a mode where Parallels can control the mouse. Set `Settings>Hardware>Mouse&Keyboard>Mouse` to `Optimize for Games`

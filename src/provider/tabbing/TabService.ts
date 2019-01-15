@@ -46,9 +46,6 @@ export class TabService {
      * Constructor of the TabService Class.
      */
     constructor(model: DesktopModel, config: ConfigStore) {
-        // tslint:disable-next-line:no-unused-expression
-        DesktopTabGroup.windowPool;
-
         this._model = model;
         this._dragWindowManager = new DragWindowManager();
 

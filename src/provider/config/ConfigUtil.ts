@@ -1,27 +1,31 @@
 import {RegEx, Rule} from '../../../gen/provider/config/layouts-config';
 import {ApplicationScope, Scope, WindowScope} from '../../../gen/provider/config/scope';
 
-import {Scopes} from './Store';
-
 /**
- * Maps a scope string to a number indicating that scope's priority.
+ * Defines the relative precedence of each available scope. The names of the constants match the `Scopes` type (and it
+ * is important that all scopes are included in the enum). Because of this alignment, the enum can be used as a mapping
+ * between `Scopes` values and precedence values.
  *
- * Scopes form a hierarchy where externally-provided "snippets" are layered upon default configuration values that are
- * built-in to the service. These partial configs must be applied in the correct order to ensure the correct output is
- * returned to the service.
+ * ```ts
+ * const scope: Scopes = 'desktop';
+ * const priority: number = ScopePrecedence[scope];
+ * const scope2: Scopes = ScopePrecedence[priority] as Scopes;
+ * ```
  *
- * The lower the number returned by this map, the *lower* the priority of that scope - i.e. the smaller the number, the
- * more likely it is that config at that scope will get overridden.
+ * Precedence rules are important, as it is expected that each rule passed to the store will only contain a small
+ * subset of the available parameters. A query must always return a "full" config object with all parameters specified,
+ * so these precedence levels determine the order in which the rules are applied in order to build the final config
+ * object.
+ *
+ * The lower the number returned by this enum, the lower the priority of that scope - i.e. the smaller the number, the
+ * more likely it is that config at that scope will get overridden by another rule.
  */
-export const scopePriorityMap: Map<Scopes, number> = new Map<Scopes, number>([['service', 0], ['desktop', 1], ['application', 2], ['window', 3]]);
-
-/**
- * An ordered list of scopes, in order of priority.
- *
- * In effect, this is the reverse mapping of 'scopePriorityMap' - mapping a priority index to the scope that has that
- * priority level.
- */
-export const scopePriorityLookup: Scopes[] = Array.from(scopePriorityMap.keys());
+export enum ScopePrecedence {
+    service = 0,
+    desktop = 1,
+    application = 2,
+    window = 3
+}
 
 /**
  * Helper type - like the built-in `Required<T>` util, but will apply the modifier recursively, to any non-primitive
@@ -101,8 +105,8 @@ export class ConfigUtil {
      * @param value The "subject" scope - will assert that this is a strict subset of the 'spec' scope
      */
     public static matchesScope(spec: Scope, value: Scope): boolean {
-        const levelSpec: number = scopePriorityMap.get(spec.level)!;
-        const levelValue: number = scopePriorityMap.get(value.level)!;
+        const levelSpec: number = ScopePrecedence[spec.level];
+        const levelValue: number = ScopePrecedence[value.level];
 
         if (levelSpec !== levelValue) {
             return levelSpec < levelValue;
@@ -121,7 +125,7 @@ export class ConfigUtil {
      * @param scope The scope of whoever is trying to add this rule to the store
      */
     public static ruleCanBeAddedInScope(rule: Rule, scope: Scope): boolean {
-        return scopePriorityMap.get(rule.level)! >= scopePriorityMap.get(scope.level)!;
+        return ScopePrecedence[rule.level] >= ScopePrecedence[scope.level];
     }
 
     /**
@@ -137,7 +141,7 @@ export class ConfigUtil {
      * @param scope The scope being queried
      */
     public static ruleCanBeUsedInScope(rule: Rule, scope: Scope): boolean {
-        return scopePriorityMap.get(rule.level)! <= scopePriorityMap.get(scope.level)!;
+        return ScopePrecedence[rule.level] <= ScopePrecedence[scope.level];
     }
 
     /**

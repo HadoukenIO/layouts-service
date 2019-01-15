@@ -1,7 +1,7 @@
 import {RegEx, Rule} from '../../../gen/provider/config/layouts-config';
 import {Scope} from '../../../gen/provider/config/scope';
 
-import {ConfigUtil, Mask, Masked, RequiredRecursive, scopePriorityLookup, scopePriorityMap} from './ConfigUtil';
+import {ConfigUtil, Mask, Masked, RequiredRecursive, ScopePrecedence} from './ConfigUtil';
 import {Watch} from './Watch';
 
 /**
@@ -196,7 +196,7 @@ export class Store<T> {
      * Queries the store to pull-together every piece of configuration that has been registered for the given scope.
      *
      * These snippets are then merged together based on the priorities of the config scopes (priorities are determined
-     * by scope, see {@link scopePriorityMap}).
+     * by scope, see {@link ScopePrecedence}).
      *
      * The object returned by this method is guaranteed to always be a "full" 'T' object, where all fields are
      * included. Whilst it is expected that config added via {@link add} will always be "partial" config (with only a
@@ -216,8 +216,8 @@ export class Store<T> {
         if (this._cache.has(key)) {
             return this._cache.get(key)!;
         } else {
-            for (let i = 0, scopeIndex = scopePriorityMap.get(scope.level)!; i <= scopeIndex; i++) {
-                const rulesAtScope: StoredConfig<T>[] = this._items.get(scopePriorityLookup[i]) || [];
+            for (let i = 0, scopeIndex = ScopePrecedence[scope.level]; i <= scopeIndex; i++) {
+                const rulesAtScope: StoredConfig<T>[] = this._items.get(ScopePrecedence[i] as Scopes) || [];
                 const applicableRules: StoredConfig<T>[] = rulesAtScope.filter(rule => ConfigUtil.matchesRule(rule.rule, scope));
 
                 if (applicableRules.length === 1) {
@@ -251,9 +251,9 @@ export class Store<T> {
     public queryPartial<M extends Mask<T>>(scope: Scope, mask: M): Masked<T, M> {
         const result: Masked<T, M> = {} as Masked<T, M>;
 
-        const priority = scopePriorityMap.get(scope.level)!;
+        const priority = ScopePrecedence[scope.level];
         for (let i = 0; i <= priority; i++) {
-            const rulesAtScope: StoredConfig<T>[] = this._items.get(scopePriorityLookup[i]) || [];
+            const rulesAtScope: StoredConfig<T>[] = this._items.get(ScopePrecedence[i] as Scopes) || [];
             const applicableRules: StoredConfig<T>[] = rulesAtScope.filter(rule => ConfigUtil.matchesRule(rule.rule, scope));
 
             if (applicableRules) {
@@ -285,8 +285,8 @@ export class Store<T> {
      * Sorts the given rules by priority, according to rule precedence logic. Sorted rules are returned as a new array.
      *
      * Precedence rules are as follows (highest priority first):
-     *   • Whichever rule has the highest-precedence scope (as determined by `scopePriorityMap`)
-     *   • Whichever rule has the highest-precedence source (as determined by `scopePriorityMap`)
+     *   • Whichever rule has the highest-precedence scope (as determined by `ScopePrecedence`)
+     *   • Whichever rule has the highest-precedence source (as determined by `ScopePrecedence`)
      *   • Whichever rule has the most-specific scope (see {@link getSpecifity} for details)
      *   • Whichever rule was most-recently added
      *
@@ -296,10 +296,10 @@ export class Store<T> {
         return applicableRules.sort((a: StoredConfig<T>, b: StoredConfig<T>) => {
             if (a.rule.level !== b.rule.level) {
                 // Sort by rule scope
-                return scopePriorityMap.get(a.rule.level)! - scopePriorityMap.get(b.rule.level)!;
+                return ScopePrecedence[a.rule.level] - ScopePrecedence[b.rule.level];
             } else if (a.source.level !== b.source.level) {
                 // Sort by source scope
-                return scopePriorityMap.get(a.source.level)! - scopePriorityMap.get(b.source.level)!;
+                return ScopePrecedence[a.source.level] - ScopePrecedence[b.source.level];
             } else if (this.getSpecifity(a.rule) !== this.getSpecifity(b.rule)) {
                 // Sort by rule specifity
                 return this.getSpecifity(a.rule) - this.getSpecifity(b.rule);

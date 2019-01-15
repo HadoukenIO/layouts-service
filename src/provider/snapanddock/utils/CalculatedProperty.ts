@@ -1,9 +1,9 @@
 export class CalculatedProperty<T> {
     private lastValue: T|undefined;
     private requiresRefresh: boolean;
-    private refreshFunc: (property: CalculatedProperty<T>) => T | void;
+    private refreshFunc: () => void;
 
-    constructor(refreshFunc: () => T | void, initialValue?: T) {
+    constructor(refreshFunc: () => void, initialValue?: T) {
         this.lastValue = initialValue;
         this.requiresRefresh = arguments.length < 2;
         this.refreshFunc = refreshFunc;
@@ -11,15 +11,13 @@ export class CalculatedProperty<T> {
 
     public get value(): T {
         if (this.requiresRefresh) {
-            const value: T = this.refreshFunc(this) as T;
+            // Trigger refresh function
+            this.refreshFunc();
 
+            // Ensure refresh function called `updateValue`
             if (this.requiresRefresh) {
-                // Save the value returned by the callback
-                this.lastValue = value;
-                this.requiresRefresh = false;
-            } else {
-                // The update function called "updateValue" - ignore the result of the callback.
-                // This allows an update function to refresh multiple CalculatedProperty's at once.
+                // Callback appears invalid - didn't return a valid value, and also didn't call `updateValue`.
+                console.error('CalculatedProperty is stale, but it\'s refresh function didn\'t provide an updated value', this);
             }
         }
 

@@ -2,13 +2,13 @@ import test from 'ava';
 
 import {assertAdjacent, assertGrouped} from '../../provider/utils/assertions';
 import {dragWindowTo} from '../../provider/utils/dragWindowTo';
-import {AppInitializerParams, WindowGrouping} from '../utils/AppInitializer';
+import {WindowGrouping} from '../utils/AppInitializer';
 import {AppContext, CreateAppData, createAppTest} from '../utils/createAppTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {closeAllPreviews, createCloseAndRestoreLayout, createSnapTests} from '../utils/workspacesUtils';
+import {BasicSaveRestoreTestOptions} from './basicSaveAndRestore.test';
 
-export interface SnapSaveRestoreTestOptions {
-    apps: AppInitializerParams[];
+export interface SnapSaveRestoreTestOptions extends BasicSaveRestoreTestOptions {
     snapWindowGrouping: WindowGrouping;
 }
 

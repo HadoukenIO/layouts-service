@@ -1,13 +1,13 @@
 import test from 'ava';
 
 import {assertGrouped, assertTabbed} from '../../provider/utils/assertions';
-import {AppInitializerParams, WindowGrouping} from '../utils/AppInitializer';
+import {WindowGrouping} from '../utils/AppInitializer';
 import {AppContext, CreateAppData, createAppTest} from '../utils/createAppTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {closeAllPreviews, createCloseAndRestoreLayout, createTabTests} from '../utils/workspacesUtils';
+import {BasicSaveRestoreTestOptions} from './basicSaveAndRestore.test';
 
-export interface TabSaveRestoreTestOptions {
-    apps: AppInitializerParams[];
+export interface TabSaveRestoreTestOptions extends BasicSaveRestoreTestOptions {
     tabWindowGrouping: WindowGrouping;
 }
 

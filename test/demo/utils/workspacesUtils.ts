@@ -60,7 +60,7 @@ export async function createCloseAndRestoreLayout(t: SaveRestoreTestContext) {
     // The placeholders listens to the show-requested event of its testing window, moves the window, shows it, and closes itself.
     // If the tests run too quickly after restore, the placeholder windows may receive the child window show event too late,
     // and the window may not exist, which makes the placeholder windows stay open.
-    await delay(300);
+    await delay(500);
 }
 
 export interface TestCreationOptions {

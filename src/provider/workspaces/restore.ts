@@ -232,7 +232,6 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
     await regroupLayout(allAppResponses).catch(console.log);
     // Validate groups
     for (const group of model.snapGroups) {
-        console.warn('Emmiting modified for group ' + group.id + '. Windows: ' + group.windows.map(w => w.id).join(', '));
         group.validate();
     }
     // Send the layout back to the requester of the restore

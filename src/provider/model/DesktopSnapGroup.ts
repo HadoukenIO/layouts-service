@@ -90,6 +90,8 @@ export class DesktopSnapGroup {
 
         this._validateGroup = new Debounced(this.validateGroupInternal, this);
 
+        this.onModified.add(this.onGroupModified.bind(this));
+
         DesktopSnapGroup.onCreated.emit(this);
     }
 
@@ -262,9 +264,6 @@ export class DesktopSnapGroup {
                 window.sendMessage(WindowMessages.LEAVE_SNAP_GROUP, {});
             }
 
-            // Validate the group to ensure it hasn't been split into two or more pieces.
-            this._validateGroup.call();
-
             // Inform the service that the group has been modified
             this.onModified.emit(this, window);
 
@@ -319,15 +318,17 @@ export class DesktopSnapGroup {
         }
     }
 
-    private onWindowModified(window: DesktopWindow): void {
-        this._origin.markStale();
-        this._halfSize.markStale();
-
+    private onGroupModified(group:DesktopSnapGroup, window:DesktopWindow): void {
         if (this.windows.includes(window)) {
             this._validateGroup.postpone();
         } else {
             this._validateGroup.call();
         }
+    }
+
+    private onWindowModified(window: DesktopWindow): void {
+        this._origin.markStale();
+        this._halfSize.markStale();
 
         this.onModified.emit(this, window);
     }

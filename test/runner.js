@@ -144,7 +144,7 @@ async function serve() {
                 "devtools_port": 9090,
                 "runtime": {
                     "arguments": "--v=1 --enable-crash-reporting",
-                    "version": "9.61.37.42"
+                    "version": "9.61.37.46"
                 },
                 "services": [{ "name": "layouts", "manifestUrl": "http://localhost:1337/test/provider.json" }],
                 "startup_app": {

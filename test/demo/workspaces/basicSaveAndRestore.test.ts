@@ -12,7 +12,7 @@ export interface BasicSaveRestoreTestOptions {
 const basicTestOptionsArray: BasicSaveRestoreTestOptions[] = [];
 
 const numberOfApps = [1, 2];
-const numberOfChildren = [0, 1, 2, 3];
+const numberOfChildren = [0, 1, 2];
 
 numberOfApps.forEach(appNumber => {
     numberOfChildren.forEach(childNumber => {

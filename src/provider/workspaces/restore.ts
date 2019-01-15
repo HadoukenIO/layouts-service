@@ -119,7 +119,7 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
             const mainWindowModel = model.getWindow(app.mainWindow);
             await tabService.removeTab(app.mainWindow);
             if (mainWindowModel!.snapGroup.length > 1) {
-                mainWindowModel!.setSnapGroup(new DesktopSnapGroup());
+                await mainWindowModel!.setSnapGroup(new DesktopSnapGroup());
             }
 
 
@@ -230,6 +230,11 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
     layout.apps = allAppResponses;
     // Regroup the windows
     await regroupLayout(allAppResponses).catch(console.log);
+    // Validate groups
+    for (const group of model.snapGroups) {
+        console.warn('Emmiting modified for group ' + group.id + '. Windows: ' + group.windows.map(w => w.id).join(', '));
+        group.validate();
+    }
     // Send the layout back to the requester of the restore
     return layout;
 };

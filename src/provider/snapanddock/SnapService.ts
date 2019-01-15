@@ -35,13 +35,6 @@ export interface SnapState {
 
 export class SnapService {
     /**
-     * Any windows less than this distance apart will be considered as touching for the purposes of the validateGroup
-     *
-     * This is a workaround for runtime issues due to be fixed in v37.
-     */
-    private static VALIDATE_GROUP_DISTANCE = 14;
-
-    /**
      * Flag to disable / enable docking.
      */
     public disableDockingOperations = false;
@@ -50,12 +43,9 @@ export class SnapService {
 
     private _model: DesktopModel;
 
-    private _validateGroups: Debounced<(group: DesktopSnapGroup) => void, SnapService, [DesktopSnapGroup]>;
-
     constructor(model: DesktopModel) {
         this._model = model;
         this._resolver = new Resolver();
-        this._validateGroups = new Debounced(this.validateGroupInternal, this);
 
         // Register lifecycle listeners
         DesktopSnapGroup.onCreated.add(this.onSnapGroupCreated, this);
@@ -177,7 +167,7 @@ export class SnapService {
             }
         }
 
-        this._validateGroups.call(snapTarget.group);
+        snapTarget.group.validate();
     }
 
     private onSnapGroupCreated(group: DesktopSnapGroup): void {
@@ -191,31 +181,11 @@ export class SnapService {
     }
 
     private onGroupModified(group: DesktopSnapGroup, modifiedWindow: DesktopWindow): void {
-        if (group.windows.includes(modifiedWindow)) {
-            // If a validate is already scheduled, postpone it. But no need to trigger a validation.
-            this._validateGroups.postpone();
-        } else {
-            // Window has been removed from group, definitely need to validate.
-            this._validateGroups.call(group);
-        }
+        // Validation is handled at the group level. Need to think if anything else should happen here.
     }
 
     private onGroupTransform(group: DesktopSnapGroup, type: Mask<eTransformType>): void {
-        this._validateGroups.postpone();
-    }
-
-    private validateGroupInternal(group: DesktopSnapGroup): void {
-        // Ensure 'group' is still a valid, contiguous group.
-        // NOTE: 'modifiedWindow' may no longer exist (if validation is being performed because a window was closed)
-        const contiguousWindowSets = this.getContiguousWindows(group.entities);
-        if (contiguousWindowSets.length > 1) {                             // Group is disjointed. Need to split.
-            for (const windowsToGroup of contiguousWindowSets.slice(1)) {  // Leave first set as-is. Move others into own groups.
-                const newGroup = new DesktopSnapGroup();
-                for (const windowToGroup of windowsToGroup) {
-                    windowToGroup.setSnapGroup(newGroup);
-                }
-            }
-        }
+        // Validation is handled at the group level. Need to think if anything else should happen here.
     }
 
     private calculateUndockMoveDirection(window: DesktopEntity): Point {
@@ -233,60 +203,5 @@ export class SnapService {
             }
         }
         return totalOffset;
-    }
-
-    private getContiguousWindows(windows: DesktopEntity[]): DesktopEntity[][] {
-        const adjacencyList: DesktopEntity[][] = new Array<DesktopEntity[]>(windows.length);
-
-        // Build adjacency list
-        for (let i = 0; i < windows.length; i++) {
-            adjacencyList[i] = [];
-            for (let j = 0; j < windows.length; j++) {
-                if (i !== j && isAdjacent(windows[i], windows[j])) {
-                    adjacencyList[i].push(windows[j]);
-                }
-            }
-        }
-
-        // Find all contiguous sets
-        const contiguousSets: DesktopEntity[][] = [];
-        const unvisited: DesktopEntity[] = windows.slice();
-
-        while (unvisited.length > 0) {
-            const visited: DesktopEntity[] = [];
-            dfs(unvisited[0], visited);
-            contiguousSets.push(visited);
-        }
-
-        return contiguousSets;
-
-        function dfs(startWindow: DesktopEntity, visited: DesktopEntity[]) {
-            const startIndex = windows.indexOf(startWindow);
-            if (visited.includes(startWindow)) {
-                return;
-            }
-            visited.push(startWindow);
-            unvisited.splice(unvisited.indexOf(startWindow), 1);
-            for (let i = 0; i < adjacencyList[startIndex].length; i++) {
-                dfs(adjacencyList[startIndex][i], visited);
-            }
-        }
-
-        function isAdjacent(win1: DesktopEntity, win2: DesktopEntity) {
-            const distance = RectUtils.distance(win1.currentState, win2.currentState);
-            if (win1.tabGroup && win1.tabGroup === win2.tabGroup) {
-                // Special handling for tab groups. When validating, all windows in a tabgroup are
-                // assumed to be adjacent to avoid weirdness with hidden windows.
-                return true;
-            } else if (win1.currentState.hidden || win2.currentState.hidden) {
-                // If a window is not visible it cannot be adjacent to anything. This also allows us
-                // to avoid the questionable position tracking for hidden windows.
-                return false;
-            } else if (distance.border(SnapService.VALIDATE_GROUP_DISTANCE) && Math.abs(distance.maxAbs) > MIN_OVERLAP) {
-                // The overlap check ensures that only valid snap configurations are counted
-                return true;
-            }
-            return false;
-        }
     }
 }

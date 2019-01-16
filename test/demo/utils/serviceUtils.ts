@@ -44,12 +44,6 @@ export async function sendServiceMessage<T, R>(message: string, payload: T): Pro
     return client.dispatch(message, payload);
 }
 
-
-export async function sendServiceMessageAwait<T, R>(message: string, payload: T): Promise<R> {
-    const client = await getChannelClient();
-    return await client.dispatch(message, payload);
-}
-
 async function getChannelClient() {
     const fin: Fin = await getConnection();
     return fin.InterApplicationBus.Channel.connect(SERVICE_CHANNEL);

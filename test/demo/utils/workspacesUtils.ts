@@ -54,7 +54,7 @@ export async function createCloseAndRestoreLayout(t: SaveRestoreTestContext) {
     assertIsLayoutObject(t, generatedLayout);
     await Promise.all(t.context.testAppData.map(async (appData: TestAppData) => await appData.app.close(true)));
     await assertAllAppsClosed(t);
-    await sendServiceMessageAwait('restoreLayout', generatedLayout);
+    await sendServiceMessage('restoreLayout', generatedLayout);
     // To give placeholder windows time to disappear.
     // The tests close out all testing windows upon completion.
     // The placeholders listens to the show-requested event of its testing window, moves the window, shows it, and closes itself.

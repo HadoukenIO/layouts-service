@@ -136,7 +136,7 @@ async function serve() {
         app.use(express.static('res'));
 
         // Add route to dynamically generate app manifests
-        app.use('/create-manifest', (() => (req, res) => {
+        app.use('/create-manifest', (req, res) => {
             const { uuid, url, defaultTop } = req.query;
 
             res.contentType('application/json')
@@ -158,7 +158,7 @@ async function serve() {
                     "defaultWidth": 225
                 }
             });
-        })());
+        });
         
         console.log("Starting test server...");
         app.listen(1337, resolve);

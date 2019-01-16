@@ -54,14 +54,14 @@ const OPTIONS_BASE = {
     defaultWidth: 225
 };
 
-const APP_INITIALIZER_BASE_PROGRAMMATIC = {
+const APP_INITIALIZER_BASE_PROGRAMMATIC: ProgrammaticTestParams = {
     appOptions: OPTIONS_BASE,
-    createType: 'programmatic' as 'programmatic',
+    createType: 'programmatic',
     childWindows: []
 };
 
-const APP_INITIALIZER_BASE_MANIFEST = {
-    createType: 'manifest' as 'manifest',
+const APP_INITIALIZER_BASE_MANIFEST: ManifestTestParams = {
+    createType: 'manifest',
     childWindows: [],
     manifestUrl: ''
 };

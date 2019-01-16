@@ -4,6 +4,10 @@ import {SERVICE_IDENTITY} from '../../../src/client/internal';
 import {Layout} from '../../../src/client/types';
 import {getConnection} from '../../provider/utils/connect';
 import {delay} from '../../provider/utils/delay';
+import {BasicSaveRestoreTestOptions} from '../workspaces/basicSaveAndRestore.test';
+import {SnapSaveRestoreTestOptions} from '../workspaces/snapSaveAndRestore.test';
+import {TabSaveRestoreTestOptions} from '../workspaces/tabSaveAndRestore.test';
+
 import {AppInitializerParams, createAppsArray, createWindowGroupings, TestAppData, WindowGrouping} from './AppInitializer';
 import {AppContext} from './createAppTest';
 import {sendServiceMessage} from './serviceUtils';
@@ -69,29 +73,27 @@ export interface TestCreationOptions {
 }
 
 export function createBasicSaveAndRestoreTest(
-    numAppsToCreate: number, numberOfChildren: number, testOptions?: TestCreationOptions): {apps: AppInitializerParams[]} {
+    numAppsToCreate: number, numberOfChildren: number, testOptions?: TestCreationOptions): BasicSaveRestoreTestOptions {
     const appsArray = createAppsArray(numAppsToCreate, numberOfChildren, testOptions);
 
-    return {apps: appsArray as AppInitializerParams[]};
+    return {apps: appsArray};
 }
 
-export function createSnapTests(numAppsToCreate: number, numberOfChildren: number, testOptions?: TestCreationOptions):
-    {apps: AppInitializerParams[], snapWindowGrouping: WindowGrouping}[] {
+export function createSnapTests(numAppsToCreate: number, numberOfChildren: number, testOptions?: TestCreationOptions): SnapSaveRestoreTestOptions[] {
     const windowGroupings = createWindowGroupings(numAppsToCreate, numberOfChildren);
     const appsArray = createAppsArray(numAppsToCreate, numberOfChildren, testOptions);
 
     return windowGroupings.map(windowGrouping => {
-        return {apps: appsArray as AppInitializerParams[], snapWindowGrouping: windowGrouping};
+        return {apps: appsArray, snapWindowGrouping: windowGrouping};
     });
 }
 
-export function createTabTests(
-    numAppsToCreate: number, numberOfChildren: number, testOptions?: TestCreationOptions): {apps: AppInitializerParams[], tabWindowGrouping: WindowGrouping}[] {
+export function createTabTests(numAppsToCreate: number, numberOfChildren: number, testOptions?: TestCreationOptions): TabSaveRestoreTestOptions[] {
     const windowGroupings = createWindowGroupings(numAppsToCreate, numberOfChildren);
     const appsArray = createAppsArray(numAppsToCreate, numberOfChildren, testOptions);
 
     return windowGroupings.map(windowGrouping => {
-        return {apps: appsArray as AppInitializerParams[], tabWindowGrouping: windowGrouping};
+        return {apps: appsArray, tabWindowGrouping: windowGrouping};
     });
 }
 

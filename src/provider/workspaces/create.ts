@@ -10,7 +10,7 @@ import {WindowIdentity} from '../model/DesktopWindow';
 import {promiseMap} from '../snapanddock/utils/async';
 
 import {getGroup} from './group';
-import {addToWindowObject, inWindowObject, parseVersionString, wasCreatedFromManifest, wasCreatedProgrammatically, WindowObject} from './utils';
+import {addToWindowObject, inWindowObject, parseVersionString, wasCreatedFromManifest, wasCreatedProgrammatically, WindowObject, adjustSizeOfFormerlyTabbedWindows} from './utils';
 
 // This value should be updated any time changes are made to the layout schema.
 // Major version indicates breaking changes.
@@ -114,14 +114,8 @@ export const getCurrentLayout = async(): Promise<Layout> => {
             const mainOfWin: Window = await ofApp.getWindow();
             const mainWindowLayoutData = await getLayoutWindowData(mainOfWin, tabbedWindows);
             const mainWindow: LayoutWindow = {...windowInfo.mainWindow, ...mainWindowLayoutData};
-            console.log('formerlytabbedWindows', formerlyTabbedWindows);
-            if (inWindowObject({uuid, name: mainWindow.name}, formerlyTabbedWindows)) {
-                console.log("In formerlytabbedwindows for mainWindow ", mainWindow.name);
-                mainWindow.top = mainWindow.top - 60;
-                mainWindow.height = mainWindow.height + 67;
-                mainWindow.left = mainWindow.left - 7;
-                mainWindow.width = mainWindow.width + 14;
-            }
+            const mainWinIdentity = {uuid, name: mainWindow.name};
+            adjustSizeOfFormerlyTabbedWindows(mainWinIdentity, formerlyTabbedWindows, mainWindow);
             
             // Filter for deregistered child windows
             windowInfo.childWindows = windowInfo.childWindows.filter((win: WindowDetail) => {
@@ -130,19 +124,14 @@ export const getCurrentLayout = async(): Promise<Layout> => {
             });
             
             // Grab the layout information for the child windows
-            const childWindows: LayoutWindow[] = await promiseMap(windowInfo.childWindows, async (win: WindowDetail) => {
-                const {name} = win;
-                const ofWin = await fin.Window.wrap({uuid, name});
+            const childWindows: LayoutWindow[] = await promiseMap(windowInfo.childWindows, async (childWin: WindowDetail) => {
+                const {name} = childWin;
+                const childWinIdentity = {uuid, name};
+                const ofWin = await fin.Window.wrap(childWinIdentity);
                 const windowLayoutData = await getLayoutWindowData(ofWin, tabbedWindows);
-                if (inWindowObject({uuid, name: win.name }, formerlyTabbedWindows)) {
-                    console.log("In formerlytabbedwindows for childWindow ", win.name);
-                    win.top = win.top - 60;
-                    win.height = win.height + 67;
-                    win.left = win.left - 7;
-                    win.width = win.width + 14;
-                }
+                adjustSizeOfFormerlyTabbedWindows(childWinIdentity, formerlyTabbedWindows, childWin);
 
-                return {...win, ...windowLayoutData};
+                return {...childWin, ...windowLayoutData};
             });
             if (wasCreatedFromManifest(appInfo, uuid)) {
                 delete appInfo.manifest;
@@ -222,9 +211,6 @@ const getLayoutWindowData = async(ofWin: Window, tabbedWindows: WindowObject): P
 
     // If a window is tabbed (based on filtered tabGroups), tab it.
     const isTabbed = inWindowObject(ofWin.identity, tabbedWindows) ? true : false;
-
-    const tmp: LayoutWindowData =
-        {info, uuid, windowGroup: filteredWindowGroup, frame: applicationState.frame, state: options.state, isTabbed, isShowing: !applicationState.hidden};
-
+    
     return {info, uuid, windowGroup: filteredWindowGroup, frame: applicationState.frame, state: options.state, isTabbed, isShowing: !applicationState.hidden};
 };

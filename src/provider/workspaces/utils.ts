@@ -6,6 +6,7 @@ import {LayoutApp, LayoutWindow} from '../../client/types';
 import {model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {WindowIdentity} from '../model/DesktopWindow';
+import {WindowDetail} from 'hadouken-js-adapter/out/types/src/api/system/window';
 
 export interface SemVer {
     major: number;
@@ -234,4 +235,20 @@ export function parseVersionString(versionString: string): SemVer {
     }
 
     return {major: Number.parseInt(match[1], 10), minor: Number.parseInt(match[2], 10), patch: Number.parseInt(match[3], 10)};
+}
+
+export function adjustSizeOfFormerlyTabbedWindows(winIdentity: WindowIdentity, formerlyTabbedWindows: WindowObject, layoutWindow: LayoutWindow|WindowDetail) {
+    if (inWindowObject(winIdentity, formerlyTabbedWindows)) {
+        const desktopWindow = model.getWindow(winIdentity);
+        const applicationState = desktopWindow!.applicationState;
+
+        layoutWindow.top = layoutWindow.top - 60;
+        layoutWindow.height = layoutWindow.height + 60;
+
+        if (applicationState.frame === true) {
+            layoutWindow.height = layoutWindow.height + 7;
+            layoutWindow.left = layoutWindow.left - 7;
+            layoutWindow.width = layoutWindow.width + 14;
+        }
+    }
 }

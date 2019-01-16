@@ -37,6 +37,7 @@
     "express": "^4.16.3",
     "gts": "^0.7.1",
     "jest": "^23.6.0",
+    "jest-cli": "^23.6.0",
     "jest-junit": "^5.2.0",
     "json-schema-defaults": "^0.4.0",
     "json-schema-to-typescript": "^6.1.0",
@@ -59,10 +60,13 @@
   },
   "jest": {
     "transform": {
-      "^.+\\.tsx?$": "ts-jest"
+      "^.+\\.tsx?$": "<rootDir>/../node_modules/ts-jest"
     },
     "rootDir": "test",
     "testRegex": ".unittest.ts$",
+    "modulePaths": [
+      "<rootDir>/../node_modules"
+    ],
     "moduleFileExtensions": [
       "ts",
       "tsx",

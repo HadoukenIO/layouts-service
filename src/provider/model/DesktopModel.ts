@@ -190,7 +190,7 @@ export class DesktopModel {
         // Check that the service does not already have a matching window
         const existingWindow = this.getWindow(identity);
 
-        // The runtime will not allow multiple windows with the same uuid/name, so if we recieve a
+        // The runtime will not allow multiple windows with the same uuid/name, so if we receive a
         // window-created event for a registered window, it implies that our internal state is stale
         // and should be updated accordingly.
         if (existingWindow) {
@@ -215,7 +215,7 @@ export class DesktopModel {
                 // and we should do nothing.
                 return null;
             } else {
-                // Remove the window from pendingRegitrations
+                // Remove the window from pendingRegistrations
                 const pendingIndex = this._pendingRegistrations.findIndex(w => w.name === identity.name && w.uuid === identity.uuid);
                 this._pendingRegistrations.splice(pendingIndex, 1);
 

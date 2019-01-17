@@ -60,42 +60,6 @@ export enum TabAPI {
     CLOSETAB = 'CLOSETAB'
 }
 
-
-export enum TabAPIWindowActions {
-    MAXIMIZE = 'MAXIMIZEWINDOW',
-    MINIMIZE = 'MINIMIZEWINDOW',
-    RESTORE = 'RESTOREWINDOW',
-    CLOSE = 'CLOSEWINDOW',
-    TOGGLEMAXIMIZE = 'TOGGLEMAXIMIZE'
-}
-
-
-/**
- * Each action coming into the will have an action attached
- */
-export interface TabAPIMessage {
-    action: string;
-}
-
-/**
- * When the tab API makes a call to the service a uuid and name should be provided
- */
-export interface TabAPIInteractionMessage extends TabAPIMessage {
-    uuid: string;
-    name: string;
-    properties?: TabProperties;
-}
-
-export interface TabAPIDragMessage extends TabAPIMessage {
-    event: ApplicationUIConfig|null;
-    uuid: string;
-    name: string;
-}
-
-export interface TabAPIReorderMessage extends TabAPIMessage {
-    tabOrder: WindowIdentity[];
-}
-
 export interface SetTabClientPayload {
     config: Partial<ApplicationUIConfig>;
     id: Identity;

@@ -1,6 +1,7 @@
 import {Signal1, Signal2} from '../Signal';
 import {CalculatedProperty} from '../snapanddock/utils/CalculatedProperty';
 import {Point, PointUtils} from '../snapanddock/utils/PointUtils';
+import {Rectangle} from '../snapanddock/utils/RectUtils';
 
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopTabGroup} from './DesktopTabGroup';
@@ -56,9 +57,14 @@ export class DesktopSnapGroup {
     public readonly onWindowRemoved: Signal2<DesktopSnapGroup, DesktopWindow> = new Signal2();
 
 
-    // NOTE: The co-ordinates used by _origin and _halfSize use the center of the root window as the origin.
-    private _origin: CalculatedProperty<Point>;
-    private _halfSize: CalculatedProperty<Point>;
+    /**
+     * This stores the bounds of the overall snap group. This is stored in "local" co-ordinates, relative to
+     * `rootWindow.center`. This ensures that we only need to re-calculate these bounds whenever windows are added,
+     * removed or resized - rather than all of those, plus 'moved'.
+     *
+     * A util is used to lazily perform the re-calculation only when required.
+     */
+    private _localBounds: CalculatedProperty<Rectangle>;
 
     private _id: number;
     private _entities: DesktopEntity[];
@@ -73,8 +79,7 @@ export class DesktopSnapGroup {
         this.rootWindow = null;
 
         const refreshFunc = this.calculateProperties.bind(this);
-        this._origin = new CalculatedProperty(refreshFunc);
-        this._halfSize = new CalculatedProperty(refreshFunc);
+        this._localBounds = new CalculatedProperty<Rectangle>(refreshFunc);
 
         DesktopSnapGroup.onCreated.emit(this);
     }
@@ -84,16 +89,16 @@ export class DesktopSnapGroup {
     }
 
     public get origin(): Readonly<Point> {
-        return this._origin.value;
+        return this._localBounds.value.center;
     }
 
     public get halfSize(): Readonly<Point> {
-        return this._halfSize.value;
+        return this._localBounds.value.halfSize;
     }
 
     public get center(): Point {
         if (this.rootWindow) {
-            const origin: Point = this._origin.value;
+            const origin: Point = this._localBounds.value.center;
             const rootCenter: Point = this.rootWindow!.currentState.center;
 
             return {x: rootCenter.x + origin.x, y: rootCenter.y + origin.y};
@@ -137,8 +142,7 @@ export class DesktopSnapGroup {
             }
 
             // Will need to re-calculate cached properties
-            this._origin.markStale();
-            this._halfSize.markStale();
+            this._localBounds.markStale();
 
             // Inform window of addition
             // Note that client API only considers windows to belong to a group if it contains two or more windows
@@ -166,8 +170,7 @@ export class DesktopSnapGroup {
             this.checkRoot();
 
             // Will need to re-calculate cached properties
-            this._origin.markStale();
-            this._halfSize.markStale();
+            this._localBounds.markStale();
 
             // Inform window of removal
             // Note that client API only considers windows to belong to a group if it contains two or more windows
@@ -224,14 +227,12 @@ export class DesktopSnapGroup {
             this.rootWindow = root;
 
             // Since these are measured relative to the root window, they will need updating
-            this._origin.markStale();
-            this._halfSize.markStale();
+            this._localBounds.markStale();
         }
     }
 
     private onWindowModified(window: DesktopWindow): void {
-        this._origin.markStale();
-        this._halfSize.markStale();
+        this._localBounds.markStale();
         this.onModified.emit(this, window);
     }
 
@@ -248,8 +249,7 @@ export class DesktopSnapGroup {
         if ((type & eTransformType.RESIZE) !== 0) {
             // The group's bounding box MAY have changed (if the resized window was, or is now, on the edge of the group)
             // No way to tell for sure, so will need to re-calculate bounds regardless, to be safe.
-            this._origin.markStale();
-            this._halfSize.markStale();
+            this._localBounds.markStale();
         }
     }
 
@@ -260,11 +260,11 @@ export class DesktopSnapGroup {
     private onWindowTeardown(window: DesktopWindow) {
         const group: DesktopSnapGroup = window.snapGroup;
 
-        // Ensure window is removed from it's snap group, so that the group doesn't contain any de-registered or non-existant windows.
+        // Ensure window is removed from it's snap group, so that the group doesn't contain any de-registered or non-existent windows.
         group.removeWindow(window);
     }
 
-    private calculateProperties(): void {
+    private calculateProperties(): Rectangle {
         let windows: DesktopWindow[] = this._windows;
         let numWindows: number = windows.length;
 
@@ -277,11 +277,9 @@ export class DesktopSnapGroup {
         }
 
         if (numWindows === 0) {
-            this._origin.updateValue({x: 0, y: 0});
-            this._halfSize.updateValue({x: 0, y: 0});
+            return {center: {x: 0, y: 0}, halfSize: {x: 0, y: 0}};
         } else if (numWindows === 1) {
-            this._origin.updateValue({x: 0, y: 0});
-            this._halfSize.updateValue(PointUtils.clone(this.rootWindow!.currentState.halfSize));
+            return {center: {x: 0, y: 0}, halfSize: PointUtils.clone(this.rootWindow!.currentState.halfSize)};
         } else {
             let state: EntityState = windows[0].currentState;
             const min: Point = {x: state.center.x - state.halfSize.x, y: state.center.y - state.halfSize.y};
@@ -297,8 +295,10 @@ export class DesktopSnapGroup {
             }
 
             const rootPosition: Point = this.rootWindow!.currentState.center;
-            this._origin.updateValue({x: ((min.x + max.x) / 2) - rootPosition.x, y: ((min.y + max.y) / 2) - rootPosition.y});
-            this._halfSize.updateValue({x: (max.x - min.x) / 2, y: (max.y - min.y) / 2});
+            return {
+                center: {x: ((min.x + max.x) / 2) - rootPosition.x, y: ((min.y + max.y) / 2) - rootPosition.y},
+                halfSize: {x: (max.x - min.x) / 2, y: (max.y - min.y) / 2}
+            };
         }
     }
 }

@@ -14,7 +14,7 @@ interface PreviewWindow {
 }
 
 /**
- * Visual indicator of the current stap target.
+ * Visual indicator of the current snap target.
  *
  * Will create colored rectangles based on the given group. Rectangle color will be set according to snap validity.
  */

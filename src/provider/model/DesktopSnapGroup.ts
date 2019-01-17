@@ -173,7 +173,6 @@ export class DesktopSnapGroup {
 
     private validateGroupInternal(): void {
         // Ensure 'group' is still a valid, contiguous group.
-        // NOTE: 'modifiedWindow' may no longer exist (if validation is being performed because a window was closed)
         const contiguousWindowSets = this.getContiguousEntities(this.entities);
         if (contiguousWindowSets.length > 1) {                             // Group is disjointed. Need to split.
             for (const windowsToGroup of contiguousWindowSets.slice(1)) {  // Leave first set as-is. Move others into own groups.

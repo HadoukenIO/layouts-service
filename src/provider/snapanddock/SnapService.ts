@@ -1,12 +1,10 @@
 import {DesktopEntity} from '../model/DesktopEntity';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
-import {DesktopWindow, eTransformType, Mask, WindowIdentity} from '../model/DesktopWindow';
+import {DesktopWindow, WindowIdentity} from '../model/DesktopWindow';
 import {Target} from '../WindowHandler';
-
-import {EXPLODE_MOVE_SCALE, MIN_OVERLAP, UNDOCK_MOVE_DISTANCE} from './Config';
+import {EXPLODE_MOVE_SCALE, UNDOCK_MOVE_DISTANCE} from './Config';
 import {Resolver, SnapTarget} from './Resolver';
-import {Debounced} from './utils/Debounced';
 import {Point, PointUtils} from './utils/PointUtils';
 import {MeasureResult, RectUtils} from './utils/RectUtils';
 
@@ -46,10 +44,6 @@ export class SnapService {
     constructor(model: DesktopModel) {
         this._model = model;
         this._resolver = new Resolver();
-
-        // Register lifecycle listeners
-        DesktopSnapGroup.onCreated.add(this.onSnapGroupCreated, this);
-        DesktopSnapGroup.onDestroyed.add(this.onSnapGroupDestroyed, this);
 
         // Register global undock hotkey listener
         fin.GlobalHotkey
@@ -168,24 +162,6 @@ export class SnapService {
         }
 
         snapTarget.group.validate();
-    }
-
-    private onSnapGroupCreated(group: DesktopSnapGroup): void {
-        group.onModified.add(this.onGroupModified, this);
-        group.onTransform.add(this.onGroupTransform, this);
-    }
-
-    private onSnapGroupDestroyed(group: DesktopSnapGroup): void {
-        group.onModified.remove(this.onGroupModified, this);
-        group.onTransform.remove(this.onGroupTransform, this);
-    }
-
-    private onGroupModified(group: DesktopSnapGroup, modifiedWindow: DesktopWindow): void {
-        // Validation is handled at the group level. Need to think if anything else should happen here.
-    }
-
-    private onGroupTransform(group: DesktopSnapGroup, type: Mask<eTransformType>): void {
-        // Validation is handled at the group level. Need to think if anything else should happen here.
     }
 
     private calculateUndockMoveDirection(window: DesktopEntity): Point {

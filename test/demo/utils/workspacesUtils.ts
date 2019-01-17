@@ -24,12 +24,12 @@ async function isWindowActive(uuid: string, name: string) {
     });
 }
 
-export async function assertWindowRestored(t: SaveRestoreTestContext, uuid: string, name: string) {
+export async function assertWindowRestored(t: TestContext, uuid: string, name: string) {
     const active = await isWindowActive(uuid, name);
     active ? t.pass() : t.fail(`Window ${uuid}:${name} was not restored`);
 }
 
-export async function assertWindowNotRestored(t: SaveRestoreTestContext, uuid: string, name: string) {
+export async function assertWindowNotRestored(t: TestContext, uuid: string, name: string) {
     const active = await isWindowActive(uuid, name);
     active ? t.fail(`Window ${uuid}:${name} was restored when it should not have been`) : t.pass();
 }

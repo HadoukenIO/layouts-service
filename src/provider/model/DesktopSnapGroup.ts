@@ -318,7 +318,7 @@ export class DesktopSnapGroup {
         }
     }
 
-    private onGroupModified(group:DesktopSnapGroup, window:DesktopWindow): void {
+    private onGroupModified(group: DesktopSnapGroup, window: DesktopWindow): void {
         if (this.windows.includes(window)) {
             this._validateGroup.postpone();
         } else {

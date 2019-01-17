@@ -66,9 +66,7 @@
                     "type": "string",
                     "enum": [
                         "service",
-                        "desktop",
-                        "realm",
-                        "platform"
+                        "desktop"
                     ]
                 }
             },

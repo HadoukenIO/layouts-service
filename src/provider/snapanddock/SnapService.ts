@@ -1,10 +1,11 @@
+import {ConfigStore} from '../main';
 import {DesktopEntity} from '../model/DesktopEntity';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopWindow, eTransformType, Mask, WindowIdentity} from '../model/DesktopWindow';
 import {Target} from '../WindowHandler';
 
-import {EXPLODE_MOVE_SCALE, MIN_OVERLAP, UNDOCK_MOVE_DISTANCE} from './Config';
+import {EXPLODE_MOVE_SCALE, MIN_OVERLAP, UNDOCK_MOVE_DISTANCE} from './Constants';
 import {Resolver, SnapTarget} from './Resolver';
 import {Debounced} from './utils/Debounced';
 import {Point, PointUtils} from './utils/PointUtils';
@@ -52,9 +53,9 @@ export class SnapService {
 
     private _validateGroups: Debounced<(group: DesktopSnapGroup) => void, SnapService, [DesktopSnapGroup]>;
 
-    constructor(model: DesktopModel) {
+    constructor(model: DesktopModel, config: ConfigStore) {
         this._model = model;
-        this._resolver = new Resolver();
+        this._resolver = new Resolver(config);
         this._validateGroups = new Debounced(this.validateGroupInternal, this);
 
         // Register lifecycle listeners

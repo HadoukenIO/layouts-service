@@ -46,7 +46,7 @@
         },
         "rule-window": {
             "title": "WindowRule",
-            "description": "A rule targeting a window (or set of winodws) by UUID-Name pair.",
+            "description": "A rule targeting a window (or set of windows) by UUID-Name pair.",
             "properties": {
                 "level": {
                     "type": "string",
@@ -89,9 +89,7 @@
                     "type": "string",
                     "enum": [
                         "service",
-                        "desktop",
-                        "realm",
-                        "platform"
+                        "desktop"
                     ]
                 }
             },

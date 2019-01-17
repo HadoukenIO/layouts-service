@@ -2,7 +2,7 @@ import {test, TestContext} from 'ava';
 import {Fin, Window} from 'hadouken-js-adapter';
 
 import {WindowIdentity} from '../../src/client/types';
-import {UNDOCK_MOVE_DISTANCE} from '../../src/provider/snapanddock/Config';
+import {UNDOCK_MOVE_DISTANCE} from '../../src/provider/snapanddock/Constants';
 import {undockWindow} from '../demo/utils/snapServiceUtils';
 
 import {assertNotGrouped} from './utils/assertions';

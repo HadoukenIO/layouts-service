@@ -1,8 +1,10 @@
 .vs
 .vscode
 .DS_STORE
-dist
-docs
-node_modules
 npm-debug.log
+openfin-layouts-*.tgz
+
+dist
+gen
+node_modules
 test/coverage

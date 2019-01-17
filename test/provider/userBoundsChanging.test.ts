@@ -96,7 +96,7 @@ test('Programmatic move, Basic Snap, top - should not snap', async t => {
 });
 
 
-test('Programmitc move, Tab - should not tab', async t => {
+test('Programmatic move, Tab - should not tab', async t => {
     const win2bounds = await getBounds(wins[1]);
 
     await wins[0].moveTo(win2bounds.left + 20, win2bounds.top + 20);
@@ -108,7 +108,7 @@ test('Programmitc move, Tab - should not tab', async t => {
 
 
 /**
- * Asserts that two windows are succesfully tabbed together
+ * Asserts that two windows are successfully tabbed together
  * @param t Ava test context against which to assert
  */
 async function assertTabbed(win1: Window, win2: Window, t: GenericTestContext<AnyContext>): Promise<void> {
@@ -120,7 +120,7 @@ async function assertTabbed(win1: Window, win2: Window, t: GenericTestContext<An
         t.deepEqual(group1[i].identity, group2[i].identity, 'Window native groups are different');
     }
 
-    // Checks if a tabset window is present in the group (detatched tab check)
+    // Checks if a tabset window is present in the group (detached tab check)
     t.truthy(
         group1.find((win) => {
             return win.identity.name!.includes('TABSET-');

@@ -1,6 +1,6 @@
 import {Point, PointTopLeft} from 'hadouken-js-adapter/out/types/src/api/system/point';
 import {DragWindowManager} from '../tabbing/DragWindowManager';
-import {DesktopWindow, EntityState, eTransformType, Mask, WindowState} from './DesktopWindow';
+import {DesktopWindow, EntityState, eTransformType, Mask} from './DesktopWindow';
 
 /**
  * A helper to keep track of mouse position when a window is being dragged via user movement
@@ -15,7 +15,7 @@ export class MouseTracker {
      */
     private _mouseOffset: Point|null = null;
 
-    private knownPosition: Point|null = null;
+    private _knownPosition: Point|null = null;
 
     constructor() {
         DesktopWindow.onCreated.add(this.onDesktopWindowCreated, this);
@@ -24,22 +24,6 @@ export class MouseTracker {
         DragWindowManager.onDragDrop.add(this.onTabDrop, this);
     }
 
-    /**
-     * Returns the mouse position on screen when a window is being moved. If no window is being moved then we return null.
-     * @returns {Point | null} Mouse Position or null.
-     */
-    public getPosition(): Point|null {
-        if (this._window && this._mouseOffset) {
-            const currentWindowState: EntityState = this._window.currentState;
-
-            return {
-                x: this._mouseOffset.x + (currentWindowState.center.x - currentWindowState.halfSize.x),
-                y: this._mouseOffset.y + (currentWindowState.center.y - currentWindowState.halfSize.y)
-            };
-        }
-
-        return null;
-    }
 
     private onDesktopWindowCreated(window: DesktopWindow) {
         window.onTransform.add(this.start, this);
@@ -51,13 +35,13 @@ export class MouseTracker {
     }
 
     private onTabDrag(window: DesktopWindow, position: Point) {
-        this.knownPosition = position;
+        this._knownPosition = position;
     }
 
     private onTabDrop() {
         // Timeout because the position will be cleared once a tab drop has occurred.  In the event of an tab eject this information is needed at drop.
         setTimeout(() => {
-            this.knownPosition = null;
+            this._knownPosition = null;
         }, 500);
     }
 
@@ -71,7 +55,6 @@ export class MouseTracker {
             return;
         } else if (this._window) {
             // Being re-initialised with another window
-            console.warn('Switching mouse tracker from', this._window.id, 'to', window && window.id);
             this.end(window, type);
         }
 
@@ -100,23 +83,27 @@ export class MouseTracker {
         }
     }
 
+    public get isDraggingTab(): boolean {
+        return !!this._knownPosition;
+    }
+
     /**
      * Returns the mouse position on screen when a window is being moved. If no window is being moved then we return null.
      * @returns {Point | null} Mouse Position or null.
      */
     public getPosition(): Point|null {
-        if (this.window && this.mouseOffset) {
-            const currentWindowState: WindowState = this.window.getState();
+        if (this._window && this._mouseOffset) {
+            const currentWindowState: EntityState = this._window.currentState;
+
 
             return {
-                x: this.mouseOffset.x + (currentWindowState.center.x - currentWindowState.halfSize.x),
-                y: this.mouseOffset.y + (currentWindowState.center.y - currentWindowState.halfSize.y)
+                x: this._mouseOffset.x + (currentWindowState.center.x - currentWindowState.halfSize.x),
+                y: this._mouseOffset.y + (currentWindowState.center.y - currentWindowState.halfSize.y)
             };
-        } else if (this.knownPosition) {
-            return this.knownPosition;
+        } else if (this._knownPosition) {
+            return this._knownPosition;
         }
 
         return null;
     }
-
 }

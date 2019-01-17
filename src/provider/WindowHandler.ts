@@ -2,7 +2,7 @@ import {snapService, tabService} from './main';
 import {DesktopEntity} from './model/DesktopEntity';
 import {DesktopModel} from './model/DesktopModel';
 import {DesktopSnapGroup} from './model/DesktopSnapGroup';
-import {eTransformType, Mask} from './model/DesktopWindow';
+import {DesktopWindow, eTransformType, Mask} from './model/DesktopWindow';
 import {SnapTarget} from './snapanddock/Resolver';
 import {Point} from './snapanddock/utils/PointUtils';
 import {DragWindowManager} from './tabbing/DragWindowManager';
@@ -64,26 +64,28 @@ export class WindowHandler {
     }
 
     private onGroupTransform(activeGroup: DesktopSnapGroup, type: Mask<eTransformType>) {
-        this.view.update(activeGroup, this.getTarget(activeGroup, type));
+        const target = this.getTarget(activeGroup, type);
+
+        this.view.update(activeGroup, target);
     }
 
     private onGroupCommit(activeGroup: DesktopSnapGroup, type: Mask<eTransformType>) {
         const target = this.getTarget(activeGroup, type);
 
+        this.view.update(null, null);
+
         if (target) {
             if (target.type === eTargetType.TAB) {
-                tabService.tabDroppedWindow(target);
+                tabService.applyTabTarget(target);
 
             } else if (target.type === eTargetType.SNAP) {
                 snapService.applySnapTarget(target);
             }
         }
-
-        this.view.update(null, null);
     }
 
     private onTabDrag(window: DesktopWindow, mousePosition: Point) {
-        const activeGroup = window.getSnapGroup();
+        const activeGroup = window.snapGroup;
         const target = tabService.getTarget(window);
 
         this.view.update(activeGroup, target);
@@ -99,7 +101,7 @@ export class WindowHandler {
      */
     private getTarget(activeGroup: DesktopSnapGroup, type: Mask<eTransformType>): Target|null {
         const snapTarget: Target|null = snapService.getTarget(activeGroup);
-        const tabTarget: Target|null = (type & eTransformType.RESIZE) === 0 ? tabService.getTarget(activeGroup) : null;
+        const tabTarget: Target|null = (type & eTransformType.RESIZE) === 0 ? tabService.getTarget(activeGroup.windows[0]) : null;
 
         return snapTarget || tabTarget;
     }

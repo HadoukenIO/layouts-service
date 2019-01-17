@@ -1,5 +1,4 @@
 import {Context, GenericTestContext, Test, TestContext} from 'ava';
-
 import {SERVICE_IDENTITY} from '../../../src/client/internal';
 import {Layout} from '../../../src/client/types';
 import {getConnection} from '../../provider/utils/connect';

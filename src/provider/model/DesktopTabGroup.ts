@@ -223,12 +223,9 @@ export class DesktopTabGroup implements DesktopEntity {
      * Minimizes the tab set window and all tab windows.
      */
     public async minimize(): Promise<void> {
-        const minWins = this._tabs.map(tab => {
-            return tab.applyProperties({state: 'minimized'});
-        });
-        const group = this._window.applyProperties({state: 'minimized'});
-
-        return Promise.all([minWins, group]).then(() => {});
+        // Only minimize the tabstrip and active tab since minimizing hidden windows causes issues.
+        // This may cause problems if switching tabs while minimized, but that would require a questionable custom tabstrip.
+        await Promise.all([this._window.applyProperties({state: 'minimized'}), this.activeTab.applyProperties({state: 'minimized'})]);
     }
 
     /**

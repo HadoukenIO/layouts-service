@@ -45,8 +45,12 @@ function createConfig(outPath, entryPoint, options, ...plugins) {
     };
 
     if (options && options.isLibrary === true) {
-        config.output.library = '[name]';
-        config.output.libraryTarget = 'window';
+        if (!!options.libraryName) {
+            config.output.library = options.libraryName
+        } else {
+            config.output.library = '[name]';
+        }
+        config.output.libraryTarget = 'umd';
     }
     if (plugins && plugins.length) {
         config.plugins.push.apply(config.plugins, plugins);
@@ -86,7 +90,7 @@ const manifestPlugin = new CopyWebpackPlugin([{
 const versionPlugin = new webpack.DefinePlugin({PACKAGE_VERSION: `'${version}'`});
 
 module.exports = [
-    createConfig(`${outputDir}/client`, './src/client/main.ts', {minify: false}, versionPlugin),
+    createConfig(`${outputDir}/client`, './src/client/main.ts', {minify: false, isLibrary: true, libraryName: 'OpenFinLayouts'}, versionPlugin),
     createConfig(`${outputDir}/provider`, {
         main: './src/provider/main.ts',
         tabStrip: './src/provider/tabbing/tabstrip/main.ts'

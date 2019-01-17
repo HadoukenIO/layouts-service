@@ -1,9 +1,11 @@
+import test from 'ava';
+
 import {assertGrouped, assertTabbed} from '../../provider/utils/assertions';
 import {getWindow} from '../../provider/utils/getWindow';
 import {AppInitializerParams, WindowGrouping} from '../utils/AppInitializer';
 import {AppContext, CreateAppData, createAppTest} from '../utils/createAppTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
-import {createCloseAndRestoreLayout, createTabTests} from '../utils/workspacesUtils';
+import {closeAllPreviews, createCloseAndRestoreLayout, createTabTests} from '../utils/workspacesUtils';
 
 export interface TabSaveRestoreTestOptions {
     apps: AppInitializerParams[];
@@ -43,3 +45,6 @@ testParameterized<CreateAppData, AppContext>(
             await assertGrouped(t, win1, win2);
         }
     }));
+
+
+test.afterEach.always(closeAllPreviews);

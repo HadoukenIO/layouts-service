@@ -1,10 +1,12 @@
+import test from 'ava';
+
 import {assertAdjacent, assertGrouped} from '../../provider/utils/assertions';
 import {dragWindowTo} from '../../provider/utils/dragWindowTo';
 import {getWindow} from '../../provider/utils/getWindow';
 import {AppInitializerParams, WindowGrouping} from '../utils/AppInitializer';
 import {AppContext, CreateAppData, createAppTest} from '../utils/createAppTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
-import {createCloseAndRestoreLayout, createSnapTests} from '../utils/workspacesUtils';
+import {closeAllPreviews, createCloseAndRestoreLayout, createSnapTests} from '../utils/workspacesUtils';
 
 export interface SnapSaveRestoreTestOptions {
     apps: AppInitializerParams[];
@@ -47,3 +49,6 @@ testParameterized<CreateAppData, AppContext>(
             await assertGrouped(t, win1, win2);
         }
     }));
+
+
+test.afterEach.always(closeAllPreviews);

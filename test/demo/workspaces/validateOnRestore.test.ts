@@ -24,7 +24,7 @@ const childOptions = {
 };
 
 testParameterized(
-    'validate S&R',
+    'Validate Group on Restore',
     [
         {windowCount: 3, arrangement: 'line', deregisteredIndex: 1, remainingGroups: [[0], [2]]},
         {windowCount: 3, arrangement: 'line', deregisteredIndex: 2, remainingGroups: [[0, 1]]},

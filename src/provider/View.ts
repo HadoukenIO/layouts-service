@@ -16,6 +16,10 @@ export class View {
         this._activeItem = null;
     }
 
+    /**
+     * Updates target window and groups by applying opacity + z-indexing effects.  Also will call for positioning the preview window based on the target
+     * supplied.
+     */
     public update(target: Target|null): void {
         const activeGroup = target && target.activeWindow.snapGroup || null;
 

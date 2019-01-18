@@ -302,7 +302,8 @@ export class APIHandler {
         const target = tabService.getTarget(tab);
         tabService.dragWindowManager.hideWindow();
 
-        if (!target) return;
-        await tabService.applyTabTarget(target);
+        if (target) {
+            await tabService.applyTabTarget(target);
+        }
     }
 }

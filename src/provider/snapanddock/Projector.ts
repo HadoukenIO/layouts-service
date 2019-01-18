@@ -143,7 +143,7 @@ export class Projector {
                     }
                 });
 
-                return {group: candidateGroup, activeWindow, offset: snapOffset, halfSize, valid: true, type: eTargetType.SNAP};
+                return {targetGroup: candidateGroup, activeWindow, offset: snapOffset, halfSize, valid: true, type: eTargetType.SNAP};
             }
         }
 

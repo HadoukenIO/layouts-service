@@ -74,7 +74,7 @@ export function createAppsArray(numAppsToCreate: number, numberOfChildren: numbe
     while (appsCreated < numAppsToCreate) {
         // Set the app information
         appTitleNumber++;
-        const id = 'save-restore-test-app' + appTitleNumber;
+        const id = 'save-restore-test-app' + Math.random().toString(36).substring(2);
 
         // Set the child window information
         const childWindows = [];

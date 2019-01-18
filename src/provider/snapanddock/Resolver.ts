@@ -57,7 +57,7 @@ export interface SnapTarget extends TargetBase {
      *
      * This is not the group that the user is currently dragging, it is the group that has been selected as the target.
      */
-    group: DesktopSnapGroup;
+    targetGroup: DesktopSnapGroup;
 }
 
 /**

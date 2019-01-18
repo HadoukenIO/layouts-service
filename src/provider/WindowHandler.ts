@@ -66,13 +66,13 @@ export class WindowHandler {
     private onGroupTransform(activeGroup: DesktopSnapGroup, type: Mask<eTransformType>) {
         const target = this.getTarget(activeGroup, type);
 
-        this.view.update(activeGroup, target);
+        this.view.update(target);
     }
 
     private onGroupCommit(activeGroup: DesktopSnapGroup, type: Mask<eTransformType>) {
         const target = this.getTarget(activeGroup, type);
 
-        this.view.update(null, null);
+        this.view.update(null);
 
         if (target) {
             if (target.type === eTargetType.TAB) {
@@ -88,11 +88,11 @@ export class WindowHandler {
         const activeGroup = window.snapGroup;
         const target = tabService.getTarget(window);
 
-        this.view.update(activeGroup, target);
+        this.view.update(target);
     }
 
     private onTabDrop() {
-        this.view.update(null, null);
+        this.view.update(null);
     }
 
     /**

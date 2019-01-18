@@ -23,13 +23,6 @@ export interface TabTarget extends TargetBase {
     dropArea: Rectangle;
 
     /**
-     * The group that has been selected as the target candidate.
-     *
-     * This is not the group that the user is currently dragging, it is the group that has been selected as the target.
-     */
-    group: DesktopSnapGroup;
-
-    /**
      * The specific window that is targeted in the target canidate group.
      */
     targetWindow: DesktopEntity;
@@ -238,7 +231,9 @@ export class TabService {
 
         const activeDesktopWindow = this._model.getWindow(activeIdentity);
 
-        if (!activeDesktopWindow) return;
+        if (!activeDesktopWindow) {
+            return;
+        }
 
         if (tabGroupUnderPoint) {
             // If we are over a tab group
@@ -246,7 +241,9 @@ export class TabService {
             if (existingTabGroup !== tabGroupUnderPoint && tabAllowed) {
                 // And that tab group is not the one we are ejecting from
 
-                if (existingTabGroup) await existingTabGroup.removeTab(activeDesktopWindow);
+                if (existingTabGroup) {
+                    await existingTabGroup.removeTab(activeDesktopWindow);
+                }
 
                 // Add ejected tab to tab group under Point.
                 await tabGroupUnderPoint.addTab(activeDesktopWindow);
@@ -257,7 +254,9 @@ export class TabService {
             }
         } else if (tabAllowed && windowUnderPoint && !tabGroupUnderPoint && target.valid) {
             // If there is a window under our Point, and its not part of a tab group, and we are over a valid drop area
-            if (existingTabGroup) await existingTabGroup.removeTab(activeDesktopWindow);
+            if (existingTabGroup) {
+                await existingTabGroup.removeTab(activeDesktopWindow);
+            }
 
             // Create new tab group
             await this.createTabGroupWithTabs([windowUnderPoint.identity, activeIdentity], activeIdentity);
@@ -371,7 +370,6 @@ export class TabService {
                 type: eTargetType.TAB,
                 activeWindow,
                 targetWindow,
-                group: targetWindow.snapGroup,
                 dropArea: this.getWindowDropArea(targetWindow),
                 valid,
                 tabDragging: this._model.mouseTracker.isDraggingTab

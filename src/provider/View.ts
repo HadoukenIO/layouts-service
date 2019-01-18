@@ -1,6 +1,6 @@
 import {DesktopEntity} from './model/DesktopEntity';
 import {DesktopSnapGroup} from './model/DesktopSnapGroup';
-import {Preview} from './Preview';
+import {Preview, PreviewableTarget} from './Preview';
 import {eTargetType, Target} from './WindowHandler';
 
 type DesktopItem = DesktopEntity|DesktopSnapGroup;
@@ -16,10 +16,8 @@ export class View {
         this._activeItem = null;
     }
 
-    public update(activeGroup: DesktopSnapGroup|null, target: Target|null): void {
-        if (target && target.type === eTargetType.EJECT) {
-            activeGroup = target = null;
-        }
+    public update(target: Target|null): void {
+        const activeGroup = target && target.activeWindow.snapGroup || null;
 
         let activeItem: DesktopItem|null = null, targetItem: DesktopItem|null = null;
 
@@ -27,7 +25,7 @@ export class View {
             switch (target.type) {
                 case eTargetType.SNAP:
                     activeItem = activeGroup;
-                    targetItem = target.group;
+                    targetItem = target.targetGroup;
                     break;
                 case eTargetType.TAB:
                     if (target.targetWindow.tabGroup && target.activeWindow.tabGroup && target.targetWindow.tabGroup === target.activeWindow.tabGroup) {
@@ -37,6 +35,10 @@ export class View {
                     }
 
                     activeItem = target.activeWindow;
+                    break;
+                case eTargetType.EJECT:
+                    activeItem = null;
+                    targetItem = null;
                     break;
                 default:
                     activeItem = activeGroup;
@@ -59,6 +61,9 @@ export class View {
 
             this._activeItem = activeItem;
         } else if ((this._activeItem === this._targetItem) !== (activeItem === targetItem)) {
+            // Conditional for when we move from targeting the activewindow to another target.  There are special treatments needed for when we target the
+            // activewindow which are handled here.
+
             const bringActiveToFront = target !== null && !(target.type === eTargetType.TAB && target.tabDragging && activeItem !== targetItem);
             this.setAlwaysOnTop(activeItem, bringActiveToFront);
             this.setOpacity(activeItem, !bringActiveToFront);
@@ -76,7 +81,7 @@ export class View {
         this._targetItem = targetItem;
 
         if (activeItem && targetItem && activeItem !== targetItem) {
-            this._preview.show(target!);
+            this._preview.show(target! as PreviewableTarget);
         } else {
             this._preview.hide();
         }

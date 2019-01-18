@@ -75,7 +75,8 @@ export class ConfigUtil {
     /**
      * Tests if two scopes are exactly equal.
      *
-     * {@link matchesScope} can be used as a "fuzzy" equality check, to check if any item that matches one scope will also match the other.
+     * {@link matchesScope} can be used as a "fuzzy" equality check, to check if any item that matches one scope will
+     * also match the other.
      *
      * @param a First scope
      * @param b Second scope
@@ -89,6 +90,42 @@ export class ConfigUtil {
                     return a.uuid === (b as ApplicationScope).uuid;
                 case 'window':
                     return a.uuid === (b as WindowScope).uuid && a.name === (b as WindowScope).name;
+                default:
+                    // No additional data to check
+                    return true;
+            }
+        }
+    }
+
+    /**
+     * Tests if two rules are "functionally" exactly equal.
+     *
+     * Check is performed in a way that allows for optional fields to evaluate as equal if one is undefined and the
+     * other is defined but with the default value.
+     *
+     * @param a First rule
+     * @param b Second rule
+     */
+    public static rulesEqual(a: Rule, b: Rule): boolean {
+        function paramEqual(a: string|RegEx, b: string|RegEx): boolean {
+            if (typeof a !== typeof b) {
+                return false;
+            } else if (typeof a === 'string') {
+                return a === b;
+            } else if (typeof b !== 'string') {  // Redudant since expression will always be true, but allows TypeScript to infer type of 'b'
+                return a.expression === b.expression && (a.flags || '') === (b.flags || '') && (a.invert || false) === (b.invert || false);
+            }
+            return false;
+        }
+
+        if (a.level !== b.level) {
+            return false;
+        } else {
+            switch (a.level) {
+                case 'application':
+                    return paramEqual(a.uuid, (b as ApplicationScope).uuid);
+                case 'window':
+                    return paramEqual(a.uuid, (b as WindowScope).uuid) && paramEqual(a.name, (b as WindowScope).name);
                 default:
                     // No additional data to check
                     return true;

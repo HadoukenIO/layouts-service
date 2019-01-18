@@ -19,16 +19,24 @@ export abstract class Watch<T> {
     /**
      * Signal fired whenever any config matching this watch is added to the store.
      *
-     * Arguments: (store: Store<T>, config: ScopedConfig<T>)
+     * NOTE: Within these callbacks, don't assume that all scopes matching `rule.scope` will now have `rule.config`
+     * applied. There could be other rules within the store with higher precedence, that will override some or all of
+     * the contents of `rule.config`.
+     *
+     * Arguments: (rule: ScopedConfig<T>, source: Scope)
      */
-    public readonly onAdd: Signal2<Store<T>, ScopedConfig<T>> = new Signal2();
+    public readonly onAdd: Signal2<ScopedConfig<T>, Scope> = new Signal2();
 
     /**
      * Signal fired whenever any config matching this watch is removed from the store.
      *
-     * Arguments: (store: Store<T>, config: ScopedConfig<T>)
+     * NOTE: Within these callbacks, don't assume that all scopes matching `rule.scope` will now have been modified. It
+     * is possible that there were other rules within the store with higher precedence, which meant that the removed
+     * rule wasn't having any impact on that item.
+     *
+     * Arguments: (rule: ScopedConfig<T>, source: Scope)
      */
-    public readonly onRemove: Signal2<Store<T>, ScopedConfig<T>> = new Signal2();
+    public readonly onRemove: Signal2<ScopedConfig<T>, Scope> = new Signal2();
 
     protected _store: Store<T>;
 

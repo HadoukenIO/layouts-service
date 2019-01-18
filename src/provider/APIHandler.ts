@@ -12,7 +12,7 @@ import {DesktopTabGroup} from './model/DesktopTabGroup';
 import {DesktopWindow, WindowIdentity} from './model/DesktopWindow';
 import {SnapService} from './snapanddock/SnapService';
 import {TabService} from './tabbing/TabService';
-import {deregisterWindow, generateLayout} from './workspaces/create';
+import {generateLayout} from './workspaces/create';
 import {getAppToRestore, restoreApplication, restoreLayout} from './workspaces/restore';
 
 /**
@@ -113,21 +113,12 @@ export class APIHandler {
         }
     }
 
-    private async deregister(identity: WindowIdentity): Promise<void> {
+    private async deregister(identity: WindowIdentity, id: ProviderIdentity): Promise<void> {
         try {
-            // Must first clean-up any usage of this window
-            const tab: DesktopWindow|null = this._model.getWindow(identity);
-            const group: DesktopTabGroup|null = tab && tab.tabGroup;
-
-            if (group) {
-                await group.removeTab(tab!);
-            }
+            this._model.deregister(identity, {level: 'window', uuid: id.uuid, name: id.name!});
         } catch (error) {
             console.error(error);
             throw new Error(`Unexpected error when deregistering: ${error}`);
-        } finally {
-            this._model.deregister(identity);
-            deregisterWindow(identity);
         }
     }
 

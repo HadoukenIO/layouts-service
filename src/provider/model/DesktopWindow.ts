@@ -1,9 +1,10 @@
 import deepEqual from 'fast-deep-equal';
 import {Identity, Window} from 'hadouken-js-adapter';
 
+import {WindowScope} from '../../../gen/provider/config/scope';
 import {SERVICE_IDENTITY} from '../../client/internal';
 import {apiHandler} from '../main';
-import {Signal1, Signal2} from '../Signal';
+import {Aggregators, Signal1, Signal2} from '../Signal';
 import {promiseMap} from '../snapanddock/utils/async';
 import {isWin10} from '../snapanddock/utils/platform';
 import {Point} from '../snapanddock/utils/PointUtils';
@@ -90,7 +91,7 @@ enum ActionOrigin {
     APPLICATION,
 
     /**
-     * A change made by the service that is intended to be permenant or long-lived. These are changes that will either
+     * A change made by the service that is intended to be permanent or long-lived. These are changes that will either
      * never be reverted, or only reverted once the service is done with the window.
      *
      * e.g: Resizing a window when it is dropped into a tab set.
@@ -107,7 +108,7 @@ enum ActionOrigin {
     SERVICE_TEMPORARY
 }
 
-type OpenFinWindowEventHandler = <K extends keyof fin.OpenFinWindowEventMap>(event: fin.OpenFinWindowEventMap[K]) => void;
+type OpenFinWindowEvent = keyof fin.OpenFinWindowEventMap;
 
 export class DesktopWindow implements DesktopEntity {
     public static readonly onCreated: Signal1<DesktopWindow> = new Signal1();
@@ -216,17 +217,19 @@ export class DesktopWindow implements DesktopEntity {
     public readonly onCommit: Signal2<DesktopWindow, Mask<eTransformType>> = new Signal2();
 
     /**
-     * Window is being removed from the service. Need to remove this window from any groups, and the service as a whole.
+     * Window is being removed from the service. Use this signal for any clean-up that is required, such as removing
+     * the window from any groups, and the service as a whole.
      *
-     * This may be because the window was closed (either by user-action, or programatically), or because the window has
-     * been deregistered.
+     * This may be because the window was closed (either by user-action, or programmatically), or because the window
+     * has been deregistered.
      *
      * Arguments: (window: DesktopWindow)
      */
-    public readonly onTeardown: Signal1<DesktopWindow> = new Signal1();
+    public readonly onTeardown: Signal1<DesktopWindow, Promise<void>, Promise<void>> = new Signal1(Aggregators.AWAIT_VOID);
 
     private _model: DesktopModel;
     private _identity: WindowIdentity;
+    private _scope: WindowScope;
     private _id: string;  // Created from window uuid and name
 
     private _window: Window;
@@ -265,8 +268,8 @@ export class DesktopWindow implements DesktopEntity {
     private _pendingActions: Promise<void>[];
     private _actionTags: WeakMap<Promise<void>, string>;
 
-    // Tracks event listeners registered on the fin window for easier cleanup.
-    private _registeredListeners: Map<keyof fin.OpenFinWindowEventMap, OpenFinWindowEventHandler> = new Map();
+    // Tracks event listeners registered on the fin window for easier clean-up.
+    private _registeredListeners: Map<OpenFinWindowEvent, (event: fin.OpenFinWindowEventMap[OpenFinWindowEvent]) => void> = new Map();
 
     private _userInitiatedBoundsChange = false;
 
@@ -275,6 +278,7 @@ export class DesktopWindow implements DesktopEntity {
 
         this._model = model;
         this._identity = identity;
+        this._scope = {level: 'window', ...identity};
         this._id = `${identity.uuid}/${identity.name!}`;
         this._pendingActions = [];
         this._actionTags = new WeakMap();
@@ -308,8 +312,8 @@ export class DesktopWindow implements DesktopEntity {
         if (!initialState) {
             initialState = this.createTemporaryState();
         }
-        this._currentState = {...initialState};
-        this._applicationState = {...initialState};
+        this._currentState = this.cloneState(initialState);
+        this._applicationState = this.cloneState(initialState);
         this._modifiedState = {};
         this._temporaryState = {};
         this._snapGroup = group;
@@ -331,12 +335,24 @@ export class DesktopWindow implements DesktopEntity {
      * That means that the window wrapped by this object may or may not exist at the point this is called. We attempt to capture this by having DesktopWindow
      * manage it's own destruction in the former case, so that it can mark itself as not-ready before starting the clean-up of the model.
      */
-    public teardown(): void {
+    public async teardown(): Promise<void> {
+        // Must first clean-up any usage of this window
+        if (this._tabGroup) {
+            await this._tabGroup.removeTab(this);
+        }
+
         if (this._ready) {
+            // Reset overrides
+            const overrides = Object.keys(this._temporaryState) as (keyof EntityState)[];
+            await Promise.all(overrides.map((property: keyof EntityState) => {
+                return this.resetOverride(property);
+            }));
+
+            // Undock the window
             this._window.leaveGroup();
         }
         this.cleanupListeners();
-        this.onTeardown.emit(this);
+        await this.onTeardown.emit(this);
         DesktopWindow.onDestroyed.emit(this);
         this._ready = false;
     }
@@ -370,6 +386,10 @@ export class DesktopWindow implements DesktopEntity {
 
     public get identity(): WindowIdentity {
         return this._identity;
+    }
+
+    public get scope(): WindowScope {
+        return this._scope;
     }
 
     public get isReady(): boolean {
@@ -418,7 +438,7 @@ export class DesktopWindow implements DesktopEntity {
      * window from a group, you must add it to a different group.
      *
      * @param group The group that this window should be added to
-     * @param offset An offset to apply to this windows position (use this to enusre window is in correct position)
+     * @param offset An offset to apply to this windows position (use this to ensure window is in correct position)
      * @param newHalfSize Can also simultaneously change the size of the window
      */
     public async setSnapGroup(group: DesktopSnapGroup): Promise<void> {
@@ -602,12 +622,29 @@ export class DesktopWindow implements DesktopEntity {
         }
     }
 
+    private cloneState(state: EntityState): EntityState {
+        return {
+            center: {...state.center},
+            halfSize: {...state.halfSize},
+            resizeConstraints: {x: {...state.resizeConstraints.x}, y: {...state.resizeConstraints.y}},
+            ...state
+        };
+    }
+
     private isModified(key: keyof EntityState, prevState: Partial<EntityState>, newState: EntityState): boolean {
         if (prevState[key] === undefined) {
             return true;
         } else if (key === 'center' || key === 'halfSize') {
-            const prevPoint: Point = prevState[key] as Point, newPoint: Point = newState[key] as Point;
+            const prevPoint: Point = prevState[key]!, newPoint: Point = newState[key];
             return prevPoint.x !== newPoint.x || prevPoint.y !== newPoint.y;
+        } else if (key === 'resizeConstraints') {
+            const prevConstraints: Point<ResizeConstraint> = prevState[key]!;
+            const newConstraints: Point<ResizeConstraint> = newState[key];
+
+            return (['x', 'y'] as (keyof Point)[]).some((dir: keyof Point) => {
+                const a = prevConstraints[dir], b = newConstraints[dir];
+                return a.minSize !== b.minSize || a.maxSize !== b.maxSize || a.resizableMin !== b.resizableMin || a.resizableMax !== b.resizableMax;
+            });
         } else {
             return prevState[key] !== newState[key];
         }
@@ -821,7 +858,7 @@ export class DesktopWindow implements DesktopEntity {
         this.registerListener('shown', () => this.updateState({hidden: false}, ActionOrigin.APPLICATION));
     }
 
-    private registerListener<K extends keyof fin.OpenFinWindowEventMap>(eventType: K, handler: (event: fin.OpenFinWindowEventMap[K]) => void) {
+    private registerListener<K extends OpenFinWindowEvent>(eventType: K, handler: (event: fin.OpenFinWindowEventMap[K]) => void) {
         this._window.addListener(eventType, handler);
         this._registeredListeners.set(eventType, handler);
     }

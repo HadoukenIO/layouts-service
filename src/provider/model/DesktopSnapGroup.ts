@@ -257,7 +257,7 @@ export class DesktopSnapGroup {
         this.onCommit.emit(this, type);
     }
 
-    private onWindowTeardown(window: DesktopWindow) {
+    private async onWindowTeardown(window: DesktopWindow): Promise<void> {
         const group: DesktopSnapGroup = window.snapGroup;
 
         // Ensure window is removed from it's snap group, so that the group doesn't contain any de-registered or non-existent windows.

@@ -7,6 +7,7 @@ import {model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {WindowIdentity} from '../model/DesktopWindow';
 import {WindowDetail} from 'hadouken-js-adapter/out/types/src/api/system/window';
+import { ApplicationConfigManager } from '../tabbing/components/ApplicationConfigManager';
 
 export interface SemVer {
     major: number;
@@ -239,11 +240,13 @@ export function parseVersionString(versionString: string): SemVer {
 
 export function adjustSizeOfFormerlyTabbedWindows(winIdentity: WindowIdentity, formerlyTabbedWindows: WindowObject, layoutWindow: LayoutWindow|WindowDetail) {
     if (inWindowObject(winIdentity, formerlyTabbedWindows)) {
-        const desktopWindow = model.getWindow(winIdentity);
-        const applicationState = desktopWindow!.applicationState;
+        const tabWindow = model.getWindow(winIdentity);
+        const applicationState = tabWindow!.applicationState;
+        const tabGroup = tabWindow!.tabGroup;
+        const tabStripHeight = tabGroup!.config.height;
 
-        layoutWindow.top = layoutWindow.top - 60;
-        layoutWindow.height = layoutWindow.height + 60;
+        layoutWindow.top = layoutWindow.top - tabStripHeight;
+        layoutWindow.height = layoutWindow.height + tabStripHeight;
 
         if (applicationState.frame === true) {
             layoutWindow.height = layoutWindow.height + 7;

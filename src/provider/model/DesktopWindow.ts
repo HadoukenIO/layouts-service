@@ -659,10 +659,13 @@ export class DesktopWindow implements DesktopEntity {
     }
 
     private unsnap(): Promise<void> {
+        console.log('c1 - ','window: ', this.id);
         // TODO: Wrap with 'addPendingActions'?..
         if (this._ready) {
+            console.log('c2 - ','window: ', this.id);
             return this._window.leaveGroup();
         } else {
+            console.log('c3 - ','window: ', this.id);
             return Promise.resolve();
         }
     }

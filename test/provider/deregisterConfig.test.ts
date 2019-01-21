@@ -1,22 +1,15 @@
 import {Context, GenericTestContext, test} from 'ava';
-import {Fin, Window} from 'hadouken-js-adapter';
-import * as robot from 'robotjs';
+import {Window} from 'hadouken-js-adapter';
 
 import {ConfigurationObject} from '../../gen/provider/config/layouts-config';
 import {Scope} from '../../gen/provider/config/scope';
-import {CreateWindowData, createWindowTest, WindowContext} from '../demo/utils/createWindowTest';
-import {executeJavascriptOnService, layoutsClientPromise} from '../demo/utils/serviceUtils';
+import {executeJavascriptOnService} from '../demo/utils/serviceUtils';
 import {isWindowRegistered} from '../demo/utils/snapServiceUtils';
-import {assertWindowRestored} from '../demo/utils/workspacesUtils';
 
-import {assertGrouped, assertNotGrouped, assertTabbed} from './utils/assertions';
-import {getConnection} from './utils/connect';
+import {assertGrouped, assertTabbed} from './utils/assertions';
 import {createChildWindow} from './utils/createChildWindow';
 import {delay} from './utils/delay';
-import {dragWindowAndHover} from './utils/dragWindowAndHover';
-import {dragSideToSide, dragWindowTo} from './utils/dragWindowTo';
-import {getBounds} from './utils/getBounds';
-import {getWindow} from './utils/getWindow';
+import {dragSideToSide} from './utils/dragWindowTo';
 import {tabWindowsTogether} from './utils/tabWindowsTogether';
 
 type TestContext = GenericTestContext<Context<{windows: Window[]}>>;
@@ -70,10 +63,8 @@ test('A de-registered window can be re-registered by adding a rule to the store'
 
 test('When a snapped window is de-registered, it is removed from its snap group', async (t: TestContext) => {
     const windows = t.context.windows;
-    windows.push(
-        await createChildWindow({...DEFAULT_OPTIONS, name: 'testWindow1'}),
-        await createChildWindow({...DEFAULT_OPTIONS, name: 'testWindow2'})
-    );
+    windows.push(await createChildWindow({...DEFAULT_OPTIONS, name: 'testWindow1'}));
+    windows.push(await createChildWindow({...DEFAULT_OPTIONS, name: 'testWindow2'}));
 
     await dragSideToSide(windows[0], 'left', windows[1], 'right');
     await assertGrouped(t, ...windows);

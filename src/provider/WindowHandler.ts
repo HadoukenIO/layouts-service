@@ -2,30 +2,26 @@ import {snapService, tabService} from './main';
 import {DesktopEntity} from './model/DesktopEntity';
 import {DesktopModel} from './model/DesktopModel';
 import {DesktopSnapGroup} from './model/DesktopSnapGroup';
-import {eTransformType, Mask} from './model/DesktopWindow';
+import {DesktopWindow, eTransformType, Mask} from './model/DesktopWindow';
 import {SnapTarget} from './snapanddock/Resolver';
-import {TabTarget} from './tabbing/TabService';
+import {Point} from './snapanddock/utils/PointUtils';
+import {DragWindowManager} from './tabbing/DragWindowManager';
+import {EjectTarget, TabTarget} from './tabbing/TabService';
 import {View} from './View';
 
 /**
  * The existing interfaces for what a target can be.
  */
-export type Target = SnapTarget|TabTarget;
+export type Target = SnapTarget|TabTarget|EjectTarget;
 
 export enum eTargetType {
     TAB = 'TAB',
-    SNAP = 'SNAP'
+    SNAP = 'SNAP',
+    EJECT = 'EJECT'
 }
 
 export interface TargetBase {
     type: eTargetType;
-
-    /**
-     * The group that has been selected as the target candidate.
-     *
-     * This is not the group that the user is currently dragging, it is the group that has been selected as the target.
-     */
-    group: DesktopSnapGroup;
 
     /**
      * The window within the active group that was used to find this candidate.
@@ -50,6 +46,8 @@ export class WindowHandler {
         this.model = model;
         this.view = new View();
 
+        DragWindowManager.onDragOver.add(this.onTabDrag, this);
+        DragWindowManager.onDragDrop.add(this.onTabDrop, this);
         // Register lifecycle listeners
         DesktopSnapGroup.onCreated.add(this.onSnapGroupCreated, this);
         DesktopSnapGroup.onDestroyed.add(this.onSnapGroupDestroyed, this);
@@ -66,22 +64,35 @@ export class WindowHandler {
     }
 
     private onGroupTransform(activeGroup: DesktopSnapGroup, type: Mask<eTransformType>) {
-        this.view.update(activeGroup, this.getTarget(activeGroup, type));
+        const target = this.getTarget(activeGroup, type);
+
+        this.view.update(target);
     }
 
     private onGroupCommit(activeGroup: DesktopSnapGroup, type: Mask<eTransformType>) {
         const target = this.getTarget(activeGroup, type);
 
+        this.view.update(null);
+
         if (target) {
             if (target.type === eTargetType.TAB) {
-                // TODO: Change this to accept a target (SERVICE-279)
-                tabService.tabDroppedWindow(activeGroup.windows[0]);
+                tabService.applyTabTarget(target);
+
             } else if (target.type === eTargetType.SNAP) {
                 snapService.applySnapTarget(target);
             }
         }
+    }
 
-        this.view.update(null, null);
+    private onTabDrag(window: DesktopWindow, mousePosition: Point) {
+        const activeGroup = window.snapGroup;
+        const target = tabService.getTarget(window);
+
+        this.view.update(target);
+    }
+
+    private onTabDrop() {
+        this.view.update(null);
     }
 
     /**
@@ -90,7 +101,7 @@ export class WindowHandler {
      */
     private getTarget(activeGroup: DesktopSnapGroup, type: Mask<eTransformType>): Target|null {
         const snapTarget: Target|null = snapService.getTarget(activeGroup);
-        const tabTarget: Target|null = (type & eTransformType.RESIZE) === 0 ? tabService.getTarget(activeGroup) : null;
+        const tabTarget: Target|null = (type & eTransformType.RESIZE) === 0 ? tabService.getTarget(activeGroup.windows[0]) : null;
 
         return snapTarget || tabTarget;
     }

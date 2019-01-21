@@ -294,12 +294,16 @@ export class APIHandler {
         const tab: DesktopWindow|null = model.getWindow(payload.window);
         const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
-        if (!group) {
+        if (!group || !tab) {
             console.error('Window is not registered for tabbing');
             throw new Error('Window is not registered for tabbing');
         }
 
+        const target = tabService.getTarget(tab);
         tabService.dragWindowManager.hideWindow();
-        tabService.ejectTab(payload.window, {x: payload.event.screenX, y: payload.event.screenY});
+
+        if (target) {
+            await tabService.applyTabTarget(target);
+        }
     }
 }

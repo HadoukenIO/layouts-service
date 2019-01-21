@@ -336,6 +336,8 @@ export class DesktopWindow implements DesktopEntity {
      * manage it's own destruction in the former case, so that it can mark itself as not-ready before starting the clean-up of the model.
      */
     public async teardown(): Promise<void> {
+        this.cleanupListeners();
+
         // Must first clean-up any usage of this window
         if (this._tabGroup) {
             await this._tabGroup.removeTab(this);
@@ -351,7 +353,6 @@ export class DesktopWindow implements DesktopEntity {
             // Undock the window
             this._window.leaveGroup();
         }
-        this.cleanupListeners();
         await this.onTeardown.emit(this);
         DesktopWindow.onDestroyed.emit(this);
         this._ready = false;

@@ -10,13 +10,6 @@ import {DesktopTabGroup} from './DesktopTabGroup';
 import {DesktopWindow, EntityState, eTransformType, Mask, WindowMessages} from './DesktopWindow';
 
 export class DesktopSnapGroup {
-    /**
-     * Any windows less than this distance apart will be considered as touching for the purposes of the validateGroup
-     *
-     * This is a workaround for runtime issues due to be fixed in v37.
-     */
-    private static VALIDATE_GROUP_DISTANCE = 14;
-
     private static _nextId = 1;
 
     public static readonly onCreated: Signal1<DesktopSnapGroup> = new Signal1();
@@ -203,13 +196,13 @@ export class DesktopSnapGroup {
 
         while (unvisited.length > 0) {
             const visited: DesktopEntity[] = [];
-            dfs(unvisited[0], visited);
+            depthFirstSearch(unvisited[0], visited);
             contiguousSets.push(visited);
         }
 
         return contiguousSets;
 
-        function dfs(startWindow: DesktopEntity, visited: DesktopEntity[]) {
+        function depthFirstSearch(startWindow: DesktopEntity, visited: DesktopEntity[]) {
             const startIndex = entities.indexOf(startWindow);
             if (visited.includes(startWindow)) {
                 return;
@@ -217,7 +210,7 @@ export class DesktopSnapGroup {
             visited.push(startWindow);
             unvisited.splice(unvisited.indexOf(startWindow), 1);
             for (let i = 0; i < adjacencyList[startIndex].length; i++) {
-                dfs(adjacencyList[startIndex][i], visited);
+                depthFirstSearch(adjacencyList[startIndex][i], visited);
             }
         }
 
@@ -231,7 +224,7 @@ export class DesktopSnapGroup {
                 // If a window is not visible it cannot be adjacent to anything. This also allows us
                 // to avoid the questionable position tracking for hidden windows.
                 return false;
-            } else if (distance.border(DesktopSnapGroup.VALIDATE_GROUP_DISTANCE) && Math.abs(distance.maxAbs) > MIN_OVERLAP) {
+            } else if (distance.border(0) && Math.abs(distance.maxAbs) > MIN_OVERLAP) {
                 // The overlap check ensures that only valid snap configurations are counted
                 return true;
             }

@@ -160,7 +160,7 @@ export class SnapService {
                 }
             }
         }
-        snapTarget.group.validate();
+        snapTarget.targetGroup.validate();
     }
 
     private calculateUndockMoveDirection(window: DesktopEntity): Point {

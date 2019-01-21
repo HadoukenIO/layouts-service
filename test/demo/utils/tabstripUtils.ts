@@ -29,19 +29,20 @@ export async function tearoutTab(tabstrip: _Window, tabIndex: number) {
 /**
  * Util using RobotJS to drag a tab handle over a different tabstrip, ejecting from the source and adding to the target.
  */
-export async function tearoutToOtherTabstrip(sourceTabstrip: _Window, tabIndex: number, targetTabstrip: _Window) {
+export async function tearoutToOtherTabstrip(sourceTabstrip: _Window, tabIndex: number, targetTabstrip: _Window, hover = false) {
     const targetBounds: NormalizedBounds = await getBounds(targetTabstrip);
-    return tearoutToPoint(sourceTabstrip, tabIndex, {x: targetBounds.left + 30, y: targetBounds.top + 30});
+    return tearoutToPoint(sourceTabstrip, tabIndex, {x: targetBounds.left + 30, y: targetBounds.top + 30}, hover);
 }
 
 /**
  * Util using RobotJS to drag a tab handle to a specific point, ejecting from the tabset.
  */
-export async function tearoutToPoint(sourceTabstrip: _Window, tabIndex: number, target: Point<number>) {
+export async function tearoutToPoint(sourceTabstrip: _Window, tabIndex: number, target: Point<number>, hover = false) {
     await mouseOverTabHandle(sourceTabstrip, tabIndex);
     await robot.mouseToggle('down');
     await robot.moveMouseSmooth(target.x, target.y);
-    await robot.mouseToggle('up');
+    if (!hover) await robot.mouseToggle('up');
+
     await delay(1000);
 }
 

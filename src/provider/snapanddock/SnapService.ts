@@ -152,7 +152,7 @@ export class SnapService {
 
             if (!this.disableDockingOperations) {
                 // Dock all windows in activeGroup to snapTarget.group
-                snapTarget.activeWindow.setSnapGroup(snapTarget.group);
+                snapTarget.activeWindow.setSnapGroup(snapTarget.targetGroup);
 
                 // The active group should now have been removed (since it is empty)
                 if (this._model.snapGroups.indexOf(activeGroup) >= 0) {
@@ -160,7 +160,6 @@ export class SnapService {
                 }
             }
         }
-
         snapTarget.group.validate();
     }
 

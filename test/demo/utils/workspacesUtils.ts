@@ -1,5 +1,6 @@
 import {Context, GenericTestContext, Test, TestContext} from 'ava';
 
+import {SERVICE_IDENTITY} from '../../../src/client/internal';
 import {Layout} from '../../../src/client/types';
 import {getConnection} from '../../provider/utils/connect';
 
@@ -78,4 +79,17 @@ export function createTabTests(numApps: number, children: number): {apps: AppIni
     return windowGroupings.map(windowGrouping => {
         return {apps: appsArray as AppInitializerParams[], tabWindowGrouping: windowGrouping};
     });
+}
+
+export async function closeAllPreviews(t: TestContext): Promise<void> {
+    const serviceApp = fin.Application.wrapSync(SERVICE_IDENTITY);
+    const children = await serviceApp.getChildWindows();
+    const actions: Promise<void>[] = [];
+    for (const child of children) {
+        if (child.identity.name!.startsWith('Placeholder-')) {
+            t.fail('Placeholder still exists after save/restore: ' + child.identity.name);
+            actions.push(child.close());
+        }
+    }
+    return Promise.all(actions).then(() => {});
 }

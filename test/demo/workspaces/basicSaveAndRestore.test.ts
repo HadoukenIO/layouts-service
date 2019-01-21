@@ -1,7 +1,9 @@
+import test from 'ava';
+
 import {AppInitializerParams} from '../utils/AppInitializer';
 import {AppContext, CreateAppData, createAppTest} from '../utils/createAppTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
-import {assertWindowRestored, createBasicSaveAndRestoreTest, createCloseAndRestoreLayout} from '../utils/workspacesUtils';
+import {assertWindowRestored, closeAllPreviews, createBasicSaveAndRestoreTest, createCloseAndRestoreLayout} from '../utils/workspacesUtils';
 
 export interface BasicSaveRestoreTestOptions {
     apps: AppInitializerParams[];
@@ -33,3 +35,6 @@ testParameterized<CreateAppData, AppContext>(
             }
         }
     }));
+
+
+test.afterEach.always(closeAllPreviews);

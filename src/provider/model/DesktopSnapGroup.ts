@@ -1,10 +1,13 @@
 import {Signal1, Signal2} from '../Signal';
+import {MIN_OVERLAP} from '../snapanddock/Config';
 import {CalculatedProperty} from '../snapanddock/utils/CalculatedProperty';
+import {Debounced} from '../snapanddock/utils/Debounced';
 import {Point, PointUtils} from '../snapanddock/utils/PointUtils';
+import {RectUtils} from '../snapanddock/utils/RectUtils';
 
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopTabGroup} from './DesktopTabGroup';
-import {DesktopWindow, EntityState, eTransformType, Mask, WindowIdentity, WindowMessages} from './DesktopWindow';
+import {DesktopWindow, EntityState, eTransformType, Mask, WindowMessages} from './DesktopWindow';
 
 export class DesktopSnapGroup {
     private static _nextId = 1;
@@ -66,6 +69,8 @@ export class DesktopSnapGroup {
 
     private rootWindow: DesktopWindow|null;
 
+    private _validateGroup: Debounced<() => void, DesktopSnapGroup, []>;
+
     constructor() {
         this._id = DesktopSnapGroup._nextId++;
         this._entities = [];
@@ -75,6 +80,10 @@ export class DesktopSnapGroup {
         const refreshFunc = this.calculateProperties.bind(this);
         this._origin = new CalculatedProperty(refreshFunc);
         this._halfSize = new CalculatedProperty(refreshFunc);
+
+        this._validateGroup = new Debounced(this.validateGroupInternal, this);
+
+        this.onModified.add(this.onGroupModified.bind(this));
 
         DesktopSnapGroup.onCreated.emit(this);
     }
@@ -151,6 +160,78 @@ export class DesktopSnapGroup {
         }
     }
 
+    public validate(): void {
+        this._validateGroup.call();
+    }
+
+    private validateGroupInternal(): void {
+        // Ensure 'group' is still a valid, contiguous group.
+        const contiguousWindowSets = this.getContiguousEntities(this.entities);
+        if (contiguousWindowSets.length > 1) {                             // Group is disjointed. Need to split.
+            for (const windowsToGroup of contiguousWindowSets.slice(1)) {  // Leave first set as-is. Move others into own groups.
+                const newGroup = new DesktopSnapGroup();
+                for (const windowToGroup of windowsToGroup) {
+                    windowToGroup.setSnapGroup(newGroup);
+                }
+            }
+        }
+    }
+
+    private getContiguousEntities(entities: DesktopEntity[]): DesktopEntity[][] {
+        const adjacencyList: DesktopEntity[][] = new Array<DesktopEntity[]>(entities.length);
+
+        // Build adjacency list
+        for (let i = 0; i < entities.length; i++) {
+            adjacencyList[i] = [];
+            for (let j = 0; j < entities.length; j++) {
+                if (i !== j && isAdjacent(entities[i], entities[j])) {
+                    adjacencyList[i].push(entities[j]);
+                }
+            }
+        }
+
+        // Find all contiguous sets
+        const contiguousSets: DesktopEntity[][] = [];
+        const unvisited: DesktopEntity[] = entities.slice();
+
+        while (unvisited.length > 0) {
+            const visited: DesktopEntity[] = [];
+            depthFirstSearch(unvisited[0], visited);
+            contiguousSets.push(visited);
+        }
+
+        return contiguousSets;
+
+        function depthFirstSearch(startWindow: DesktopEntity, visited: DesktopEntity[]) {
+            const startIndex = entities.indexOf(startWindow);
+            if (visited.includes(startWindow)) {
+                return;
+            }
+            visited.push(startWindow);
+            unvisited.splice(unvisited.indexOf(startWindow), 1);
+            for (let i = 0; i < adjacencyList[startIndex].length; i++) {
+                depthFirstSearch(adjacencyList[startIndex][i], visited);
+            }
+        }
+
+        function isAdjacent(win1: DesktopEntity, win2: DesktopEntity) {
+            const distance = RectUtils.distance(win1.currentState, win2.currentState);
+            if (win1.tabGroup && win1.tabGroup === win2.tabGroup) {
+                // Special handling for tab groups. When validating, all windows in a tabgroup are
+                // assumed to be adjacent to avoid weirdness with hidden windows.
+                return true;
+            } else if (win1.currentState.hidden || win2.currentState.hidden) {
+                // If a window is not visible it cannot be adjacent to anything. This also allows us
+                // to avoid the questionable position tracking for hidden windows.
+                return false;
+            } else if (distance.border(0) && Math.abs(distance.maxAbs) > MIN_OVERLAP) {
+                // The overlap check ensures that only valid snap configurations are counted
+                return true;
+            }
+            return false;
+        }
+    }
+
     private removeWindow(window: DesktopWindow): void {
         const index: number = this._windows.indexOf(window);
 
@@ -175,7 +256,7 @@ export class DesktopSnapGroup {
                 window.sendMessage(WindowMessages.LEAVE_SNAP_GROUP, {});
             }
 
-            // Have the service validate this group, to ensure it hasn't been split into two or more pieces.
+            // Inform the service that the group has been modified
             this.onModified.emit(this, window);
 
             // Inform service of removal
@@ -229,13 +310,24 @@ export class DesktopSnapGroup {
         }
     }
 
+    private onGroupModified(group: DesktopSnapGroup, window: DesktopWindow): void {
+        if (this.windows.includes(window)) {
+            this._validateGroup.postpone();
+        } else {
+            this._validateGroup.call();
+        }
+    }
+
     private onWindowModified(window: DesktopWindow): void {
         this._origin.markStale();
         this._halfSize.markStale();
+
         this.onModified.emit(this, window);
     }
 
     private onWindowTransform(window: DesktopWindow, type: Mask<eTransformType>): void {
+        this._validateGroup.postpone();
+
         if (type === eTransformType.MOVE) {
             // When a grouped window is moved, all windows in the group will fire a move event.
             // We want to filter these to ensure the group only fires onTransform once

@@ -422,23 +422,28 @@ export class DesktopWindow implements DesktopEntity {
      * @param newHalfSize Can also simultaneously change the size of the window
      */
     public async setSnapGroup(group: DesktopSnapGroup): Promise<void> {
+        console.log('a - ','window: ', this.id,' - group: ', group.windows.map(w => w.id));
         if (group !== this._snapGroup) {
+            console.log('b - ','window: ', this.id,' - group: ', group.windows.map(w => w.id));
             const wasSnapped = this._snapGroup.windows.length > 1;
-
+            
             // Update state synchronously
             this.addToSnapGroup(group);
-
+            
             // Unsnap from any existing windows
             if (wasSnapped) {
+                console.log('c - ','window: ', this.id,' - group: ', group.windows.map(w => w.id));
                 await this.unsnap();
             }
-
+            
             // Snap to any other windows in the new group
             if (this._snapGroup.windows.length > 1) {
+                console.log('d - ','window: ', this.id,' - group: ', group.windows.map(w => w.id));
                 await this.snap();
             }
         }
-
+        
+        console.log('e - ','window: ', this.id,' - group: ', group.windows.map(w => w.id));
         return Promise.resolve();
     }
 

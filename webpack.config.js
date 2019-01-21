@@ -23,7 +23,6 @@ const outputDir = path.resolve(__dirname, './dist');
  *      Allows a custom output file name to be used instead of the default [name]-bundle.js
  */
 function createConfig(outPath, entryPoint, options, ...plugins) {
-    console.log(process.env);
     const config = {
         entry: entryPoint,
         optimization: {

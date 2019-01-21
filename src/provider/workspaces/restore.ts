@@ -118,8 +118,8 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
             // Should de-tab here.
             const mainWindowModel = model.getWindow(app.mainWindow);
             await tabService.removeTab(app.mainWindow);
-            if (mainWindowModel!.snapGroup.length > 1) {
-                await mainWindowModel!.setSnapGroup(new DesktopSnapGroup());
+            if (mainWindowModel && mainWindowModel.snapGroup.length > 1) {
+                await mainWindowModel.setSnapGroup(new DesktopSnapGroup());
             }
 
 

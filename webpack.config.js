@@ -19,8 +19,11 @@ const outputDir = path.resolve(__dirname, './dist');
  *  - plugins {...object[]}
  *      Optional list of plugins to add to the config object
  *      Defaults to empty list
+ *  - outputFilename {string}
+ *      Allows a custom output file name to be used instead of the default [name]-bundle.js
  */
 function createConfig(outPath, entryPoint, options, ...plugins) {
+    console.log(process.env);
     const config = {
         entry: entryPoint,
         optimization: {
@@ -28,7 +31,7 @@ function createConfig(outPath, entryPoint, options, ...plugins) {
         },
         output: {
             path: outPath,
-            filename: '[name]-bundle.js'
+            filename: `${options && options.outputFilename || '[name]-bundle'}.js`
         },
         resolve: {
             extensions: ['.ts', '.tsx', '.js']
@@ -91,6 +94,7 @@ const versionPlugin = new webpack.DefinePlugin({PACKAGE_VERSION: `'${version}'`}
 
 module.exports = [
     createConfig(`${outputDir}/client`, './src/client/main.ts', {minify: false, isLibrary: true, libraryName: 'OpenFinLayouts'}, versionPlugin),
+    createConfig(`${outputDir}/client`, './src/client/main.ts', {minify: true, isLibrary: true, libraryName: 'OpenFinLayouts', outputFilename: "openfin-layouts"}, versionPlugin),
     createConfig(`${outputDir}/provider`, {
         main: './src/provider/main.ts',
         tabStrip: './src/provider/tabbing/tabstrip/main.ts'

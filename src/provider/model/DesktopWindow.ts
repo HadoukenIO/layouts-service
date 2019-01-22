@@ -422,9 +422,7 @@ export class DesktopWindow implements DesktopEntity {
      * @param newHalfSize Can also simultaneously change the size of the window
      */
     public async setSnapGroup(group: DesktopSnapGroup): Promise<void> {
-        console.log('a - ','window: ', this.id,' - group: ', group.windows.map(w => w.id));
         if (group !== this._snapGroup) {
-            console.log('b - ','window: ', this.id,' - group: ', group.windows.map(w => w.id));
             const wasSnapped = this._snapGroup.windows.length > 1;
             
             // Update state synchronously
@@ -432,18 +430,15 @@ export class DesktopWindow implements DesktopEntity {
             
             // Unsnap from any existing windows
             if (wasSnapped) {
-                console.log('c - ','window: ', this.id,' - group: ', group.windows.map(w => w.id));
                 await this.unsnap();
             }
             
             // Snap to any other windows in the new group
             if (this._snapGroup.windows.length > 1) {
-                console.log('d - ','window: ', this.id,' - group: ', group.windows.map(w => w.id));
                 await this.snap();
             }
         }
         
-        console.log('e - ','window: ', this.id,' - group: ', group.windows.map(w => w.id));
         return Promise.resolve();
     }
 
@@ -623,21 +618,21 @@ export class DesktopWindow implements DesktopEntity {
 
         if (count >= 2 && index >= 0 && this._ready) {
             const other: DesktopWindow = windows[index === 0 ? 1 : 0];
-
+            
             // Merge window groups
             return Promise.all([this.sync(), other.sync()]).then(() => {
                 const joinGroupPromise: Promise<void> = (async () => {
                     if (this._ready && group === this._snapGroup) {
                         await this._window.mergeGroups(other._window).catch((error) => this.checkClose(error));
-
+                        
                         // Re-fetch window list in case it has changed during sync
                         const windows: DesktopWindow[] = this._snapGroup.windows as DesktopWindow[];
-
+                        
                         // Bring other windows in group to front
                         await windows.map(groupWindow => groupWindow._window.bringToFront());
                     }
                 })();
-
+                
                 return this.addPendingActions('snap - joinGroup', joinGroupPromise);
             });
         } else if (index === -1) {
@@ -659,13 +654,10 @@ export class DesktopWindow implements DesktopEntity {
     }
 
     private unsnap(): Promise<void> {
-        console.log('c1 - ','window: ', this.id);
         // TODO: Wrap with 'addPendingActions'?..
         if (this._ready) {
-            console.log('c2 - ','window: ', this.id);
             return this._window.leaveGroup();
         } else {
-            console.log('c3 - ','window: ', this.id);
             return Promise.resolve();
         }
     }

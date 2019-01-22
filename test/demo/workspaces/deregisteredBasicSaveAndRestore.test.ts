@@ -1,7 +1,10 @@
+import test from 'ava';
+
 import {delay} from '../../provider/utils/delay';
 import {AppContext, CreateAppData, createAppTest} from '../utils/createAppTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
-import {assertWindowNotRestored, createBasicSaveAndRestoreTest, createCloseAndRestoreLayout} from '../utils/workspacesUtils';
+import {assertWindowNotRestored, closeAllPreviews, createBasicSaveAndRestoreTest, createCloseAndRestoreLayout} from '../utils/workspacesUtils';
+
 import {BasicSaveRestoreTestOptions} from './basicSaveAndRestore.test';
 
 const deregisteredTestOptionsArray: BasicSaveRestoreTestOptions[] = [];
@@ -37,3 +40,6 @@ testParameterized<CreateAppData, AppContext>(
             }
         }
     }));
+
+
+test.afterEach.always(closeAllPreviews);

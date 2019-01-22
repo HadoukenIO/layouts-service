@@ -219,8 +219,8 @@ export class DesktopModel {
         const window: Window = fin.Window.wrapSync(identity);
         return DesktopWindow.getWindowState(window).then<DesktopWindow|null>((state: EntityState): DesktopWindow|null => {
             if (!this._config.queryPartial({level: 'window', ...identity}, enabledMask).enabled) {
-                // If pendingRegistrations does not contain the window, then deregister has been called on it
-                // and we should do nothing.
+                // An 'enabled: false' rule was added to the store whilst we were in the process of setting-up the
+                // DesktopWindow. We'll bail here with a warning rather than continuing with the window registration.
                 console.log('Ignoring window as it was de-registered whilst querying it\'s state', identity);
                 return null;
             } else {

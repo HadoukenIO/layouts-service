@@ -11,6 +11,7 @@ import {DesktopModel} from './DesktopModel';
 import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {DesktopTabstripFactory} from './DesktopTabstripFactory';
 import {DesktopWindow, EntityState, eTransformType, Mask, WindowMessages} from './DesktopWindow';
+import { tabService } from '../main';
 
 /**
  * Handles functionality for the TabSet
@@ -45,11 +46,6 @@ export class DesktopTabGroup implements DesktopEntity {
      */
     private _activeTab!: DesktopWindow;
 
-    /**
-     * The properties (title, icon) for the tab.
-     */
-    private _tabProperties: {[id: string]: TabProperties};
-
     private _isMaximized: boolean;
     private _beforeMaximizeBounds: Rectangle|undefined;
 
@@ -73,7 +69,6 @@ export class DesktopTabGroup implements DesktopEntity {
         this._groupState = {...this._window.currentState};
         this._window.setTabGroup(this);
         this._tabs = [];
-        this._tabProperties = {};
         this._config = config;
 
         this._isMaximized = false;
@@ -156,15 +151,6 @@ export class DesktopTabGroup implements DesktopEntity {
         const tabstripHalfHeight: number = this._config.height / 2;
         const adjustedHalfSize: Point|undefined = halfSize && {x: halfSize.x, y: halfSize.y - tabstripHalfHeight};
         return this.activeTab.applyOffset(offset, adjustedHalfSize);
-    }
-
-    public updateTabProperties(tab: DesktopWindow, properties: Partial<TabProperties>): void {
-        const tabProps: TabProperties = this._tabProperties[tab.id];
-        Object.assign(tabProps, properties);
-        localStorage.setItem(tab.id, JSON.stringify(tabProps));
-
-        const payload: TabPropertiesUpdatedPayload = {tabGroupId: this.id, tabID: tab.identity, properties: tabProps};
-        this.sendTabEvent(tab, WindowMessages.TAB_PROPERTIES_UPDATED, payload);
     }
 
     /**
@@ -460,7 +446,7 @@ export class DesktopTabGroup implements DesktopEntity {
         }
 
         // Add tab
-        this._tabProperties[tab.id] = this.getTabProperties(tab);
+        const tabProps = tabService.getTabProperties(tab);
         this._tabs.splice(index, 0, tab);
         tab.onTeardown.add(this.onWindowTeardown, this);
         tab.onTransform.add(this.onTabTransform, this);
@@ -500,7 +486,7 @@ export class DesktopTabGroup implements DesktopEntity {
 
         const addTabPromise: Promise<void> = (async () => {
             const payload:
-                JoinTabGroupPayload = {tabGroupId: this.id, tabID: tab.identity, tabProps: this._tabProperties[tab.id], index: this._tabs.indexOf(tab)};
+                JoinTabGroupPayload = {tabGroupId: this.id, tabID: tab.identity, tabProps, index: this._tabs.indexOf(tab)};
 
             this.sendTabEvent(tab, WindowMessages.JOIN_TAB_GROUP, payload);
             await tab.applyProperties({hidden: tab !== this._activeTab});
@@ -516,7 +502,6 @@ export class DesktopTabGroup implements DesktopEntity {
 
     private async removeTabInternal(tab: DesktopWindow, index: number): Promise<void> {
         this._tabs.splice(index, 1);
-        delete this._tabProperties[tab.id];
 
         tab.onTeardown.remove(this.onWindowTeardown, this);
         tab.onTransform.remove(this.onTabTransform, this);
@@ -550,18 +535,6 @@ export class DesktopTabGroup implements DesktopEntity {
             this._window.setTabGroup(null);
             DesktopTabGroup.onDestroyed.emit(this);
         }
-    }
-
-    private getTabProperties(tab: DesktopWindow): TabProperties {
-        const savedProperties: string|null = localStorage.getItem(tab.id);
-        if (savedProperties) {
-            return JSON.parse(savedProperties);
-        }
-
-        const {icon, title} = tab.currentState;
-        // Special handling for S&R placeholder windows
-        const modifiedTitle = tab.identity.uuid === fin.Window.me.uuid && title.startsWith('Placeholder-') ? 'Loading...' : title;
-        return {icon, title: modifiedTitle};
     }
 
     private onWindowTeardown(window: DesktopWindow): void {

@@ -76,7 +76,7 @@ export class APIHandler {
         providerChannel.register(TabAPI.REORDERTABS, this.reorderTabs);
         providerChannel.register(TabAPI.RESTORETABGROUP, this.restoreTabGroup);
         providerChannel.register(TabAPI.SETACTIVETAB, this.setActiveTab);
-        providerChannel.register(TabAPI.SETTABCLIENT, this.setTabClient);
+        providerChannel.register(TabAPI.SETTABSTRIP, this.setTabstrip);
         providerChannel.register(TabAPI.UPDATETABPROPERTIES, this.updateTabProperties);
         providerChannel.register(TabAPI.ADDTAB, this.addTab);
     }
@@ -126,7 +126,7 @@ export class APIHandler {
         }
     }
 
-    private setTabClient(payload: {config: ApplicationUIConfig, id: Identity}) {
+    private setTabstrip(payload: {config: ApplicationUIConfig, id: Identity}) {
         if (tabService.applicationConfigManager.exists(payload.id.uuid)) {
             console.error('Window already configured for tabbing');
             throw new Error('Window already configured for tabbing');
@@ -275,14 +275,13 @@ export class APIHandler {
 
     private updateTabProperties(payload: {window: WindowIdentity, properties: Partial<TabProperties>}): void {
         const tab: DesktopWindow|null = model.getWindow(payload.window);
-        const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
-        if (!group) {
+        if (!(tab && tab.tabGroup)) {
             console.error('No tab found for window');
             throw new Error('No tab found for window');
+        } else {
+            return tabService.updateTabProperties(tab, payload.properties);
         }
-
-        return group.updateTabProperties(tab!, payload.properties);
     }
 
     private startDrag(payload: {}, id: ProviderIdentity): void {

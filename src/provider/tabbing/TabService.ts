@@ -1,14 +1,15 @@
 import {Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
-import {ApplicationUIConfig, TabGroup, TabGroupDimensions, WindowIdentity} from '../../client/types';
+import {ApplicationUIConfig, TabGroup, TabGroupDimensions, WindowIdentity, TabProperties} from '../../client/types';
 import {DesktopEntity} from '../model/DesktopEntity';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
-import {DesktopWindow, EntityState} from '../model/DesktopWindow';
+import {DesktopWindow, EntityState, WindowMessages} from '../model/DesktopWindow';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 import {eTargetType, TargetBase} from '../WindowHandler';
 import {ApplicationConfigManager} from './components/ApplicationConfigManager';
 import {DragWindowManager} from './DragWindowManager';
+import { TabPropertiesUpdatedPayload } from '../../client/tabbing';
 
 
 /**
@@ -58,7 +59,6 @@ export class TabService {
      * Handles the application ui configs
      */
     private mApplicationConfigManager: ApplicationConfigManager;
-
 
     /**
      * Constructor of the TabService Class.
@@ -218,6 +218,30 @@ export class TabService {
         }
 
         return tabGroups;
+    }    
+
+    public getTabProperties(tab: DesktopWindow): TabProperties {
+        const savedProperties: string|null = localStorage.getItem(tab.id);
+        if (savedProperties) {
+            return JSON.parse(savedProperties);
+        }
+
+        const {icon, title} = tab.currentState;
+        // Special handling for S&R placeholder windows
+        const modifiedTitle = tab.identity.uuid === fin.Window.me.uuid && title.startsWith('Placeholder-') ? 'Loading...' : title;
+        return {icon, title: modifiedTitle};
+    }
+    
+    public updateTabProperties(tab: DesktopWindow, properties: Partial<TabProperties>): void {
+        const tabProps: TabProperties = this.getTabProperties(tab);
+        Object.assign(tabProps, properties);
+        localStorage.setItem(tab.id, JSON.stringify(tabProps));
+
+        if(tab && tab.tabGroup) {
+            const payload: TabPropertiesUpdatedPayload = {tabGroupId: tab.tabGroup.id, tabID: tab.identity, properties: tabProps};
+            tab.sendMessage(WindowMessages.TAB_PROPERTIES_UPDATED, payload);
+            tab.tabGroup.window.sendMessage(WindowMessages.TAB_PROPERTIES_UPDATED, payload)
+        }
     }
 
     public async applyTabTarget(target: TabTarget|EjectTarget): Promise<void> {

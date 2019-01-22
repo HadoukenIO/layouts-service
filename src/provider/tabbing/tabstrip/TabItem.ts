@@ -199,7 +199,7 @@ export class Tab {
             try {
                 inputNode.remove();
                 that.updateText(inputNode.value);
-                layouts.tabStrip.updateTabProperties(that._ID, {title: inputNode.value});
+                layouts.updateTabProperties(that._ID, {title: inputNode.value});
             } catch (e) {
             }
         }

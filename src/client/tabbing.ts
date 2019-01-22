@@ -78,7 +78,6 @@ export async function getTabs(window: Identity = getId()): Promise<WindowIdentit
  * This binding happens on the application level.  An application cannot have different windows using different tabbing UI.
  */
 export async function setTabstrip(config: ApplicationUIConfig): Promise<void> {
-
     if (!config || isNaN(config.height!)) {
         return Promise.reject('Invalid config height provided');
     }

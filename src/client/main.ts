@@ -7,12 +7,12 @@ import {tryServiceDispatch} from './connection';
 import {getId} from './internal';
 import {undockGroup, undockWindow} from './snapanddock';
 import {addTab, closeTab, closeTabGroup, createTabGroup, getTabs, JoinTabGroupPayload, maximizeTabGroup, TabGroupEventPayload, TabPropertiesUpdatedPayload} from './tabbing';
-import {minimizeTabGroup, removeTab, restoreTabGroup, setActiveTab, setTabClient, tabStrip} from './tabbing';
+import {minimizeTabGroup, removeTab, restoreTabGroup, setActiveTab, setTabstrip, updateTabProperties, tabStrip} from './tabbing';
 import {generateLayout, onApplicationSave, onAppRestore, onLayoutRestore, onLayoutSave, ready, restoreLayout} from './workspaces';
 
 export {undockGroup, undockWindow};
 export {addTab, closeTab, closeTabGroup, createTabGroup, getTabs, maximizeTabGroup};
-export {minimizeTabGroup, removeTab, restoreTabGroup, setActiveTab, setTabClient, tabStrip};
+export {minimizeTabGroup, removeTab, restoreTabGroup, setActiveTab, setTabstrip, updateTabProperties, tabStrip};
 export {generateLayout, onApplicationSave, onAppRestore, onLayoutRestore, onLayoutSave, ready, restoreLayout};
 
 /**

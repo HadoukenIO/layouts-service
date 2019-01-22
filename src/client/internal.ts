@@ -44,7 +44,7 @@ export function getId(): Identity {
 
 export enum TabAPI {
     CREATETABGROUP = 'CREATETABGROUP',
-    SETTABCLIENT = 'SETTABCLIENT',
+    SETTABSTRIP = 'SETTABSTRIP',
     GETTABS = 'GETTABS',
     ADDTAB = 'ADDTAB',
     REMOVETAB = 'REMOVETAB',
@@ -96,7 +96,7 @@ export interface TabAPIReorderMessage extends TabAPIMessage {
     tabOrder: WindowIdentity[];
 }
 
-export interface SetTabClientPayload {
+export interface SetTabstripPayload {
     config: Partial<ApplicationUIConfig>;
     id: Identity;
 }

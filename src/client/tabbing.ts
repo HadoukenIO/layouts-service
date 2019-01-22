@@ -4,7 +4,7 @@
 import {Identity} from 'hadouken-js-adapter';
 
 import {tryServiceDispatch} from './connection';
-import {AddTabPayload, getId, SetTabClientPayload, TabAPI} from './internal';
+import {AddTabPayload, getId, SetTabstripPayload, TabAPI} from './internal';
 import {DropPosition, EndDragPayload, UpdateTabPropertiesPayload} from './internal';
 import {ApplicationUIConfig, TabProperties, WindowIdentity} from './types';
 
@@ -77,8 +77,7 @@ export async function getTabs(window: Identity = getId()): Promise<WindowIdentit
  * If a custom tab-strip UI is being used - this sets the URL for the tab-strip.
  * This binding happens on the application level.  An application cannot have different windows using different tabbing UI.
  */
-export async function setTabClient(url: string, config: Partial<ApplicationUIConfig&{url: never}>): Promise<void> {
-    const resolvedConfig: Partial<ApplicationUIConfig> = {url, ...config};
+export async function setTabstrip(config: ApplicationUIConfig): Promise<void> {
 
     if (!config || isNaN(config.height!)) {
         return Promise.reject('Invalid config height provided');
@@ -86,12 +85,12 @@ export async function setTabClient(url: string, config: Partial<ApplicationUICon
 
     try {
         // tslint:disable-next-line:no-unused-expression
-        new URL(url);
+        new URL(config.url);
     } catch (e) {
         return Promise.reject(e);
     }
 
-    return tryServiceDispatch<SetTabClientPayload, void>(TabAPI.SETTABCLIENT, {id: getId(), config: resolvedConfig});
+    return tryServiceDispatch<SetTabstripPayload, void>(TabAPI.SETTABSTRIP, {id: getId(), config});
 }
 
 /**
@@ -203,19 +202,20 @@ export async function restoreTabGroup(window: Identity = getId()): Promise<void>
 }
 
 /**
+ * Updates a Tabs Properties on the Tab strip.
+ */
+export async function updateTabProperties(window: Identity, properties: Partial<TabProperties>): Promise<void> {
+    if (!window || !window.name || !window.uuid) {
+        return Promise.reject('Invalid window provided');
+    }
+
+    return tryServiceDispatch<UpdateTabPropertiesPayload, void>(TabAPI.UPDATETABPROPERTIES, {window, properties});
+}
+
+/**
  * Functions required to implement a tabstrip
  */
 export namespace tabStrip {  // tslint:disable-line:no-namespace
-    /**
-     * Updates a Tabs Properties on the Tab strip.
-     */
-    export async function updateTabProperties(window: Identity, properties: Partial<TabProperties>): Promise<void> {
-        if (!window || !window.name || !window.uuid) {
-            return Promise.reject('Invalid window provided');
-        }
-
-        return tryServiceDispatch<UpdateTabPropertiesPayload, void>(TabAPI.UPDATETABPROPERTIES, {window, properties});
-    }
 
     /**
      * Starts the HTML5 Dragging Sequence

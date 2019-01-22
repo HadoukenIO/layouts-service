@@ -1,11 +1,11 @@
 import {Application} from 'hadouken-js-adapter';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
-
 import {getConnection} from '../../provider/utils/connect';
 import {createChildWindow} from '../../provider/utils/createChildWindow';
 import {delay} from '../../provider/utils/delay';
 import {dragSideToSide} from '../../provider/utils/dragWindowTo';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
+import {TestCreationOptions} from './workspacesUtils';
 
 interface TestParamBase {
     childWindows: fin.WindowOptions[];
@@ -54,21 +54,27 @@ const OPTIONS_BASE = {
     defaultWidth: 225
 };
 
-const APP_INITIALIZER_BASE = {
+const APP_INITIALIZER_BASE_PROGRAMMATIC: ProgrammaticTestParams = {
     appOptions: OPTIONS_BASE,
     createType: 'programmatic',
     childWindows: []
 };
 
+const APP_INITIALIZER_BASE_MANIFEST: ManifestTestParams = {
+    createType: 'manifest',
+    childWindows: [],
+    manifestUrl: ''
+};
+
 let appTitleNumber = 0;
 
-export function createAppsArray(numAppsToCreate: number, numberOfChildren: number) {
+export function createAppsArray(numAppsToCreate: number, numberOfChildren: number, testOptions?: TestCreationOptions): AppInitializerParams[] {
     const appsArray = [];
     let appsCreated = 0;
     while (appsCreated < numAppsToCreate) {
         // Set the app information
         appTitleNumber++;
-        const id = 'test-app' + appTitleNumber;
+        const id = 'save-restore-test-app' + Math.random().toString(36).substring(2);
 
         // Set the child window information
         const childWindows = [];
@@ -80,8 +86,17 @@ export function createAppsArray(numAppsToCreate: number, numberOfChildren: numbe
 
         // Save the app information
         const defaultTop = (appsCreated * 290) + 50;
-        const appOptions = {...OPTIONS_BASE, uuid: id, name: id, defaultTop, defaultLeft: 100};
-        appsArray.push({...APP_INITIALIZER_BASE, appOptions, childWindows});
+        const appOptions = {...OPTIONS_BASE, ...testOptions, uuid: id, name: id, defaultTop, defaultLeft: 100};
+
+        let appInitializerOptions: AppInitializerParams = {...APP_INITIALIZER_BASE_PROGRAMMATIC, appOptions, childWindows};
+
+        if (testOptions && testOptions.manifest && testOptions.url) {
+            appInitializerOptions = {...APP_INITIALIZER_BASE_MANIFEST, childWindows};
+            appInitializerOptions.manifestUrl =
+                `http://localhost:1337/create-manifest?defaultTop=${defaultTop}&uuid=${id}&url=${encodeURIComponent(`${testOptions.url}`)}`;
+        }
+
+        appsArray.push(appInitializerOptions);
 
         appsCreated++;
     }

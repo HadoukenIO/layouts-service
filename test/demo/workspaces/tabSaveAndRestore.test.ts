@@ -1,18 +1,17 @@
 import test from 'ava';
 
 import {assertGrouped, assertTabbed} from '../../provider/utils/assertions';
-import {getWindow} from '../../provider/utils/getWindow';
-import {AppInitializerParams, WindowGrouping} from '../utils/AppInitializer';
+import {WindowGrouping} from '../utils/AppInitializer';
 import {AppContext, CreateAppData, createAppTest} from '../utils/createAppTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {closeAllPreviews, createCloseAndRestoreLayout, createTabTests} from '../utils/workspacesUtils';
+import {BasicSaveRestoreTestOptions} from './basicSaveAndRestore.test';
 
-export interface TabSaveRestoreTestOptions {
-    apps: AppInitializerParams[];
+export interface TabSaveRestoreTestOptions extends BasicSaveRestoreTestOptions {
     tabWindowGrouping: WindowGrouping;
 }
 
-const basicTestOptionsArray: TabSaveRestoreTestOptions[] = [];
+const tabTestOptionsArray: TabSaveRestoreTestOptions[] = [];
 
 // Currently only supports this number of windows max (4). Need to update createWindowGroupings in AppInitializer if you want more groups.
 const appNumbers = [1, 2];
@@ -23,17 +22,24 @@ appNumbers.forEach(appNumber => {
         if (appNumber === 1 && childNumber === 0) {
             return;
         }
-        const tests = createTabTests(appNumber, childNumber);
-        for (const test of tests) {
-            basicTestOptionsArray.push(test);
+
+        const programmaticTabTests = createTabTests(appNumber, childNumber);
+        for (const programmaticTabTest of programmaticTabTests) {
+            tabTestOptionsArray.push(programmaticTabTest);
+        }
+
+        const manifestTabTests =
+            createTabTests(appNumber, childNumber, {manifest: true, url: 'http://localhost:1337/test/saveRestoreTestingApp.html?deregistered=false'});
+        for (const manifestTabTest of manifestTabTests) {
+            tabTestOptionsArray.push(manifestTabTest);
         }
     });
 });
 
 testParameterized<CreateAppData, AppContext>(
-    (testOptions: CreateAppData): string =>
-        `Tab SaveAndRestore - ${testOptions.apps.length} App(s) - ${testOptions.apps[0].childWindows.length} Child(ren) Each`,
-    basicTestOptionsArray,
+    (testOptions: CreateAppData): string => `Tab SaveAndRestore - ${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - ${
+        testOptions.apps.length} App(s) - ${testOptions.apps[0].childWindows.length} Child(ren) Each`,
+    tabTestOptionsArray,
     createAppTest(async (t, applicationData: CreateAppData) => {
         await createCloseAndRestoreLayout(t);
 

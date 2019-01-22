@@ -1,7 +1,5 @@
-
 import {Fin} from 'hadouken-js-adapter';
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
-
 import {SERVICE_CHANNEL} from '../../../src/client/internal';
 import {getConnection} from '../../provider/utils/connect';
 

@@ -367,6 +367,15 @@ export class DesktopTabGroup implements DesktopEntity {
                 const joinedSnappable = existingSnappables[0] === this ? existingSnappables[1] : existingSnappables[0];
                 const remainingTab = existingTabs[0] === tab ? existingTabs[1] : existingTabs[0];
 
+                // Add a small delay before regrouping the remaining window. 
+                // This will push the current execution context to the end of the stack
+                // and ensure that the 'leave' event for the window has been fully 
+                // processed before regrouping. 
+                // As of v38 the ordering of the event processing changed causing 
+                // some very annoying race conditions and leaving the window ungrouped from
+                // the other snapped windows.
+                // Should be investigate further in SERVICE-xyz
+                await new Promise(res => setTimeout(res, 10));
                 console.log('Re-attaching remaining tab: ' + remainingTab.id + ' => ' + joinedSnappable.id);
                 await remainingTab.setSnapGroup(joinedSnappable.snapGroup);
             }

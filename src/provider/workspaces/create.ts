@@ -49,10 +49,9 @@ export const getCurrentLayout = async(): Promise<Layout> => {
 
         tabGroup.tabs.forEach((tabWindow: WindowIdentity) => {
             // Filter tabs out if either the window itself or its parent is deregistered from Save and Restore
-            const parentIsDeregistered = !!model.getWindow({uuid: tabWindow.uuid, name: tabWindow.uuid});
-            const windowIsDeregistered = !!model.getWindow(tabWindow);  // Should always be true..?
+            const parentIsDeregistered = !model.getWindow({uuid: tabWindow.uuid, name: tabWindow.uuid});
 
-            if (parentIsDeregistered || windowIsDeregistered) {
+            if (parentIsDeregistered) {
                 if (tabGroup.groupInfo.active.uuid === tabWindow.uuid && tabGroup.groupInfo.active.name === tabWindow.name) {
                     activeWindowRemoved = true;
                 }
@@ -89,7 +88,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
             // If not running, or is service, or is deregistered, not part of layout
             const isRunning = await ofApp.isRunning();
             const hasMainWindow = !!windowInfo.mainWindow.name;
-            const isDeregistered = !!model.getWindow({uuid, name: windowInfo.mainWindow.name});
+            const isDeregistered = !model.getWindow({uuid, name: windowInfo.mainWindow.name});
             const isService = uuid === fin.Application.me.uuid;
             if (!hasMainWindow || !isRunning || isService || isDeregistered) {
                 // Not enough info returned for us to restore this app
@@ -108,11 +107,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
 
             // Filter for deregistered child windows
             windowInfo.childWindows = windowInfo.childWindows.filter((win: WindowDetail) => {
-                const isDeregistered = !!model.getWindow({uuid, name: win.name});
-                if (isDeregistered) {
-                    return false;
-                }
-                return true;
+                return model.getWindow({uuid, name: win.name}) !== null;
             });
 
             // Grab the layout information for the child windows
@@ -185,9 +180,9 @@ const getLayoutWindowData = async(ofWin: Window, tabbedWindows: WindowObject): P
     const filteredWindowGroup: Identity[] = [];
     windowGroup.forEach((windowIdentity) => {
         // Filter window group by checking to see if the window itself or its parent are deregistered. If either of them are, don't include in window group.
-        const parentIsDeregistered = !!model.getWindow({uuid: windowIdentity.uuid, name: windowIdentity.uuid});
-        const windowIsDeregistered = !!model.getWindow(windowIdentity as WindowIdentity);
-        if (!parentIsDeregistered && !windowIsDeregistered && windowIdentity.uuid !== 'layouts-service') {
+        const parentIsRegistered = !!model.getWindow({uuid: windowIdentity.uuid, name: windowIdentity.uuid});
+        const windowIsRegistered = !!model.getWindow(windowIdentity as WindowIdentity);
+        if (parentIsRegistered && windowIsRegistered && windowIdentity.uuid !== 'layouts-service') {
             filteredWindowGroup.push(windowIdentity);
         }
     });

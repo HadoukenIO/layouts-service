@@ -1,7 +1,7 @@
 {
     "devtools_port": 9090,
     "runtime": {
-        "arguments": "--v=1 --enable-crash-reportingy",
+        "arguments": "--v=1 --enable-crash-reporting",
         "version": "9.61.38.40"
     },
     "services":[{"name": "layouts", "manifestUrl": "http://localhost:1337/test/provider.json"}],

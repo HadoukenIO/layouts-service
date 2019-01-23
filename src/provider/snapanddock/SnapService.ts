@@ -117,10 +117,11 @@ export class SnapService {
                 // group.center is recalculated on each call, so we assign it here once and use the value.
                 const groupCenter = group.center;
 
-                await Promise.all(entities.map((entity: DesktopEntity) => {
+                // We leave one of the entities in the original snapGroup since we would just be moving it from one solo group to another. 
+                // Chose the first because saved a couple of characters in the code, but really doesn't matter which is left behind.
+                await Promise.all(entities.slice(1).map((entity: DesktopEntity) => {
                     return entity.setSnapGroup(new DesktopSnapGroup());
                 }));
-
                 await Promise.all(entities.map((entity: DesktopEntity) => {
                     // Determine the offset for each window before modifying and window state
                     const offset = PointUtils.scale(PointUtils.difference(groupCenter, entity.currentState.center), EXPLODE_MOVE_SCALE);

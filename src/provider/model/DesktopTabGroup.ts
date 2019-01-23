@@ -10,7 +10,7 @@ import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
 import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {DesktopTabstripFactory} from './DesktopTabstripFactory';
-import {DesktopWindow, EntityState, eTransformType, Mask, WindowMessages, ResizeConstraint} from './DesktopWindow';
+import {DesktopWindow, EntityState, eTransformType, Mask, ResizeConstraint, WindowMessages} from './DesktopWindow';
 
 /**
  * Handles functionality for the TabSet
@@ -253,7 +253,7 @@ export class DesktopTabGroup implements DesktopEntity {
             await Promise.all([firstTab.sync(), this._window.sync()]);
             // Add the tabs one-at-a-time to avoid potential race conditions with constraints updates.
             for (const tab of tabs) {
-                await this.addTabInternal(tab,false);
+                await this.addTabInternal(tab, false);
             }
         });
 

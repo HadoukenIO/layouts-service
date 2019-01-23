@@ -31,11 +31,7 @@ testParameterized(
         {
             frame: true,
             windowCount: 3,
-            windowConstraints: [
-                {resizeRegion: {sides: {top: false, left: false, bottom: true, right: true}}},
-                {resizable: false},
-                {}
-            ]
+            windowConstraints: [{resizeRegion: {sides: {top: false, left: false, bottom: true, right: true}}}, {resizable: false}, {}]
         },
     ],
     createWindowTest(async (t, options: TabConstraintsOptions) => {

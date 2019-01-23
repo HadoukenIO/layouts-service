@@ -686,7 +686,7 @@ export class DesktopWindow implements DesktopEntity {
             Object.keys(delta).forEach((key: string) => {
                 const property: keyof EntityState = key as keyof EntityState;
                 if (this.isModified(property, delta, this._currentState)) {
-                    if(typeof delta[property] === 'object') {
+                    if (typeof delta[property] === 'object') {
                         Object.assign(this.applicationState[property], delta[property]);
                     } else {
                         this.applicationState[property] = delta[property]!;

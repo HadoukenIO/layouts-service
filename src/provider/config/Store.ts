@@ -1,4 +1,4 @@
-import {RegEx, Rule} from '../../../gen/provider/config/layouts-config';
+import {Rule} from '../../../gen/provider/config/layouts-config';
 import {Scope} from '../../../gen/provider/config/scope';
 
 import {ConfigUtil, Mask, Masked, RequiredRecursive, ScopePrecedence} from './ConfigUtil';
@@ -23,18 +23,18 @@ export interface ScopedConfig<T> {
  *
  * ```json
  * "services": [{
- *     "name": "layouts",
+ *     "name": "my-service",
  *     "config": {
  *         "param1": "value1",
  *         "param2": "value2",
  *         "rules": [{
- *             "scope": {"level": "window", "name": "launcher"},
+ *             "scope": {"level": "window", "uuid": "my-app1", "name": "launcher"},
  *             "config": {
  *                 "param1": "valueA",
  *                 "param2": "valueB"
  *             }
  *         }, {
- *             "scope": {"level": "window", "name": {"expression": "popup-.*"}},
+ *             "scope": {"level": "window", "uuid": "my-app2", "name": {"expression": "popup-.*"}},
  *             "config": {
  *                 "param1": "valueX",
  *                 "param2": "valueY"
@@ -44,7 +44,7 @@ export interface ScopedConfig<T> {
  * }]
  * ```
  */
-type ConfigWithRules<T> = T&{
+export type ConfigWithRules<T> = T&{
     rules?: ScopedConfig<T>[];
 };
 
@@ -55,7 +55,7 @@ type ConfigWithRules<T> = T&{
  * When querying, these entries will be applied on top of each other, from lowest priority to highest, to gradually
  * build-up an object that combines configuration data from many sources.
  */
-interface StoredConfig<T> {
+export interface StoredConfig<T> {
     /**
      * The source of this config object. Typically an 'application' scope, as it is expected most config will come from
      * `app.json` files. Could also be desktop for anything set by a desktop owner, or window for anything set via a
@@ -108,11 +108,7 @@ export class Store<T> {
         if (config.rules) {
             // Load each rule
             config.rules.forEach((rule: ScopedConfig<T>) => {
-                if (ConfigUtil.ruleCanBeAddedInScope(rule.scope, scope)) {
-                    this.addInternal(scope, rule.scope, rule.config);
-                } else {
-                    console.warn(`Ignoring ${this.getKey(rule.scope)} rule in config with scope ${this.getKey(scope)}`);
-                }
+                this.addRule(scope, rule.scope, rule.config);
             });
 
             // Remove rules array from default config
@@ -120,8 +116,11 @@ export class Store<T> {
             delete config.rules;
         }
 
-        // Load top-level config at the 'default' scope
-        this.addInternal(scope, scope, config);
+        if (ConfigUtil.containsConfig(config)) {
+            // Load top-level config at the 'default' scope
+            this.addInternal(scope, scope, config);
+        }
+
         this._cache.clear();
     }
 
@@ -147,7 +146,7 @@ export class Store<T> {
         if (ConfigUtil.ruleCanBeAddedInScope(rule, source)) {
             this.addInternal(source, rule, config);
         } else {
-            console.warn(`Ignoring ${this.getKey(rule)} rule in config with scope ${this.getKey(source)}`);
+            console.warn(`Ignoring ${ConfigUtil.getId(rule)} rule in config with scope ${ConfigUtil.getId(source)}`);
         }
     }
 
@@ -237,7 +236,7 @@ export class Store<T> {
      */
     public query(scope: Scope): RequiredRecursive<T> {
         const result: RequiredRecursive<T> = {} as RequiredRecursive<T>;
-        const key: string = this.getKey(scope);
+        const key: string = ConfigUtil.getId(scope);
 
         if (this._cache.has(key)) {
             return this._cache.get(key)!;
@@ -380,35 +379,12 @@ export class Store<T> {
      * @param signal The action performed to `config` - defines which signal on the watch will be emitted
      */
     private checkWatches(config: StoredConfig<T>, signal: 'onAdd'|'onRemove'): void {
+        const {source, ...rule} = config;
+
         this._watches.forEach((watch: Watch<T>) => {
             if (watch[signal].slots.length > 0 && watch.matches(config)) {
-                const {source, ...rule} = config;
                 watch[signal].emit(rule, source);
             }
         });
-    }
-
-    /**
-     * Takes a scope and converts it to a string that can be used as a cache key, or in logging output.
-     *
-     * @param scope The scope/rule to stringify
-     */
-    private getKey(scope: Rule|Scope): string {
-        function stringifyParam(param: string|RegEx): string {
-            if (typeof param === 'string') {
-                return param;
-            } else {
-                return `${param.invert ? '!' : ''}/${param.expression}/${param.flags || ''}`;
-            }
-        }
-
-        switch (scope.level) {
-            case 'application':
-                return `${scope.level}:${stringifyParam(scope.uuid)}`;
-            case 'window':
-                return `${scope.level}:${stringifyParam(scope.uuid)}/${stringifyParam(scope.name)}`;
-            default:
-                return scope.level;
-        }
     }
 }

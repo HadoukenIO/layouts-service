@@ -95,6 +95,17 @@ export async function assertTabbed(win1: Window, win2: Window, t: TestContext): 
         t.fail('Windows are not native grouped to the tabStrip A');
         return Promise.reject('Windows are not native grouped to the tabStrip B');
     }
+
+    // Windows are shown/hidden correctly if active/inactive tab
+    for (const win of [win1, win2]) {
+        const isShowing = await win.isShowing();
+        const shouldBeShowing = deepEqual(win.identity, await getActiveTab(win.identity));
+        t.is(
+            isShowing,
+            shouldBeShowing,
+            `Window ${'"' + win.identity.uuid + '/' + win.identity.name + '"'} expected to ${shouldBeShowing ? 'not ' : ''}be hidden, but was${
+                isShowing ? ' not.' : '.'}`);
+    }
 }
 
 /**
@@ -188,4 +199,19 @@ export async function assertNoOverlap(t: TestContext, windows: Window[]) {
             t.false(await isOverlappedWith(windows[i], windows[j]), `Window ${i} is overlapped with window ${j}`);
         }
     }
+}
+
+export async function assertAllMinimizedOrHidden(t: TestContext, windows: Window[]) {
+    return Promise.all(windows.map(async win => {
+        const showing = await win.isShowing();
+        const state = await win.getState();
+        t.true(state === 'minimized' || !showing);
+    }));
+}
+
+export async function assertAllNormalState(t: TestContext, windows: Window[]) {
+    return Promise.all(windows.map(async win => {
+        const state = await win.getState();
+        t.is(state, 'normal');
+    }));
 }

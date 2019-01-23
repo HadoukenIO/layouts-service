@@ -1,8 +1,9 @@
+import {Rule} from '../../../gen/provider/config/layouts-config';
 import {Scope} from '../../../gen/provider/config/scope';
 import {Signal2} from '../Signal';
 
 import {ConfigUtil, Mask} from './ConfigUtil';
-import {ScopedConfig, Store} from './Store';
+import {ScopedConfig, Store, StoredConfig} from './Store';
 
 /**
  * Base class for the various types of 'watch' queries that are supported by the config store.
@@ -59,7 +60,7 @@ export abstract class Watch<T> {
      *
      * @param config The config that is being added (or removed) to/from the store
      */
-    public abstract matches(config: ScopedConfig<T>): boolean;
+    public abstract matches(config: StoredConfig<T>): boolean;
 
     /**
      * Removes this watch from it's associated store.
@@ -87,7 +88,7 @@ export class ScopeWatch<T> extends Watch<T> {
         this.scope = scope;
     }
 
-    public matches(config: ScopedConfig<T>): boolean {
+    public matches(config: StoredConfig<T>): boolean {
         // Validate the rule before evaluating it.
         // Validating first prevents console warnings if the rule is of a higher-level scope
         return ConfigUtil.ruleCanBeUsedInScope(config.scope, this.scope) && ConfigUtil.matchesRule(config.scope, this.scope);
@@ -107,11 +108,28 @@ export class MaskWatch<T, M extends Mask<T>> extends Watch<T> {
         this.mask = mask;
     }
 
-    public matches(config: ScopedConfig<T>): boolean {
+    public matches(config: StoredConfig<T>): boolean {
         return ConfigUtil.matchesMask<T, M>(config.config, this.mask);
     }
 }
 
-// For easier debugging of watch expressions. Will be removed before completion of feature.
-(window as any)['ScopeWatch'] = ScopeWatch;  // tslint:disable-line:no-any
-(window as any)['MaskWatch'] = MaskWatch;    // tslint:disable-line:no-any
+/**
+ * A watch query that will fire whenever config is added from a specific source. The source filter is a rule, meaning
+ * that regex patterns can be used to define the sources that should trigger the watch.
+ */
+export class SourceWatch<T> extends Watch<T> {
+    public readonly type: 'source';
+    public readonly source: Rule;
+
+    constructor(store: Store<T>, source: Rule) {
+        super(store);
+        this.type = 'source';
+        this.source = source;
+    }
+
+    public matches(config: StoredConfig<T>): boolean {
+        // Validate the rule before evaluating it.
+        // Validating first prevents console warnings if the rule is of a higher-level scope
+        return ConfigUtil.ruleCanBeUsedInScope(this.source, config.source) && ConfigUtil.matchesRule(this.source, config.source);
+    }
+}

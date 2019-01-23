@@ -185,9 +185,6 @@ export function importLayout() {
     setLayout(layout.layout || layout);
 }
 
-// Do not snap to other windows
-Layouts.deregister();
-
 Layouts.ready();
 
 fin.desktop.main(() => {

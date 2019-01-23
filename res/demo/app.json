@@ -16,7 +16,16 @@
         "arguments": "--v=1 --enable-crash-reporting --inspect=9222 --enable-aggressive-domstorage-flushing",
         "version": "9.61.37.46"
     },
-    "services": [{"name": "layouts", "manifestUrl": "http://localhost:1337/provider/app.json"}],
+    "services": [{
+        "name": "layouts",
+        "manifestUrl": "http://localhost:1337/provider/app.json",
+        "config": {
+            "rules": [{
+                "scope": {"level": "window", "uuid": "Layouts-Manager", "name": "Layouts-Manager"},
+                "config": {"enabled": false}
+            }]
+        }
+    }],
     "shortcut": {
         "company": "OpenFin",
         "description": "Layouts-Manager",

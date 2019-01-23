@@ -10,8 +10,8 @@ This project consist of 3 parts:
 3. Layout Service Demo app, demonstrating the different features of OpenFin Layout
 
 ### Dependencies
-- OpenFin version for applications using Layouts = 9.61.37.46
-- OpenFin version used in the Layouts Service = 9.61.37.46
+- OpenFin version for applications using Layouts = 9.61.38.40
+- OpenFin version used in the Layouts Service = 9.61.38.40
 - RVM >= 4.4.1.1
 
 ### Features

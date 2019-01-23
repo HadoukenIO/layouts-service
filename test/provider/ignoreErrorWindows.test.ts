@@ -5,6 +5,7 @@ import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Layout} from '../../src/client/types';
 import {sendServiceMessage} from '../demo/utils/serviceUtils';
 import {isWindowRegistered} from '../demo/utils/snapServiceUtils';
+import {teardown} from '../teardown';
 
 import {getConnection} from './utils/connect';
 import {delay} from './utils/delay';
@@ -15,6 +16,7 @@ let crashApp: Application|undefined = undefined;
 test.before(async t => {
     fin = await getConnection();
 });
+test.afterEach.always(teardown);
 
 test('Error windows are not registered with S&D or Tabbing', async t => {
     crashApp = await fin.Application.create(

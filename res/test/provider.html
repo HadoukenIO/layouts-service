@@ -10,7 +10,7 @@
             channelProvider.register('execute-javascript', async (payload) => {
                 try {
                     result = await new Function("return " + payload.script)()(payload.data)
-                    return {success: true, result: JSON.stringify(result)};
+                    return {success: true, result};
                 } catch (e) {
                     // Deconstruct the error to be sent over the bus (NB: Error is not a JSON.stringify()-able type)
                     return {success: false, result: {message: e.message, stack: e.stack, name: e.name}};

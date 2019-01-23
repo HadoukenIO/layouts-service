@@ -15,6 +15,7 @@ import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/c
 
 import {SERVICE_CHANNEL} from './internal';
 import {JoinTabGroupPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload} from './tabbing';
+import { Layout } from './types';
 
 
 /**
@@ -51,6 +52,13 @@ export const channelPromise: Promise<ChannelClient> = typeof fin === 'undefined'
             window.dispatchEvent(new CustomEvent<TabPropertiesUpdatedPayload>('tab-properties-updated', {detail: payload}));
         });
 
+        channel.register('workspace-layout-saved', (payload: Layout) => {
+            window.dispatchEvent(new CustomEvent<Layout>('workspace-layout-saved', {detail: payload}));
+        });
+
+        channel.register('workspace-layout-restored', (payload: Layout) => {
+            window.dispatchEvent(new CustomEvent<Layout>('workspace-layout-restored', {detail: payload}))
+        });
         // Any unregistered action will simply return false
         channel.setDefaultAction(() => false);
 

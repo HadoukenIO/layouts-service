@@ -8,12 +8,13 @@ import {getId} from './internal';
 import {undockGroup, undockWindow} from './snapanddock';
 import {addTab, closeTab, closeTabGroup, createTabGroup, getTabs, JoinTabGroupPayload, maximizeTabGroup, TabGroupEventPayload, TabPropertiesUpdatedPayload} from './tabbing';
 import {minimizeTabGroup, removeTab, restoreTabGroup, setActiveTab, setTabstrip, updateTabProperties, tabStrip} from './tabbing';
-import {generateLayout, onApplicationSave, onAppRestore, onLayoutRestore, onLayoutSave, ready, restoreLayout} from './workspaces';
+import {generateLayout, onApplicationSave, onAppRestore, ready, restoreLayout} from './workspaces';
+import { Layout } from './types';
 
 export {undockGroup, undockWindow};
 export {addTab, closeTab, closeTabGroup, createTabGroup, getTabs, maximizeTabGroup};
 export {minimizeTabGroup, removeTab, restoreTabGroup, setActiveTab, setTabstrip, updateTabProperties, tabStrip};
-export {generateLayout, onApplicationSave, onAppRestore, onLayoutRestore, onLayoutSave, ready, restoreLayout};
+export {generateLayout, onApplicationSave, onAppRestore, ready, restoreLayout};
 
 /**
  * Allows a window to opt-out of this service.
@@ -183,6 +184,43 @@ export type TabActivatedEvent = CustomEvent<TabGroupEventPayload>&{type: 'tab-ac
  */
 export type TabPropertiesUpdatedEvent = CustomEvent<TabPropertiesUpdatedPayload>&{type: 'tab-properties-updated'};
 
+
+/**
+ * Event fired whenever a layout is restored (via {@link restoreLayout}).
+ *
+ * The event will contain the full detail of the Layout for the application ({@link Layout}).
+ * 
+ * ```ts
+ * import {addEventListener} from 'openfin-layouts';
+ *
+ * addEventListener('workspace-layout-restored', async (event: CustomEvent<LayoutA>) => {
+ *      console.log(`Properties for the restored Layout: ${event.detail}`);
+ * });
+ * ```
+ *
+ * @type workspace-layout-restored
+ * @event
+ */
+export type WorkspaceLayoutRestoredEvent = CustomEvent<Layout>&{type: 'workspace-layout-restored'};
+
+/**
+ * Event fired whenever a layout is saved (via {@link generateLayout}).
+ *
+ * The event will contain the full detail of the Layout. ({@link Layout}).
+ * 
+ * ```ts
+ * import {addEventListener} from 'openfin-layouts';
+ *
+ * addEventListener('workspace-layout-saved', async (event: CustomEvent<Layout>) => {
+ *     console.log(`Properties for the saved Layout: ${event.detail}`);
+ * });
+ * ```
+ *
+ * @type workspace-layout-restored
+ * @event
+ */
+export type WorkspaceLayoutSavedEvent = CustomEvent<Layout>&{type: 'workspace-layout-saved'};
+
 /**
  * @hidden
  */
@@ -193,4 +231,6 @@ export interface EventMap {
     'leave-tab-group': LeaveTabGroupEvent;
     'tab-activated': TabActivatedEvent;
     'tab-properties-updated': TabPropertiesUpdatedEvent;
+    'workspace-layout-restored': WorkspaceLayoutRestoredEvent;
+    'workspace-layout-saved': WorkspaceLayoutSavedEvent;
 }

@@ -28,27 +28,6 @@ export async function onAppRestore(layoutDecorator: (layoutApp: LayoutApp) => La
     return channel.register('restoreApp', layoutDecorator);
 }
 
-/**
- * Registers a listener that is called whenever a layout is generated.
- *
- * Note: These callbacks should be used for informative purposes only. To register a callback that will serialize an
- * applications state, use {@link onApplicationSave}.
- */
-export async function onLayoutSave(listener: (layout: Layout) => void): Promise<boolean> {
-    const channel: ChannelClient = await channelPromise;
-    return channel.register('layoutSaved', listener);
-}
-
-/**
- * Registers a listener that is called whenever a layout is restored.
- *
- * Note: These callbacks should be used for informative purposes only. To register a callback that will perform the
- * actual restoration, use {@link onAppRestore}.
- */
-export async function onLayoutRestore(listener: (layoutApp: LayoutApp) => void): Promise<boolean> {
-    const channel: ChannelClient = await channelPromise;
-    return channel.register('layoutRestored', listener);
-}
 
 /**
  * Generates a JSON object that contains the state of the current desktop.

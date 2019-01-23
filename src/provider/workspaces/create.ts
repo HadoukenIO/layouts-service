@@ -150,6 +150,9 @@ export const getCurrentLayout = async(): Promise<Layout> => {
     console.log('Post-Layout Valid Apps:', validApps);
 
     const layoutObject: Layout = {type: 'layout', schemaVersion: LAYOUTS_SCHEMA_VERSION, apps: validApps, monitorInfo, tabGroups: filteredTabGroups};
+    
+    apiHandler.sendToAll('workspace-layout-saved', layoutObject);
+
     return layoutObject;
 };
 

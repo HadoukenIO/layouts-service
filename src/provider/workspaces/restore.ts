@@ -234,6 +234,9 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
     for (const group of model.snapGroups) {
         group.validate();
     }
+
+    apiHandler.sendToAll('workspace-layout-restored', layout);
+
     // Send the layout back to the requester of the restore
     return layout;
 };

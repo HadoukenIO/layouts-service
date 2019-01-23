@@ -1,13 +1,14 @@
 import {Window} from 'hadouken-js-adapter';
 import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/application/application';
+import {WindowDetail} from 'hadouken-js-adapter/out/types/src/api/system/window';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
+
 import {LayoutApp, LayoutWindow} from '../../client/types';
 import {model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {WindowIdentity} from '../model/DesktopWindow';
-import {WindowDetail} from 'hadouken-js-adapter/out/types/src/api/system/window';
-import { ApplicationConfigManager } from '../tabbing/components/ApplicationConfigManager';
+import {ApplicationConfigManager} from '../tabbing/components/ApplicationConfigManager';
 
 export interface SemVer {
     major: number;

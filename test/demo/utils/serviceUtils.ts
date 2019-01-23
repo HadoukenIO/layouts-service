@@ -20,9 +20,9 @@ type RemoteExecResponse<R> = RemoteExecSuccess<R>|RemoteExecFailure;
 export async function executeJavascriptOnService<T, R>(func: ((data: T) => R | Promise<R>), data?: T): Promise<R> {
     const fin: Fin = await getConnection();
     return fin.InterApplicationBus.Channel.connect('layouts-provider-testing').then(async (channelClient: ChannelClient) => {
-        const response: RemoteExecResponse<R> = await channelClient.dispatch('execute-javascript', {script: func.toString(), data});
+        const response: RemoteExecResponse<string> = await channelClient.dispatch('execute-javascript', {script: func.toString(), data});
         if (response.success) {
-            return response.result;
+            return JSON.parse(response.result) as R;
         } else {
             // Reconstruct the error object from JSON
             const err = new Error();

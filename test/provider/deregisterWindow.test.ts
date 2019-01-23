@@ -2,6 +2,7 @@ import {test} from 'ava';
 import {Fin, Window} from 'hadouken-js-adapter';
 import * as robot from 'robotjs';
 
+import {teardown} from '../teardown';
 import {getConnection} from './utils/connect';
 import {createChildWindow} from './utils/createChildWindow';
 import {dragWindowAndHover} from './utils/dragWindowAndHover';
@@ -19,6 +20,7 @@ test.afterEach.always(async () => {
     await win1.close();
     await win2.close();
 });
+test.afterEach.always(teardown);
 
 test('normal deregister, snap with registered', async t => {
     win1 = await createChildWindow({
@@ -209,7 +211,7 @@ test('deregister snapped window', async t => {
 
 test('no preview when deregistered - dragging registered', async t => {
     // Wrap the pre-spawned preview window
-    const previewWin = await getWindow({name: 'previewWindow-', uuid: 'layouts-service'});
+    const previewWin = await getWindow({name: 'previewWindow', uuid: 'layouts-service'});
 
     // Spawn two child windows (one of them deregistered)
     win1 = await createChildWindow({
@@ -246,7 +248,7 @@ test('no preview when deregistered - dragging registered', async t => {
 
 test('no preview when deregistered - dragging deregistered', async t => {
     // Wrap the pre-spawned preview window
-    const previewWin = await getWindow({name: 'previewWindow-', uuid: 'layouts-service'});
+    const previewWin = await getWindow({name: 'previewWindow', uuid: 'layouts-service'});
 
     // Spawn two child windows (one of them deregistered)
     win1 = await createChildWindow({

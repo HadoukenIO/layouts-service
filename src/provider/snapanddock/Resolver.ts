@@ -51,6 +51,14 @@ export interface SnapTarget extends TargetBase {
      * Will be null if we don't want the window to resize as part of the snap.
      */
     halfSize: Point|null;
+
+
+    /**
+     * The group that has been selected as the target candidate.
+     *
+     * This is not the group that the user is currently dragging, it is the group that has been selected as the target.
+     */
+    targetGroup: DesktopSnapGroup;
 }
 
 /**

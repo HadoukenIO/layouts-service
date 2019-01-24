@@ -14,7 +14,7 @@
     },
     "runtime": {
         "arguments": "--v=1 --enable-crash-reporting --inspect=9222 --enable-aggressive-domstorage-flushing",
-        "version": "9.61.37.46"
+        "version": "9.61.38.40"
     },
     "services": [{
         "name": "layouts",

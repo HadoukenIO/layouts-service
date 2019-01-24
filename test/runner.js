@@ -140,17 +140,20 @@ async function serve() {
             const {uuid, url, defaultTop} = req.query;
 
             // Create manifest (based upon demo app manifest)
-            const manifest = require('../res/demo/app.json');
-            manifest.startup_app = {
-                uuid: uuid || 'save-restore-test-app-' + Math.random().toString(36).substring(2),
-                url: url || 'http://localhost:1337/test/saveRestoreTestingApp.html?deregistered=false',
-                defaultTop: defaultTop ? JSON.parse(defaultTop): 100,
-                defaultLeft: 100,
-                defaultHeight: 225,
-                defaultWidth: 225
+            const {shortcut, services, ...baseManifest} = require('../res/demo/app.json');
+            const manifest = {
+                ...baseManifest,
+                startup_app: {
+                    uuid: uuid || 'save-restore-test-app-' + Math.random().toString(36).substring(2),
+                    url: url || 'http://localhost:1337/test/saveRestoreTestingApp.html?deregistered=false',
+                    autoShow: true,
+                    saveWindowState: false,
+                    defaultTop: defaultTop ? JSON.parse(defaultTop): 100,
+                    defaultLeft: 100,
+                    defaultHeight: 225,
+                    defaultWidth: 225
+                }
             };
-            delete manifest.shortcut;
-            delete manifest.services;
 
             // Send response
             res.contentType('application/json');

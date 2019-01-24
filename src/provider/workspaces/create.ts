@@ -159,6 +159,7 @@ export const getCurrentLayout = async(): Promise<Workspace> => {
 
 // No payload. Just returns the current layout with child windows.
 export const generateLayout = async(payload: null, identity: Identity): Promise<Workspace> => {
+    console.error("generateLayout");
     const preLayout = await getCurrentLayout();
 
     const apps = await promiseMap(preLayout.apps, async (app: WorkspaceApp) => {
@@ -180,7 +181,7 @@ export const generateLayout = async(payload: null, identity: Identity): Promise<
             return defaultResponse;
         }
     });
-
+    console.error("about to return");
     const confirmedLayout = {...preLayout, apps};
     return confirmedLayout;
 };

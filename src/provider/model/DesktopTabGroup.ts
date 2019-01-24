@@ -234,12 +234,9 @@ export class DesktopTabGroup implements DesktopEntity {
      * Minimizes the tab set window and all tab windows.
      */
     public async minimize(): Promise<void> {
-        const minWins = this._tabs.map(tab => {
-            return tab.applyProperties({state: 'minimized'});
-        });
-        const group = this._window.applyProperties({state: 'minimized'});
-
-        return Promise.all([minWins, group]).then(() => {});
+        // Only minimize the tabstrip and active tab since minimizing hidden windows causes issues.
+        // This may cause problems if switching tabs while minimized, but that would require a questionable custom tabstrip.
+        await Promise.all([this._window.applyProperties({state: 'minimized'}), this.activeTab.applyProperties({state: 'minimized'})]);
     }
 
     /**
@@ -381,6 +378,15 @@ export class DesktopTabGroup implements DesktopEntity {
                 const joinedSnappable = existingSnappables[0] === this ? existingSnappables[1] : existingSnappables[0];
                 const remainingTab = existingTabs[0] === tab ? existingTabs[1] : existingTabs[0];
 
+                // Add a small delay before regrouping the remaining window.
+                // This will push the current execution context to the end of the stack
+                // and ensure that the 'leave' event for the window has been fully
+                // processed before regrouping.
+                // As of v38 the ordering of the event processing changed causing
+                // some very annoying race conditions and leaving the window ungrouped from
+                // the other snapped windows.
+                // TODO (SERVICE-311): Investigate how to properly harden against these issues
+                await new Promise(res => setTimeout(res, 10));
                 console.log('Re-attaching remaining tab: ' + remainingTab.id + ' => ' + joinedSnappable.id);
                 await remainingTab.setSnapGroup(joinedSnappable.snapGroup);
             }

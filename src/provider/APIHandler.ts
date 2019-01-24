@@ -41,7 +41,7 @@ export class APIHandler {
 
     public isClientConnection(identity: Identity): boolean {
         return this._providerChannel.connections.some((conn: Identity) => {
-            return identity.uuid === conn.uuid;
+            return identity.uuid === conn.uuid && identity.name === conn.name;
         });
     }
 
@@ -311,12 +311,16 @@ export class APIHandler {
         const tab: DesktopWindow|null = this._model.getWindow(payload.window);
         const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
-        if (!group) {
+        if (!group || !tab) {
             console.error('Window is not registered for tabbing');
             throw new Error('Window is not registered for tabbing');
         }
 
+        const target = this._tabService.getTarget(tab);
         this._tabService.dragWindowManager.hideWindow();
-        this._tabService.ejectTab(payload.window, {x: payload.event.screenX, y: payload.event.screenY});
+
+        if (target) {
+            await this._tabService.applyTabTarget(target);
+        }
     }
 }

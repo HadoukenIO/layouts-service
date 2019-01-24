@@ -14,11 +14,14 @@ fin.desktop.main(() => {
         console.log('TABBED: ');
     });
 
+    //@ts-ignore
+    window.layouts = Layouts;
+
     Layouts.addEventListener('leave-tab-group', () => {
         console.log('UNTABBED: ');
     });
 
     // Workaround for issue with snapping/S&R integration
-    Layouts.onAppRestore((payload) => Promise.resolve(payload));
+    Layouts.setRestoreHandler((payload) => Promise.resolve(payload));
     Layouts.ready();
 });

@@ -92,8 +92,8 @@ const positionWindow = async (win: LayoutWindow) => {
 };
 
 // Allow layouts service to save and restore this application
-Layouts.onApplicationSave(() => {
+Layouts.setSaveHandler(() => {
     return {test: true};
 });
-Layouts.onAppRestore(onAppRes);
+Layouts.setRestoreHandler(onAppRes);
 Layouts.ready();

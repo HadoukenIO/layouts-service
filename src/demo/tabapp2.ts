@@ -19,6 +19,6 @@ fin.desktop.main(() => {
     });
 
     // Workaround for issue with snapping/S&R integration
-    Layouts.onAppRestore((payload) => Promise.resolve(payload));
+    Layouts.setRestoreHandler((payload) => Promise.resolve(payload));
     Layouts.ready();
 });

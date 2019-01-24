@@ -29,7 +29,7 @@ export async function teardown(t: TestContext): Promise<void> {
         const lengths = [m.windows.length, Object.keys(m['_windowLookup']).length, m.snapGroups.length, m.tabGroups.length];
 
         if (lengths.some(l => l > 0)) {
-            return `${lengths.join(" ")}\n${m.windows.map(w => w.id).join(', ')}\n${m.snapGroups.map(g => `${g.id}${g.entities.map(w => w.id).join(',')}`).join(', ')}\n${m.tabGroups.map(g => `${g.id}${g.tabs.map(w => w.id).join(',')}`).join(', ')}`;
+            return `Clean-up may have failed. Debug info: ${lengths.join(" ")}\n${m.windows.map(w => w.id).join(', ')}\n${m.snapGroups.map(g => `${g.id}${g.entities.map(w => w.id).join(',')}`).join(', ')}\n${m.tabGroups.map(g => `${g.id}${g.tabs.map(w => w.id).join(',')}`).join(', ')}`;
         } else {
             return null;
         }
@@ -107,12 +107,12 @@ async function resetProviderState(t: TestContext): Promise<void> {
         if (tabGroups.length > 0) {
             const groupInfo = tabGroups.map((t, i) => `${i+1}: ${t.id} (${t.tabs.map(w => w.id).join(SEPARATOR_LIST)})`).join(SEPARATOR_LINE);
 
-            msgs.push(`Provider still had ${tabGroups.length} tabGroups registered:${SEPARATOR_LINE}${groupInfo}`);
+            msgs.push(`WARN: Provider still had ${tabGroups.length} tabGroups registered:${SEPARATOR_LINE}${groupInfo}`);
             this.model['_tabGroups'].length = 0;
         }
 
         if (msgs.length > 1) {
-            return `${msgs.length} issues detected in provider state:${SEPARATOR_LINE}${msgs.join(SEPARATOR_LINE)}`;
+            return `${msgs.length} issues detected in provider state:${SEPARATOR_LINE}${msgs.map(msg => msg.replace(/\n/g, SEPARATOR_LINE)).join(SEPARATOR_LINE)}`;
         } else if (msgs.length === 1) {
             return msgs[0];
         } else {
@@ -121,8 +121,14 @@ async function resetProviderState(t: TestContext): Promise<void> {
     });
 
     if (msg) {
-        // Fail test
-        t.fail(msg);
+        const isFatal: boolean = msg.split('\n').some(line => {
+            return !(line.startsWith('WARN') || line.startsWith('    '));
+        });
+
+        // Fail test - unless all messages were warnings
+        if (isFatal) {
+            t.fail(msg);
+        }
 
         // Wait for clean-up to complete
         await delay(5000);

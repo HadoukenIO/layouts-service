@@ -79,7 +79,7 @@ export interface ApplicationUIConfig {
  * See {@link generateLayout} for more information about what gets captured when saving a layout. Previously generated
  * layouts can be restored using {@link restoreLayout}.
  */
-export interface Layout {
+export interface Workspace {
     /**
      * Identifies this object as being a workspace layout.
      */
@@ -107,7 +107,7 @@ export interface Layout {
     /**
      * List of all applications within the layout.
      */
-    apps: LayoutApp[];
+    apps: WorkspaceApp[];
 
     /**
      * Tracks which windows are tabbed together, and the properties of the associated tabstrip windows.
@@ -122,7 +122,7 @@ export interface Layout {
 /**
  * Stores the state of a single application within a saved workspace.
  */
-export interface LayoutApp {
+export interface WorkspaceApp {
     /**
      * The URL of the manifest from which this application was started.
      *
@@ -148,7 +148,7 @@ export interface LayoutApp {
     /**
      * State of the main window of the application.
      */
-    mainWindow: LayoutWindow;
+    mainWindow: WorkspaceWindow;
 
     /**
      * State of any child windows belonging to the application.
@@ -156,7 +156,7 @@ export interface LayoutApp {
      * This will only be populated if the application integrates with the Layouts Service API. See
      * {@link generateLayout} for details.
      */
-    childWindows: LayoutWindow[];
+    childWindows: WorkspaceWindow[];
 
     /**
      * Flag used within the service to confirm an application has correctly implemented the callbacks it has
@@ -180,7 +180,7 @@ export interface LayoutApp {
 /**
  * Stores the state of a single window within a saved layout.
  */
-export interface LayoutWindow extends Bounds, WindowIdentity {
+export interface WorkspaceWindow extends Bounds, WindowIdentity {
     /**
      * If the window is currently visible, corresponds to `Window.isShowing()`.
      */

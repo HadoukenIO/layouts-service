@@ -1,11 +1,11 @@
 import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import * as Layouts from '../client/main';
-import {Layout, LayoutApp, LayoutWindow} from '../client/types';
+import {Workspace, WorkspaceApp, WorkspaceWindow} from '../client/types';
 
 export interface Workspace {
     id: string;
-    layout: Layout;
+    layout: Workspace;
 }
 
 let numChildren = 0;
@@ -45,11 +45,11 @@ export async function openChild(name: string, i: number, frame = true, url?: str
     }
 }
 
-export async function onAppRes(layoutApp: LayoutApp): Promise<LayoutApp> {
+export async function onAppRes(layoutApp: WorkspaceApp): Promise<WorkspaceApp> {
     console.log('Apprestore called:', layoutApp);
     const ofApp = fin.Application.getCurrentSync();
     const openWindows = await ofApp.getChildWindows();
-    const openAndPosition = layoutApp.childWindows.map(async (win: LayoutWindow, index: number) => {
+    const openAndPosition = layoutApp.childWindows.map(async (win: WorkspaceWindow, index: number) => {
         if (!openWindows.some((w: _Window) => w.identity.name === win.name)) {
             await openChild(win.name, index, win.frame, win.info.url, win);
         } else {
@@ -62,7 +62,7 @@ export async function onAppRes(layoutApp: LayoutApp): Promise<LayoutApp> {
 
 // Positions a window when it is restored.
 // Also given to the client to use.
-const positionWindow = async (win: LayoutWindow) => {
+const positionWindow = async (win: WorkspaceWindow) => {
     try {
         const ofWin = await fin.Window.wrap(win);
         await ofWin.setBounds(win);

@@ -2,7 +2,7 @@ import {Application} from 'hadouken-js-adapter/out/types/src/api/application/app
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
-import {Layout, LayoutApp, TabGroup} from '../../client/types';
+import {Workspace, WorkspaceApp, TabGroup} from '../../client/types';
 import {apiHandler, model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {promiseMap} from '../snapanddock/utils/async';
@@ -16,11 +16,11 @@ const appsToRestore = new Map();
 const appsCurrentlyRestoring = new Map();
 
 interface AppToRestore {
-    layoutApp: LayoutApp;
+    layoutApp: WorkspaceApp;
     resolve: Function;
 }
 
-const setAppToRestore = (layoutApp: LayoutApp, resolve: Function): void => {
+const setAppToRestore = (layoutApp: WorkspaceApp, resolve: Function): void => {
     const {uuid} = layoutApp;
     const save = {layoutApp, resolve};
     appsToRestore.set(uuid, save);
@@ -30,16 +30,16 @@ export const getAppToRestore = (uuid: string): AppToRestore => {
     return appsToRestore.get(uuid);
 };
 
-export const restoreApplication = async(layoutApp: LayoutApp, resolve: Function): Promise<void> => {
+export const restoreApplication = async(layoutApp: WorkspaceApp, resolve: Function): Promise<void> => {
     const {uuid} = layoutApp;
     const name = uuid;
-    const defaultResponse: LayoutApp = {...layoutApp, childWindows: []};
+    const defaultResponse: WorkspaceApp = {...layoutApp, childWindows: []};
     const appConnection = apiHandler.isClientConnection({uuid, name});
     if (appConnection) {
         if (appsToRestore.has(uuid) && !appsCurrentlyRestoring.has(uuid)) {
             // Instruct app to restore its child windows
             appsCurrentlyRestoring.set(uuid, true);
-            const responseAppLayout: LayoutApp|false = await apiHandler.channel.dispatch({uuid, name}, WorkspaceAPI.RESTORE_HANDLER, layoutApp);
+            const responseAppLayout: WorkspaceApp|false = await apiHandler.channel.dispatch({uuid, name}, WorkspaceAPI.RESTORE_HANDLER, layoutApp);
 
             // Flag app as restored
             appsCurrentlyRestoring.delete(uuid);
@@ -55,7 +55,7 @@ export const restoreApplication = async(layoutApp: LayoutApp, resolve: Function)
     }
 };
 
-export const restoreLayout = async(payload: Layout, identity: Identity): Promise<Layout> => {
+export const restoreLayout = async(payload: Workspace, identity: Identity): Promise<Workspace> => {
     // Guards against invalid layout objects (since we are receiving them over the service bus, this is in theory possible)
     // These allow us to return sensible error messages back to the consumer
     if (!payload) {
@@ -86,7 +86,7 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
     }
 
     const layout = payload;
-    const startupApps: Promise<LayoutApp>[] = [];
+    const startupApps: Promise<WorkspaceApp>[] = [];
     const tabbedWindows: WindowObject = {};
     const openWindows: WindowObject = {};
     const tabbedPlaceholdersToWindows: TabbedPlaceholders = {};
@@ -112,7 +112,7 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
     // Check if we need to make tabbed vs. normal placeholders for both main windows and child windows.
     // Push those placeholder windows into tabbedPlaceholdersToWindows object
     // If an app is running, we need to check which of its child windows are open.
-    async function createAllPlaceholders(app: LayoutApp) {
+    async function createAllPlaceholders(app: WorkspaceApp) {
         const ofApp = fin.Application.wrapSync(app);
         const isRunning = await ofApp.isRunning();
         if (isRunning) {
@@ -158,7 +158,7 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
 
     await tabService.createTabGroupsFromLayout(layout.tabGroups);
 
-    const apps = await promiseMap(layout.apps, async(app: LayoutApp): Promise<LayoutApp> => {
+    const apps = await promiseMap(layout.apps, async(app: WorkspaceApp): Promise<WorkspaceApp> => {
         // Get rid of childWindows for default response (anything else?)
         const defaultResponse = {...app, childWindows: []};
         try {
@@ -173,7 +173,7 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
                     await positionWindow(app.mainWindow);
                     console.log('App is running:', app);
                     // Send LayoutApp to connected application so it can handle child windows
-                    const response: LayoutApp|false|undefined = await apiHandler.sendToClient<LayoutApp, LayoutApp|false>({uuid, name}, WorkspaceAPI.RESTORE_HANDLER, app);
+                    const response: WorkspaceApp|false|undefined = await apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name}, WorkspaceAPI.RESTORE_HANDLER, app);
                     console.log('Response from restore:', response);
                     return response ? response : defaultResponse;
                 } else {
@@ -187,7 +187,7 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
 
                 // App is not running - setup communication to fire once app is started
                 if (app.confirmed) {
-                    startupApps.push(new Promise((resolve: (layoutApp: LayoutApp) => void) => {
+                    startupApps.push(new Promise((resolve: (layoutApp: WorkspaceApp) => void) => {
                         setAppToRestore(app, resolve);
                     }));
                 }

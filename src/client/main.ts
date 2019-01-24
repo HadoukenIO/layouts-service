@@ -8,13 +8,13 @@ import {getId, RegisterAPI} from './internal';
 import {undockGroup, undockWindow} from './snapanddock';
 import {addTab, closeTab, closeTabGroup, createTabGroup, getTabs, JoinTabGroupPayload, maximizeTabGroup, TabGroupEventPayload, TabPropertiesUpdatedPayload} from './tabbing';
 import {minimizeTabGroup, removeTab, restoreTabGroup, setActiveTab, setTabstrip, updateTabProperties, tabStrip} from './tabbing';
-import {generateLayout, setRestoreHandler, setSaveHandler, ready, restoreLayout} from './workspaces';
-import { Layout } from './types';
+import {generateWorkspace, setRestoreHandler, setSaveHandler, ready, restoreWorkspace} from './workspaces';
+import { Workspace } from './types';
 
 export {undockGroup, undockWindow};
 export {addTab, closeTab, closeTabGroup, createTabGroup, getTabs, maximizeTabGroup};
 export {minimizeTabGroup, removeTab, restoreTabGroup, setActiveTab, setTabstrip, updateTabProperties, tabStrip};
-export {generateLayout, setRestoreHandler, setSaveHandler, ready, restoreLayout};
+export {generateWorkspace, setRestoreHandler, setSaveHandler, ready, restoreWorkspace};
 
 /**
  * @hidden
@@ -216,7 +216,7 @@ export type TabPropertiesUpdatedEvent = CustomEvent<TabPropertiesUpdatedPayload>
  * @type workspace-restored
  * @event
  */
-export type WorkspaceRestoredEvent = CustomEvent<Layout>&{type: 'workspace-restored'};
+export type WorkspaceRestoredEvent = CustomEvent<Workspace>&{type: 'workspace-restored'};
 
 /**
  * Event fired whenever a workspace is saved (via {@link generateLayout}).
@@ -234,4 +234,4 @@ export type WorkspaceRestoredEvent = CustomEvent<Layout>&{type: 'workspace-resto
  * @type workspace-saved
  * @event
  */
-export type WorkspaceSavedEvent = CustomEvent<Layout>&{type: 'workspace-saved'};
+export type WorkspaceSavedEvent = CustomEvent<Workspace>&{type: 'workspace-saved'};

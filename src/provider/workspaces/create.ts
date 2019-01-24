@@ -4,7 +4,7 @@ import {WindowDetail, WindowInfo as WindowInfo_System} from 'hadouken-js-adapter
 import {WindowInfo as WindowInfo_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
-import {CustomData, Layout, LayoutApp, LayoutWindow, TabGroup} from '../../client/types';
+import {CustomData, Workspace, WorkspaceApp, WorkspaceWindow, TabGroup} from '../../client/types';
 import {apiHandler, model, tabService} from '../main';
 import {WindowIdentity} from '../model/DesktopWindow';
 import {promiseMap} from '../snapanddock/utils/async';
@@ -23,7 +23,7 @@ const deregisteredWindows: WindowObject = {};
 /**
  * A subset of LayoutWindow, should refactor to remove the need to duplicate this.
  */
-interface LayoutWindowData {
+interface WorkspaceWindowData {
     uuid: string;
     isShowing: boolean;
     state: 'normal'|'minimized'|'maximized';
@@ -37,7 +37,7 @@ export const deregisterWindow = (identity: WindowIdentity) => {
     addToWindowObject(identity, deregisteredWindows);
 };
 
-export const getCurrentLayout = async(): Promise<Layout> => {
+export const getCurrentLayout = async(): Promise<Workspace> => {
     // Not yet using monitor info
     const monitorInfo = await fin.System.getMonitorInfo() || {};
     let tabGroups = await tabService.getTabSaveInfo();
@@ -88,7 +88,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
     });
 
     const apps = await fin.System.getAllWindows();
-    const layoutApps: (LayoutApp|null)[] = await promiseMap<WindowInfo_System, LayoutApp|null>(apps, async (windowInfo: WindowInfo_System) => {
+    const layoutApps: (WorkspaceApp|null)[] = await promiseMap<WindowInfo_System, WorkspaceApp|null>(apps, async (windowInfo: WindowInfo_System) => {
         try {
             const {uuid} = windowInfo;
             const ofApp = await fin.Application.wrap({uuid});
@@ -111,7 +111,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
             // Grab the layout information for the main app window
             const mainOfWin: Window = await ofApp.getWindow();
             const mainWindowLayoutData = await getLayoutWindowData(mainOfWin, tabbedWindows);
-            const mainWindow: LayoutWindow = {...windowInfo.mainWindow, ...mainWindowLayoutData};
+            const mainWindow: WorkspaceWindow = {...windowInfo.mainWindow, ...mainWindowLayoutData};
 
             // Filter for deregistered child windows
             windowInfo.childWindows = windowInfo.childWindows.filter((win: WindowDetail) => {
@@ -123,7 +123,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
             });
 
             // Grab the layout information for the child windows
-            const childWindows: LayoutWindow[] = await promiseMap(windowInfo.childWindows, async (win: WindowDetail) => {
+            const childWindows: WorkspaceWindow[] = await promiseMap(windowInfo.childWindows, async (win: WindowDetail) => {
                 const {name} = win;
                 const ofWin = await fin.Window.wrap({uuid, name});
                 const windowLayoutData = await getLayoutWindowData(ofWin, tabbedWindows);
@@ -132,11 +132,11 @@ export const getCurrentLayout = async(): Promise<Layout> => {
             });
             if (wasCreatedFromManifest(appInfo, uuid)) {
                 delete appInfo.manifest;
-                return {mainWindow, childWindows, ...appInfo, uuid, confirmed: false} as LayoutApp;
+                return {mainWindow, childWindows, ...appInfo, uuid, confirmed: false} as WorkspaceApp;
             } else if (wasCreatedProgrammatically(appInfo)) {
                 delete appInfo.manifest;
                 delete appInfo.manifestUrl;
-                return {mainWindow, childWindows, ...appInfo, uuid, confirmed: false} as LayoutApp;
+                return {mainWindow, childWindows, ...appInfo, uuid, confirmed: false} as WorkspaceApp;
             } else {
                 console.error('Not saving app, cannot restore:', windowInfo);
                 return null;
@@ -146,11 +146,11 @@ export const getCurrentLayout = async(): Promise<Layout> => {
             return null;
         }
     });
-    const validApps: LayoutApp[] = layoutApps.filter((a): a is LayoutApp => !!a);
+    const validApps: WorkspaceApp[] = layoutApps.filter((a): a is WorkspaceApp => !!a);
     console.log('Pre-Layout Save Apps:', apps);
     console.log('Post-Layout Valid Apps:', validApps);
 
-    const layoutObject: Layout = {type: 'layout', schemaVersion: LAYOUTS_SCHEMA_VERSION, apps: validApps, monitorInfo, tabGroups: filteredTabGroups};
+    const layoutObject: Workspace = {type: 'layout', schemaVersion: LAYOUTS_SCHEMA_VERSION, apps: validApps, monitorInfo, tabGroups: filteredTabGroups};
     
     apiHandler.sendToAll('workspace-saved', layoutObject);
 
@@ -158,17 +158,17 @@ export const getCurrentLayout = async(): Promise<Layout> => {
 };
 
 // No payload. Just returns the current layout with child windows.
-export const generateLayout = async(payload: null, identity: Identity): Promise<Layout> => {
+export const generateLayout = async(payload: null, identity: Identity): Promise<Workspace> => {
     const preLayout = await getCurrentLayout();
 
-    const apps = await promiseMap(preLayout.apps, async (app: LayoutApp) => {
+    const apps = await promiseMap(preLayout.apps, async (app: WorkspaceApp) => {
         const defaultResponse = {...app};
         if (apiHandler.isClientConnection(app)) {
             console.log('Connected application', app.uuid);
 
             // HOW TO DEAL WITH HUNG REQUEST HERE? RESHAPE IF GET NOTHING BACK?
             let customData: CustomData = undefined;
-            customData = await apiHandler.sendToClient<LayoutApp, CustomData>({uuid: app.uuid, name: app.uuid}, WorkspaceAPI.SAVE_HANDLER, app);
+            customData = await apiHandler.sendToClient<WorkspaceApp, CustomData>({uuid: app.uuid, name: app.uuid}, WorkspaceAPI.SAVE_HANDLER, app);
 
             if (!customData) {
                 customData = null;
@@ -186,7 +186,7 @@ export const generateLayout = async(payload: null, identity: Identity): Promise<
 };
 
 // Grabs all of the necessary layout information for a window. Filters by multiple criteria.
-const getLayoutWindowData = async(ofWin: Window, tabbedWindows: WindowObject): Promise<LayoutWindowData> => {
+const getLayoutWindowData = async(ofWin: Window, tabbedWindows: WindowObject): Promise<WorkspaceWindowData> => {
     const {uuid} = ofWin.identity;
     const identity: WindowIdentity = ofWin.identity as WindowIdentity;
     const info = await ofWin.getInfo();
@@ -212,7 +212,7 @@ const getLayoutWindowData = async(ofWin: Window, tabbedWindows: WindowObject): P
     // If a window is tabbed (based on filtered tabGroups), tab it.
     const isTabbed = inWindowObject(ofWin.identity, tabbedWindows) ? true : false;
 
-    const tmp: LayoutWindowData =
+    const tmp: WorkspaceWindowData =
         {info, uuid, windowGroup: filteredWindowGroup, frame: applicationState.frame, state: options.state, isTabbed, isShowing: !applicationState.hidden};
 
     return {info, uuid, windowGroup: filteredWindowGroup, frame: applicationState.frame, state: options.state, isTabbed, isShowing: !applicationState.hidden};

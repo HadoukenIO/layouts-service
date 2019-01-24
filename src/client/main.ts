@@ -30,6 +30,18 @@ export interface EventMap {
     'workspace-saved': WorkspaceSavedEvent;
 }
 
+// To be updated/moved once config story is fully merged. SERVICE-306
+export interface IdentityRule {
+    uuid: string | RegEx;
+    name: string | RegEx;
+  }
+
+  export interface RegEx {
+    expression: string;
+    flags?: string;
+    invert?: boolean;
+  }
+
 /**
  * Allows a window to opt-out of this service.
  *
@@ -37,23 +49,35 @@ export interface EventMap {
  *
  * @param identity The window to deregister, defaults to the current window
  */
-export async function deregister(identity: Identity = getId()): Promise<void> {
-    return tryServiceDispatch<Identity, void>(RegisterAPI.DEREGISTER, identity);
+export async function deregister(identity: IdentityRule = getId() as IdentityRule): Promise<void> {
+    return tryServiceDispatch<IdentityRule, void>(RegisterAPI.DEREGISTER, identity);
 }
+
+/**
+ * Allows a window to opt-in to this service.
+ *
+ * This will enable *all* layouts-related functionality for the given window.
+ *
+ * @param identity The window to register, defaults to the current window
+ */
+export async function register(identity: IdentityRule): Promise<void> {
+    throw new Error("Method not implemented");
+}
+
 
 /**
  * Registers a listener for any events raised by the service.
  *
  * @param eventType Event to be subscribed to. Valid options are 'join-snap-group' and 'leave-snap-group'
- * @param callback Function to be executed on event firing. Takes no arguments and returns void.
+ * @param listener Function to be executed on event firing.
  */
-export async function addEventListener<K extends keyof EventMap>(type: K, listener: (event: EventMap[K]) => void): Promise<void> {
+export async function addEventListener<K extends keyof EventMap>(eventType: K, listener: (event: EventMap[K]) => void): Promise<void> {
     if (typeof fin === 'undefined') {
         throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
     }
     // Use native js event system to pass internal events around.
     // Without this we would need to handle multiple registration ourselves.
-    window.addEventListener(type, listener as EventListener);
+    window.addEventListener(eventType, listener as EventListener);
 }
 
 
@@ -201,9 +225,9 @@ export type TabPropertiesUpdatedEvent = CustomEvent<TabPropertiesUpdatedPayload>
 
 
 /**
- * Event fired whenever a workspace is restored (via {@link restoreLayout}).
+ * Event fired whenever a workspace is restored (via {@link restoreWorkspace}).
  *
- * The event will contain the full detail of the Workspace. ({@link Layout}).
+ * The event will contain the full detail of the Workspace. ({@link Workspace}).
  * 
  * ```ts
  * import {addEventListener} from 'openfin-layouts';
@@ -219,9 +243,9 @@ export type TabPropertiesUpdatedEvent = CustomEvent<TabPropertiesUpdatedPayload>
 export type WorkspaceRestoredEvent = CustomEvent<Workspace>&{type: 'workspace-restored'};
 
 /**
- * Event fired whenever a workspace is saved (via {@link generateLayout}).
+ * Event fired whenever a workspace is saved (via {@link generateWorkspace}).
  *
- * The event will contain the full detail of the Workspace. ({@link Layout}).
+ * The event will contain the full detail of the Workspace. ({@link Workspace}).
  * 
  * ```ts
  * import {addEventListener} from 'openfin-layouts';

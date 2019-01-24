@@ -10,6 +10,7 @@ import {promiseMap} from '../snapanddock/utils/async';
 import {SCHEMA_MAJOR_VERSION} from './create';
 import {regroupLayout} from './group';
 import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, parseVersionString, positionWindow, SemVer, TabbedPlaceholders, wasCreatedProgrammatically, WindowObject} from './utils';
+import { WorkspaceAPI } from '../../client/internal';
 
 const appsToRestore = new Map();
 const appsCurrentlyRestoring = new Map();
@@ -38,7 +39,7 @@ export const restoreApplication = async(layoutApp: LayoutApp, resolve: Function)
         if (appsToRestore.has(uuid) && !appsCurrentlyRestoring.has(uuid)) {
             // Instruct app to restore its child windows
             appsCurrentlyRestoring.set(uuid, true);
-            const responseAppLayout: LayoutApp|false = await apiHandler.channel.dispatch({uuid, name}, 'restoreApp', layoutApp);
+            const responseAppLayout: LayoutApp|false = await apiHandler.channel.dispatch({uuid, name}, WorkspaceAPI.RESTORE_HANDLER, layoutApp);
 
             // Flag app as restored
             appsCurrentlyRestoring.delete(uuid);
@@ -172,7 +173,7 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
                     await positionWindow(app.mainWindow);
                     console.log('App is running:', app);
                     // Send LayoutApp to connected application so it can handle child windows
-                    const response: LayoutApp|false|undefined = await apiHandler.sendToClient<LayoutApp, LayoutApp|false>({uuid, name}, 'restoreApp', app);
+                    const response: LayoutApp|false|undefined = await apiHandler.sendToClient<LayoutApp, LayoutApp|false>({uuid, name}, WorkspaceAPI.RESTORE_HANDLER, app);
                     console.log('Response from restore:', response);
                     return response ? response : defaultResponse;
                 } else {
@@ -235,7 +236,7 @@ export const restoreLayout = async(payload: Layout, identity: Identity): Promise
         group.validate();
     }
 
-    apiHandler.sendToAll('workspace-layout-restored', layout);
+    apiHandler.sendToAll('workspace-restored', layout);
 
     // Send the layout back to the requester of the restore
     return layout;

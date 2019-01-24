@@ -4,7 +4,7 @@ import {DesktopEntity} from '../model/DesktopEntity';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
-import {DesktopWindow, EntityState, WindowMessages} from '../model/DesktopWindow';
+import {DesktopWindow, EntityState} from '../model/DesktopWindow';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 import {eTargetType, TargetBase} from '../WindowHandler';
 import {ApplicationConfigManager} from './components/ApplicationConfigManager';
@@ -239,8 +239,8 @@ export class TabService {
 
         if(tab && tab.tabGroup) {
             const payload: TabPropertiesUpdatedPayload = {tabGroupId: tab.tabGroup.id, tabID: tab.identity, properties: tabProps};
-            tab.sendMessage(WindowMessages.TAB_PROPERTIES_UPDATED, payload);
-            tab.tabGroup.window.sendMessage(WindowMessages.TAB_PROPERTIES_UPDATED, payload)
+            tab.sendMessage('tab-properties-updated', payload);
+            tab.tabGroup.window.sendMessage('tab-properties-updated', payload)
         }
     }
 

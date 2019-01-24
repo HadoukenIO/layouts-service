@@ -11,6 +11,7 @@ import {promiseMap} from '../snapanddock/utils/async';
 
 import {getGroup} from './group';
 import {addToWindowObject, inWindowObject, parseVersionString, wasCreatedFromManifest, wasCreatedProgrammatically, WindowObject} from './utils';
+import { WorkspaceAPI } from '../../client/internal';
 
 // This value should be updated any time changes are made to the layout schema.
 // Major version indicates breaking changes.
@@ -151,7 +152,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
 
     const layoutObject: Layout = {type: 'layout', schemaVersion: LAYOUTS_SCHEMA_VERSION, apps: validApps, monitorInfo, tabGroups: filteredTabGroups};
     
-    apiHandler.sendToAll('workspace-layout-saved', layoutObject);
+    apiHandler.sendToAll('workspace-saved', layoutObject);
 
     return layoutObject;
 };
@@ -167,7 +168,7 @@ export const generateLayout = async(payload: null, identity: Identity): Promise<
 
             // HOW TO DEAL WITH HUNG REQUEST HERE? RESHAPE IF GET NOTHING BACK?
             let customData: CustomData = undefined;
-            customData = await apiHandler.sendToClient<LayoutApp, CustomData>({uuid: app.uuid, name: app.uuid}, 'savingLayout', app);
+            customData = await apiHandler.sendToClient<LayoutApp, CustomData>({uuid: app.uuid, name: app.uuid}, WorkspaceAPI.SAVE_HANDLER, app);
 
             if (!customData) {
                 customData = null;

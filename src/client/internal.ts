@@ -60,15 +60,25 @@ export enum TabAPI {
     CLOSETAB = 'CLOSETAB'
 }
 
-
-export enum TabAPIWindowActions {
-    MAXIMIZE = 'MAXIMIZEWINDOW',
-    MINIMIZE = 'MINIMIZEWINDOW',
-    RESTORE = 'RESTOREWINDOW',
-    CLOSE = 'CLOSEWINDOW',
-    TOGGLEMAXIMIZE = 'TOGGLEMAXIMIZE'
+export enum WorkspaceAPI {
+    RESTORE_HANDLER = "SET-RESTORE-HANDLER",
+    SAVE_HANDLER = "SET-SAVE-HANDLER",
+    GENERATE_LAYOUT = "GENERATE-WORKSPACE",
+    RESTORE_LAYOUT = "RESTORE-WORKSPACE",
+    APPLICATION_READY = "APP-READY"
 }
 
+export enum SnapAndDockAPI {
+    UNDOCK_WINDOW = 'UNDOCK-WINDOW',
+    UNDOCK_GROUP = 'UNDOCK-GROUP'
+}
+
+export enum RegisterAPI {
+    REGISTER = 'REGISTER',
+    DEREGISTER = 'DEREGISTER'
+}
+
+export type APITopics = TabAPI|WorkspaceAPI|SnapAndDockAPI|RegisterAPI;
 
 /**
  * Each action coming into the will have an action attached

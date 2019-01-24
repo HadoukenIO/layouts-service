@@ -10,8 +10,9 @@ import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
 import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {DesktopTabstripFactory} from './DesktopTabstripFactory';
-import {DesktopWindow, EntityState, eTransformType, Mask, WindowMessages} from './DesktopWindow';
+import {DesktopWindow, EntityState, eTransformType, Mask} from './DesktopWindow';
 import { tabService } from '../main';
+import { WindowMessages } from '../APIHandler';
 
 /**
  * Handles functionality for the TabSet
@@ -247,7 +248,7 @@ export class DesktopTabGroup implements DesktopEntity {
             // Need to re-send tab-activated event to ensure tab is active within tabstrip
             // TODO: See if this can be avoided
             const payload: TabGroupEventPayload = {tabGroupId: this.id, tabID: activeTab.identity};
-            this._window.sendMessage(WindowMessages.TAB_ACTIVATED, payload);
+            this._window.sendMessage('tab-activated', payload);
         }
     }
 
@@ -386,7 +387,7 @@ export class DesktopTabGroup implements DesktopEntity {
 
             await Promise.all([this._window!.sync(), tab.sync()]).catch(e => console.error(e));
             const payload: TabGroupEventPayload = {tabGroupId: this.id, tabID: tab.identity};
-            this._window.sendMessage(WindowMessages.TAB_ACTIVATED, payload);
+            this._window.sendMessage('tab-activated', payload);
         }
     }
 
@@ -488,7 +489,7 @@ export class DesktopTabGroup implements DesktopEntity {
             const payload:
                 JoinTabGroupPayload = {tabGroupId: this.id, tabID: tab.identity, tabProps, index: this._tabs.indexOf(tab)};
 
-            this.sendTabEvent(tab, WindowMessages.JOIN_TAB_GROUP, payload);
+            this.sendTabEvent(tab, 'join-tab-group', payload);
             await tab.applyProperties({hidden: tab !== this._activeTab});
             await this._window.bringToFront();
         })();
@@ -517,7 +518,7 @@ export class DesktopTabGroup implements DesktopEntity {
         }
 
         const payload: TabGroupEventPayload = {tabGroupId: this.id, tabID: tab.identity};
-        await this.sendTabEvent(tab, WindowMessages.LEAVE_TAB_GROUP, payload);
+        await this.sendTabEvent(tab, 'leave-tab-group', payload);
 
         if (this._tabs.length < 2) {
             if (this._window.isReady) {

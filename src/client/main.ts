@@ -4,17 +4,31 @@
 import {Identity} from 'hadouken-js-adapter';
 
 import {tryServiceDispatch} from './connection';
-import {getId} from './internal';
+import {getId, RegisterAPI} from './internal';
 import {undockGroup, undockWindow} from './snapanddock';
 import {addTab, closeTab, closeTabGroup, createTabGroup, getTabs, JoinTabGroupPayload, maximizeTabGroup, TabGroupEventPayload, TabPropertiesUpdatedPayload} from './tabbing';
 import {minimizeTabGroup, removeTab, restoreTabGroup, setActiveTab, setTabstrip, updateTabProperties, tabStrip} from './tabbing';
-import {generateLayout, onApplicationSave, onAppRestore, ready, restoreLayout} from './workspaces';
+import {generateLayout, setRestoreHandler, setSaveHandler, ready, restoreLayout} from './workspaces';
 import { Layout } from './types';
 
 export {undockGroup, undockWindow};
 export {addTab, closeTab, closeTabGroup, createTabGroup, getTabs, maximizeTabGroup};
 export {minimizeTabGroup, removeTab, restoreTabGroup, setActiveTab, setTabstrip, updateTabProperties, tabStrip};
-export {generateLayout, onApplicationSave, onAppRestore, ready, restoreLayout};
+export {generateLayout, setRestoreHandler, setSaveHandler, ready, restoreLayout};
+
+/**
+ * @hidden
+ */
+export interface EventMap {
+    'join-snap-group': JoinSnapGroupEvent;
+    'leave-snap-group': LeaveSnapGroupEvent;
+    'join-tab-group': JoinTabGroupEvent;
+    'leave-tab-group': LeaveTabGroupEvent;
+    'tab-activated': TabActivatedEvent;
+    'tab-properties-updated': TabPropertiesUpdatedEvent;
+    'workspace-restored': WorkspaceRestoredEvent;
+    'workspace-saved': WorkspaceSavedEvent;
+}
 
 /**
  * Allows a window to opt-out of this service.
@@ -24,7 +38,7 @@ export {generateLayout, onApplicationSave, onAppRestore, ready, restoreLayout};
  * @param identity The window to deregister, defaults to the current window
  */
 export async function deregister(identity: Identity = getId()): Promise<void> {
-    return tryServiceDispatch<Identity, void>('deregister', identity);
+    return tryServiceDispatch<Identity, void>(RegisterAPI.DEREGISTER, identity);
 }
 
 /**
@@ -41,6 +55,7 @@ export async function addEventListener<K extends keyof EventMap>(type: K, listen
     // Without this we would need to handle multiple registration ourselves.
     window.addEventListener(type, listener as EventListener);
 }
+
 
 
 /**
@@ -186,51 +201,37 @@ export type TabPropertiesUpdatedEvent = CustomEvent<TabPropertiesUpdatedPayload>
 
 
 /**
- * Event fired whenever a layout is restored (via {@link restoreLayout}).
+ * Event fired whenever a workspace is restored (via {@link restoreLayout}).
  *
- * The event will contain the full detail of the Layout for the application ({@link Layout}).
+ * The event will contain the full detail of the Workspace. ({@link Layout}).
  * 
  * ```ts
  * import {addEventListener} from 'openfin-layouts';
  *
- * addEventListener('workspace-layout-restored', async (event: CustomEvent<LayoutA>) => {
- *      console.log(`Properties for the restored Layout: ${event.detail}`);
+ * addEventListener('workspace-restored', async (event: CustomEvent<LayoutA>) => {
+ *      console.log(`Properties for the restored workspace: ${event.detail}`);
  * });
  * ```
  *
- * @type workspace-layout-restored
+ * @type workspace-restored
  * @event
  */
-export type WorkspaceLayoutRestoredEvent = CustomEvent<Layout>&{type: 'workspace-layout-restored'};
+export type WorkspaceRestoredEvent = CustomEvent<Layout>&{type: 'workspace-restored'};
 
 /**
- * Event fired whenever a layout is saved (via {@link generateLayout}).
+ * Event fired whenever a workspace is saved (via {@link generateLayout}).
  *
- * The event will contain the full detail of the Layout. ({@link Layout}).
+ * The event will contain the full detail of the Workspace. ({@link Layout}).
  * 
  * ```ts
  * import {addEventListener} from 'openfin-layouts';
  *
- * addEventListener('workspace-layout-saved', async (event: CustomEvent<Layout>) => {
- *     console.log(`Properties for the saved Layout: ${event.detail}`);
+ * addEventListener('workspace-saved', async (event: CustomEvent<Layout>) => {
+ *     console.log(`Properties for the saved workspace: ${event.detail}`);
  * });
  * ```
  *
- * @type workspace-layout-restored
+ * @type workspace-saved
  * @event
  */
-export type WorkspaceLayoutSavedEvent = CustomEvent<Layout>&{type: 'workspace-layout-saved'};
-
-/**
- * @hidden
- */
-export interface EventMap {
-    'join-snap-group': JoinSnapGroupEvent;
-    'leave-snap-group': LeaveSnapGroupEvent;
-    'join-tab-group': JoinTabGroupEvent;
-    'leave-tab-group': LeaveTabGroupEvent;
-    'tab-activated': TabActivatedEvent;
-    'tab-properties-updated': TabPropertiesUpdatedEvent;
-    'workspace-layout-restored': WorkspaceLayoutRestoredEvent;
-    'workspace-layout-saved': WorkspaceLayoutSavedEvent;
-}
+export type WorkspaceSavedEvent = CustomEvent<Layout>&{type: 'workspace-saved'};

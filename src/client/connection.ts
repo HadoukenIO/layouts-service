@@ -13,7 +13,7 @@
  */
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
-import {SERVICE_CHANNEL} from './internal';
+import {SERVICE_CHANNEL, APITopics} from './internal';
 import {JoinTabGroupPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload} from './tabbing';
 import { Layout } from './types';
 
@@ -52,12 +52,12 @@ export const channelPromise: Promise<ChannelClient> = typeof fin === 'undefined'
             window.dispatchEvent(new CustomEvent<TabPropertiesUpdatedPayload>('tab-properties-updated', {detail: payload}));
         });
 
-        channel.register('workspace-layout-saved', (payload: Layout) => {
-            window.dispatchEvent(new CustomEvent<Layout>('workspace-layout-saved', {detail: payload}));
+        channel.register('workspace-saved', (payload: Layout) => {
+            window.dispatchEvent(new CustomEvent<Layout>('workspace-saved', {detail: payload}));
         });
 
-        channel.register('workspace-layout-restored', (payload: Layout) => {
-            window.dispatchEvent(new CustomEvent<Layout>('workspace-layout-restored', {detail: payload}))
+        channel.register('workspace-restored', (payload: Layout) => {
+            window.dispatchEvent(new CustomEvent<Layout>('workspace-restored', {detail: payload}))
         });
         // Any unregistered action will simply return false
         channel.setDefaultAction(() => false);
@@ -68,7 +68,7 @@ export const channelPromise: Promise<ChannelClient> = typeof fin === 'undefined'
 /**
  * Wrapper around service.dispatch to help with type checking
  */
-export async function tryServiceDispatch<T, R>(action: string, payload?: T): Promise<R> {
+export async function tryServiceDispatch<T, R>(action: APITopics, payload?: T): Promise<R> {
     const channel: ChannelClient = await channelPromise;
     return channel.dispatch(action, payload) as Promise<R>;
 }

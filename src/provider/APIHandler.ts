@@ -2,8 +2,8 @@ import {Identity} from 'hadouken-js-adapter';
 import {ProviderIdentity} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/channel';
 import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
 
-import {TabAPI} from '../client/internal';
-import {DropPosition, SERVICE_CHANNEL} from '../client/internal';
+import {EventMap} from '../client/main';
+import {TabAPI, WorkspaceAPI, DropPosition, SERVICE_CHANNEL, SnapAndDockAPI, RegisterAPI} from '../client/internal';
 import {ApplicationUIConfig, TabProperties} from '../client/types';
 
 import {model, snapService, tabService} from './main';
@@ -11,6 +11,8 @@ import {DesktopTabGroup} from './model/DesktopTabGroup';
 import {DesktopWindow, WindowIdentity} from './model/DesktopWindow';
 import {deregisterWindow, generateLayout} from './workspaces/create';
 import {getAppToRestore, restoreApplication, restoreLayout} from './workspaces/restore';
+
+export type WindowMessages = keyof EventMap | WorkspaceAPI.RESTORE_HANDLER | WorkspaceAPI.SAVE_HANDLER;
 
 /**
  * Manages all communication with the client. Stateless class that listens for incomming messages, and handles sending of messages to connected client(s).
@@ -35,15 +37,14 @@ export class APIHandler {
      *
      * Will fail silently if client with given identity doesn't exist and/or isn't connected to service.
      */
-    public async sendToClient<T, R = void>(identity: Identity, action: string, payload: T): Promise<R|undefined> {
+    public async sendToClient<P, R = void>(identity: Identity, action: WindowMessages, payload: P): Promise<R|undefined> {
         return this.providerChannel.dispatch(identity, action, payload);
     }
 
     /**
      * Sends a message to all connected clients.
      */
-    // tslint:disable-next-line:no-any
-    public async sendToAll(action: string, payload: any): Promise<void> {
+    public async sendToAll<P>(action: WindowMessages, payload: P): Promise<void> {
         await this.providerChannel.publish(action, payload);
     }
 
@@ -52,16 +53,16 @@ export class APIHandler {
 
         // Common
         providerChannel.onConnection(this.onConnection);
-        providerChannel.register('deregister', this.deregister);
+        providerChannel.register(RegisterAPI.DEREGISTER, this.deregister);
 
         // Snap & Dock
-        providerChannel.register('undockWindow', this.undockWindow);
-        providerChannel.register('undockGroup', this.undockGroup);
+        providerChannel.register(SnapAndDockAPI.UNDOCK_WINDOW, this.undockWindow);
+        providerChannel.register(SnapAndDockAPI.UNDOCK_GROUP, this.undockGroup);
 
         // Workspaces
-        providerChannel.register('generateLayout', generateLayout);
-        providerChannel.register('restoreLayout', restoreLayout);
-        providerChannel.register('appReady', this.appReady);
+        providerChannel.register(WorkspaceAPI.GENERATE_LAYOUT, generateLayout);
+        providerChannel.register(WorkspaceAPI.RESTORE_LAYOUT, restoreLayout);
+        providerChannel.register(WorkspaceAPI.APPLICATION_READY, this.appReady);
 
         // Tabbing
         providerChannel.register(TabAPI.CLOSETABGROUP, this.closeTabGroup);

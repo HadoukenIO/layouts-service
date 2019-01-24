@@ -4,7 +4,7 @@
 import {Identity} from 'hadouken-js-adapter';
 
 import {tryServiceDispatch} from './connection';
-import {getId} from './internal';
+import {getId, SnapAndDockAPI} from './internal';
 
 /**
  * Undocks a window from any group it currently belongs to.
@@ -29,7 +29,7 @@ import {getId} from './internal';
  * @throws `Error`: If the window specified by `identity` has been de-registered
  */
 export async function undockWindow(identity: Identity = getId()): Promise<void> {
-    return tryServiceDispatch<Identity, void>('undockWindow', identity);
+    return tryServiceDispatch<Identity, void>(SnapAndDockAPI.UNDOCK_WINDOW, identity);
 }
 
 /**
@@ -57,5 +57,5 @@ export async function undockWindow(identity: Identity = getId()): Promise<void> 
  * @throws `Error`: If the window specified by `identity` has been de-registered
  */
 export async function undockGroup(identity: Identity = getId()): Promise<void> {
-    return tryServiceDispatch<Identity, void>('undockGroup', identity);
+    return tryServiceDispatch<Identity, void>(SnapAndDockAPI.UNDOCK_GROUP, identity);
 }

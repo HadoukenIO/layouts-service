@@ -7,7 +7,7 @@ import {RectUtils} from '../snapanddock/utils/RectUtils';
 
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopTabGroup} from './DesktopTabGroup';
-import {DesktopWindow, EntityState, eTransformType, Mask, WindowMessages} from './DesktopWindow';
+import {DesktopWindow, EntityState, eTransformType, Mask} from './DesktopWindow';
 
 export class DesktopSnapGroup {
     private static _nextId = 1;
@@ -152,7 +152,7 @@ export class DesktopSnapGroup {
             // Inform window of addition
             // Note that client API only considers windows to belong to a group if it contains two or more windows
             if (this._windows.length >= 2) {
-                window.sendMessage(WindowMessages.JOIN_SNAP_GROUP, {});
+                window.sendMessage('join-snap-group', {});
             }
 
             // Inform service of addition
@@ -253,7 +253,7 @@ export class DesktopSnapGroup {
             // Inform window of removal
             // Note that client API only considers windows to belong to a group if it contains two or more windows
             if (this._windows.length > 0 && window.isReady) {
-                window.sendMessage(WindowMessages.LEAVE_SNAP_GROUP, {});
+                window.sendMessage('leave-snap-group', {});
             }
 
             // Inform the service that the group has been modified

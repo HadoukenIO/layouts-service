@@ -5,6 +5,7 @@ import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/c
 
 import {channelPromise, tryServiceDispatch} from './connection';
 import {CustomData, Layout, LayoutApp} from './types';
+import { WorkspaceAPI } from './internal';
 
 /**
  * Register a callback that will save the state of the calling application.
@@ -12,9 +13,9 @@ import {CustomData, Layout, LayoutApp} from './types';
  * The callback will be invoked on each call to {@link generateLayout}, and the return value (if anything is returned)
  * will be saved as the layout's `customData` property.
  */
-export async function onApplicationSave(customDataDecorator: () => CustomData): Promise<boolean> {
+export async function setSaveHandler(customDataDecorator: () => CustomData): Promise<boolean> {
     const channel: ChannelClient = await channelPromise;
-    return channel.register('savingLayout', customDataDecorator);
+    return channel.register(WorkspaceAPI.SAVE_HANDLER, customDataDecorator);
 }
 
 /**
@@ -23,9 +24,9 @@ export async function onApplicationSave(customDataDecorator: () => CustomData): 
  * It is up to applications whether this action should "append" or "replace" the current layout. The service will not
  * close any applications that are currently open and not in the layout; though applications may do this if they wish.
  */
-export async function onAppRestore(layoutDecorator: (layoutApp: LayoutApp) => LayoutApp | false | Promise<LayoutApp|false>): Promise<boolean> {
+export async function setRestoreHandler(layoutDecorator: (layoutApp: LayoutApp) => LayoutApp | false | Promise<LayoutApp|false>): Promise<boolean> {
     const channel: ChannelClient = await channelPromise;
-    return channel.register('restoreApp', layoutDecorator);
+    return channel.register(WorkspaceAPI.RESTORE_HANDLER, layoutDecorator);
 }
 
 
@@ -40,7 +41,7 @@ export async function onAppRestore(layoutDecorator: (layoutApp: LayoutApp) => La
  * TODO: Document workspace generation process
  */
 export async function generateLayout(): Promise<Layout> {
-    return tryServiceDispatch<undefined, Layout>('generateLayout');
+    return tryServiceDispatch<undefined, Layout>(WorkspaceAPI.GENERATE_LAYOUT);
 }
 
 /**
@@ -54,7 +55,7 @@ export async function generateLayout(): Promise<Layout> {
  * TODO: Document workspace restoration process
  */
 export async function restoreLayout(payload: Layout): Promise<Layout> {
-    return tryServiceDispatch<Layout, Layout>('restoreLayout', payload);
+    return tryServiceDispatch<Layout, Layout>(WorkspaceAPI.RESTORE_LAYOUT, payload);
 }
 
 /**
@@ -67,5 +68,5 @@ export async function restoreLayout(payload: Layout): Promise<Layout> {
  * indefinitely.
  */
 export async function ready(): Promise<Layout> {
-    return tryServiceDispatch<undefined, Layout>('appReady');
+    return tryServiceDispatch<undefined, Layout>(WorkspaceAPI.APPLICATION_READY);
 }

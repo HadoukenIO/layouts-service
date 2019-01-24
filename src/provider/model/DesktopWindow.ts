@@ -13,6 +13,7 @@ import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
 import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {DesktopTabGroup} from './DesktopTabGroup';
+import { WindowMessages } from '../APIHandler';
 
 export interface EntityState extends Rectangle {
     center: Point;
@@ -59,23 +60,6 @@ export type Mask<T> = T|number;
 export enum eTransformType {
     MOVE = 1 << 0,
     RESIZE = 1 << 1
-}
-
-/**
- * List of the messages that can be passed to the client.
- */
-export const enum WindowMessages {
-    // Snap & Dock
-    JOIN_SNAP_GROUP = 'join-snap-group',
-    LEAVE_SNAP_GROUP = 'leave-snap-group',
-
-    // Tabbing (application messages)
-    JOIN_TAB_GROUP = 'join-tab-group',
-    LEAVE_TAB_GROUP = 'leave-tab-group',
-
-    // Tabbing (tabstrip messages)
-    TAB_ACTIVATED = 'tab-activated',
-    TAB_PROPERTIES_UPDATED = 'tab-properties-updated'
 }
 
 

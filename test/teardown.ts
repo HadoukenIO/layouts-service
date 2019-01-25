@@ -54,7 +54,10 @@ async function closeAllWindows(t: TestContext): Promise<void> {
     }, []);
 
     // Look for any windows that should no longer exist
-    const windowIsVisible: boolean[] = await Promise.all(windows.map(w => w.isShowing()));
+    const windowIsVisible: boolean[] = await Promise.all(windows.map(w => w.isShowing().catch((e) => {
+        console.warn(`isShowing request failed for ${w.identity.uuid}/${w.identity.name}:`, e);
+        return false;
+    })));
     const invalidWindows: Window[] = windows.filter((window: Window, index: number) => {
         const {uuid, name} = window.identity;
 
@@ -80,7 +83,9 @@ async function closeAllWindows(t: TestContext): Promise<void> {
     });
 
     if (invalidWindows.length > 0) {
-        await Promise.all(invalidWindows.map((window: Window) => window.close(true)));
+        await Promise.all(invalidWindows.map((w: Window) => w.close(true).catch((e) => {
+            console.warn(`Window close failed (ignoring) ${w.identity.uuid}/${w.identity.name}:`, e);
+        })));
         t.fail(`${invalidWindows.length} window(s) left over after test: ${invalidWindows.map(w => `${w.identity.uuid}/${w.identity.name}`).join(", ")}`);
     }
 }

@@ -564,11 +564,8 @@ export class DesktopWindow implements DesktopEntity {
 
     // tslint:disable-next-line:no-any
     public async sendMessage(action: WindowMessages, payload: any): Promise<void> {
-        if (this._ready) {
-            // TODO: Revisit this timeout after we bump to V.35
-            // Current hypothesis is that, in sendToClient, we're trying to dispatch to a tabstrip that no longer
-            // exists, but hasn't been removed from the .connections array.
-            await Promise.race([apiHandler.sendToClient(this._identity, action, payload), new Promise((res) => setTimeout(res, 15))]);
+        if (this._ready && apiHandler.isClientConnection(this.identity)) {
+            return apiHandler.sendToClient(this._identity, action, payload);
         }
     }
 
@@ -628,7 +625,7 @@ export class DesktopWindow implements DesktopEntity {
             return Promise.all([this.sync(), other.sync()]).then(() => {
                 const joinGroupPromise: Promise<void> = (async () => {
                     if (this._ready && group === this._snapGroup) {
-                        await this._window.joinGroup(other._window).catch((error) => this.checkClose(error));
+                        await this._window.mergeGroups(other._window).catch((error) => this.checkClose(error));
 
                         // Re-fetch window list in case it has changed during sync
                         const windows: DesktopWindow[] = this._snapGroup.windows as DesktopWindow[];

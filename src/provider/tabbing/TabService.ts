@@ -1,12 +1,13 @@
-import {Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
 import {ApplicationUIConfig, TabGroup, TabGroupDimensions, WindowIdentity} from '../../client/types';
 import {DesktopEntity} from '../model/DesktopEntity';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {DesktopWindow, EntityState} from '../model/DesktopWindow';
+import {Point, PointUtils} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 import {eTargetType, TargetBase} from '../WindowHandler';
+
 import {ApplicationConfigManager} from './components/ApplicationConfigManager';
 import {DragWindowManager} from './DragWindowManager';
 
@@ -337,7 +338,7 @@ export class TabService {
         /**
          * Checks if the window we are dragging is a tab group.
          */
-        const isActiveWindowTabbed = activeWindow.tabGroup;
+        const activeTabGroup = activeWindow.tabGroup;
 
         /**
          * Prevent snapped windows from tabbing to other windows/groups
@@ -352,7 +353,7 @@ export class TabService {
         /**
          * Validity conditions check for window over window tab target creation.
          */
-        const targetWindowOverWindow = targetWindow && !targetAlreadySnapped && !alreadyTabbed && isOverWindowValid && !isActiveWindowTabbed;
+        const targetWindowOverWindow = targetWindow && !targetAlreadySnapped && !alreadyTabbed && isOverWindowValid && !activeTabGroup;
 
         /**
          * Validity conditions check for tab dragging over window tab target creation.
@@ -360,12 +361,12 @@ export class TabService {
         const targetTabDragOverWindow = targetWindow && this._model.mouseTracker.isDraggingTab && isOverWindowValid;
 
         if (targetWindow && (targetWindowOverWindow || targetTabDragOverWindow)) {
-            const isTargetTabbed = targetWindow.tabGroup;
+            const targetTabGroup = targetWindow.tabGroup;
 
             // Check if the target and active window have same tab config.
-            const valid = this.applicationConfigManager.compareConfigBetweenApplications(
-                isTargetTabbed ? isTargetTabbed.config : targetWindow.identity.uuid,
-                isActiveWindowTabbed ? isActiveWindowTabbed.config : activeWindow.identity.uuid);
+            const valid = this.constraintsCompatible(activeWindow, targetTabGroup || targetWindow) &&
+                this.applicationConfigManager.compareConfigBetweenApplications(
+                    targetTabGroup ? targetTabGroup.config : targetWindow.identity.uuid, activeTabGroup ? activeTabGroup.config : activeWindow.identity.uuid);
             return {
                 type: eTargetType.TAB,
                 activeWindow,
@@ -375,11 +376,34 @@ export class TabService {
                 tabDragging: this._model.mouseTracker.isDraggingTab
             };
         } else if (
-            isActiveWindowTabbed && this._model.mouseTracker.isDraggingTab &&
+            activeTabGroup && this._model.mouseTracker.isDraggingTab &&
             (!isMouseInsideGroupBounds || isMouseInsideGroupBounds && !this.isOverWindowDropArea(activeWindow as DesktopWindow, position))) {
             return {type: eTargetType.EJECT, activeWindow, position, valid: true};
         }
 
         return null;
+    }
+
+    private constraintsCompatible(active: DesktopEntity, target: DesktopEntity): boolean {
+        const targetSize: Point = PointUtils.scale(target.currentState.halfSize, 2);
+        const activeSize: Point = PointUtils.scale(active.currentState.halfSize, 2);
+        const targetConstraints = target.currentState.resizeConstraints;
+        const activeConstraints = active.currentState.resizeConstraints;
+
+        let result = true;
+        // Active is able to be resized in direction where resize would be needed.
+        result = result &&
+            ((targetSize.x === activeSize.x || activeConstraints.x.resizableMin || activeConstraints.x.resizableMax) &&
+             (targetSize.y === activeSize.y || activeConstraints.y.resizableMin || activeConstraints.y.resizableMax));
+        // Projected size after tabbing is within active's size constraints
+        result = result &&
+            (targetSize.x > activeConstraints.x.minSize && targetSize.x < activeConstraints.x.maxSize && targetSize.y > activeConstraints.y.minSize &&
+             targetSize.y < activeConstraints.y.maxSize);
+        // Union of both constraints would form a valid constraint
+        result = result &&
+            (targetConstraints.x.maxSize > activeConstraints.x.minSize && targetConstraints.x.minSize < activeConstraints.x.maxSize &&
+             targetConstraints.y.maxSize > activeConstraints.y.minSize && targetConstraints.y.minSize < activeConstraints.y.maxSize);
+
+        return result;
     }
 }

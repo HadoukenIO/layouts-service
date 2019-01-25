@@ -16,7 +16,13 @@ let crashApp: Application|undefined = undefined;
 test.before(async t => {
     fin = await getConnection();
 });
-test.afterEach.always(teardown);
+test.afterEach.always(async t => {
+    if (crashApp) {
+        crashApp.close(true);
+    }
+
+    await teardown(t);
+});
 
 test('Error windows are not registered with S&D or Tabbing', async t => {
     crashApp = await fin.Application.create(
@@ -78,12 +84,6 @@ test('Error windows are not included in generateLayout', async t => {
         t.false(isErrorInLayout(errorWindow.identity.uuid, layout), 'Error window found in generated layout');
 
         await errorWindow.close();
-    }
-});
-
-test.afterEach.always(async t => {
-    if (crashApp && await crashApp.isRunning()) {
-        crashApp.close(true);
     }
 });
 

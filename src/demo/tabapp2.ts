@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 fin.desktop.main(() => {
-    Layouts.setTabstrip({url: 'http://localhost:1337/demo/tabstrips/custom2.html', height: 62});
+    Layouts.Tabbing.setTabstrip({url: 'http://localhost:1337/demo/tabstrips/custom2.html', height: 62});
     Layouts.addEventListener('join-tab-group', () => {
         console.log('TABBED: ');
     });
@@ -19,6 +19,6 @@ fin.desktop.main(() => {
     });
 
     // Workaround for issue with snapping/S&R integration
-    Layouts.setRestoreHandler((payload) => Promise.resolve(payload));
-    Layouts.ready();
+    Layouts.Workspaces.setRestoreHandler((payload) => Promise.resolve(payload));
+    Layouts.Workspaces.ready();
 });

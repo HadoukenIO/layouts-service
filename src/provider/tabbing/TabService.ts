@@ -1,6 +1,6 @@
 import {Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
 
-import {TabPropertiesUpdatedPayload} from '../../client/tabbing';
+import {TabPropertiesUpdatedPayload} from '../../client/types';
 import {ApplicationUIConfig, TabGroup, TabGroupDimensions, TabProperties, WindowIdentity} from '../../client/types';
 import {DesktopEntity} from '../model/DesktopEntity';
 import {DesktopModel} from '../model/DesktopModel';

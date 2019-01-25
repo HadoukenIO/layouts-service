@@ -4,59 +4,9 @@
 import {Identity} from 'hadouken-js-adapter';
 
 import {tryServiceDispatch} from './connection';
-import {AddTabPayload, getId, SetTabstripPayload, TabAPI} from './internal';
-import {DropPosition, EndDragPayload, UpdateTabPropertiesPayload} from './internal';
+import {AddTabPayload, getId, SetTabstripPayload, TabAPI, UpdateTabPropertiesPayload} from './internal';
 import {ApplicationUIConfig, TabProperties, WindowIdentity} from './types';
 
-/**
- * Data passed as part of tabbing-related events
- */
-export interface TabGroupEventPayload {
-    /**
-     * String that uniquely identifies the current tabset.
-     */
-    tabGroupId: string;
-
-    /**
-     * Identifies the window that is the source of the current event.
-     *
-     * See the documentation for individual events for more details.
-     */
-    tabID: WindowIdentity;
-}
-
-/**
- * Details of the {@link JoinTabGroupEvent|'join-tab-group'} event
- */
-export interface JoinTabGroupPayload extends TabGroupEventPayload {
-    /**
-     * The properties of the newly-added tab.
-     *
-     * These will be generated from the `tabID` window, or will be whatever properties were previously set for the `tabID` window using
-     * {@link updateTabProperties}.
-     */
-    tabProps: TabProperties;
-
-    /**
-     * The index at which the tab was inserted.
-     *
-     * An integer in the range `[0, <tab count>-1]`.
-     */
-    index: number;
-}
-
-/**
- * Details of the {@link TabPropertiesUpdatedEvent|'tab-properties-updated'} event
- */
-export interface TabPropertiesUpdatedPayload extends TabGroupEventPayload {
-    /**
-     * New tab properties.
-     *
-     * This will always contain the full set of properties for the tab, even if only a subset of the properties were
-     * updated in the {@link updateTabProperties} call.
-     */
-    properties: TabProperties;
-}
 
 /**
  * Returns array of window references for tabs belonging to the tab group of the provided window context.
@@ -209,41 +159,4 @@ export async function updateTabProperties(window: Identity, properties: Partial<
     }
 
     return tryServiceDispatch<UpdateTabPropertiesPayload, void>(TabAPI.UPDATETABPROPERTIES, {window, properties});
-}
-
-/**
- * Functions required to implement a tabstrip
- */
-export namespace tabStrip {  // tslint:disable-line:no-namespace
-
-    /**
-     * Starts the HTML5 Dragging Sequence
-     */
-    export async function startDrag() {
-        return tryServiceDispatch<undefined, void>(TabAPI.STARTDRAG);
-    }
-
-    /**
-     * Ends the HTML5 Dragging Sequence.
-     */
-    export async function endDrag(event: DragEvent, window: Identity) {
-        if (!window || !window.name || !window.uuid) {
-            return Promise.reject('Invalid window provided');
-        }
-
-        const dropPoint: DropPosition = {screenX: event.screenX, screenY: event.screenY};
-        return tryServiceDispatch<EndDragPayload, void>(TabAPI.ENDDRAG, {event: dropPoint, window});
-    }
-
-    /**
-     * Resets the tabs to the order provided.  The length of tabs Identity array must match the current number of tabs, and each current tab must appear in the
-     * array exactly once to be valid.  If the input isn’t valid, the call will reject and no change will be made.
-     */
-    export async function reorderTabs(newOrdering: Identity[]): Promise<void> {
-        if (!newOrdering || newOrdering.length === 0) {
-            return Promise.reject('Invalid new Order array');
-        }
-
-        return tryServiceDispatch<Identity[], void>(TabAPI.REORDERTABS, newOrdering);
-    }
 }

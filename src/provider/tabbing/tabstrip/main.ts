@@ -1,5 +1,5 @@
 import * as layouts from '../../../client/main';
-import {JoinTabGroupPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload} from '../../../client/tabbing';
+import {JoinTabGroupPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload} from '../../../client/types';
 import {WindowIdentity} from '../../../client/types';
 
 import {TabManager} from './TabManager';
@@ -55,18 +55,18 @@ const createWindowUIListeners = () => {
 
     // Minimize Button
     minimizeElem!.onclick = () => {
-        layouts.minimizeTabGroup(tabManager.getTabs[0].ID);
+        layouts.Tabbing.minimizeTabGroup(tabManager.getTabs[0].ID);
     };
 
     // Maximize / Restore button
     maximizeElem!.onclick = () => {
         if (!tabManager.isMaximized) {
-            layouts.maximizeTabGroup(tabManager.getTabs[0].ID);
+            layouts.Tabbing.maximizeTabGroup(tabManager.getTabs[0].ID);
 
             maximizeElem!.classList.add('restore');
             tabManager.isMaximized = true;
         } else {
-            layouts.restoreTabGroup(tabManager.getTabs[0].ID);
+            layouts.Tabbing.restoreTabGroup(tabManager.getTabs[0].ID);
 
             tabManager.isMaximized = false;
 
@@ -78,7 +78,7 @@ const createWindowUIListeners = () => {
 
     // Close Button
     closeElem!.onclick = () => {
-        layouts.closeTabGroup(tabManager.getTabs[0].ID);
+        layouts.Tabbing.closeTabGroup(tabManager.getTabs[0].ID);
     };
 };
 

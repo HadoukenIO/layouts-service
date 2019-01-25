@@ -1,6 +1,6 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import {JoinTabGroupPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload} from '../../client/tabbing';
+import {JoinTabGroupPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload} from '../../client/types';
 import {ApplicationUIConfig, TabProperties, WindowIdentity} from '../../client/types';
 import {WindowMessages} from '../APIHandler';
 import {tabService} from '../main';

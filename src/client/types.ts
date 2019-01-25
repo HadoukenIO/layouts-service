@@ -296,3 +296,53 @@ export interface TabGroupDimensions {
      */
     appHeight: number;
 }
+
+/**
+ * Data passed as part of tabbing-related events
+ */
+export interface TabGroupEventPayload {
+    /**
+     * String that uniquely identifies the current tabset.
+     */
+    tabGroupId: string;
+
+    /**
+     * Identifies the window that is the source of the current event.
+     *
+     * See the documentation for individual events for more details.
+     */
+    tabID: WindowIdentity;
+}
+
+/**
+ * Details of the {@link JoinTabGroupEvent|'join-tab-group'} event
+ */
+export interface JoinTabGroupPayload extends TabGroupEventPayload {
+    /**
+     * The properties of the newly-added tab.
+     *
+     * These will be generated from the `tabID` window, or will be whatever properties were previously set for the `tabID` window using
+     * {@link updateTabProperties}.
+     */
+    tabProps: TabProperties;
+
+    /**
+     * The index at which the tab was inserted.
+     *
+     * An integer in the range `[0, <tab count>-1]`.
+     */
+    index: number;
+}
+
+/**
+ * Details of the {@link TabPropertiesUpdatedEvent|'tab-properties-updated'} event
+ */
+export interface TabPropertiesUpdatedPayload extends TabGroupEventPayload {
+    /**
+     * New tab properties.
+     *
+     * This will always contain the full set of properties for the tab, even if only a subset of the properties were
+     * updated in the {@link updateTabProperties} call.
+     */
+    properties: TabProperties;
+}

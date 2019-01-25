@@ -40,7 +40,7 @@ export async function setRestoreHandler(layoutDecorator: (layoutApp: WorkspaceAp
  *
  * TODO: Document workspace generation process
  */
-export async function generateWorkspace(): Promise<Workspace> {
+export async function generate(): Promise<Workspace> {
     return tryServiceDispatch<undefined, Workspace>(WorkspaceAPI.GENERATE_LAYOUT);
 }
 
@@ -54,7 +54,7 @@ export async function generateWorkspace(): Promise<Workspace> {
  *
  * TODO: Document workspace restoration process
  */
-export async function restoreWorkspace(payload: Workspace): Promise<Workspace> {
+export async function restore(payload: Workspace): Promise<Workspace> {
     return tryServiceDispatch<Workspace, Workspace>(WorkspaceAPI.RESTORE_LAYOUT, payload);
 }
 

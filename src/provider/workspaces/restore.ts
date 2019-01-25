@@ -2,7 +2,7 @@ import {Application} from 'hadouken-js-adapter/out/types/src/api/application/app
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
-import {WorkspaceAPI} from '../../client/internal';
+import {WorkspaceAPI, LegacyAPI} from '../../client/internal';
 import {TabGroup, Workspace, WorkspaceApp} from '../../client/types';
 import {apiHandler, model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
@@ -174,7 +174,7 @@ export const restoreLayout = async(payload: Workspace, identity: Identity): Prom
                     console.log('App is running:', app);
                     // Send LayoutApp to connected application so it can handle child windows
                     const response: WorkspaceApp|false|undefined =
-                        await apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name}, WorkspaceAPI.RESTORE_HANDLER, app);
+                        await Promise.race([apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name}, WorkspaceAPI.RESTORE_HANDLER, app), apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name}, LegacyAPI.RESTORE_HANDLER, app)]);
                     console.log('Response from restore:', response);
                     return response ? response : defaultResponse;
                 } else {

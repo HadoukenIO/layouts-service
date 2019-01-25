@@ -1,8 +1,6 @@
 /**
  * @module Home
  */
-import {Identity} from 'hadouken-js-adapter';
-
 import {tryServiceDispatch} from './connection';
 import {getId, RegisterAPI} from './internal';
 import {undockGroup, undockWindow} from './snapanddock';

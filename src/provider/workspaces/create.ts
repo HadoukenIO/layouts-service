@@ -4,7 +4,7 @@ import {WindowDetail, WindowInfo as WindowInfo_System} from 'hadouken-js-adapter
 import {WindowInfo as WindowInfo_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
-import {WorkspaceAPI} from '../../client/internal';
+import {WorkspaceAPI, LegacyAPI} from '../../client/internal';
 import {CustomData, TabGroup, Workspace, WorkspaceApp, WorkspaceWindow} from '../../client/types';
 import {apiHandler, model, tabService} from '../main';
 import {WindowIdentity} from '../model/DesktopWindow';
@@ -168,7 +168,9 @@ export const generateLayout = async(payload: null, identity: Identity): Promise<
 
             // HOW TO DEAL WITH HUNG REQUEST HERE? RESHAPE IF GET NOTHING BACK?
             let customData: CustomData = undefined;
-            customData = await apiHandler.sendToClient<WorkspaceApp, CustomData>({uuid: app.uuid, name: app.uuid}, WorkspaceAPI.SAVE_HANDLER, app);
+
+            // Race between legacyAPI and current API as we don't know which verion the client is running.
+            customData = await Promise.race([apiHandler.sendToClient<WorkspaceApp, CustomData>({uuid: app.uuid, name: app.uuid}, WorkspaceAPI.SAVE_HANDLER, app), apiHandler.sendToClient<WorkspaceApp, CustomData>({uuid: app.uuid, name: app.uuid}, LegacyAPI.SAVE_HANDLER, app)])
 
             if (!customData) {
                 customData = null;

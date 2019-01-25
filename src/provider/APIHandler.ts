@@ -2,7 +2,7 @@ import {Identity} from 'hadouken-js-adapter';
 import {ProviderIdentity} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/channel';
 import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
 
-import {DropPosition, RegisterAPI, SERVICE_CHANNEL, SnapAndDockAPI, TabAPI, WorkspaceAPI} from '../client/internal';
+import {DropPosition, RegisterAPI, SERVICE_CHANNEL, SnapAndDockAPI, TabAPI, WorkspaceAPI, LegacyAPI} from '../client/internal';
 import {EventMap} from '../client/main';
 import {ApplicationUIConfig, TabProperties} from '../client/types';
 
@@ -12,7 +12,7 @@ import {DesktopWindow, WindowIdentity} from './model/DesktopWindow';
 import {deregisterWindow, generateLayout} from './workspaces/create';
 import {getAppToRestore, restoreApplication, restoreLayout} from './workspaces/restore';
 
-export type WindowMessages = keyof EventMap|WorkspaceAPI.RESTORE_HANDLER|WorkspaceAPI.SAVE_HANDLER;
+export type WindowMessages = keyof EventMap|WorkspaceAPI.RESTORE_HANDLER|WorkspaceAPI.SAVE_HANDLER|LegacyAPI.SAVE_HANDLER|LegacyAPI.RESTORE_HANDLER;
 
 /**
  * Manages all communication with the client. Stateless class that listens for incomming messages, and handles sending of messages to connected client(s).
@@ -80,6 +80,15 @@ export class APIHandler {
         providerChannel.register(TabAPI.SETTABSTRIP, this.setTabstrip);
         providerChannel.register(TabAPI.UPDATETABPROPERTIES, this.updateTabProperties);
         providerChannel.register(TabAPI.ADDTAB, this.addTab);
+
+
+        // Legacy API (Used before 1.0 cleanup)
+        providerChannel.register(LegacyAPI.APPLICATION_READY, this.appReady);
+        providerChannel.register(LegacyAPI.DEREGISTER, this.deregister);
+        providerChannel.register(LegacyAPI.GENERATE_LAYOUT, generateLayout);
+        providerChannel.register(LegacyAPI.RESTORE_LAYOUT, restoreLayout);
+        providerChannel.register(LegacyAPI.UNDOCK_GROUP, this.undockGroup);
+        providerChannel.register(LegacyAPI.UNDOCK_WINDOW, this.undockWindow);
     }
 
     // tslint:disable-next-line:no-any

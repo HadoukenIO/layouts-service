@@ -1,11 +1,11 @@
 import {Identity} from 'hadouken-js-adapter';
 
+import {SnapAndDockAPI} from '../../../src/client/internal';
 import {WindowIdentity} from '../../../src/client/types';
 import {DesktopEntity} from '../../../src/provider/model/DesktopEntity';
 import {DesktopWindow} from '../../../src/provider/model/DesktopWindow';
 
 import {executeJavascriptOnService, sendServiceMessage} from './serviceUtils';
-import { SnapAndDockAPI } from '../../../src/client/internal';
 
 /**
  * Check if a given window is registered with the layouts-service.

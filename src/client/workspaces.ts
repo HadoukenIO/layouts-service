@@ -4,8 +4,8 @@
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
 import {channelPromise, tryServiceDispatch} from './connection';
+import {WorkspaceAPI} from './internal';
 import {CustomData, Workspace, WorkspaceApp} from './types';
-import { WorkspaceAPI } from './internal';
 
 /**
  * Register a callback that will save the state of the calling application.

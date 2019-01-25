@@ -2,13 +2,13 @@ import {test} from 'ava';
 import {Application, Fin} from 'hadouken-js-adapter';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
+import {WorkspaceAPI} from '../../src/client/internal';
 import {Workspace} from '../../src/client/types';
 import {sendServiceMessage} from '../demo/utils/serviceUtils';
 import {isWindowRegistered} from '../demo/utils/snapServiceUtils';
 
 import {getConnection} from './utils/connect';
 import {delay} from './utils/delay';
-import { WorkspaceAPI } from '../../src/client/internal';
 
 let fin: Fin;
 let crashApp: Application|undefined = undefined;

@@ -45,7 +45,7 @@ test('Update Tab Properties - property changes reflected in service', async t =>
         const tabWindow = this.model.getWindow(identity as WindowIdentity);
 
         //@ts-ignore Accessing private variables in the name of testing.
-        return tabWindow.tabGroup.getTabProperties(tabWindow);
+        return tabService.getTabProperties(tabWindow);
     }
 
     // Execute remote to fetch our windows tab properties from service.

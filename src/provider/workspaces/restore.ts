@@ -2,7 +2,8 @@ import {Application} from 'hadouken-js-adapter/out/types/src/api/application/app
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
-import {Workspace, WorkspaceApp, TabGroup} from '../../client/types';
+import {WorkspaceAPI} from '../../client/internal';
+import {TabGroup, Workspace, WorkspaceApp} from '../../client/types';
 import {apiHandler, model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {promiseMap} from '../snapanddock/utils/async';
@@ -10,7 +11,6 @@ import {promiseMap} from '../snapanddock/utils/async';
 import {SCHEMA_MAJOR_VERSION} from './create';
 import {regroupLayout} from './group';
 import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, parseVersionString, positionWindow, SemVer, TabbedPlaceholders, wasCreatedProgrammatically, WindowObject} from './utils';
-import { WorkspaceAPI } from '../../client/internal';
 
 const appsToRestore = new Map();
 const appsCurrentlyRestoring = new Map();
@@ -173,7 +173,8 @@ export const restoreLayout = async(payload: Workspace, identity: Identity): Prom
                     await positionWindow(app.mainWindow);
                     console.log('App is running:', app);
                     // Send LayoutApp to connected application so it can handle child windows
-                    const response: WorkspaceApp|false|undefined = await apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name}, WorkspaceAPI.RESTORE_HANDLER, app);
+                    const response: WorkspaceApp|false|undefined =
+                        await apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name}, WorkspaceAPI.RESTORE_HANDLER, app);
                     console.log('Response from restore:', response);
                     return response ? response : defaultResponse;
                 } else {

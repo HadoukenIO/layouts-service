@@ -7,14 +7,14 @@ import {tryServiceDispatch} from './connection';
 import {getId, RegisterAPI} from './internal';
 import {undockGroup, undockWindow} from './snapanddock';
 import {addTab, closeTab, closeTabGroup, createTabGroup, getTabs, JoinTabGroupPayload, maximizeTabGroup, TabGroupEventPayload, TabPropertiesUpdatedPayload} from './tabbing';
-import {minimizeTabGroup, removeTab, restoreTabGroup, setActiveTab, setTabstrip, updateTabProperties, tabStrip} from './tabbing';
-import {generateWorkspace, setRestoreHandler, setSaveHandler, ready, restoreWorkspace} from './workspaces';
-import { Workspace } from './types';
+import {minimizeTabGroup, removeTab, restoreTabGroup, setActiveTab, setTabstrip, tabStrip, updateTabProperties} from './tabbing';
+import {Workspace} from './types';
+import {generateWorkspace, ready, restoreWorkspace, setRestoreHandler, setSaveHandler} from './workspaces';
 
 export {undockGroup, undockWindow};
 export {addTab, closeTab, closeTabGroup, createTabGroup, getTabs, maximizeTabGroup};
-export {minimizeTabGroup, removeTab, restoreTabGroup, setActiveTab, setTabstrip, updateTabProperties, tabStrip};
-export {generateWorkspace, setRestoreHandler, setSaveHandler, ready, restoreWorkspace};
+export {minimizeTabGroup, removeTab, restoreTabGroup, setActiveTab, setTabstrip, tabStrip, updateTabProperties};
+export {generateWorkspace, ready, restoreWorkspace, setRestoreHandler, setSaveHandler};
 
 /**
  * @hidden
@@ -32,15 +32,15 @@ export interface EventMap {
 
 // To be updated/moved once config story is fully merged. SERVICE-306
 export interface IdentityRule {
-    uuid: string | RegEx;
-    name: string | RegEx;
-  }
+    uuid: string|RegEx;
+    name: string|RegEx;
+}
 
-  export interface RegEx {
+export interface RegEx {
     expression: string;
     flags?: string;
     invert?: boolean;
-  }
+}
 
 /**
  * Allows a window to opt-out of this service.
@@ -61,7 +61,7 @@ export async function deregister(identity: IdentityRule = getId() as IdentityRul
  * @param identity The window to register, defaults to the current window
  */
 export async function register(identity: IdentityRule): Promise<void> {
-    throw new Error("Method not implemented");
+    throw new Error('Method not implemented');
 }
 
 
@@ -228,7 +228,7 @@ export type TabPropertiesUpdatedEvent = CustomEvent<TabPropertiesUpdatedPayload>
  * Event fired whenever a workspace is restored (via {@link restoreWorkspace}).
  *
  * The event will contain the full detail of the Workspace. ({@link Workspace}).
- * 
+ *
  * ```ts
  * import {addEventListener} from 'openfin-layouts';
  *
@@ -246,7 +246,7 @@ export type WorkspaceRestoredEvent = CustomEvent<Workspace>&{type: 'workspace-re
  * Event fired whenever a workspace is saved (via {@link generateWorkspace}).
  *
  * The event will contain the full detail of the Workspace. ({@link Workspace}).
- * 
+ *
  * ```ts
  * import {addEventListener} from 'openfin-layouts';
  *

@@ -2,8 +2,8 @@ import {Identity} from 'hadouken-js-adapter';
 import {ProviderIdentity} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/channel';
 import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
 
+import {DropPosition, RegisterAPI, SERVICE_CHANNEL, SnapAndDockAPI, TabAPI, WorkspaceAPI} from '../client/internal';
 import {EventMap} from '../client/main';
-import {TabAPI, WorkspaceAPI, DropPosition, SERVICE_CHANNEL, SnapAndDockAPI, RegisterAPI} from '../client/internal';
 import {ApplicationUIConfig, TabProperties} from '../client/types';
 
 import {model, snapService, tabService} from './main';
@@ -12,7 +12,7 @@ import {DesktopWindow, WindowIdentity} from './model/DesktopWindow';
 import {deregisterWindow, generateLayout} from './workspaces/create';
 import {getAppToRestore, restoreApplication, restoreLayout} from './workspaces/restore';
 
-export type WindowMessages = keyof EventMap | WorkspaceAPI.RESTORE_HANDLER | WorkspaceAPI.SAVE_HANDLER;
+export type WindowMessages = keyof EventMap|WorkspaceAPI.RESTORE_HANDLER|WorkspaceAPI.SAVE_HANDLER;
 
 /**
  * Manages all communication with the client. Stateless class that listens for incomming messages, and handles sending of messages to connected client(s).

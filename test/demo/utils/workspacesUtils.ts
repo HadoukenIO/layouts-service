@@ -50,18 +50,13 @@ async function assertAllAppsClosed(t: SaveRestoreTestContext) {
 }
 
 export async function createCloseAndRestoreLayout(t: SaveRestoreTestContext) {
-    console.error("before generatelayout");
     const generatedLayout = await sendServiceMessage(WorkspaceAPI.GENERATE_LAYOUT, undefined) as Workspace;
-    console.error("after generatelayout");
 
     assertIsLayoutObject(t, generatedLayout);
     await Promise.all(t.context.testAppData.map(async (appData: TestAppData) => await appData.app.close(true)));
     await assertAllAppsClosed(t);
-    console.error("before restorelayout");
 
     await sendServiceMessage(WorkspaceAPI.RESTORE_LAYOUT, generatedLayout);
-    console.error("after restorelayout");
-
 }
 
 export function createBasicSaveAndRestoreTest(numAppsToCreate: number, numberOfChildren: number): {apps: AppInitializerParams[]} {

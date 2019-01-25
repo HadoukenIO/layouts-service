@@ -4,14 +4,14 @@ import {WindowDetail, WindowInfo as WindowInfo_System} from 'hadouken-js-adapter
 import {WindowInfo as WindowInfo_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
-import {CustomData, Workspace, WorkspaceApp, WorkspaceWindow, TabGroup} from '../../client/types';
+import {WorkspaceAPI} from '../../client/internal';
+import {CustomData, TabGroup, Workspace, WorkspaceApp, WorkspaceWindow} from '../../client/types';
 import {apiHandler, model, tabService} from '../main';
 import {WindowIdentity} from '../model/DesktopWindow';
 import {promiseMap} from '../snapanddock/utils/async';
 
 import {getGroup} from './group';
 import {addToWindowObject, inWindowObject, parseVersionString, wasCreatedFromManifest, wasCreatedProgrammatically, WindowObject} from './utils';
-import { WorkspaceAPI } from '../../client/internal';
 
 // This value should be updated any time changes are made to the layout schema.
 // Major version indicates breaking changes.
@@ -151,7 +151,7 @@ export const getCurrentLayout = async(): Promise<Workspace> => {
     console.log('Post-Layout Valid Apps:', validApps);
 
     const layoutObject: Workspace = {type: 'layout', schemaVersion: LAYOUTS_SCHEMA_VERSION, apps: validApps, monitorInfo, tabGroups: filteredTabGroups};
-    
+
     apiHandler.sendToAll('workspace-saved', layoutObject);
 
     return layoutObject;
@@ -159,7 +159,6 @@ export const getCurrentLayout = async(): Promise<Workspace> => {
 
 // No payload. Just returns the current layout with child windows.
 export const generateLayout = async(payload: null, identity: Identity): Promise<Workspace> => {
-    console.error("generateLayout");
     const preLayout = await getCurrentLayout();
 
     const apps = await promiseMap(preLayout.apps, async (app: WorkspaceApp) => {
@@ -181,7 +180,7 @@ export const generateLayout = async(payload: null, identity: Identity): Promise<
             return defaultResponse;
         }
     });
-    console.error("about to return");
+
     const confirmedLayout = {...preLayout, apps};
     return confirmedLayout;
 };

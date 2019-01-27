@@ -1,6 +1,8 @@
 import {DesktopSnapGroup} from './model/DesktopSnapGroup';
+import {SnapTarget} from './snapanddock/Resolver';
 import {Point, PointUtils} from './snapanddock/utils/PointUtils';
 import {Rectangle} from './snapanddock/utils/RectUtils';
+import {TabTarget} from './tabbing/TabService';
 import {eTargetType, Target} from './WindowHandler';
 
 const PREVIEW_SUCCESS = '#3D4059';
@@ -12,6 +14,8 @@ interface PreviewWindow {
     nativeWindow: Window|null;
     halfSize: Point;
 }
+
+export type PreviewableTarget = SnapTarget|TabTarget;
 
 /**
  * Visual indicator of the current snap target.
@@ -44,11 +48,10 @@ export class Preview {
      * The 'isValid' parameter determines the color of the rectangles. The class also caches the group
      * argument to avoid having to re-create the rectangle objects on every call if the group hasn't changed.
      */
-    public show(target: Target): void {
+    public show(target: PreviewableTarget): void {
         const activeGroup = target.activeWindow.snapGroup;
-        const groupHalfSize = activeGroup.halfSize;  // TODO: Will need to change once 'activeGroup' can have multiple windows (SERVICE-128)
 
-        const previewWindowRect = this.generatePreviewRect(target);
+        const groupHalfSize = activeGroup.halfSize;  // TODO: Will need to change once 'activeGroup' can have multiple windows (SERVICE-128)
 
         if (!this.tempWindowIsActive || this.activeGroup !== activeGroup) {
             this.tempWindowIsActive = true;
@@ -86,7 +89,7 @@ export class Preview {
     private createWindow(): PreviewWindow {
         const defaultHalfSize = {x: 160, y: 160};
         const options: fin.WindowOptions = {
-            name: 'previewWindow-',  // + Math.floor(Math.random() * 1000),
+            name: 'previewWindow',
             url: 'about:blank',
             defaultWidth: defaultHalfSize.x * 2,
             defaultHeight: defaultHalfSize.y * 2,
@@ -116,7 +119,7 @@ export class Preview {
         return preview;
     }
 
-    private positionPreview(target: Target) {
+    private positionPreview(target: PreviewableTarget) {
         const previewRect = this.generatePreviewRect(target);
         PointUtils.assign(this.tempWindow.halfSize, previewRect.halfSize);
 
@@ -127,7 +130,7 @@ export class Preview {
             previewRect.halfSize.y * 2);
     }
 
-    private generatePreviewRect(target: Target): Rectangle {
+    private generatePreviewRect(target: PreviewableTarget): Rectangle {
         if (target.type === eTargetType.SNAP) {
             const activeState = target.activeWindow.currentState;
             const prevHalfSize = activeState.halfSize;

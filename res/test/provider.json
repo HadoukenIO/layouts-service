@@ -20,8 +20,8 @@
         ]
     },
   "runtime": {
-    "arguments": "--v=1 --enable-crash-reporting --disabled-frame-groups",
-    "version": "9.61.37.46"
+    "arguments": "--v=1 --enable-crash-reporting",
+    "version": "9.61.38.40"
   },
     "shortcut": {}
 }

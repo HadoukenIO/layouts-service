@@ -3,6 +3,7 @@ import {Fin, Window} from 'hadouken-js-adapter';
 
 import {WindowIdentity} from '../../src/client/types';
 import {explodeGroup} from '../demo/utils/snapServiceUtils';
+import {teardown} from '../teardown';
 
 import {getConnection} from './utils/connect';
 import {getBounds} from './utils/getBounds';
@@ -27,6 +28,7 @@ test.afterEach.always(async () => {
     }
     windows = new Array<Window>();
 });
+test.afterEach.always(teardown);
 
 async function assertExploded(t: GenericTestContext<AnyContext>) {
     // Check each window

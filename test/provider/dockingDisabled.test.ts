@@ -2,6 +2,7 @@ import {test} from 'ava';
 import {Fin, Window} from 'hadouken-js-adapter';
 
 import {promiseMap} from '../../src/provider/snapanddock/utils/async';
+import {teardown} from '../teardown';
 
 import {assertGrouped, assertNotGrouped} from './utils/assertions';
 import {getConnection} from './utils/connect';
@@ -53,6 +54,7 @@ test.afterEach.always(async t => {
     // Re-enable docking after each test as service state persists through whole run
     await disableDocking(false);
 });
+test.afterEach.always(teardown);
 
 test('docking enabled - normal behaviour expected', async t => {
     let bounds: NormalizedBounds[];

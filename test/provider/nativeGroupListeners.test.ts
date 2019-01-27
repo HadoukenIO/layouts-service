@@ -3,6 +3,7 @@ import {Fin, Window} from 'hadouken-js-adapter';
 
 import {WindowIdentity} from '../../src/client/types';
 import {undockWindow} from '../demo/utils/snapServiceUtils';
+import {teardown} from '../teardown';
 
 import {assertGrouped, assertMoved, assertNotGrouped, assertNotMoved} from './utils/assertions';
 import {getConnection} from './utils/connect';
@@ -72,6 +73,7 @@ test.afterEach.always(async () => {
     win1 = win2 = {} as Window;
     windows = new Array<Window>();
 });
+test.afterEach.always(teardown);
 
 /* ====== Utils ====== */
 

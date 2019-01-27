@@ -1,6 +1,7 @@
-import test from 'ava';
+import {test} from 'ava';
 
 import {delay} from '../../provider/utils/delay';
+import {teardown} from '../../teardown';
 import {AppContext, CreateAppData, createAppTest} from '../utils/createAppTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {assertWindowNotRestored, closeAllPreviews, createBasicSaveAndRestoreTest, createCloseAndRestoreLayout} from '../utils/workspacesUtils';
@@ -23,6 +24,8 @@ numberOfApps.forEach(appNumber => {
         deregisteredTestOptionsArray.push(manifestDeregisteredTest);
     });
 });
+
+test.afterEach.always(teardown);
 
 testParameterized<CreateAppData, AppContext>(
     (testOptions: CreateAppData): string =>

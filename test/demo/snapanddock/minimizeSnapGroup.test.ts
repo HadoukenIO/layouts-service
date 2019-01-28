@@ -1,8 +1,10 @@
+import {test} from 'ava';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {assertAllMinimizedOrHidden, assertAllNormalState, assertGrouped, assertTabbed} from '../../provider/utils/assertions';
 import {delay} from '../../provider/utils/delay';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
+import {teardown} from '../../teardown';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {layoutsClientPromise} from '../utils/serviceUtils';
@@ -12,6 +14,8 @@ interface MinimizeTestOptions extends CreateWindowData {
     // Index of the window on which restore is invoked (group will be minimized from index 0)
     restoreIndex: number;
 }
+
+test.afterEach.always(teardown);
 
 testParameterized(
     (testOptions: MinimizeTestOptions) =>
@@ -61,7 +65,7 @@ testParameterized(
         await windowInitializer.arrangeWindows(tabStrips, windowCount === 4 ? 'horizontal' : 'line');
         await assertGrouped(t, ...windows, ...tabStrips);
 
-        await layoutsClient.minimizeTabGroup(tabStrips[0].identity);
+        await layoutsClient.Tabbing.minimizeTabGroup(tabStrips[0].identity);
         await delay(500);
 
         await assertAllMinimizedOrHidden(t, [...windows, ...tabStrips]);

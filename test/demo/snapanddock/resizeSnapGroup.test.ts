@@ -1,7 +1,10 @@
+import {test} from 'ava';
 import robot from 'robotjs';
+
 import {assertAdjacent, assertGrouped, assertSquare} from '../../provider/utils/assertions';
 import {delay} from '../../provider/utils/delay';
 import {getBounds, NormalizedBounds} from '../../provider/utils/getBounds';
+import {teardown} from '../../teardown';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 
@@ -9,6 +12,8 @@ interface ResizeGroupOptions extends CreateWindowData {
     windowCount: 2|4;
     resizeType: ['inner'|'outer', 'vertical'|'horizontal'];
 }
+
+test.afterEach.always(teardown);
 
 testParameterized(
     (testOptions: ResizeGroupOptions): string =>

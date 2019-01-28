@@ -28,7 +28,7 @@ export class APIHandler {
 
     public isClientConnection(identity: Identity): boolean {
         return this.providerChannel.connections.some((conn: Identity) => {
-            return identity.uuid === conn.uuid;
+            return identity.uuid === conn.uuid && identity.name === conn.name;
         });
     }
 

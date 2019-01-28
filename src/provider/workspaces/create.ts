@@ -163,7 +163,7 @@ export const generateLayout = async(payload: null, identity: Identity): Promise<
 
     const apps = await promiseMap(preLayout.apps, async (app: WorkspaceApp) => {
         const defaultResponse = {...app};
-        if (apiHandler.isClientConnection(app)) {
+        if (apiHandler.isClientConnection({uuid: app.uuid, name: app.mainWindow.name})) {
             console.log('Connected application', app.uuid);
 
             // HOW TO DEAL WITH HUNG REQUEST HERE? RESHAPE IF GET NOTHING BACK?

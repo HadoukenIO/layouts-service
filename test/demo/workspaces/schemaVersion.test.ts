@@ -1,7 +1,9 @@
+import {test} from 'ava';
 import {MonitorInfo} from 'hadouken-js-adapter/out/types/src/api/system/monitor';
 
 import {WorkspaceAPI} from '../../../src/client/internal';
 import {Workspace} from '../../../src/client/types';
+import {teardown} from '../../teardown';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {sendServiceMessage} from '../utils/serviceUtils';
 
@@ -9,6 +11,8 @@ interface SchemaVersionTestOptions {
     versionString: string|undefined;
     shouldError: boolean;
 }
+
+test.afterEach.always(teardown);
 
 testParameterized(
     (testOptions: SchemaVersionTestOptions) =>

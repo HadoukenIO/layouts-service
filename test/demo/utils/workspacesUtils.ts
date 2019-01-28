@@ -3,6 +3,10 @@ import {Context, GenericTestContext, Test, TestContext} from 'ava';
 import {SERVICE_IDENTITY, WorkspaceAPI} from '../../../src/client/internal';
 import {Workspace} from '../../../src/client/types';
 import {getConnection} from '../../provider/utils/connect';
+import {delay} from '../../provider/utils/delay';
+import {BasicSaveRestoreTestOptions} from '../workspaces/basicSaveAndRestore.test';
+import {SnapSaveRestoreTestOptions} from '../workspaces/snapSaveAndRestore.test';
+import {TabSaveRestoreTestOptions} from '../workspaces/tabSaveAndRestore.test';
 
 import {AppInitializerParams, createAppsArray, createWindowGroupings, TestAppData, WindowGrouping} from './AppInitializer';
 import {AppContext} from './createAppTest';
@@ -57,29 +61,41 @@ export async function createCloseAndRestoreLayout(t: SaveRestoreTestContext) {
     await assertAllAppsClosed(t);
 
     await sendServiceMessage(WorkspaceAPI.RESTORE_LAYOUT, generatedLayout);
+    // To give placeholder windows time to disappear.
+    // The tests close out all testing windows upon completion.
+    // The placeholders listens to the show-requested event of its testing window, moves the window, shows it, and closes itself.
+    // If the tests run too quickly after restore, the placeholder windows may receive the child window show event too late,
+    // and the window may not exist, which makes the placeholder windows stay open.
+    await delay(500);
 }
 
-export function createBasicSaveAndRestoreTest(numAppsToCreate: number, numberOfChildren: number): {apps: AppInitializerParams[]} {
-    const appsArray = createAppsArray(numAppsToCreate, numberOfChildren);
-
-    return {apps: appsArray as AppInitializerParams[]};
+export interface TestCreationOptions {
+    url: string;
+    manifest: boolean;
 }
 
-export function createSnapTests(numApps: number, children: number): {apps: AppInitializerParams[], snapWindowGrouping: WindowGrouping}[] {
-    const windowGroupings = createWindowGroupings(numApps, children);
-    const appsArray = createAppsArray(numApps, children);
+export function createBasicSaveAndRestoreTest(
+    numAppsToCreate: number, numberOfChildren: number, testOptions?: TestCreationOptions): BasicSaveRestoreTestOptions {
+    const appsArray = createAppsArray(numAppsToCreate, numberOfChildren, testOptions);
+
+    return {apps: appsArray};
+}
+
+export function createSnapTests(numAppsToCreate: number, numberOfChildren: number, testOptions?: TestCreationOptions): SnapSaveRestoreTestOptions[] {
+    const windowGroupings = createWindowGroupings(numAppsToCreate, numberOfChildren);
+    const appsArray = createAppsArray(numAppsToCreate, numberOfChildren, testOptions);
 
     return windowGroupings.map(windowGrouping => {
-        return {apps: appsArray as AppInitializerParams[], snapWindowGrouping: windowGrouping};
+        return {apps: appsArray, snapWindowGrouping: windowGrouping};
     });
 }
 
-export function createTabTests(numApps: number, children: number): {apps: AppInitializerParams[], tabWindowGrouping: WindowGrouping}[] {
-    const windowGroupings = createWindowGroupings(numApps, children);
-    const appsArray = createAppsArray(numApps, children);
+export function createTabTests(numAppsToCreate: number, numberOfChildren: number, testOptions?: TestCreationOptions): TabSaveRestoreTestOptions[] {
+    const windowGroupings = createWindowGroupings(numAppsToCreate, numberOfChildren);
+    const appsArray = createAppsArray(numAppsToCreate, numberOfChildren, testOptions);
 
     return windowGroupings.map(windowGrouping => {
-        return {apps: appsArray as AppInitializerParams[], tabWindowGrouping: windowGrouping};
+        return {apps: appsArray, tabWindowGrouping: windowGrouping};
     });
 }
 

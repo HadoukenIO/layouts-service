@@ -10,8 +10,8 @@ This project consist of 3 parts:
 3. Layout Service Demo app, demonstrating the different features of OpenFin Layout
 
 ### Dependencies
-- OpenFin version for applications using Layouts = 9.61.37.46
-- OpenFin version used in the Layouts Service = 9.61.37.46
+- OpenFin version for applications using Layouts = 9.61.38.40
+- OpenFin version used in the Layouts Service = 9.61.38.40
 - RVM >= 4.4.1.1
 
 ### Features
@@ -118,6 +118,8 @@ npm test
 ## License
 This project uses the [Apache2 license](https://www.apache.org/licenses/LICENSE-2.0)
 
+The code in this repository is covered by the included license. If you run this code, it may call on the OpenFin RVM or OpenFin Runtime, which are subject to OpenFin's [Developer License](https://openfin.co/developer-agreement/). If you have questions, please contact support@openfin.co
+
 ## Support
 This is an open source project and all are encouraged to contribute.
-Please enter an issue in the repo for any questions or problems. For further inqueries, please contact us at support@openfin.co
+Please enter an issue in the repo for any questions or problems. Alternatively, please contact us at support@openfin.co

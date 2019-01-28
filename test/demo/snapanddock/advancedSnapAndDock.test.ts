@@ -1,9 +1,14 @@
+import {test} from 'ava';
+
 import {assertAllContiguous, assertGrouped, assertNoOverlap, assertNotGrouped} from '../../provider/utils/assertions';
 import {delay} from '../../provider/utils/delay';
 import {dragSideToSide} from '../../provider/utils/dragWindowTo';
 import {getBounds} from '../../provider/utils/getBounds';
+import {teardown} from '../../teardown';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
+
+test.afterEach.always(teardown);
 
 // Using testParameterized more for type safety than parameterization
 // since this just one very specific test

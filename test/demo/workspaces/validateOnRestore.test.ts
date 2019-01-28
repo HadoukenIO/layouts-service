@@ -1,8 +1,10 @@
 import {Workspace} from '../../../src/client/types';
+import {test} from 'ava';
 import {assertAllContiguous, assertGrouped, assertNotGrouped} from '../../provider/utils/assertions';
 import {createChildWindow} from '../../provider/utils/createChildWindow';
 import {delay} from '../../provider/utils/delay';
 import {WindowInitializer} from '../../provider/utils/WindowInitializer';
+import {teardown} from '../../teardown';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {layoutsClientPromise} from '../utils/serviceUtils';
 import {assertWindowNotRestored, assertWindowRestored} from '../utils/workspacesUtils';
@@ -22,6 +24,8 @@ const childOptions = {
     url: 'http://localhost:1337/test/demo-window.html',
     frame: false
 };
+
+test.afterEach.always(teardown);
 
 testParameterized(
     'Validate Group on Restore',
@@ -67,13 +71,13 @@ testParameterized(
         await initializer.arrangeWindows(windows, arrangement);
         await assertGrouped(t, ...windows);
 
-        const layout: Workspace = await layoutsClient.generateWorkspace();
+        const layout: Workspace = await layoutsClient.Workspaces.generate();
 
         await Promise.all(windows.map(w => fin.Window.wrapSync(w.identity).close()));
         deregisteredApp.close(true);
         await delay(500);
 
-        await layoutsClient.restoreWorkspace(layout);
+        await layoutsClient.Workspaces.restore(layout);
         await delay(500);
 
         await Promise.all(registeredChildren.map(w => assertWindowRestored(t, w.identity.uuid, w.identity.name!)));

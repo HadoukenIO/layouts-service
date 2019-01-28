@@ -1,10 +1,11 @@
 import {AnyContext, GenericTestContext, test} from 'ava';
 import {Fin, Window} from 'hadouken-js-adapter';
 
+import {teardown} from '../teardown';
+
 import {getConnection} from './utils/connect';
 import {createChildWindow} from './utils/createChildWindow';
 import {delay} from './utils/delay';
-
 import {getBounds} from './utils/getBounds';
 
 let fin: Fin;
@@ -51,6 +52,7 @@ test.afterEach.always(async () => {
 
     wins = [];
 });
+test.afterEach.always(teardown);
 
 test('Animate Basic Snap, top - should not snap', async t => {
     const win2Bounds = await getBounds(wins[1]);

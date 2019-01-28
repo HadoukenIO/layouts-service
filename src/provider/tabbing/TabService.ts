@@ -3,6 +3,7 @@ import {Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
 import {Tabstrip} from '../../../gen/provider/config/layouts-config';
 import {TabGroup, TabGroupDimensions, WindowIdentity} from '../../client/types';
 import {ConfigStore} from '../main';
+import {DesktopEntity} from '../model/DesktopEntity';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
@@ -10,9 +11,7 @@ import {DesktopTabstripFactory} from '../model/DesktopTabstripFactory';
 import {DesktopWindow, EntityState} from '../model/DesktopWindow';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 import {eTargetType, TargetBase} from '../WindowHandler';
-
 import {DragWindowManager} from './DragWindowManager';
-import { DesktopEntity } from '../model/DesktopEntity';
 
 /**
  * TabTarget constructs an interface which represents an area on a window where a tab strip will be placed.

@@ -1,11 +1,13 @@
-import test from 'ava';
+import {test} from 'ava';
 
 import {assertAdjacent, assertGrouped} from '../../provider/utils/assertions';
 import {dragWindowTo} from '../../provider/utils/dragWindowTo';
+import {teardown} from '../../teardown';
 import {WindowGrouping} from '../utils/AppInitializer';
 import {AppContext, CreateAppData, createAppTest} from '../utils/createAppTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {closeAllPreviews, createCloseAndRestoreLayout, createSnapTests} from '../utils/workspacesUtils';
+
 import {BasicSaveRestoreTestOptions} from './basicSaveAndRestore.test';
 
 export interface SnapSaveRestoreTestOptions extends BasicSaveRestoreTestOptions {
@@ -36,6 +38,8 @@ appNumbers.forEach(appNumber => {
         }
     });
 });
+
+test.afterEach.always(teardown);
 
 testParameterized<CreateAppData, AppContext>(
     (testOptions: CreateAppData): string => `Snap SaveAndRestore - ${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - ${

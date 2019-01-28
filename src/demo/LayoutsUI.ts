@@ -145,11 +145,11 @@ export function createSnapWindows(): void {
     });
 }
 
-export function createTabbedWindow(page: string) {
+export function createSimpleWindow(page: string) {
     const uuid = `App${numTabbedWindows}`;
     const app = new fin.desktop.Application(
         {
-            url: `http://localhost:1337/demo/tabbing/${page}.html`,
+            url: `http://localhost:1337/demo/${page}.html`,
             uuid,
             name: uuid,
             mainWindowOptions: {defaultWidth: 400, defaultHeight: 300, saveWindowState: false, autoShow: true, defaultCentered: true}

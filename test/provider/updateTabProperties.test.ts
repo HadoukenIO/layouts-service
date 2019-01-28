@@ -24,15 +24,15 @@ test.beforeEach(async () => {
     wins = await windowInitializer.initWindows(2);
 });
 
-test.afterEach.always(async () => {
+test.afterEach.always(async (t) => {
     // Try and close all the windows.  If the window is already closed then it will throw an error which we catch and ignore.
     await Promise.all(wins.map(win => {
         return win.close().catch(() => {});
     }));
 
     wins = [];
+    await teardown(t);
 });
-test.afterEach.always(teardown);
 
 test('Update Tab Properties - property changes reflected in service', async t => {
     // Drag wins[0] over wins[1] to make a tabset (in valid drop region)

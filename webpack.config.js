@@ -24,6 +24,8 @@ const defaultsOutput = path.resolve(__dirname, './gen/provider/config/defaults.j
  *  - plugins {...object[]}
  *      Optional list of plugins to add to the config object
  *      Defaults to empty list
+ *  - outputFilename {string}
+ *      Allows a custom output file name to be used instead of the default [name]-bundle.js
  */
 function createConfig(outPath, entryPoint, options, ...plugins) {
     const config = {
@@ -33,7 +35,7 @@ function createConfig(outPath, entryPoint, options, ...plugins) {
         },
         output: {
             path: outPath,
-            filename: '[name]-bundle.js'
+            filename: `${options && options.outputFilename || '[name]-bundle'}.js`
         },
         resolve: {
             extensions: ['.ts', '.tsx', '.js']
@@ -122,6 +124,7 @@ const schemaTypesPlugin = new SchemaToTypeScriptPlugin({
 
 module.exports = [
     createConfig(`${outputDir}/client`, './src/client/main.ts', {minify: false, isLibrary: true, libraryName: 'OpenFinLayouts'}, versionPlugin),
+    createConfig(`${outputDir}/client`, './src/client/main.ts', {minify: true, isLibrary: true, libraryName: 'OpenFinLayouts', outputFilename: "openfin-layouts"}, versionPlugin),
     createConfig(`${outputDir}/provider`, {
         main: './src/provider/main.ts',
         tabStrip: './src/provider/tabbing/tabstrip/main.ts'

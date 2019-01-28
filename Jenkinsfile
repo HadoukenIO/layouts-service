@@ -57,6 +57,7 @@ pipeline {
                 sh "aws s3 cp ./res/provider ${S3_LOC}/ --recursive"
                 sh "aws s3 cp ./dist/provider ${S3_LOC}/ --recursive"
                 sh "aws s3 cp ./dist/docs ${S3_LOC}/docs/ --recursive"
+                sh "aws s3 cp ./dist/client/openfin-layouts.js ${S3_LOC}/"
                 sh "aws s3 cp ./dist/provider/app.json ${STAGING_JSON}"
                 withCredentials([string(credentialsId: "NPM_TOKEN_WRITE", variable: 'NPM_TOKEN')]) {
                     sh "echo //registry.npmjs.org/:_authToken=$NPM_TOKEN > $WORKSPACE/.npmrc"
@@ -86,6 +87,7 @@ pipeline {
                 sh "aws s3 cp ./res/provider ${S3_LOC}/ --recursive"
                 sh "aws s3 cp ./dist/provider ${S3_LOC}/ --recursive"
                 sh "aws s3 cp ./dist/docs ${S3_LOC}/docs/ --recursive"
+                sh "aws s3 cp ./dist/client/openfin-layouts.js ${S3_LOC}/"
                 sh "aws s3 cp ./dist/provider/app.json ${PROD_JSON}"
                 withCredentials([string(credentialsId: "NPM_TOKEN_WRITE", variable: 'NPM_TOKEN')]) {
                     sh "echo //registry.npmjs.org/:_authToken=$NPM_TOKEN > $WORKSPACE/.npmrc"

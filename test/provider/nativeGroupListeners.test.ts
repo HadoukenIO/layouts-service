@@ -63,7 +63,7 @@ test.beforeEach(async () => {
     windows = [win1, win2];
     await delay(1000);
 });
-test.afterEach.always(async () => {
+test.afterEach.always(async (t) => {
     if (win1 && win1.identity) {
         await win1.close();
     }
@@ -72,8 +72,9 @@ test.afterEach.always(async () => {
     }
     win1 = win2 = {} as Window;
     windows = new Array<Window>();
+
+    await teardown(t);
 });
-test.afterEach.always(teardown);
 
 /* ====== Utils ====== */
 

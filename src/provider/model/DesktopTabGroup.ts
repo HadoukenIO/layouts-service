@@ -564,7 +564,7 @@ export class DesktopTabGroup implements DesktopEntity {
                     await tab.refresh();
                     await this.removeTab(tab);
                 });
-                await Promise.all(removeTabPromises.concat(closePromise));
+                await Promise.all(removeTabPromises.concat(closePromise)).catch(console.warn);
             }
 
             this._window.setTabGroup(null);

@@ -16,11 +16,12 @@ let fin: Fin;
 test.before(async () => {
     fin = await getConnection();
 });
-test.afterEach.always(async () => {
+test.afterEach.always(async (t) => {
     await win1.close();
     await win2.close();
+
+    await teardown(t);
 });
-test.afterEach.always(teardown);
 
 test('normal deregister, snap with registered', async t => {
     win1 = await createChildWindow({

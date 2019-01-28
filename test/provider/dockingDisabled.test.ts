@@ -53,8 +53,9 @@ test.afterEach.always(async t => {
 
     // Re-enable docking after each test as service state persists through whole run
     await disableDocking(false);
+
+    await teardown(t);
 });
-test.afterEach.always(teardown);
 
 test('docking enabled - normal behaviour expected', async t => {
     let bounds: NormalizedBounds[];

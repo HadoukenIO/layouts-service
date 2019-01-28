@@ -91,12 +91,19 @@ async function closeAllWindows(t: TestContext): Promise<void> {
 }
 
 async function resetProviderState(t: TestContext): Promise<void> {
-    const msg: string|null = await executeJavascriptOnService(function(this: ProviderWindow): string|null {
+    const msg: string|null = await executeJavascriptOnService(async function(this: ProviderWindow): Promise<string|null> {
         const SEPARATOR_LIST = ', ';
         const SEPARATOR_LINE = '\n    ';
 
         const {windows, snapGroups, tabGroups} = this.model;
         const msgs: string[] = [];
+        
+        // If there are still windows registered in the model, wait up to 3 seconds for the windows to finish closing
+        const timeLimit = Date.now() + 3000;
+        while (windows.length > 0 && Date.now() < timeLimit) {
+            console.warn("Waiting for windows to close");
+            await new Promise(res => setTimeout(res, 500));
+        }
 
         if (windows.length > 0) {
             msgs.push(`Provider still had ${windows.length} windows registered: ${windows.map(w => w.id).join(SEPARATOR_LIST)}`);

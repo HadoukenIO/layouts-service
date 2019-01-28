@@ -86,7 +86,7 @@ async function closeAllWindows(t: TestContext): Promise<void> {
         await Promise.all(invalidWindows.map((w: Window) => w.close(true).catch((e) => {
             console.warn(`Window close failed (ignoring) ${w.identity.uuid}/${w.identity.name}:`, e);
         })));
-        t.log(`${invalidWindows.length} window(s) left over after test: ${invalidWindows.map(w => `${w.identity.uuid}/${w.identity.name}`).join(", ")}`);
+        console.warn(`${invalidWindows.length} window(s) left over after test: ${invalidWindows.map(w => `${w.identity.uuid}/${w.identity.name}`).join(", ")}`);
     }
 }
 
@@ -127,7 +127,7 @@ async function resetProviderState(t: TestContext): Promise<void> {
 
     if (msg) {
         // Pass-through debug info from provider
-        t.log(msg);
+        console.warn(msg);
 
         // Wait for clean-up to complete
         await delay(5000);

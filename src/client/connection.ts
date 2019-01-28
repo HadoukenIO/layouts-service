@@ -14,7 +14,7 @@
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
 import {APITopics, SERVICE_CHANNEL} from './internal';
-import {Workspace, JoinTabGroupPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload} from './types';
+import {JoinTabGroupPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload, Workspace} from './types';
 
 
 /**

@@ -3,14 +3,13 @@
  */
 import {tryServiceDispatch} from './connection';
 import {getId, RegisterAPI} from './internal';
-import {Workspace, JoinTabGroupPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload} from './types';
-
-import * as Workspaces from './workspaces';
-import * as Tabbing from './tabbing';
 import * as SnapAndDock from './snapanddock';
+import * as Tabbing from './tabbing';
 import * as Tabstrip from './tabstrip';
+import {JoinTabGroupPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload, Workspace} from './types';
+import * as Workspaces from './workspaces';
 
-export {Workspaces, Tabbing, SnapAndDock, Tabstrip};
+export {SnapAndDock, Tabbing, Tabstrip, Workspaces};
 
 /**
  * @hidden

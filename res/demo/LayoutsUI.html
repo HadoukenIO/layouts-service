@@ -10,32 +10,41 @@
 <body>
     <h3>Layouts</h3>
     <div>
-        <select name="" id="layoutSelect"></select>
-        <button onclick="LayoutsUI.restoreLayout()">Restore Layout</button>
-        <button onclick="LayoutsUI.getLayout()">Get Layout</button>
-        <button onclick="LayoutsUI.getAllLayouts()">Layout Names</button>
+        <select name="" id="layoutSelect" selected>
+            <option value="" selected disabled hidden>Select Layout</option>
+        </select>
+        <button onclick="LayoutsUI.restoreLayout()">Restore Selected Layout</button>
+        <button onclick="LayoutsUI.getLayout()">Get Selected Layout's JSON</button>
+        <button onclick="LayoutsUI.getAllLayouts()">Get Layout Names</button>
     </div>
-    <div>
+    <div >
         <input placeholder="Name of Layout" id="layoutName">
-        <button onclick="LayoutsUI.setLayout()">Set Layout</button>
+        <button onclick="LayoutsUI.setLayout()">Set This Layout</button>
         <button onclick="LayoutsUI.importLayout()">Import Layout</button>
     </div>
-    <h3>Manage</h3>
-    <div>
-        <button onclick="LayoutsUI.createAppFromManifest2()">Create App2 From Manifest</button>
-        <button onclick="LayoutsUI.createAppFromManifest3()">Create App3 From Manifest</button>
-        <button onclick="LayoutsUI.createAppProgrammatically4()">Create App4 Programmatically</button>
-        <button onclick="LayoutsUI.createAppProgrammatically5()">Create App5 Programmatically</button>
-        <button onclick="LayoutsUI.createSimpleWindow('libScriptIncluded')">Client Lib Included</button>
-        <button onclick="LayoutsUI.createSnapWindows()">Create Snap Windows</button>
-        <button onclick="LayoutsUI.killAllWindows()">Close All Windows</button>
-    </div>
-    <h3>Tabbed Windows</h3>
-    <div>
-        <button onclick="LayoutsUI.createSimpleWindow('tabbing/default')">Default Tabstrip</button>
-        <button onclick="LayoutsUI.createSimpleWindow('tabbing/tabapp1')">Custom Tabstrip 1</button>
-        <button onclick="LayoutsUI.createSimpleWindow('tabbing/tabapp2')">Custom Tabstrip 2</button>
-        <button onclick="LayoutsUI.createSimpleWindow('tabbing/disableFrame')">'disableFrame' Window</button>
+    <div class='windows-generator'>
+        <div class='windows-group'>
+            <h3 class='windows-group-title'>Registered Windows</h3>
+            <button onclick="LayoutsUI.createAppFromManifest2()">Create App2 From Manifest</button>
+            <button onclick="LayoutsUI.createAppProgrammatically4()">Create App4 Programmatically</button>
+            <button onclick="LayoutsUI.createSimpleWindow('libScriptIncluded')">Client Library Included</button>
+        </div>
+        <div class='windows-group'>
+            <h3 class='windows-group-title'>Deregistered Windows</h3>
+            <button onclick="LayoutsUI.createAppFromManifest3()">Create App3 From Manifest</button>
+            <button onclick="LayoutsUI.createAppProgrammatically5()">Create App5 Programmatically</button>
+            <button onclick="LayoutsUI.createSnapWindows()">Create Snap Windows</button>
+        </div>
+        <div class='windows-group'>
+            <h3 class='windows-group-title'>Tabbed Windows</h3>
+            <button onclick="LayoutsUI.createSimpleWindow('tabbing/default')">Create App - Default Tab UI</button>
+            <button onclick="LayoutsUI.createSimpleWindow('tabbing/tabapp1')">Create App - Custom Tab UI 1</button>
+            <button onclick="LayoutsUI.createSimpleWindow('tabbing/tabapp2')">Create App - Custom Tab UI 2</button>
+        </div>
+        <div class='windows-group'>
+            <h3 class='windows-group-title'>Manage Windows</h3>
+            <button onclick="LayoutsUI.killAllWindows()">Close All Windows</button>
+        </div>
     </div>
     <div>
         <textArea id='showLayout'></textArea>

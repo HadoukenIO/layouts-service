@@ -6,7 +6,7 @@
         "autoShow": true,
         "saveWindowState": false,
         "defaultHeight": 540,
-        "defaultWidth": 716,
+        "defaultWidth": 626,
         "defaultCentered": true,
         "_experimental": {
             "v2Api": true

@@ -19,7 +19,7 @@ test.before(async () => {
     fin = await getConnection();
     windowInitializer = new WindowInitializer();
 });
-test.afterEach.always(async (t) => {
+test.afterEach.always(async () => {
     // Closes all windows and resets the array for the next test.
     for (const win of windows) {
         if (win) {
@@ -27,8 +27,8 @@ test.afterEach.always(async (t) => {
         }
     }
     windows = new Array<Window>();
-    await teardown(t);
 });
+test.afterEach.always(teardown);
 
 async function assertExploded(t: GenericTestContext<AnyContext>) {
     // Check each window

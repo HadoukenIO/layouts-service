@@ -101,7 +101,7 @@ export class WindowHandler {
      */
     private getTarget(activeGroup: DesktopSnapGroup, type: Mask<eTransformType>): Target|null {
         const snapTarget: Target|null = snapService.getTarget(activeGroup);
-        const tabTarget: Target|null = tabService.getTarget(activeGroup.windows[0]);
+        const tabTarget: Target|null = (type & eTransformType.RESIZE) === 0 ? tabService.getTarget(activeGroup.windows[0]) : null;
 
         return snapTarget || tabTarget;
     }

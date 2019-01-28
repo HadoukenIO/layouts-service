@@ -559,7 +559,7 @@ export class DesktopWindow implements DesktopEntity {
 
     public async close(): Promise<void> {
         this._ready = false;
-        return this.addPendingActions('close ' + this._id, this._window.close(true).catch((error) => this.checkClose(error)));
+        return this.addPendingActions('close ' + this._id, this._window.close(true));
     }
 
     public async applyProperties(properties: Partial<EntityState>): Promise<void> {
@@ -586,7 +586,7 @@ export class DesktopWindow implements DesktopEntity {
     // tslint:disable-next-line:no-any
     public async sendMessage(action: WindowMessages, payload: any): Promise<void> {
         if (this._ready && apiHandler.isClientConnection(this.identity)) {
-            await Promise.race([apiHandler.sendToClient(this._identity, action, payload), new Promise(res => setTimeout(res, 500))]);
+            return apiHandler.sendToClient(this._identity, action, payload);
         }
     }
 

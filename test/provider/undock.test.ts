@@ -32,15 +32,15 @@ const windowOptions = {
 test.before(async () => {
     fin = await getConnection();
 });
-test.afterEach.always(async (t) => {
+test.afterEach.always(async () => {
     for (const win of windows) {
         if (win) {
             await win.close();
         }
     }
     windows = new Array<Window>();
-    await teardown(t);
 });
+test.afterEach.always(teardown);
 
 
 async function initWindows(t: TestContext, num: number, side?: Side) {

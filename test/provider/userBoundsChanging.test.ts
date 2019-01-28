@@ -40,7 +40,7 @@ test.beforeEach(async () => {
     await delay(500);
 });
 
-test.afterEach.always(async (t) => {
+test.afterEach.always(async () => {
     // Try and close all the windows.  If the window is already closed then it will throw an error which we catch and ignore.
     await Promise.all(wins.map(win => {
         try {
@@ -51,8 +51,8 @@ test.afterEach.always(async (t) => {
     }));
 
     wins = [];
-    await teardown(t);
 });
+test.afterEach.always(teardown);
 
 test('Animate Basic Snap, top - should not snap', async t => {
     const win2Bounds = await getBounds(wins[1]);

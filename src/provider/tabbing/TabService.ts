@@ -11,6 +11,7 @@ import {DesktopTabstripFactory} from '../model/DesktopTabstripFactory';
 import {DesktopWindow, EntityState} from '../model/DesktopWindow';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 import {eTargetType, TargetBase} from '../WindowHandler';
+import {DragWindowManager} from './DragWindowManager';
 
 /**
  * TabTarget constructs an interface which represents an area on a window where a tab strip will be placed.

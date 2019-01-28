@@ -107,7 +107,12 @@ enum ActionOrigin {
     SERVICE_TEMPORARY
 }
 
-type OpenFinWindowEventHandler = <K extends keyof fin.OpenFinWindowEventMap>(event: fin.OpenFinWindowEventMap[K]) => void;
+// VScode has issues with syntax painting/intellisense when there are generic function type variables in a file. 
+// (specifically it doesn't reallize the type argument has ended, so thinks everything below is still a type)
+// Changed it to a callable interface to fix. Should have no affect on the output/functionality.
+interface OpenFinWindowEventHandler {
+    <K extends keyof fin.OpenFinWindowEventMap>(event: fin.OpenFinWindowEventMap[K]): void;
+}
 
 export class DesktopWindow implements DesktopEntity {
     public static readonly onCreated: Signal1<DesktopWindow> = new Signal1();
@@ -128,17 +133,20 @@ export class DesktopWindow implements DesktopEntity {
                     center.y -= 3.5;
                 }
 
+                // Deal with undefined resizeRegion
+                options.resizeRegion = options.resizeRegion || {sides: {}};
+
                 // Map resize constraints to a more useful format
                 const resizeConstraints: Point<ResizeConstraint> = {
                     x: {
-                        resizableMin: !!options.resizable && (options.resizeRegion ? options.resizeRegion.sides.left : true),
-                        resizableMax: !!options.resizable && (options.resizeRegion ? options.resizeRegion.sides.right : true),
+                        resizableMin: !!options.resizable && (options.resizeRegion.sides.left !== false),
+                        resizableMax: !!options.resizable && (options.resizeRegion.sides.right !== false),
                         minSize: options.minWidth || 0,
                         maxSize: options.maxWidth && options.maxWidth > 0 ? options.maxWidth : Number.MAX_SAFE_INTEGER,
                     },
                     y: {
-                        resizableMin: !!options.resizable && (options.resizeRegion ? options.resizeRegion.sides.top : true),
-                        resizableMax: !!options.resizable && (options.resizeRegion ? options.resizeRegion.sides.bottom : true),
+                        resizableMin: !!options.resizable && (options.resizeRegion.sides.top !== false),
+                        resizableMax: !!options.resizable && (options.resizeRegion.sides.bottom !== false),
                         minSize: options.minHeight || 0,
                         maxSize: options.maxHeight && options.maxHeight > 0 ? options.maxHeight : Number.MAX_SAFE_INTEGER,
                     }
@@ -684,7 +692,7 @@ export class DesktopWindow implements DesktopEntity {
                 const property: keyof EntityState = key as keyof EntityState;
                 if (this.isModified(property, delta, this._currentState)) {
                     if (typeof delta[property] === 'object') {
-                        Object.assign(this.applicationState[property], delta[property]);
+                        Object.assign(this._applicationState[property], delta[property]);
                     } else {
                         this.applicationState[property] = delta[property]!;
                     }

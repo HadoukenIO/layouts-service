@@ -107,7 +107,7 @@ enum ActionOrigin {
     SERVICE_TEMPORARY
 }
 
-// VScode has issues with syntax painting/intellisense when there are generic function type variables in a file. 
+// VScode has issues with syntax painting/intellisense when there are generic function type variables in a file.
 // (specifically it doesn't reallize the type argument has ended, so thinks everything below is still a type)
 // Changed it to a callable interface to fix. Should have no affect on the output/functionality.
 interface OpenFinWindowEventHandler {

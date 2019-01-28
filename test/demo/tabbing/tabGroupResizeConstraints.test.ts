@@ -1,9 +1,10 @@
 import {test, TestContext} from 'ava';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import {assertAllTabbed} from '../../provider/utils/assertions';
+import {assertAllTabbed, assertNotTabbed} from '../../provider/utils/assertions';
 import {delay} from '../../provider/utils/delay';
 import {Side, sideArray} from '../../provider/utils/SideUtils';
+import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 import {Constraints} from '../snapanddock/resizeOnSnap.test';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
 import {refreshWindowState} from '../utils/modelUtils';
@@ -15,7 +16,7 @@ interface TabConstraintsOptions extends CreateWindowData {
 }
 
 testParameterized(
-    'Constraints applied to all tabs in group',
+    'Constraints applied and restored correctly when tabbing',
     [
         {frame: true, windowCount: 2, windowConstraints: [{resizable: false}, {}]},
         {frame: true, windowCount: 2, windowConstraints: [{maxHeight: 500, minWidth: 100}, {}]},
@@ -72,6 +73,27 @@ testParameterized(
 
             assertConstraintsMatch(startingState[i], finalState, t);
         }
+    }));
+
+testParameterized(
+    'Cannot tab windows with incompatible constraints',
+    [
+        {frame: true, windowCount: 2, windowConstraints: [{resizable: false}, {}]},
+        {frame: true, windowCount: 2, windowConstraints: [{maxHeight: 200, minWidth: 250}, {}]},
+    ],
+    createWindowTest(async (t, options: TabConstraintsOptions) => {
+        const windows = t.context.windows;
+
+        await Promise.all(windows.map((win, index) => win.updateOptions(options.windowConstraints[index])));
+        await Promise.all(windows.map((win) => refreshWindowState(win.identity)));
+
+        await windows[1].resizeBy(-20, -20, 'top-left');
+
+        await tabWindowsTogether(windows[1], windows[0]);
+        await delay(1000);
+
+        await assertNotTabbed(windows[0], t);
+        await assertNotTabbed(windows[1], t);
     }));
 
 const defaultConstraints: Required<Constraints> = {

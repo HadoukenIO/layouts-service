@@ -29,12 +29,12 @@ test.beforeEach(async (t: TestContext) => {
     t.context.windows = [];
 });
 test.afterEach.always(async (t: TestContext) => {
+    await Promise.all(t.context.windows.map(win => win.close()));
     await executeJavascriptOnService(function(this: ProviderWindow) {
         this.config.removeFromSource({level: 'window', uuid: 'testApp', name: 'testWindow'});
         this.config.removeFromSource({level: 'window', uuid: 'testApp', name: 'testWindow1'});
         this.config.removeFromSource({level: 'window', uuid: 'testApp', name: 'testWindow2'});
     });
-    await Promise.all(t.context.windows.map(win => win.close()));
     await teardown(t);
 });
 

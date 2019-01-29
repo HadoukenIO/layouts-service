@@ -285,9 +285,27 @@ export class APIHandler {
         return group.updateTabProperties(tab!, payload.properties);
     }
 
-    private startDrag(payload: {}, id: ProviderIdentity): void {
-        // TODO assign uuid, name from provider
-        tabService.dragWindowManager.showWindow(id as WindowIdentity);
+    private startDrag(payload: {window: WindowIdentity}, source: ProviderIdentity): void {
+
+        let tab: DesktopWindow | null;
+        let group: DesktopTabGroup|null;
+
+        // Previous client version had no payload. To avoid breaking changes, we 
+        // default to the active tab if no window is specified.
+        if (!payload.window) {
+            group = model.getTabGroup(`${source.uuid}/${source.name}`);
+            tab = group && group.activeTab;
+        } else {
+            tab = model.getWindow(payload.window);
+            group = tab && tab.tabGroup;
+        }
+
+        if (!group || !tab) {
+            console.error('Window is not registered for tabbing');
+            throw new Error('Window is not registered for tabbing');
+        }
+        
+        tabService.dragWindowManager.showWindow(tab);
     }
 
     private async endDrag(payload: {event: DropPosition, window: WindowIdentity}): Promise<void> {

@@ -44,8 +44,8 @@ export class DragWindowManager {
     /**
      * Shows the drag window overlay.
      */
-    public showWindow(source: WindowIdentity): void {
-        this._sourceWindow = this._model.getWindow(source);
+    public showWindow(source: DesktopWindow): void {
+        this._sourceWindow = source;
 
         this._window.show();
         this._window.focus();

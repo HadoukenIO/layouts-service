@@ -91,7 +91,7 @@ export class Tab {
      */
     private _onDragStart(e: DragEvent): boolean {
         e.dataTransfer!.effectAllowed = 'move';
-        layouts.tabStrip.startDrag();
+        layouts.tabStrip.startDrag(this._ID);
         return true;
     }
 

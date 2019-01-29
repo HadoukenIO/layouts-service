@@ -115,6 +115,7 @@ testParameterized(
 
         const previewBounds = await getBounds(previewWin);
 
+        await delay(1000);
         robot.mouseToggle('up');
 
         t.deepEqual(previewBounds, {...windowBounds[0], height: 60, bottom: windowBounds[0].top + previewBounds.height});

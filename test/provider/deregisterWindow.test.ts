@@ -2,7 +2,9 @@ import {test} from 'ava';
 import {Fin, Window} from 'hadouken-js-adapter';
 import * as robot from 'robotjs';
 
+import {executeJavascriptOnService} from '../demo/utils/serviceUtils';
 import {teardown} from '../teardown';
+
 import {getConnection} from './utils/connect';
 import {createChildWindow} from './utils/createChildWindow';
 import {dragWindowAndHover} from './utils/dragWindowAndHover';
@@ -17,6 +19,13 @@ test.before(async () => {
     fin = await getConnection();
 });
 test.afterEach.always(async (t) => {
+    // Need to explicitly remove de-register config from the store after each test completes
+    // Once SERVICE-291 is implemented, this will happen automatically when the window closes
+    await executeJavascriptOnService(function(this: ProviderWindow) {
+        this.config.removeFromSource({level: 'window', uuid: 'testApp', name: 'win1'});
+        this.config.removeFromSource({level: 'window', uuid: 'testApp', name: 'win2'});
+    });
+
     await win1.close();
     await win2.close();
 

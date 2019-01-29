@@ -124,6 +124,9 @@ test('When a tabbed window is de-registered, it is removed from its snapped tab 
     // De-register first window
     await addRuleToProvider({level: 'window', uuid: 'testApp', name: 'testWindow1'}, {enabled: false});
 
+    // Allow for config to be applied and window de-registered
+    await delay(500);
+
     // Ensure first window is de-registered
     t.false(await isWindowRegistered(windows[0].identity));
     for (let i = 1; i < 4; i++) {

@@ -5,6 +5,7 @@ import {ConfigurationObject} from '../../gen/provider/config/layouts-config';
 import {Scope} from '../../gen/provider/config/scope';
 import {executeJavascriptOnService} from '../demo/utils/serviceUtils';
 import {isWindowRegistered} from '../demo/utils/snapServiceUtils';
+import {teardown} from '../teardown';
 
 import {assertGrouped, assertTabbed} from './utils/assertions';
 import {createChildWindow} from './utils/createChildWindow';
@@ -34,6 +35,8 @@ test.afterEach.always(async (t: TestContext) => {
         this.config.removeFromSource({level: 'window', uuid: 'testApp', name: 'testWindow2'});
     });
     await Promise.all(t.context.windows.map(win => win.close()));
+
+    await teardown(t);
 });
 
 async function addRuleToProvider(scope: Scope, config: ConfigurationObject): Promise<void> {
@@ -121,6 +124,9 @@ test('When a tabbed window is de-registered, it is removed from its snapped tab 
 
     // De-register first window
     await addRuleToProvider({level: 'window', uuid: 'testApp', name: 'testWindow1'}, {enabled: false});
+
+    // Allow for config to be applied and window de-registered
+    await delay(500);
 
     // Ensure first window is de-registered
     t.false(await isWindowRegistered(windows[0].identity));

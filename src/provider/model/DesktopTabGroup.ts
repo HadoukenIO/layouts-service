@@ -584,9 +584,15 @@ export class DesktopTabGroup implements DesktopEntity {
         return {icon, title: modifiedTitle};
     }
 
-    private onWindowTeardown(window: DesktopWindow): void {
+    private async onWindowTeardown(window: DesktopWindow): Promise<void> {
         if (this._tabs.indexOf(window) >= 0) {
-            this.removeTab(window, null);
+            if (window.isReady) {
+                // Window is still "ready", so we should restore it to its previous size as part of the removal
+                await this.removeTab(window);
+            } else {
+                // Since window is in the process of closing, don't attempt to reset its size
+                await this.removeTab(window, null);
+            }
         }
     }
 

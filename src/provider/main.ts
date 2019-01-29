@@ -41,7 +41,7 @@ type Stringified<T> = {
 
 export async function main() {
     config = window.config = new Store(require('../../gen/provider/config/defaults.json'));
-    model = window.model = new DesktopModel();
+    model = window.model = new DesktopModel(config);
     windowHandler = new WindowHandler(model);
     snapService = window.snapService = new SnapService(model, config);
     tabService = window.tabService = new TabService(model, config);

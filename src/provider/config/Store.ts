@@ -70,7 +70,7 @@ interface StoredConfig<T> {
      * For any config that doesn't explicitly define a rule (for example, "top-level" config within an application
      * manifest), this will be the same as source.
      */
-    rule: Rule;
+    scope: Rule;
 
     /**
      * The config data itself. This will typically be a "partial" object, that only specifies a small subset of the
@@ -126,6 +126,32 @@ export class Store<T> {
     }
 
     /**
+     * Adds a single rule to the store without having to wrap it in a `ConfigWithRules` object.
+     *
+     * For example, the following function calls are both equivalent:
+     * ```ts
+     * store.add(source, {rules: [{
+     *    scope: rule,
+     *    config
+     * }]});
+     *
+     * store.addRule(source, rule, config);
+     * ```
+     *
+     * @param source The entity requesting this rule be added. Determines the lifecycle/"ownership" of the rule
+     * @param rule A rule/filter that determines to which entities 'config' applies
+     * @param config The set of options that should be applied to any entity matching 'rule'
+     */
+    public addRule(source: Scope, rule: Rule, config: T): void {
+        // Only add the rule if `source` is allowed to add config of this scope
+        if (ConfigUtil.ruleCanBeAddedInScope(rule, source)) {
+            this.addInternal(source, rule, config);
+        } else {
+            console.warn(`Ignoring ${this.getKey(rule)} rule in config with scope ${this.getKey(source)}`);
+        }
+    }
+
+    /**
      * Removes any configuration that originated from the given source.
      *
      * @param scope Identity of whatever source is now no longer available
@@ -141,7 +167,7 @@ export class Store<T> {
                     if (index >= 0) {
                         values.splice(index, 1);
                         this._cache.clear();
-                        this.checkWatches({scope: item.rule, config: item.config}, 'onRemove');
+                        this.checkWatches(item, 'onRemove');
                     } else {
                         console.warn('Config was removed whilst iterating over array, ignoring...');
                     }
@@ -218,7 +244,7 @@ export class Store<T> {
         } else {
             for (let i = 0, scopeIndex = ScopePrecedence[scope.level]; i <= scopeIndex; i++) {
                 const rulesAtScope: StoredConfig<T>[] = this._items.get(ScopePrecedence[i] as Scopes) || [];
-                const applicableRules: StoredConfig<T>[] = rulesAtScope.filter(rule => ConfigUtil.matchesRule(rule.rule, scope));
+                const applicableRules: StoredConfig<T>[] = rulesAtScope.filter(rule => ConfigUtil.matchesRule(rule.scope, scope));
 
                 if (applicableRules.length === 1) {
                     ConfigUtil.deepAssign<T>(result as T, applicableRules[0].config);
@@ -254,11 +280,11 @@ export class Store<T> {
         const priority = ScopePrecedence[scope.level];
         for (let i = 0; i <= priority; i++) {
             const rulesAtScope: StoredConfig<T>[] = this._items.get(ScopePrecedence[i] as Scopes) || [];
-            const applicableRules: StoredConfig<T>[] = rulesAtScope.filter(rule => ConfigUtil.matchesRule(rule.rule, scope));
+            const applicableRules: StoredConfig<T>[] = rulesAtScope.filter(rule => ConfigUtil.matchesRule(rule.scope, scope));
 
             if (applicableRules) {
                 applicableRules.forEach((config: StoredConfig<T>) => {
-                    if (ConfigUtil.matchesRule(config.rule, scope)) {
+                    if (ConfigUtil.matchesRule(config.scope, scope)) {
                         ConfigUtil.deepAssignMask<T, M>(result, config.config as T, mask);
                     }
                 });
@@ -275,10 +301,22 @@ export class Store<T> {
             this._items.set(rule.level, itemsWithScope);
         }
 
-        const scopedConfig: StoredConfig<T> = {source, rule, config};
-        itemsWithScope.push(scopedConfig);
+        const scopedConfig: StoredConfig<T> = {source, scope: rule, config};
+        const existingConfig: StoredConfig<T>|undefined = itemsWithScope.find((config: StoredConfig<T>) => {
+            return ConfigUtil.scopesEqual(source, config.source) && ConfigUtil.rulesEqual(rule, config.scope);
+        });
 
-        this.checkWatches({scope: rule, config}, 'onAdd');
+        if (existingConfig) {
+            // Can "collapse" the new config into the existing entry, rather than appending the new entry to the end of itemsWithScope
+            ConfigUtil.deepAssign(existingConfig.config, config);
+        } else {
+            // No matching config to merge this with; push on the end
+            itemsWithScope.push(scopedConfig);
+        }
+
+        // Even if config was "collapsed", use `scopedConfig` here to ensure watches fire correctly.
+        // It's important that we only trigger watches based on `config` - and not `existingConfig.config`
+        this.checkWatches(scopedConfig, 'onAdd');
     }
 
     /**
@@ -294,15 +332,15 @@ export class Store<T> {
      */
     private applyPrecedenceRules(applicableRules: StoredConfig<T>[]): StoredConfig<T>[] {
         return applicableRules.sort((a: StoredConfig<T>, b: StoredConfig<T>) => {
-            if (a.rule.level !== b.rule.level) {
+            if (a.scope.level !== b.scope.level) {
                 // Sort by rule scope
-                return ScopePrecedence[a.rule.level] - ScopePrecedence[b.rule.level];
+                return ScopePrecedence[a.scope.level] - ScopePrecedence[b.scope.level];
             } else if (a.source.level !== b.source.level) {
                 // Sort by source scope
                 return ScopePrecedence[a.source.level] - ScopePrecedence[b.source.level];
-            } else if (this.getSpecifity(a.rule) !== this.getSpecifity(b.rule)) {
+            } else if (this.getSpecifity(a.scope) !== this.getSpecifity(b.scope)) {
                 // Sort by rule specifity
-                return this.getSpecifity(a.rule) - this.getSpecifity(b.rule);
+                return this.getSpecifity(a.scope) - this.getSpecifity(b.scope);
             } else {
                 // As a last-resort, sort by most-recently-added.
                 // The input array will already be in date order, so use a comparator that produces stable-sort behaviour.
@@ -341,10 +379,11 @@ export class Store<T> {
      * @param config A config rule that has just been added or removed
      * @param signal The action performed to `config` - defines which signal on the watch will be emitted
      */
-    private checkWatches(config: ScopedConfig<T>, signal: 'onAdd'|'onRemove'): void {
+    private checkWatches(config: StoredConfig<T>, signal: 'onAdd'|'onRemove'): void {
         this._watches.forEach((watch: Watch<T>) => {
             if (watch[signal].slots.length > 0 && watch.matches(config)) {
-                watch[signal].emit(this, config);
+                const {source, ...rule} = config;
+                watch[signal].emit(rule, source);
             }
         });
     }

@@ -1,6 +1,6 @@
 const main = async () => {
-    fin.desktop.InterApplicationBus.Channel.connect('of-layouts-service-v1').then(client => {
-        client.send('deregister');
+    fin.InterApplicationBus.Channel.connect('of-layouts-service-v1').then(client => {
+        client.dispatch('deregister', fin.Window.me);
         client.register('savingLayout', () => {});
         client.register('restoreApp', (a) => a);
     });

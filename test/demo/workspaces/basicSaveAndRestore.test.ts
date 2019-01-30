@@ -1,5 +1,6 @@
-import test from 'ava';
+import {test} from 'ava';
 
+import {teardown} from '../../teardown';
 import {AppInitializerParams} from '../utils/AppInitializer';
 import {AppContext, CreateAppData, createAppTest} from '../utils/createAppTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
@@ -24,6 +25,8 @@ numberOfApps.forEach(appNumber => {
         basicTestOptionsArray.push(manifestSaveAndRestoreTest);
     });
 });
+
+test.afterEach.always(teardown);
 
 testParameterized<CreateAppData, AppContext>(
     (testOptions: CreateAppData): string => `Basic SaveAndRestore - ${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - ${

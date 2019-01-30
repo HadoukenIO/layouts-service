@@ -5,6 +5,7 @@ import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {WindowIdentity} from '../../src/provider/model/DesktopWindow';
 import {executeJavascriptOnService} from '../demo/utils/serviceUtils';
 import {updateTabProperties} from '../demo/utils/tabServiceUtils';
+import {teardown} from '../teardown';
 
 import {getConnection} from './utils/connect';
 import {tabWindowsTogether} from './utils/tabWindowsTogether';
@@ -31,6 +32,7 @@ test.afterEach.always(async () => {
 
     wins = [];
 });
+test.afterEach.always(teardown);
 
 test('Update Tab Properties - property changes reflected in service', async t => {
     // Drag wins[0] over wins[1] to make a tabset (in valid drop region)

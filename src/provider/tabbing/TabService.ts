@@ -11,7 +11,6 @@ import {eTargetType, TargetBase} from '../WindowHandler';
 import {ApplicationConfigManager} from './components/ApplicationConfigManager';
 import {DragWindowManager} from './DragWindowManager';
 
-
 /**
  * TabTarget constructs an interface which represents an area on a window where a tab strip will be placed.
  */

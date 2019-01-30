@@ -1,10 +1,12 @@
-import test from 'ava';
+import {test} from 'ava';
 
 import {assertGrouped, assertTabbed} from '../../provider/utils/assertions';
+import {teardown} from '../../teardown';
 import {WindowGrouping} from '../utils/AppInitializer';
 import {AppContext, CreateAppData, createAppTest} from '../utils/createAppTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {closeAllPreviews, createCloseAndRestoreLayout, createTabTests} from '../utils/workspacesUtils';
+
 import {BasicSaveRestoreTestOptions} from './basicSaveAndRestore.test';
 
 export interface TabSaveRestoreTestOptions extends BasicSaveRestoreTestOptions {
@@ -35,6 +37,8 @@ appNumbers.forEach(appNumber => {
         }
     });
 });
+
+test.afterEach.always(teardown);
 
 testParameterized<CreateAppData, AppContext>(
     (testOptions: CreateAppData): string => `Tab SaveAndRestore - ${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - ${

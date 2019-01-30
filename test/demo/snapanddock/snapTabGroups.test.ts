@@ -1,4 +1,4 @@
-import test from 'ava';
+import {test} from 'ava';
 import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
@@ -7,6 +7,7 @@ import {delay} from '../../provider/utils/delay';
 import {dragSideToSide, dragWindowTo} from '../../provider/utils/dragWindowTo';
 import {opposite, Side, Sides} from '../../provider/utils/SideUtils';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
+import {teardown} from '../../teardown';
 import {CreateWindowData, createWindowTest, WindowContext} from '../utils/createWindowTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {getTabstrip} from '../utils/tabServiceUtils';
@@ -15,6 +16,8 @@ import {switchTab, tearoutTab, tearoutToOtherTabstrip} from '../utils/tabstripUt
 interface SnapTabInstanceData {
     side: Side;
 }
+
+test.afterEach.always(teardown);
 
 /**
  * Performs the necessary test setup - tabs the windows into two tab groups, then snaps those groups together.

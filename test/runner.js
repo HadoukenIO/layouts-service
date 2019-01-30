@@ -137,27 +137,27 @@ async function serve() {
 
         // Add route to dynamically generate app manifests
         app.use('/create-manifest', (req, res) => {
-            const { uuid, url, defaultTop } = req.query;
+            const {uuid, url, defaultTop} = req.query;
 
-            res.contentType('application/json')
-            res.json({
-                "devtools_port": 9090,
-                "runtime": {
-                    "arguments": "--v=1 --enable-crash-reporting",
-                    "version": "9.61.37.46"
-                },
-                "services": [{ "name": "layouts", "manifestUrl": "http://localhost:1337/test/provider.json" }],
-                "startup_app": {
-                    "uuid": uuid || 'save-restore-test-app-' + Math.random().toString(36).substring(2),                    
-                    "url": url || 'http://localhost:1337/test/saveRestoreTestingApp.html?deregistered=false',
-                    "autoShow": true,
-                    "saveWindowState": false,
-                    "defaultTop": defaultTop ? JSON.parse(defaultTop): 100,
-                    "defaultLeft": 100,
-                    "defaultHeight": 225,
-                    "defaultWidth": 225
+            // Create manifest (based upon demo app manifest)
+            const {shortcut, services, ...baseManifest} = require('../res/demo/app.json');
+            const manifest = {
+                ...baseManifest,
+                startup_app: {
+                    uuid: uuid || 'save-restore-test-app-' + Math.random().toString(36).substring(2),
+                    url: url || 'http://localhost:1337/test/saveRestoreTestingApp.html?deregistered=false',
+                    autoShow: true,
+                    saveWindowState: false,
+                    defaultTop: defaultTop ? JSON.parse(defaultTop): 100,
+                    defaultLeft: 100,
+                    defaultHeight: 225,
+                    defaultWidth: 225
                 }
-            });
+            };
+
+            // Send response
+            res.contentType('application/json');
+            res.json(manifest);
         });
         
         console.log("Starting test server...");

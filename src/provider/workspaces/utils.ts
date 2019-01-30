@@ -247,10 +247,10 @@ export function adjustSizeOfFormerlyTabbedWindows(winIdentity: WindowIdentity, f
             const tabGroup = tabWindow.tabGroup;
             if (tabGroup) {
                 const tabStripHeight = tabGroup.config.height;
-        
+
                 layoutWindow.top = layoutWindow.top - tabStripHeight;
                 layoutWindow.height = layoutWindow.height + tabStripHeight;
-        
+
                 if (applicationState.frame === true) {
                     layoutWindow.height = layoutWindow.height + 7;
                     layoutWindow.left = layoutWindow.left - 7;

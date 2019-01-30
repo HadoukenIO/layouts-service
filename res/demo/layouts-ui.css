@@ -75,13 +75,14 @@ button:hover {
     display: flex;
     align-items: center;
 }
+
 .text-box-buttons {
     display: flex;
     flex-direction: column;
 }
 
 #showLayout {
-    margin: 0px;
+    margin-right: 5px;
     width: 100%;
     height: 16%;
 }

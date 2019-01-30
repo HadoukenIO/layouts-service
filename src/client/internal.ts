@@ -39,8 +39,22 @@ export function getId(): Identity {
         id = {...fin.Window.me};
     }
 
+    if (!id.name) {
+        id.name = id.uuid;
+    }
+
     return id;
 }
+
+/**
+ * Returns an Identity from a complete window object.  Useful to remove only the Identity instead of sending through a whole window context.
+ *
+ * Assumed that the supplied object has uuid & name.
+ */
+export function parseIdentity(window: WindowIdentity|Identity) {
+    return {uuid: window.uuid, name: window.name || window.uuid};
+}
+
 
 export enum TabAPI {
     CREATETABGROUP = 'CREATETABGROUP',

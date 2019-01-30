@@ -283,7 +283,7 @@ export class APIHandler {
         return group.reOrderTabArray(newOrdering);
     }
 
-    private updateTabProperties(payload: {window: WindowIdentity, properties: Partial<TabProperties>}): void {
+    private updateTabProperties(payload: {properties: Partial<TabProperties>, window: WindowIdentity}): void {
         const tab: DesktopWindow|null = model.getWindow(payload.window);
 
         if (!(tab && tab.tabGroup)) {

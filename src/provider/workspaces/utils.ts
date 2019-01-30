@@ -242,17 +242,21 @@ export function parseVersionString(versionString: string): SemVer {
 export function adjustSizeOfFormerlyTabbedWindows(winIdentity: WindowIdentity, formerlyTabbedWindows: WindowObject, layoutWindow: LayoutWindow|WindowDetail) {
     if (inWindowObject(winIdentity, formerlyTabbedWindows)) {
         const tabWindow = model.getWindow(winIdentity);
-        const applicationState = tabWindow!.applicationState;
-        const tabGroup = tabWindow!.tabGroup;
-        const tabStripHeight = tabGroup!.config.height;
-
-        layoutWindow.top = layoutWindow.top - tabStripHeight;
-        layoutWindow.height = layoutWindow.height + tabStripHeight;
-
-        if (applicationState.frame === true) {
-            layoutWindow.height = layoutWindow.height + 7;
-            layoutWindow.left = layoutWindow.left - 7;
-            layoutWindow.width = layoutWindow.width + 14;
+        if (tabWindow) {
+            const applicationState = tabWindow.applicationState;
+            const tabGroup = tabWindow.tabGroup;
+            if (tabGroup) {
+                const tabStripHeight = tabGroup.config.height;
+        
+                layoutWindow.top = layoutWindow.top - tabStripHeight;
+                layoutWindow.height = layoutWindow.height + tabStripHeight;
+        
+                if (applicationState.frame === true) {
+                    layoutWindow.height = layoutWindow.height + 7;
+                    layoutWindow.left = layoutWindow.left - 7;
+                    layoutWindow.width = layoutWindow.width + 14;
+                }
+            }
         }
     }
 }

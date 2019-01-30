@@ -42,7 +42,6 @@ button:hover {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-around;
-    margin-bottom: 10px;
 }
 
 .windows-group {
@@ -67,6 +66,18 @@ button:hover {
     height: 30px;
     border-radius: 0px;
     margin-left: 3px;
+    width: 183px;
+    margin-right: 3px;
+}
+
+.text-box {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+}
+.text-box-buttons {
+    display: flex;
+    flex-direction: column;
 }
 
 #showLayout {

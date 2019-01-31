@@ -5,10 +5,6 @@ import {createAppsArray} from '../utils/AppInitializer';
 import {AppContext, CreateAppData, createAppTest} from '../utils/createAppTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {assertWindowRestored, closeAllPreviews, createCloseAndRestoreLayout} from '../utils/workspacesUtils';
-import {TabSaveRestoreTestOptions} from './tabSaveAndRestore.test';
-
-const formerTabGroupTestOptionsArray: TabSaveRestoreTestOptions[] = [];
-
 
 const registeredProgrammaticApp = createAppsArray(1, 0);
 const deregisteredProgrammaticParentandChild =
@@ -22,14 +18,14 @@ const combinedManifestApps = registeredManifestApp.concat(deregisteredManifestPa
 
 const windowGrouping = [[0, 2]];
 
-formerTabGroupTestOptionsArray.push({apps: combinedProgrammaticApps, tabWindowGrouping: windowGrouping});
-formerTabGroupTestOptionsArray.push({apps: combinedManifestApps, tabWindowGrouping: windowGrouping});
-
 
 testParameterized<CreateAppData, AppContext>(
     (testOptions: CreateAppData): string =>
         `Tab SaveAndRestore - ${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - Formerly tabbed window resize`,
-    formerTabGroupTestOptionsArray,
+    [
+        {apps: combinedProgrammaticApps, tabWindowGrouping: windowGrouping},
+        {apps: combinedManifestApps, tabWindowGrouping: windowGrouping}
+    ],
     createAppTest(async (t, applicationData: CreateAppData) => {
         if (applicationData.tabWindowGrouping) {
             const group = applicationData.tabWindowGrouping[0];

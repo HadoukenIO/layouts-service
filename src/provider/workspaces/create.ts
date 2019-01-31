@@ -118,10 +118,7 @@ export const getCurrentLayout = async(): Promise<Layout> => {
             adjustSizeOfFormerlyTabbedWindows(mainWinIdentity, formerlyTabbedWindows, mainWindow);
 
             // Filter for deregistered child windows
-            windowInfo.childWindows = windowInfo.childWindows.filter((win: WindowDetail) => {
-                const isDeregistered = inWindowObject({uuid, name: win.name}, deregisteredWindows);
-                return !isDeregistered;
-            });
+            windowInfo.childWindows = windowInfo.childWindows.filter((win: WindowDetail) => !inWindowObject({uuid, name: win.name}, deregisteredWindows));
 
             // Grab the layout information for the child windows
             const childWindows: LayoutWindow[] = await promiseMap(windowInfo.childWindows, async (childWin: WindowDetail) => {

@@ -22,28 +22,24 @@ const windowGrouping = [[0, 2]];
 testParameterized<CreateAppData, AppContext>(
     (testOptions: CreateAppData): string =>
         `Tab SaveAndRestore - ${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - Formerly tabbed window resize`,
-    [
-        {apps: combinedProgrammaticApps, tabWindowGrouping: windowGrouping},
-        {apps: combinedManifestApps, tabWindowGrouping: windowGrouping}
-    ],
+    [{apps: combinedProgrammaticApps, tabWindowGrouping: windowGrouping}, {apps: combinedManifestApps, tabWindowGrouping: windowGrouping}],
     createAppTest(async (t, applicationData: CreateAppData) => {
         if (applicationData.tabWindowGrouping) {
             const group = applicationData.tabWindowGrouping[0];
             const win1 = t.context.windows[group[0]];
             const win2 = t.context.windows[group[1]];
-    
-    
+
             await assertTabbed(win1, win2, t);
             await assertGrouped(t, win1, win2);
             const tabbedBounds = await win1.getBounds();
-    
+
             await createCloseAndRestoreLayout(t);
             await delay(2000);
-    
+
             await assertWindowRestored(t, win1.identity.uuid, win1.identity.name!);
-    
+
             const untabbedBounds = await win1.getBounds();
-    
+
             if (untabbedBounds.top === tabbedBounds.top || untabbedBounds.height === tabbedBounds.height) {
                 t.fail(`Application ${win1.identity.uuid} was restored at: ${tabbedBounds.top} x ${tabbedBounds.left} instead of ${untabbedBounds.top} x ${
                     untabbedBounds.left}`);

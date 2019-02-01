@@ -349,7 +349,14 @@ export interface JoinTabGroupPayload extends TabGroupEventPayload {
 /**
  * Details of the {@link TabPropertiesUpdatedEvent|'tab-properties-updated'} event
  */
-export interface TabPropertiesUpdatedPayload extends TabGroupEventPayload {
+export interface TabPropertiesUpdatedPayload {
+    /**
+     * Identifies the window that is the source of the current event.
+     *
+     * See the documentation for individual events for more details.
+     */
+    identity: WindowIdentity;
+    
     /**
      * New tab properties.
      *

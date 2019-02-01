@@ -286,11 +286,10 @@ export class APIHandler {
     }
 
     private startDrag(payload: {window: WindowIdentity}, source: ProviderIdentity): void {
-
-        let tab: DesktopWindow | null;
+        let tab: DesktopWindow|null;
         let group: DesktopTabGroup|null;
 
-        // Previous client version had no payload. To avoid breaking changes, we 
+        // Previous client version had no payload. To avoid breaking changes, we
         // default to the active tab if no window is specified.
         if (!payload.window) {
             group = model.getTabGroup(`${source.uuid}/${source.name}`);
@@ -304,7 +303,7 @@ export class APIHandler {
             console.error('Window is not registered for tabbing');
             throw new Error('Window is not registered for tabbing');
         }
-        
+
         tabService.dragWindowManager.showWindow(tab);
     }
 

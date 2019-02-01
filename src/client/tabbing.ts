@@ -4,7 +4,7 @@
 import {Identity} from 'hadouken-js-adapter';
 
 import {tryServiceDispatch} from './connection';
-import {AddTabPayload, getId, SetTabClientPayload, TabAPI, StartDragPayload} from './internal';
+import {AddTabPayload, getId, SetTabClientPayload, StartDragPayload, TabAPI} from './internal';
 import {DropPosition, EndDragPayload, UpdateTabPropertiesPayload} from './internal';
 import {ApplicationUIConfig, TabProperties, WindowIdentity} from './types';
 
@@ -221,9 +221,8 @@ export namespace tabStrip {  // tslint:disable-line:no-namespace
      * Starts the HTML5 Dragging Sequence
      */
     export async function startDrag(window: Identity) {
-
-        // Previous client version had no payload. To avoid breaking changes, the service 
-        // will default to the active tab if no window is specified. Here we just check that 
+        // Previous client version had no payload. To avoid breaking changes, the service
+        // will default to the active tab if no window is specified. Here we just check that
         // if a window was provided,it is valid
         if (window && (!window.name || !window.uuid)) {
             return Promise.reject('Invalid window provided');

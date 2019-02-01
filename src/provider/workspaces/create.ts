@@ -172,8 +172,8 @@ export const generateWorkspace = async(payload: null, identity: Identity): Promi
 
             // Race between legacyAPI and current API as we don't know which verion the client is running.
             customData = await Promise.race([
-                apiHandler.sendToClient<WorkspaceApp, CustomData>({uuid: app.uuid, name: app.uuid}, WorkspaceAPI.SAVE_HANDLER, app),
-                apiHandler.sendToClient<WorkspaceApp, CustomData>({uuid: app.uuid, name: app.uuid}, LegacyAPI.SAVE_HANDLER, app)
+                apiHandler.sendToClient<WorkspaceApp, CustomData>({uuid: app.uuid, name: app.uuid}, WorkspaceAPI.GENERATE_HANDLER, app),
+                apiHandler.sendToClient<WorkspaceApp, CustomData>({uuid: app.uuid, name: app.uuid}, LegacyAPI.GENERATE_HANDLER, app)
             ]);
 
             if (!customData) {

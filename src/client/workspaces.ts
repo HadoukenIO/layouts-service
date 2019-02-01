@@ -15,7 +15,7 @@ import {CustomData, Workspace, WorkspaceApp} from './types';
  */
 export async function setSaveHandler(customDataDecorator: () => CustomData): Promise<boolean> {
     const channel: ChannelClient = await channelPromise;
-    return channel.register(WorkspaceAPI.SAVE_HANDLER, customDataDecorator);
+    return channel.register(WorkspaceAPI.GENERATE_HANDLER, customDataDecorator);
 }
 
 /**

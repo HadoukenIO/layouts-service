@@ -14,7 +14,7 @@ import {getAppToRestore, restoreApplication, restoreWorkspace} from './workspace
 
 // LegacyAPI to allow for backwards compatibility of older clients (pre 1.0)
 export enum LegacyAPI {
-    SAVE_HANDLER = 'savingLayout',
+    GENERATE_HANDLER = 'savingLayout',
     RESTORE_HANDLER = 'restoreApp',
     GENERATE_LAYOUT = 'generateLayout',
     RESTORE_LAYOUT = 'restoreLayout',
@@ -24,7 +24,7 @@ export enum LegacyAPI {
     DEREGISTER = 'deregister',
 }
 
-export type WindowMessages = keyof EventMap|WorkspaceAPI.RESTORE_HANDLER|WorkspaceAPI.SAVE_HANDLER|LegacyAPI.SAVE_HANDLER|LegacyAPI.RESTORE_HANDLER;
+export type WindowMessages = keyof EventMap|WorkspaceAPI.RESTORE_HANDLER|WorkspaceAPI.GENERATE_HANDLER|LegacyAPI.GENERATE_HANDLER|LegacyAPI.RESTORE_HANDLER;
 
 /**
  * Manages all communication with the client. Stateless class that listens for incomming messages, and handles sending of messages to connected client(s).

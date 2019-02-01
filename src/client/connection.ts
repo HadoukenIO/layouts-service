@@ -51,8 +51,8 @@ export const channelPromise: Promise<ChannelClient> = typeof fin === 'undefined'
             window.dispatchEvent(new CustomEvent<TabPropertiesUpdatedPayload>('tab-properties-updated', {detail: payload}));
         });
 
-        channel.register('workspace-saved', (payload: Workspace) => {
-            window.dispatchEvent(new CustomEvent<Workspace>('workspace-saved', {detail: payload}));
+        channel.register('workspace-generated', (payload: Workspace) => {
+            window.dispatchEvent(new CustomEvent<Workspace>('workspace-generated', {detail: payload}));
         });
 
         channel.register('workspace-restored', (payload: Workspace) => {

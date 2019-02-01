@@ -241,7 +241,7 @@ export class TabService {
         const payload: TabPropertiesUpdatedPayload = {identity: tab.identity, properties: tabProps};
         tab.sendMessage('tab-properties-updated', payload);
 
-        if(tab.tabGroup){
+        if (tab.tabGroup) {
             tab.tabGroup.window.sendMessage('tab-properties-updated', payload);
         }
     }

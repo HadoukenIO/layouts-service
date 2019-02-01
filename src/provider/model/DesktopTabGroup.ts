@@ -495,7 +495,8 @@ export class DesktopTabGroup implements DesktopEntity {
         tab.setSnapGroup(this._window.snapGroup);
 
         const addTabPromise: Promise<void> = (async () => {
-            const payload: JoinTabGroupPayload = {tabstripIdentity: this.identity, identity: tab.identity, properties: tabProps, index: this._tabs.indexOf(tab)};
+            const payload:
+                JoinTabGroupPayload = {tabstripIdentity: this.identity, identity: tab.identity, properties: tabProps, index: this._tabs.indexOf(tab)};
 
             this.sendTabEvent(tab, 'tab-added', payload);
             await tab.applyProperties({hidden: tab !== this._activeTab});

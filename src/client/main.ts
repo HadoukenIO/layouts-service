@@ -6,7 +6,7 @@ import {getId, RegisterAPI} from './internal';
 import * as snapAndDock from './snapanddock';
 import * as tabbing from './tabbing';
 import * as tabstrip from './tabstrip';
-import {JoinTabGroupPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload, Workspace, IdentityRule} from './types';
+import {IdentityRule, JoinTabGroupPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload, Workspace} from './types';
 import * as workspaces from './workspaces';
 
 export {snapAndDock, tabbing, tabstrip, workspaces};

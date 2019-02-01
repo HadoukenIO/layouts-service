@@ -7,7 +7,6 @@ import {tryServiceDispatch} from './connection';
 import {AddTabPayload, getId, parseIdentity, SetTabstripPayload, TabAPI, UpdateTabPropertiesPayload} from './internal';
 import {ApplicationUIConfig, TabProperties, WindowIdentity} from './types';
 
-
 /**
  * Returns array of window identity references for tabs belonging to the tab group of the provided window context.
  *

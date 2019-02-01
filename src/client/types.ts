@@ -356,7 +356,7 @@ export interface TabPropertiesUpdatedPayload {
      * See the documentation for individual events for more details.
      */
     identity: WindowIdentity;
-    
+
     /**
      * New tab properties.
      *

@@ -6,13 +6,13 @@ import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {WorkspaceAPI} from '../../client/internal';
 import {CustomData, TabGroup, Workspace, WorkspaceApp, WorkspaceWindow} from '../../client/types';
+import {LegacyAPI} from '../APIHandler';
 import {apiHandler, model, tabService} from '../main';
 import {WindowIdentity} from '../model/DesktopWindow';
 import {promiseMap} from '../snapanddock/utils/async';
 
 import {getGroup} from './group';
 import {addToWindowObject, inWindowObject, parseVersionString, wasCreatedFromManifest, wasCreatedProgrammatically, WindowObject} from './utils';
-import { LegacyAPI } from '../APIHandler';
 
 // This value should be updated any time changes are made to the Workspace schema.
 // Major version indicates breaking changes.

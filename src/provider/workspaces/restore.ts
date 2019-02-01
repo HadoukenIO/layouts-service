@@ -9,7 +9,7 @@ import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {promiseMap} from '../snapanddock/utils/async';
 
 import {SCHEMA_MAJOR_VERSION} from './create';
-import {regroupLayout} from './group';
+import {regroupWorkspace} from './group';
 import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, parseVersionString, positionWindow, SemVer, TabbedPlaceholders, wasCreatedProgrammatically, WindowObject} from './utils';
 import { LegacyAPI } from '../APIHandler';
 
@@ -56,7 +56,7 @@ export const restoreApplication = async(layoutApp: WorkspaceApp, resolve: Functi
     }
 };
 
-export const restoreLayout = async(payload: Workspace, identity: Identity): Promise<Workspace> => {
+export const restoreWorkspace = async(payload: Workspace, identity: Identity): Promise<Workspace> => {
     // Guards against invalid layout objects (since we are receiving them over the service bus, this is in theory possible)
     // These allow us to return sensible error messages back to the consumer
     if (!payload) {
@@ -157,7 +157,7 @@ export const restoreLayout = async(payload: Workspace, identity: Identity): Prom
         });
     });
 
-    await tabService.createTabGroupsFromLayout(layout.tabGroups);
+    await tabService.createTabGroupsFromWorkspace(layout.tabGroups);
 
     const apps = await promiseMap(layout.apps, async(app: WorkspaceApp): Promise<WorkspaceApp> => {
         // Get rid of childWindows for default response (anything else?)
@@ -234,7 +234,7 @@ export const restoreLayout = async(payload: Workspace, identity: Identity): Prom
     });
     layout.apps = allAppResponses;
     // Regroup the windows
-    await regroupLayout(allAppResponses).catch(console.log);
+    await regroupWorkspace(allAppResponses).catch(console.log);
     // Validate groups
     for (const group of model.snapGroups) {
         group.validate();

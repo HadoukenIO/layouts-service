@@ -9,8 +9,8 @@ import {ApplicationUIConfig, TabProperties} from '../client/types';
 import {model, snapService, tabService} from './main';
 import {DesktopTabGroup} from './model/DesktopTabGroup';
 import {DesktopWindow, WindowIdentity} from './model/DesktopWindow';
-import {deregisterWindow, generateLayout} from './workspaces/create';
-import {getAppToRestore, restoreApplication, restoreLayout} from './workspaces/restore';
+import {deregisterWindow, generateWorkspace} from './workspaces/create';
+import {getAppToRestore, restoreApplication, restoreWorkspace} from './workspaces/restore';
 
 // LegacyAPI to allow for backwards compatibility of older clients (pre 1.0)
 export enum LegacyAPI {
@@ -72,8 +72,8 @@ export class APIHandler {
         providerChannel.register(SnapAndDockAPI.UNDOCK_GROUP, this.undockGroup);
 
         // Workspaces
-        providerChannel.register(WorkspaceAPI.GENERATE_LAYOUT, generateLayout);
-        providerChannel.register(WorkspaceAPI.RESTORE_LAYOUT, restoreLayout);
+        providerChannel.register(WorkspaceAPI.GENERATE_LAYOUT, generateWorkspace);
+        providerChannel.register(WorkspaceAPI.RESTORE_LAYOUT, restoreWorkspace);
         providerChannel.register(WorkspaceAPI.APPLICATION_READY, this.appReady);
 
         // Tabbing
@@ -97,8 +97,8 @@ export class APIHandler {
         // Legacy API (Used before 1.0 cleanup)
         providerChannel.register(LegacyAPI.APPLICATION_READY, this.appReady);
         providerChannel.register(LegacyAPI.DEREGISTER, this.deregister);
-        providerChannel.register(LegacyAPI.GENERATE_LAYOUT, generateLayout);
-        providerChannel.register(LegacyAPI.RESTORE_LAYOUT, restoreLayout);
+        providerChannel.register(LegacyAPI.GENERATE_LAYOUT, generateWorkspace);
+        providerChannel.register(LegacyAPI.RESTORE_LAYOUT, restoreWorkspace);
         providerChannel.register(LegacyAPI.UNDOCK_GROUP, this.undockGroup);
         providerChannel.register(LegacyAPI.UNDOCK_WINDOW, this.undockWindow);
     }

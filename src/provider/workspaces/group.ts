@@ -23,7 +23,7 @@ export const getGroup = (identity: Identity): Promise<Identity[]> => {
     });
 };
 
-export const regroupLayout = async (apps: WorkspaceApp[]) => {
+export const regroupWorkspace = async (apps: WorkspaceApp[]) => {
     await promiseMap(apps, async(app: WorkspaceApp): Promise<void> => {
         await groupWindow(app.mainWindow);
         await promiseMap(app.childWindows, async (child: WorkspaceWindow) => {

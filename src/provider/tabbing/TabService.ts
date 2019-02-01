@@ -177,7 +177,7 @@ export class TabService {
         }));
     }
 
-    public async createTabGroupsFromLayout(groupDefs: TabGroup[]): Promise<DesktopTabGroup[]> {
+    public async createTabGroupsFromWorkspace(groupDefs: TabGroup[]): Promise<DesktopTabGroup[]> {
         const model: DesktopModel = this._model;
         const tabGroups: DesktopTabGroup[] = [];
 

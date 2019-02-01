@@ -14,7 +14,7 @@ import {getGroup} from './group';
 import {addToWindowObject, inWindowObject, parseVersionString, wasCreatedFromManifest, wasCreatedProgrammatically, WindowObject} from './utils';
 import { LegacyAPI } from '../APIHandler';
 
-// This value should be updated any time changes are made to the layout schema.
+// This value should be updated any time changes are made to the Workspace schema.
 // Major version indicates breaking changes.
 export const LAYOUTS_SCHEMA_VERSION = '1.0.0';
 export const SCHEMA_MAJOR_VERSION = parseVersionString(LAYOUTS_SCHEMA_VERSION).major;
@@ -38,7 +38,7 @@ export const deregisterWindow = (identity: WindowIdentity) => {
     addToWindowObject(identity, deregisteredWindows);
 };
 
-export const getCurrentLayout = async(): Promise<Workspace> => {
+export const getCurrentWorkspace = async(): Promise<Workspace> => {
     // Not yet using monitor info
     const monitorInfo = await fin.System.getMonitorInfo() || {};
     let tabGroups = await tabService.getTabSaveInfo();
@@ -111,7 +111,7 @@ export const getCurrentLayout = async(): Promise<Workspace> => {
 
             // Grab the layout information for the main app window
             const mainOfWin: Window = await ofApp.getWindow();
-            const mainWindowLayoutData = await getLayoutWindowData(mainOfWin, tabbedWindows);
+            const mainWindowLayoutData = await getWorkspaceWindowData(mainOfWin, tabbedWindows);
             const mainWindow: WorkspaceWindow = {...windowInfo.mainWindow, ...mainWindowLayoutData};
 
             // Filter for deregistered child windows
@@ -127,7 +127,7 @@ export const getCurrentLayout = async(): Promise<Workspace> => {
             const childWindows: WorkspaceWindow[] = await promiseMap(windowInfo.childWindows, async (win: WindowDetail) => {
                 const {name} = win;
                 const ofWin = await fin.Window.wrap({uuid, name});
-                const windowLayoutData = await getLayoutWindowData(ofWin, tabbedWindows);
+                const windowLayoutData = await getWorkspaceWindowData(ofWin, tabbedWindows);
 
                 return {...win, ...windowLayoutData};
             });
@@ -159,8 +159,8 @@ export const getCurrentLayout = async(): Promise<Workspace> => {
 };
 
 // No payload. Just returns the current layout with child windows.
-export const generateLayout = async(payload: null, identity: Identity): Promise<Workspace> => {
-    const preLayout = await getCurrentLayout();
+export const generateWorkspace = async(payload: null, identity: Identity): Promise<Workspace> => {
+    const preLayout = await getCurrentWorkspace();
 
     const apps = await promiseMap(preLayout.apps, async (app: WorkspaceApp) => {
         const defaultResponse = {...app};
@@ -192,7 +192,7 @@ export const generateLayout = async(payload: null, identity: Identity): Promise<
 };
 
 // Grabs all of the necessary layout information for a window. Filters by multiple criteria.
-const getLayoutWindowData = async(ofWin: Window, tabbedWindows: WindowObject): Promise<WorkspaceWindowData> => {
+const getWorkspaceWindowData = async(ofWin: Window, tabbedWindows: WindowObject): Promise<WorkspaceWindowData> => {
     const {uuid} = ofWin.identity;
     const identity: WindowIdentity = ofWin.identity as WindowIdentity;
     const info = await ofWin.getInfo();

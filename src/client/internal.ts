@@ -92,18 +92,6 @@ export enum RegisterAPI {
     DEREGISTER = 'DEREGISTER'
 }
 
-// LegacyAPI to allow for backwards compatibility of older clients (pre 1.0)
-export enum LegacyAPI {
-    SAVE_HANDLER = 'savingLayout',
-    RESTORE_HANDLER = 'restoreApp',
-    GENERATE_LAYOUT = 'generateLayout',
-    RESTORE_LAYOUT = 'restoreLayout',
-    APPLICATION_READY = 'appReady',
-    UNDOCK_WINDOW = 'undockWindow',
-    UNDOCK_GROUP = 'undockGroup',
-    DEREGISTER = 'deregister',
-}
-
 export type APITopics = TabAPI|WorkspaceAPI|SnapAndDockAPI|RegisterAPI;
 
 /**

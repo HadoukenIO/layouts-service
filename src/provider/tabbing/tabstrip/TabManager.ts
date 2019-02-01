@@ -60,7 +60,7 @@ export class TabManager {
                 });
 
                 // Sends the new order to the service to update the cache
-                layouts.Tabstrip.reorderTabs(orderedTabList);
+                layouts.tabstrip.reorderTabs(orderedTabList);
             }
         });
     }

@@ -10,7 +10,7 @@ import {CustomData, Workspace, WorkspaceApp} from './types';
 /**
  * Register a callback that will save the state of the calling application.
  *
- * The callback will be invoked on each call to {@link generateWorkspace}, and the return value (if anything is returned)
+ * The callback will be invoked on each call to {@link generate}, and the return value (if anything is returned)
  * will be saved as the workspace's `customData` property.
  */
 export async function setSaveHandler(customDataDecorator: () => CustomData): Promise<boolean> {
@@ -36,7 +36,7 @@ export async function setRestoreHandler(layoutDecorator: (layoutApp: WorkspaceAp
  * The returned JSON will contain the main application window of every application that is currently open and hasn't
  * explicitly de-registered itself using the layouts service API. Child windows will not be included by default - the
  * returned workspace object will only contain child window data for applications that integrate with the layouts service
- * by registering {@link onSaveHandler|save} and {@link onRestoreHandler|restore} callbacks.
+ * by registering {@link setSaveHandler|save} and {@link setRestoreHandler|restore} callbacks.
  *
  * TODO: Document workspace generation process
  */
@@ -45,12 +45,12 @@ export async function generate(): Promise<Workspace> {
 }
 
 /**
- * Takes a workspace created by {@link generateLayout} and restores the applications within it.
+ * Takes a workspace created by {@link generate} and restores the applications within it.
  *
  * The returned JSON will contain the main application window of every application that is currently open and hasn't
  * explicitly de-registered itself using the layouts service API. Child windows will not be included by default - the
  * returned workspace object will only contain child window data for applications that integrate with the layouts service
- * by registering {@link onSaveHandler|save} and {@link onRestoreHandler|restore} callbacks.
+ * by registering {@link setSaveHandler|save} and {@link setRestoreHandler|restore} callbacks.
  *
  * TODO: Document workspace restoration process
  */
@@ -62,9 +62,9 @@ export async function restore(payload: Workspace): Promise<Workspace> {
  * Send this to the service when you have registered all routes after registration.
  *
  * When restoring a workspace, the service will refrain from passing the saved workspace to the application (via the
- * {@link onAppRestore} callback) until after the application has used this function to signal that it is ready.
+ * {@link setRestoreHandler} callback) until after the application has used this function to signal that it is ready.
  *
- * Note that by not calling this function, and workspace {@link restoreWorkspace|restore} operation will hang
+ * Note that by not calling this function, and workspace {@link restore} operation will hang
  * indefinitely.
  */
 export async function ready(): Promise<Workspace> {

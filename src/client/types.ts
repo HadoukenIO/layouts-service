@@ -28,6 +28,18 @@ export interface WindowIdentity {
     name: string;
 }
 
+// To be updated/moved once config story is fully merged. SERVICE-306
+export interface IdentityRule {
+    uuid: string|RegEx;
+    name: string|RegEx;
+}
+
+export interface RegEx {
+    expression: string;
+    flags?: string;
+    invert?: boolean;
+}
+
 
 /* Tabbing */
 
@@ -76,8 +88,8 @@ export interface ApplicationUIConfig {
  * Defines a saved workspace layout, containing the state of any applications that were open at the time the layout was
  * generated.
  *
- * See {@link generateLayout} for more information about what gets captured when saving a layout. Previously generated
- * layouts can be restored using {@link restoreLayout}.
+ * See {@link generate} for more information about what gets captured when saving a layout. Previously generated
+ * layouts can be restored using {@link restore}.
  */
 export interface Workspace {
     /**
@@ -154,7 +166,7 @@ export interface WorkspaceApp {
      * State of any child windows belonging to the application.
      *
      * This will only be populated if the application integrates with the Layouts Service API. See
-     * {@link generateLayout} for details.
+     * {@link generate} for details.
      */
     childWindows: WorkspaceWindow[];
 
@@ -324,7 +336,7 @@ export interface JoinTabGroupPayload extends TabGroupEventPayload {
      * These will be generated from the `tabID` window, or will be whatever properties were previously set for the `tabID` window using
      * {@link updateTabProperties}.
      */
-    tabProps: TabProperties;
+    properties: TabProperties;
 
     /**
      * The index at which the tab was inserted.

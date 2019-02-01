@@ -18,10 +18,10 @@ import {ApplicationUIConfig, TabProperties, WindowIdentity} from './types';
  * import * as Layouts from 'openfin-layouts';
  *
  * // Gets all tabs for the current window context.
- * Layouts.Tabbing.getTabs();
+ * Layouts.tabbing.getTabs();
  *
  * // Get all tabs for another window context.
- * Layouts.Tabbing.getTabs({uuid: "sample-window-uuid", name: "sample-window-name"});
+ * Layouts.tabbing.getTabs({uuid: "sample-window-uuid", name: "sample-window-name"});
  * ```
  *
  * @param identity The window context, defaults to the current window.
@@ -41,7 +41,7 @@ export async function getTabs(identity: Identity = getId()): Promise<WindowIdent
  * ```ts
  * import * as Layouts from 'openfin-layouts';
  *
- * Layouts.Tabbing.setTabstrip({url: 'https://localhost/customTabstrip.html', height: 60});
+ * Layouts.tabbing.setTabstrip({url: 'https://localhost/customTabstrip.html', height: 60});
  * ```
  *
  * @param config The {@link ApplicationUIConfig| Application UI Configuration} object.
@@ -71,7 +71,7 @@ export async function setTabstrip(config: ApplicationUIConfig): Promise<void> {
  * ```ts
  * import * Layouts from 'openfin-layouts';
  *
- * Layouts.Tabbing.createTabGroup([{uuid: "App1", name: "App1"}, {uuid: "App2", name: "App2"}, {uuid: "App3", name: "App3"}]);
+ * Layouts.tabbing.createTabGroup([{uuid: "App1", name: "App1"}, {uuid: "App2", name: "App2"}, {uuid: "App3", name: "App3"}]);
  * ```
  *
  * @param windows Array of windows which will be added to the new tab group.
@@ -94,10 +94,10 @@ export async function createTabGroup(windows: Identity[]): Promise<void> {
  * import * as Layouts from 'openfin-layouts';
  *
  * // Tab self to App1.
- * Layouts.Tabbing.addTab({uuid: 'App1', name: 'App1'});
+ * Layouts.tabbing.addTab({uuid: 'App1', name: 'App1'});
  *
  * // Tab App2 to App1.
- * Layouts.Tabbing.addTab({uuid: 'App1', name: 'App1'}. {uuid: 'App2', name: 'App2'});
+ * Layouts.tabbing.addTab({uuid: 'App1', name: 'App1'}. {uuid: 'App2', name: 'App2'});
  * ```
  *
  * @param targetWindow The identity of the window to create a tab group on.
@@ -124,10 +124,10 @@ export async function addTab(targetWindow: Identity, windowToAdd: Identity = get
  * import * as Layouts from 'openfin-layouts';
  *
  * // Remove the current context from its tab group.
- * Layouts.Tabbing.removeTab();
+ * Layouts.tabbing.removeTab();
  *
  * // Remove another window from its tab group.
- * Layouts.Tabbing.removeTab({uuid: 'App1', name: 'App1'});
+ * Layouts.tabbing.removeTab({uuid: 'App1', name: 'App1'});
  * ```
  *
  * @param identity Identity of the window context to remove.  If no `Identity` is provided as an argument, the current window context will be used.
@@ -148,10 +148,10 @@ export async function removeTab(identity: Identity = getId()): Promise<void> {
  * import * as Layouts from 'openfin-layouts'
  *
  * // Sets the current window as active in the tab group.
- * Layouts.Tabbing.setActiveTab()
+ * Layouts.tabbing.setActiveTab()
  *
  * // Sets another window context as the active tab.
- * Layouts.Tabbing.setActiveTab({uuid: 'App1', name: 'App1'});
+ * Layouts.tabbing.setActiveTab({uuid: 'App1', name: 'App1'});
  * ```
  *
  * @param identity Identity of the window context to set as active.  If no `Identity` is provided as an argument the current window context will be used.
@@ -172,10 +172,10 @@ export async function setActiveTab(identity: Identity = getId()): Promise<void> 
  * import * as Layouts from 'openfin-layouts';
  *
  * // Closes the current window context tab.
- * Layouts.Tabbing.closeTab();
+ * Layouts.tabbing.closeTab();
  *
  * // Closes another windows context tab.
- * Layouts.Tabbing.closeTab({uuid: 'App1', name: 'App1'});
+ * Layouts.tabbing.closeTab({uuid: 'App1', name: 'App1'});
  * ```
  *
  * @param identity Identity of the window context to close.  If no `Identity` is provided as an argument the current window context will be used.
@@ -196,10 +196,10 @@ export async function closeTab(identity: Identity = getId()): Promise<void> {
  * import * as Layouts from 'openfin-layouts';
  *
  * // Minimizes the tab group for the current window context.
- * Layouts.Tabbing.minimizeTabGroup();
+ * Layouts.tabbing.minimizeTabGroup();
  *
  * // Minimizes the tab group for another windows context.
- * Layouts.Tabbing.minimizeTabGroup({uuid: 'App1', name: 'App1'});
+ * Layouts.tabbing.minimizeTabGroup({uuid: 'App1', name: 'App1'});
  * ```
  *
  * @param identity Identity of the window context to minimize the tab group for.  If no `Identity` is provided as an argument the current window context will be
@@ -221,10 +221,10 @@ export async function minimizeTabGroup(identity: Identity = getId()): Promise<vo
  * import * as Layouts from 'openfin-layouts';
  *
  * // Minimizes the tab group for the current window context.
- * Layouts.Tabbing.maxmimizeTabGroup();
+ * Layouts.tabbing.maxmimizeTabGroup();
  *
  * // Minimizes the tab group for another windows context.
- * Layouts.Tabbing.maximizeTabGroup({uuid: 'App1', name: 'App1'});
+ * Layouts.tabbing.maximizeTabGroup({uuid: 'App1', name: 'App1'});
  * ```
  *
  * @param identity Identity of the window context to maximize the tab group for.  If no `Identity` is provided as an argument the current window context will be
@@ -246,10 +246,10 @@ export async function maximizeTabGroup(identity: Identity = getId()): Promise<vo
  * import * as Layouts from 'openfin-layouts';
  *
  * // Closes the tab group for the current window context.
- * Layouts.Tabbing.closeTabGroup();
+ * Layouts.tabbing.closeTabGroup();
  *
  * // Closes the tab group for another windows context.
- * Layouts.Tabbing.closeTabGroup({uuid: 'App1', name: 'App1'});
+ * Layouts.tabbing.closeTabGroup({uuid: 'App1', name: 'App1'});
  * ```
  *
  * @param identity Identity of the window context to close the tab group for.  If no `Identity` is provided as an argument the current window context will be
@@ -271,10 +271,10 @@ export async function closeTabGroup(identity: Identity = getId()): Promise<void>
  * import * as Layouts from 'openfin-layouts';
  *
  * // Restores the tab group for the current window context.
- * Layouts.Tabbing.restoreTabGroup();
+ * Layouts.tabbing.restoreTabGroup();
  *
  * // Restores the tab group for another windows context.
- * Layouts.Tabbing.restoreTabGroup({uuid: 'App1', name: 'App1'});
+ * Layouts.tabbing.restoreTabGroup({uuid: 'App1', name: 'App1'});
  * ```
  *
  * @param identity Identity of the window context to restore the tab group for.  If no `Identity` is provided as an argument the current window context will be
@@ -296,13 +296,13 @@ export async function restoreTabGroup(identity: Identity = getId()): Promise<voi
  * import * as Layouts from 'openfin-layouts';
  *
  * // Updating only some properties for the current window context.
- * Layouts.Tabbing.updateTabProperties({title: 'An Awesome Tab!'});
+ * Layouts.tabbing.updateTabProperties({title: 'An Awesome Tab!'});
  *
  * // Update all properties for the current window context.
- * Layouts.Tabbing.updateTabProperties({title: 'An Awesome Tab!', icon: 'http://openfin.co/favicon.ico'});
+ * Layouts.tabbing.updateTabProperties({title: 'An Awesome Tab!', icon: 'http://openfin.co/favicon.ico'});
  *
  * // Update all properties for another windows context.
- * Layouts.Tabbing.updateTabProperties({title: 'An Awesome Tab'}, {uuid: 'App1', name: 'App1'});
+ * Layouts.tabbing.updateTabProperties({title: 'An Awesome Tab'}, {uuid: 'App1', name: 'App1'});
  * ```
  * @param properties Properties object for the tab to consume.
  * @param identity Identity of the window context set the properties on.  If no `Identity` is provided as an argument the current window context will be used.

@@ -15,7 +15,7 @@ tabManager = new TabManager();
 const createLayoutsEventListeners = () => {
     layouts.addEventListener('join-tab-group', (event: CustomEvent<JoinTabGroupPayload>) => {
         const tabInfo: JoinTabGroupPayload = event.detail;
-        tabManager.addTab(tabInfo.tabID, tabInfo.tabProps!, tabInfo.index!);
+        tabManager.addTab(tabInfo.tabID, tabInfo.properties!, tabInfo.index!);
 
         document.title = tabManager.getTabs.map(tab => tab.ID.name).join(', ');
     });
@@ -55,18 +55,18 @@ const createWindowUIListeners = () => {
 
     // Minimize Button
     minimizeElem!.onclick = () => {
-        layouts.Tabbing.minimizeTabGroup(tabManager.getTabs[0].ID);
+        layouts.tabbing.minimizeTabGroup(tabManager.getTabs[0].ID);
     };
 
     // Maximize / Restore button
     maximizeElem!.onclick = () => {
         if (!tabManager.isMaximized) {
-            layouts.Tabbing.maximizeTabGroup(tabManager.getTabs[0].ID);
+            layouts.tabbing.maximizeTabGroup(tabManager.getTabs[0].ID);
 
             maximizeElem!.classList.add('restore');
             tabManager.isMaximized = true;
         } else {
-            layouts.Tabbing.restoreTabGroup(tabManager.getTabs[0].ID);
+            layouts.tabbing.restoreTabGroup(tabManager.getTabs[0].ID);
 
             tabManager.isMaximized = false;
 
@@ -78,7 +78,7 @@ const createWindowUIListeners = () => {
 
     // Close Button
     closeElem!.onclick = () => {
-        layouts.Tabbing.closeTabGroup(tabManager.getTabs[0].ID);
+        layouts.tabbing.closeTabGroup(tabManager.getTabs[0].ID);
     };
 };
 

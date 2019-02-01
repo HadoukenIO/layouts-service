@@ -3,13 +3,13 @@
  */
 import {tryServiceDispatch} from './connection';
 import {getId, RegisterAPI} from './internal';
-import * as SnapAndDock from './snapanddock';
-import * as Tabbing from './tabbing';
-import * as Tabstrip from './tabstrip';
-import {JoinTabGroupPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload, Workspace} from './types';
-import * as Workspaces from './workspaces';
+import * as snapAndDock from './snapanddock';
+import * as tabbing from './tabbing';
+import * as tabstrip from './tabstrip';
+import {JoinTabGroupPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload, Workspace, IdentityRule} from './types';
+import * as workspaces from './workspaces';
 
-export {SnapAndDock, Tabbing, Tabstrip, Workspaces};
+export {snapAndDock, tabbing, tabstrip, workspaces};
 
 /**
  * @hidden
@@ -25,17 +25,6 @@ export interface EventMap {
     'workspace-saved': WorkspaceSavedEvent;
 }
 
-// To be updated/moved once config story is fully merged. SERVICE-306
-export interface IdentityRule {
-    uuid: string|RegEx;
-    name: string|RegEx;
-}
-
-export interface RegEx {
-    expression: string;
-    flags?: string;
-    invert?: boolean;
-}
 
 /**
  * Allows a window to opt-out of this service.
@@ -49,9 +38,9 @@ export async function deregister(identity: IdentityRule = getId() as IdentityRul
 }
 
 /**
- * Allows a window to opt-in to this service.
+ * Allows a window to opt-in back to this service if previously deregistered.
  *
- * This will enable *all* layouts-related functionality for the given window.
+ * This will enable *all* layouts-related functionality for the given window unless alternative behaviors are set in the layout configuration.
  *
  * @param identity The window to register, defaults to the current window
  */
@@ -144,11 +133,11 @@ export type LeaveSnapGroupEvent = Event&{type: 'leave-snap-group'};
  * To find out which other windows are in the tabset, use the `getTabs()` method.
  *
  * ```ts
- * import {addEventListener, Tabbing} from 'openfin-layouts';
+ * import {addEventListener, tabbing} from 'openfin-layouts';
  *
  * addEventListener('join-tab-group', async (event: CustomEvent<JoinTabGroupPayload>) => {
  *     console.log("Window added to tab group");
- *     console.log("Windows in current group: ", await Tabbing.getTabs());
+ *     console.log("Windows in current group: ", await tabbing.getTabs());
  * });
  * ```
  *
@@ -220,14 +209,14 @@ export type TabPropertiesUpdatedEvent = CustomEvent<TabPropertiesUpdatedPayload>
 
 
 /**
- * Event fired whenever a workspace is restored (via {@link restoreWorkspace}).
+ * Event fired whenever a workspace is restored (via {@link restore}).
  *
- * The event will contain the full detail of the Workspace. ({@link Workspace}).
+ * The event will contain the full detail of the ({@link Workspace}).
  *
  * ```ts
  * import {addEventListener} from 'openfin-layouts';
  *
- * addEventListener('workspace-restored', async (event: CustomEvent<LayoutA>) => {
+ * addEventListener('workspace-restored', async (event: CustomEvent<Workspace>) => {
  *      console.log(`Properties for the restored workspace: ${event.detail}`);
  * });
  * ```
@@ -238,9 +227,9 @@ export type TabPropertiesUpdatedEvent = CustomEvent<TabPropertiesUpdatedPayload>
 export type WorkspaceRestoredEvent = CustomEvent<Workspace>&{type: 'workspace-restored'};
 
 /**
- * Event fired whenever a workspace is saved (via {@link generateWorkspace}).
+ * Event fired whenever a workspace is saved (via {@link generate}).
  *
- * The event will contain the full detail of the Workspace. ({@link Workspace}).
+ * The event will contain the full detail of the ({@link Workspace}).
  *
  * ```ts
  * import {addEventListener} from 'openfin-layouts';

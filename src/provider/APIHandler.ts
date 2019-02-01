@@ -2,7 +2,7 @@ import {Identity} from 'hadouken-js-adapter';
 import {ProviderIdentity} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/channel';
 import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
 
-import {DropPosition, LegacyAPI, RegisterAPI, SERVICE_CHANNEL, SnapAndDockAPI, TabAPI, WorkspaceAPI} from '../client/internal';
+import {DropPosition, RegisterAPI, SERVICE_CHANNEL, SnapAndDockAPI, TabAPI, WorkspaceAPI} from '../client/internal';
 import {EventMap} from '../client/main';
 import {ApplicationUIConfig, TabProperties} from '../client/types';
 
@@ -11,6 +11,18 @@ import {DesktopTabGroup} from './model/DesktopTabGroup';
 import {DesktopWindow, WindowIdentity} from './model/DesktopWindow';
 import {deregisterWindow, generateLayout} from './workspaces/create';
 import {getAppToRestore, restoreApplication, restoreLayout} from './workspaces/restore';
+
+// LegacyAPI to allow for backwards compatibility of older clients (pre 1.0)
+export enum LegacyAPI {
+    SAVE_HANDLER = 'savingLayout',
+    RESTORE_HANDLER = 'restoreApp',
+    GENERATE_LAYOUT = 'generateLayout',
+    RESTORE_LAYOUT = 'restoreLayout',
+    APPLICATION_READY = 'appReady',
+    UNDOCK_WINDOW = 'undockWindow',
+    UNDOCK_GROUP = 'undockGroup',
+    DEREGISTER = 'deregister',
+}
 
 export type WindowMessages = keyof EventMap|WorkspaceAPI.RESTORE_HANDLER|WorkspaceAPI.SAVE_HANDLER|LegacyAPI.SAVE_HANDLER|LegacyAPI.RESTORE_HANDLER;
 
@@ -286,7 +298,7 @@ export class APIHandler {
     private updateTabProperties(payload: {properties: Partial<TabProperties>, window: WindowIdentity}): void {
         const tab: DesktopWindow|null = model.getWindow(payload.window);
 
-        if (!(tab && tab.tabGroup)) {
+        if (!tab) {
             console.error('No tab found for window');
             throw new Error('No tab found for window');
         } else {

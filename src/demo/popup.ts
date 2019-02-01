@@ -1,5 +1,5 @@
 import * as Layouts from '../client/main';
-import {deregister, SnapAndDock} from '../client/main';
+import {deregister, snapAndDock} from '../client/main';
 
 // Used by 'popup-*' variants within integration tests
 export {deregister};
@@ -19,10 +19,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add DOM listeners
     document.getElementById('undockWindow')!.addEventListener('click', () => {
-        SnapAndDock.undockWindow();
+        snapAndDock.undockWindow();
     });
     document.getElementById('undockGroup')!.addEventListener('click', () => {
-        SnapAndDock.undockGroup();
+        snapAndDock.undockGroup();
     });
 });
 

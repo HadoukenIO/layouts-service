@@ -16,7 +16,7 @@ const launchDir = location.href.slice(0, location.href.lastIndexOf('/'));
 export async function setLayout(layoutParam?: Workspace) {
     const id = (document.getElementById('layoutName') as HTMLTextAreaElement).value;
     const layoutSelect = document.getElementById('layoutSelect') as HTMLSelectElement;
-    const layout = layoutParam || await Layouts.Workspaces.generate();
+    const layout = layoutParam || await Layouts.workspaces.generate();
     const workspace = {id, layout};
 
     if (layoutSelect) {
@@ -70,7 +70,7 @@ export async function restoreLayout() {
     const id = (document.getElementById('layoutSelect') as HTMLSelectElement).value;
     const workspace = Storage.getLayout(id);
     console.log('Restoring layout');
-    const afterLayout = await Layouts.Workspaces.restore(workspace.layout);
+    const afterLayout = await Layouts.workspaces.restore(workspace.layout);
     document.getElementById('showLayout')!.innerHTML = JSON.stringify(afterLayout, null, 2);
 }
 
@@ -188,7 +188,7 @@ export function importLayout() {
 // Do not snap to other windows
 Layouts.deregister();
 
-Layouts.Workspaces.ready();
+Layouts.workspaces.ready();
 
 fin.desktop.main(() => {
     addLayoutNamesToDropdown();

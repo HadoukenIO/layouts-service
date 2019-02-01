@@ -4,7 +4,7 @@ import {WindowDetail, WindowInfo as WindowInfo_System} from 'hadouken-js-adapter
 import {WindowInfo as WindowInfo_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
-import {LegacyAPI, WorkspaceAPI} from '../../client/internal';
+import {WorkspaceAPI} from '../../client/internal';
 import {CustomData, TabGroup, Workspace, WorkspaceApp, WorkspaceWindow} from '../../client/types';
 import {apiHandler, model, tabService} from '../main';
 import {WindowIdentity} from '../model/DesktopWindow';
@@ -12,6 +12,7 @@ import {promiseMap} from '../snapanddock/utils/async';
 
 import {getGroup} from './group';
 import {addToWindowObject, inWindowObject, parseVersionString, wasCreatedFromManifest, wasCreatedProgrammatically, WindowObject} from './utils';
+import { LegacyAPI } from '../APIHandler';
 
 // This value should be updated any time changes are made to the layout schema.
 // Major version indicates breaking changes.

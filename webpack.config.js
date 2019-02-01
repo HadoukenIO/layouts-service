@@ -1,4 +1,4 @@
-const path = require('path')
+const path = require('path');
 const webpack = require('webpack');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
@@ -48,7 +48,7 @@ function createConfig(outPath, entryPoint, options, ...plugins) {
 
     if (options && options.isLibrary === true) {
         if (!!options.libraryName) {
-            config.output.library = options.libraryName
+            config.output.library = options.libraryName;
         } else {
             config.output.library = '[name]';
         }

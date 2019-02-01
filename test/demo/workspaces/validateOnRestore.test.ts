@@ -72,13 +72,13 @@ testParameterized(
         await initializer.arrangeWindows(windows, arrangement);
         await assertGrouped(t, ...windows);
 
-        const layout: Workspace = await layoutsClient.Workspaces.generate();
+        const layout: Workspace = await layoutsClient.workspaces.generate();
 
         await Promise.all(windows.map(w => fin.Window.wrapSync(w.identity).close()));
         deregisteredApp.close(true);
         await delay(500);
 
-        await layoutsClient.Workspaces.restore(layout);
+        await layoutsClient.workspaces.restore(layout);
         await delay(1500);
 
         await Promise.all(registeredChildren.map(w => assertWindowRestored(t, w.identity.uuid, w.identity.name!)));

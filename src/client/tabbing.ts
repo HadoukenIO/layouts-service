@@ -28,10 +28,6 @@ import {ApplicationUIConfig, TabProperties, WindowIdentity} from './types';
  * @throws `Promise.reject`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
  */
 export async function getTabs(identity: Identity = getId()): Promise<WindowIdentity[]|null> {
-    if (!identity.name || !identity.uuid) {
-        return Promise.reject('Invalid window provided');
-    }
-
     return tryServiceDispatch<Identity, WindowIdentity[]|null>(TabAPI.GETTABS, {name: identity.name, uuid: identity.uuid});
 }
 
@@ -78,10 +74,6 @@ export async function setTabstrip(config: ApplicationUIConfig): Promise<void> {
  * @throws `Promise.reject`: If no windows is not an array or less than 2 windows were provided.
  */
 export async function createTabGroup(windows: Identity[]): Promise<void> {
-    if (!windows || windows.length < 2) {
-        return Promise.reject('Invalid window identity array');
-    }
-
     return tryServiceDispatch<Identity[], void>(TabAPI.CREATETABGROUP, windows);
 }
 
@@ -107,13 +99,6 @@ export async function createTabGroup(windows: Identity[]): Promise<void> {
  * @throws `Promise.reject`: If the `windowToAdd` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
  */
 export async function addTab(targetWindow: Identity, windowToAdd: Identity = getId()): Promise<void> {
-    if (!targetWindow || !targetWindow.uuid || !targetWindow.name) {
-        return Promise.reject('Invalid targetWindow provided');
-    }
-    if (!windowToAdd || !windowToAdd.name || !windowToAdd.uuid) {
-        return Promise.reject('Invalid window provided');
-    }
-
     return tryServiceDispatch<AddTabPayload, void>(TabAPI.ADDTAB, {targetWindow: parseIdentity(targetWindow), windowToAdd: parseIdentity(windowToAdd)});
 }
 
@@ -134,10 +119,6 @@ export async function addTab(targetWindow: Identity, windowToAdd: Identity = get
  * @throws `Promise.reject`:  If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
  */
 export async function removeTab(identity: Identity = getId()): Promise<void> {
-    if (!identity || !identity.name || !identity.uuid) {
-        return Promise.reject('Invalid window provided');
-    }
-
     return tryServiceDispatch<Identity, void>(TabAPI.REMOVETAB, parseIdentity(identity));
 }
 
@@ -158,10 +139,6 @@ export async function removeTab(identity: Identity = getId()): Promise<void> {
  * @throws `Promise.reject`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
  */
 export async function setActiveTab(identity: Identity = getId()): Promise<void> {
-    if (!identity || !identity.name || !identity.uuid) {
-        return Promise.reject('Invalid window provided');
-    }
-
     return tryServiceDispatch<Identity, void>(TabAPI.SETACTIVETAB, parseIdentity(identity));
 }
 
@@ -182,10 +159,6 @@ export async function setActiveTab(identity: Identity = getId()): Promise<void> 
  * @throws `Promise.reject`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
  */
 export async function closeTab(identity: Identity = getId()): Promise<void> {
-    if (!identity || !identity.name || !identity.uuid) {
-        return Promise.reject('Invalid window provided');
-    }
-
     return tryServiceDispatch<Identity, void>(TabAPI.CLOSETAB, parseIdentity(identity));
 }
 
@@ -207,10 +180,6 @@ export async function closeTab(identity: Identity = getId()): Promise<void> {
  * @throws `Promise.reject`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
  */
 export async function minimizeTabGroup(identity: Identity = getId()): Promise<void> {
-    if (!identity || !identity.name || !identity.uuid) {
-        return Promise.reject('Invalid window provided');
-    }
-
     return tryServiceDispatch<Identity, void>(TabAPI.MINIMIZETABGROUP, parseIdentity(identity));
 }
 
@@ -232,10 +201,6 @@ export async function minimizeTabGroup(identity: Identity = getId()): Promise<vo
  * @throws `Promise.reject`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
  */
 export async function maximizeTabGroup(identity: Identity = getId()): Promise<void> {
-    if (!identity || !identity.name || !identity.uuid) {
-        return Promise.reject('Invalid window provided');
-    }
-
     return tryServiceDispatch<Identity, void>(TabAPI.MAXIMIZETABGROUP, parseIdentity(identity));
 }
 
@@ -257,10 +222,6 @@ export async function maximizeTabGroup(identity: Identity = getId()): Promise<vo
  * @throws `Promise.reject`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
  */
 export async function closeTabGroup(identity: Identity = getId()): Promise<void> {
-    if (!identity || !identity.name || !identity.uuid) {
-        return Promise.reject('Invalid window provided');
-    }
-
     return tryServiceDispatch<Identity, void>(TabAPI.CLOSETABGROUP, parseIdentity(identity));
 }
 
@@ -282,10 +243,6 @@ export async function closeTabGroup(identity: Identity = getId()): Promise<void>
  * @throws `Promise.reject`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
  */
 export async function restoreTabGroup(identity: Identity = getId()): Promise<void> {
-    if (!identity || !identity.name || !identity.uuid) {
-        return Promise.reject('Invalid window provided');
-    }
-
     return tryServiceDispatch<Identity, void>(TabAPI.RESTORETABGROUP, parseIdentity(identity));
 }
 
@@ -309,9 +266,5 @@ export async function restoreTabGroup(identity: Identity = getId()): Promise<voi
  * @throws `Promise.reject`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
  */
 export async function updateTabProperties(properties: Partial<TabProperties>, identity: Identity = getId()): Promise<void> {
-    if (!identity || !identity.name || !identity.uuid) {
-        return Promise.reject('Invalid window provided');
-    }
-
     return tryServiceDispatch<UpdateTabPropertiesPayload, void>(TabAPI.UPDATETABPROPERTIES, {window: parseIdentity(identity), properties});
 }

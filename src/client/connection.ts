@@ -32,17 +32,17 @@ export const channelPromise: Promise<ChannelClient> = typeof fin === 'undefined'
     fin.InterApplicationBus.Channel.connect(SERVICE_CHANNEL, {payload: {version: PACKAGE_VERSION}}).then((channel: ChannelClient) => {
         // Register service listeners
         channel.register('WARN', (payload: any) => console.warn(payload));  // tslint:disable-line:no-any
-        channel.register('join-snap-group', () => {
-            window.dispatchEvent(new Event('join-snap-group'));
+        channel.register('window-docked', () => {
+            window.dispatchEvent(new Event('window-docked'));
         });
-        channel.register('leave-snap-group', () => {
-            window.dispatchEvent(new Event('leave-snap-group'));
+        channel.register('window-undocked', () => {
+            window.dispatchEvent(new Event('window-undocked'));
         });
-        channel.register('join-tab-group', (payload: JoinTabGroupPayload) => {
-            window.dispatchEvent(new CustomEvent<JoinTabGroupPayload>('join-tab-group', {detail: payload}));
+        channel.register('tab-added', (payload: JoinTabGroupPayload) => {
+            window.dispatchEvent(new CustomEvent<JoinTabGroupPayload>('tab-added', {detail: payload}));
         });
-        channel.register('leave-tab-group', (payload: TabGroupEventPayload) => {
-            window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('leave-tab-group', {detail: payload}));
+        channel.register('tab-removed', (payload: TabGroupEventPayload) => {
+            window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('tab-removed', {detail: payload}));
         });
         channel.register('tab-activated', (payload: TabGroupEventPayload) => {
             window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('tab-activated', {detail: payload}));

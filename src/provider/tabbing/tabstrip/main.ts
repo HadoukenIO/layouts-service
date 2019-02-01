@@ -15,7 +15,7 @@ tabManager = new TabManager();
 const createLayoutsEventListeners = () => {
     layouts.addEventListener('tab-added', (event: CustomEvent<JoinTabGroupPayload>) => {
         const tabInfo: JoinTabGroupPayload = event.detail;
-        tabManager.addTab(tabInfo.identity, tabInfo.properties!, tabInfo.index!);
+        tabManager.addTab(tabInfo.identity, tabInfo.properties, tabInfo.index);
 
         document.title = tabManager.getTabs.map(tab => tab.ID.name).join(', ');
     });

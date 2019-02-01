@@ -36,11 +36,7 @@ export const SERVICE_CHANNEL = 'of-layouts-service-v1';
  */
 export function getId(): Identity {
     if (!id) {
-        id = {...fin.Window.me};
-    }
-
-    if (!id.name) {
-        id.name = id.uuid;
+        id = parseIdentity(fin.Window.me);
     }
 
     return id;
@@ -51,8 +47,12 @@ export function getId(): Identity {
  *
  * Assumed that the supplied object has uuid & name.
  */
-export function parseIdentity(window: WindowIdentity|Identity) {
-    return {uuid: window.uuid, name: window.name || window.uuid};
+export function parseIdentity(identity: WindowIdentity|Identity) {
+    if (!identity || !identity.name || !identity.uuid) {
+        throw new Error('Invalid Identity provided.  A valid Identity contains both a uuid and name');
+    }
+
+    return {uuid: identity.uuid, name: identity.name || identity.uuid};
 }
 
 

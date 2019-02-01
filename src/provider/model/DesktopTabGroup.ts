@@ -497,7 +497,7 @@ export class DesktopTabGroup implements DesktopEntity {
         const addTabPromise: Promise<void> = (async () => {
             const payload: JoinTabGroupPayload = {tabstripIdentity: this.identity, identity: tab.identity, properties: tabProps, index: this._tabs.indexOf(tab)};
 
-            this.sendTabEvent(tab, 'join-tab-group', payload);
+            this.sendTabEvent(tab, 'tab-added', payload);
             await tab.applyProperties({hidden: tab !== this._activeTab});
             await this._window.bringToFront();
         })();
@@ -526,7 +526,7 @@ export class DesktopTabGroup implements DesktopEntity {
         }
 
         const payload: TabGroupEventPayload = {tabstripIdentity: this.identity, identity: tab.identity};
-        await this.sendTabEvent(tab, 'leave-tab-group', payload);
+        await this.sendTabEvent(tab, 'tab-removed', payload);
 
         if (this._tabs.length < 2) {
             if (this._window.isReady) {

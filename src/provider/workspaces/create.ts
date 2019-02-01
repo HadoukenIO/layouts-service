@@ -153,7 +153,7 @@ export const getCurrentWorkspace = async(): Promise<Workspace> => {
 
     const layoutObject: Workspace = {type: 'layout', schemaVersion: LAYOUTS_SCHEMA_VERSION, apps: validApps, monitorInfo, tabGroups: filteredTabGroups};
 
-    apiHandler.sendToAll('workspace-saved', layoutObject);
+    apiHandler.sendToAll('workspace-generated', layoutObject);
 
     return layoutObject;
 };

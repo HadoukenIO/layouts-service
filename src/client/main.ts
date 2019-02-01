@@ -15,14 +15,14 @@ export {snapAndDock, tabbing, tabstrip, workspaces};
  * @hidden
  */
 export interface EventMap {
-    'join-snap-group': JoinSnapGroupEvent;
-    'leave-snap-group': LeaveSnapGroupEvent;
-    'join-tab-group': JoinTabGroupEvent;
-    'leave-tab-group': LeaveTabGroupEvent;
+    'window-docked': JoinSnapGroupEvent;
+    'window-undocked': LeaveSnapGroupEvent;
+    'tab-added': JoinTabGroupEvent;
+    'tab-removed': LeaveTabGroupEvent;
     'tab-activated': TabActivatedEvent;
     'tab-properties-updated': TabPropertiesUpdatedEvent;
     'workspace-restored': WorkspaceRestoredEvent;
-    'workspace-saved': WorkspaceSavedEvent;
+    'workspace-generated': WorkspaceSavedEvent;
 }
 
 
@@ -75,7 +75,7 @@ export async function addEventListener<K extends keyof EventMap>(eventType: K, l
  * ```ts
  * import {addEventListener} from 'openfin-layouts';
  *
- * addEventListener('join-snap-group', async (event: Event) => {
+ * addEventListener('window-docked', async (event: Event) => {
  *     console.log("Docked to another window");
  *
  *     // Using 'v1' API
@@ -105,7 +105,7 @@ export type JoinSnapGroupEvent = Event&{type: 'join-snap-group'};
  * ```ts
  * import {addEventListener} from 'openfin-layouts';
  *
- * addEventListener('leave-snap-group', async (event: Event) => {
+ * addEventListener('window-undocked', async (event: Event) => {
  *     console.log("Undocked from another window");
  *
  *     // Using 'v1' API
@@ -135,7 +135,7 @@ export type LeaveSnapGroupEvent = Event&{type: 'leave-snap-group'};
  * ```ts
  * import {addEventListener, tabbing} from 'openfin-layouts';
  *
- * addEventListener('join-tab-group', async (event: CustomEvent<JoinTabGroupPayload>) => {
+ * addEventListener('tab-added', async (event: CustomEvent<JoinTabGroupPayload>) => {
  *     console.log("Window added to tab group: ", event.detail.identity);
  *     console.log("Windows in current group: ", await tabbing.getTabs());
  * });
@@ -156,7 +156,7 @@ export type JoinTabGroupEvent = CustomEvent<JoinTabGroupPayload>&{type: 'join-ta
  * ```ts
  * import {addEventListener} from 'openfin-layouts';
  *
- * addEventListener('leave-tab-group', async (event: Event) => {
+ * addEventListener('tab-removed', async (event: Event) => {
  *     console.log("Window removed from tab group");
  * });
  * ```
@@ -234,7 +234,7 @@ export type WorkspaceRestoredEvent = CustomEvent<Workspace>&{type: 'workspace-re
  * ```ts
  * import {addEventListener} from 'openfin-layouts';
  *
- * addEventListener('workspace-saved', async (event: CustomEvent<Workspace>) => {
+ * addEventListener('workspace-generated', async (event: CustomEvent<Workspace>) => {
  *     console.log(`Properties for the saved workspace: ${event.detail}`);
  * });
  * ```

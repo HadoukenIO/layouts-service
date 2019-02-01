@@ -13,14 +13,14 @@ tabManager = new TabManager();
  * Creates event listeners for events fired from the openfin layouts service.
  */
 const createLayoutsEventListeners = () => {
-    layouts.addEventListener('join-tab-group', (event: CustomEvent<JoinTabGroupPayload>) => {
+    layouts.addEventListener('tab-added', (event: CustomEvent<JoinTabGroupPayload>) => {
         const tabInfo: JoinTabGroupPayload = event.detail;
         tabManager.addTab(tabInfo.identity, tabInfo.properties!, tabInfo.index!);
 
         document.title = tabManager.getTabs.map(tab => tab.ID.name).join(', ');
     });
 
-    layouts.addEventListener('leave-tab-group', (event: CustomEvent<TabGroupEventPayload>) => {
+    layouts.addEventListener('tab-removed', (event: CustomEvent<TabGroupEventPayload>) => {
         const tabInfo: TabGroupEventPayload = event.detail;
         tabManager.removeTab(tabInfo.identity);
 

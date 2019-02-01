@@ -15,27 +15,27 @@ tabManager = new TabManager();
 const createLayoutsEventListeners = () => {
     layouts.addEventListener('join-tab-group', (event: CustomEvent<JoinTabGroupPayload>) => {
         const tabInfo: JoinTabGroupPayload = event.detail;
-        tabManager.addTab(tabInfo.tabID, tabInfo.properties!, tabInfo.index!);
+        tabManager.addTab(tabInfo.identity, tabInfo.properties!, tabInfo.index!);
 
         document.title = tabManager.getTabs.map(tab => tab.ID.name).join(', ');
     });
 
     layouts.addEventListener('leave-tab-group', (event: CustomEvent<TabGroupEventPayload>) => {
         const tabInfo: TabGroupEventPayload = event.detail;
-        tabManager.removeTab(tabInfo.tabID);
+        tabManager.removeTab(tabInfo.identity);
 
         document.title = tabManager.getTabs.map(tab => tab.ID.name).join(', ');
     });
 
     layouts.addEventListener('tab-activated', (event: CustomEvent<TabGroupEventPayload>) => {
-        const tabInfo: WindowIdentity = event.detail.tabID;
+        const tabInfo: WindowIdentity = event.detail.identity;
         tabManager.setActiveTab(tabInfo);
     });
 
     layouts.addEventListener('tab-properties-updated', (event: CustomEvent<TabPropertiesUpdatedPayload>|Event) => {
         const customEvent: CustomEvent<TabPropertiesUpdatedPayload> = event as CustomEvent<TabPropertiesUpdatedPayload>;
 
-        const tab = tabManager.getTab(customEvent.detail.tabID);
+        const tab = tabManager.getTab(customEvent.detail.identity);
         const props = customEvent.detail.properties;
 
         if (tab) {

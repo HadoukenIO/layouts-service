@@ -316,14 +316,14 @@ export interface TabGroupEventPayload {
     /**
      * String that uniquely identifies the current tabset.
      */
-    tabGroupId: string;
+    tabstripIdentity: WindowIdentity;
 
     /**
      * Identifies the window that is the source of the current event.
      *
      * See the documentation for individual events for more details.
      */
-    tabID: WindowIdentity;
+    identity: WindowIdentity;
 }
 
 /**

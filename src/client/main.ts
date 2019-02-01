@@ -136,7 +136,7 @@ export type LeaveSnapGroupEvent = Event&{type: 'leave-snap-group'};
  * import {addEventListener, tabbing} from 'openfin-layouts';
  *
  * addEventListener('join-tab-group', async (event: CustomEvent<JoinTabGroupPayload>) => {
- *     console.log("Window added to tab group");
+ *     console.log("Window added to tab group: ", event.detail.identity);
  *     console.log("Windows in current group: ", await tabbing.getTabs());
  * });
  * ```
@@ -196,7 +196,7 @@ export type TabActivatedEvent = CustomEvent<TabGroupEventPayload>&{type: 'tab-ac
  * import {addEventListener} from 'openfin-layouts';
  *
  * addEventListener('tab-properties-updated', async (event: CustomEvent<TabPropertiesUpdatedPayload>) => {
- *     const tabID = event.detail.tabID;
+ *     const tabID = event.detail.identity;
  *     const properties = event.detail.properties;
  *     console.log(`Properties for ${tabID.uuid}/${tabID.name} are:`, properties);
  * });
@@ -234,7 +234,7 @@ export type WorkspaceRestoredEvent = CustomEvent<Workspace>&{type: 'workspace-re
  * ```ts
  * import {addEventListener} from 'openfin-layouts';
  *
- * addEventListener('workspace-saved', async (event: CustomEvent<Layout>) => {
+ * addEventListener('workspace-saved', async (event: CustomEvent<Workspace>) => {
  *     console.log(`Properties for the saved workspace: ${event.detail}`);
  * });
  * ```

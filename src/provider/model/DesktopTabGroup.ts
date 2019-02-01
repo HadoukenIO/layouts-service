@@ -247,7 +247,7 @@ export class DesktopTabGroup implements DesktopEntity {
         } else {
             // Need to re-send tab-activated event to ensure tab is active within tabstrip
             // TODO: See if this can be avoided
-            const payload: TabGroupEventPayload = {tabGroupId: this.id, tabID: activeTab.identity};
+            const payload: TabGroupEventPayload = {tabstripIdentity: this.identity, identity: activeTab.identity};
             this._window.sendMessage('tab-activated', payload);
         }
     }
@@ -395,7 +395,7 @@ export class DesktopTabGroup implements DesktopEntity {
             }
 
             await Promise.all([this._window!.sync(), tab.sync()]).catch(e => console.error(e));
-            const payload: TabGroupEventPayload = {tabGroupId: this.id, tabID: tab.identity};
+            const payload: TabGroupEventPayload = {tabstripIdentity: this.identity, identity: tab.identity};
             this._window.sendMessage('tab-activated', payload);
         }
     }
@@ -495,7 +495,7 @@ export class DesktopTabGroup implements DesktopEntity {
         tab.setSnapGroup(this._window.snapGroup);
 
         const addTabPromise: Promise<void> = (async () => {
-            const payload: JoinTabGroupPayload = {tabGroupId: this.id, tabID: tab.identity, properties: tabProps, index: this._tabs.indexOf(tab)};
+            const payload: JoinTabGroupPayload = {tabstripIdentity: this.identity, identity: tab.identity, properties: tabProps, index: this._tabs.indexOf(tab)};
 
             this.sendTabEvent(tab, 'join-tab-group', payload);
             await tab.applyProperties({hidden: tab !== this._activeTab});
@@ -525,7 +525,7 @@ export class DesktopTabGroup implements DesktopEntity {
             await tab.setTabGroup(null);
         }
 
-        const payload: TabGroupEventPayload = {tabGroupId: this.id, tabID: tab.identity};
+        const payload: TabGroupEventPayload = {tabstripIdentity: this.identity, identity: tab.identity};
         await this.sendTabEvent(tab, 'leave-tab-group', payload);
 
         if (this._tabs.length < 2) {

@@ -91,10 +91,10 @@ export async function addEventListener<K extends keyof EventMap>(eventType: K, l
  * The service considers any windows that are tabbed together to also be in the same snap group, so this event will also fire when a window is added to a tab
  * group. This may change in future versions of the service.
  *
- * @type join-snap-group
+ * @type window-docked
  * @event
  */
-export type JoinSnapGroupEvent = Event&{type: 'join-snap-group'};
+export type JoinSnapGroupEvent = Event&{type: 'window-docked'};
 
 /**
  * Event fired when one window is undocked from it's neighbor(s).
@@ -121,10 +121,10 @@ export type JoinSnapGroupEvent = Event&{type: 'join-snap-group'};
  * The service considers any windows that are tabbed together to also be in the same snap group, so this event will also fire when a window is removed from a
  * tab group. This may change in future versions of the service.
  *
- * @type leave-snap-group
+ * @type window-undocked
  * @event
  */
-export type LeaveSnapGroupEvent = Event&{type: 'leave-snap-group'};
+export type LeaveSnapGroupEvent = Event&{type: 'window-undocked'};
 
 /**
  * Event fired whenever the current window is tabbed. This event is used when adding windows to both new and existing
@@ -146,7 +146,7 @@ export type LeaveSnapGroupEvent = Event&{type: 'leave-snap-group'};
  * @type join-tab-group
  * @event
  */
-export type JoinTabGroupEvent = CustomEvent<JoinTabGroupPayload>&{type: 'join-tab-group'};
+export type JoinTabGroupEvent = CustomEvent<JoinTabGroupPayload>&{type: 'tab-added'};
 
 /**
  * Event fired whenever the current window is removed from it's previous tabset.
@@ -166,7 +166,7 @@ export type JoinTabGroupEvent = CustomEvent<JoinTabGroupPayload>&{type: 'join-ta
  * @type leave-tab-group
  * @event
  */
-export type LeaveTabGroupEvent = CustomEvent<TabGroupEventPayload>&{type: 'leave-tab-group'};
+export type LeaveTabGroupEvent = CustomEvent<TabGroupEventPayload>&{type: 'tab-removed'};
 
 /**
  * Event fired whenever the active tab within a tab group is changed.
@@ -227,7 +227,7 @@ export type TabPropertiesUpdatedEvent = CustomEvent<TabPropertiesUpdatedPayload>
 export type WorkspaceRestoredEvent = CustomEvent<Workspace>&{type: 'workspace-restored'};
 
 /**
- * Event fired whenever a workspace is saved (via {@link generate}).
+ * Event fired whenever a workspace is generated (via {@link generate}).
  *
  * The event will contain the full detail of the ({@link Workspace}).
  *
@@ -235,11 +235,11 @@ export type WorkspaceRestoredEvent = CustomEvent<Workspace>&{type: 'workspace-re
  * import {addEventListener} from 'openfin-layouts';
  *
  * addEventListener('workspace-generated', async (event: CustomEvent<Workspace>) => {
- *     console.log(`Properties for the saved workspace: ${event.detail}`);
+ *     console.log(`Properties for the generated workspace: ${event.detail}`);
  * });
  * ```
  *
- * @type workspace-saved
+ * @type workspace-generated
  * @event
  */
-export type WorkspaceSavedEvent = CustomEvent<Workspace>&{type: 'workspace-saved'};
+export type WorkspaceSavedEvent = CustomEvent<Workspace>&{type: 'workspace-generated'};

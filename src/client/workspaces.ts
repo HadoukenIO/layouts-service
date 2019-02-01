@@ -13,7 +13,7 @@ import {CustomData, Workspace, WorkspaceApp} from './types';
  * The callback will be invoked on each call to {@link generate}, and the return value (if anything is returned)
  * will be saved as the workspace's `customData` property.
  */
-export async function setSaveHandler(customDataDecorator: () => CustomData): Promise<boolean> {
+export async function setGenerateHandler(customDataDecorator: () => CustomData): Promise<boolean> {
     const channel: ChannelClient = await channelPromise;
     return channel.register(WorkspaceAPI.GENERATE_HANDLER, customDataDecorator);
 }

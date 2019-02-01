@@ -228,7 +228,7 @@ export class TabService {
         }
 
         const {icon, title} = tab.currentState;
-        // Special handling for S&R placeholder windows
+        // Special handling for workspace placeholder windows
         const modifiedTitle = tab.identity.uuid === fin.Window.me.uuid && title.startsWith('Placeholder-') ? 'Loading...' : title;
         return {icon, title: modifiedTitle};
     }

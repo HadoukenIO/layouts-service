@@ -92,7 +92,7 @@ const positionWindow = async (win: WorkspaceWindow) => {
 };
 
 // Allow layouts service to save and restore this application
-Layouts.workspaces.setSaveHandler(() => {
+Layouts.workspaces.setGenerateHandler(() => {
     return {test: true};
 });
 Layouts.workspaces.setRestoreHandler(onAppRes);

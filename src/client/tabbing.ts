@@ -65,7 +65,7 @@ export async function setTabstrip(config: ApplicationUIConfig): Promise<void> {
  * used as the seed for the tab UI properties.
  *
  * ```ts
- * import * Layouts from 'openfin-layouts';
+ * import * as Layouts from 'openfin-layouts';
  *
  * Layouts.tabbing.createTabGroup([{uuid: "App1", name: "App1"}, {uuid: "App2", name: "App2"}, {uuid: "App3", name: "App3"}]);
  * ```
@@ -247,7 +247,7 @@ export async function restoreTabGroup(identity: Identity = getId()): Promise<voi
 }
 
 /**
- * Updates a Tabs Properties on the Tab strip.  This includes the tabs title and icon.
+ * Updates a tab's Properties on the Tab strip.  This includes the tabs title and icon.
  *
  * ```ts
  * import * as Layouts from 'openfin-layouts';

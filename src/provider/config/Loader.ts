@@ -86,6 +86,8 @@ export class Loader<T> {
                     if (service.config && this._serviceNames.includes(service.name)) {
                         console.log(`Loading config from ${identity.uuid}/${service.name}`);
 
+                        this.getAppState(identity.uuid);
+
                         // Listen for Application close
                         app.once('closed', this.onApplicationClosed);
 
@@ -109,6 +111,10 @@ export class Loader<T> {
         const scope: Scope = {level: 'application', uuid: event.uuid};
         const state: AppState = this._appState[scope.uuid];
 
+        // Remove listener
+        const app = fin.Application.wrapSync({uuid: event.uuid});
+        app.removeListener('closed', this.onApplicationClosed);
+
         if (state) {
             // Mark application as no longer running
             state.isRunning = false;
@@ -124,10 +130,10 @@ export class Loader<T> {
      *
      * @param app An application within the hierarchy. May still be running, or could have closed already.
      */
-    private cleanUpApplicationConfig(app: AppState): boolean {
-        const isOrphaned = !app.children.every((child: AppState) => this.cleanUpApplicationConfig(child));
+    private cleanUpApplicationConfig(app: AppState): void {
+        app.children.forEach((child: AppState) => this.cleanUpApplicationConfig(child));
 
-        if (isOrphaned && app.children.length === 0) {
+        if (app.children.length === 0) {
             console.log(`Discarding config from ${app.scope.uuid}`);
 
             // Unload config
@@ -139,12 +145,7 @@ export class Loader<T> {
                 app.parent!.children.splice(index, 1);
             }
             delete this._appState[app.scope.uuid];
-        } else if (isOrphaned) {
-            // Sanity check, should never happen
-            console.warn('An application is no longer referenced, but still has state data for one or more child applications');
         }
-
-        return isOrphaned;
     }
 
     private onWindowClosed(event: WindowEvent<'window', 'closed'>): void {

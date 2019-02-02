@@ -8,6 +8,7 @@ import {isWindowRegistered} from '../demo/utils/snapServiceUtils';
 import {teardown} from '../teardown';
 
 import {assertGrouped, assertTabbed} from './utils/assertions';
+import {addRuleToProvider} from './utils/config';
 import {createChildWindow} from './utils/createChildWindow';
 import {delay} from './utils/delay';
 import {dragSideToSide, dragWindowTo} from './utils/dragWindowTo';
@@ -38,13 +39,6 @@ test.afterEach.always(async (t: TestContext) => {
 
     await teardown(t);
 });
-
-async function addRuleToProvider(scope: Scope, config: ConfigurationObject): Promise<void> {
-    return executeJavascriptOnService(function(this: ProviderWindow, data) {
-        this.config.add(data.scope, data.config);
-    }, {scope, config});
-}
-
 
 test('Window can be de-registered by adding a rule to the store', async (t: TestContext) => {
     const win = await createChildWindow({...DEFAULT_OPTIONS, name: 'testWindow'});

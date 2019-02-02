@@ -120,8 +120,6 @@ export class Store<T> {
             // Load top-level config at the 'default' scope
             this.addInternal(scope, scope, config);
         }
-
-        this._cache.clear();
     }
 
     /**
@@ -164,6 +162,7 @@ export class Store<T> {
                     const index: number = values.indexOf(item);
 
                     if (index >= 0) {
+                        console.log('Removing config', item.config);
                         values.splice(index, 1);
                         this._cache.clear();
                         this.checkWatches(item, 'onRemove');
@@ -175,6 +174,8 @@ export class Store<T> {
 
             // NOTE: Some entries in this._items may now be empty, but will leave these in to remove any overhead of re-adding them later.
         });
+
+        this._cache.clear();
     }
 
     /**
@@ -294,6 +295,8 @@ export class Store<T> {
     }
 
     private addInternal(source: Scope, rule: Rule, config: T): void {
+        this._cache.clear();
+
         let itemsWithScope: StoredConfig<T>[]|undefined = this._items.get(rule.level);
         if (!itemsWithScope) {
             itemsWithScope = [];

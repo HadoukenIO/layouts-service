@@ -5,7 +5,126 @@ import {Identity} from 'hadouken-js-adapter';
 
 import {tryServiceDispatch} from './connection';
 import {AddTabPayload, getId, parseIdentity, SetTabstripPayload, TabAPI, UpdateTabPropertiesPayload} from './internal';
-import {ApplicationUIConfig, TabProperties, WindowIdentity} from './types';
+import {ApplicationUIConfig, TabAddedPayload, TabGroupEventPayload, TabProperties, TabPropertiesUpdatedPayload, WindowIdentity} from './types';
+
+export interface TabPropertiesUpdatedEvent extends CustomEvent<TabPropertiesUpdatedPayload> {
+    type: 'tab-properties-updated';
+}
+
+export interface TabActivatedEvent extends CustomEvent<TabGroupEventPayload> {
+    type: 'tab-activated';
+}
+
+export interface TabRemovedEvent extends CustomEvent<TabGroupEventPayload> {
+    type: 'tab-removed';
+}
+
+export interface TabAddedEvent extends CustomEvent<TabAddedPayload> {
+    type: 'tab-added';
+}
+
+/**
+ * @hidden
+ */
+export interface EventMap {
+    'tab-added': TabAddedEvent;
+    'tab-removed': TabRemovedEvent;
+    'tab-activated': TabActivatedEvent;
+    'tab-properties-updated': TabPropertiesUpdatedEvent;
+}
+
+/**
+ * Event fired whenever the current window is tabbed. This event is used when adding windows to both new and existing
+ * tabsets.
+ *
+ * To find out which other windows are in the tabset, use the `getTabs()` method.
+ *
+ * ```ts
+ * import {addEventListener, tabbing} from 'openfin-layouts';
+ *
+ * addEventListener('tab-added', async (event: TabAddedEvent) => {
+ *     console.log("Window added to tab group: ", event.detail.identity);
+ *     console.log("Windows in current group: ", await tabbing.getTabs());
+ * });
+ * ```
+ *
+ * If a window is moved from one tab group to another, this will be messaged as a `tab-removed` event, followed by a `tab-added`.
+ *
+ * @type tab-added
+ * @event
+ */
+export async function addEventListener(eventType: 'tab-added', listener: (event: TabAddedEvent) => void): Promise<void>;
+
+
+/**
+ * Event fired whenever the current window is removed from it's previous tabset.
+ *
+ * To find out which other windows are in the tabset, use the `getTabs()` method.
+ *
+ * ```ts
+ * import {addEventListener} from 'openfin-layouts';
+ *
+ * addEventListener('tab-removed', async (event: TabRemovedEvent) => {
+ *     console.log("Window removed from tab group");
+ * });
+ * ```
+ *
+ * If a window is moved from one tab group to another, this will be messaged as a `tab-removed` event, followed by a `tab-added`.
+ *
+ * @type tab-removed
+ * @event
+ */
+export async function addEventListener(eventType: 'tab-removed', listener: (event: TabRemovedEvent) => void): Promise<void>;
+
+/**
+ * Event fired whenever the active tab within a tab group is changed.
+ *
+ * ```ts
+ * import {addEventListener} from 'openfin-layouts';
+ *
+ * addEventListener('tab-activated', (event: TabActivatedEvent) => {
+ *     const activeTab = event.detail.tabID;
+ *     console.log("Active tab:", activeTab.uuid, activeTab.name);
+ * });
+ * ```
+ *
+ * NOTE: This event is only passed to tabstrip windows, and not to the actual application windows within the tabset.
+ *
+ * @type tab-activated
+ * @event
+ */
+export async function addEventListener(eventType: 'tab-activated', listener: (event: TabActivatedEvent) => void): Promise<void>;
+
+/**
+ * Event fired whenever a tabs properties are updated (via {@link updateTabProperties}).
+ *
+ * The event will always contain the full properties of the tab, even if only a subset of them were updated.
+ *
+ * ```ts
+ * import {addEventListener} from 'openfin-layouts';
+ *
+ * addEventListener('tab-properties-updated', (event: TabPropertiesUpdatedEvent) => {
+ *     const tabID = event.detail.identity;
+ *     const properties = event.detail.properties;
+ *     console.log(`Properties for ${tabID.uuid}/${tabID.name} are:`, properties);
+ * });
+ * ```
+ *
+ * @type tab-properties-updated
+ * @event
+ */
+export async function addEventListener(eventType: 'tab-properties-updated', listener: (event: TabPropertiesUpdatedEvent) => void): Promise<void>;
+
+export async function addEventListener<K extends keyof EventMap>(eventType: K, listener: (event: EventMap[K]) => void): Promise<void> {
+    if (typeof fin === 'undefined') {
+        throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
+    }
+    // Use native js event system to pass internal events around.
+    // Without this we would need to handle multiple registration ourselves.
+    window.addEventListener(eventType, listener as EventListener);
+}
+
+
 
 /**
  * Returns array of window identity references for tabs belonging to the tab group of the provided window context.

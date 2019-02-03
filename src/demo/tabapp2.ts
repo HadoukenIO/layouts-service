@@ -10,11 +10,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 fin.desktop.main(() => {
     Layouts.tabbing.setTabstrip({url: 'http://localhost:1337/demo/tabstrips/custom2.html', height: 62});
-    Layouts.addEventListener('tab-added', () => {
+    Layouts.tabbing.addEventListener('tab-added', () => {
         console.log('TABBED: ');
     });
 
-    Layouts.addEventListener('tab-removed', () => {
+    Layouts.tabbing.addEventListener('tab-removed', () => {
         console.log('UNTABBED: ');
     });
 

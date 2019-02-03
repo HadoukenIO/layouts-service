@@ -1,7 +1,7 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import {JoinTabGroupPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload} from '../../client/types';
-import {ApplicationUIConfig, TabProperties, WindowIdentity} from '../../client/types';
+import {TabAddedPayload, TabGroupEventPayload} from '../../client/types';
+import {ApplicationUIConfig, WindowIdentity} from '../../client/types';
 import {WindowMessages} from '../APIHandler';
 import {tabService} from '../main';
 import {Signal1} from '../Signal';
@@ -495,8 +495,7 @@ export class DesktopTabGroup implements DesktopEntity {
         tab.setSnapGroup(this._window.snapGroup);
 
         const addTabPromise: Promise<void> = (async () => {
-            const payload:
-                JoinTabGroupPayload = {tabstripIdentity: this.identity, identity: tab.identity, properties: tabProps, index: this._tabs.indexOf(tab)};
+            const payload: TabAddedPayload = {tabstripIdentity: this.identity, identity: tab.identity, properties: tabProps, index: this._tabs.indexOf(tab)};
 
             this.sendTabEvent(tab, 'tab-added', payload);
             await tab.applyProperties({hidden: tab !== this._activeTab});

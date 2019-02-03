@@ -7,6 +7,67 @@ import {channelPromise, tryServiceDispatch} from './connection';
 import {WorkspaceAPI} from './internal';
 import {CustomData, Workspace, WorkspaceApp} from './types';
 
+export interface WorkspaceGeneratedEvent extends CustomEvent<Workspace> {
+    type: 'workspace-generated';
+}
+
+export interface WorkspaceRestoredEvent extends CustomEvent<Workspace> {
+    type: 'workspace-restored';
+}
+
+/**
+ * @hidden
+ */
+export interface EventMap {
+    'workspace-restored': WorkspaceRestoredEvent;
+    'workspace-generated': WorkspaceGeneratedEvent;
+}
+
+/**
+ * Event fired whenever a workspace is restored (via {@link restore}).
+ *
+ * The event will contain the full detail of the ({@link Workspace}).
+ *
+ * ```ts
+ * import {addEventListener} from 'openfin-layouts';
+ *
+ * addEventListener('workspace-restored', async (event: WorkspaceRestoredEvent) => {
+ *      console.log(`Properties for the restored workspace: ${event.detail}`);
+ * });
+ * ```
+ *
+ * @type workspace-restored
+ * @event
+ */
+export async function addEventListener(eventType: 'workspace-restored', listener: (event: WorkspaceRestoredEvent) => void): Promise<void>;
+
+/**
+ * Event fired whenever a workspace is {@link generate|generated}.
+ *
+ * The event will contain the full detail of the {@link Workspace}.
+ *
+ * ```ts
+ * import {addEventListener} from 'openfin-layouts';
+ *
+ * addEventListener('workspace-generated', async (event: WorkspaceGeneratedEvent) => {
+ *     console.log(`Properties for the generated workspace: ${event.detail}`);
+ * });
+ * ```
+ *
+ * @type workspace-generated
+ * @event
+ */
+export async function addEventListener(eventType: 'workspace-generated', listener: (event: WorkspaceGeneratedEvent) => void): Promise<void>;
+
+export async function addEventListener<K extends keyof EventMap>(eventType: K, listener: (event: EventMap[K]) => void): Promise<void> {
+    if (typeof fin === 'undefined') {
+        throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
+    }
+    // Use native js event system to pass internal events around.
+    // Without this we would need to handle multiple registration ourselves.
+    window.addEventListener(eventType, listener as EventListener);
+}
+
 /**
  * Register a callback that will save the state of the calling application.
  *
@@ -36,7 +97,7 @@ export async function setRestoreHandler(layoutDecorator: (layoutApp: WorkspaceAp
  * The returned JSON will contain the main application window of every application that is currently open and hasn't
  * explicitly de-registered itself using the layouts service API. Child windows will not be included by default - the
  * returned workspace object will only contain child window data for applications that integrate with the layouts service
- * by registering {@link setSaveHandler|save} and {@link setRestoreHandler|restore} callbacks.
+ * by registering {@link setGenerateHandler|save} and {@link setRestoreHandler|restore} callbacks.
  *
  * TODO: Document workspace generation process
  */
@@ -50,7 +111,7 @@ export async function generate(): Promise<Workspace> {
  * The returned JSON will contain the main application window of every application that is currently open and hasn't
  * explicitly de-registered itself using the layouts service API. Child windows will not be included by default - the
  * returned workspace object will only contain child window data for applications that integrate with the layouts service
- * by registering {@link setSaveHandler|save} and {@link setRestoreHandler|restore} callbacks.
+ * by registering {@link setGenerateHandler|save} and {@link setRestoreHandler|restore} callbacks.
  *
  * TODO: Document workspace restoration process
  */

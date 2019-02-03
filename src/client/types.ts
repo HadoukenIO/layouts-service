@@ -327,9 +327,9 @@ export interface TabGroupEventPayload {
 }
 
 /**
- * Details of the {@link JoinTabGroupEvent|'join-tab-group'} event
+ * Details of the {@link TabAddedEvent|'tab-added'} event
  */
-export interface JoinTabGroupPayload extends TabGroupEventPayload {
+export interface TabAddedPayload extends TabGroupEventPayload {
     /**
      * The properties of the newly-added tab.
      *

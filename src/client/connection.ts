@@ -14,7 +14,7 @@
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
 import {APITopics, SERVICE_CHANNEL} from './internal';
-import {JoinTabGroupPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload, Workspace} from './types';
+import {TabAddedPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload, Workspace} from './types';
 
 
 /**
@@ -38,8 +38,8 @@ export const channelPromise: Promise<ChannelClient> = typeof fin === 'undefined'
         channel.register('window-undocked', () => {
             window.dispatchEvent(new Event('window-undocked'));
         });
-        channel.register('tab-added', (payload: JoinTabGroupPayload) => {
-            window.dispatchEvent(new CustomEvent<JoinTabGroupPayload>('tab-added', {detail: payload}));
+        channel.register('tab-added', (payload: TabAddedPayload) => {
+            window.dispatchEvent(new CustomEvent<TabAddedPayload>('tab-added', {detail: payload}));
         });
         channel.register('tab-removed', (payload: TabGroupEventPayload) => {
             window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('tab-removed', {detail: payload}));

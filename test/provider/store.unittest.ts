@@ -368,6 +368,8 @@ describe('Store', () => {
     });
 
     describe('When adding a scope-based watch', () => {
+        const config = {bool: true};
+
         let watch: ScopeWatch<Config>;
         let onAddProxy: jest.Mock<WatchCallback>;
         let onRemoveProxy: jest.Mock<WatchCallback>;
@@ -382,21 +384,28 @@ describe('Store', () => {
         });
 
         it('Watch triggers when adding a config of that scope', () => {
-            store.add({level: 'application', uuid: 'my-app'}, {});
+            store.add({level: 'application', uuid: 'my-app'}, config);
 
             expect(onAddProxy.mock.calls).toHaveLength(1);
             expect(onRemoveProxy.mock.calls).toHaveLength(0);
         });
 
         it('Watch doesn\'t trigger when adding a config of different scope', () => {
-            store.add({level: 'window', uuid: 'my-app', name: 'my-window'}, {});
+            store.add({level: 'window', uuid: 'my-app', name: 'my-window'}, config);
 
             expect(onAddProxy.mock.calls).toHaveLength(0);
             expect(onRemoveProxy.mock.calls).toHaveLength(0);
         });
 
         it('Watch doesn\'t trigger when adding a config of the same level but different scope params', () => {
-            store.add({level: 'application', uuid: 'other-app'}, {});
+            store.add({level: 'application', uuid: 'other-app'}, config);
+
+            expect(onAddProxy.mock.calls).toHaveLength(0);
+            expect(onRemoveProxy.mock.calls).toHaveLength(0);
+        });
+
+        it('Watch doesn\'t trigger when config object is empty (no rules or config params)', () => {
+            store.add({level: 'application', uuid: 'my-app'}, {});
 
             expect(onAddProxy.mock.calls).toHaveLength(0);
             expect(onRemoveProxy.mock.calls).toHaveLength(0);
@@ -408,7 +417,7 @@ describe('Store', () => {
             });
 
             it('Watch doesn\'t trigger once removed', () => {
-                store.add({level: 'application', uuid: 'my-app'}, {});
+                store.add({level: 'application', uuid: 'my-app'}, config);
 
                 expect(onAddProxy.mock.calls).toHaveLength(0);
                 expect(onRemoveProxy.mock.calls).toHaveLength(0);
@@ -416,7 +425,7 @@ describe('Store', () => {
 
             it('The same object can be re-added and work as intended', () => {
                 store.addWatch(watch);
-                store.add({level: 'application', uuid: 'my-app'}, {});
+                store.add({level: 'application', uuid: 'my-app'}, config);
 
                 expect(onAddProxy.mock.calls).toHaveLength(1);
                 expect(onRemoveProxy.mock.calls).toHaveLength(0);

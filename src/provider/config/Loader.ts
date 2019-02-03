@@ -86,10 +86,8 @@ export class Loader<T> {
                     if (service.config && this._serviceNames.includes(service.name)) {
                         console.log(`Loading config from ${identity.uuid}/${service.name}`);
 
-                        this.getAppState(identity.uuid);
-
-                        // Listen for Application close
-                        app.once('closed', this.onApplicationClosed);
+                        // Will need to unload this config when the application exits, ensure we track it
+                        this.getAppState(app);
 
                         // Load the config from the application's manifest
                         this._store.add({level: 'application', uuid: identity.uuid}, service.config);
@@ -98,8 +96,8 @@ export class Loader<T> {
             }
 
             if (parentUuid && this._appState.hasOwnProperty(parentUuid)) {
-                const state = this.getAppState(identity.uuid);
-                const parent = this.getAppState(parentUuid);
+                const state = this.getAppState(app);
+                const parent = this.getAppState(fin.Application.wrapSync({uuid: parentUuid}));
 
                 state.parent = parent;
                 parent.children.push(state);
@@ -121,6 +119,13 @@ export class Loader<T> {
 
             // Unload this application's config, unless it may be required by another application
             this.cleanUpApplicationConfig(state);
+
+            let parent = state;
+            while (parent.parent && !parent.parent.isRunning) {
+                parent = parent.parent;
+                console.log('Clean up parent', parent.scope.uuid);
+                this.cleanUpApplicationConfig(parent);
+            }
         }
     }
 
@@ -133,7 +138,7 @@ export class Loader<T> {
     private cleanUpApplicationConfig(app: AppState): void {
         app.children.forEach((child: AppState) => this.cleanUpApplicationConfig(child));
 
-        if (app.children.length === 0) {
+        if (!app.isRunning && app.children.length === 0) {
             console.log(`Discarding config from ${app.scope.uuid}`);
 
             // Unload config
@@ -173,11 +178,14 @@ export class Loader<T> {
         }
     }
 
-    private getAppState(uuid: string): AppState {
+    private getAppState(app: Application): AppState {
+        const uuid = app.identity.uuid;
         let state: AppState = this._appState[uuid];
 
         if (!state) {
             state = {scope: {level: 'application', uuid}, isRunning: true, parent: null, children: []};
+
+            app.addListener('closed', this.onApplicationClosed);
 
             this._appState[uuid] = state;
         }

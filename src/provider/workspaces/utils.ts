@@ -7,7 +7,6 @@ import {WorkspaceApp, WorkspaceWindow} from '../../client/types';
 import {model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {WindowIdentity} from '../model/DesktopWindow';
-import {ApplicationConfigManager} from '../tabbing/components/ApplicationConfigManager';
 
 export interface SemVer {
     major: number;
@@ -238,7 +237,8 @@ export function parseVersionString(versionString: string): SemVer {
     return {major: Number.parseInt(match[1], 10), minor: Number.parseInt(match[2], 10), patch: Number.parseInt(match[3], 10)};
 }
 
-export function adjustSizeOfFormerlyTabbedWindows(winIdentity: WindowIdentity, formerlyTabbedWindows: WindowObject, layoutWindow: LayoutWindow|WindowDetail) {
+export function adjustSizeOfFormerlyTabbedWindows(
+    winIdentity: WindowIdentity, formerlyTabbedWindows: WindowObject, layoutWindow: WorkspaceWindow|WindowDetail) {
     if (inWindowObject(winIdentity, formerlyTabbedWindows)) {
         const tabWindow = model.getWindow(winIdentity);
         if (tabWindow) {

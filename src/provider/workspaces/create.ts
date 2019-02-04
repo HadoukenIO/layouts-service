@@ -114,7 +114,7 @@ export const getCurrentWorkspace = async(): Promise<Workspace> => {
 
             // Grab the layout information for the main app window
             const mainOfWin: Window = await ofApp.getWindow();
-            const mainWindowLayoutData = await getWorkspcaeWindowData(mainOfWin, tabbedWindows);
+            const mainWindowLayoutData = await getWorkspaceWindowData(mainOfWin, tabbedWindows);
             const mainWindow: WorkspaceWindow = {...windowInfo.mainWindow, ...mainWindowLayoutData};
             const mainWinIdentity = {uuid, name: mainWindow.name};
             adjustSizeOfFormerlyTabbedWindows(mainWinIdentity, formerlyTabbedWindows, mainWindow);

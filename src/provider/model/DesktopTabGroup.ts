@@ -606,12 +606,12 @@ export class DesktopTabGroup implements DesktopEntity {
             let orientation: keyof typeof result;
             for (orientation in result) {
                 if (result.hasOwnProperty(orientation)) {
-                    const tabConstratins = tab.applicationState.resizeConstraints[orientation];
+                    const tabConstraints = tab.applicationState.resizeConstraints[orientation];
                     result[orientation] = {
-                        minSize: Math.max(result[orientation].minSize, tabConstratins.minSize),
-                        maxSize: Math.min(result[orientation].maxSize, tabConstratins.maxSize),
-                        resizableMin: result[orientation].resizableMin && tabConstratins.resizableMin,
-                        resizableMax: result[orientation].resizableMax && tabConstratins.resizableMax
+                        minSize: Math.max(result[orientation].minSize, tabConstraints.minSize),
+                        maxSize: Math.min(result[orientation].maxSize, tabConstraints.maxSize),
+                        resizableMin: result[orientation].resizableMin && tabConstraints.resizableMin,
+                        resizableMax: result[orientation].resizableMax && tabConstraints.resizableMax
                     };
                 }
             }

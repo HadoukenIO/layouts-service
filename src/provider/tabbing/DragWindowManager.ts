@@ -117,7 +117,7 @@ export class DragWindowManager {
                 });
         });
 
-        await this.setWindowBounds();
+        this.setWindowBounds();
 
         const nativeWin = this._window.getNativeWindow();
 
@@ -153,8 +153,8 @@ export class DragWindowManager {
         this._window.setBounds(
             this._virtualScreen.left,
             this._virtualScreen.top,
-            Math.abs(this._virtualScreen.left - this._virtualScreen.right),
-            Math.abs(this._virtualScreen.top - this._virtualScreen.bottom));
+            this._virtualScreen.right - this._virtualScreen.left,
+            this._virtualScreen.bottom - this._virtualScreen.top);
         this._window.hide();
     }
 }

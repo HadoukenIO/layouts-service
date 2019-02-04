@@ -4,6 +4,7 @@ import {RunRequestedEvent} from 'hadouken-js-adapter/out/types/src/api/events/ap
 import {ConfigurationObject} from '../../gen/provider/config/layouts-config';
 
 import {APIHandler} from './APIHandler';
+import {Loader} from './config/Loader';
 import {Store} from './config/Store';
 import {DesktopModel} from './model/DesktopModel';
 import {DesktopTabGroup} from './model/DesktopTabGroup';
@@ -15,6 +16,7 @@ import {WindowHandler} from './WindowHandler';
 export type ConfigStore = Store<ConfigurationObject>;
 
 export let config: Store<ConfigurationObject>;
+export let loader: Loader<ConfigurationObject>;
 export let model: DesktopModel;
 export let snapService: SnapService;
 export let tabService: TabService;
@@ -23,6 +25,7 @@ export let windowHandler: WindowHandler;
 
 declare const window: Window&{
     config: ConfigStore;
+    loader: Loader<ConfigurationObject>;
     model: DesktopModel;
     snapService: SnapService;
     tabService: TabService;
@@ -41,6 +44,7 @@ type Stringified<T> = {
 
 export async function main() {
     config = window.config = new Store(require('../../gen/provider/config/defaults.json'));
+    loader = window.loader = new Loader(config, 'layouts');
     model = window.model = new DesktopModel(config);
     windowHandler = new WindowHandler(model);
     snapService = window.snapService = new SnapService(model, config);

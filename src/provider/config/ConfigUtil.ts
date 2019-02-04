@@ -73,6 +73,23 @@ type MaskedHelper<T, M, K extends(keyof T)&(keyof M)> = {
  */
 export class ConfigUtil {
     /**
+     * Takes a scope or rule and converts it to a canonical string that can be used as a cache key, or in logging
+     * output.
+     *
+     * @param scope The scope/rule to stringify
+     */
+    public static getId(scope: Rule|Scope): string {
+        switch (scope.level) {
+            case 'application':
+                return `${scope.level}:${ConfigUtil.stringifyParam(scope.uuid)}`;
+            case 'window':
+                return `${scope.level}:${ConfigUtil.stringifyParam(scope.uuid)}/${ConfigUtil.stringifyParam(scope.name)}`;
+            default:
+                return scope.level;
+        }
+    }
+
+    /**
      * Tests if two scopes are exactly equal.
      *
      * {@link matchesScope} can be used as a "fuzzy" equality check, to check if any item that matches one scope will
@@ -112,7 +129,7 @@ export class ConfigUtil {
                 return false;
             } else if (typeof a === 'string') {
                 return a === b;
-            } else if (typeof b !== 'string') {  // Redudant since expression will always be true, but allows TypeScript to infer type of 'b'
+            } else if (typeof b !== 'string') {  // Redundant since expression will always be true, but allows TypeScript to infer type of 'b'
                 return a.expression === b.expression && (a.flags || '') === (b.flags || '') && (a.invert || false) === (b.invert || false);
             }
             return false;
@@ -278,6 +295,15 @@ export class ConfigUtil {
         }
     }
 
+    public static containsConfig<T extends {}>(config: T): boolean {
+        for (const key in config) {
+            if (key !== 'rules') {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Returns true if ANY of the fields specified in 'mask' exist within 'value'.
      */
@@ -308,6 +334,14 @@ export class ConfigUtil {
             // Invalid mask
             console.warn('Unexpected value found within mask:', mask, 'when applying mask to', value);
             return false;
+        }
+    }
+
+    private static stringifyParam(param: string|RegEx): string {
+        if (typeof param === 'string') {
+            return param;
+        } else {
+            return `${param.invert ? '!' : ''}/${param.expression}/${param.flags || ''}`;
         }
     }
 

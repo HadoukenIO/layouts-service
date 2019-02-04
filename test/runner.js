@@ -137,7 +137,8 @@ async function serve() {
 
         // Add route to dynamically generate app manifests
         app.use('/create-manifest', (req, res) => {
-            const {uuid, url, defaultTop} = req.query;
+            const {uuid, url, defaultTop, config} = req.query;
+            const additionalServiceProperties = config ? {config: JSON.parse(config)} : {};
 
             // Create manifest (based upon demo app manifest)
             const {shortcut, services, ...baseManifest} = require('../res/demo/app.json');
@@ -152,7 +153,12 @@ async function serve() {
                     defaultLeft: 100,
                     defaultHeight: 225,
                     defaultWidth: 225
-                }
+                },
+                services: [{
+                    name: 'layouts',
+                    manifestUrl: "http://localhost:1337/test/provider.json",
+                    ...additionalServiceProperties
+                }]
             };
 
             // Send response

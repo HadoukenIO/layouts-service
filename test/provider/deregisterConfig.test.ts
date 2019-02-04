@@ -25,6 +25,12 @@ const DEFAULT_OPTIONS: fin.WindowOptions = {
     defaultHeight: 200
 };
 
+async function addRuleToProvider(scope: Scope, config: ConfigurationObject): Promise<void> {
+    return executeJavascriptOnService(function(this: ProviderWindow, data) {
+        this.config.add(data.scope, data.config);
+    }, {scope, config});
+}
+
 test.beforeEach(async (t: TestContext) => {
     t.context.windows = [];
 });
@@ -38,13 +44,6 @@ test.afterEach.always(async (t: TestContext) => {
 
     await teardown(t);
 });
-
-async function addRuleToProvider(scope: Scope, config: ConfigurationObject): Promise<void> {
-    return executeJavascriptOnService(function(this: ProviderWindow, data) {
-        this.config.add(data.scope, data.config);
-    }, {scope, config});
-}
-
 
 test('Window can be de-registered by adding a rule to the store', async (t: TestContext) => {
     const win = await createChildWindow({...DEFAULT_OPTIONS, name: 'testWindow'});

@@ -72,10 +72,10 @@ const writeToDisk = getArg('--write', false);
             console.log('Launching application');
             connect({uuid: 'wrapper', manifestUrl: `http://localhost:${PORT}/${manifestPath}`}).then(async fin => {
                 const config = await readJsonFile(manifestPath);
-                const demoApp = fin.Application.wrapSync({uuid: config.startup_app.uuid, name: config.startup_app.name});
+                const service = fin.Application.wrapSync({uuid: 'layouts-service', name: 'layouts-service'});
 
                 // Terminate local server when the demo app closes
-                demoApp.addListener('closed', async () => {
+                service.addListener('closed', async () => {
                     process.exit(0);
                 }).catch(console.error);
             }, console.error);

@@ -11,6 +11,7 @@ import {DesktopModel} from './DesktopModel';
 import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {DesktopTabstripFactory} from './DesktopTabstripFactory';
 import {DesktopWindow, EntityState, eTransformType, Mask, WindowMessages} from './DesktopWindow';
+import { Scope } from '../../../gen/provider/config/scope';
 
 /**
  * Handles functionality for the TabSet
@@ -139,6 +140,19 @@ export class DesktopTabGroup implements DesktopEntity {
      */
     public get tabs(): ReadonlyArray<DesktopWindow> {
         return this._tabs;
+    }
+
+    /**
+     * Scope isn't really strictly defined for a tab group...
+     * 
+     * Will assume that the tab group should follow the config rules for the active tab, in reality it should be some
+     * kind of union/intersection of all of the tab properties, similar to resizeConstraints, etc.
+     * 
+     * Config store doesn't currently support querying for a range of scopes, or "merging" config objects together.
+     */
+    public get scope(): Scope {
+        const activeWindow = this._activeTab || this._tabs[0] || this._window;
+        return activeWindow.scope;
     }
 
     public get isMaximized(): boolean {

@@ -1,18 +1,18 @@
 import {test} from 'ava';
-import {Fin, Window} from 'hadouken-js-adapter';
+import {Window} from 'hadouken-js-adapter';
 
 import {promiseMap} from '../../src/provider/snapanddock/utils/async';
+import {executeJavascriptOnService} from '../demo/utils/serviceUtils';
 import {teardown} from '../teardown';
 
 import {assertGrouped, assertNotGrouped} from './utils/assertions';
 import {getConnection} from './utils/connect';
 import {createChildWindow} from './utils/createChildWindow';
-import {delay} from './utils/delay';
 import {dragSideToSide, dragWindowTo} from './utils/dragWindowTo';
 import {getBounds, NormalizedBounds} from './utils/getBounds';
+import { Scope } from '../../gen/provider/config/scope';
 
 let windows: Window[] = new Array<Window>(2);
-let fin: Fin;
 
 const windowOptions = [
     {
@@ -37,9 +37,6 @@ const windowOptions = [
     }
 ];
 
-test.before(async t => {
-    fin = await getConnection();
-});
 test.beforeEach(async t => {
     for (let i = 0; i < 2; i++) {
         windows[i] = await createChildWindow(windowOptions[i]);
@@ -52,9 +49,10 @@ test.afterEach.always(async t => {
     windows = new Array<Window>(2);
 
     // Re-enable docking after each test as service state persists through whole run
-    await disableDocking(false);
+    await toggleDocking(true);
+
+    await teardown(t);
 });
-test.afterEach.always(teardown);
 
 test('docking enabled - normal behaviour expected', async t => {
     let bounds: NormalizedBounds[];
@@ -73,28 +71,28 @@ test('docking enabled - normal behaviour expected', async t => {
 });
 
 test('docking disabled - windows should snap but not dock', async t => {
-    await disableDocking(true);
-
+    await toggleDocking(false);
+    
     let bounds: NormalizedBounds[];
-
+    
     await dragSideToSide(windows[1], 'left', windows[0], 'right', {x: 5, y: 10});
-
+    
     await assertNotGrouped(windows[0], t);
     await assertNotGrouped(windows[1], t);
     bounds = await promiseMap(windows, win => getBounds(win));
     t.is(bounds[0].right, bounds[1].left);
-
+    
     await dragWindowTo(windows[0], 400, 400);
-
+    
     await assertNotGrouped(windows[0], t);
     await assertNotGrouped(windows[1], t);
     bounds = await promiseMap(windows, win => getBounds(win));
     t.not(bounds[0].right, bounds[1].left);
 });
 
-async function disableDocking(disabled: boolean): Promise<void> {
-    fin.InterApplicationBus.send({uuid: 'layouts-service', name: 'layouts-service'}, 'layoutsService:experimental:disableDocking', disabled);
-
-    // hard code a tiny delay here as IAB is fire-and-forget
-    return delay(100);
+export async function toggleDocking(dockingEnabled: boolean): Promise<void> {
+    return executeJavascriptOnService(function(this: ProviderWindow, dockingEnabled) {
+        const scope: Scope = {level: 'application', uuid: 'testApp'};
+        this.config.add(scope, {features: {dock: dockingEnabled}});
+    }, dockingEnabled);
 }

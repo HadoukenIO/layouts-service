@@ -115,7 +115,7 @@ export class APIHandler {
 
     private async deregister(identity: WindowIdentity, id: ProviderIdentity): Promise<void> {
         try {
-            this._model.deregister(identity, {level: 'window', uuid: id.uuid, name: id.name!});
+            this._model.deregister(identity, {level: 'window', uuid: id.uuid, name: id.name || id.uuid});
         } catch (error) {
             console.error(error);
             throw new Error(`Unexpected error when deregistering: ${error}`);

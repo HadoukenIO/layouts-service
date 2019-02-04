@@ -1,7 +1,8 @@
 import {Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
 
-import {Tabstrip} from '../../../gen/provider/config/layouts-config';
+import {ConfigurationObject, Tabstrip} from '../../../gen/provider/config/layouts-config';
 import {TabGroup, TabGroupDimensions, WindowIdentity} from '../../client/types';
+import {RequiredRecursive} from '../config/ConfigUtil';
 import {ConfigStore} from '../main';
 import {DesktopEntity} from '../model/DesktopEntity';
 import {DesktopModel} from '../model/DesktopModel';
@@ -12,6 +13,7 @@ import {DesktopWindow, EntityState} from '../model/DesktopWindow';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 import {eTargetType, TargetBase} from '../WindowHandler';
 import {DragWindowManager} from './DragWindowManager';
+import { Scope } from '../../../gen/provider/config/scope';
 
 /**
  * TabTarget constructs an interface which represents an area on a window where a tab strip will be placed.
@@ -44,11 +46,6 @@ export interface EjectTarget extends TargetBase {
  * The overarching class for the Tab Service.
  */
 export class TabService {
-    /**
-     * Flag to disable / enable tabbing operations.
-     */
-    public disableTabbingOperations = false;
-
     private _model: DesktopModel;
     private _config: ConfigStore;
 
@@ -85,8 +82,12 @@ export class TabService {
             throw new Error('Must provide at least 2 Tab Identifiers');
         }
 
-        const tabs: DesktopWindow[] = tabIdentities.map((identity: WindowIdentity) => this._model.getWindow(identity))
-                                          .filter((tab: DesktopWindow|null): tab is DesktopWindow => tab !== null);
+        const tabs: DesktopWindow[] = tabIdentities.map((identity: WindowIdentity) => {
+            return this._model.getWindow(identity);
+        }).filter((tab: DesktopWindow|null): tab is DesktopWindow => {
+            // Also filter-out any tabbing-disabled windows
+            return tab !== null && this._config.query(tab.scope).features.tab;
+        });
 
         if (tabs.length !== tabIdentities.length) {
             if (tabs.length < 2) {
@@ -213,8 +214,6 @@ export class TabService {
     }
 
     public async applyTabTarget(target: TabTarget|EjectTarget): Promise<void> {
-        if (this.disableTabbingOperations) return;
-
         const activeIdentity: WindowIdentity = target.activeWindow.identity;
         const existingTabGroup: DesktopTabGroup|null = target.activeWindow.tabGroup;
         const windowUnderPoint = target.type === eTargetType.TAB && target.targetWindow;
@@ -252,7 +251,6 @@ export class TabService {
 
             // Create new tab group
             await this.createTabGroupWithTabs([windowUnderPoint.identity, activeIdentity], activeIdentity);
-
         } else if (target.type === eTargetType.EJECT && existingTabGroup) {
             // If there are no windows under the point and we are being ejected from a tab group
 
@@ -272,24 +270,25 @@ export class TabService {
      * @param app1 Details about the first entity, either window identifier or the tabstrip config for a window
      * @param app2 Details about the second entity, either window identifier or the tabstrip config for a window
      */
-    public canTabTogether(app1: WindowIdentity|Tabstrip, app2: WindowIdentity|Tabstrip): boolean {
-        function isIdentity(x: WindowIdentity|Tabstrip): x is WindowIdentity {
-            return x.hasOwnProperty('uuid');
-        }
+    public canTabTogether(app1: WindowIdentity|DesktopEntity, app2: WindowIdentity|DesktopEntity): boolean {
+        const config1 = this._config.query(this.getScope(app1));
+        const config2 = this._config.query(this.getScope(app2));
 
-        const config1: Tabstrip = isIdentity(app1) ? this.getTabstripConfig(app1) : app1;
-        const config2: Tabstrip = isIdentity(app2) ? this.getTabstripConfig(app2) : app2;
-
-        return config1.url === config2.url;
+        return config1.features.tab && config2.features.tab && config1.tabstrip.url === config2.tabstrip.url;
     }
+
+    private getScope(x: WindowIdentity|DesktopEntity): Scope {
+        return (x as DesktopEntity).scope || {level: 'window', ...x as WindowIdentity};
+    }
+
 
     /**
      * Returns the tabstrip configuration for the given window. This is a thin wrapper around the config store.
      *
-     * @param identity Window identifier
+     * @param item A window object/identity
      */
-    private getTabstripConfig(identity: WindowIdentity): Tabstrip {
-        return this._config.query({level: 'window', ...identity}).tabstrip;
+    private getTabstripConfig(item: WindowIdentity|DesktopWindow): Tabstrip {
+        return this._config.query(this.getScope(item)).tabstrip;
     }
 
     /**
@@ -315,7 +314,7 @@ export class TabService {
             return {center, halfSize};
         } else {
             const state: EntityState = window.currentState;
-            const config: Tabstrip = this.getTabstripConfig(window.identity);
+            const config: Tabstrip = this.getTabstripConfig(window);
             const center: Point = {x: state.center.x, y: (state.center.y - state.halfSize.y) + (config.height / 2)};
             const halfSize = {x: state.halfSize.x, y: config.height / 2};
 
@@ -378,10 +377,8 @@ export class TabService {
         const targetTabDragOverWindow = targetWindow && this._model.mouseTracker.isDraggingTab && isOverWindowValid;
 
         if (targetWindow && (targetWindowOverWindow || targetTabDragOverWindow)) {
-            const isTargetTabbed: DesktopTabGroup|null = targetWindow.tabGroup;
-
             // Check if the target and active window have same tab config.
-            const valid: boolean = this.canTabTogether(isTargetTabbed ? isTargetTabbed.config : targetWindow.identity, activeWindow.identity);
+            const valid: boolean = this.canTabTogether(targetWindow, activeWindow);
 
             return {
                 type: eTargetType.TAB,

@@ -879,9 +879,8 @@ export class DesktopWindow implements DesktopEntity {
     private async handleFocused(): Promise<void> {
         // If we're not maximized ourself, bring all snapped, non-maximized windows to the front
         if (!this.isMaximizedOrInMaximizedTab()) {
-            this._snapGroup.windows
-            .filter(snapGroupWindow => snapGroupWindow !== this && !snapGroupWindow.isMaximizedOrInMaximizedTab())
-            .forEach(snapGroupWindow => snapGroupWindow.bringToFront());
+            this._snapGroup.windows.filter(snapGroupWindow => snapGroupWindow !== this && !snapGroupWindow.isMaximizedOrInMaximizedTab())
+                .forEach(snapGroupWindow => snapGroupWindow.bringToFront());
         }
     }
 
@@ -939,7 +938,7 @@ export class DesktopWindow implements DesktopEntity {
     }
 
     private isMaximizedOrInMaximizedTab(): boolean {
-        if (this._currentState.state === "maximized") {
+        if (this._currentState.state === 'maximized') {
             return true;
         } else if (this._tabGroup !== null && this._tabGroup.isMaximized) {
             return true;

@@ -225,6 +225,7 @@ export async function createTabGroup(windows: Identity[]): Promise<void> {
  * @throws `Promise.reject`: If the {@link ApplicationUIConfig| App Config} does not match between the target and window to add.
  * @throws `Promise.reject`: If the `targetWindow` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
  * @throws `Promise.reject`: If the `windowToAdd` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
+ * @throws `Promise.reject`: If `identity` is not an existing tab in a tabstrip.
  */
 export async function addTab(targetWindow: Identity, windowToAdd: Identity = getId()): Promise<void> {
     return tryServiceDispatch<AddTabPayload, void>(TabAPI.ADDTAB, {targetWindow: parseIdentity(targetWindow), windowToAdd: parseIdentity(windowToAdd)});
@@ -244,7 +245,8 @@ export async function addTab(targetWindow: Identity, windowToAdd: Identity = get
  * ```
  *
  * @param identity Identity of the window context to remove.  If no `Identity` is provided as an argument, the current window context will be used.
- * @throws `Promise.reject`:  If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
+ * @throws `Promise.reject`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
+ * @throws `Promise.reject`: If `identity` is not an existing tab in a tabstrip.
  */
 export async function removeTab(identity: Identity = getId()): Promise<void> {
     return tryServiceDispatch<Identity, void>(TabAPI.REMOVETAB, parseIdentity(identity));
@@ -265,6 +267,7 @@ export async function removeTab(identity: Identity = getId()): Promise<void> {
  *
  * @param identity Identity of the window context to set as active.  If no `Identity` is provided as an argument the current window context will be used.
  * @throws `Promise.reject`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
+ * @throws `Promise.reject`: If `identity` is not an existing tab in a tabstrip.
  */
 export async function setActiveTab(identity: Identity = getId()): Promise<void> {
     return tryServiceDispatch<Identity, void>(TabAPI.SETACTIVETAB, parseIdentity(identity));
@@ -285,6 +288,7 @@ export async function setActiveTab(identity: Identity = getId()): Promise<void> 
  *
  * @param identity Identity of the window context to close.  If no `Identity` is provided as an argument the current window context will be used.
  * @throws `Promise.reject`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
+ * @throws `Promise.reject`: If `identity` is not an existing tab in a tabstrip.
  */
 export async function closeTab(identity: Identity = getId()): Promise<void> {
     return tryServiceDispatch<Identity, void>(TabAPI.CLOSETAB, parseIdentity(identity));
@@ -306,6 +310,7 @@ export async function closeTab(identity: Identity = getId()): Promise<void> {
  * @param identity Identity of the window context to minimize the tab group for.  If no `Identity` is provided as an argument the current window context will be
  * used.
  * @throws `Promise.reject`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
+ * @throws `Promise.reject`: If `identity` is not an existing tab in a tabstrip.
  */
 export async function minimizeTabGroup(identity: Identity = getId()): Promise<void> {
     return tryServiceDispatch<Identity, void>(TabAPI.MINIMIZETABGROUP, parseIdentity(identity));
@@ -327,6 +332,7 @@ export async function minimizeTabGroup(identity: Identity = getId()): Promise<vo
  * @param identity Identity of the window context to maximize the tab group for.  If no `Identity` is provided as an argument the current window context will be
  * used.
  * @throws `Promise.reject`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
+ * @throws `Promise.reject`: If `identity` is not an existing tab in a tabstrip.
  */
 export async function maximizeTabGroup(identity: Identity = getId()): Promise<void> {
     return tryServiceDispatch<Identity, void>(TabAPI.MAXIMIZETABGROUP, parseIdentity(identity));
@@ -348,6 +354,7 @@ export async function maximizeTabGroup(identity: Identity = getId()): Promise<vo
  * @param identity Identity of the window context to close the tab group for.  If no `Identity` is provided as an argument the current window context will be
  * used.
  * @throws `Promise.reject`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
+ * @throws `Promise.reject`: If `identity` is not an existing tab in a tabstrip.
  */
 export async function closeTabGroup(identity: Identity = getId()): Promise<void> {
     return tryServiceDispatch<Identity, void>(TabAPI.CLOSETABGROUP, parseIdentity(identity));
@@ -369,6 +376,7 @@ export async function closeTabGroup(identity: Identity = getId()): Promise<void>
  * @param identity Identity of the window context to restore the tab group for.  If no `Identity` is provided as an argument the current window context will be
  * used.
  * @throws `Promise.reject`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
+ * @throws `Promise.reject`: If `identity` is not an existing tab in a tabstrip.
  */
 export async function restoreTabGroup(identity: Identity = getId()): Promise<void> {
     return tryServiceDispatch<Identity, void>(TabAPI.RESTORETABGROUP, parseIdentity(identity));

@@ -1,4 +1,5 @@
 import {Window} from 'hadouken-js-adapter';
+import {DipRect, MonitorInfo} from 'hadouken-js-adapter/out/types/src/api/system/monitor';
 import {Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
@@ -6,7 +7,6 @@ import {WindowIdentity} from '../../client/types';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopWindow} from '../model/DesktopWindow';
 import {Signal0, Signal2} from '../Signal';
-import { MonitorInfo, DipRect } from 'hadouken-js-adapter/out/types/src/api/system/monitor';
 
 /**
  * Handles the Drag Window which appears when API drag and drop is initialized.
@@ -105,7 +105,7 @@ export class DragWindowManager {
                     defaultTop: 0,
                     saveWindowState: false,
                     autoShow: true,
-                    opacity: 0.6,
+                    opacity: 0.01,
                     frame: false,
                     waitForPageLoad: false,
                     alwaysOnTop: true,
@@ -139,20 +139,22 @@ export class DragWindowManager {
             ev.stopPropagation();
             return true;
         });
-
-        
     }
 
     /**
      * Updates the in memory virtual screen bounds and positions the drag window accordingly.
-     * 
+     *
      * This should only be called on initalization and on 'monitor info changed' events.
      */
     private async setWindowBounds() {
         const monitorInfo: MonitorInfo = await fin.System.getMonitorInfo();
         this._virtualScreen = monitorInfo.virtualScreen;
 
-        this._window.setBounds(this._virtualScreen.left, this._virtualScreen.top, Math.abs(this._virtualScreen.left - this._virtualScreen.right),Math.abs(this._virtualScreen.top - this._virtualScreen.bottom));
+        this._window.setBounds(
+            this._virtualScreen.left,
+            this._virtualScreen.top,
+            Math.abs(this._virtualScreen.left - this._virtualScreen.right),
+            Math.abs(this._virtualScreen.top - this._virtualScreen.bottom));
         this._window.hide();
     }
 }

@@ -29,9 +29,9 @@ export interface EventMap {
  * The event will contain the full detail of the ({@link Workspace}).
  *
  * ```ts
- * import {addEventListener} from 'openfin-layouts';
+ * import {workspaces} from 'openfin-layouts';
  *
- * addEventListener('workspace-restored', async (event: WorkspaceRestoredEvent) => {
+ * workspaces.addEventListener('workspace-restored', async (event: WorkspaceRestoredEvent) => {
  *      console.log(`Properties for the restored workspace: ${event.detail}`);
  * });
  * ```
@@ -47,9 +47,9 @@ export async function addEventListener(eventType: 'workspace-restored', listener
  * The event will contain the full detail of the {@link Workspace}.
  *
  * ```ts
- * import {addEventListener} from 'openfin-layouts';
+ * import {workspaces} from 'openfin-layouts';
  *
- * addEventListener('workspace-generated', async (event: WorkspaceGeneratedEvent) => {
+ * workspaces.addEventListener('workspace-generated', async (event: WorkspaceGeneratedEvent) => {
  *     console.log(`Properties for the generated workspace: ${event.detail}`);
  * });
  * ```

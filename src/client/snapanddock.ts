@@ -97,15 +97,15 @@ export async function addEventListener<K extends keyof EventMap>(eventType: K, l
  * Has no effect if the window is not currently docked.
  *
  * ```ts
- * import {undockWindow} from 'openfin-layouts';
+ * import {snapAndDock} from 'openfin-layouts';
  *
  * // Undock the current window (all are equivilant)
- * undockWindow();
- * undockWindow(fin.desktop.Window.getCurrent());   // Using 'v1' API
- * undockWindow(fin.Window.getCurrentSync());       // Using 'v2' API
+ * snapAndDock.undockWindow();
+ * snapAndDock.undockWindow(fin.desktop.Window.getCurrent());   // Using 'v1' API
+ * snapAndDock.undockWindow(fin.Window.getCurrentSync());       // Using 'v2' API
  *
  * // Undock a different window
- * undockWindow({uuid: 'my-app', name: 'other-window'});
+ * snapAndDock.undockWindow({uuid: 'my-app', name: 'other-window'});
  * ```
  *
  * @param identity The window to undock, defaults to the current window
@@ -125,15 +125,15 @@ export async function undockWindow(identity: Identity = getId()): Promise<void> 
  * Has no effect if `identity` isn't currently snapped to any other window.
  *
  * ```ts
- * import {undockGroup} from 'openfin-layouts';
+ * import {snapAndDock} from 'openfin-layouts';
  *
  * // Undock all windows attached to the current window (all are equivilant)
- * undockGroup();
- * undockGroup(fin.desktop.Window.getCurrent());   // Using 'v1' API
- * undockGroup(fin.Window.getCurrentSync());       // Using 'v2' API
+ * snapAndDock.undockGroup();
+ * snapAndDock.undockGroup(fin.desktop.Window.getCurrent());   // Using 'v1' API
+ * snapAndDock.undockGroup(fin.Window.getCurrentSync());       // Using 'v2' API
  *
  * // Undock all windows attached to a different window
- * undockGroup({uuid: 'my-app', name: 'other-window'});
+ * snapAndDock.undockGroup({uuid: 'my-app', name: 'other-window'});
  * ```
  *
  * @param identity A window belonging to the group that should be disbanded, defaults to the current window/group

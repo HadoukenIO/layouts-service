@@ -1,6 +1,7 @@
 import {Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
 
 import {ConfigurationObject, Tabstrip} from '../../../gen/provider/config/layouts-config';
+import {Scope} from '../../../gen/provider/config/scope';
 import {TabGroup, TabGroupDimensions, WindowIdentity} from '../../client/types';
 import {RequiredRecursive} from '../config/ConfigUtil';
 import {ConfigStore} from '../main';
@@ -12,8 +13,8 @@ import {DesktopTabstripFactory} from '../model/DesktopTabstripFactory';
 import {DesktopWindow, EntityState} from '../model/DesktopWindow';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 import {eTargetType, TargetBase} from '../WindowHandler';
+
 import {DragWindowManager} from './DragWindowManager';
-import { Scope } from '../../../gen/provider/config/scope';
 
 /**
  * TabTarget constructs an interface which represents an area on a window where a tab strip will be placed.
@@ -82,12 +83,14 @@ export class TabService {
             throw new Error('Must provide at least 2 Tab Identifiers');
         }
 
-        const tabs: DesktopWindow[] = tabIdentities.map((identity: WindowIdentity) => {
-            return this._model.getWindow(identity);
-        }).filter((tab: DesktopWindow|null): tab is DesktopWindow => {
-            // Also filter-out any tabbing-disabled windows
-            return tab !== null && this._config.query(tab.scope).features.tab;
-        });
+        const tabs: DesktopWindow[] = tabIdentities
+                                          .map((identity: WindowIdentity) => {
+                                              return this._model.getWindow(identity);
+                                          })
+                                          .filter((tab: DesktopWindow|null): tab is DesktopWindow => {
+                                              // Also filter-out any tabbing-disabled windows
+                                              return tab !== null && this._config.query(tab.scope).features.tab;
+                                          });
 
         if (tabs.length !== tabIdentities.length) {
             if (tabs.length < 2) {

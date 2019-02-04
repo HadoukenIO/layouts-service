@@ -1,5 +1,6 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
+import {Scope} from '../../../gen/provider/config/scope';
 import {JoinTabGroupPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload} from '../../client/tabbing';
 import {ApplicationUIConfig, TabProperties, WindowIdentity} from '../../client/types';
 import {Signal1} from '../Signal';
@@ -11,7 +12,6 @@ import {DesktopModel} from './DesktopModel';
 import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {DesktopTabstripFactory} from './DesktopTabstripFactory';
 import {DesktopWindow, EntityState, eTransformType, Mask, WindowMessages} from './DesktopWindow';
-import { Scope } from '../../../gen/provider/config/scope';
 
 /**
  * Handles functionality for the TabSet
@@ -144,10 +144,10 @@ export class DesktopTabGroup implements DesktopEntity {
 
     /**
      * Scope isn't really strictly defined for a tab group...
-     * 
+     *
      * Will assume that the tab group should follow the config rules for the active tab, in reality it should be some
      * kind of union/intersection of all of the tab properties, similar to resizeConstraints, etc.
-     * 
+     *
      * Config store doesn't currently support querying for a range of scopes, or "merging" config objects together.
      */
     public get scope(): Scope {

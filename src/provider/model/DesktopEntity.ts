@@ -1,9 +1,10 @@
 import {Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
 
+import {Scope} from '../../../gen/provider/config/scope';
+
 import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {DesktopTabGroup} from './DesktopTabGroup';
 import {EntityState, WindowIdentity} from './DesktopWindow';
-import { Scope } from '../../../gen/provider/config/scope';
 
 /**
  * Interface for anything that can be snapped - namely windows and tab sets. Represents any entity that should be

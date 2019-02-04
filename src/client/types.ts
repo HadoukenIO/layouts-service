@@ -85,22 +85,22 @@ export interface ApplicationUIConfig {
 /* Workspaces */
 
 /**
- * Defines a saved workspace layout, containing the state of any applications that were open at the time the layout was
+ * Defines a saved workspace, containing the state of any applications that were open at the time the workspace was
  * generated.
  *
- * See {@link generate} for more information about what gets captured when saving a layout. Previously generated
- * layouts can be restored using {@link restore}.
+ * See {@link generate} for more information about what gets captured when saving a workspace. Previously generated
+ * workspace can be restored using {@link restore}.
  */
 export interface Workspace {
     /**
-     * Identifies this object as being a workspace layout.
+     * Identifies this object as being a workspace.
      */
     type: 'layout';
 
     /**
-     * Used to determine compatibility of generated layouts when restoring on different versions of the service.
+     * Used to determine compatibility of generated workspaces when restoring on different versions of the service.
      *
-     * Any layout JSON produced by the service will contain a schema version number. This is a separate version number
+     * Any workspace JSON produced by the service will contain a schema version number. This is a separate version number
      * from the service itself, and is incremented only on any changes to the JSON format.
      *
      * The version string follows [semver conventions](https://semver.org), and any breaking changes to the schema will
@@ -117,7 +117,7 @@ export interface Workspace {
     monitorInfo: MonitorInfo;
 
     /**
-     * List of all applications within the layout.
+     * List of all applications within the workspace.
      */
     apps: WorkspaceApp[];
 
@@ -179,18 +179,18 @@ export interface WorkspaceApp {
     confirmed?: boolean;
 
     /**
-     * Applications can add their own custom data to a layout, to assist with correctly restoring the application when
-     * a saved layout is loaded.
+     * Applications can add their own custom data to a workspace, to assist with correctly restoring the application when
+     * a saved workspace is loaded.
      *
      * To set customData, register a 'save' callback using {@link onApplicationSave}. The provided function will be
-     * called whenever a layout is generated, and any value returned by that function will be added to the layout here.
+     * called whenever a workspace is generated, and any value returned by that function will be added to the workspace here.
      * This data will then be available within the restore callback registered via {@link onAppRestore}.
      */
     customData?: CustomData;
 }
 
 /**
- * Stores the state of a single window within a saved layout.
+ * Stores the state of a single window within a saved workspace.
  */
 export interface WorkspaceWindow extends Bounds, WindowIdentity {
     /**
@@ -216,7 +216,7 @@ export interface WorkspaceWindow extends Bounds, WindowIdentity {
     /**
      * A list of windows currently docked to this one.
      *
-     * These groupings will be restored once all windows in the layout have been re-created.
+     * These groupings will be restored once all windows in the workspace have been re-created.
      */
     windowGroup: Identity[];
 
@@ -227,12 +227,12 @@ export interface WorkspaceWindow extends Bounds, WindowIdentity {
 }
 
 /**
- * Semantic type definition, used in any place where applications can attach their own custom data to a layout.
+ * Semantic type definition, used in any place where applications can attach their own custom data to a workspace.
  */
 export type CustomData = {}|null|undefined;
 
 /**
- * Defines a set of tabbed windows within a saved workspace layout.
+ * Defines a set of tabbed windows within a saved workspace.
  *
  * Lists the windows that are tabbed together, and the state of the tabstrip window that joins them together.
  */

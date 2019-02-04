@@ -386,7 +386,7 @@ export async function restoreTabGroup(identity: Identity = getId()): Promise<voi
  * // Update all properties for the current window context.
  * tabbing.updateTabProperties({title: 'An Awesome Tab!', icon: 'http://openfin.co/favicon.ico'});
  *
- * // Update all properties for another windows context.
+ * // Update properties for another windows context.
  * tabbing.updateTabProperties({title: 'An Awesome Tab'}, {uuid: 'App1', name: 'App1'});
  * ```
  * @param properties Properties object for the tab to consume.

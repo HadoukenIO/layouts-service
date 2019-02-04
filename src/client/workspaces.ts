@@ -79,7 +79,7 @@ export async function addEventListener<K extends keyof EventMap>(eventType: K, l
  * Register a callback that will save the state of the calling application.
  *
  * The callback will be invoked on each call to {@link generate}, and the return value (if anything is returned)
- * will be saved as the workspace's `customData` property.
+ * will be saved as the workspace's `customData` property for this app within the generated {@link Workspace}.
  */
 export async function setGenerateHandler(customDataDecorator: () => CustomData): Promise<boolean> {
     const channel: ChannelClient = await channelPromise;
@@ -92,9 +92,9 @@ export async function setGenerateHandler(customDataDecorator: () => CustomData):
  * It is up to applications whether this action should "append" or "replace" the current workspace. The service will not
  * close any applications that are currently open and not in the workspace; though applications may do this if they wish.
  */
-export async function setRestoreHandler(layoutDecorator: (layoutApp: WorkspaceApp) => WorkspaceApp | false | Promise<WorkspaceApp|false>): Promise<boolean> {
+export async function setRestoreHandler(listener: (layoutApp: WorkspaceApp) => WorkspaceApp | false | Promise<WorkspaceApp|false>): Promise<boolean> {
     const channel: ChannelClient = await channelPromise;
-    return channel.register(WorkspaceAPI.RESTORE_HANDLER, layoutDecorator);
+    return channel.register(WorkspaceAPI.RESTORE_HANDLER, listener);
 }
 
 

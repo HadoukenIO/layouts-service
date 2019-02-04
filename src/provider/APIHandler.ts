@@ -3,32 +3,15 @@ import {ProviderIdentity} from 'hadouken-js-adapter/out/types/src/api/interappbu
 import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
 
 import {DropPosition, RegisterAPI, SERVICE_CHANNEL, SnapAndDockAPI, TabAPI, WorkspaceAPI} from '../client/internal';
-import {EventMap as SnapAndDockEventMap} from '../client/snapanddock';
-import {EventMap as TabbingEventMap} from '../client/tabbing';
 import {ApplicationUIConfig, TabProperties} from '../client/types';
-import {EventMap as WorkspacesEventMap} from '../client/workspaces';
 
+import {LegacyAPI, WindowMessages} from './APIMessages';
 import {model, snapService, tabService} from './main';
 import {DesktopTabGroup} from './model/DesktopTabGroup';
 import {DesktopWindow, WindowIdentity} from './model/DesktopWindow';
 import {deregisterWindow, generateWorkspace} from './workspaces/create';
 import {getAppToRestore, restoreApplication, restoreWorkspace} from './workspaces/restore';
 
-// LegacyAPI to allow for backwards compatibility of older clients (pre 1.0)
-export enum LegacyAPI {
-    GENERATE_HANDLER = 'savingLayout',
-    RESTORE_HANDLER = 'restoreApp',
-    GENERATE_LAYOUT = 'generateLayout',
-    RESTORE_LAYOUT = 'restoreLayout',
-    APPLICATION_READY = 'appReady',
-    UNDOCK_WINDOW = 'undockWindow',
-    UNDOCK_GROUP = 'undockGroup',
-    DEREGISTER = 'deregister',
-}
-
-export type WindowMessages = keyof EventMap|WorkspaceAPI.RESTORE_HANDLER|WorkspaceAPI.GENERATE_HANDLER|LegacyAPI.GENERATE_HANDLER|LegacyAPI.RESTORE_HANDLER;
-
-export type EventMap = TabbingEventMap&WorkspacesEventMap&SnapAndDockEventMap;
 
 /**
  * Manages all communication with the client. Stateless class that listens for incomming messages, and handles sending of messages to connected client(s).

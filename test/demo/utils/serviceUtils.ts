@@ -1,7 +1,7 @@
 import {Fin} from 'hadouken-js-adapter';
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
-import {APITopics, SERVICE_CHANNEL} from '../../../src/client/internal';
+import {APITopic, SERVICE_CHANNEL} from '../../../src/client/internal';
 import {getConnection} from '../../provider/utils/connect';
 
 interface RemoteExecSuccess<R> {
@@ -40,7 +40,7 @@ export async function executeJavascriptOnService<T, R>(func: ((data: T) => R | P
     });
 }
 
-export async function sendServiceMessage<T, R>(message: APITopics, payload: T): Promise<R> {
+export async function sendServiceMessage<T, R>(message: APITopic, payload: T): Promise<R> {
     const client = await getChannelClient();
     return client.dispatch(message, payload);
 }

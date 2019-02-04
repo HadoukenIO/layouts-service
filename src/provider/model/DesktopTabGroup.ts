@@ -2,7 +2,7 @@ import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {TabAddedPayload, TabGroupEventPayload} from '../../client/types';
 import {ApplicationUIConfig, WindowIdentity} from '../../client/types';
-import {WindowMessages} from '../APIHandler';
+import {WindowMessages} from '../APIMessages';
 import {tabService} from '../main';
 import {Signal1} from '../Signal';
 import {Point} from '../snapanddock/utils/PointUtils';

@@ -2,7 +2,7 @@ import deepEqual from 'fast-deep-equal';
 import {Identity, Window} from 'hadouken-js-adapter';
 
 import {SERVICE_IDENTITY} from '../../client/internal';
-import {WindowMessages} from '../APIHandler';
+import {WindowMessages} from '../APIMessages';
 import {apiHandler} from '../main';
 import {Signal1, Signal2} from '../Signal';
 import {promiseMap} from '../snapanddock/utils/async';

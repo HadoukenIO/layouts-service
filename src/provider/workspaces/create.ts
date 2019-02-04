@@ -6,7 +6,7 @@ import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {WorkspaceAPI} from '../../client/internal';
 import {CustomData, TabGroup, Workspace, WorkspaceApp, WorkspaceWindow} from '../../client/types';
-import {LegacyAPI} from '../APIHandler';
+import {LegacyAPI} from '../APIMessages';
 import {apiHandler, model, tabService} from '../main';
 import {WindowIdentity} from '../model/DesktopWindow';
 import {promiseMap} from '../snapanddock/utils/async';

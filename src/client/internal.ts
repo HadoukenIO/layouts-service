@@ -92,7 +92,7 @@ export enum RegisterAPI {
     DEREGISTER = 'DEREGISTER'
 }
 
-export type APITopics = TabAPI|WorkspaceAPI|SnapAndDockAPI|RegisterAPI;
+export type APITopic = TabAPI|WorkspaceAPI|SnapAndDockAPI|RegisterAPI;
 
 /**
  * Each action coming into the will have an action attached

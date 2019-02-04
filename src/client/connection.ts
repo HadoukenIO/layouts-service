@@ -13,7 +13,7 @@
  */
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
-import {APITopics, SERVICE_CHANNEL} from './internal';
+import {APITopic, SERVICE_CHANNEL} from './internal';
 import {TabAddedPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload, Workspace} from './types';
 
 
@@ -67,7 +67,7 @@ export const channelPromise: Promise<ChannelClient> = typeof fin === 'undefined'
 /**
  * Wrapper around service.dispatch to help with type checking
  */
-export async function tryServiceDispatch<T, R>(action: APITopics, payload?: T): Promise<R> {
+export async function tryServiceDispatch<T, R>(action: APITopic, payload?: T): Promise<R> {
     const channel: ChannelClient = await channelPromise;
     return channel.dispatch(action, payload) as Promise<R>;
 }

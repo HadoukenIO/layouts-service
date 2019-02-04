@@ -4,7 +4,7 @@ import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {WorkspaceAPI} from '../../client/internal';
 import {TabGroup, Workspace, WorkspaceApp} from '../../client/types';
-import {LegacyAPI} from '../APIHandler';
+import {LegacyAPI} from '../APIMessages';
 import {apiHandler, model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {promiseMap} from '../snapanddock/utils/async';

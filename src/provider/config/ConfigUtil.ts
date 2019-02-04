@@ -79,19 +79,11 @@ export class ConfigUtil {
      * @param scope The scope/rule to stringify
      */
     public static getId(scope: Rule|Scope): string {
-        function stringifyParam(param: string|RegEx): string {
-            if (typeof param === 'string') {
-                return param;
-            } else {
-                return `${param.invert ? '!' : ''}/${param.expression}/${param.flags || ''}`;
-            }
-        }
-
         switch (scope.level) {
             case 'application':
-                return `${scope.level}:${stringifyParam(scope.uuid)}`;
+                return `${scope.level}:${ConfigUtil.stringifyParam(scope.uuid)}`;
             case 'window':
-                return `${scope.level}:${stringifyParam(scope.uuid)}/${stringifyParam(scope.name)}`;
+                return `${scope.level}:${ConfigUtil.stringifyParam(scope.uuid)}/${ConfigUtil.stringifyParam(scope.name)}`;
             default:
                 return scope.level;
         }
@@ -342,6 +334,14 @@ export class ConfigUtil {
             // Invalid mask
             console.warn('Unexpected value found within mask:', mask, 'when applying mask to', value);
             return false;
+        }
+    }
+
+    private static stringifyParam(param: string|RegEx): string {
+        if (typeof param === 'string') {
+            return param;
+        } else {
+            return `${param.invert ? '!' : ''}/${param.expression}/${param.flags || ''}`;
         }
     }
 

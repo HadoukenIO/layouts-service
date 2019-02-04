@@ -126,7 +126,7 @@ export class Loader<T> {
 
     /**
      * Cleans-up any config within the store for applications that are no longer running and have no child applications
-     * that may be dependant on rules defined in a parent application.
+     * that may be dependent on rules defined in a parent application.
      *
      * @param app An application within the hierarchy. May still be running, or could have closed already.
      */

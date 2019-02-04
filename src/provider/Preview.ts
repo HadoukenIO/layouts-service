@@ -6,7 +6,6 @@ import {TabTarget} from './tabbing/TabService';
 import {eTargetType, Target} from './WindowHandler';
 
 const PREVIEW_SUCCESS = '#3D4059';
-const PREVIEW_SUCCESS_RESIZE = PREVIEW_SUCCESS;
 const PREVIEW_FAILURE = `repeating-linear-gradient(45deg, #3D4059, #3D4059 .25em, #C24629 0, #C24629 .5em)`;
 
 interface PreviewWindow {
@@ -63,11 +62,7 @@ export class Preview {
         this.positionPreview(target);
 
         if (target.valid) {
-            if (PointUtils.isEqual(this.activeWindowPreview.halfSize, groupHalfSize)) {
-                this.activeWindowPreview.nativeWindow!.document.body.style.background = PREVIEW_SUCCESS;
-            } else {
-                this.activeWindowPreview.nativeWindow!.document.body.style.background = PREVIEW_SUCCESS_RESIZE;
-            }
+            this.activeWindowPreview.nativeWindow!.document.body.style.background = PREVIEW_SUCCESS;
         } else {
             this.activeWindowPreview.nativeWindow!.document.body.style.background = PREVIEW_FAILURE;
         }

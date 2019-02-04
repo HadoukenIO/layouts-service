@@ -48,7 +48,7 @@ export function getId(): Identity {
  * Assumed that the supplied object has uuid & name.
  */
 export function parseIdentity(identity: WindowIdentity|Identity) {
-    if (!identity || !identity.name || !identity.uuid) {
+    if (!identity || !identity.uuid) {
         throw new Error('Invalid Identity provided.  A valid Identity contains both a uuid and name');
     }
 

@@ -3,7 +3,8 @@ import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {JoinTabGroupPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload} from '../../client/tabbing';
 import {ApplicationUIConfig, TabProperties, WindowIdentity} from '../../client/types';
 import {Signal1} from '../Signal';
-import {Point} from '../snapanddock/utils/PointUtils';
+import {Debounced} from '../snapanddock/utils/Debounced';
+import {Point, PointUtils} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 
 import {DesktopEntity} from './DesktopEntity';
@@ -55,6 +56,7 @@ export class DesktopTabGroup implements DesktopEntity {
 
     private _config: ApplicationUIConfig;
 
+    private _validateGroup: Debounced<() => void, DesktopTabGroup, []>;
 
     /**
      * Constructor for the TabGroup Class.
@@ -77,6 +79,8 @@ export class DesktopTabGroup implements DesktopEntity {
         this._config = config;
 
         this._isMaximized = false;
+
+        this._validateGroup = new Debounced(this.validateGroupInternal, this);
 
         DesktopTabGroup.onCreated.emit(this);
     }
@@ -430,6 +434,10 @@ export class DesktopTabGroup implements DesktopEntity {
         return Promise.all(promises).then(() => {});
     }
 
+    public validate(): void {
+        this._validateGroup.call();
+    }
+
     private updateBounds(): void {
         const activeTab = this.activeTab;
         if (!activeTab) {
@@ -587,5 +595,20 @@ export class DesktopTabGroup implements DesktopEntity {
             // Send event to tabstrip
             this._window.sendMessage(event, payload)
         ]);
+    }
+
+    // Will check that all of the tabs and the tabstrip are still in the correct relative positions, and if not
+    // moves them so that they are
+    private async validateGroupInternal() {
+        const tabStripOffset: Point<number> = PointUtils.difference(
+            this._window.currentState.center,
+            {x: this.currentState.center.x, y: this.currentState.center.y - this.currentState.halfSize.y + this.config.height / 2});
+
+        if (PointUtils.lengthSquared(tabStripOffset) > 0) {
+            console.log('TabGroup disjointed. Moving tabstrip back to group.', this.id);
+            await DesktopWindow.transaction([this._window], async (wins: DesktopWindow[]) => {
+                await wins[0].applyOffset(tabStripOffset);
+            });
+        }
     }
 }

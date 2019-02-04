@@ -6,10 +6,16 @@ import {Identity} from 'hadouken-js-adapter';
 import {tryServiceDispatch} from './connection';
 import {getId, SnapAndDockAPI} from './internal';
 
+/**
+ * Fired when a window has become docked with another window.  See {@link addEventListener}.
+ */
 export interface WindowDockedEvent extends Event {
     type: 'window-docked';
 }
 
+/**
+ * Fired when a window has become undocked from another window.  See {@link addEventListener}.
+ */
 export interface WindowUndockedEvent extends Event {
     type: 'window-undocked';
 }

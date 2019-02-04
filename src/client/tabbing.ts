@@ -7,18 +7,30 @@ import {tryServiceDispatch} from './connection';
 import {AddTabPayload, getId, parseIdentity, SetTabstripPayload, TabAPI, UpdateTabPropertiesPayload} from './internal';
 import {ApplicationUIConfig, TabAddedPayload, TabGroupEventPayload, TabProperties, TabPropertiesUpdatedPayload, WindowIdentity} from './types';
 
+/**
+ * Fired when a window has had its tab properties updated.  See {@link addEventListener}.
+ */
 export interface TabPropertiesUpdatedEvent extends CustomEvent<TabPropertiesUpdatedPayload> {
     type: 'tab-properties-updated';
 }
 
+/**
+ * Fired when the window has become the active tab in a tabstrip.  See {@link addEventListener}.
+ */
 export interface TabActivatedEvent extends CustomEvent<TabGroupEventPayload> {
     type: 'tab-activated';
 }
 
+/**
+ * Fired when the window has been removed from its tabstrip.  See {@link addEventListener}.
+ */
 export interface TabRemovedEvent extends CustomEvent<TabGroupEventPayload> {
     type: 'tab-removed';
 }
 
+/**
+ * Fired when the window has been added to a tabstrip.  See {@link addEventListener}.
+ */
 export interface TabAddedEvent extends CustomEvent<TabAddedPayload> {
     type: 'tab-added';
 }
@@ -88,15 +100,13 @@ export async function addEventListener(eventType: 'tab-removed', listener: (even
  * });
  * ```
  *
- * NOTE: This event is only passed to tabstrip windows, and not to the actual application windows within the tabset.
- *
  * @type tab-activated
  * @event
  */
 export async function addEventListener(eventType: 'tab-activated', listener: (event: TabActivatedEvent) => void): Promise<void>;
 
 /**
- * Event fired whenever a tabs properties are updated (via {@link updateTabProperties}).
+ * Event fired whenever a windows tab properties are {@link updateTabProperties|updated}.
  *
  * The event will always contain the full properties of the tab, even if only a subset of them were updated.
  *

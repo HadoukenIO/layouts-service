@@ -7,10 +7,17 @@ import {channelPromise, tryServiceDispatch} from './connection';
 import {WorkspaceAPI} from './internal';
 import {CustomData, Workspace, WorkspaceApp} from './types';
 
+
+/**
+ * Fired when a workspace has been generated.  See {@link addEventListener}.
+ */
 export interface WorkspaceGeneratedEvent extends CustomEvent<Workspace> {
     type: 'workspace-generated';
 }
 
+/**
+ * Fired when a workspace has been restored.  See {@link addEventListener}.
+ */
 export interface WorkspaceRestoredEvent extends CustomEvent<Workspace> {
     type: 'workspace-restored';
 }
@@ -24,9 +31,9 @@ export interface EventMap {
 }
 
 /**
- * Event fired whenever a workspace is restored (via {@link restore}).
+ * Event fired when a workspace is {@link restore|restored}.
  *
- * The event will contain the full detail of the ({@link Workspace}).
+ * The event will contain the full detail of the {@link Workspace}.
  *
  * ```ts
  * import {workspaces} from 'openfin-layouts';

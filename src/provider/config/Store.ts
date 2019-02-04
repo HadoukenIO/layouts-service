@@ -162,7 +162,6 @@ export class Store<T> {
                     const index: number = values.indexOf(item);
 
                     if (index >= 0) {
-                        console.log('Removing config', item.config);
                         values.splice(index, 1);
                         this._cache.clear();
                         this.checkWatches(item, 'onRemove');

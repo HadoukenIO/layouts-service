@@ -8,7 +8,6 @@ import {isWindowRegistered} from '../demo/utils/snapServiceUtils';
 import {teardown} from '../teardown';
 
 import {assertGrouped, assertTabbed} from './utils/assertions';
-import {addRuleToProvider} from './utils/config';
 import {createChildWindow} from './utils/createChildWindow';
 import {delay} from './utils/delay';
 import {dragSideToSide, dragWindowTo} from './utils/dragWindowTo';
@@ -25,6 +24,12 @@ const DEFAULT_OPTIONS: fin.WindowOptions = {
     defaultWidth: 300,
     defaultHeight: 200
 };
+
+async function addRuleToProvider(scope: Scope, config: ConfigurationObject): Promise<void> {
+    return executeJavascriptOnService(function(this: ProviderWindow, data) {
+        this.config.add(data.scope, data.config);
+    }, {scope, config});
+}
 
 test.beforeEach(async (t: TestContext) => {
     t.context.windows = [];

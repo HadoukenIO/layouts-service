@@ -68,8 +68,10 @@ export class Loader<T> {
         // Register any windows created before the service started
         fin.System.getAllApplications().then((apps: SystemApplicationInfo[]) => {
             apps.forEach((app: SystemApplicationInfo) => {
-                // Register the main window
-                this.onApplicationCreated(app);
+                if (app.isRunning) {
+                    // Register the main window
+                    this.onApplicationCreated(app);
+                }
             });
         });
     }

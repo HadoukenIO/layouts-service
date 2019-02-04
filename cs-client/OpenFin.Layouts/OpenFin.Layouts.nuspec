@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>$author$</authors>
+    <owners>$author$</owners>
+    <licenseUrl>https://openfin.co/terms/</licenseUrl>
+    <projectUrl>http://www.openfin.co</projectUrl>
+    <iconUrl>http://cdn.openfin.co/nuget/openfin.ico</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>$description$</description>
+    <releaseNotes></releaseNotes>
+    <copyright>Copyright 2019</copyright>
+    <tags>OpenFin FinTech</tags>
+  </metadata>
+</package>

@@ -15,7 +15,7 @@ import {tearoutToPoint} from '../utils/tabstripUtils';
 test.afterEach.always(teardown);
 
 testParameterized(
-    (testOptions: CreateWindowData): string => `Drag Overlay Correct Size`,
+    (testOptions: CreateWindowData): string => `DragWindow matches virtualScreen size`,
     [{frame: true, windowCount: 2}],
     createWindowTest(async (t, testOptions: CreateWindowData) => {
         const {windowCount} = testOptions;
@@ -29,20 +29,9 @@ testParameterized(
         const bounds = await getBounds(windows[0]);
         await tearoutToPoint(await getTabstrip(windows[0].identity), 1, {x: bounds.right! + 50, y: bounds.bottom! + 50}, true);
 
-        const dragWindowBounds = await getBounds(dragWindow);
-        const {virtualScreen} = await fin.System.getMonitorInfo();
+        const [dragWindowBounds, virtualScreen] = await Promise.all([getBounds(dragWindow), fin.System.getMonitorInfo()]);
 
         robot.mouseToggle('up');
 
-        await windows[0].close();
-        await windows[1].close();
-
-        t.deepEqual(
-            {
-                left: virtualScreen.left,
-                top: virtualScreen.top,
-                width: Math.abs(virtualScreen.left - virtualScreen.right),
-                height: Math.abs(virtualScreen.top - virtualScreen.bottom)
-            },
-            {left: dragWindowBounds.left, top: dragWindowBounds.top, width: dragWindowBounds.width, height: dragWindowBounds.height});
+        t.deepEqual(virtualScreen, Object.assign(virtualScreen, dragWindowBounds));
     }, {defaultCentered: true, defaultWidth: 250, defaultHeight: 150}));

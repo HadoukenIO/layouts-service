@@ -48,9 +48,6 @@ test.afterEach.always(async t => {
     }
     windows = new Array<Window>(2);
 
-    // Re-enable docking after each test as service state persists through whole run
-    await toggleDocking(true);
-
     await teardown(t);
 });
 

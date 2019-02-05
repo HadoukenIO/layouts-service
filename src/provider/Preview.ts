@@ -5,14 +5,8 @@ import {Rectangle} from './snapanddock/utils/RectUtils';
 import {TabTarget} from './tabbing/TabService';
 import {eTargetType, Target} from './WindowHandler';
 
-const PREVIEW_SUCCESS = '#3D4059';
-const PREVIEW_FAILURE = `repeating-linear-gradient(45deg, #3D4059, #3D4059 .25em, #C24629 0, #C24629 .5em)`;
-
-interface PreviewWindow {
-    window: fin.OpenFinWindow;
-    nativeWindow: Window|null;
-    halfSize: Point;
-}
+const SUCCESS_PREVIEW_BACKGROUND_CSS = '#3D4059';
+const FAILURE_PREVIEW_BACKGROUND_CSS = `repeating-linear-gradient(45deg, #3D4059, #3D4059 .25em, #C24629 0, #C24629 .5em)`;
 
 export type PreviewableTarget = SnapTarget|TabTarget;
 
@@ -22,69 +16,53 @@ export type PreviewableTarget = SnapTarget|TabTarget;
  * Will create colored rectangles based on the given group. Rectangle color will be set according to snap validity.
  */
 export class Preview {
-    private pool: {active: fin.OpenFinWindow[]; free: fin.OpenFinWindow[]};
+    private _activeWindowPreview: fin.OpenFinWindow|null;
 
-    private activeGroup: DesktopSnapGroup|null;
-    private activeWindowPreview: PreviewWindow|null;
-
-    // Just using a single window instance right now. Will update to use the pool at a later point.
-    private tempWindow: PreviewWindow;
-    private tempWindowIsActive: boolean;
+    private _successPreviewWindow: fin.OpenFinWindow;
+    private _failurePreviewWindow: fin.OpenFinWindow;
 
     constructor() {
-        this.pool = {active: [], free: [/*this.createWindow()*/]};
+        this._activeWindowPreview = null;
 
-        this.activeGroup = null;
-        this.activeWindowPreview = null;
-
-        this.tempWindow = this.createWindow();
-        this.tempWindowIsActive = false;
+        this._successPreviewWindow = this.createWindow('previewSuccess', SUCCESS_PREVIEW_BACKGROUND_CSS);
+        this._failurePreviewWindow = this.createWindow('failurePreview', FAILURE_PREVIEW_BACKGROUND_CSS);
     }
 
     /**
-     * Creates rectangles that match the windows in the given group, but offset by the specified distance.
+     * Shows a rectangle that matches the snap/tab group target of a dragged window.
      *
-     * The 'isValid' parameter determines the color of the rectangles. The class also caches the group
-     * argument to avoid having to re-create the rectangle objects on every call if the group hasn't changed.
+     * The 'isValid' parameter determines the color of the rectangles, indicating if releasing the window will
+     * successfully join a snap/tab group
      */
     public show(target: PreviewableTarget): void {
-        const activeGroup = target.activeWindow.snapGroup;
+        const previewWindow = target.valid ? this._successPreviewWindow : this._failurePreviewWindow;
 
-        const groupHalfSize = activeGroup.halfSize;  // TODO: Will need to change once 'activeGroup' can have multiple windows (SERVICE-128)
+        this.positionPreview(previewWindow, target);
 
-        if (!this.tempWindowIsActive || this.activeGroup !== activeGroup) {
-            this.tempWindowIsActive = true;
-            this.tempWindow.window.show();
+        if (previewWindow !== this._activeWindowPreview) {
+            if (this._activeWindowPreview !== null) {
+                this._activeWindowPreview.hide();
+            }
+
+            previewWindow.show();
+            this._activeWindowPreview = previewWindow;
         }
-
-        this.activeWindowPreview = this.tempWindow;
-
-        this.positionPreview(target);
-
-        if (target.valid) {
-            this.activeWindowPreview.nativeWindow!.document.body.style.background = PREVIEW_SUCCESS;
-        } else {
-            this.activeWindowPreview.nativeWindow!.document.body.style.background = PREVIEW_FAILURE;
-        }
-
-        this.activeGroup = activeGroup;
     }
 
     /**
-     * Hides any visible preview windows. The window objects are hidden, but kept in a pool.
+     * Hides the currently visible preview window
      */
     public hide(): void {
-        if (this.tempWindowIsActive) {
-            this.tempWindowIsActive = false;
-            this.tempWindow.window.hide();
-            this.activeGroup = null;
+        if (this._activeWindowPreview !== null) {
+            this._activeWindowPreview.hide();
+            this._activeWindowPreview = null;
         }
     }
 
-    private createWindow(): PreviewWindow {
+    private createWindow(name: string, backgroundCssString: string): fin.OpenFinWindow {
         const defaultHalfSize = {x: 160, y: 160};
         const options: fin.WindowOptions = {
-            name: 'previewWindow',
+            name,
             url: 'about:blank',
             defaultWidth: defaultHalfSize.x * 2,
             defaultHeight: defaultHalfSize.y * 2,
@@ -100,25 +78,18 @@ export class Preview {
             alwaysOnTop: true
         };
 
-        const preview: PreviewWindow = {
-            window: new fin.desktop.Window(
-                options,
-                () => {
-                    preview.nativeWindow = preview.window.getNativeWindow();
-                    preview.nativeWindow.document.body.style.background = PREVIEW_SUCCESS;
-                }),
-            nativeWindow: null,
-            halfSize: defaultHalfSize
-        };
+        const window = new fin.desktop.Window(options, () => {
+            const nativeWindow = window.getNativeWindow();
+            nativeWindow.document.body.style.background = backgroundCssString;
+        });
 
-        return preview;
+        return window;
     }
 
-    private positionPreview(target: PreviewableTarget) {
+    private positionPreview(previewWindow: fin.OpenFinWindow, target: PreviewableTarget) {
         const previewRect = this.generatePreviewRect(target);
-        PointUtils.assign(this.tempWindow.halfSize, previewRect.halfSize);
 
-        this.tempWindow.window.setBounds(
+        previewWindow!.setBounds(
             previewRect.center.x - previewRect.halfSize.x,
             previewRect.center.y - previewRect.halfSize.y,
             previewRect.halfSize.x * 2,

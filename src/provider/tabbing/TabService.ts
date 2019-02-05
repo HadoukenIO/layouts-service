@@ -161,8 +161,7 @@ export class TabService {
 
             const appRect: Rectangle = group.activeTab.currentState;
             const groupRect: Rectangle = group.window.currentState;
-            const config: ApplicationUIConfig|'default' =
-                (group.config === ApplicationConfigManager.DEFAULT_CONFIG) ? 'default' : group.config;
+            const config: ApplicationUIConfig|'default' = (group.config === ApplicationConfigManager.DEFAULT_CONFIG) ? 'default' : group.config;
 
             const groupInfo = {
                 active: group.activeTab.identity,

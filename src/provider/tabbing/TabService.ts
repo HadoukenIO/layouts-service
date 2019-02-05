@@ -170,7 +170,8 @@ export class TabService {
                     width: groupRect.halfSize.x * 2,
                     tabGroupHeight: groupRect.halfSize.y * 2,
                     appHeight: appRect.halfSize.y * 2
-                }
+                },
+                defaultConfig: group.config === ApplicationConfigManager.DEFAULT_CONFIG
             };
 
             return {tabs, groupInfo};
@@ -192,7 +193,9 @@ export class TabService {
 
             if (tabs.length >= 2) {
                 // Create a tabstrip window in the correct position
-                const tabstripOptions: ApplicationUIConfig = {url: groupDef.groupInfo.url, height: dimensions.tabGroupHeight};
+                const tabstripOptions: ApplicationUIConfig = groupDef.groupInfo.defaultConfig ?
+                    ApplicationConfigManager.DEFAULT_CONFIG :
+                    {url: groupDef.groupInfo.url, height: dimensions.tabGroupHeight};
 
                 // Each tab group will be a stand-alone snap group
                 const snapGroup: DesktopSnapGroup = new DesktopSnapGroup();

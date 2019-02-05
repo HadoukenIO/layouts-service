@@ -271,6 +271,11 @@ export interface TabGroupInfo {
      * Object containing the saved bounds of the tabset
      */
     dimensions: TabGroupDimensions;
+
+    /**
+     * Indicates whether this tabstrip is using the default configuration or specifies a custom configuration
+     */
+    defaultConfig: boolean;
 }
 
 /**

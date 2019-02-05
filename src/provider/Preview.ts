@@ -22,7 +22,7 @@ export class Preview {
     constructor() {
         this._activeWindowPreview = null;
 
-        this._successPreviewWindow = this.createWindow('previewSuccess', SUCCESS_PREVIEW_BACKGROUND_CSS);
+        this._successPreviewWindow = this.createWindow('successPreview', SUCCESS_PREVIEW_BACKGROUND_CSS);
         this._failurePreviewWindow = this.createWindow('failurePreview', FAILURE_PREVIEW_BACKGROUND_CSS);
     }
 

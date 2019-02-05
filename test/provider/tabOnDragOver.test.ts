@@ -2,6 +2,8 @@ import {test} from 'ava';
 import {Fin, Window} from 'hadouken-js-adapter';
 import * as robot from 'robotjs';
 
+import {teardown} from '../teardown';
+
 import {assertNotTabbed, assertTabbed} from './utils/assertions';
 import {getConnection} from './utils/connect';
 import {createChildWindow} from './utils/createChildWindow';
@@ -54,6 +56,7 @@ test.afterEach.always(async () => {
 
     wins = [];
 });
+test.afterEach.always(teardown);
 
 test('Drag window over window - should create tabgroup', async t => {
     // Drag wins[0] over wins[1] to make a tabset (in valid drop region)

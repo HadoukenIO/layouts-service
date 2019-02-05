@@ -89,7 +89,7 @@ export class Preview {
     private createWindow(): PreviewWindow {
         const defaultHalfSize = {x: 160, y: 160};
         const options: fin.WindowOptions = {
-            name: 'previewWindow-',  // + Math.floor(Math.random() * 1000),
+            name: 'previewWindow',
             url: 'about:blank',
             defaultWidth: defaultHalfSize.x * 2,
             defaultHeight: defaultHalfSize.y * 2,

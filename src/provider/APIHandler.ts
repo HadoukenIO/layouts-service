@@ -2,15 +2,16 @@ import {Identity} from 'hadouken-js-adapter';
 import {ProviderIdentity} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/channel';
 import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
 
-import {TabAPI} from '../client/internal';
-import {DropPosition, SERVICE_CHANNEL} from '../client/internal';
+import {DropPosition, RegisterAPI, SERVICE_CHANNEL, SnapAndDockAPI, TabAPI, WorkspaceAPI} from '../client/internal';
 import {ApplicationUIConfig, TabProperties} from '../client/types';
 
+import {LegacyAPI, WindowMessages} from './APIMessages';
 import {model, snapService, tabService} from './main';
 import {DesktopTabGroup} from './model/DesktopTabGroup';
 import {DesktopWindow, WindowIdentity} from './model/DesktopWindow';
-import {deregisterWindow, generateLayout} from './workspaces/create';
-import {getAppToRestore, restoreApplication, restoreLayout} from './workspaces/restore';
+import {deregisterWindow, generateWorkspace} from './workspaces/create';
+import {getAppToRestore, restoreApplication, restoreWorkspace} from './workspaces/restore';
+
 
 /**
  * Manages all communication with the client. Stateless class that listens for incomming messages, and handles sending of messages to connected client(s).
@@ -35,15 +36,14 @@ export class APIHandler {
      *
      * Will fail silently if client with given identity doesn't exist and/or isn't connected to service.
      */
-    public async sendToClient<T, R = void>(identity: Identity, action: string, payload: T): Promise<R|undefined> {
+    public async sendToClient<P, R = void>(identity: Identity, action: WindowMessages, payload: P): Promise<R|undefined> {
         return this.providerChannel.dispatch(identity, action, payload);
     }
 
     /**
      * Sends a message to all connected clients.
      */
-    // tslint:disable-next-line:no-any
-    public async sendToAll(action: string, payload: any): Promise<void> {
+    public async sendToAll<P>(action: WindowMessages, payload: P): Promise<void> {
         await this.providerChannel.publish(action, payload);
     }
 
@@ -52,16 +52,16 @@ export class APIHandler {
 
         // Common
         providerChannel.onConnection(this.onConnection);
-        providerChannel.register('deregister', this.deregister);
+        providerChannel.register(RegisterAPI.DEREGISTER, this.deregister);
 
         // Snap & Dock
-        providerChannel.register('undockWindow', this.undockWindow);
-        providerChannel.register('undockGroup', this.undockGroup);
+        providerChannel.register(SnapAndDockAPI.UNDOCK_WINDOW, this.undockWindow);
+        providerChannel.register(SnapAndDockAPI.UNDOCK_GROUP, this.undockGroup);
 
         // Workspaces
-        providerChannel.register('generateLayout', generateLayout);
-        providerChannel.register('restoreLayout', restoreLayout);
-        providerChannel.register('appReady', this.appReady);
+        providerChannel.register(WorkspaceAPI.GENERATE_LAYOUT, generateWorkspace);
+        providerChannel.register(WorkspaceAPI.RESTORE_LAYOUT, restoreWorkspace);
+        providerChannel.register(WorkspaceAPI.APPLICATION_READY, this.appReady);
 
         // Tabbing
         providerChannel.register(TabAPI.CLOSETABGROUP, this.closeTabGroup);
@@ -76,9 +76,18 @@ export class APIHandler {
         providerChannel.register(TabAPI.REORDERTABS, this.reorderTabs);
         providerChannel.register(TabAPI.RESTORETABGROUP, this.restoreTabGroup);
         providerChannel.register(TabAPI.SETACTIVETAB, this.setActiveTab);
-        providerChannel.register(TabAPI.SETTABCLIENT, this.setTabClient);
+        providerChannel.register(TabAPI.SETTABSTRIP, this.setTabstrip);
         providerChannel.register(TabAPI.UPDATETABPROPERTIES, this.updateTabProperties);
         providerChannel.register(TabAPI.ADDTAB, this.addTab);
+
+
+        // Legacy API (Used before 1.0 cleanup)
+        providerChannel.register(LegacyAPI.APPLICATION_READY, this.appReady);
+        providerChannel.register(LegacyAPI.DEREGISTER, this.deregister);
+        providerChannel.register(LegacyAPI.GENERATE_LAYOUT, generateWorkspace);
+        providerChannel.register(LegacyAPI.RESTORE_LAYOUT, restoreWorkspace);
+        providerChannel.register(LegacyAPI.UNDOCK_GROUP, this.undockGroup);
+        providerChannel.register(LegacyAPI.UNDOCK_WINDOW, this.undockWindow);
     }
 
     // tslint:disable-next-line:no-any
@@ -126,7 +135,7 @@ export class APIHandler {
         }
     }
 
-    private setTabClient(payload: {config: ApplicationUIConfig, id: Identity}) {
+    private setTabstrip(payload: {config: ApplicationUIConfig, id: Identity}) {
         if (tabService.applicationConfigManager.exists(payload.id.uuid)) {
             console.error('Window already configured for tabbing');
             throw new Error('Window already configured for tabbing');
@@ -273,16 +282,15 @@ export class APIHandler {
         return group.reOrderTabArray(newOrdering);
     }
 
-    private updateTabProperties(payload: {window: WindowIdentity, properties: Partial<TabProperties>}): void {
+    private updateTabProperties(payload: {properties: Partial<TabProperties>, window: WindowIdentity}): void {
         const tab: DesktopWindow|null = model.getWindow(payload.window);
-        const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
-        if (!group) {
+        if (!tab) {
             console.error('No tab found for window');
             throw new Error('No tab found for window');
+        } else {
+            return tabService.updateTabProperties(tab, payload.properties);
         }
-
-        return group.updateTabProperties(tab!, payload.properties);
     }
 
     private startDrag(payload: {}, id: ProviderIdentity): void {

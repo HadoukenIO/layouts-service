@@ -2,9 +2,11 @@ import {test} from 'ava';
 import {Application, Fin} from 'hadouken-js-adapter';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import {Layout} from '../../src/client/types';
+import {WorkspaceAPI} from '../../src/client/internal';
+import {Workspace} from '../../src/client/types';
 import {sendServiceMessage} from '../demo/utils/serviceUtils';
 import {isWindowRegistered} from '../demo/utils/snapServiceUtils';
+import {teardown} from '../teardown';
 
 import {getConnection} from './utils/connect';
 import {delay} from './utils/delay';
@@ -14,6 +16,13 @@ let crashApp: Application|undefined = undefined;
 
 test.before(async t => {
     fin = await getConnection();
+});
+test.afterEach.always(async t => {
+    if (crashApp) {
+        crashApp.close(true);
+    }
+
+    await teardown(t);
 });
 
 test('Error windows are not registered with S&D or Tabbing', async t => {
@@ -71,7 +80,7 @@ test('Error windows are not included in generateLayout', async t => {
     } while (errorWindow === undefined);
 
     if (errorWindow) {
-        const layout = await sendServiceMessage<undefined, Layout>('generateLayout', undefined);
+        const layout = await sendServiceMessage<undefined, Workspace>(WorkspaceAPI.GENERATE_LAYOUT, undefined);
 
         t.false(isErrorInLayout(errorWindow.identity.uuid, layout), 'Error window found in generated layout');
 
@@ -79,12 +88,6 @@ test('Error windows are not included in generateLayout', async t => {
     }
 });
 
-test.afterEach.always(async t => {
-    if (crashApp && await crashApp.isRunning()) {
-        crashApp.close(true);
-    }
-});
-
-function isErrorInLayout(errorUuid: string, layout: Layout) {
+function isErrorInLayout(errorUuid: string, layout: Workspace) {
     return layout.apps.some(app => app.uuid === errorUuid);
 }

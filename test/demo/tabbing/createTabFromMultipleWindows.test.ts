@@ -5,6 +5,7 @@ import {TabGroup} from '../../../src/client/types';
 import {DesktopTabGroup} from '../../../src/provider/model/DesktopTabGroup';
 import {getConnection} from '../../provider/utils/connect';
 import {getBounds, NormalizedBounds} from '../../provider/utils/getBounds';
+import {teardown} from '../../teardown';
 import {executeJavascriptOnService} from '../utils/serviceUtils';
 import {getId} from '../utils/tabServiceUtils';
 
@@ -20,6 +21,8 @@ test.afterEach.always(async () => {
     await win2.close();
     fin.InterApplicationBus.removeAllListeners();
 });
+
+test.afterEach.always(teardown);
 
 test('Create tab group from 2 windows', async (assert) => {
     // Arrange
@@ -50,7 +53,7 @@ test('Create tab group from 2 windows', async (assert) => {
 
     // Act
     function scriptToExecute(this: ProviderWindow, tabGroups: TabGroup[]): Promise<string> {
-        return this.tabService.createTabGroupsFromLayout(tabGroups).then((addedGroups: DesktopTabGroup[]) => {
+        return this.tabService.createTabGroupsFromWorkspace(tabGroups).then((addedGroups: DesktopTabGroup[]) => {
             return addedGroups[0].id;
         });
     }

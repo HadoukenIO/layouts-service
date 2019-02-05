@@ -79,6 +79,15 @@ Optionally you can add a URL for specifying a custom location or a specific vers
 npm install openfin-layouts
 ```
 
+The client library is also available as a resource which can be included via `<script>` tag:
+```
+   <script src="https://cdn.openfin/services/openfin/layouts/<VERSION>/openfin-layouts.js"></script>
+```
+This will expose the global variable `OpenFinLayouts` with the API methods documented in the link below.  Example:
+```
+   OpenFinLayouts.undockWindow();
+```
+
 The client module exports a set of functions - [API docs available](https://urls.openfin.co/layouts/docs).
 
 
@@ -109,7 +118,10 @@ npm test
 ## License
 This project uses the [Apache2 license](https://www.apache.org/licenses/LICENSE-2.0)
 
-The code in this repository is covered by the included license. If you run this code, it may call on the OpenFin RVM or OpenFin Runtime, which are subject to OpenFin's [Developer License](https://openfin.co/developer-agreement/). If you have questions, please contact support@openfin.co
+However, if you run this code, it may call on the OpenFin RVM or OpenFin Runtime, which are covered by OpenFin's Developer, Community, and Enterprise licenses. You can learn more about OpenFin licensing at the links listed below or just email us at support@openfin.co with questions.
+
+https://openfin.co/developer-agreement/
+https://openfin.co/licensing/
 
 ## Support
 This is an open source project and all are encouraged to contribute.

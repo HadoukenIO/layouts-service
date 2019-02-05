@@ -1,5 +1,6 @@
+import {test} from 'ava';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
-import * as robot from 'robotjs';
+import robot from 'robotjs';
 
 import {CreateWindowData, createWindowTest} from '../demo/utils/createWindowTest';
 import {testParameterized} from '../demo/utils/parameterizedTestUtils';
@@ -11,10 +12,13 @@ import {dragSideToSide} from '../provider/utils/dragWindowTo';
 import {getBounds} from '../provider/utils/getBounds';
 import {opposite, Side} from '../provider/utils/SideUtils';
 import {tabWindowsTogether} from '../provider/utils/tabWindowsTogether';
+import {teardown} from '../teardown';
 
 import {getTabstrip} from './utils/tabServiceUtils';
 import {tearoutToOtherTabstrip, tearoutToPoint} from './utils/tabstripUtils';
 
+
+test.afterEach.always(teardown);
 
 interface PreviewTestOptions extends CreateWindowData {
     side: Side;
@@ -33,7 +37,7 @@ testParameterized(
         const {windows} = t.context;
 
         const fin = await getConnection();
-        const previewWin: _Window = await fin.Window.wrap({name: 'previewWindow-', uuid: 'layouts-service'});
+        const previewWin: _Window = await fin.Window.wrap({name: 'previewWindow', uuid: 'layouts-service'});
         const windowBounds = await Promise.all([getBounds(windows[0]), getBounds(windows[1])]);
 
         await dragSideToSide(windows[1], opposite(side), windows[0], side, {x: 5, y: 5}, false);
@@ -67,7 +71,7 @@ testParameterized(
         const {windows} = t.context;
 
         const fin = await getConnection();
-        const previewWin: _Window = await fin.Window.wrap({name: 'previewWindow-', uuid: 'layouts-service'});
+        const previewWin: _Window = await fin.Window.wrap({name: 'previewWindow', uuid: 'layouts-service'});
         const windowBounds = await Promise.all([getBounds(windows[0]), getBounds(windows[1])]);
 
         await windows[1].resizeBy(
@@ -96,7 +100,7 @@ testParameterized(
         const {windows} = t.context;
 
         const fin = await getConnection();
-        const previewWin: _Window = await fin.Window.wrap({name: 'previewWindow-', uuid: 'layouts-service'});
+        const previewWin: _Window = await fin.Window.wrap({name: 'previewWindow', uuid: 'layouts-service'});
         const windowBounds = await Promise.all([getBounds(windows[0]), getBounds(windows[1])]);
 
         if (windowCount > 2) {
@@ -124,7 +128,7 @@ testParameterized(
         const {windows} = t.context;
 
         const fin = await getConnection();
-        const previewWin: _Window = await fin.Window.wrap({name: 'previewWindow-', uuid: 'layouts-service'});
+        const previewWin: _Window = await fin.Window.wrap({name: 'previewWindow', uuid: 'layouts-service'});
 
         await windows[0].moveTo(40, 40);
         if (windowCount > 3) await windows[3].moveTo(60, 60);

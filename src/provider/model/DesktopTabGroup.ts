@@ -155,7 +155,15 @@ export class DesktopTabGroup implements DesktopEntity {
     public async applyOffset(offset: Point, halfSize?: Point): Promise<void> {
         const tabstripHalfHeight: number = this._config.height / 2;
         const adjustedHalfSize: Point|undefined = halfSize && {x: halfSize.x, y: halfSize.y - tabstripHalfHeight};
-        return this.activeTab.applyOffset(offset, adjustedHalfSize);
+        return DesktopWindow.transaction([this._window, ...this._tabs], async (windows: DesktopWindow[]) => {
+            await Promise.all(windows.map((win: DesktopWindow) => {
+                if (win === this._window) {
+                    return win.applyOffset(offset);
+                } else {
+                    return win.applyOffset(offset, adjustedHalfSize);
+                }
+            }));
+        });
     }
 
     /**

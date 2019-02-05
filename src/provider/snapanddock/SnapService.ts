@@ -117,7 +117,7 @@ export class SnapService {
                 // group.center is recalculated on each call, so we assign it here once and use the value.
                 const groupCenter = group.center;
 
-                // We leave one of the entities in the original snapGroup since we would just be moving it from one solo group to another. 
+                // We leave one of the entities in the original snapGroup since we would just be moving it from one solo group to another.
                 // Chose the first because saved a couple of characters in the code, but really doesn't matter which is left behind.
                 await Promise.all(entities.slice(1).map((entity: DesktopEntity) => {
                     return entity.setSnapGroup(new DesktopSnapGroup());
@@ -140,7 +140,7 @@ export class SnapService {
         return this._resolver.getSnapTarget(this._model.snapGroups, activeGroup);
     }
 
-    public applySnapTarget(snapTarget: SnapTarget): void {
+    public async applySnapTarget(snapTarget: SnapTarget): Promise<void> {
         if (snapTarget.valid) {  // SNAP WINDOWS
             const activeGroup = snapTarget.activeWindow.snapGroup;
 
@@ -149,11 +149,10 @@ export class SnapService {
             }
 
             // Snap all windows in activeGroup to snapTarget.group
-            snapTarget.activeWindow.applyOffset(snapTarget.offset, snapTarget.halfSize!);
-
+            await snapTarget.activeWindow.applyOffset(snapTarget.offset, snapTarget.halfSize!);
             if (!this.disableDockingOperations) {
                 // Dock all windows in activeGroup to snapTarget.group
-                snapTarget.activeWindow.setSnapGroup(snapTarget.targetGroup);
+                await snapTarget.activeWindow.setSnapGroup(snapTarget.targetGroup);
 
                 // The active group should now have been removed (since it is empty)
                 if (this._model.snapGroups.indexOf(activeGroup) >= 0) {

@@ -694,7 +694,7 @@ export class DesktopWindow implements DesktopEntity {
                     if (typeof delta[property] === 'object') {
                         Object.assign(this._applicationState[property], delta[property]);
                     } else {
-                        this.applicationState[property] = delta[property]!;
+                        this._applicationState[property] = delta[property]!;
                     }
                 }
             });

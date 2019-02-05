@@ -292,7 +292,7 @@ export class APIHandler {
         // Previous client version had no payload. To avoid breaking changes, we
         // default to the active tab if no window is specified.
         if (!payload.window) {
-            group = model.getTabGroup(`${source.uuid}/${source.name}`);
+            group = model.getTabGroup(model.getId(source as WindowIdentity));
             tab = group && group.activeTab;
         } else {
             tab = model.getWindow(payload.window);

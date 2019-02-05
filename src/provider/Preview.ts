@@ -1,6 +1,4 @@
-import {DesktopSnapGroup} from './model/DesktopSnapGroup';
 import {SnapTarget} from './snapanddock/Resolver';
-import {Point, PointUtils} from './snapanddock/utils/PointUtils';
 import {Rectangle} from './snapanddock/utils/RectUtils';
 import {TabTarget} from './tabbing/TabService';
 import {eTargetType, Target} from './WindowHandler';

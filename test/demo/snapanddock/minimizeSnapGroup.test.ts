@@ -65,7 +65,7 @@ testParameterized(
         await windowInitializer.arrangeWindows(tabStrips, windowCount === 4 ? 'horizontal' : 'line');
         await assertGrouped(t, ...windows, ...tabStrips);
 
-        await layoutsClient.minimizeTabGroup(tabStrips[0].identity);
+        await layoutsClient.tabbing.minimizeTabGroup(tabStrips[0].identity);
         await delay(500);
 
         await assertAllMinimizedOrHidden(t, [...windows, ...tabStrips]);

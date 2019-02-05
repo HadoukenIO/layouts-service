@@ -2,7 +2,8 @@ import {test} from 'ava';
 import {Application, Fin} from 'hadouken-js-adapter';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import {Layout} from '../../src/client/types';
+import {WorkspaceAPI} from '../../src/client/internal';
+import {Workspace} from '../../src/client/types';
 import {sendServiceMessage} from '../demo/utils/serviceUtils';
 import {isWindowRegistered} from '../demo/utils/snapServiceUtils';
 import {teardown} from '../teardown';
@@ -79,7 +80,7 @@ test('Error windows are not included in generateLayout', async t => {
     } while (errorWindow === undefined);
 
     if (errorWindow) {
-        const layout = await sendServiceMessage<undefined, Layout>('generateLayout', undefined);
+        const layout = await sendServiceMessage<undefined, Workspace>(WorkspaceAPI.GENERATE_LAYOUT, undefined);
 
         t.false(isErrorInLayout(errorWindow.identity.uuid, layout), 'Error window found in generated layout');
 
@@ -87,6 +88,6 @@ test('Error windows are not included in generateLayout', async t => {
     }
 });
 
-function isErrorInLayout(errorUuid: string, layout: Layout) {
+function isErrorInLayout(errorUuid: string, layout: Workspace) {
     return layout.apps.some(app => app.uuid === errorUuid);
 }

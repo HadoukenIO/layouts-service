@@ -209,7 +209,6 @@ const getWorkspaceWindowData = async(ofWin: Window, tabbedWindows: WindowObject)
         }
     });
 
-    const options = await ofWin.getOptions();
     const desktopWindow = model.getWindow(identity);
     if (desktopWindow === null) {
         throw Error(`No desktop window for window. Name: ${identity.name}, UUID: ${identity.uuid}`);
@@ -219,5 +218,7 @@ const getWorkspaceWindowData = async(ofWin: Window, tabbedWindows: WindowObject)
     // If a window is tabbed (based on filtered tabGroups), tab it.
     const isTabbed = inWindowObject(ofWin.identity, tabbedWindows) ? true : false;
 
-    return {info, uuid, windowGroup: filteredWindowGroup, frame: applicationState.frame, state: options.state, isTabbed, isShowing: !applicationState.hidden};
+    const state = desktopWindow.currentState.state;
+
+    return {info, uuid, windowGroup: filteredWindowGroup, frame: applicationState.frame, state, isTabbed, isShowing: !applicationState.hidden};
 };

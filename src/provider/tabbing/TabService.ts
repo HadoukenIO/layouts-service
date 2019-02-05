@@ -195,7 +195,7 @@ export class TabService {
             if (tabs.length >= 2) {
                 // Create a tabstrip window in the correct position
                 const tabstripOptions: ApplicationUIConfig =
-                    groupDef.groupInfo.config === 'default' ? ApplicationConfigManager.DEFAULT_CONFIG : groupDef.groupInfo.config as ApplicationUIConfig;
+                    groupDef.groupInfo.config === 'default' ? ApplicationConfigManager.DEFAULT_CONFIG : groupDef.groupInfo.config;
 
                 // Each tab group will be a stand-alone snap group
                 const snapGroup: DesktopSnapGroup = new DesktopSnapGroup();

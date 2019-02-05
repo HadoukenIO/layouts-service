@@ -4,7 +4,7 @@
 import {Identity} from 'hadouken-js-adapter';
 
 import {tryServiceDispatch} from './connection';
-import {DropPosition, EndDragPayload, TabAPI, StartDragPayload, parseIdentity} from './internal';
+import {DropPosition, EndDragPayload, StartDragPayload, TabAPI} from './internal';
 /**
  * Functions required to implement a tabstrip
  */

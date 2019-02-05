@@ -161,17 +161,18 @@ export class TabService {
 
             const appRect: Rectangle = group.activeTab.currentState;
             const groupRect: Rectangle = group.window.currentState;
+            const config: ApplicationUIConfig|'default' =
+                (group.config === ApplicationConfigManager.DEFAULT_CONFIG) ? 'default' : group.config;
+
             const groupInfo = {
-                url: group.config.url,
                 active: group.activeTab.identity,
                 dimensions: {
                     x: groupRect.center.x - groupRect.halfSize.x,
                     y: groupRect.center.y - groupRect.halfSize.y,
                     width: groupRect.halfSize.x * 2,
-                    tabGroupHeight: groupRect.halfSize.y * 2,
                     appHeight: appRect.halfSize.y * 2
                 },
-                defaultConfig: group.config === ApplicationConfigManager.DEFAULT_CONFIG
+                config
             };
 
             return {tabs, groupInfo};
@@ -193,9 +194,8 @@ export class TabService {
 
             if (tabs.length >= 2) {
                 // Create a tabstrip window in the correct position
-                const tabstripOptions: ApplicationUIConfig = groupDef.groupInfo.defaultConfig ?
-                    ApplicationConfigManager.DEFAULT_CONFIG :
-                    {url: groupDef.groupInfo.url, height: dimensions.tabGroupHeight};
+                const tabstripOptions: ApplicationUIConfig =
+                    groupDef.groupInfo.config === 'default' ? ApplicationConfigManager.DEFAULT_CONFIG : groupDef.groupInfo.config as ApplicationUIConfig;
 
                 // Each tab group will be a stand-alone snap group
                 const snapGroup: DesktopSnapGroup = new DesktopSnapGroup();
@@ -203,7 +203,7 @@ export class TabService {
 
                 // Position first tab to cover entire tab area - both tabstrip and app bounds
                 // The positions of tabstrip and subsequent tabs will all be based on this
-                const combinedHeight: number = dimensions.tabGroupHeight + dimensions.appHeight;
+                const combinedHeight: number = tabstripOptions.height + dimensions.appHeight;
                 const appBounds: Rectangle = {
                     center: {x: dimensions.x + (dimensions.width / 2), y: dimensions.y + (combinedHeight / 2)},
                     halfSize: {x: dimensions.width / 2, y: combinedHeight / 2}

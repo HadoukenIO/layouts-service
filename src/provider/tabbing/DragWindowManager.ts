@@ -1,8 +1,7 @@
-import {Window} from 'hadouken-js-adapter';
+import {DipRect, MonitorInfo} from 'hadouken-js-adapter/out/types/src/api/system/monitor';
 import {Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import {WindowIdentity} from '../../client/types';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopWindow} from '../model/DesktopWindow';
 import {Signal0, Signal2} from '../Signal';
@@ -29,9 +28,21 @@ export class DragWindowManager {
     // Usecase: failsafe for the drag window overlay should somehow it not close, the user would be "locked out" of the desktop.
     private _hideTimeout: number|NodeJS.Timer;
 
+    /**
+     * The drag overlay window
+     */
     private _window!: fin.OpenFinWindow;
 
+    /**
+     * The active window (tab) which triggered the overlay to show.
+     */
     private _sourceWindow: DesktopWindow|null;
+
+    /**
+     * The virtual screen bounds which covers all monitors of the desktop.
+     */
+    private _virtualScreen!: DipRect;
+
     private _model: DesktopModel;
 
     constructor(model: DesktopModel) {
@@ -39,6 +50,10 @@ export class DragWindowManager {
         this._sourceWindow = null;
         this._hideTimeout = -1;
         this.createDragWindow();
+
+        fin.System.addListener('monitor-info-changed', event => {
+            this.setWindowBounds(event.virtualScreen);
+        });
     }
 
     /**
@@ -100,10 +115,12 @@ export class DragWindowManager {
                 });
         });
 
-        const nativeWin = await this._window.getNativeWindow();
+        this.setWindowBounds();
+
+        const nativeWin = this._window.getNativeWindow();
 
         nativeWin.document.body.addEventListener('dragover', (ev: DragEvent) => {
-            DragWindowManager.onDragOver.emit(this._sourceWindow!, {x: ev.screenX, y: ev.screenY});
+            DragWindowManager.onDragOver.emit(this._sourceWindow!, {x: ev.screenX + this._virtualScreen.left, y: ev.screenY + this._virtualScreen.top});
             this.resetHideTimer();
 
             ev.preventDefault();
@@ -120,8 +137,26 @@ export class DragWindowManager {
             ev.stopPropagation();
             return true;
         });
+    }
 
-        await this._window.resizeTo(screen.width, screen.height, 'top-left');
-        await this._window.hide();
+    /**
+     * Updates the in memory virtual screen bounds and positions the drag window accordingly.
+     *
+     * This should only be called on initalization and on 'monitor info changed' events.
+     */
+    private async setWindowBounds(virtualScreen?: DipRect) {
+        if (!virtualScreen) {
+            const monitorInfo: MonitorInfo = await fin.System.getMonitorInfo();
+            this._virtualScreen = monitorInfo.virtualScreen;
+        } else {
+            this._virtualScreen = virtualScreen;
+        }
+
+        this._window.setBounds(
+            this._virtualScreen.left,
+            this._virtualScreen.top,
+            this._virtualScreen.right - this._virtualScreen.left,
+            this._virtualScreen.bottom - this._virtualScreen.top);
+        this._window.hide();
     }
 }

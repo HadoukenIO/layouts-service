@@ -7,7 +7,6 @@ import {executeJavascriptOnService} from '../demo/utils/serviceUtils';
 import {teardown} from '../teardown';
 
 import {assertGrouped, assertNotGrouped} from './utils/assertions';
-import {getConnection} from './utils/connect';
 import {createChildWindow} from './utils/createChildWindow';
 import {dragSideToSide, dragWindowTo} from './utils/dragWindowTo';
 import {getBounds, NormalizedBounds} from './utils/getBounds';
@@ -16,6 +15,7 @@ let windows: Window[] = new Array<Window>(2);
 
 const windowOptions = [
     {
+        name: 'dock-win1',
         autoShow: true,
         saveWindowState: false,
         defaultTop: 100,
@@ -26,6 +26,7 @@ const windowOptions = [
         frame: false
     },
     {
+        name: 'dock-win2',
         autoShow: true,
         saveWindowState: false,
         defaultTop: 300,
@@ -36,6 +37,7 @@ const windowOptions = [
         frame: false
     }
 ];
+const windowScopes: Scope[] = [{level: 'window', uuid: 'testApp', name: 'dock-win1'}, {level: 'window', uuid: 'testApp', name: 'dock-win2'}];
 
 test.beforeEach(async t => {
     for (let i = 0; i < 2; i++) {
@@ -88,8 +90,7 @@ test('docking disabled - windows should snap but not dock', async t => {
 });
 
 export async function toggleDocking(dockingEnabled: boolean): Promise<void> {
-    return executeJavascriptOnService(function(this: ProviderWindow, dockingEnabled) {
-        const scope: Scope = {level: 'application', uuid: 'testApp'};
-        this.config.add(scope, {features: {dock: dockingEnabled}});
-    }, dockingEnabled);
+    return executeJavascriptOnService(function(this: ProviderWindow, {windowScopes, dockingEnabled}) {
+        windowScopes.forEach(scope => this.config.add(scope, {features: {dock: dockingEnabled}}));
+    }, {windowScopes, dockingEnabled});
 }

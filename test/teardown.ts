@@ -138,6 +138,9 @@ async function resetProviderState(t: TestContext): Promise<void> {
             if (rulesWithScope.length !== expectedCount) {
                 const configInfo = rulesWithScope.map(rule => JSON.stringify(rule)).join(SEPARATOR_LINE);
                 msgs.push(`Expected ${expectedCount} rules with scope ${scope}, got:${configInfo ? SEPARATOR_LINE + configInfo: " NONE"}`);
+
+                // Can't do a full clean-up without duplicating provider state here, but removing anything that was defined outside of the service (test windows, etc)
+                rules.set(scope, rulesWithScope.filter(config => config.source.level === 'service'));
             }
         });
         if (watches.length !== expectedWatcherCount) {

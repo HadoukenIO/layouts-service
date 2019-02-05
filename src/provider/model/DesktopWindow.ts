@@ -861,24 +861,11 @@ export class DesktopWindow implements DesktopEntity {
     }
 
     private async handleFocused(): Promise<void> {
-        // Loop through all windows in the same group as the focused window and bring them
-        // all to front
-        const window: fin.OpenFinWindow = fin.desktop.Window.wrap(this._identity.uuid, this._identity.name);
-        const group: fin.OpenFinWindow[] = await new Promise<fin.OpenFinWindow[]>((res, rej) => {
-            window.getGroup(res, rej);
-        });
-        await promiseMap(group, async (groupWindow: fin.OpenFinWindow) => {
-            return new Promise<void>((res, rej) => {
-                groupWindow.bringToFront(res, rej);
-            });
-        });
-
-
-
-        // V2 'getGroup' API has bug: https://appoji.jira.com/browse/RUN-4535
-        // await this.window.getGroup().then((group: Window[]) => {
-        //     return Promise.all(group.map((window: Window) => window.bringToFront()));
-        // });
+        // If we're not maximized ourself, bring all snapped, non-maximized windows to the front
+        if (!this.isMaximizedOrInMaximizedTab()) {
+            this._snapGroup.windows.filter(snapGroupWindow => snapGroupWindow !== this && !snapGroupWindow.isMaximizedOrInMaximizedTab())
+                .forEach(snapGroupWindow => snapGroupWindow.bringToFront());
+        }
     }
 
     private async handleGroupChanged(event: fin.WindowGroupChangedEvent): Promise<void> {
@@ -931,6 +918,16 @@ export class DesktopWindow implements DesktopEntity {
                 snapWindows.map(w => w.identity).sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid)),
                 eventWindows.map(w => ({uuid: w.appUuid, name: w.windowName}))
                     .sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid)));
+        }
+    }
+
+    private isMaximizedOrInMaximizedTab(): boolean {
+        if (this._currentState.state === 'maximized') {
+            return true;
+        } else if (this._tabGroup !== null && this._tabGroup.isMaximized) {
+            return true;
+        } else {
+            return false;
         }
     }
 }

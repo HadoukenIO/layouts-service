@@ -6,6 +6,7 @@ import {WindowMessages} from '../APIMessages';
 import {apiHandler} from '../main';
 import {Signal1, Signal2} from '../Signal';
 import {promiseMap} from '../snapanddock/utils/async';
+import {Debounced} from '../snapanddock/utils/Debounced';
 import {isWin10} from '../snapanddock/utils/platform';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle} from '../snapanddock/utils/RectUtils';
@@ -93,9 +94,22 @@ enum ActionOrigin {
 
 type OpenFinWindowEventHandler = <K extends keyof fin.OpenFinWindowEventMap>(event: fin.OpenFinWindowEventMap[K]) => void;
 
+interface Transaction {
+    windows: DesktopWindow[];
+    remove: Debounced<() => void, typeof DesktopWindow, []>;
+}
+
 export class DesktopWindow implements DesktopEntity {
     public static readonly onCreated: Signal1<DesktopWindow> = new Signal1();
     public static readonly onDestroyed: Signal1<DesktopWindow> = new Signal1();
+
+    /**
+     * Tracks which windows are currently being manipulated as part of a transaction.
+     *
+     * This is used to identify and ignore group-changed events triggered by intermediate steps
+     * of the transaction which may lead to out-of-sync state and general instability.
+     */
+    public static activeTransactions: Transaction[] = [];
 
     public static async getWindowState(window: Window): Promise<EntityState> {
         return Promise.all([window.getOptions(), window.isShowing(), window.getBounds()])
@@ -154,12 +168,30 @@ export class DesktopWindow implements DesktopEntity {
      * @param transform Promisified transformation function. Will be applied after all the windows have been detached from their previous window groups.
      */
     public static async transaction(windows: DesktopWindow[], transform: (windows: DesktopWindow[]) => Promise<void>): Promise<void> {
+        // Create a transaction object and add it to the active transactions list.
+        // The 'remove' property looks a bit strange but effectively lets the object remove itself
+        // from the list when prompted.
+        const transaction: Transaction = {
+            windows,
+            remove: new Debounced(
+                () => {
+                    const indexToRemove = this.activeTransactions.indexOf(transaction);
+                    if (indexToRemove >= 0) {
+                        this.activeTransactions.splice(indexToRemove, 1);
+                    }
+                },
+                this)
+        };
+        this.activeTransactions.push(transaction);
         await Promise.all(windows.map(w => w.sync()));
         await Promise.all(windows.map(w => w.unsnap()));
         // await Promise.all(windows.map(w => w.sync()));
         await transform(windows);
         await Promise.all(windows.map(w => w.snap()));
         // await Promise.all(windows.map(w => w.sync()));
+        // We use the debounced here rather than removing it directly to allow time for
+        // all related events to be handled.
+        transaction.remove.call();
     }
 
     private static isWindow(window: Window|fin.WindowOptions): window is Window {
@@ -877,10 +909,22 @@ export class DesktopWindow implements DesktopEntity {
 
         await this.sync();
 
-        console.log('Received window group changed event: ', event);
-
         const targetWindow: DesktopWindow|null = this._model.getWindow({uuid: event.targetWindowAppUuid, name: event.targetWindowName});
         const targetGroup: DesktopSnapGroup|null = targetWindow ? targetWindow.snapGroup : null;
+
+        // Ignore events for windows currently under a transaction, and if the transaction is over postpone
+        // it's removal in case there are more events yet to be handled.
+        const relevantTransactions =
+            DesktopWindow.activeTransactions.filter((transaction: Transaction) => transaction.windows.some(w => !!targetWindow && w._id === targetWindow._id));
+        if (relevantTransactions.length > 0) {
+            console.log('Window currently in a transaction. Ignoring window group changed event: ', event);
+            relevantTransactions.forEach(t => {
+                t.remove.postpone();
+            });
+            return;
+        }
+
+        console.log('Received window group changed event: ', event);
 
         switch (event.reason) {
             case 'leave':

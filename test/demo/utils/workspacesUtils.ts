@@ -1,6 +1,7 @@
 import {Context, GenericTestContext, Test, TestContext} from 'ava';
-import {SERVICE_IDENTITY} from '../../../src/client/internal';
-import {Layout} from '../../../src/client/types';
+
+import {SERVICE_IDENTITY, WorkspaceAPI} from '../../../src/client/internal';
+import {Workspace} from '../../../src/client/types';
 import {getConnection} from '../../provider/utils/connect';
 import {delay} from '../../provider/utils/delay';
 import {BasicSaveRestoreTestOptions} from '../workspaces/basicSaveAndRestore.test';
@@ -38,7 +39,7 @@ export async function assertWindowNotRestored(t: TestContext, uuid: string, name
     active ? t.fail(`Window ${uuid}:${name} was restored when it should not have been`) : t.pass();
 }
 
-function assertIsLayoutObject(t: SaveRestoreTestContext, layout: Layout) {
+function assertIsLayoutObject(t: SaveRestoreTestContext, layout: Workspace) {
     layout.type === 'layout' ? t.pass() : t.fail('Layout object has an incorrect type!');
 }
 
@@ -53,11 +54,13 @@ async function assertAllAppsClosed(t: SaveRestoreTestContext) {
 }
 
 export async function createCloseAndRestoreLayout(t: SaveRestoreTestContext) {
-    const generatedLayout = await sendServiceMessage('generateLayout', undefined) as Layout;
+    const generatedLayout = await sendServiceMessage(WorkspaceAPI.GENERATE_LAYOUT, undefined) as Workspace;
+
     assertIsLayoutObject(t, generatedLayout);
     await Promise.all(t.context.testAppData.map(async (appData: TestAppData) => await appData.app.close(true)));
     await assertAllAppsClosed(t);
-    await sendServiceMessage('restoreLayout', generatedLayout);
+
+    await sendServiceMessage(WorkspaceAPI.RESTORE_LAYOUT, generatedLayout);
     // To give placeholder windows time to disappear.
     // The tests close out all testing windows upon completion.
     // The placeholders listens to the show-requested event of its testing window, moves the window, shows it, and closes itself.

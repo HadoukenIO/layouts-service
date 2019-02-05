@@ -13,8 +13,8 @@
  */
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
-import {SERVICE_CHANNEL} from './internal';
-import {JoinTabGroupPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload} from './tabbing';
+import {APITopic, SERVICE_CHANNEL} from './internal';
+import {TabAddedPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload, Workspace} from './types';
 
 
 /**
@@ -32,17 +32,17 @@ export const channelPromise: Promise<ChannelClient> = typeof fin === 'undefined'
     fin.InterApplicationBus.Channel.connect(SERVICE_CHANNEL, {payload: {version: PACKAGE_VERSION}}).then((channel: ChannelClient) => {
         // Register service listeners
         channel.register('WARN', (payload: any) => console.warn(payload));  // tslint:disable-line:no-any
-        channel.register('join-snap-group', () => {
-            window.dispatchEvent(new Event('join-snap-group'));
+        channel.register('window-docked', () => {
+            window.dispatchEvent(new Event('window-docked'));
         });
-        channel.register('leave-snap-group', () => {
-            window.dispatchEvent(new Event('leave-snap-group'));
+        channel.register('window-undocked', () => {
+            window.dispatchEvent(new Event('window-undocked'));
         });
-        channel.register('join-tab-group', (payload: JoinTabGroupPayload) => {
-            window.dispatchEvent(new CustomEvent<JoinTabGroupPayload>('join-tab-group', {detail: payload}));
+        channel.register('tab-added', (payload: TabAddedPayload) => {
+            window.dispatchEvent(new CustomEvent<TabAddedPayload>('tab-added', {detail: payload}));
         });
-        channel.register('leave-tab-group', (payload: TabGroupEventPayload) => {
-            window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('leave-tab-group', {detail: payload}));
+        channel.register('tab-removed', (payload: TabGroupEventPayload) => {
+            window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('tab-removed', {detail: payload}));
         });
         channel.register('tab-activated', (payload: TabGroupEventPayload) => {
             window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('tab-activated', {detail: payload}));
@@ -51,6 +51,13 @@ export const channelPromise: Promise<ChannelClient> = typeof fin === 'undefined'
             window.dispatchEvent(new CustomEvent<TabPropertiesUpdatedPayload>('tab-properties-updated', {detail: payload}));
         });
 
+        channel.register('workspace-generated', (payload: Workspace) => {
+            window.dispatchEvent(new CustomEvent<Workspace>('workspace-generated', {detail: payload}));
+        });
+
+        channel.register('workspace-restored', (payload: Workspace) => {
+            window.dispatchEvent(new CustomEvent<Workspace>('workspace-restored', {detail: payload}));
+        });
         // Any unregistered action will simply return false
         channel.setDefaultAction(() => false);
 
@@ -60,7 +67,7 @@ export const channelPromise: Promise<ChannelClient> = typeof fin === 'undefined'
 /**
  * Wrapper around service.dispatch to help with type checking
  */
-export async function tryServiceDispatch<T, R>(action: string, payload?: T): Promise<R> {
+export async function tryServiceDispatch<T, R>(action: APITopic, payload?: T): Promise<R> {
     const channel: ChannelClient = await channelPromise;
     return channel.dispatch(action, payload) as Promise<R>;
 }

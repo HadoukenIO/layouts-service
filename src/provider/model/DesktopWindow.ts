@@ -2,6 +2,7 @@ import deepEqual from 'fast-deep-equal';
 import {Identity, Window} from 'hadouken-js-adapter';
 
 import {SERVICE_IDENTITY} from '../../client/internal';
+import {WindowMessages} from '../APIMessages';
 import {apiHandler} from '../main';
 import {Signal1, Signal2} from '../Signal';
 import {promiseMap} from '../snapanddock/utils/async';
@@ -59,23 +60,6 @@ export type Mask<T> = T|number;
 export enum eTransformType {
     MOVE = 1 << 0,
     RESIZE = 1 << 1
-}
-
-/**
- * List of the messages that can be passed to the client.
- */
-export const enum WindowMessages {
-    // Snap & Dock
-    JOIN_SNAP_GROUP = 'join-snap-group',
-    LEAVE_SNAP_GROUP = 'leave-snap-group',
-
-    // Tabbing (application messages)
-    JOIN_TAB_GROUP = 'join-tab-group',
-    LEAVE_TAB_GROUP = 'leave-tab-group',
-
-    // Tabbing (tabstrip messages)
-    TAB_ACTIVATED = 'tab-activated',
-    TAB_PROPERTIES_UPDATED = 'tab-properties-updated'
 }
 
 
@@ -910,24 +894,11 @@ export class DesktopWindow implements DesktopEntity {
     }
 
     private async handleFocused(): Promise<void> {
-        // Loop through all windows in the same group as the focused window and bring them
-        // all to front
-        const window: fin.OpenFinWindow = fin.desktop.Window.wrap(this._identity.uuid, this._identity.name);
-        const group: fin.OpenFinWindow[] = await new Promise<fin.OpenFinWindow[]>((res, rej) => {
-            window.getGroup(res, rej);
-        });
-        await promiseMap(group, async (groupWindow: fin.OpenFinWindow) => {
-            return new Promise<void>((res, rej) => {
-                groupWindow.bringToFront(res, rej);
-            });
-        });
-
-
-
-        // V2 'getGroup' API has bug: https://appoji.jira.com/browse/RUN-4535
-        // await this.window.getGroup().then((group: Window[]) => {
-        //     return Promise.all(group.map((window: Window) => window.bringToFront()));
-        // });
+        // If we're not maximized ourself, bring all snapped, non-maximized windows to the front
+        if (!this.isMaximizedOrInMaximizedTab()) {
+            this._snapGroup.windows.filter(snapGroupWindow => snapGroupWindow !== this && !snapGroupWindow.isMaximizedOrInMaximizedTab())
+                .forEach(snapGroupWindow => snapGroupWindow.bringToFront());
+        }
     }
 
     private async handleGroupChanged(event: fin.WindowGroupChangedEvent): Promise<void> {
@@ -980,6 +951,16 @@ export class DesktopWindow implements DesktopEntity {
                 snapWindows.map(w => w.identity).sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid)),
                 eventWindows.map(w => ({uuid: w.appUuid, name: w.windowName}))
                     .sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid)));
+        }
+    }
+
+    private isMaximizedOrInMaximizedTab(): boolean {
+        if (this._currentState.state === 'maximized') {
+            return true;
+        } else if (this._tabGroup !== null && this._tabGroup.isMaximized) {
+            return true;
+        } else {
+            return false;
         }
     }
 }

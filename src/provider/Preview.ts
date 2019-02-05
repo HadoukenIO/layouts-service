@@ -87,7 +87,7 @@ export class Preview {
     private positionPreview(previewWindow: fin.OpenFinWindow, target: PreviewableTarget) {
         const previewRect = this.generatePreviewRect(target);
 
-        previewWindow!.setBounds(
+        previewWindow.setBounds(
             previewRect.center.x - previewRect.halfSize.x,
             previewRect.center.y - previewRect.halfSize.y,
             previewRect.halfSize.x * 2,

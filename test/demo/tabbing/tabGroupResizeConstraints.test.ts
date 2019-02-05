@@ -37,6 +37,7 @@ testParameterized(
     ],
     createWindowTest(async (t, options: TabConstraintsOptions) => {
         const layoutsClient = await layoutsClientPromise;
+        const {tabbing} = layoutsClient;
 
         const windows = t.context.windows;
 
@@ -46,7 +47,7 @@ testParameterized(
         const startingState = await Promise.all(windows.map(win => getNormalizedConstraints(win)));
 
         // Tab the windows
-        await layoutsClient.createTabGroup(windows.map(win => win.identity));
+        await tabbing.createTabGroup(windows.map(win => win.identity));
 
         await delay(1000);
 
@@ -62,7 +63,7 @@ testParameterized(
 
         // Untab the windows
         for (let i = 1; i < windows.length; i++) {
-            await layoutsClient.removeTab(windows[i].identity);
+            await tabbing.removeTab(windows[i].identity);
         }
 
         await delay(200);

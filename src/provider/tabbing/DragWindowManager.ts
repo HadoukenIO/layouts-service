@@ -1,4 +1,5 @@
 import {Window} from 'hadouken-js-adapter';
+import {MonitorEvent} from 'hadouken-js-adapter/out/types/src/api/events/system';
 import {DipRect, MonitorInfo} from 'hadouken-js-adapter/out/types/src/api/system/monitor';
 import {Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
@@ -7,7 +8,6 @@ import {WindowIdentity} from '../../client/types';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopWindow} from '../model/DesktopWindow';
 import {Signal0, Signal2} from '../Signal';
-import { MonitorEvent } from 'hadouken-js-adapter/out/types/src/api/events/system';
 
 /**
  * Handles the Drag Window which appears when API drag and drop is initialized.
@@ -148,7 +148,7 @@ export class DragWindowManager {
      * This should only be called on initalization and on 'monitor info changed' events.
      */
     private async setWindowBounds(virtualScreen?: DipRect) {
-        if(!virtualScreen){
+        if (!virtualScreen) {
             const monitorInfo: MonitorInfo = await fin.System.getMonitorInfo();
             this._virtualScreen = monitorInfo.virtualScreen;
         } else {

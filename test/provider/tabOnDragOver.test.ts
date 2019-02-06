@@ -497,7 +497,6 @@ test('Drag window into tabgroup then tearout - window should be maximizable if-a
     assertAllNormalState(t, wins);
 
     // Tearout tab. and check that we can maximize windows again
-
     const bounds1 = await getBounds(wins[0]);
     robot.mouseToggle('up');
     robot.moveMouseSmooth(bounds1.left + 15, bounds1.top - 20);

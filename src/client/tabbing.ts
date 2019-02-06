@@ -403,7 +403,7 @@ export async function restoreTabGroup(identity: Identity = getId()): Promise<voi
  */
 export async function updateTabProperties(properties: Partial<TabProperties>, identity: Identity = getId()): Promise<void> {
     if (!properties) {
-        throw new Error("Properties are required");
+        throw new Error('Properties are required');
     }
     return tryServiceDispatch<UpdateTabPropertiesPayload, void>(TabAPI.UPDATETABPROPERTIES, {window: parseIdentity(identity), properties});
 }

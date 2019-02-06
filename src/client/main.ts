@@ -15,23 +15,23 @@ export {snapAndDock, tabbing, tabstrip, workspaces};
  * Allows a window to opt-out of this service.
  *
  * This will disable *all* layouts-related functionality for the given window.
- * 
+ *
  * Multiple windows can be deregistered at once by using regex patterns on `identity.uuid`/`identity.name`.
- * 
+ *
  * This API can be used to selectively programmatically override configuration set at an app-wide level, such as in the application manifest.
- * 
+ *
  * ```ts
  * import {deregister} from 'openfin-layouts';
- * 
+ *
  * // De-register the current window
  * deregister();
- * 
+ *
  * // De-register a single named window
  * deregister({uuid: 'my-uuid', name: 'window'});
- * 
+ *
  * // De-register multiple windows belonging to the same application
  * deregister({uuid: 'my-uuid', name: {expression: 'popup-.*'}});
- * 
+ *
  * // De-register all windows belonging to an application, not matching a pattern
  * deregister({uuid: 'my-uuid', name: {expression: 'interactive-.*', invert: true}});
  * ```
@@ -46,21 +46,21 @@ export async function deregister(identity: IdentityRule = getId() as IdentityRul
  * Allows a window to opt-in back to this service if previously deregistered.
  *
  * This will enable *all* layouts-related functionality for the given window unless alternative behaviors are set in the layout configuration.
- * 
+ *
  * This API can be used to selectively programmatically override configuration set at an app-wide level, such as in the application manifest.
- * 
+ *
  * ```ts
  * import {register} from 'openfin-layouts';
- * 
+ *
  * // Register the current window
  * register();
- * 
+ *
  * // Register a single named window
  * register({uuid: 'my-uuid', name: 'window'});
- * 
+ *
  * // Register multiple windows belonging to the same application
  * register({uuid: 'my-uuid', name: {expression: 'interactive-.*'}});
- * 
+ *
  * // Register all windows belonging to an application, not matching a pattern
  * register({uuid: 'my-uuid', name: {expression: 'popup-.*', invert: true}});
  * ```

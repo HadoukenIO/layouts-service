@@ -14,7 +14,7 @@ import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
 import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {DesktopTabstripFactory} from './DesktopTabstripFactory';
-import {DesktopWindow, EntityState, eTransformType, Mask} from './DesktopWindow';
+import {DesktopWindow, EntityState, eTransformType, Mask, ResizeConstraint} from './DesktopWindow';
 
 /**
  * Handles functionality for the TabSet
@@ -267,7 +267,10 @@ export class DesktopTabGroup implements DesktopEntity {
         await DesktopWindow.transaction(allWindows, async () => {
             await this.addTabInternal(firstTab, true);
             await Promise.all([firstTab.sync(), this._window.sync()]);
-            await Promise.all(tabs.map(tab => this.addTabInternal(tab, false)));
+            // Add the tabs one-at-a-time to avoid potential race conditions with constraints updates.
+            for (const tab of tabs) {
+                await this.addTabInternal(tab, false);
+            }
         });
 
         if (activeTab !== firstTab) {
@@ -350,22 +353,22 @@ export class DesktopTabGroup implements DesktopEntity {
 
             // Update tab window
             if (tab.isReady) {
-                const frame: boolean = tab.applicationState.frame;
+                const {frame, resizeConstraints} = tab.applicationState;
 
                 if (bounds) {
-                    // Eject tab and apply custom bounds
-                    promises.push(tab.applyProperties({hidden: false, frame, ...bounds}));
+                    // Eject tab, apply custom bounds, and reset resizeConstraints to their original value
+                    promises.push(tab.applyProperties({hidden: false, frame, resizeConstraints, ...bounds}));
                 } else if (bounds === null) {
-                    // Eject tab without modifying window bounds
-                    promises.push(tab.applyProperties({hidden: false, frame}));
+                    // Eject tab without modifying window bounds and reset resizeConstraints to their original value
+                    promises.push(tab.applyProperties({hidden: false, frame, resizeConstraints}));
                 } else {
                     const tabStripHalfSize: Point = this._window.currentState.halfSize;
                     const state: EntityState = tab.currentState;
                     const center: Point = {x: state.center.x, y: state.center.y - tabStripHalfSize.y};
                     const halfSize: Point = {x: state.halfSize.x, y: state.halfSize.y + tabStripHalfSize.y};
 
-                    // Eject tab and apply default bounds
-                    promises.push(tab.applyProperties({hidden: false, frame, center, halfSize}));
+                    // Eject tab, apply default bounds, and reset resizeConstraint to their original value
+                    promises.push(tab.applyProperties({hidden: false, frame, resizeConstraints, center, halfSize}));
                 }
             }
 
@@ -540,6 +543,8 @@ export class DesktopTabGroup implements DesktopEntity {
             await this.switchTab(tab);
         }
         await Promise.all([tab.sync(), this._window.sync()]);
+
+        await this.updateGroupConstraints();
     }
 
     private async removeTabInternal(tab: DesktopWindow, index: number): Promise<void> {
@@ -557,6 +562,8 @@ export class DesktopTabGroup implements DesktopEntity {
             // Window is being destroyed. Remove from tabstrip, but undock will happen as part of window destruction.
             await tab.setTabGroup(null);
         }
+
+        await this.updateGroupConstraints();
 
         const payload: TabGroupEventPayload = {tabstripIdentity: this.identity, identity: tab.identity};
         await this.sendTabEvent(tab, 'tab-removed', payload);
@@ -599,6 +606,47 @@ export class DesktopTabGroup implements DesktopEntity {
             // Send event to tabstrip
             this._window.sendMessage(event, payload)
         ]);
+    }
+
+    private async updateGroupConstraints(): Promise<void> {
+        const result: Point<ResizeConstraint> = {
+            x: {minSize: 0, maxSize: Number.MAX_SAFE_INTEGER, resizableMin: true, resizableMax: true},
+            y: {minSize: 0, maxSize: Number.MAX_SAFE_INTEGER, resizableMin: true, resizableMax: true}
+        };
+
+        for (const tab of this.tabs) {
+            let orientation: keyof typeof result;
+            for (orientation in result) {
+                if (result.hasOwnProperty(orientation)) {
+                    const tabConstraints = tab.applicationState.resizeConstraints[orientation];
+                    result[orientation] = {
+                        minSize: Math.max(result[orientation].minSize, tabConstraints.minSize),
+                        maxSize: Math.min(result[orientation].maxSize, tabConstraints.maxSize),
+                        resizableMin: result[orientation].resizableMin && tabConstraints.resizableMin,
+                        resizableMax: result[orientation].resizableMax && tabConstraints.resizableMax
+                    };
+                }
+            }
+        }
+
+        this.currentState.resizeConstraints = result;
+
+        // Apply the new constraints to all windows
+        await Promise.all(this.tabs.map((tab: DesktopWindow) => tab.applyProperties({resizeConstraints: this.currentState.resizeConstraints})));
+        // Update the tabStrip constraints accordingly
+        if (this._window.isReady) {
+            await this._window.applyProperties({
+                resizeConstraints: {
+                    x: result.x,
+                    y: {
+                        minSize: this._config.height,
+                        maxSize: this._config.height,
+                        resizableMin: false,
+                        resizableMax: false,
+                    }
+                }
+            });
+        }
     }
 
     // Will check that all of the tabs and the tabstrip are still in the correct relative positions, and if not

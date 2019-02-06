@@ -1,9 +1,7 @@
-import {Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
-
 import {Tabstrip} from '../../../gen/provider/config/layouts-config';
 import {Scope} from '../../../gen/provider/config/scope';
-
-import {TabGroup, TabGroupDimensions, TabProperties, TabPropertiesUpdatedPayload, WindowIdentity} from '../../client/types';
+import {TabPropertiesUpdatedPayload} from '../../client/types';
+import {TabGroup, TabGroupDimensions, TabProperties, WindowIdentity} from '../../client/types';
 import {ConfigStore} from '../main';
 import {DesktopEntity} from '../model/DesktopEntity';
 import {DesktopModel} from '../model/DesktopModel';
@@ -11,6 +9,7 @@ import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {DesktopTabstripFactory} from '../model/DesktopTabstripFactory';
 import {DesktopWindow, EntityState} from '../model/DesktopWindow';
+import {Point, PointUtils} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 import {eTargetType, TargetBase} from '../WindowHandler';
 
@@ -77,7 +76,7 @@ export class TabService {
      * Creates a new tab group with provided tabs.  Will use the UI and position of the first Identity provided for positioning.
      * @param tabIdentities An array of Identities to add to a group.
      */
-    public async createTabGroupWithTabs(tabIdentities: WindowIdentity[], activeTab?: WindowIdentity) {
+    public async createTabGroupWithTabs(tabIdentities: WindowIdentity[], activeTab?: WindowIdentity): Promise<void> {
         if (tabIdentities.length < 2) {
             console.error('createTabGroup called fewer than 2 tab identifiers');
             throw new Error('Must provide at least 2 Tab Identifiers');
@@ -156,16 +155,17 @@ export class TabService {
 
             const appRect: Rectangle = group.activeTab.currentState;
             const groupRect: Rectangle = group.window.currentState;
+            const config: Tabstrip|'default' = (group.config === DesktopTabstripFactory.DEFAULT_CONFIG) ? 'default' : group.config;
+
             const groupInfo = {
-                url: group.config.url,
                 active: group.activeTab.identity,
                 dimensions: {
                     x: groupRect.center.x - groupRect.halfSize.x,
                     y: groupRect.center.y - groupRect.halfSize.y,
                     width: groupRect.halfSize.x * 2,
-                    tabGroupHeight: groupRect.halfSize.y * 2,
                     appHeight: appRect.halfSize.y * 2
-                }
+                },
+                config
             };
 
             return {tabs, groupInfo};
@@ -187,7 +187,7 @@ export class TabService {
 
             if (tabs.length >= 2) {
                 // Create a tabstrip window in the correct position
-                const tabstripOptions: Tabstrip = {url: groupDef.groupInfo.url, height: dimensions.tabGroupHeight};
+                const tabstripOptions: Tabstrip = DesktopTabstripFactory.convertToTabstripConfig(groupDef.groupInfo.config);
 
                 // Each tab group will be a stand-alone snap group
                 const snapGroup: DesktopSnapGroup = new DesktopSnapGroup();
@@ -195,7 +195,7 @@ export class TabService {
 
                 // Position first tab to cover entire tab area - both tabstrip and app bounds
                 // The positions of tabstrip and subsequent tabs will all be based on this
-                const combinedHeight: number = dimensions.tabGroupHeight + dimensions.appHeight;
+                const combinedHeight: number = tabstripOptions.height + dimensions.appHeight;
                 const appBounds: Rectangle = {
                     center: {x: dimensions.x + (dimensions.width / 2), y: dimensions.y + (combinedHeight / 2)},
                     halfSize: {x: dimensions.width / 2, y: combinedHeight / 2}
@@ -382,7 +382,7 @@ export class TabService {
         /**
          * Checks if the window we are dragging is a tab group.
          */
-        const isActiveWindowTabbed = activeWindow.tabGroup;
+        const activeTabGroup = activeWindow.tabGroup;
 
         /**
          * Prevent snapped windows from tabbing to other windows/groups
@@ -397,7 +397,7 @@ export class TabService {
         /**
          * Validity conditions check for window over window tab target creation.
          */
-        const targetWindowOverWindow = targetWindow && !targetAlreadySnapped && !alreadyTabbed && isOverWindowValid && !isActiveWindowTabbed;
+        const targetWindowOverWindow = targetWindow && !targetAlreadySnapped && !alreadyTabbed && isOverWindowValid && !activeTabGroup;
 
         /**
          * Validity conditions check for tab dragging over window tab target creation.
@@ -405,9 +405,10 @@ export class TabService {
         const targetTabDragOverWindow = targetWindow && this._model.mouseTracker.isDraggingTab && isOverWindowValid;
 
         if (targetWindow && (targetWindowOverWindow || targetTabDragOverWindow)) {
-            // Check if the target and active window have same tab config.
-            const valid: boolean = this.canTabTogether(targetWindow, activeWindow);
+            const targetTabGroup = targetWindow.tabGroup;
 
+            // Check if the target and active window have same tab config.
+            const valid = this.constraintsCompatible(activeWindow, targetTabGroup || targetWindow) && this.canTabTogether(targetWindow, activeWindow);
             return {
                 type: eTargetType.TAB,
                 activeWindow,
@@ -417,11 +418,34 @@ export class TabService {
                 tabDragging: this._model.mouseTracker.isDraggingTab
             };
         } else if (
-            isActiveWindowTabbed && this._model.mouseTracker.isDraggingTab &&
+            activeTabGroup && this._model.mouseTracker.isDraggingTab &&
             (!isMouseInsideGroupBounds || isMouseInsideGroupBounds && !this.isOverWindowDropArea(activeWindow as DesktopWindow, position))) {
             return {type: eTargetType.EJECT, activeWindow, position, valid: true};
         }
 
         return null;
+    }
+
+    private constraintsCompatible(active: DesktopEntity, target: DesktopEntity): boolean {
+        const targetSize: Point = PointUtils.scale(target.currentState.halfSize, 2);
+        const activeSize: Point = PointUtils.scale(active.currentState.halfSize, 2);
+        const targetConstraints = target.currentState.resizeConstraints;
+        const activeConstraints = active.currentState.resizeConstraints;
+
+        let result = true;
+        // Active is able to be resized in direction where resize would be needed.
+        result = result &&
+            ((targetSize.x === activeSize.x || activeConstraints.x.resizableMin || activeConstraints.x.resizableMax) &&
+             (targetSize.y === activeSize.y || activeConstraints.y.resizableMin || activeConstraints.y.resizableMax));
+        // Projected size after tabbing is within active's size constraints
+        result = result &&
+            (targetSize.x > activeConstraints.x.minSize && targetSize.x < activeConstraints.x.maxSize && targetSize.y > activeConstraints.y.minSize &&
+             targetSize.y < activeConstraints.y.maxSize);
+        // Union of both constraints would form a valid constraint
+        result = result &&
+            (targetConstraints.x.maxSize > activeConstraints.x.minSize && targetConstraints.x.minSize < activeConstraints.x.maxSize &&
+             targetConstraints.y.maxSize > activeConstraints.y.minSize && targetConstraints.y.minSize < activeConstraints.y.maxSize);
+
+        return result;
     }
 }

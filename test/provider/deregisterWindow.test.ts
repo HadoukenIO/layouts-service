@@ -214,7 +214,7 @@ test('deregister snapped window', async t => {
 
 test('no preview when deregistered - dragging registered', async t => {
     // Wrap the pre-spawned preview window
-    const previewWin = await getWindow({name: 'previewWindow', uuid: 'layouts-service'});
+    const previewWin = await getWindow({name: 'successPreview', uuid: 'layouts-service'});
 
     // Spawn two child windows (one of them deregistered)
     win1 = await createChildWindow({
@@ -251,7 +251,7 @@ test('no preview when deregistered - dragging registered', async t => {
 
 test('no preview when deregistered - dragging deregistered', async t => {
     // Wrap the pre-spawned preview window
-    const previewWin = await getWindow({name: 'previewWindow', uuid: 'layouts-service'});
+    const previewWin = await getWindow({name: 'successPreview', uuid: 'layouts-service'});
 
     // Spawn two child windows (one of them deregistered)
     win1 = await createChildWindow({

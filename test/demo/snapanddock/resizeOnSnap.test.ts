@@ -25,7 +25,7 @@ interface ResizeOnSnapOptions extends CreateWindowData {
     windowCount: 2|4;
 }
 
-interface Constraints {
+export interface Constraints {
     maxHeight?: number;
     maxWidth?: number;
     minHeight?: number;

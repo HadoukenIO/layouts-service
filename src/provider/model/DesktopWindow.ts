@@ -191,15 +191,18 @@ export class DesktopWindow implements DesktopEntity {
                 this)
         };
         this.activeTransactions.push(transaction);
-        await Promise.all(windows.map(w => w.sync()));
-        await Promise.all(windows.map(w => w.unsnap()));
-        // await Promise.all(windows.map(w => w.sync()));
-        await transform(windows);
-        await Promise.all(windows.map(w => w.snap()));
-        // await Promise.all(windows.map(w => w.sync()));
-        // We use the debounced here rather than removing it directly to allow time for
-        // all related events to be handled.
-        transaction.remove.call();
+        try {
+            await Promise.all(windows.map(w => w.sync()));
+            await Promise.all(windows.map(w => w.unsnap()));
+            // await Promise.all(windows.map(w => w.sync()));
+            await transform(windows);
+            await Promise.all(windows.map(w => w.snap()));
+            // await Promise.all(windows.map(w => w.sync()));
+        } finally {
+            // We use the debounced here rather than removing it directly to allow time for
+            // all related events to be handled.
+            transaction.remove.call();
+        }
     }
 
     private static isWindow(window: Window|fin.WindowOptions): window is Window {

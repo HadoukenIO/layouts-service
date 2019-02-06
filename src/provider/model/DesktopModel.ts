@@ -284,7 +284,7 @@ export class DesktopModel {
         } else {
             // Find which existing windows match this rule
             const windowsToRemove: DesktopWindow[] = this._windows.filter((window: DesktopWindow) => {
-                const windowScope: Scope = {level: 'window', ...window.identity};
+                const windowScope: Scope = window.scope;
 
                 // First check that window matches rule, then also perform a query. There could be other higher-precedence rules that override `rule`.
                 // We check windowScope against the rule first to avoid querying the store unnecessarily - likely only a very small subset of windows will

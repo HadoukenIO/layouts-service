@@ -18,18 +18,12 @@ let fin: Fin;
 test.before(async () => {
     fin = await getConnection();
 });
-test.afterEach.always(async () => {
-    // Need to explicitly remove de-register config from the store after each test completes
-    // Once SERVICE-291 is implemented, this will happen automatically when the window closes
-    await executeJavascriptOnService(function(this: ProviderWindow) {
-        this.config.removeFromSource({level: 'window', uuid: 'testApp', name: 'win1'});
-        this.config.removeFromSource({level: 'window', uuid: 'testApp', name: 'win2'});
-    });
-
+test.afterEach.always(async (t) => {
     await win1.close();
     await win2.close();
+
+    await teardown(t);
 });
-test.afterEach.always(teardown);
 
 test('normal deregister, snap with registered', async t => {
     win1 = await createChildWindow({

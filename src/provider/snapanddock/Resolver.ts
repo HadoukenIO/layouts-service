@@ -170,6 +170,6 @@ export class Resolver {
      * @param state State of the window object we are considering for snapping
      */
     private isSnappable(window: DesktopEntity, state: EntityState): boolean {
-        return !state.hidden && state.opacity > 0 && state.state === 'normal' && this._config.query({level: 'window', ...window.identity}).features.snap;
+        return !state.hidden && state.opacity > 0 && state.state === 'normal' && this._config.query(window.scope).features.snap;
     }
 }

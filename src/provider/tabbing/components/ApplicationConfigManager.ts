@@ -24,6 +24,14 @@ export class ApplicationConfigManager {
      */
     public static onApplicationConfigCreated: Signal2<string, ApplicationUIConfig> = new Signal2();
 
+
+    /**
+     * Utility method for converting a ApplicationUIConfig|'default' to a ApplicationUIConfig
+     */
+    public static convertToApplicationUIConfig(config: ApplicationUIConfig|'default'): ApplicationUIConfig {
+        return config === 'default' ? ApplicationConfigManager.DEFAULT_CONFIG : config;
+    }
+
     /**
      * @private
      * Container for all application configurations

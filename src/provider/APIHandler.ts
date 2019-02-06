@@ -62,11 +62,12 @@ export class APIHandler {
         await this._providerChannel.publish(action, payload);
     }
 
-    public async register(): Promise<void> {
+    public async registerListeners(): Promise<void> {
         const providerChannel: ChannelProvider = this._providerChannel = await fin.InterApplicationBus.Channel.create(SERVICE_CHANNEL);
 
         // Common
         providerChannel.onConnection(this.onConnection);
+        this.registerListener(RegisterAPI.REGISTER, this.register);
         this.registerListener(RegisterAPI.DEREGISTER, this.deregister);
 
         // Snap & Dock
@@ -119,6 +120,15 @@ export class APIHandler {
             console.log(`connection from client: ${app.name}, version: ${payload.version}`);
         } else {
             console.log(`connection from client: ${app.name}, unable to determine version`);
+        }
+    }
+
+    private async register(identity: WindowIdentity, id: ProviderIdentity): Promise<void> {
+        try {
+            this._model.register(identity, {level: 'window', uuid: id.uuid, name: id.name || id.uuid});
+        } catch (error) {
+            console.error(error);
+            throw new Error(`Unexpected error when registering: ${error}`);
         }
     }
 

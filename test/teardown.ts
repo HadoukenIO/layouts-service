@@ -65,7 +65,7 @@ async function closeAllWindows(t: TestContext): Promise<void> {
             // Main window persists, but close any child windows
             return name !== uuid;
         } else if(uuid === 'layouts-service') {
-            if (name === uuid || name === 'successPreview' || name == 'failurePreview') {
+            if (name === uuid || name === 'successPreview' || name === 'failurePreview') {
                 // Main window and preview windows persist
                 return false;
             } else if (name!.startsWith('TABSET-')) {

@@ -491,10 +491,12 @@ export class DesktopWindow implements DesktopEntity {
         if (this._identity.uuid !== SERVICE_IDENTITY.uuid) {
             if (group) {
                 // Set tabbed windows to be hidden in taskbar, and to be non-maximizable
-                return this._ready ? this.updateState({showTaskbarIcon: false, maximizable: false}, ActionOrigin.SERVICE) : Promise.resolve();
+                const state: Partial<EntityState> = {showTaskbarIcon: false, maximizable: false};
+                return this._ready ? this.updateState(state, ActionOrigin.SERVICE) : Promise.resolve();
             } else if (this._currentState.showTaskbarIcon !== this._applicationState.showTaskbarIcon) {
                 // Revert tabbed windows to use application-specified taskbar icon , and to be maximizable
-                return this._ready ? this.updateState({showTaskbarIcon: this._applicationState.showTaskbarIcon, maximizable: true}, ActionOrigin.SERVICE) : Promise.resolve();
+                const state: Partial<EntityState> = {showTaskbarIcon: this._applicationState.showTaskbarIcon, maximizable: true};
+                return this._ready ? this.updateState(state, ActionOrigin.SERVICE) : Promise.resolve();
             }
         }
 

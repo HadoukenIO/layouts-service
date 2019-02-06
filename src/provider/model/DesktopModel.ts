@@ -82,6 +82,15 @@ export class DesktopModel {
                 });
             });
         });
+
+        // Validate everything on monitor change, as groups may become disjointed
+        fin.System.addListener('monitor-info-changed', async () => {
+            // Validate all tabgroups
+            this.tabGroups.map(g => g.validate());
+
+            // Validate all snap groups
+            this.snapGroups.map(g => g.validate());
+        });
     }
 
     public get mouseTracker(): MouseTracker {

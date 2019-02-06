@@ -1,5 +1,6 @@
 import {Identity} from 'hadouken-js-adapter';
 
+import {SnapAndDockAPI} from '../../../src/client/internal';
 import {WindowIdentity} from '../../../src/client/types';
 import {DesktopEntity} from '../../../src/provider/model/DesktopEntity';
 import {DesktopWindow} from '../../../src/provider/model/DesktopWindow';
@@ -56,12 +57,12 @@ export async function getSnapGroupID(identity: Identity) {
  * Send a message to the service requesting that the window be undocked.
  */
 export async function undockWindow(identity: Identity) {
-    await sendServiceMessage<WindowIdentity, void>('undockWindow', identity as WindowIdentity);
+    await sendServiceMessage<WindowIdentity, void>(SnapAndDockAPI.UNDOCK_WINDOW, identity as WindowIdentity);
 }
 
 /**
  * Send a message to the service requesting that the group be exploded.
  */
 export async function explodeGroup(identity: Identity) {
-    await sendServiceMessage<WindowIdentity, void>('undockGroup', identity as WindowIdentity);
+    await sendServiceMessage<WindowIdentity, void>(SnapAndDockAPI.UNDOCK_GROUP, identity as WindowIdentity);
 }

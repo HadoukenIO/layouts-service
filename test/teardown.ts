@@ -89,7 +89,9 @@ async function closeAllWindows(t: TestContext): Promise<void> {
         await Promise.all(invalidWindows.map((w: Window) => w.close(true).catch((e) => {
             console.warn(`Window close failed (ignoring) ${w.identity.uuid}/${w.identity.name}:`, e);
         })));
+
         console.warn(`${invalidWindows.length} window(s) left over after test: ${invalidWindows.map(w => `${w.identity.uuid}/${w.identity.name}`).join(", ")}`);
+
     }
 }
 

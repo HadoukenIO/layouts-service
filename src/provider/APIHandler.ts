@@ -301,9 +301,26 @@ export class APIHandler {
         }
     }
 
-    private startDrag(payload: {}, id: ProviderIdentity): void {
-        // TODO assign uuid, name from provider
-        this._tabService.dragWindowManager.showWindow(id as WindowIdentity);
+    private startDrag(payload: {window: WindowIdentity}, source: ProviderIdentity): void {
+        let tab: DesktopWindow|null;
+        let group: DesktopTabGroup|null;
+
+        // Previous client version had no payload. To avoid breaking changes, we
+        // default to the active tab if no window is specified.
+        if (!payload.window) {
+            group = this._model.getTabGroup(this._model.getId(source as WindowIdentity));
+            tab = group && group.activeTab;
+        } else {
+            tab = this._model.getWindow(payload.window);
+            group = tab && tab.tabGroup;
+        }
+
+        if (!group || !tab) {
+            console.error('Window is not registered for tabbing');
+            throw new Error('Window is not registered for tabbing');
+        }
+
+        this._tabService.dragWindowManager.showWindow(tab);
     }
 
     private async endDrag(payload: {event: DropPosition, window: WindowIdentity}): Promise<void> {

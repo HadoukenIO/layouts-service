@@ -142,6 +142,23 @@ export class DesktopModel {
     }
 
     /**
+     * Re-registers the target window with the service, "white-listing" the window for use with the service for the
+     * lifecycle of whichever window requested that the target be registered.
+     *
+     * @param target Window to register
+     * @param source Which window requested `target` to be registered (can be any window, including `target`)
+     */
+    public register(target: WindowIdentity, source: Scope): void {
+        const targetScope: Scope = {level: 'window', ...target};
+
+        console.log('Registering', target, 'from', source);
+
+        // Only need to add a rule to the config store. The model's watch listener will handle any resulting register.
+        // This also ensures that the window remains registered for the lifecycle of whichever window requested this action.
+        this._config.addRule(source, targetScope, {enabled: true});
+    }
+
+    /**
      * De-registers the target window from the service, and "black-lists" the window from being registered for the
      * lifecycle of whichever window requested that the target be de-registered.
      *

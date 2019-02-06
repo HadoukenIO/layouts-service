@@ -182,7 +182,7 @@ export class APIHandler {
             throw new Error('Could not find \'windowToAdd\'.');
         }
 
-        if (this._tabService.canTabTogether(payload.targetWindow, payload.windowToAdd)) {
+        if (this._tabService.canTabTogether(targetTab!, tabToAdd)) {
             return targetGroup.addTab(tabToAdd);
         } else {
             console.error('The tabs provided have incompatible tabstrip URLs');

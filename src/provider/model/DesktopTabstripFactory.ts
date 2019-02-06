@@ -26,7 +26,7 @@ export class DesktopTabstripFactory {
     public static readonly DEFAULT_CONFIG: Tabstrip = {url: DEFAULT_UI_URL, height: 60};
 
     /**
-     * Utility method for converting a ApplicationUIConfig|'default' to a ApplicationUIConfig
+     * Utility method for converting a Tabstrip|'default' to a Tabstrip
      */
     public static convertToTabstripConfig(config: Tabstrip|'default'): Tabstrip {
         return config === 'default' ? DesktopTabstripFactory.DEFAULT_CONFIG : config;

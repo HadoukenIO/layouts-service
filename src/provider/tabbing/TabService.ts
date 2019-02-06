@@ -295,14 +295,22 @@ export class TabService {
     /**
      * Determines if two windows can be tabbed together. The windows being tabbed can be identified in one of two ways.
      *
-     * @param app1 Details about the first entity, either window identifier or the tabstrip config for a window
-     * @param app2 Details about the second entity, either window identifier or the tabstrip config for a window
+     * @param item1 Details about the first entity, either window about to be tabbed or the tabstrip a window is to be added to
+     * @param item2 Details about the second entity, either window about to be tabbed or the tabstrip a window is to be added to
      */
-    public canTabTogether(app1: WindowIdentity|DesktopEntity, app2: WindowIdentity|DesktopEntity): boolean {
-        const config1 = this._config.query(this.getScope(app1));
-        const config2 = this._config.query(this.getScope(app2));
+    public canTabTogether(item1: DesktopEntity, item2: DesktopEntity): boolean {
+        const configs: {enabled: boolean; config: Tabstrip}[] = [item1, item2].map(entity => {
+            const isTabstrip = !!entity.tabGroup && entity.tabGroup.window === entity;
 
-        return config1.features.tab && config2.features.tab && config1.tabstrip.url === config2.tabstrip.url;
+            if (isTabstrip) {
+                return {enabled: true, config: entity.tabGroup!.config};
+            } else {
+                const config = this._config.query(entity.scope);
+                return {enabled: config.features.tab, config: config.tabstrip};
+            }
+        });
+
+        return configs.every(c => c.enabled) && configs[0].config.url === configs[1].config.url;
     }
 
     private getScope(x: WindowIdentity|DesktopEntity): Scope {

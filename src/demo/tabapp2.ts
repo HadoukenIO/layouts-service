@@ -9,16 +9,16 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 fin.desktop.main(() => {
-    Layouts.setTabClient('http://localhost:1337/demo/tabstrips/custom2.html', {height: 62});
-    Layouts.addEventListener('join-tab-group', () => {
+    Layouts.tabbing.setTabstrip({url: 'http://localhost:1337/demo/tabstrips/custom2.html', height: 62});
+    Layouts.tabbing.addEventListener('tab-added', () => {
         console.log('TABBED: ');
     });
 
-    Layouts.addEventListener('leave-tab-group', () => {
+    Layouts.tabbing.addEventListener('tab-removed', () => {
         console.log('UNTABBED: ');
     });
 
     // Workaround for issue with snapping/S&R integration
-    Layouts.onAppRestore((payload) => Promise.resolve(payload));
-    Layouts.ready();
+    Layouts.workspaces.setRestoreHandler((payload) => Promise.resolve(payload));
+    Layouts.workspaces.ready();
 });

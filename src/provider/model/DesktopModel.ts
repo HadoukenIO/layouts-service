@@ -4,7 +4,8 @@ import {WindowDetail, WindowInfo} from 'hadouken-js-adapter/out/types/src/api/sy
 
 import {ConfigurationObject, RegEx, Rule} from '../../../gen/provider/config/layouts-config';
 import {Scope, WindowScope} from '../../../gen/provider/config/scope';
-import {ConfigUtil, Mask, Masked} from '../config/ConfigUtil';
+
+import {ConfigUtil, Masked} from '../config/ConfigUtil';
 import {ScopedConfig} from '../config/Store';
 import {MaskWatch} from '../config/Watch';
 import {ConfigStore} from '../main';
@@ -81,6 +82,15 @@ export class DesktopModel {
                     this.addIfEnabled({uuid: app.uuid, name: child.name});
                 });
             });
+        });
+
+        // Validate everything on monitor change, as groups may become disjointed
+        fin.System.addListener('monitor-info-changed', async () => {
+            // Validate all tabgroups
+            this.tabGroups.map(g => g.validate());
+
+            // Validate all snap groups
+            this.snapGroups.map(g => g.validate());
         });
     }
 

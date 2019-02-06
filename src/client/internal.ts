@@ -36,15 +36,29 @@ export const SERVICE_CHANNEL = 'of-layouts-service-v1';
  */
 export function getId(): Identity {
     if (!id) {
-        id = {...fin.Window.me};
+        id = parseIdentity(fin.Window.me);
     }
 
     return id;
 }
 
+/**
+ * Returns an Identity from a complete window object.  Useful to remove only the Identity instead of sending through a whole window context.
+ *
+ * Assumed that the supplied object has uuid & name.
+ */
+export function parseIdentity(identity: WindowIdentity|Identity) {
+    if (!identity || !identity.uuid) {
+        throw new Error('Invalid Identity provided.  A valid Identity contains both a uuid and name');
+    }
+
+    return {uuid: identity.uuid, name: identity.name || identity.uuid};
+}
+
+
 export enum TabAPI {
     CREATETABGROUP = 'CREATETABGROUP',
-    SETTABCLIENT = 'SETTABCLIENT',
+    SETTABSTRIP = 'SETTABSTRIP',
     GETTABS = 'GETTABS',
     ADDTAB = 'ADDTAB',
     REMOVETAB = 'REMOVETAB',
@@ -60,7 +74,53 @@ export enum TabAPI {
     CLOSETAB = 'CLOSETAB'
 }
 
-export interface SetTabClientPayload {
+export enum WorkspaceAPI {
+    RESTORE_HANDLER = 'SET-RESTORE-HANDLER',
+    GENERATE_HANDLER = 'SET-GENERATE-HANDLER',
+    GENERATE_LAYOUT = 'GENERATE-WORKSPACE',
+    RESTORE_LAYOUT = 'RESTORE-WORKSPACE',
+    APPLICATION_READY = 'WORKSPACE-APP-READY'
+}
+
+export enum SnapAndDockAPI {
+    UNDOCK_WINDOW = 'UNDOCK-WINDOW',
+    UNDOCK_GROUP = 'UNDOCK-GROUP'
+}
+
+export enum RegisterAPI {
+    REGISTER = 'REGISTER',
+    DEREGISTER = 'DEREGISTER'
+}
+
+export type APITopic = TabAPI|WorkspaceAPI|SnapAndDockAPI|RegisterAPI;
+
+/**
+ * Each action coming into the will have an action attached
+ */
+export interface TabAPIMessage {
+    action: string;
+}
+
+/**
+ * When the tab API makes a call to the service a uuid and name should be provided
+ */
+export interface TabAPIInteractionMessage extends TabAPIMessage {
+    uuid: string;
+    name: string;
+    properties?: TabProperties;
+}
+
+export interface TabAPIDragMessage extends TabAPIMessage {
+    event: ApplicationUIConfig|null;
+    uuid: string;
+    name: string;
+}
+
+export interface TabAPIReorderMessage extends TabAPIMessage {
+    tabOrder: WindowIdentity[];
+}
+
+export interface SetTabstripPayload {
     config: Partial<ApplicationUIConfig>;
     id: Identity;
 }

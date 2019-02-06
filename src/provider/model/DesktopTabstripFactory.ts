@@ -5,7 +5,7 @@ import {Scope} from '../../../gen/provider/config/scope';
 import {ApplicationUIConfig} from '../../client/types';
 import {ScopedConfig} from '../config/Store';
 import {MaskWatch} from '../config/Watch';
-import {config, ConfigStore} from '../main';
+import {config} from '../main';
 
 const DEFAULT_UI_URL = (() => {
     let providerLocation = window.location.href;
@@ -24,6 +24,13 @@ const DEFAULT_UI_URL = (() => {
  */
 export class DesktopTabstripFactory {
     public static readonly DEFAULT_CONFIG: Tabstrip = {url: DEFAULT_UI_URL, height: 60};
+
+    /**
+     * Utility method for converting a ApplicationUIConfig|'default' to a ApplicationUIConfig
+     */
+    public static convertToTabstripConfig(config: Tabstrip|'default'): Tabstrip {
+        return config === 'default' ? DesktopTabstripFactory.DEFAULT_CONFIG : config;
+    }
 
     /**
      * The window pool

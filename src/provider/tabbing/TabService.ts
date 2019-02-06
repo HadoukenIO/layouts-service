@@ -156,16 +156,17 @@ export class TabService {
 
             const appRect: Rectangle = group.activeTab.currentState;
             const groupRect: Rectangle = group.window.currentState;
+            const config: Tabstrip|'default' = (group.config === DesktopTabstripFactory.DEFAULT_CONFIG) ? 'default' : group.config;
+
             const groupInfo = {
-                url: group.config.url,
                 active: group.activeTab.identity,
                 dimensions: {
                     x: groupRect.center.x - groupRect.halfSize.x,
                     y: groupRect.center.y - groupRect.halfSize.y,
                     width: groupRect.halfSize.x * 2,
-                    tabGroupHeight: groupRect.halfSize.y * 2,
                     appHeight: appRect.halfSize.y * 2
-                }
+                },
+                config
             };
 
             return {tabs, groupInfo};
@@ -187,7 +188,7 @@ export class TabService {
 
             if (tabs.length >= 2) {
                 // Create a tabstrip window in the correct position
-                const tabstripOptions: Tabstrip = {url: groupDef.groupInfo.url, height: dimensions.tabGroupHeight};
+                const tabstripOptions: Tabstrip = DesktopTabstripFactory.convertToTabstripConfig(groupDef.groupInfo.config);
 
                 // Each tab group will be a stand-alone snap group
                 const snapGroup: DesktopSnapGroup = new DesktopSnapGroup();
@@ -195,7 +196,7 @@ export class TabService {
 
                 // Position first tab to cover entire tab area - both tabstrip and app bounds
                 // The positions of tabstrip and subsequent tabs will all be based on this
-                const combinedHeight: number = dimensions.tabGroupHeight + dimensions.appHeight;
+                const combinedHeight: number = tabstripOptions.height + dimensions.appHeight;
                 const appBounds: Rectangle = {
                     center: {x: dimensions.x + (dimensions.width / 2), y: dimensions.y + (combinedHeight / 2)},
                     halfSize: {x: dimensions.width / 2, y: combinedHeight / 2}

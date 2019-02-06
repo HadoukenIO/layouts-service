@@ -1,8 +1,8 @@
 import {test} from 'ava';
 import {Application, Fin, Window} from 'hadouken-js-adapter';
 
+import {ApplicationUIConfig, TabGroup} from '../../../src/client/types';
 import {DesktopTabGroup} from '../../../src/provider/model/DesktopTabGroup';
-import {ApplicationConfigManager} from '../../../src/provider/tabbing/components/ApplicationConfigManager';
 import {getConnection} from '../../provider/utils/connect';
 import {getBounds, NormalizedBounds} from '../../provider/utils/getBounds';
 import {teardown} from '../../teardown';
@@ -37,7 +37,7 @@ test('Create tab group from 2 windows', async (assert) => {
 
     const tabGroups: TabGroup[] = [{
         groupInfo: {
-            config: ApplicationConfigManager.DEFAULT_CONFIG,
+            config: {url: 'http://localhost:1337/provider/tabbing/tabstrip/tabstrip.html', height: 60},
             active: {uuid: win2.identity.uuid, name: win2.identity.name!},
             dimensions: {x: 100, y: 100, width: preWin2Bounds.width, appHeight: preWin2Bounds.height}
         },
@@ -79,8 +79,7 @@ test('Create tab group from 2 windows', async (assert) => {
     assert.is(win2Bounds.right, win1Bounds.right);
     assert.is(win2Bounds.top, win1Bounds.top);
     assert.is(win2Bounds.width, win1Bounds.width);
-    assert.is(
-        win2Bounds.top, (tabGroups[0].groupInfo.dimensions.y + ApplicationConfigManager.convertToApplicationUIConfig(tabGroups[0].groupInfo.config).height));
+    assert.is(win2Bounds.top, (tabGroups[0].groupInfo.dimensions.y + (tabGroups[0].groupInfo.config as ApplicationUIConfig).height));
     assert.is(win2Bounds.left, tabGroups[0].groupInfo.dimensions.x);
 
 

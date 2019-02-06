@@ -132,6 +132,6 @@ async function resetProviderState(t: TestContext): Promise<void> {
         console.warn(msg);
 
         // Wait for clean-up to complete
-        await delay(5000);
+        await delay(1000);
     }
 }

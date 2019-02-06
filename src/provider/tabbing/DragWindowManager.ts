@@ -1,10 +1,7 @@
-import {Window} from 'hadouken-js-adapter';
-import {MonitorEvent} from 'hadouken-js-adapter/out/types/src/api/events/system';
 import {DipRect, MonitorInfo} from 'hadouken-js-adapter/out/types/src/api/system/monitor';
 import {Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import {WindowIdentity} from '../../client/types';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopWindow} from '../model/DesktopWindow';
 import {Signal0, Signal2} from '../Signal';
@@ -54,7 +51,7 @@ export class DragWindowManager {
         this._hideTimeout = -1;
         this.createDragWindow();
 
-        fin.System.addListener('monitor-info-changed', (event) => {
+        fin.System.addListener('monitor-info-changed', event => {
             this.setWindowBounds(event.virtualScreen);
         });
     }
@@ -62,8 +59,8 @@ export class DragWindowManager {
     /**
      * Shows the drag window overlay.
      */
-    public showWindow(source: WindowIdentity): void {
-        this._sourceWindow = this._model.getWindow(source);
+    public showWindow(source: DesktopWindow): void {
+        this._sourceWindow = source;
 
         this._window.show();
         this._window.focus();

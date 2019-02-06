@@ -4,7 +4,8 @@ import {WindowDetail, WindowInfo} from 'hadouken-js-adapter/out/types/src/api/sy
 
 import {ConfigurationObject, RegEx, Rule} from '../../../gen/provider/config/layouts-config';
 import {Scope, WindowScope} from '../../../gen/provider/config/scope';
-import {ConfigUtil, Mask, Masked} from '../config/ConfigUtil';
+
+import {ConfigUtil, Masked} from '../config/ConfigUtil';
 import {ScopedConfig} from '../config/Store';
 import {MaskWatch} from '../config/Watch';
 import {ConfigStore} from '../main';

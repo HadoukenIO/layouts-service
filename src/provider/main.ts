@@ -1,6 +1,3 @@
-import {Identity} from 'hadouken-js-adapter';
-import {RunRequestedEvent} from 'hadouken-js-adapter/out/types/src/api/events/application';
-
 import {ConfigurationObject} from '../../gen/provider/config/layouts-config';
 
 import {APIHandler} from './APIHandler';
@@ -42,7 +39,6 @@ export async function main() {
     snapService = window.snapService = new SnapService(model, config);
     tabService = window.tabService = new TabService(model, config);
     apiHandler = window.apiHandler = new APIHandler(model, config, snapService, tabService);
-
 
     // Need to ensure that `DesktopTabstripFactory` is created synchronously at service startup.
     // This ensures that it's watch listeners are active at the point where any application-specific tabstrips are configured.

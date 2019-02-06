@@ -2,7 +2,7 @@ import {Identity} from 'hadouken-js-adapter';
 import {Action, ProviderIdentity} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/channel';
 import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
 
-import {DropPosition, SERVICE_CHANNEL, TabAPI} from '../client/internal';
+import {DropPosition, RegisterAPI, SERVICE_CHANNEL, SnapAndDockAPI, TabAPI, WorkspaceAPI} from '../client/internal';
 import {ApplicationUIConfig, TabProperties} from '../client/types';
 
 import {LegacyAPI, WindowMessages} from './APIMessages';
@@ -291,13 +291,13 @@ export class APIHandler {
     }
 
     private updateTabProperties(payload: {properties: Partial<TabProperties>, window: WindowIdentity}): void {
-        const tab: DesktopWindow|null = model.getWindow(payload.window);
+        const tab: DesktopWindow|null = this._model.getWindow(payload.window);
 
         if (!tab) {
             console.error('No tab found for window');
             throw new Error('No tab found for window');
         } else {
-            return tabService.updateTabProperties(tab, payload.properties);
+            return this._tabService.updateTabProperties(tab, payload.properties);
         }
     }
 

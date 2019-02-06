@@ -2,7 +2,8 @@ import {Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
 
 import {Tabstrip} from '../../../gen/provider/config/layouts-config';
 import {Scope} from '../../../gen/provider/config/scope';
-import {TabGroup, TabGroupDimensions, TabProperties, WindowIdentity} from '../../client/types';
+
+import {TabGroup, TabGroupDimensions, TabProperties, TabPropertiesUpdatedPayload, WindowIdentity} from '../../client/types';
 import {ConfigStore} from '../main';
 import {DesktopEntity} from '../model/DesktopEntity';
 import {DesktopModel} from '../model/DesktopModel';

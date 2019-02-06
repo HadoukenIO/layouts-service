@@ -1,6 +1,7 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {Scope} from '../../../gen/provider/config/scope';
+
 import {ApplicationUIConfig, TabAddedPayload, TabGroupEventPayload, TabProperties, WindowIdentity} from '../../client/types';
 import {WindowMessages} from '../APIMessages';
 import {tabService} from '../main';

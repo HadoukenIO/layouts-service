@@ -414,16 +414,15 @@ export class DesktopTabGroup implements DesktopEntity {
             if (redrawRequired) {
                 // Allow tab time to redraw before being shown to user
                 await prevTab.bringToFront();
-                await tab.applyProperties({hidden: false});
-                await new Promise<void>(r => setTimeout(r, 150));
+                await tab.applyProperties({hidden: false, showTaskbarIcon: true});
                 await tab.bringToFront();
             } else {
                 // Show tab as quickly as possible
-                await tab.applyProperties({hidden: false});
+                await tab.applyProperties({hidden: false, showTaskbarIcon: true});
                 await tab.bringToFront();
             }
             if (prevTab && prevTab.tabGroup === this) {
-                await prevTab.applyProperties({hidden: true});
+                await prevTab.applyProperties({hidden: true, showTaskbarIcon: false});
             }
 
             await Promise.all([this._window!.sync(), tab.sync()]).catch(e => console.error(e));

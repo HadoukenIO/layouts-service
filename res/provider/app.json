@@ -10,7 +10,8 @@
         "showTaskbarIcon": true,
         "defaultHeight": 300,
         "defaultWidth": 400,
-        "enableAppLogging": true
+        "enableAppLogging": true,
+        "offlineAccess": true
     },
     "runtime": {
         "arguments": "--enable-aggressive-domstorage-flushing --high-dpi-support=1 --force-device-scale-factor=1",

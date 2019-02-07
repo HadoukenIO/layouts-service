@@ -1,5 +1,6 @@
+import {test} from 'ava';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
-import * as robot from 'robotjs';
+import robot from 'robotjs';
 
 import {CreateWindowData, createWindowTest} from '../demo/utils/createWindowTest';
 import {testParameterized} from '../demo/utils/parameterizedTestUtils';
@@ -11,7 +12,13 @@ import {dragSideToSide} from '../provider/utils/dragWindowTo';
 import {getBounds} from '../provider/utils/getBounds';
 import {opposite, Side} from '../provider/utils/SideUtils';
 import {tabWindowsTogether} from '../provider/utils/tabWindowsTogether';
+import {teardown} from '../teardown';
 
+import {getTabstrip} from './utils/tabServiceUtils';
+import {tearoutToOtherTabstrip, tearoutToPoint} from './utils/tabstripUtils';
+
+
+test.afterEach.always(teardown);
 
 interface PreviewTestOptions extends CreateWindowData {
     side: Side;
@@ -30,7 +37,7 @@ testParameterized(
         const {windows} = t.context;
 
         const fin = await getConnection();
-        const previewWin: _Window = await fin.Window.wrap({name: 'previewWindow-', uuid: 'layouts-service'});
+        const previewWin: _Window = await fin.Window.wrap({name: 'successPreview', uuid: 'layouts-service'});
         const windowBounds = await Promise.all([getBounds(windows[0]), getBounds(windows[1])]);
 
         await dragSideToSide(windows[1], opposite(side), windows[0], side, {x: 5, y: 5}, false);
@@ -64,7 +71,7 @@ testParameterized(
         const {windows} = t.context;
 
         const fin = await getConnection();
-        const previewWin: _Window = await fin.Window.wrap({name: 'previewWindow-', uuid: 'layouts-service'});
+        const previewWin: _Window = await fin.Window.wrap({name: 'successPreview', uuid: 'layouts-service'});
         const windowBounds = await Promise.all([getBounds(windows[0]), getBounds(windows[1])]);
 
         await windows[1].resizeBy(
@@ -93,7 +100,7 @@ testParameterized(
         const {windows} = t.context;
 
         const fin = await getConnection();
-        const previewWin: _Window = await fin.Window.wrap({name: 'previewWindow-', uuid: 'layouts-service'});
+        const previewWin: _Window = await fin.Window.wrap({name: 'successPreview', uuid: 'layouts-service'});
         const windowBounds = await Promise.all([getBounds(windows[0]), getBounds(windows[1])]);
 
         if (windowCount > 2) {
@@ -108,6 +115,36 @@ testParameterized(
 
         const previewBounds = await getBounds(previewWin);
 
+        robot.mouseToggle('up');
+
+        t.deepEqual(previewBounds, {...windowBounds[0], height: 60, bottom: windowBounds[0].top + previewBounds.height});
+    }, {defaultCentered: true, defaultWidth: 250, defaultHeight: 150}));
+
+testParameterized(
+    (testOptions: CreateWindowData): string => `Preview tab drag ${testOptions.windowCount > 3 ? 'tabbed' : 'single'} window`,
+    [{frame: true, windowCount: 3}, {frame: true, windowCount: 4}],
+    createWindowTest(async (t, testOptions: CreateWindowData) => {
+        const {windowCount} = testOptions;
+        const {windows} = t.context;
+
+        const fin = await getConnection();
+        const previewWin: _Window = await fin.Window.wrap({name: 'successPreview', uuid: 'layouts-service'});
+
+        await windows[0].moveTo(40, 40);
+        if (windowCount > 3) await windows[3].moveTo(60, 60);
+
+        const windowBounds = await Promise.all([getBounds(windows[0])]);
+
+        await tabWindowsTogether(windows[1], windows[2]);
+
+        if (windowCount > 3) {
+            await tabWindowsTogether(windows[0], windows[3]);
+            await tearoutToOtherTabstrip(await getTabstrip(windows[2].identity), 1, await getTabstrip(windows[0].identity), true);
+        } else {
+            await tearoutToPoint(await getTabstrip(windows[2].identity), 1, {x: windowBounds[0].left + 20, y: windowBounds[0].top + 20}, true);
+        }
+
+        const previewBounds = await getBounds(previewWin);
         robot.mouseToggle('up');
 
         t.deepEqual(previewBounds, {...windowBounds[0], height: 60, bottom: windowBounds[0].top + previewBounds.height});

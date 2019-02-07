@@ -28,6 +28,23 @@ export interface WindowIdentity {
     name: string;
 }
 
+// To be updated/moved once config story is fully merged. SERVICE-306
+export interface IdentityRule {
+    uuid: string|RegEx;
+    name: string|RegEx;
+}
+
+export interface RegEx {
+    expression: string;
+    flags?: string;
+    invert?: boolean;
+}
+
+/**
+ * Window state, corresponds to `WindowOptions.state`
+ */
+export type WindowState = 'normal'|'minimized'|'maximized';
+
 
 /* Tabbing */
 
@@ -73,22 +90,22 @@ export interface ApplicationUIConfig {
 /* Workspaces */
 
 /**
- * Defines a saved workspace layout, containing the state of any applications that were open at the time the layout was
+ * Defines a saved workspace, containing the state of any applications that were open at the time the workspace was
  * generated.
  *
- * See {@link generateLayout} for more information about what gets captured when saving a layout. Previously generated
- * layouts can be restored using {@link restoreLayout}.
+ * See {@link generate} for more information about what gets captured when saving a workspace. Previously generated
+ * workspace can be restored using {@link restore}.
  */
-export interface Layout {
+export interface Workspace {
     /**
-     * Identifies this object as being a workspace layout.
+     * Identifies this object as being a workspace.
      */
     type: 'layout';
 
     /**
-     * Used to determine compatibility of generated layouts when restoring on different versions of the service.
+     * Used to determine compatibility of generated workspaces when restoring on different versions of the service.
      *
-     * Any layout JSON produced by the service will contain a schema version number. This is a separate version number
+     * Any workspace JSON produced by the service will contain a schema version number. This is a separate version number
      * from the service itself, and is incremented only on any changes to the JSON format.
      *
      * The version string follows [semver conventions](https://semver.org), and any breaking changes to the schema will
@@ -105,9 +122,9 @@ export interface Layout {
     monitorInfo: MonitorInfo;
 
     /**
-     * List of all applications within the layout.
+     * List of all applications within the workspace.
      */
-    apps: LayoutApp[];
+    apps: WorkspaceApp[];
 
     /**
      * Tracks which windows are tabbed together, and the properties of the associated tabstrip windows.
@@ -122,7 +139,7 @@ export interface Layout {
 /**
  * Stores the state of a single application within a saved workspace.
  */
-export interface LayoutApp {
+export interface WorkspaceApp {
     /**
      * The URL of the manifest from which this application was started.
      *
@@ -148,15 +165,15 @@ export interface LayoutApp {
     /**
      * State of the main window of the application.
      */
-    mainWindow: LayoutWindow;
+    mainWindow: WorkspaceWindow;
 
     /**
      * State of any child windows belonging to the application.
      *
      * This will only be populated if the application integrates with the Layouts Service API. See
-     * {@link generateLayout} for details.
+     * {@link generate} for details.
      */
-    childWindows: LayoutWindow[];
+    childWindows: WorkspaceWindow[];
 
     /**
      * Flag used within the service to confirm an application has correctly implemented the callbacks it has
@@ -167,20 +184,20 @@ export interface LayoutApp {
     confirmed?: boolean;
 
     /**
-     * Applications can add their own custom data to a layout, to assist with correctly restoring the application when
-     * a saved layout is loaded.
+     * Applications can add their own custom data to a workspace, to assist with correctly restoring the application when
+     * a saved workspace is loaded.
      *
      * To set customData, register a 'save' callback using {@link onApplicationSave}. The provided function will be
-     * called whenever a layout is generated, and any value returned by that function will be added to the layout here.
+     * called whenever a workspace is generated, and any value returned by that function will be added to the workspace here.
      * This data will then be available within the restore callback registered via {@link onAppRestore}.
      */
     customData?: CustomData;
 }
 
 /**
- * Stores the state of a single window within a saved layout.
+ * Stores the state of a single window within a saved workspace.
  */
-export interface LayoutWindow extends Bounds, WindowIdentity {
+export interface WorkspaceWindow extends Bounds, WindowIdentity {
     /**
      * If the window is currently visible, corresponds to `Window.isShowing()`.
      */
@@ -189,7 +206,7 @@ export interface LayoutWindow extends Bounds, WindowIdentity {
     /**
      * Window state, corresponds to `WindowOptions.state`
      */
-    state: 'normal'|'minimized'|'maximized';
+    state: WindowState;
 
     /**
      * If the window is framed or frameless, corresponds to `WindowOptions.frame`
@@ -204,7 +221,7 @@ export interface LayoutWindow extends Bounds, WindowIdentity {
     /**
      * A list of windows currently docked to this one.
      *
-     * These groupings will be restored once all windows in the layout have been re-created.
+     * These groupings will be restored once all windows in the workspace have been re-created.
      */
     windowGroup: Identity[];
 
@@ -215,12 +232,12 @@ export interface LayoutWindow extends Bounds, WindowIdentity {
 }
 
 /**
- * Semantic type definition, used in any place where applications can attach their own custom data to a layout.
+ * Semantic type definition, used in any place where applications can attach their own custom data to a workspace.
  */
 export type CustomData = {}|null|undefined;
 
 /**
- * Defines a set of tabbed windows within a saved workspace layout.
+ * Defines a set of tabbed windows within a saved workspace.
  *
  * Lists the windows that are tabbed together, and the state of the tabstrip window that joins them together.
  */
@@ -243,14 +260,6 @@ export interface TabGroup {
  */
 export interface TabGroupInfo {
     /**
-     * Tabstrip URL.
-     *
-     * This will either be the URL of the default tabstrip that is built-in to the service, or the URL set by the
-     * application via {@link setTabClient}.
-     */
-    url: string;
-
-    /**
      * The identity of the currently active tab. Will be one of the identities within {@link TabGroup.tabs}.
      */
     active: WindowIdentity;
@@ -259,6 +268,16 @@ export interface TabGroupInfo {
      * Object containing the saved bounds of the tabset
      */
     dimensions: TabGroupDimensions;
+
+    /**
+     * Object containing the tabstrip configuration
+     */
+    config: ApplicationUIConfig|'default';
+
+    /**
+     * The state the TabGroup and contained windows are mimicing
+     */
+    state: WindowState;
 }
 
 /**
@@ -283,16 +302,66 @@ export interface TabGroupDimensions {
     width: number;
 
     /**
-     * The pixel height of the tabstrip window.
-     *
-     * The total height of the entire tabset is this plus {@link TabGroupDimensions.appHeight}.
-     */
-    tabGroupHeight: number;
-
-    /**
      * The pixel height of the application windows within this tabset.
      *
-     * The total height of the entire tabset is this plus {@link TabGroupDimensions.tabGroupHeight}.
+     * The total height of the entire tabset is this plus {@link TabGroupInfo.config.height}.
      */
     appHeight: number;
+}
+
+/**
+ * Data passed as part of tabbing-related events
+ */
+export interface TabGroupEventPayload {
+    /**
+     * String that uniquely identifies the current tabset.
+     */
+    tabstripIdentity: WindowIdentity;
+
+    /**
+     * Identifies the window that is the source of the current event.
+     *
+     * See the documentation for individual events for more details.
+     */
+    identity: WindowIdentity;
+}
+
+/**
+ * Details of the {@link TabAddedEvent|'tab-added'} event
+ */
+export interface TabAddedPayload extends TabGroupEventPayload {
+    /**
+     * The properties of the newly-added tab.
+     *
+     * These will be generated from the `tabID` window, or will be whatever properties were previously set for the `tabID` window using
+     * {@link updateTabProperties}.
+     */
+    properties: TabProperties;
+
+    /**
+     * The index at which the tab was inserted.
+     *
+     * An integer in the range `[0, <tab count>-1]`.
+     */
+    index: number;
+}
+
+/**
+ * Details of the {@link TabPropertiesUpdatedEvent|'tab-properties-updated'} event
+ */
+export interface TabPropertiesUpdatedPayload {
+    /**
+     * Identifies the window that is the source of the current event.
+     *
+     * See the documentation for individual events for more details.
+     */
+    identity: WindowIdentity;
+
+    /**
+     * New tab properties.
+     *
+     * This will always contain the full set of properties for the tab, even if only a subset of the properties were
+     * updated in the {@link updateTabProperties} call.
+     */
+    properties: TabProperties;
 }

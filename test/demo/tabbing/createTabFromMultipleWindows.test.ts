@@ -1,10 +1,11 @@
 import {test} from 'ava';
 import {Application, Fin, Window} from 'hadouken-js-adapter';
 
-import {TabGroup} from '../../../src/client/types';
+import {ApplicationUIConfig, TabGroup} from '../../../src/client/types';
 import {DesktopTabGroup} from '../../../src/provider/model/DesktopTabGroup';
 import {getConnection} from '../../provider/utils/connect';
 import {getBounds, NormalizedBounds} from '../../provider/utils/getBounds';
+import {teardown} from '../../teardown';
 import {executeJavascriptOnService} from '../utils/serviceUtils';
 import {getId} from '../utils/tabServiceUtils';
 
@@ -21,6 +22,8 @@ test.afterEach.always(async () => {
     fin.InterApplicationBus.removeAllListeners();
 });
 
+test.afterEach.always(teardown);
+
 test('Create tab group from 2 windows', async (assert) => {
     // Arrange
     const app1: Application = await createTabbingWindow('default', 'tabapp1', 200);
@@ -34,9 +37,10 @@ test('Create tab group from 2 windows', async (assert) => {
 
     const tabGroups: TabGroup[] = [{
         groupInfo: {
-            url: 'http://localhost:1337/provider/tabbing/tabstrip/tabstrip.html',
+            config: {url: 'http://localhost:1337/provider/tabbing/tabstrip/tabstrip.html', height: 60},
             active: {uuid: win2.identity.uuid, name: win2.identity.name!},
-            dimensions: {x: 100, y: 100, width: preWin2Bounds.width, tabGroupHeight: 60, appHeight: preWin2Bounds.height}
+            dimensions: {x: 100, y: 100, width: preWin2Bounds.width, appHeight: preWin2Bounds.height},
+            state: 'normal'
         },
         tabs: [
             {uuid: app1.identity.uuid, name: win1.identity.name!},
@@ -50,7 +54,7 @@ test('Create tab group from 2 windows', async (assert) => {
 
     // Act
     function scriptToExecute(this: ProviderWindow, tabGroups: TabGroup[]): Promise<string> {
-        return this.tabService.createTabGroupsFromLayout(tabGroups).then((addedGroups: DesktopTabGroup[]) => {
+        return this.tabService.createTabGroupsFromWorkspace(tabGroups).then((addedGroups: DesktopTabGroup[]) => {
             return addedGroups[0].id;
         });
     }
@@ -76,7 +80,7 @@ test('Create tab group from 2 windows', async (assert) => {
     assert.is(win2Bounds.right, win1Bounds.right);
     assert.is(win2Bounds.top, win1Bounds.top);
     assert.is(win2Bounds.width, win1Bounds.width);
-    assert.is(win2Bounds.top, (tabGroups[0].groupInfo.dimensions.y + tabGroups[0].groupInfo.dimensions.tabGroupHeight));
+    assert.is(win2Bounds.top, (tabGroups[0].groupInfo.dimensions.y + (tabGroups[0].groupInfo.config as ApplicationUIConfig).height));
     assert.is(win2Bounds.left, tabGroups[0].groupInfo.dimensions.x);
 
 

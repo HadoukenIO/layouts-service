@@ -1,34 +1,49 @@
 import {Window} from 'hadouken-js-adapter';
 import {WindowEvent} from 'hadouken-js-adapter/out/types/src/api/events/base';
+import {WindowDetail, WindowInfo} from 'hadouken-js-adapter/out/types/src/api/system/window';
 
+import {ConfigurationObject, RegEx, Rule} from '../../../gen/provider/config/layouts-config';
+import {Scope, WindowScope} from '../../../gen/provider/config/scope';
+
+import {ConfigUtil, Masked} from '../config/ConfigUtil';
+import {ScopedConfig} from '../config/Store';
+import {MaskWatch} from '../config/Watch';
+import {ConfigStore} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {SignalSlot} from '../Signal';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {RectUtils} from '../snapanddock/utils/RectUtils';
-import {deregisterWindow as deregisterFromWorkspaces} from '../workspaces/create';
 
 import {DesktopTabGroup} from './DesktopTabGroup';
 import {DesktopWindow, EntityState, WindowIdentity} from './DesktopWindow';
 import {MouseTracker} from './MouseTracker';
 import {ZIndexer} from './ZIndexer';
 
+type EnabledMask = {
+    enabled: true
+};
+const enabledMask: EnabledMask = {
+    enabled: true
+};
+
 export class DesktopModel {
+    private _config: ConfigStore;
+    private _watch: MaskWatch<ConfigurationObject, {enabled: boolean}>;
+
     private _windows: DesktopWindow[];
     private _tabGroups: DesktopTabGroup[];
     private _snapGroups: DesktopSnapGroup[];
     private _windowLookup: {[key: string]: DesktopWindow};
     private _zIndexer: ZIndexer;
     private _mouseTracker: MouseTracker;
-    private _pendingRegistrations: WindowIdentity[];
 
-    constructor() {
+    constructor(config: ConfigStore) {
         this._windows = [];
         this._tabGroups = [];
         this._snapGroups = [];
         this._windowLookup = {};
         this._zIndexer = new ZIndexer(this);
         this._mouseTracker = new MouseTracker();
-        this._pendingRegistrations = [];
 
         DesktopWindow.onCreated.add(this.onWindowCreated, this);
         DesktopWindow.onDestroyed.add(this.onWindowDestroyed, this);
@@ -39,33 +54,43 @@ export class DesktopModel {
 
         const serviceUUID: string = fin.Application.me.uuid;
 
+        // Set built-in rules for determining if a window should be registered
+        const errorWindowSpec: RegEx = {expression: 'error-app-[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}', flags: 'g'};
+        config.addRule({level: 'service'}, {level: 'application', uuid: serviceUUID}, {enabled: false});
+        config.addRule({level: 'service'}, {level: 'window', uuid: serviceUUID, name: {expression: 'Placeholder-.*'}}, {enabled: true});
+        config.addRule({level: 'service'}, {level: 'application', uuid: errorWindowSpec}, {enabled: false});
+
+        // Add watch expressions for detecting config changes
+        this._config = config;
+        this._watch = new MaskWatch(config, {enabled: true});
+        this._watch.onAdd.add(this.onRuleAdded, this);
+        this._watch.onRemove.add(this.onRuleRemoved, this);
+
         // Listen for any new windows created and register them with the service
         fin.System.addListener('window-created', (evt: WindowEvent<'system', 'window-created'>) => {
-            // Filter out error windows (which should never register)
-            if (this.isErrorWindow(evt.uuid)) {
-                console.log('Ignoring error window: ' + evt.uuid);
-                deregisterFromWorkspaces({name: evt.name, uuid: evt.uuid});
-                return;
-            }
-
-            if (evt.uuid !== serviceUUID || evt.name.indexOf('Placeholder-') === 0) {
-                this.registerWindow({name: evt.name, uuid: evt.uuid});
-            }
+            this.addIfEnabled({uuid: evt.uuid, name: evt.name});
         });
 
+        // Register any windows created before the service started
         fin.System.getAllWindows().then(apps => {
             apps.forEach((app) => {
-                // Ignore openfin error windows, the main service window, and all of it's children
-                if (!this.isErrorWindow(app.uuid) && app.uuid !== serviceUUID) {
-                    // Register the main window
-                    this.registerWindow({uuid: app.uuid, name: app.mainWindow.name});
+                // Register the main window
+                this.addIfEnabled({uuid: app.uuid, name: app.mainWindow.name});
 
-                    // Register all of the child windows
-                    app.childWindows.forEach((child) => {
-                        this.registerWindow({uuid: app.uuid, name: child.name});
-                    });
-                }
+                // Register all of the child windows
+                app.childWindows.forEach((child) => {
+                    this.addIfEnabled({uuid: app.uuid, name: child.name});
+                });
             });
+        });
+
+        // Validate everything on monitor change, as groups may become disjointed
+        fin.System.addListener('monitor-info-changed', async () => {
+            // Validate all tabgroups
+            this.tabGroups.map(g => g.validate());
+
+            // Validate all snap groups
+            this.snapGroups.map(g => g.validate());
         });
     }
 
@@ -116,26 +141,38 @@ export class DesktopModel {
         return this._tabGroups.find(group => group.id === id) || null;
     }
 
-    public deregister(target: WindowIdentity): void {
-        // If the window is pending registration, remove it from the queue and return
-        const pendingIndex = this._pendingRegistrations.findIndex(w => w.name === target.name && w.uuid === target.uuid);
-        if (pendingIndex > -1) {
-            this._pendingRegistrations.splice(pendingIndex, 1);
-        } else {
-            const window: DesktopWindow|null = this.getWindow(target);
+    /**
+     * Re-registers the target window with the service, "white-listing" the window for use with the service for the
+     * lifecycle of whichever window requested that the target be registered.
+     *
+     * @param target Window to register
+     * @param source Which window requested `target` to be registered (can be any window, including `target`)
+     */
+    public register(target: WindowIdentity, source: Scope): void {
+        const targetScope: Scope = {...target, level: 'window'};
 
-            if (window) {
-                try {
-                    window.teardown();
-                } catch (error) {
-                    console.error(`Unexpected error when deregistering: ${error}`);
-                    throw new Error(`Unexpected error when deregistering: ${error}`);
-                }
-            } else {
-                console.error(`Unable to deregister from service - no window is registered with identity "${target.uuid}/${target.name}"`);
-                throw new Error(`Unable to deregister from service - no window is registered with identity "${target.uuid}/${target.name}"`);
-            }
-        }
+        console.log('Registering', target, 'from', source);
+
+        // Only need to add a rule to the config store. The model's watch listener will handle any resulting register.
+        // This also ensures that the window remains registered for the lifecycle of whichever window requested this action.
+        this._config.addRule(source, targetScope, {enabled: true});
+    }
+
+    /**
+     * De-registers the target window from the service, and "black-lists" the window from being registered for the
+     * lifecycle of whichever window requested that the target be de-registered.
+     *
+     * @param target Window to de-register
+     * @param source Which window requested `target` to be de-registered (can be any window, including `target`)
+     */
+    public deregister(target: WindowIdentity, source: Scope): void {
+        const targetScope: Scope = {...target, level: 'window'};
+
+        console.log('Deregistering', target, 'from', source);
+
+        // Only need to add a rule to the config store. The model's watch listener will handle any resulting de-register.
+        // This also ensures that the window remains de-registered for the lifecycle of whichever window requested this action.
+        this._config.addRule(source, targetScope, {enabled: false});
     }
 
     /**
@@ -186,43 +223,107 @@ export class DesktopModel {
         return promiseWithTimeout.then(removeSlot, removeSlot);
     }
 
-    private async registerWindow(identity: WindowIdentity): Promise<void> {
-        // Check that the service does not already have a matching window
-        const existingWindow = this.getWindow(identity);
+    private async addIfEnabled(identity: WindowIdentity): Promise<void> {
+        const result: Masked<ConfigurationObject, EnabledMask> =
+            this._config.queryPartial({level: 'window', uuid: identity.uuid, name: identity.name}, enabledMask);
 
-        // The runtime will not allow multiple windows with the same uuid/name, so if we recieve a
+        if (result.enabled) {
+            await this.addWindow(identity);
+        }
+    }
+
+    private addWindow(identity: WindowIdentity): Promise<DesktopWindow|null> {
+        // Check that the service does not already have a matching window
+        const existingWindow: DesktopWindow|null = this.getWindow(identity);
+
+        // The runtime will not allow multiple windows with the same uuid/name, so if we receive a
         // window-created event for a registered window, it implies that our internal state is stale
         // and should be updated accordingly.
         if (existingWindow) {
             existingWindow.teardown();
         }
 
-        // In either case, we will add the new window to the service.
-        this.addWindow(await fin.Window.wrap(identity)).then((win: DesktopWindow|null) => {
-            if (win !== null) {
-                console.log('Registered window: ' + win.id);
+        const window: Window = fin.Window.wrapSync(identity);
+        return DesktopWindow.getWindowState(window).then<DesktopWindow|null>((state: EntityState): DesktopWindow|null => {
+            if (!this._config.queryPartial({level: 'window', ...identity}, enabledMask).enabled) {
+                // An 'enabled: false' rule was added to the store whilst we were in the process of setting-up the
+                // DesktopWindow. We'll bail here with a warning rather than continuing with the window registration.
+                console.log('Ignoring window as it was de-registered whilst querying it\'s state', identity);
+                return null;
+            } else {
+                // Create new window object. Will get registered implicitly, due to signal within DesktopWindow constructor.
+                console.log('Registered window: ' + this.getId(identity));
+                return new DesktopWindow(this, new DesktopSnapGroup(), window, state);
             }
         });
     }
 
-    private addWindow(window: Window): Promise<DesktopWindow|null> {
-        // Set the window as pending registration  (Fix for race condition between register/deregister)
-        const identity: WindowIdentity = window.identity as WindowIdentity;
-        this._pendingRegistrations.push({...identity});
-        return DesktopWindow.getWindowState(window).then<DesktopWindow|null>((state: EntityState): DesktopWindow|null => {
-            if (!this._pendingRegistrations.some(w => w.name === identity.name && w.uuid === identity.uuid)) {
-                // If pendingRegistrations does not contain the window, then deregister has been called on it
-                // and we should do nothing.
-                return null;
-            } else {
-                // Remove the window from pendingRegitrations
-                const pendingIndex = this._pendingRegistrations.findIndex(w => w.name === identity.name && w.uuid === identity.uuid);
-                this._pendingRegistrations.splice(pendingIndex, 1);
+    private removeWindow(window: DesktopWindow): void {
+        try {
+            window.teardown();
+        } catch (error) {
+            console.error(`Unexpected error when deregistering: ${error}`);
+            throw new Error(`Unexpected error when deregistering: ${error}`);
+        }
+    }
 
-                // Create new window object. Will get registered implicitly, due to signal within DesktopWindow constructor.
-                return new DesktopWindow(this, new DesktopSnapGroup(), window, state);
-            }
-        });
+    private onRuleAdded(rule: ScopedConfig<ConfigurationObject>, source: Scope): void {
+        const isEnabled: boolean = rule.config.enabled!;
+        this.handleRuleChange(rule.scope, isEnabled);
+    }
+
+    private onRuleRemoved(rule: ScopedConfig<ConfigurationObject>, source: Scope): void {
+        const isEnabled: boolean = rule.config.enabled!;
+        this.handleRuleChange(rule.scope, !isEnabled);
+    }
+
+    /**
+     * Callback for when any rule affecting the `enabled` property is added to or removed from the store.
+     *
+     * Adding/removing rules in this way should immediately apply those effects. This means we may need to deregister a
+     * previously-registered window, or we may need to register a previously-deregistered window.
+     *
+     * We handle both adding and removing rules with the same callback, as there's no "one to one" relationship
+     * between adding/removing rules and adding/removing windows. Adding a rule can result in both register and
+     * deregister actions, as can removing a rule.
+     *
+     * @param rule Rule defining which windows were (possibly) affected
+     * @param addWindows Determines if this rule change will be _adding_ windows to the model (`true`), or _removing_ them (`false`)
+     */
+    private async handleRuleChange(rule: Rule, addWindows: boolean): Promise<void> {
+        if (addWindows) {
+            // Find which currently de-registered windows match this rule
+            const allWindows: WindowScope[] = ((await fin.System.getAllWindows()).reduce<WindowScope[]>((scopes: WindowScope[], info: WindowInfo) => {
+                scopes.push({level: 'window', uuid: info.uuid, name: info.mainWindow.name});
+                info.childWindows.forEach((child: WindowDetail) => {
+                    scopes.push({level: 'window', uuid: info.uuid, name: child.name});
+                });
+                return scopes;
+            }, []));
+            const windowsToAdd: WindowScope[] = allWindows.filter((candidate: WindowScope) => {
+                // Register window if it: matches the rule, isn't already registered, and isn't in the pending list
+                return ConfigUtil.matchesRule(rule, candidate) && this._config.queryPartial(candidate, enabledMask).enabled &&
+                    !this._windows.some((window: DesktopWindow) => window.identity.uuid === candidate.uuid && window.identity.name === candidate.name);
+            });
+
+            // Register any previously de-registered windows that match this rule
+            await Promise.all(windowsToAdd.map(identity => this.addWindow(identity)));
+        } else {
+            // Find which existing windows match this rule
+            const windowsToRemove: DesktopWindow[] = this._windows.filter((window: DesktopWindow) => {
+                const windowScope: Scope = window.scope;
+
+                // First check that window matches rule, then also perform a query. There could be other higher-precedence rules that override `rule`.
+                // We check windowScope against the rule first to avoid querying the store unnecessarily - likely only a very small subset of windows will
+                // actually match the rule.
+                return ConfigUtil.matchesRule(rule, windowScope) && !this._config.queryPartial(windowScope, enabledMask).enabled;
+            });
+
+            // De-register any previously registered windows that match this rule
+            await Promise.all(windowsToRemove.map(async (window, index) => {
+                this.removeWindow(window);
+            }));
+        }
     }
 
     private onWindowCreated(window: DesktopWindow): void {

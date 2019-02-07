@@ -1,99 +1,132 @@
 import {DesktopEntity} from './model/DesktopEntity';
 import {DesktopSnapGroup} from './model/DesktopSnapGroup';
-import {Preview} from './Preview';
-import {Target} from './WindowHandler';
+import {Preview, PreviewableTarget} from './Preview';
+import {eTargetType, Target} from './WindowHandler';
+
+type DesktopItem = DesktopEntity|DesktopSnapGroup;
 
 export class View {
-    private activeGroup: DesktopSnapGroup|null;  // The group being moved
-    private target: Target|null;                 // The current snap candidate (target may be valid or invalid. Will be null if there are no candidates)
-    private preview: Preview;                    // For displaying where the active group will snap to (the red/green boxes)
+    private _preview: Preview;  // For displaying where the active group will snap to (the red/green boxes)
+    private _targetItem: DesktopItem|null;
+    private _activeItem: DesktopItem|null;
 
     constructor() {
-        this.activeGroup = null;
-        this.target = null;
-        this.preview = new Preview();
+        this._preview = new Preview();
+        this._targetItem = null;
+        this._activeItem = null;
     }
 
     /**
-     * This will be called every time the active group gets moved/resized, and again when the transformation ends (with
-     * null for both args).
-     *
-     * This ensures that the active and target groups have the correct opacity effects applied, and updates the snap
-     * preview.
-     *
-     * SnapView also stores these parameters as members. This allows it to revert the active/target windows to their
-     * original opacities once the active/target group(s) change or get reset.
+     * Updates target window and groups by applying opacity + z-indexing effects.  Also will call for positioning the preview window based on the target
+     * supplied.
      */
-    public update(activeGroup: DesktopSnapGroup|null, target: Target|null): void {
-        // Handle change of active group
-        if (activeGroup !== this.activeGroup) {
-            // Reset active window always on top property.
-            this.setAlwaysOnTop(this.activeGroup, false);
+    public update(target: Target|null): void {
+        const activeGroup = target && target.activeWindow.snapGroup || null;
 
-            // Restore opacity of active group.
-            this.setGroupOpacity(this.activeGroup, false);
+        let activeItem: DesktopItem|null = null, targetItem: DesktopItem|null = null;
 
-            this.activeGroup = activeGroup;
-
-            // Set the active window to always be on top.
-            this.setAlwaysOnTop(this.activeGroup, true);
-
-            // Apply opacity to active group.
-            this.setGroupOpacity(this.activeGroup, true);
-        }
-
-        // Detect change of target group
-        if ((this.target && this.target.group) !== (target && target.group)) {
-            const targetGroup = this.target && this.target.group;
-
-            // Reset alwaysOnTop override, as our activeGroup window is now in the target group.
-            this.setAlwaysOnTop(targetGroup, false);
-
-            // Restore opacity of previous target group (if any)
-            this.setGroupOpacity(targetGroup, false);
-
-            // Reduce opacity of new target group (if any)
-            this.setGroupOpacity(target && target.group, true);
-        }
-
-        // Update preview window
-        this.target = target;
-        if (activeGroup && target) {
-            this.preview.show(target);
+        if (target && activeGroup) {
+            switch (target.type) {
+                case eTargetType.SNAP:
+                    activeItem = activeGroup;
+                    targetItem = target.targetGroup;
+                    break;
+                case eTargetType.TAB:
+                    if (target.targetWindow.tabGroup && target.activeWindow.tabGroup && target.targetWindow.tabGroup === target.activeWindow.tabGroup) {
+                        targetItem = target.activeWindow.tabGroup.window;
+                        activeItem = target.activeWindow.tabGroup.window;
+                    } else {
+                        targetItem = target.targetWindow;
+                        activeItem = target.activeWindow;
+                    }
+                    break;
+                case eTargetType.EJECT:
+                    activeItem = null;
+                    targetItem = null;
+                    break;
+                default:
+                    activeItem = activeGroup;
+            }
         } else {
-            this.preview.hide();
+            activeItem = null;
+            targetItem = null;
+        }
+
+        if (activeItem !== this._activeItem) {
+            this.setAlwaysOnTop(this._activeItem, false);
+
+            this.setOpacity(this._activeItem, false);
+
+            const bringActiveToFront = target !== null && !(target.type === eTargetType.TAB && target.tabDragging && activeItem !== targetItem);
+
+            this.setAlwaysOnTop(activeItem, bringActiveToFront);
+
+            this.setOpacity(activeItem, activeItem !== targetItem);
+
+            this._activeItem = activeItem;
+        } else if ((this._activeItem === this._targetItem) !== (activeItem === targetItem)) {
+            // Conditional for when we move from targeting the activewindow to another target.  There are special treatments needed for when we target the
+            // activewindow which are handled here.
+
+            const bringActiveToFront = target !== null && !(target.type === eTargetType.TAB && target.tabDragging && activeItem !== targetItem);
+            this.setAlwaysOnTop(activeItem, bringActiveToFront);
+            this.setOpacity(activeItem, !bringActiveToFront);
+        }
+
+        if (targetItem !== this._targetItem) {
+            // sets opacity on activeItem if previous target was activeItem === targetItem
+            if (this._targetItem !== activeItem) {
+                this.setOpacity(this._targetItem, false);
+            }
+
+            this.setOpacity(targetItem, activeItem !== targetItem);
+        }
+
+        this._targetItem = targetItem;
+
+        if (activeItem && targetItem && activeItem !== targetItem) {
+            this._preview.show(target! as PreviewableTarget);
+        } else {
+            this._preview.hide();
         }
     }
 
-    private setGroupOpacity(group: DesktopSnapGroup|null, transparent: boolean): void {
-        if (group) {
-            if (transparent) {
-                group.windows.forEach((window: DesktopEntity) => {
-                    window.applyOverride('opacity', 0.8);
+    private setAlwaysOnTop(entity: DesktopItem|null, onTop: boolean): void {
+        if (entity) {
+            if (entity instanceof DesktopSnapGroup) {
+                entity.windows.forEach((window: DesktopEntity) => {
+                    if (onTop) {
+                        window.applyOverride('alwaysOnTop', true);
+                    } else {
+                        window.resetOverride('alwaysOnTop');
+                    }
                 });
             } else {
-                group.windows.forEach((window: DesktopEntity) => {
-                    window.resetOverride('opacity');
-                });
+                if (onTop) {
+                    entity.applyOverride('alwaysOnTop', true);
+                } else {
+                    entity.resetOverride('alwaysOnTop');
+                }
             }
         }
     }
 
-    /**
-     * Applys alwaysOnTop to the primary window of a desktop snap group.  Required to keep the preview window in proper z-index order under the active window.
-     * @param group The activeGroup being dragged by the user.
-     * @param applyOnTop Apply alwaysOnTop or not.
-     */
-    private setAlwaysOnTop(group: DesktopSnapGroup|null, applyOnTop: boolean): void {
-        if (group) {
-            if (applyOnTop) {
-                group.windows.forEach((window: DesktopEntity) => {
-                    window.applyOverride('alwaysOnTop', true);
+    private setOpacity(entity: DesktopItem|null, transparent: boolean): void {
+        if (entity) {
+            if (entity instanceof DesktopSnapGroup) {
+                entity.windows.forEach((window: DesktopEntity) => {
+                    if (transparent) {
+                        window.applyOverride('opacity', 0.8);
+                    } else {
+                        window.resetOverride('opacity');
+                    }
                 });
             } else {
-                group.windows.forEach((window: DesktopEntity) => {
-                    window.resetOverride('alwaysOnTop');
-                });
+                if (transparent) {
+                    (entity.tabGroup || entity).applyOverride('opacity', 0.8);
+                } else {
+                    (entity.tabGroup || entity).resetOverride('opacity');
+                }
             }
         }
     }

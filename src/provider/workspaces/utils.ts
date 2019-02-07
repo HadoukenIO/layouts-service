@@ -1,8 +1,9 @@
 import {Window} from 'hadouken-js-adapter';
 import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/application/application';
+import {WindowDetail} from 'hadouken-js-adapter/out/types/src/api/system/window';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
-import {LayoutApp, LayoutWindow} from '../../client/types';
+import {WorkspaceApp, WorkspaceWindow} from '../../client/types';
 import {model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {WindowIdentity} from '../model/DesktopWindow';
@@ -14,7 +15,7 @@ export interface SemVer {
 }
 
 // Positions a window when it is restored.
-export const positionWindow = async (win: LayoutWindow) => {
+export const positionWindow = async (win: WorkspaceWindow) => {
     try {
         const ofWin = await fin.Window.wrap(win);
         await ofWin.setBounds(win);
@@ -23,8 +24,6 @@ export const positionWindow = async (win: LayoutWindow) => {
         }
         await ofWin.leaveGroup();
 
-
-        // COMMENTED OUT FOR DEMO
         if (win.state === 'normal') {
             await ofWin.restore();
         } else if (win.state === 'minimized') {
@@ -44,7 +43,7 @@ export const positionWindow = async (win: LayoutWindow) => {
 };
 
 // Creates a placeholder for a normal, non-tabbed window.
-export const createNormalPlaceholder = async (win: LayoutWindow) => {
+export const createNormalPlaceholder = async (win: WorkspaceWindow) => {
     if (!win.isShowing || win.state === 'minimized') {
         return;
     }
@@ -79,7 +78,7 @@ export const createNormalPlaceholder = async (win: LayoutWindow) => {
 
 // Creates a placeholder for a tabbed window.
 // When the window that is supposed to be tabbed comes up, swaps the placeholder tab with the real window tab and closes the placeholder.
-export const createTabPlaceholder = async (win: LayoutWindow) => {
+export const createTabPlaceholder = async (win: WorkspaceWindow) => {
     const {name, height, width, left, top, uuid} = win;
 
     const placeholderName = 'Placeholder-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -110,7 +109,7 @@ export const createTabPlaceholder = async (win: LayoutWindow) => {
 };
 
 // Check to see if an application was created programmatically.
-export const wasCreatedProgrammatically = (app: ApplicationInfo|LayoutApp) => {
+export const wasCreatedProgrammatically = (app: ApplicationInfo|WorkspaceApp) => {
     const initialOptions = app.initialOptions as {uuid: string, url: string};
     return app && app.initialOptions && initialOptions.uuid && initialOptions.url;
 };
@@ -128,7 +127,7 @@ export const wasCreatedFromManifest = (app: ApplicationInfo, uuid?: string) => {
     return typeof manifest === 'object' && manifest.startup_app && manifest.startup_app.uuid === appUuid;
 };
 
-export const showingWindowInApp = async(app: LayoutApp): Promise<boolean> => {
+export const showingWindowInApp = async(app: WorkspaceApp): Promise<boolean> => {
     const {uuid, childWindows} = app;
     const ofApp = await fin.Application.wrap({uuid});
     const mainOfWin = await ofApp.getWindow();
@@ -178,14 +177,14 @@ export function addToWindowObject(identity: WindowIdentity, windowObject: Window
 }
 
 // Creates a tabbing placeholder and records the information for its corresponding window.
-export async function createTabbedPlaceholderAndRecord(win: LayoutWindow, tabbedPlaceholdersToWindows: TabbedPlaceholders) {
+export async function createTabbedPlaceholderAndRecord(win: WorkspaceWindow, tabbedPlaceholdersToWindows: TabbedPlaceholders) {
     const tabPlaceholder = await createTabPlaceholder(win);
     tabbedPlaceholdersToWindows[win.uuid] =
         Object.assign({}, tabbedPlaceholdersToWindows[win.uuid], {[win.name]: {name: tabPlaceholder.identity.name, uuid: tabPlaceholder.identity.uuid}});
 }
 
 // Helper function to determine what type of placeholder window to open.
-export async function childWindowPlaceholderCheck(app: LayoutApp, tabbedWindows: WindowObject, tabbedPlaceholdersToWindows: TabbedPlaceholders) {
+export async function childWindowPlaceholderCheck(app: WorkspaceApp, tabbedWindows: WindowObject, tabbedPlaceholdersToWindows: TabbedPlaceholders) {
     if (app.confirmed) {
         for (const win of app.childWindows) {
             if (inWindowObject(win, tabbedWindows)) {
@@ -202,7 +201,7 @@ export async function childWindowPlaceholderCheck(app: LayoutApp, tabbedWindows:
 // Helper function to determine which placeholder windows to create for a running application's child windows.
 // This differs from childWindowPlaceholderCheck because we need to check if child windows are open before we create their placeholders.
 export async function childWindowPlaceholderCheckRunningApp(
-    app: LayoutApp, tabbedWindows: WindowObject, tabbedPlaceholdersToWindows: TabbedPlaceholders, openWindows: WindowObject) {
+    app: WorkspaceApp, tabbedWindows: WindowObject, tabbedPlaceholdersToWindows: TabbedPlaceholders, openWindows: WindowObject) {
     if (app.confirmed) {
         for (const win of app.childWindows) {
             // Here we're checking if the incoming child window is already open or not.
@@ -217,8 +216,8 @@ export async function childWindowPlaceholderCheckRunningApp(
             } else {
                 const childWindowModel = model.getWindow(win);
                 await tabService.removeTab(win);
-                if (childWindowModel!.snapGroup.length > 1) {
-                    childWindowModel!.setSnapGroup(new DesktopSnapGroup());
+                if (childWindowModel && childWindowModel.snapGroup.length > 1) {
+                    await childWindowModel.setSnapGroup(new DesktopSnapGroup());
                 }
             }
         }
@@ -234,4 +233,27 @@ export function parseVersionString(versionString: string): SemVer {
     }
 
     return {major: Number.parseInt(match[1], 10), minor: Number.parseInt(match[2], 10), patch: Number.parseInt(match[3], 10)};
+}
+
+export function adjustSizeOfFormerlyTabbedWindows(
+    winIdentity: WindowIdentity, formerlyTabbedWindows: WindowObject, layoutWindow: WorkspaceWindow|WindowDetail) {
+    if (inWindowObject(winIdentity, formerlyTabbedWindows)) {
+        const tabWindow = model.getWindow(winIdentity);
+        if (tabWindow) {
+            const applicationState = tabWindow.applicationState;
+            const tabGroup = tabWindow.tabGroup;
+            if (tabGroup) {
+                const tabStripHeight = tabGroup.config.height;
+
+                layoutWindow.top = layoutWindow.top - tabStripHeight;
+                layoutWindow.height = layoutWindow.height + tabStripHeight;
+
+                if (applicationState.frame === true) {
+                    layoutWindow.height = layoutWindow.height + 7;
+                    layoutWindow.left = layoutWindow.left - 7;
+                    layoutWindow.width = layoutWindow.width + 14;
+                }
+            }
+        }
+    }
 }

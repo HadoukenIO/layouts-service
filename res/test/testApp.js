@@ -1,13 +1,11 @@
 const main = async () => {
-    fin.desktop.InterApplicationBus.Channel.connect('of-layouts-service-v1').then(client => {
-        client.send('deregister');
-        client.register('savingLayout', () => {});
-        client.register('restoreApp', (a) => a);
+    fin.InterApplicationBus.Channel.connect('of-layouts-service-v1').then(client => {
+        client.dispatch('DEREGISTER', fin.Window.me);
+        client.register('SET-SAVE-HANDLER', () => {});
+        client.register('SET-RESTORE-HANDLER', (a) => a);
     });
     
-
-
-    let provider = await fin.desktop.InterApplicationBus.Channel.create('test-app-comms');
+    let provider = await fin.InterApplicationBus.Channel.create('test-app-comms');
 
     provider.register('createWindow', (payload) => new Promise((res, rej) => {
         new fin.desktop.Window(payload, () => res(), rej);

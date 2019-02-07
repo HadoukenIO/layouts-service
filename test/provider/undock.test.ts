@@ -2,8 +2,9 @@ import {test, TestContext} from 'ava';
 import {Fin, Window} from 'hadouken-js-adapter';
 
 import {WindowIdentity} from '../../src/client/types';
-import {UNDOCK_MOVE_DISTANCE} from '../../src/provider/snapanddock/Config';
+import {UNDOCK_MOVE_DISTANCE} from '../../src/provider/snapanddock/Constants';
 import {undockWindow} from '../demo/utils/snapServiceUtils';
+import {teardown} from '../teardown';
 
 import {assertNotGrouped} from './utils/assertions';
 import {getConnection} from './utils/connect';
@@ -39,6 +40,7 @@ test.afterEach.always(async () => {
     }
     windows = new Array<Window>();
 });
+test.afterEach.always(teardown);
 
 
 async function initWindows(t: TestContext, num: number, side?: Side) {

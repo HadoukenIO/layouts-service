@@ -8,36 +8,48 @@
     <script src="./LayoutsUI-bundle.js"></script>
 </head>
 <body>
-    <h3>Layouts</h3>
+    <h3>Layouts Manager - Deregistered From Layouts</h3>
     <div>
-        <select name="" id="layoutSelect"></select>
-        <button onclick="LayoutsUI.restoreLayout()">Restore Layout</button>
-        <button onclick="LayoutsUI.getLayout()">Get Layout</button>
-        <button onclick="LayoutsUI.getAllLayouts()">Layout Names</button>
+        <select name="" id="layoutSelect" selected>
+            <option value="" selected disabled hidden>Select Layout</option>
+        </select>
+        <button onclick="LayoutsUI.restoreLayout()">Restore Selected Layout</button>
+        <button onclick="LayoutsUI.getLayout()">Get Selected Layout's JSON</button>
     </div>
     <div>
         <input placeholder="Name of Layout" id="layoutName">
-        <button onclick="LayoutsUI.setLayout()">Set Layout</button>
-        <button onclick="LayoutsUI.importLayout()">Import Layout</button>
+        <button onclick="LayoutsUI.setLayout()">Set This Layout</button>
     </div>
-    <h3>Manage</h3>
-    <div>
-        <button onclick="LayoutsUI.createAppFromManifest2()">Create App2 From Manifest</button>
-        <button onclick="LayoutsUI.createAppFromManifest3()">Create App3 From Manifest</button>
-        <button onclick="LayoutsUI.createAppProgrammatically4()">Create App4 Programmatically</button>
-        <button onclick="LayoutsUI.createAppProgrammatically5()">Create App5 Programmatically</button>
-        <button onclick="LayoutsUI.createSnapWindows()">Create Snap Windows</button>
-        <button onclick="LayoutsUI.killAllWindows()">Close All Windows</button>
+    <div class='windows-generator'>
+        <div class='windows-group'>
+            <h3 class='windows-group-title'>Registered Windows</h3>
+            <button onclick="LayoutsUI.createAppFromManifest2()">Create App2 From Manifest</button>
+            <button onclick="LayoutsUI.createAppProgrammatically4()">Create App4 Programmatically</button>
+            <button onclick="LayoutsUI.createSimpleWindow('libScriptIncluded')">App with Client Script Added</button>
+        </div>
+        <div class='windows-group'>
+            <h3 class='windows-group-title'>Deregistered Windows</h3>
+            <button onclick="LayoutsUI.createAppFromManifest3()">Create App3 From Manifest</button>
+            <button onclick="LayoutsUI.createAppProgrammatically5()">Create App5 Programmatically</button>
+            <button onclick="LayoutsUI.createSnapWindows()">Create Manager Children - (Snap/Tab, no Restore)</button>
+        </div>
+        <div class='windows-group'>
+            <h3 class='windows-group-title'>Tabbed Windows</h3>
+            <button onclick="LayoutsUI.createSimpleWindow('tabbing/default')">Create App - Default Tab UI</button>
+            <button onclick="LayoutsUI.createSimpleWindow('tabbing/tabapp1')">Create App - Custom Tab UI 1</button>
+            <button onclick="LayoutsUI.createSimpleWindow('tabbing/tabapp2')">Create App - Custom Tab UI 2</button>
+        </div>
+        <div class='windows-group'>
+            <h3 class='windows-group-title'>Manage Windows</h3>
+            <button onclick="LayoutsUI.killAllWindows()">Close All Windows</button>
+        </div>
     </div>
-    <h3>Tabbed Windows</h3>
-    <div>
-        <button onclick="LayoutsUI.createTabbedWindow('default')">Default Tabstrip</button>
-        <button onclick="LayoutsUI.createTabbedWindow('tabapp1')">Custom Tabstrip 1</button>
-        <button onclick="LayoutsUI.createTabbedWindow('tabapp2')">Custom Tabstrip 2</button>
-        <button onclick="LayoutsUI.createTabbedWindow('disableFrame')">'disableFrame' Window</button>
-    </div>
-    <div>
+    <div class='text-box'>
         <textArea id='showLayout'></textArea>
+        <div class='text-box-buttons'>
+            <button onclick="LayoutsUI.getAllLayouts()">Get Layout Names</button>
+            <button class='import-button' onclick="LayoutsUI.importLayout()">Import Layout From JSON</button>
+        </div>
     </div>
 </body>
 </html>

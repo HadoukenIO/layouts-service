@@ -1,3 +1,4 @@
+import {test} from 'ava';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {assertAdjacent, assertAllContiguous, assertGrouped, assertTabbed} from '../../provider/utils/assertions';
@@ -7,6 +8,7 @@ import {getBounds, getTabsetBounds} from '../../provider/utils/getBounds';
 import * as SideUtils from '../../provider/utils/SideUtils';
 import {Side} from '../../provider/utils/SideUtils';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
+import {teardown} from '../../teardown';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
 import {refreshWindowState} from '../utils/modelUtils';
 import {testParameterized} from '../utils/parameterizedTestUtils';
@@ -23,7 +25,7 @@ interface ResizeOnSnapOptions extends CreateWindowData {
     windowCount: 2|4;
 }
 
-interface Constraints {
+export interface Constraints {
     maxHeight?: number;
     maxWidth?: number;
     minHeight?: number;
@@ -37,6 +39,8 @@ interface ResizeWithConstrainsOptions extends ResizeOnSnapOptions {
     shouldResize: boolean;
     windowCount: 2;
 }
+
+test.afterEach.always(teardown);
 
 // With window constraints
 testParameterized(

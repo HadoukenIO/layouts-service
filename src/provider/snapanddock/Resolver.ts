@@ -1,9 +1,10 @@
+import {ConfigStore} from '../main';
 import {DesktopEntity} from '../model/DesktopEntity';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {EntityState} from '../model/DesktopWindow';
 import {eTargetType, TargetBase} from '../WindowHandler';
 
-import {SNAP_DISTANCE} from './Config';
+import {SNAP_DISTANCE} from './Constants';
 import {Projector} from './Projector';
 import {Point, PointUtils} from './utils/PointUtils';
 import {Rectangle, RectUtils} from './utils/RectUtils';
@@ -50,6 +51,14 @@ export interface SnapTarget extends TargetBase {
      * Will be null if we don't want the window to resize as part of the snap.
      */
     halfSize: Point|null;
+
+
+    /**
+     * The group that has been selected as the target candidate.
+     *
+     * This is not the group that the user is currently dragging, it is the group that has been selected as the target.
+     */
+    targetGroup: DesktopSnapGroup;
 }
 
 /**
@@ -63,6 +72,12 @@ export class Resolver {
      * Util that is reset and re-used with each candidate group.
      */
     private _projector: Projector = new Projector();
+
+    private _config: ConfigStore;
+
+    constructor(config: ConfigStore) {
+        this._config = config;
+    }
 
     /**
      * The only publicly-exposed function of this class - determines if 'activeGroup', in it's current location, should
@@ -155,6 +170,6 @@ export class Resolver {
      * @param state State of the window object we are considering for snapping
      */
     private isSnappable(window: DesktopEntity, state: EntityState): boolean {
-        return !state.hidden && state.opacity > 0 && state.state === 'normal';
+        return !state.hidden && state.opacity > 0 && state.state === 'normal' && this._config.query(window.scope).features.snap;
     }
 }

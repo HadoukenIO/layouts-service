@@ -3,17 +3,42 @@ pipeline {
     agent { label 'linux-slave' }
 
     stages {
+        stage('Run Tests') {
+            parallel {
+                stage('Unit Tests') {
+                    agent { label 'linux-slave' }
+                    steps {
+                        sh "npm i"
+                        sh "npm run test:unit -- --color=false --reporters=default --reporters=jest-junit"
+                        sh "npm run check"
+                    }
+                    post {
+                        always {
+                            junit "dist/test/results-unit.xml"
+                        }
+                    }
+                }
 
-        stage ('test'){
-            agent { label 'win10-dservices' }
-            steps {
-                bat "npm i"
-                bat "npm run check"
-                bat "npm test -- --verbose"
+                stage('Integration Tests') {
+                    agent { label 'win10-dservices' }
+                    steps {
+                        bat "npm i"
+                        bat "npm run test:int -- --verbose"
+                    }
+                    // Still needs some research:
+                    //   - No obvious way to have ava write to both console and file
+                    //   - Need to check that Jenkins env can read 'tap' output
+                    // 
+                    // post {
+                    //     always {
+                    //         step([$class: "TapPublisher", testResults: "dist/test/results-int.txt"])
+                    //     }
+                    // }
+                }
             }
         }
 
-        stage ('build') {
+        stage('Build & Deploy (Staging)') {
             agent { label 'linux-slave' }
             when { branch "develop" }
             steps {
@@ -32,6 +57,7 @@ pipeline {
                 sh "aws s3 cp ./res/provider ${S3_LOC}/ --recursive"
                 sh "aws s3 cp ./dist/provider ${S3_LOC}/ --recursive"
                 sh "aws s3 cp ./dist/docs ${S3_LOC}/docs/ --recursive"
+                sh "aws s3 cp ./dist/client/openfin-layouts.js ${S3_LOC}/"
                 sh "aws s3 cp ./dist/provider/app.json ${STAGING_JSON}"
                 withCredentials([string(credentialsId: "NPM_TOKEN_WRITE", variable: 'NPM_TOKEN')]) {
                     sh "echo //registry.npmjs.org/:_authToken=$NPM_TOKEN > $WORKSPACE/.npmrc"
@@ -43,7 +69,7 @@ pipeline {
             }
         }
 
-        stage ('build-prod') {
+        stage ('Build & Deploy (Production)') {
             agent { label 'linux-slave' }
             when { branch "master" }
             steps {
@@ -61,6 +87,7 @@ pipeline {
                 sh "aws s3 cp ./res/provider ${S3_LOC}/ --recursive"
                 sh "aws s3 cp ./dist/provider ${S3_LOC}/ --recursive"
                 sh "aws s3 cp ./dist/docs ${S3_LOC}/docs/ --recursive"
+                sh "aws s3 cp ./dist/client/openfin-layouts.js ${S3_LOC}/"
                 sh "aws s3 cp ./dist/provider/app.json ${PROD_JSON}"
                 withCredentials([string(credentialsId: "NPM_TOKEN_WRITE", variable: 'NPM_TOKEN')]) {
                     sh "echo //registry.npmjs.org/:_authToken=$NPM_TOKEN > $WORKSPACE/.npmrc"

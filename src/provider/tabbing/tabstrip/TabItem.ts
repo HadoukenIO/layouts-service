@@ -91,7 +91,7 @@ export class Tab {
      */
     private _onDragStart(e: DragEvent): boolean {
         e.dataTransfer!.effectAllowed = 'move';
-        layouts.tabStrip.startDrag();
+        layouts.tabstrip.startDrag(this._ID);
         return true;
     }
 
@@ -100,7 +100,7 @@ export class Tab {
      * @param {DragEvent} e DragEvent
      */
     private _onDragEnd(e: DragEvent): void {
-        layouts.tabStrip.endDrag(e, this._ID);
+        layouts.tabstrip.endDrag(e, this._ID);
     }
 
     /**
@@ -129,7 +129,7 @@ export class Tab {
         this.setActive();
 
         if ((e.target as Element).className !== 'tab-exit') {
-            layouts.setActiveTab(this._ID);
+            layouts.tabbing.setActiveTab(this._ID);
         }
     }
 
@@ -140,7 +140,7 @@ export class Tab {
      */
     private _onClickHandler(e: MouseEvent): void {
         if ((e.target as Element).className === 'tab-exit') {
-            layouts.closeTab(this._ID);
+            layouts.tabbing.closeTab(this._ID);
         }
     }
 
@@ -155,7 +155,7 @@ export class Tab {
                 this._handlePropertiesInput();
                 break;
             }
-            default: { layouts.setActiveTab(this._ID); }
+            default: { layouts.tabbing.setActiveTab(this._ID); }
         }
     }
 
@@ -199,7 +199,10 @@ export class Tab {
             try {
                 inputNode.remove();
                 that.updateText(inputNode.value);
-                layouts.tabStrip.updateTabProperties(that._ID, {title: inputNode.value});
+                layouts.tabbing.updateTabProperties(
+                    {title: inputNode.value},
+                    that._ID,
+                );
             } catch (e) {
             }
         }

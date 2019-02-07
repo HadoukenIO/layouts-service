@@ -5,7 +5,7 @@ import {WindowInfo as WindowInfo_Window} from 'hadouken-js-adapter/out/types/src
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {WorkspaceAPI} from '../../client/internal';
-import {CustomData, TabGroup, Workspace, WorkspaceApp, WorkspaceWindow, WindowState} from '../../client/types';
+import {CustomData, TabGroup, WindowState, Workspace, WorkspaceApp, WorkspaceWindow} from '../../client/types';
 import {LegacyAPI} from '../APIMessages';
 import {apiHandler, model, tabService} from '../main';
 import {WindowIdentity} from '../model/DesktopWindow';

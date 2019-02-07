@@ -17,12 +17,23 @@ export interface SemVer {
 // Positions a window when it is restored.
 export const positionWindow = async (win: WorkspaceWindow) => {
     try {
+        const {isShowing, isTabbed} = win;
+
         const ofWin = await fin.Window.wrap(win);
         await ofWin.setBounds(win);
-        if (win.isTabbed) {
+
+        if (isTabbed) {
             return;
         }
+
         await ofWin.leaveGroup();
+        
+        if (!isShowing) {
+            await ofWin.hide();
+            return;
+        }
+        
+        console.log("after hide for ", win.name);
 
         if (win.state === 'normal') {
             await ofWin.restore();
@@ -32,11 +43,6 @@ export const positionWindow = async (win: WorkspaceWindow) => {
             await ofWin.maximize();
         }
 
-        if (win.isShowing) {
-            await ofWin.show();
-        } else {
-            await ofWin.hide();
-        }
     } catch (e) {
         console.error('position window error', e);
     }
@@ -44,10 +50,10 @@ export const positionWindow = async (win: WorkspaceWindow) => {
 
 // Creates a placeholder for a normal, non-tabbed window.
 export const createNormalPlaceholder = async (win: WorkspaceWindow) => {
-    if (!win.isShowing || win.state === 'minimized') {
+    const {name, height, width, left, top, uuid, isShowing, state} = win;
+    if (!isShowing || state === 'minimized') {
         return;
     }
-    const {name, height, width, left, top, uuid} = win;
 
     const placeholderName = 'Placeholder-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
@@ -64,14 +70,20 @@ export const createNormalPlaceholder = async (win: WorkspaceWindow) => {
         backgroundColor: '#D3D3D3'
     });
 
-    const actualWindow = await fin.Window.wrap({uuid, name});
+    const actualWindow = fin.Window.wrapSync({uuid, name});
     const updateOptionsAndShow = async () => {
-        await actualWindow.removeListener('show-requested', updateOptionsAndShow);
-        await actualWindow.setBounds(win);
-        await actualWindow.showAt(left, top);
-        await placeholder.close();
+        try {
+            await actualWindow.removeListener('initialized', updateOptionsAndShow);
+            await model.expect(actualWindow.identity as WindowIdentity);
+            // If window is a child window, position it.
+            if (name !== uuid) {
+                await positionWindow(win);
+            }
+        } finally {
+            await placeholder.close();
+        }
     };
-    await actualWindow.addListener('show-requested', updateOptionsAndShow);
+    await actualWindow.addListener('initialized', updateOptionsAndShow);
 
     return placeholder;
 };
@@ -96,14 +108,17 @@ export const createTabPlaceholder = async (win: WorkspaceWindow) => {
         backgroundColor: '#D3D3D3'
     });
 
-    const actualWindow = await fin.Window.wrap({uuid, name});
+    const actualWindow = fin.Window.wrapSync({uuid, name});
     const updateOptionsAndShow = async () => {
-        await actualWindow.removeListener('shown', updateOptionsAndShow);
-        await model.expect(actualWindow.identity as WindowIdentity);
-        await tabService.swapTab({uuid: placeholder.identity.uuid, name: placeholderName}, actualWindow.identity as WindowIdentity);
-        await placeholder.close();
+        try {
+            await actualWindow.removeListener('initialized', updateOptionsAndShow);
+            await model.expect(actualWindow.identity as WindowIdentity);
+            await tabService.swapTab({uuid: placeholder.identity.uuid, name: placeholderName}, actualWindow.identity as WindowIdentity);
+        } finally {
+            await placeholder.close();
+        }
     };
-    await actualWindow.addListener('shown', updateOptionsAndShow);
+    await actualWindow.addListener('initialized', updateOptionsAndShow);
 
     return placeholder;
 };

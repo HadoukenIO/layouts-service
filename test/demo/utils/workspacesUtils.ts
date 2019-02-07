@@ -70,8 +70,9 @@ export async function createCloseAndRestoreLayout(t: SaveRestoreTestContext) {
 }
 
 export interface TestCreationOptions {
-    url: string;
-    manifest: boolean;
+    url?: string;
+    manifest?: boolean;
+    autoShow?: boolean;
 }
 
 export function createBasicSaveAndRestoreTest(

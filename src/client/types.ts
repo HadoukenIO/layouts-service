@@ -155,7 +155,7 @@ export interface WorkspaceApp {
      * This is only present if the application was started programatically. For applications started from a manifest,
      * `manifestUrl` will be present instead.
      */
-    initialOptions?: {uuid: string, url: string};
+    initialOptions?: {uuid: string, url: string, mainWindowOptions: {autoShow: boolean}};
 
     /**
      * Application identifier

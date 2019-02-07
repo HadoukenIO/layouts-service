@@ -205,6 +205,9 @@ export const restoreWorkspace = async(payload: Workspace, identity: Identity): P
                     // If application created programmatically
                     if (wasCreatedProgrammatically(app)) {
                         console.warn('App created programmatically, app may not restart again:', app);
+                        if (app.initialOptions!.mainWindowOptions) {
+                            app.initialOptions!.mainWindowOptions.autoShow = false;
+                        }
                         ofAppNotRunning = await fin.Application.create(app.initialOptions);
                     } else {
                         console.error('Unable to restart programmatically launched app:', app);
@@ -213,7 +216,7 @@ export const restoreWorkspace = async(payload: Workspace, identity: Identity): P
 
                 if (ofAppNotRunning) {
                     await ofAppNotRunning.run().catch(console.log);
-                    const ofWindowNotRunning = await ofAppNotRunning.getWindow();
+                    await model.expect({name, uuid});
                     await positionWindow(app.mainWindow);
                 }
                 // SHOULD WE RETURN DEFAULT RESPONSE HERE?!?

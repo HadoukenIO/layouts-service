@@ -39,7 +39,8 @@ test('Create tab group from 2 windows', async (assert) => {
         groupInfo: {
             config: {url: 'http://localhost:1337/provider/tabbing/tabstrip/tabstrip.html', height: 60},
             active: {uuid: win2.identity.uuid, name: win2.identity.name!},
-            dimensions: {x: 100, y: 100, width: preWin2Bounds.width, appHeight: preWin2Bounds.height}
+            dimensions: {x: 100, y: 100, width: preWin2Bounds.width, appHeight: preWin2Bounds.height},
+            state: 'normal'
         },
         tabs: [
             {uuid: app1.identity.uuid, name: win1.identity.name!},

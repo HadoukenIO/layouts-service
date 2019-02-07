@@ -39,6 +39,9 @@ export {snapAndDock, tabbing, tabstrip, workspaces};
  * @param identity The window (or pattern of windows) to deregister, defaults to the current window
  */
 export async function deregister(identity: IdentityRule = getId() as IdentityRule): Promise<void> {
+    if (!identity.uuid || !identity.name) {
+        throw new Error('Invalid window identity provided');
+    }
     return tryServiceDispatch<IdentityRule, void>(RegisterAPI.DEREGISTER, identity);
 }
 
@@ -67,6 +70,9 @@ export async function deregister(identity: IdentityRule = getId() as IdentityRul
  *
  * @param identity The window (or pattern of windows) to register, defaults to the current window
  */
-export async function register(identity: IdentityRule): Promise<void> {
+export async function register(identity: IdentityRule = getId() as IdentityRule): Promise<void> {
+    if (!identity.uuid || !identity.name) {
+        throw new Error('Invalid window identity provided');
+    }
     return tryServiceDispatch<IdentityRule, void>(RegisterAPI.REGISTER, identity);
 }

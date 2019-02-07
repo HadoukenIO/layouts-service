@@ -48,16 +48,12 @@ export const positionWindow = async (win: WorkspaceWindow) => {
     }
 };
 
-// Creates a placeholder for a normal, non-tabbed window.
-export const createNormalPlaceholder = async (win: WorkspaceWindow) => {
-    const {name, height, width, left, top, uuid, isShowing, state} = win;
-    if (!isShowing || state === 'minimized') {
-        return;
-    }
+const createPlaceholderWindow = async (win: WorkspaceWindow) => {
+    const {height, width, left, top} = win;
 
     const placeholderName = 'Placeholder-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
-    const placeholder = await fin.Window.create({
+    return await fin.Window.create({
         name: placeholderName,
         autoShow: true,
         defaultHeight: height,
@@ -69,6 +65,21 @@ export const createNormalPlaceholder = async (win: WorkspaceWindow) => {
         frame: false,
         backgroundColor: '#D3D3D3'
     });
+};
+
+// Creates a placeholder for a normal, non-tabbed window.
+export const createNormalPlaceholder = async (win: WorkspaceWindow) => {
+    const {name, uuid, isShowing, state} = win;
+    if (!isShowing) {
+        return;
+    }
+
+    let placeholderWindow: Window|undefined = undefined;
+
+    if (state !== 'minimized') {
+        placeholderWindow = await createPlaceholderWindow(win);
+    }
+
 
     const actualWindow = fin.Window.wrapSync({uuid, name});
     const updateOptionsAndShow = async () => {
@@ -80,47 +91,36 @@ export const createNormalPlaceholder = async (win: WorkspaceWindow) => {
                 await positionWindow(win);
             }
         } finally {
-            await placeholder.close();
+            if (placeholderWindow) {
+                await placeholderWindow.close();
+            }
         }
     };
     await actualWindow.addListener('initialized', updateOptionsAndShow);
 
-    return placeholder;
+    return placeholderWindow;
 };
 
 // Creates a placeholder for a tabbed window.
 // When the window that is supposed to be tabbed comes up, swaps the placeholder tab with the real window tab and closes the placeholder.
 export const createTabPlaceholder = async (win: WorkspaceWindow) => {
-    const {name, height, width, left, top, uuid} = win;
+    const {name, uuid} = win;
 
-    const placeholderName = 'Placeholder-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-
-    const placeholder = await fin.Window.create({
-        name: placeholderName,
-        autoShow: true,
-        defaultHeight: height,
-        defaultWidth: width,
-        defaultLeft: left,
-        defaultTop: top,
-        saveWindowState: false,
-        frame: false,
-        opacity: 0.6,
-        backgroundColor: '#D3D3D3'
-    });
+    const placeholderWindow = await createPlaceholderWindow(win);
 
     const actualWindow = fin.Window.wrapSync({uuid, name});
     const updateOptionsAndShow = async () => {
         try {
             await actualWindow.removeListener('initialized', updateOptionsAndShow);
             await model.expect(actualWindow.identity as WindowIdentity);
-            await tabService.swapTab({uuid: placeholder.identity.uuid, name: placeholderName}, actualWindow.identity as WindowIdentity);
+            await tabService.swapTab({ uuid: placeholderWindow.identity.uuid, name: placeholderWindow.identity.name} as WindowIdentity, actualWindow.identity as WindowIdentity);
         } finally {
-            await placeholder.close();
+            await placeholderWindow.close();
         }
     };
     await actualWindow.addListener('initialized', updateOptionsAndShow);
 
-    return placeholder;
+    return placeholderWindow;
 };
 
 // Check to see if an application was created programmatically.

@@ -1,6 +1,6 @@
 import {Tabstrip} from '../../../gen/provider/config/layouts-config';
 import {Scope} from '../../../gen/provider/config/scope';
-import {TabPropertiesUpdatedPayload} from '../../client/types';
+import {TabPropertiesUpdatedPayload, WindowState} from '../../client/types';
 import {TabGroup, TabGroupDimensions, TabProperties, WindowIdentity} from '../../client/types';
 import {ConfigStore} from '../main';
 import {DesktopEntity} from '../model/DesktopEntity';
@@ -165,7 +165,8 @@ export class TabService {
                     width: groupRect.halfSize.x * 2,
                     appHeight: appRect.halfSize.y * 2
                 },
-                config
+                config,
+                state: group.state
             };
 
             return {tabs, groupInfo};
@@ -206,6 +207,12 @@ export class TabService {
                 await tabGroup.window.sync();
                 await tabGroup.addTabs(tabs, groupDef.groupInfo.active);
                 await tabGroup.window.sync();
+
+                if (tabGroup.state === 'maximized') {
+                    await tabGroup.maximize();
+                } else if (tabGroup.state === 'minimized') {
+                    await tabGroup.minimize();
+                }
 
                 tabGroups.push(tabGroup);
             } else {

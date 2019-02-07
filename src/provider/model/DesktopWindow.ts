@@ -3,6 +3,7 @@ import {Identity, Window} from 'hadouken-js-adapter';
 
 import {WindowScope} from '../../../gen/provider/config/scope';
 import {SERVICE_IDENTITY} from '../../client/internal';
+import {WindowState} from '../../client/types';
 import {WindowMessages} from '../APIMessages';
 import {apiHandler} from '../main';
 import {Aggregators, Signal1, Signal2} from '../Signal';
@@ -23,7 +24,7 @@ export interface EntityState extends Rectangle {
 
     frame: boolean;
     hidden: boolean;
-    state: 'normal'|'minimized'|'maximized';
+    state: WindowState;
 
     icon: string;
     title: string;
@@ -1035,7 +1036,7 @@ export class DesktopWindow implements DesktopEntity {
     private isMaximizedOrInMaximizedTab(): boolean {
         if (this._currentState.state === 'maximized') {
             return true;
-        } else if (this._tabGroup !== null && this._tabGroup.isMaximized) {
+        } else if (this._tabGroup !== null && this._tabGroup.state === 'maximized') {
             return true;
         } else {
             return false;

@@ -16,6 +16,7 @@ import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
 import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {DesktopTabGroup} from './DesktopTabGroup';
+import { WindowState } from '../../client/types';
 
 export interface EntityState extends Rectangle {
     center: Point;
@@ -23,7 +24,7 @@ export interface EntityState extends Rectangle {
 
     frame: boolean;
     hidden: boolean;
-    state: 'normal'|'minimized'|'maximized';
+    state: WindowState;
 
     icon: string;
     title: string;

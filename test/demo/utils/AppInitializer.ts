@@ -87,9 +87,9 @@ export function createAppsArray(numAppsToCreate: number, numberOfChildren: numbe
         // Save the app information
         const defaultTop = (appsCreated * 290) + 50;
         const appOptions = {...OPTIONS_BASE, ...testOptions, uuid: id, name: id, defaultTop, defaultLeft: 100};
-        
+
         let appInitializerOptions: AppInitializerParams = {...APP_INITIALIZER_BASE_PROGRAMMATIC, appOptions, childWindows};
-        
+
         if (testOptions) {
             if (testOptions.autoShow === false) {
                 appInitializerOptions.appOptions.mainWindowOptions = Object.assign({}, appInitializerOptions.appOptions.mainWindowOptions, {autoShow: false});

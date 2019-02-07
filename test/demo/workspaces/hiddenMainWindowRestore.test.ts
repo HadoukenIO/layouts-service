@@ -1,12 +1,13 @@
 import {test} from 'ava';
+import {WindowEvent} from 'hadouken-js-adapter/out/types/src/api/events/base';
 
 import {teardown} from '../../teardown';
 import {AppInitializerParams} from '../utils/AppInitializer';
 import {AppContext, CreateAppData, createAppTest} from '../utils/createAppTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {assertWindowRestored, closeAllPreviews, createBasicSaveAndRestoreTest, createCloseAndRestoreLayout} from '../utils/workspacesUtils';
-import { WindowEvent } from 'hadouken-js-adapter/out/types/src/api/events/base';
-import { BasicSaveRestoreTestOptions } from './basicSaveAndRestore.test';
+
+import {BasicSaveRestoreTestOptions} from './basicSaveAndRestore.test';
 
 const basicTestOptionsArray: BasicSaveRestoreTestOptions[] = [];
 
@@ -27,12 +28,12 @@ numberOfApps.forEach(appNumber => {
 test.afterEach.always(teardown);
 
 testParameterized<CreateAppData, AppContext>(
-    (testOptions: CreateAppData): string => `Flash Check for SaveAndRestore - Parent Windows shouldn't show - ${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - ${
-        testOptions.apps.length} App(s) - ${testOptions.apps[0].childWindows.length} Child(ren) Each`,
+    (testOptions: CreateAppData): string =>
+        `Flash Check for SaveAndRestore - Parent Windows shouldn't show - ${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - ${
+            testOptions.apps.length} App(s) - ${testOptions.apps[0].childWindows.length} Child(ren) Each`,
     basicTestOptionsArray,
     createAppTest(async (t, applicationData: CreateAppData) => {
-
-        const failIfShown = (e: WindowEvent<"window", "shown">) => {
+        const failIfShown = (e: WindowEvent<'window', 'shown'>) => {
             t.fail(`Parent Window ${e.uuid} showed when it shouldn't have.`);
         };
 

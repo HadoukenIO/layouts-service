@@ -27,13 +27,13 @@ export const positionWindow = async (win: WorkspaceWindow) => {
         }
 
         await ofWin.leaveGroup();
-        
+
         if (!isShowing) {
             await ofWin.hide();
             return;
         }
-        
-        console.log("after hide for ", win.name);
+
+        console.log('after hide for ', win.name);
 
         if (win.state === 'normal') {
             await ofWin.restore();
@@ -113,7 +113,8 @@ export const createTabPlaceholder = async (win: WorkspaceWindow) => {
         try {
             await actualWindow.removeListener('initialized', updateOptionsAndShow);
             await model.expect(actualWindow.identity as WindowIdentity);
-            await tabService.swapTab({ uuid: placeholderWindow.identity.uuid, name: placeholderWindow.identity.name} as WindowIdentity, actualWindow.identity as WindowIdentity);
+            await tabService.swapTab(
+                {uuid: placeholderWindow.identity.uuid, name: placeholderWindow.identity.name} as WindowIdentity, actualWindow.identity as WindowIdentity);
         } finally {
             await placeholderWindow.close();
         }

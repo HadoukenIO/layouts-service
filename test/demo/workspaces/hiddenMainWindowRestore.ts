@@ -6,10 +6,7 @@ import {AppContext, CreateAppData, createAppTest} from '../utils/createAppTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {assertWindowRestored, closeAllPreviews, createBasicSaveAndRestoreTest, createCloseAndRestoreLayout} from '../utils/workspacesUtils';
 import { WindowEvent } from 'hadouken-js-adapter/out/types/src/api/events/base';
-
-export interface BasicSaveRestoreTestOptions {
-    apps: AppInitializerParams[];
-}
+import { BasicSaveRestoreTestOptions } from './basicSaveAndRestore.test';
 
 const basicTestOptionsArray: BasicSaveRestoreTestOptions[] = [];
 

@@ -149,7 +149,7 @@ export class DesktopModel {
      * @param source Which window requested `target` to be registered (can be any window, including `target`)
      */
     public register(target: WindowIdentity, source: Scope): void {
-        const targetScope: Scope = {level: 'window', ...target};
+        const targetScope: Scope = {...target, level: 'window'};
 
         console.log('Registering', target, 'from', source);
 
@@ -166,7 +166,7 @@ export class DesktopModel {
      * @param source Which window requested `target` to be de-registered (can be any window, including `target`)
      */
     public deregister(target: WindowIdentity, source: Scope): void {
-        const targetScope: Scope = {level: 'window', ...target};
+        const targetScope: Scope = {...target, level: 'window'};
 
         console.log('Deregistering', target, 'from', source);
 

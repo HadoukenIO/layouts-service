@@ -208,6 +208,12 @@ export class TabService {
                 await tabGroup.addTabs(tabs, groupDef.groupInfo.active);
                 await tabGroup.window.sync();
 
+                if (tabGroup.state === 'maximized') {
+                    await tabGroup.maximize();
+                } else if (tabGroup.state === 'minimized') {
+                    await tabGroup.minimize();
+                }
+
                 tabGroups.push(tabGroup);
             } else {
                 console.error('Not enough valid tab identifiers within tab blob to form a tab group', groupDef.tabs);

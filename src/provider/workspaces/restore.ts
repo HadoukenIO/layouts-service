@@ -205,8 +205,12 @@ export const restoreWorkspace = async(payload: Workspace, identity: Identity): P
                     // If application created programmatically
                     if (wasCreatedProgrammatically(app)) {
                         console.warn('App created programmatically, app may not restart again:', app);
-                        if (app.initialOptions!.mainWindowOptions) {
-                            app.initialOptions!.mainWindowOptions.autoShow = false;
+                        if (app.initialOptions) {
+                            if (app.initialOptions.mainWindowOptions) {
+                                app.initialOptions.mainWindowOptions.autoShow = false;
+                            } else {
+                                app.initialOptions.mainWindowOptions = {autoShow: false};
+                            }
                         }
                         ofAppNotRunning = await fin.Application.create(app.initialOptions);
                     } else {

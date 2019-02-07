@@ -214,8 +214,7 @@ export const restoreWorkspace = async(payload: Workspace, identity: Identity): P
                 if (ofAppNotRunning) {
                     await ofAppNotRunning.run().catch(console.log);
                     const ofWindowNotRunning = await ofAppNotRunning.getWindow();
-                    await ofWindowNotRunning.setBounds(app.mainWindow);
-                    await ofWindowNotRunning.showAt(app.mainWindow.left, app.mainWindow.top);
+                    await positionWindow(app.mainWindow);
                 }
                 // SHOULD WE RETURN DEFAULT RESPONSE HERE?!?
                 return defaultResponse;

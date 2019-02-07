@@ -1036,7 +1036,7 @@ export class DesktopWindow implements DesktopEntity {
     private isMaximizedOrInMaximizedTab(): boolean {
         if (this._currentState.state === 'maximized') {
             return true;
-        } else if (this._tabGroup !== null && this._tabGroup.isMaximized) {
+        } else if (this._tabGroup !== null && this._tabGroup.state === 'maximized') {
             return true;
         } else {
             return false;

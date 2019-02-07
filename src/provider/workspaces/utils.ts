@@ -33,8 +33,6 @@ export const positionWindow = async (win: WorkspaceWindow) => {
             return;
         }
 
-        console.log('after hide for ', win.name);
-
         if (win.state === 'normal') {
             await ofWin.restore();
         } else if (win.state === 'minimized') {
@@ -81,7 +79,7 @@ export const createNormalPlaceholder = async (win: WorkspaceWindow) => {
     }
 
 
-    const actualWindow = fin.Window.wrapSync({uuid, name});
+    const actualWindow = await fin.Window.wrap({uuid, name});
     const updateOptionsAndShow = async () => {
         try {
             await actualWindow.removeListener('initialized', updateOptionsAndShow);
@@ -108,13 +106,13 @@ export const createTabPlaceholder = async (win: WorkspaceWindow) => {
 
     const placeholderWindow = await createPlaceholderWindow(win);
 
-    const actualWindow = fin.Window.wrapSync({uuid, name});
+    const actualWindow = await fin.Window.wrap({uuid, name});
     const updateOptionsAndShow = async () => {
         try {
             await actualWindow.removeListener('initialized', updateOptionsAndShow);
             await model.expect(actualWindow.identity as WindowIdentity);
             await tabService.swapTab(
-                {uuid: placeholderWindow.identity.uuid, name: placeholderWindow.identity.name} as WindowIdentity, actualWindow.identity as WindowIdentity);
+                placeholderWindow.identity as WindowIdentity, actualWindow.identity as WindowIdentity);
         } finally {
             await placeholderWindow.close();
         }

@@ -13,6 +13,8 @@ import {SCHEMA_MAJOR_VERSION} from './create';
 import {regroupWorkspace} from './group';
 import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, parseVersionString, positionWindow, SemVer, TabbedPlaceholders, wasCreatedProgrammatically, WindowObject} from './utils';
 
+const RESTORE_TIMEOUT = 60000;
+
 const appsToRestore = new Map();
 const appsCurrentlyRestoring = new Map();
 
@@ -76,26 +78,19 @@ const getAppToRestore = (uuid: string): AppToRestore => {
 const requestClientRestoreApp = async(layoutApp: WorkspaceApp, resolve: Function): Promise<void> => {
     const {uuid} = layoutApp;
     const name = uuid;
-    const defaultResponse: WorkspaceApp = {...layoutApp, childWindows: []};
     const appConnection = apiHandler.isClientConnection({uuid, name});
     if (appConnection) {
         if (appsToRestore.has(uuid) && !appsCurrentlyRestoring.has(uuid)) {
             // Instruct app to restore its child windows
             appsCurrentlyRestoring.set(uuid, true);
 
-            const responseAppLayout: WorkspaceApp|false|undefined = await Promise.race([
-                apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name}, WorkspaceAPI.RESTORE_HANDLER, layoutApp),
-                apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name}, LegacyAPI.RESTORE_HANDLER, layoutApp)
-            ]);
+            const appLayout = await clientRestoreAppWithTimeout(layoutApp);
 
             // Flag app as restored
             appsCurrentlyRestoring.delete(uuid);
             appsToRestore.delete(uuid);
-            if (responseAppLayout) {
-                resolve(responseAppLayout);
-            } else {
-                resolve(defaultResponse);
-            }
+
+            resolve(appLayout);
         } else {
             console.warn('Ignoring duplicate \'ready\' call');
         }
@@ -220,12 +215,7 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
                 await positionWindow(app.mainWindow);
                 console.log('App is running:', app);
                 // Send LayoutApp to connected application so it can handle child windows
-                const response: WorkspaceApp|false|undefined = await Promise.race([
-                    apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name}, WorkspaceAPI.RESTORE_HANDLER, app),
-                    apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name}, LegacyAPI.RESTORE_HANDLER, app)
-                ]);
-                console.log('Response from restore:', response);
-                return response ? response : defaultResponse;
+                return await clientRestoreAppWithTimeout(app);
             } else {
                 // Not connected to service
                 await positionWindow(app.mainWindow);
@@ -269,4 +259,22 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
         console.error('Error restoring app', app, e);
         return defaultResponse;
     }
+};
+
+const clientRestoreAppWithTimeout = async(app: WorkspaceApp): Promise<WorkspaceApp> => {
+    const {uuid} = app;
+    const name = uuid;
+
+    const defaultResponse = {...app, childWindows: []};
+
+    const sendToClientPromise = Promise.race([
+        apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name}, WorkspaceAPI.RESTORE_HANDLER, app),
+        apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name}, LegacyAPI.RESTORE_HANDLER, app)
+    ]);
+
+    const responsePromise = sendToClientPromise.then((response: WorkspaceApp|false|undefined) => response ? response : defaultResponse);
+
+    const timeoutPromise = new Promise<WorkspaceApp>((response) => setTimeout(() => response(defaultResponse), RESTORE_TIMEOUT));
+
+    return Promise.race([responsePromise, timeoutPromise]);
 };

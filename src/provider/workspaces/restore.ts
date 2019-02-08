@@ -13,8 +13,8 @@ import {SCHEMA_MAJOR_VERSION} from './create';
 import {regroupWorkspace} from './group';
 import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, parseVersionString, positionWindow, SemVer, TabbedPlaceholders, wasCreatedProgrammatically, WindowObject} from './utils';
 
-const STARTUP_TIMEOUT = 60000;
-const RESTORE_TIMEOUT = 60000;
+const CLIENT_STARTUP_TIMEOUT = 60000;
+const CLIENT_RESTORE_TIMEOUT = 60000;
 
 const appsCurrentlyStarting = new Map();
 const appsToRestore = new Map();
@@ -86,7 +86,7 @@ const setAppToRestoreWithTimeout = (layoutApp: WorkspaceApp, resolve: Function):
 
             resolve(defaultResponse);
         }
-    }, STARTUP_TIMEOUT);
+    }, CLIENT_STARTUP_TIMEOUT);
 };
 
 const getAppToRestore = (uuid: string): AppToRestore => {
@@ -292,7 +292,7 @@ const clientRestoreAppWithTimeout = async(app: WorkspaceApp): Promise<WorkspaceA
 
     const responsePromise = sendToClientPromise.then((response: WorkspaceApp|false|undefined) => response ? response : defaultResponse);
 
-    const timeoutPromise = new Promise<WorkspaceApp>((response) => setTimeout(() => response(defaultResponse), RESTORE_TIMEOUT));
+    const timeoutPromise = new Promise<WorkspaceApp>((response) => setTimeout(() => response(defaultResponse), CLIENT_RESTORE_TIMEOUT));
 
     return Promise.race([responsePromise, timeoutPromise]);
 };

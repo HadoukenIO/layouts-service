@@ -414,15 +414,15 @@ export class DesktopTabGroup implements DesktopEntity {
             if (redrawRequired) {
                 // Allow tab time to redraw before being shown to user
                 await prevTab.bringToFront();
-                await tab.applyProperties({hidden: false, showTaskbarIcon: true});
+                await tab.applyProperties({hidden: false});
                 await tab.bringToFront();
             } else {
                 // Show tab as quickly as possible
-                await tab.applyProperties({hidden: false, showTaskbarIcon: true});
+                await tab.applyProperties({hidden: false});
                 await tab.bringToFront();
             }
             if (prevTab && prevTab.tabGroup === this) {
-                await prevTab.applyProperties({hidden: true, showTaskbarIcon: false});
+                await prevTab.applyProperties({hidden: true});
             }
 
             await Promise.all([this._window!.sync(), tab.sync()]).catch(e => console.error(e));
@@ -526,7 +526,7 @@ export class DesktopTabGroup implements DesktopEntity {
             await tab.applyProperties({center, halfSize, frame: false});
         }
 
-        await tab.setTabGroup(this);
+        tab.setTabGroup(this);
         tab.setSnapGroup(this._window.snapGroup);
 
         const addTabPromise: Promise<void> = (async () => {
@@ -554,12 +554,11 @@ export class DesktopTabGroup implements DesktopEntity {
         if (tab.isReady) {
             // Remove tab from group by undocking and removing tab strip.
             // NOTE: Must remove from tab group first, to ensure snap group treats 'tab' as a single window, and not as part of a tab group.
-            const untab: Promise<void> = tab.setTabGroup(null);
-            const undock: Promise<void> = tab.setSnapGroup(new DesktopSnapGroup());
-            await Promise.all([untab, undock]);
+            tab.setTabGroup(null);
+            await tab.setSnapGroup(new DesktopSnapGroup());
         } else {
             // Window is being destroyed. Remove from tabstrip, but undock will happen as part of window destruction.
-            await tab.setTabGroup(null);
+            tab.setTabGroup(null);
         }
 
         await this.updateGroupConstraints();

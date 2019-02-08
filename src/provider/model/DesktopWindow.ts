@@ -499,7 +499,7 @@ export class DesktopWindow implements DesktopEntity {
         return this.updateState(delta, ActionOrigin.SERVICE);
     }
 
-    public setTabGroup(group: DesktopTabGroup|null): Promise<void> {
+    public setTabGroup(group: DesktopTabGroup|null): void {
         if (group) {
             console.log('Added ' + this._id + ' to ' + group.id);
         } else if (this._tabGroup) {
@@ -507,20 +507,6 @@ export class DesktopWindow implements DesktopEntity {
         }
 
         this._tabGroup = group;
-
-        // Hide tabbed windows in the task bar (except for tabstrip windows)
-        if (this._identity.uuid !== SERVICE_IDENTITY.uuid) {
-            if (group) {
-                // Hide tabbed windows in taskbar
-                return this._ready ? this.updateState({showTaskbarIcon: false}, ActionOrigin.SERVICE) : Promise.resolve();
-            } else if (this._currentState.showTaskbarIcon !== this._applicationState.showTaskbarIcon) {
-                // Revert taskbar icon to application-specified state
-                return this._ready ? this.updateState({showTaskbarIcon: this._applicationState.showTaskbarIcon}, ActionOrigin.SERVICE) : Promise.resolve();
-            }
-        }
-
-        // Nothing to do
-        return Promise.resolve();
     }
 
     public async sync(): Promise<void> {

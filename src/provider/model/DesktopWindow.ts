@@ -883,11 +883,6 @@ export class DesktopWindow implements DesktopEntity {
         this.registerListener('hidden', () => this.updateState({hidden: true}, ActionOrigin.APPLICATION));
         this.registerListener('maximized', () => {
             this.updateState({state: 'maximized'}, ActionOrigin.APPLICATION);
-            this._snapGroup.windows.forEach(window => {
-                if (window !== this && !window.currentState.hidden) {
-                    (window as DesktopWindow).applyProperties({state: 'maximized'});
-                }
-            });
         });
         this.registerListener('minimized', () => {
             this.updateState({state: 'minimized'}, ActionOrigin.APPLICATION);

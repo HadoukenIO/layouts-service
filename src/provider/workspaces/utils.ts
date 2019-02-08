@@ -23,6 +23,7 @@ export const positionWindow = async (win: WorkspaceWindow) => {
         await ofWin.setBounds(win);
 
         if (isTabbed) {
+            await ofWin.show();
             return;
         }
 
@@ -82,7 +83,7 @@ export const createNormalPlaceholder = async (win: WorkspaceWindow) => {
     const actualWindow = await fin.Window.wrap({uuid, name});
     const updateOptionsAndShow = async () => {
         try {
-            await actualWindow.removeListener('initialized', updateOptionsAndShow);
+            await actualWindow.removeListener('shown', updateOptionsAndShow);
             await model.expect(actualWindow.identity as WindowIdentity);
             // If window is a child window, position it.
             if (name !== uuid) {
@@ -94,8 +95,7 @@ export const createNormalPlaceholder = async (win: WorkspaceWindow) => {
             }
         }
     };
-    await actualWindow.addListener('initialized', updateOptionsAndShow);
-
+    await actualWindow.addListener('shown', updateOptionsAndShow);
     return placeholderWindow;
 };
 
@@ -109,7 +109,7 @@ export const createTabPlaceholder = async (win: WorkspaceWindow) => {
     const actualWindow = await fin.Window.wrap({uuid, name});
     const updateOptionsAndShow = async () => {
         try {
-            await actualWindow.removeListener('initialized', updateOptionsAndShow);
+            await actualWindow.removeListener('shown', updateOptionsAndShow);
             await model.expect(actualWindow.identity as WindowIdentity);
             await tabService.swapTab(
                 placeholderWindow.identity as WindowIdentity, actualWindow.identity as WindowIdentity);
@@ -117,7 +117,7 @@ export const createTabPlaceholder = async (win: WorkspaceWindow) => {
             await placeholderWindow.close();
         }
     };
-    await actualWindow.addListener('initialized', updateOptionsAndShow);
+    await actualWindow.addListener('shown', updateOptionsAndShow);
 
     return placeholderWindow;
 };

@@ -31,7 +31,8 @@ interface AppToRestore {
 export const appReadyForRestore = async(uuid: string): Promise<void> => {
     if (appsCurrentlyStarting.get(uuid)) {
         appsCurrentlyStarting.delete(uuid);
-        const appToRestore = getAppToRestore(uuid);
+        const appToRestore = appsToRestore.get(uuid);
+
 
         if (appToRestore) {
             const {layoutApp, resolve} = appToRestore;
@@ -79,29 +80,6 @@ export const restoreWorkspace = async(payload: Workspace, identity: Identity): P
 
     // Send the layout back to the requester of the restore
     return layout;
-};
-
-const setAppToRestoreWithTimeout = (layoutApp: WorkspaceApp, resolve: Function): void => {
-    const {uuid} = layoutApp;
-    const save = {layoutApp, resolve};
-
-    const defaultResponse = {...layoutApp, childWindows: []};
-
-    appsCurrentlyStarting.set(uuid, true);
-    appsToRestore.set(uuid, save);
-
-    setTimeout(() => {
-        if (appsCurrentlyStarting.get(uuid)) {
-            appsCurrentlyStarting.delete(uuid);
-            appsToRestore.delete(uuid);
-
-            resolve(defaultResponse);
-        }
-    }, CLIENT_STARTUP_TIMEOUT);
-};
-
-const getAppToRestore = (uuid: string): AppToRestore => {
-    return appsToRestore.get(uuid);
 };
 
 const requestClientRestoreApp = async(layoutApp: WorkspaceApp, resolve: Function): Promise<void> => {
@@ -155,6 +133,23 @@ const validatePayload = (payload: Workspace): void => {
     if (!payload.monitorInfo) {
         throw new Error('Received invalid layout object: layout.monitorInfo is undefined');
     }
+};
+
+const startRestoreBlockerTimeout = (): void => {
+    (() => {
+        restoreBlocker = {};
+        const capturedRestoreBlocker = restoreBlocker;
+
+        setTimeout(() => {
+            if (capturedRestoreBlocker === restoreBlocker) {
+                restoreBlocker = null;
+
+                appsCurrentlyStarting.clear();
+                appsToRestore.clear();
+                appsCurrentlyRestoring.clear();
+            }
+        }, GLOBAL_RESTORE_TIMEOUT);
+    })();
 };
 
 const createAllPlaceholders = async(layout: Workspace): Promise<void> => {
@@ -257,7 +252,7 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
             // App is not running - setup communication to fire once app is started
             if (app.confirmed) {
                 startupApps.push(new Promise((resolve: (layoutApp: WorkspaceApp) => void) => {
-                    setAppToRestoreWithTimeout(app, resolve);
+                    setAppToClientRestoreWithTimeout(app, resolve);
                 }));
             }
             // Start App
@@ -308,19 +303,21 @@ const clientRestoreAppWithTimeout = async(app: WorkspaceApp): Promise<WorkspaceA
     return Promise.race([responsePromise, timeoutPromise]);
 };
 
-const startRestoreBlockerTimeout = (): void => {
-    (() => {
-        restoreBlocker = {};
-        const capturedRestoreBlocker = restoreBlocker;
+const setAppToClientRestoreWithTimeout = (layoutApp: WorkspaceApp, resolve: Function): void => {
+    const {uuid} = layoutApp;
+    const save = {layoutApp, resolve};
 
-        setTimeout(() => {
-            if (capturedRestoreBlocker === restoreBlocker) {
-                restoreBlocker = null;
+    const defaultResponse = {...layoutApp, childWindows: []};
 
-                appsCurrentlyStarting.clear();
-                appsToRestore.clear();
-                appsCurrentlyRestoring.clear();
-            }
-        }, GLOBAL_RESTORE_TIMEOUT);
-    })();
+    appsCurrentlyStarting.set(uuid, true);
+    appsToRestore.set(uuid, save);
+
+    setTimeout(() => {
+        if (appsCurrentlyStarting.get(uuid)) {
+            appsCurrentlyStarting.delete(uuid);
+            appsToRestore.delete(uuid);
+
+            resolve(defaultResponse);
+        }
+    }, CLIENT_STARTUP_TIMEOUT);
 };

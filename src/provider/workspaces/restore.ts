@@ -13,7 +13,7 @@ import {SCHEMA_MAJOR_VERSION} from './create';
 import {regroupWorkspace} from './group';
 import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, parseVersionString, positionWindow, SemVer, TabbedPlaceholders, wasCreatedProgrammatically, WindowObject} from './utils';
 
-const GLOBAL_RESTORE_TIMEOUT = 120000;
+const GLOBAL_RESTORE_TIMEOUT = 10000;
 const CLIENT_STARTUP_TIMEOUT = 60000;
 const CLIENT_RESTORE_TIMEOUT = 60000;
 
@@ -21,7 +21,7 @@ const appsCurrentlyStarting = new Map();
 const appsToRestore = new Map();
 const appsCurrentlyRestoring = new Map();
 
-let restoreBlocker: {}|null;
+let restoreBlocker: {}|null = null;
 
 interface AppToRestore {
     layoutApp: WorkspaceApp;
@@ -42,24 +42,12 @@ export const appReadyForRestore = async(uuid: string): Promise<void> => {
 
 export const restoreWorkspace = async(payload: Workspace, identity: Identity): Promise<Workspace> => {
     if (restoreBlocker !== null) {
-         throw new Error('Attempting to restore while restore in progress');
-     }
-
-     restoreBlocker = () => {
-        const blocker = {};
-        
-        setTimeout(() => {
-            if (restoreBlocker === blocker) {
-                restoreBlocker = null;
-
-                appsCurrentlyStarting.clear();
-                appsToRestore.clear();
-                appsCurrentlyRestoring.clear();
-            }
-        }, GLOBAL_RESTORE_TIMEOUT);
-     };
+        throw new Error('Attempting to restore while restore in progress');
+    }
 
     validatePayload(payload);
+
+    startRestoreBlockerTimeout();
 
     const layout = payload;
     const startupApps: Promise<WorkspaceApp>[] = [];
@@ -318,4 +306,21 @@ const clientRestoreAppWithTimeout = async(app: WorkspaceApp): Promise<WorkspaceA
     const timeoutPromise = new Promise<WorkspaceApp>((response) => setTimeout(() => response(defaultResponse), CLIENT_RESTORE_TIMEOUT));
 
     return Promise.race([responsePromise, timeoutPromise]);
+};
+
+const startRestoreBlockerTimeout = (): void => {
+    (() => {
+        restoreBlocker = {};
+        const capturedRestoreBlocker = restoreBlocker;
+
+        setTimeout(() => {
+            if (capturedRestoreBlocker === restoreBlocker) {
+                restoreBlocker = null;
+
+                appsCurrentlyStarting.clear();
+                appsToRestore.clear();
+                appsCurrentlyRestoring.clear();
+            }
+        }, GLOBAL_RESTORE_TIMEOUT);
+    })();
 };

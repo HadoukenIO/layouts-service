@@ -52,7 +52,7 @@ export const restoreWorkspace = async(payload: Workspace, identity: Identity): P
     const layout = payload;
     const startupApps: Promise<WorkspaceApp>[] = [];
 
-    createAllPlaceholders(layout);
+    await createAllPlaceholders(layout);
 
     const apps = await promiseMap(layout.apps, async(app: WorkspaceApp): Promise<WorkspaceApp> => await restoreApp(app, startupApps));
 

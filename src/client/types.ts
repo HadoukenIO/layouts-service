@@ -40,6 +40,11 @@ export interface RegEx {
     invert?: boolean;
 }
 
+/**
+ * Window state, corresponds to `WindowOptions.state`
+ */
+export type WindowState = 'normal'|'minimized'|'maximized';
+
 
 /* Tabbing */
 
@@ -201,7 +206,7 @@ export interface WorkspaceWindow extends Bounds, WindowIdentity {
     /**
      * Window state, corresponds to `WindowOptions.state`
      */
-    state: 'normal'|'minimized'|'maximized';
+    state: WindowState;
 
     /**
      * If the window is framed or frameless, corresponds to `WindowOptions.frame`
@@ -255,14 +260,6 @@ export interface TabGroup {
  */
 export interface TabGroupInfo {
     /**
-     * Tabstrip URL.
-     *
-     * This will either be the URL of the default tabstrip that is built-in to the service, or the URL set by the
-     * application via {@link setTabClient}.
-     */
-    url: string;
-
-    /**
      * The identity of the currently active tab. Will be one of the identities within {@link TabGroup.tabs}.
      */
     active: WindowIdentity;
@@ -271,6 +268,16 @@ export interface TabGroupInfo {
      * Object containing the saved bounds of the tabset
      */
     dimensions: TabGroupDimensions;
+
+    /**
+     * Object containing the tabstrip configuration
+     */
+    config: ApplicationUIConfig|'default';
+
+    /**
+     * The state the TabGroup and contained windows are mimicing
+     */
+    state: WindowState;
 }
 
 /**
@@ -295,16 +302,9 @@ export interface TabGroupDimensions {
     width: number;
 
     /**
-     * The pixel height of the tabstrip window.
-     *
-     * The total height of the entire tabset is this plus {@link TabGroupDimensions.appHeight}.
-     */
-    tabGroupHeight: number;
-
-    /**
      * The pixel height of the application windows within this tabset.
      *
-     * The total height of the entire tabset is this plus {@link TabGroupDimensions.tabGroupHeight}.
+     * The total height of the entire tabset is this plus {@link TabGroupInfo.config.height}.
      */
     appHeight: number;
 }

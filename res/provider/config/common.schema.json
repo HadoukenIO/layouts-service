@@ -1,0 +1,27 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "definitions": {
+        "pattern": {
+            "title": "RegEx",
+            "description": "JSON representation of a regular expression.",
+            "type": "object",
+            "required": [
+                "expression"
+            ],
+            "properties": {
+                "expression": {
+                    "type": "string"
+                },
+                "flags": {
+                    "type": "string",
+                    "default": ""
+                },
+                "invert": {
+                    "type": "boolean",
+                    "default": false
+                }
+            },
+            "additionalProperties": false
+        }
+    }
+}

@@ -21,38 +21,12 @@ interface AppToRestore {
     resolve: Function;
 }
 
-const setAppToRestore = (layoutApp: WorkspaceApp, resolve: Function): void => {
-    const {uuid} = layoutApp;
-    const save = {layoutApp, resolve};
-    appsToRestore.set(uuid, save);
-};
+export const appReadyForRestore = async(uuid: string): Promise<void> => {
+    const appToRestore = getAppToRestore(uuid);
 
-export const getAppToRestore = (uuid: string): AppToRestore => {
-    return appsToRestore.get(uuid);
-};
-
-export const restoreApplication = async(layoutApp: WorkspaceApp, resolve: Function): Promise<void> => {
-    const {uuid} = layoutApp;
-    const name = uuid;
-    const defaultResponse: WorkspaceApp = {...layoutApp, childWindows: []};
-    const appConnection = apiHandler.isClientConnection({uuid, name});
-    if (appConnection) {
-        if (appsToRestore.has(uuid) && !appsCurrentlyRestoring.has(uuid)) {
-            // Instruct app to restore its child windows
-            appsCurrentlyRestoring.set(uuid, true);
-            const responseAppLayout: WorkspaceApp|false = await apiHandler.channel.dispatch({uuid, name}, WorkspaceAPI.RESTORE_HANDLER, layoutApp);
-
-            // Flag app as restored
-            appsCurrentlyRestoring.delete(uuid);
-            appsToRestore.delete(uuid);
-            if (responseAppLayout) {
-                resolve(responseAppLayout);
-            } else {
-                resolve(defaultResponse);
-            }
-        } else {
-            console.warn('Ignoring duplicate \'ready\' call');
-        }
+    if (appToRestore) {
+        const {layoutApp, resolve} = appToRestore;
+        restoreApplication(layoutApp, resolve);
     }
 };
 
@@ -243,4 +217,39 @@ export const restoreWorkspace = async(payload: Workspace, identity: Identity): P
 
     // Send the layout back to the requester of the restore
     return layout;
+};
+
+const setAppToRestore = (layoutApp: WorkspaceApp, resolve: Function): void => {
+    const {uuid} = layoutApp;
+    const save = {layoutApp, resolve};
+    appsToRestore.set(uuid, save);
+};
+
+const getAppToRestore = (uuid: string): AppToRestore => {
+    return appsToRestore.get(uuid);
+};
+
+const restoreApplication = async(layoutApp: WorkspaceApp, resolve: Function): Promise<void> => {
+    const {uuid} = layoutApp;
+    const name = uuid;
+    const defaultResponse: WorkspaceApp = {...layoutApp, childWindows: []};
+    const appConnection = apiHandler.isClientConnection({uuid, name});
+    if (appConnection) {
+        if (appsToRestore.has(uuid) && !appsCurrentlyRestoring.has(uuid)) {
+            // Instruct app to restore its child windows
+            appsCurrentlyRestoring.set(uuid, true);
+            const responseAppLayout: WorkspaceApp|false = await apiHandler.channel.dispatch({uuid, name}, WorkspaceAPI.RESTORE_HANDLER, layoutApp);
+
+            // Flag app as restored
+            appsCurrentlyRestoring.delete(uuid);
+            appsToRestore.delete(uuid);
+            if (responseAppLayout) {
+                resolve(responseAppLayout);
+            } else {
+                resolve(defaultResponse);
+            }
+        } else {
+            console.warn('Ignoring duplicate \'ready\' call');
+        }
+    }
 };

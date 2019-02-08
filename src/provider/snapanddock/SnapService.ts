@@ -1,9 +1,11 @@
+import {ConfigStore} from '../main';
 import {DesktopEntity} from '../model/DesktopEntity';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopWindow, WindowIdentity} from '../model/DesktopWindow';
 import {Target} from '../WindowHandler';
-import {EXPLODE_MOVE_SCALE, UNDOCK_MOVE_DISTANCE} from './Config';
+
+import {EXPLODE_MOVE_SCALE, UNDOCK_MOVE_DISTANCE} from './Constants';
 import {Resolver, SnapTarget} from './Resolver';
 import {Point, PointUtils} from './utils/PointUtils';
 import {MeasureResult, RectUtils} from './utils/RectUtils';
@@ -32,18 +34,15 @@ export interface SnapState {
 }
 
 export class SnapService {
-    /**
-     * Flag to disable / enable docking.
-     */
-    public disableDockingOperations = false;
-
     private _resolver: Resolver;
 
     private _model: DesktopModel;
+    private _config: ConfigStore;
 
-    constructor(model: DesktopModel) {
+    constructor(model: DesktopModel, config: ConfigStore) {
         this._model = model;
-        this._resolver = new Resolver();
+        this._config = config;
+        this._resolver = new Resolver(config);
 
         // Register global undock hotkey listener
         fin.GlobalHotkey
@@ -150,7 +149,9 @@ export class SnapService {
             // Snap all windows in activeGroup to snapTarget.group
             snapTarget.activeWindow.applyOffset(snapTarget.offset, snapTarget.halfSize!);
 
-            if (!this.disableDockingOperations) {
+            const canDockActive: boolean = this._config.query(snapTarget.activeWindow.scope).features.dock;
+            const canDockTarget: boolean = snapTarget.targetGroup.windows.every(window => this._config.query(window.scope).features.dock);
+            if (canDockActive && canDockTarget) {
                 // Dock all windows in activeGroup to snapTarget.group
                 snapTarget.activeWindow.setSnapGroup(snapTarget.targetGroup);
 

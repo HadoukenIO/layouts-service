@@ -13,8 +13,10 @@ import {SCHEMA_MAJOR_VERSION} from './create';
 import {regroupWorkspace} from './group';
 import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, parseVersionString, positionWindow, SemVer, TabbedPlaceholders, wasCreatedProgrammatically, WindowObject} from './utils';
 
+const STARTUP_TIMEOUT = 60000;
 const RESTORE_TIMEOUT = 60000;
 
+const appsCurrentlyStarting = new Map();
 const appsToRestore = new Map();
 const appsCurrentlyRestoring = new Map();
 
@@ -24,11 +26,14 @@ interface AppToRestore {
 }
 
 export const appReadyForRestore = async(uuid: string): Promise<void> => {
-    const appToRestore = getAppToRestore(uuid);
+    if (appsCurrentlyStarting.get(uuid)) {
+        appsCurrentlyStarting.delete(uuid);
+        const appToRestore = getAppToRestore(uuid);
 
-    if (appToRestore) {
-        const {layoutApp, resolve} = appToRestore;
-        requestClientRestoreApp(layoutApp, resolve);
+        if (appToRestore) {
+            const {layoutApp, resolve} = appToRestore;
+            requestClientRestoreApp(layoutApp, resolve);
+        }
     }
 };
 
@@ -65,10 +70,23 @@ export const restoreWorkspace = async(payload: Workspace, identity: Identity): P
     return layout;
 };
 
-const setAppToRestore = (layoutApp: WorkspaceApp, resolve: Function): void => {
+const setAppToRestoreWithTimeout = (layoutApp: WorkspaceApp, resolve: Function): void => {
     const {uuid} = layoutApp;
     const save = {layoutApp, resolve};
+
+    const defaultResponse = {...layoutApp, childWindows: []};
+
+    appsCurrentlyStarting.set(uuid, true);
     appsToRestore.set(uuid, save);
+
+    setTimeout(() => {
+        if (appsCurrentlyStarting.get(uuid)) {
+            appsCurrentlyStarting.delete(uuid);
+            appsToRestore.delete(uuid);
+
+            resolve(defaultResponse);
+        }
+    }, STARTUP_TIMEOUT);
 };
 
 const getAppToRestore = (uuid: string): AppToRestore => {
@@ -228,7 +246,7 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
             // App is not running - setup communication to fire once app is started
             if (app.confirmed) {
                 startupApps.push(new Promise((resolve: (layoutApp: WorkspaceApp) => void) => {
-                    setAppToRestore(app, resolve);
+                    setAppToRestoreWithTimeout(app, resolve);
                 }));
             }
             // Start App

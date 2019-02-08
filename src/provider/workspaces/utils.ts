@@ -14,6 +14,35 @@ export interface SemVer {
     patch: number;
 }
 
+
+// TODO: Create Placeholder and PlaceholderStore classes
+// This keeps track of how many placeholders we have open, so we know when we can start regrouping a layout.
+let numOfPlaceholders = 0;
+let placeholderResolve: (() => void) | undefined;
+
+function placeholderCreated(): void {
+    numOfPlaceholders ++;
+}
+
+function placeholderClosed(): void {
+    numOfPlaceholders--;
+    if (numOfPlaceholders === 0 && placeholderResolve) {
+        placeholderResolve();
+        placeholderResolve = undefined;
+    }
+}
+
+export async function waitUntilAllPlaceholdersClosed() {
+    if (numOfPlaceholders === 0) {
+        return;
+    }
+
+    return new Promise((res, rej) => {
+        placeholderResolve = res;
+        setTimeout(() => rej(`${numOfPlaceholders} Placeholder(s) Left Open after 30 seconds. ${numOfPlaceholders} Window(s) did not come up. Attempting to group anyway.`), 30000);
+    });
+}
+
 // Positions a window when it is restored.
 export const positionWindow = async (win: WorkspaceWindow) => {
     try {
@@ -77,6 +106,7 @@ export const createNormalPlaceholder = async (win: WorkspaceWindow) => {
 
     if (state !== 'minimized') {
         placeholderWindow = await createPlaceholderWindow(win);
+        placeholderCreated();
     }
 
 
@@ -92,6 +122,7 @@ export const createNormalPlaceholder = async (win: WorkspaceWindow) => {
         } finally {
             if (placeholderWindow) {
                 await placeholderWindow.close();
+                placeholderClosed();
             }
         }
     };
@@ -105,6 +136,7 @@ export const createTabPlaceholder = async (win: WorkspaceWindow) => {
     const {name, uuid} = win;
 
     const placeholderWindow = await createPlaceholderWindow(win);
+    placeholderCreated();
 
     const actualWindow = await fin.Window.wrap({uuid, name});
     const updateOptionsAndShow = async () => {
@@ -115,6 +147,7 @@ export const createTabPlaceholder = async (win: WorkspaceWindow) => {
                 placeholderWindow.identity as WindowIdentity, actualWindow.identity as WindowIdentity);
         } finally {
             await placeholderWindow.close();
+            placeholderClosed();
         }
     };
     await actualWindow.addListener('shown', updateOptionsAndShow);

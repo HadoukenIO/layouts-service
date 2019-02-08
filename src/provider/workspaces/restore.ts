@@ -11,7 +11,7 @@ import {promiseMap} from '../snapanddock/utils/async';
 
 import {SCHEMA_MAJOR_VERSION} from './create';
 import {regroupWorkspace} from './group';
-import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, parseVersionString, positionWindow, SemVer, TabbedPlaceholders, wasCreatedProgrammatically, WindowObject} from './utils';
+import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, parseVersionString, positionWindow, SemVer, TabbedPlaceholders, wasCreatedProgrammatically, WindowObject, waitUntilAllPlaceholdersClosed} from './utils';
 
 const appsToRestore = new Map();
 const appsCurrentlyRestoring = new Map();
@@ -232,21 +232,26 @@ export const restoreWorkspace = async(payload: Workspace, identity: Identity): P
         }
     });
     // Wait for all apps to startup
-    const startupResponses = await Promise.all(startupApps);
-    // Consolidate application responses
-    const allAppResponses = apps.map(app => {
-        const appResponse = startupResponses.find(appRes => appRes.uuid === app.uuid);
-        return appResponse ? appResponse : app;
-    });
-    layout.apps = allAppResponses;
+    await Promise.all(startupApps);
+
+    // Wait for all child windows to appear. Continue and Warn if placeholders aren't closed in 30 seconds.
+    try {
+        await waitUntilAllPlaceholdersClosed();
+    } catch (error) {
+        console.warn(error);
+    }
+
     // Regroup the windows
-    await regroupWorkspace(allAppResponses).catch(console.log);
+    await regroupWorkspace(layout.apps).catch(console.log);
+
     // Validate groups
     for (const group of model.snapGroups) {
         group.validate();
     }
 
     apiHandler.sendToAll('workspace-restored', layout);
+
+    console.log("Restore completed");
 
     // Send the layout back to the requester of the restore
     return layout;

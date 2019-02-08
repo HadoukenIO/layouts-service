@@ -238,8 +238,11 @@ const restoreApplication = async(layoutApp: WorkspaceApp, resolve: Function): Pr
         if (appsToRestore.has(uuid) && !appsCurrentlyRestoring.has(uuid)) {
             // Instruct app to restore its child windows
             appsCurrentlyRestoring.set(uuid, true);
-            const responseAppLayout: WorkspaceApp|false|undefined =
-                await apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name}, WorkspaceAPI.RESTORE_HANDLER, layoutApp);
+
+            const responseAppLayout: WorkspaceApp|false|undefined = await Promise.race([
+                apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name}, WorkspaceAPI.RESTORE_HANDLER, layoutApp),
+                apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name}, LegacyAPI.RESTORE_HANDLER, layoutApp)
+            ]);
 
             // Flag app as restored
             appsCurrentlyRestoring.delete(uuid);

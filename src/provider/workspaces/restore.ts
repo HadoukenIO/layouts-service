@@ -26,11 +26,83 @@ export const appReadyForRestore = async(uuid: string): Promise<void> => {
 
     if (appToRestore) {
         const {layoutApp, resolve} = appToRestore;
-        restoreApplication(layoutApp, resolve);
+        requestClientRestoreApp(layoutApp, resolve);
     }
 };
 
 export const restoreWorkspace = async(payload: Workspace, identity: Identity): Promise<Workspace> => {
+    validatePayload(payload);
+
+    const layout = payload;
+    const startupApps: Promise<WorkspaceApp>[] = [];
+
+    createAllPlaceholders(layout);
+
+    const apps = await promiseMap(layout.apps, async(app: WorkspaceApp): Promise<WorkspaceApp> => await restoreApp(app, startupApps));
+
+    // Wait for all apps to startup
+    const startupResponses = await Promise.all(startupApps);
+
+    // Consolidate application responses
+    const allAppResponses = apps.map(app => {
+        const appResponse = startupResponses.find(appRes => appRes.uuid === app.uuid);
+        return appResponse ? appResponse : app;
+    });
+    layout.apps = allAppResponses;
+
+    // Regroup the windows
+    await regroupWorkspace(allAppResponses).catch(console.log);
+    // Validate groups
+    for (const group of model.snapGroups) {
+        group.validate();
+    }
+
+    apiHandler.sendToAll('workspace-restored', layout);
+
+    // Send the layout back to the requester of the restore
+    return layout;
+};
+
+const setAppToRestore = (layoutApp: WorkspaceApp, resolve: Function): void => {
+    const {uuid} = layoutApp;
+    const save = {layoutApp, resolve};
+    appsToRestore.set(uuid, save);
+};
+
+const getAppToRestore = (uuid: string): AppToRestore => {
+    return appsToRestore.get(uuid);
+};
+
+const requestClientRestoreApp = async(layoutApp: WorkspaceApp, resolve: Function): Promise<void> => {
+    const {uuid} = layoutApp;
+    const name = uuid;
+    const defaultResponse: WorkspaceApp = {...layoutApp, childWindows: []};
+    const appConnection = apiHandler.isClientConnection({uuid, name});
+    if (appConnection) {
+        if (appsToRestore.has(uuid) && !appsCurrentlyRestoring.has(uuid)) {
+            // Instruct app to restore its child windows
+            appsCurrentlyRestoring.set(uuid, true);
+
+            const responseAppLayout: WorkspaceApp|false|undefined = await Promise.race([
+                apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name}, WorkspaceAPI.RESTORE_HANDLER, layoutApp),
+                apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name}, LegacyAPI.RESTORE_HANDLER, layoutApp)
+            ]);
+
+            // Flag app as restored
+            appsCurrentlyRestoring.delete(uuid);
+            appsToRestore.delete(uuid);
+            if (responseAppLayout) {
+                resolve(responseAppLayout);
+            } else {
+                resolve(defaultResponse);
+            }
+        } else {
+            console.warn('Ignoring duplicate \'ready\' call');
+        }
+    }
+};
+
+const validatePayload = (payload: Workspace): void => {
     // Guards against invalid layout objects (since we are receiving them over the service bus, this is in theory possible)
     // These allow us to return sensible error messages back to the consumer
     if (!payload) {
@@ -59,9 +131,9 @@ export const restoreWorkspace = async(payload: Workspace, identity: Identity): P
     if (!payload.monitorInfo) {
         throw new Error('Received invalid layout object: layout.monitorInfo is undefined');
     }
+};
 
-    const layout = payload;
-    const startupApps: Promise<WorkspaceApp>[] = [];
+const createAllPlaceholders = async(layout: Workspace): Promise<void> => {
     const tabbedWindows: WindowObject = {};
     const openWindows: WindowObject = {};
     const tabbedPlaceholdersToWindows: TabbedPlaceholders = {};
@@ -98,7 +170,6 @@ export const restoreWorkspace = async(payload: Workspace, identity: Identity): P
                 await mainWindowModel.setSnapGroup(new DesktopSnapGroup());
             }
 
-
             // Need to check its child windows here, if confirmed.
             await childWindowPlaceholderCheckRunningApp(app, tabbedWindows, tabbedPlaceholdersToWindows, openWindows);
         } else {
@@ -132,128 +203,70 @@ export const restoreWorkspace = async(payload: Workspace, identity: Identity): P
     });
 
     await tabService.createTabGroupsFromWorkspace(layout.tabGroups);
+};
 
-    const apps = await promiseMap(layout.apps, async(app: WorkspaceApp): Promise<WorkspaceApp> => {
-        // Get rid of childWindows for default response (anything else?)
-        const defaultResponse = {...app, childWindows: []};
-        try {
-            const {uuid} = app;
-            const name = uuid;
-            console.log('Restoring App:', app);
-            const ofApp = await fin.Application.wrap({uuid});
-            const isRunning = await ofApp.isRunning();
-            if (isRunning) {
-                const appConnected = apiHandler.channel.connections.some((conn: Identity) => conn.uuid === uuid && conn.name === name);
-                if (appConnected) {
-                    await positionWindow(app.mainWindow);
-                    console.log('App is running:', app);
-                    // Send LayoutApp to connected application so it can handle child windows
-                    const response: WorkspaceApp|false|undefined = await Promise.race([
-                        apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name}, WorkspaceAPI.RESTORE_HANDLER, app),
-                        apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name}, LegacyAPI.RESTORE_HANDLER, app)
-                    ]);
-                    console.log('Response from restore:', response);
-                    return response ? response : defaultResponse;
-                } else {
-                    // Not connected to service
-                    await positionWindow(app.mainWindow);
-                    return defaultResponse;
-                }
+const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]): Promise<WorkspaceApp> => {
+    // Get rid of childWindows for default response (anything else?)
+    const defaultResponse = {...app, childWindows: []};
+    try {
+        const {uuid} = app;
+        const name = uuid;
+        console.log('Restoring App:', app);
+        const ofApp = await fin.Application.wrap({uuid});
+        const isRunning = await ofApp.isRunning();
+        if (isRunning) {
+            const appConnected = apiHandler.channel.connections.some((conn: Identity) => conn.uuid === uuid && conn.name === name);
+            if (appConnected) {
+                await positionWindow(app.mainWindow);
+                console.log('App is running:', app);
+                // Send LayoutApp to connected application so it can handle child windows
+                const response: WorkspaceApp|false|undefined = await Promise.race([
+                    apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name}, WorkspaceAPI.RESTORE_HANDLER, app),
+                    apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name}, LegacyAPI.RESTORE_HANDLER, app)
+                ]);
+                console.log('Response from restore:', response);
+                return response ? response : defaultResponse;
             } else {
-                let ofAppNotRunning: undefined|Application;
-                console.log('App is not running:', app);
-
-                // App is not running - setup communication to fire once app is started
-                if (app.confirmed) {
-                    startupApps.push(new Promise((resolve: (layoutApp: WorkspaceApp) => void) => {
-                        setAppToRestore(app, resolve);
-                    }));
-                }
-                // Start App
-                if (app.manifestUrl) {
-                    // If app created by manifest
-                    const {manifestUrl} = app;
-                    console.log('App has manifestUrl:', app);
-                    ofAppNotRunning = await fin.Application.createFromManifest(manifestUrl);
-                } else {
-                    // If application created programmatically
-                    if (wasCreatedProgrammatically(app)) {
-                        console.warn('App created programmatically, app may not restart again:', app);
-                        ofAppNotRunning = await fin.Application.create(app.initialOptions);
-                    } else {
-                        console.error('Unable to restart programmatically launched app:', app);
-                    }
-                }
-
-                if (ofAppNotRunning) {
-                    await ofAppNotRunning.run().catch(console.log);
-                    const ofWindowNotRunning = await ofAppNotRunning.getWindow();
-                    await positionWindow(app.mainWindow);
-                }
-                // SHOULD WE RETURN DEFAULT RESPONSE HERE?!?
+                // Not connected to service
+                await positionWindow(app.mainWindow);
                 return defaultResponse;
             }
-        } catch (e) {
-            console.error('Error restoring app', app, e);
+        } else {
+            let ofAppNotRunning: undefined|Application;
+            console.log('App is not running:', app);
+
+            // App is not running - setup communication to fire once app is started
+            if (app.confirmed) {
+                startupApps.push(new Promise((resolve: (layoutApp: WorkspaceApp) => void) => {
+                    setAppToRestore(app, resolve);
+                }));
+            }
+            // Start App
+            if (app.manifestUrl) {
+                // If app created by manifest
+                const {manifestUrl} = app;
+                console.log('App has manifestUrl:', app);
+                ofAppNotRunning = await fin.Application.createFromManifest(manifestUrl);
+            } else {
+                // If application created programmatically
+                if (wasCreatedProgrammatically(app)) {
+                    console.warn('App created programmatically, app may not restart again:', app);
+                    ofAppNotRunning = await fin.Application.create(app.initialOptions);
+                } else {
+                    console.error('Unable to restart programmatically launched app:', app);
+                }
+            }
+
+            if (ofAppNotRunning) {
+                await ofAppNotRunning.run().catch(console.log);
+                const ofWindowNotRunning = await ofAppNotRunning.getWindow();
+                await positionWindow(app.mainWindow);
+            }
+            // SHOULD WE RETURN DEFAULT RESPONSE HERE?!?
             return defaultResponse;
         }
-    });
-    // Wait for all apps to startup
-    const startupResponses = await Promise.all(startupApps);
-    // Consolidate application responses
-    const allAppResponses = apps.map(app => {
-        const appResponse = startupResponses.find(appRes => appRes.uuid === app.uuid);
-        return appResponse ? appResponse : app;
-    });
-    layout.apps = allAppResponses;
-    // Regroup the windows
-    await regroupWorkspace(allAppResponses).catch(console.log);
-    // Validate groups
-    for (const group of model.snapGroups) {
-        group.validate();
-    }
-
-    apiHandler.sendToAll('workspace-restored', layout);
-
-    // Send the layout back to the requester of the restore
-    return layout;
-};
-
-const setAppToRestore = (layoutApp: WorkspaceApp, resolve: Function): void => {
-    const {uuid} = layoutApp;
-    const save = {layoutApp, resolve};
-    appsToRestore.set(uuid, save);
-};
-
-const getAppToRestore = (uuid: string): AppToRestore => {
-    return appsToRestore.get(uuid);
-};
-
-const restoreApplication = async(layoutApp: WorkspaceApp, resolve: Function): Promise<void> => {
-    const {uuid} = layoutApp;
-    const name = uuid;
-    const defaultResponse: WorkspaceApp = {...layoutApp, childWindows: []};
-    const appConnection = apiHandler.isClientConnection({uuid, name});
-    if (appConnection) {
-        if (appsToRestore.has(uuid) && !appsCurrentlyRestoring.has(uuid)) {
-            // Instruct app to restore its child windows
-            appsCurrentlyRestoring.set(uuid, true);
-
-            const responseAppLayout: WorkspaceApp|false|undefined = await Promise.race([
-                apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name}, WorkspaceAPI.RESTORE_HANDLER, layoutApp),
-                apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name}, LegacyAPI.RESTORE_HANDLER, layoutApp)
-            ]);
-
-            // Flag app as restored
-            appsCurrentlyRestoring.delete(uuid);
-            appsToRestore.delete(uuid);
-            if (responseAppLayout) {
-                resolve(responseAppLayout);
-            } else {
-                resolve(defaultResponse);
-            }
-        } else {
-            console.warn('Ignoring duplicate \'ready\' call');
-        }
+    } catch (e) {
+        console.error('Error restoring app', app, e);
+        return defaultResponse;
     }
 };

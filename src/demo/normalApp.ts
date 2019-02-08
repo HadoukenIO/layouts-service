@@ -64,7 +64,7 @@ export async function onAppRes(layoutApp: WorkspaceApp): Promise<WorkspaceApp> {
 
 // Positions a window when it is restored.
 // Also given to the client to use.
-export const positionWindow = async (win: WorkspaceWindow) => {
+const positionWindow = async (win: WorkspaceWindow) => {
     try {
         const {isShowing, isTabbed} = win;
 

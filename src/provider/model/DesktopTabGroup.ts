@@ -1,7 +1,8 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import {TabAddedPayload, TabGroupEventPayload} from '../../client/types';
-import {ApplicationUIConfig, WindowIdentity} from '../../client/types';
+import {Scope} from '../../../gen/provider/config/scope';
+
+import {ApplicationUIConfig, TabAddedPayload, TabGroupEventPayload, TabProperties, WindowIdentity, WindowState} from '../../client/types';
 import {WindowMessages} from '../APIMessages';
 import {tabService} from '../main';
 import {Signal1} from '../Signal';
@@ -22,12 +23,23 @@ export class DesktopTabGroup implements DesktopEntity {
     public static readonly onCreated: Signal1<DesktopTabGroup> = new Signal1();
     public static readonly onDestroyed: Signal1<DesktopTabGroup> = new Signal1();
 
-    private static _windowPool: DesktopTabstripFactory = new DesktopTabstripFactory();
+    /**
+     * Need to lazily-initialise the window pool, due to DesktopTabstripFactory's dependency on the config store.
+     */
+    public static get windowPool(): DesktopTabstripFactory {
+        if (!this._windowPool) {
+            this._windowPool = new DesktopTabstripFactory();
+        }
+
+        return this._windowPool;
+    }
+
+    private static _windowPool: DesktopTabstripFactory;
 
     private _model: DesktopModel;
 
     /**
-     * Handle to this tabgroups window.
+     * Handle to this tabgroup's window.
      */
     private _window: DesktopWindow;
 
@@ -61,8 +73,8 @@ export class DesktopTabGroup implements DesktopEntity {
      */
     constructor(model: DesktopModel, group: DesktopSnapGroup, config: ApplicationUIConfig) {
         // Fetch a window from the pool, if available. Otherwise, fetch the relevant window options and have DesktopWindow handle the window creation.
-        const windowSpec: _Window|fin.WindowOptions =
-            DesktopTabGroup._windowPool.getNextWindow(config) || DesktopTabstripFactory.generateTabStripOptions(config);
+        const pool: DesktopTabstripFactory = DesktopTabGroup.windowPool;
+        const windowSpec: _Window|fin.WindowOptions = pool.getNextWindow(config) || pool.generateTabStripOptions(config);
 
         this._model = model;
         this._window = new DesktopWindow(model, group, windowSpec);
@@ -130,8 +142,25 @@ export class DesktopTabGroup implements DesktopEntity {
         return this._tabs;
     }
 
-    public get isMaximized(): boolean {
-        return this._isMaximized;
+    /**
+     * Scope isn't really strictly defined for a tab group...
+     *
+     * Will assume that the tab group should follow the config rules for the active tab, in reality it should be some
+     * kind of union/intersection of all of the tab properties, similar to resizeConstraints, etc.
+     *
+     * Config store doesn't currently support querying for a range of scopes, or "merging" config objects together.
+     */
+    public get scope(): Scope {
+        const activeWindow = this._activeTab || this._tabs[0] || this._window;
+        return activeWindow.scope;
+    }
+
+    /**
+     * Returns the window state this tab group is currently mimicing. Note this may not match the internal underlying state
+     * as 'maximized' tabs are not truely maximized as far as Windows is concerned
+     */
+    public get state(): WindowState {
+        return this._window.currentState.state === 'minimized' ? 'minimized' : this._isMaximized ? 'maximized' : 'normal';
     }
 
     public applyOverride<K extends keyof EntityState>(property: K, value: EntityState[K]): Promise<void> {
@@ -267,7 +296,7 @@ export class DesktopTabGroup implements DesktopEntity {
             await this.removeTabInternal(tabToRemove, this._tabs.indexOf(tabToRemove!));
 
             if (this._activeTab.id === tabToRemove.id) {
-                // if the switchedwith tab was the active one, we make the added tab active
+                // if the switched-with tab was the active one, we make the added tab active
                 this.switchTab(tabToAdd);
             } else {
                 // else we hide it because the added tab might be visible.
@@ -561,9 +590,15 @@ export class DesktopTabGroup implements DesktopEntity {
         }
     }
 
-    private onWindowTeardown(window: DesktopWindow): void {
+    private async onWindowTeardown(window: DesktopWindow): Promise<void> {
         if (this._tabs.indexOf(window) >= 0) {
-            this.removeTab(window, null);
+            if (window.isReady) {
+                // Window is still "ready", so we should restore it to its previous size as part of the removal
+                await this.removeTab(window);
+            } else {
+                // Since window is in the process of closing, don't attempt to reset its size
+                await this.removeTab(window, null);
+            }
         }
     }
 

@@ -2,7 +2,9 @@ import {test} from 'ava';
 import {Fin, Window} from 'hadouken-js-adapter';
 import * as robot from 'robotjs';
 
+import {executeJavascriptOnService} from '../demo/utils/serviceUtils';
 import {teardown} from '../teardown';
+
 import {getConnection} from './utils/connect';
 import {createChildWindow} from './utils/createChildWindow';
 import {dragWindowAndHover} from './utils/dragWindowAndHover';
@@ -16,11 +18,12 @@ let fin: Fin;
 test.before(async () => {
     fin = await getConnection();
 });
-test.afterEach.always(async () => {
+test.afterEach.always(async (t) => {
     await win1.close();
     await win2.close();
+
+    await teardown(t);
 });
-test.afterEach.always(teardown);
 
 test('normal deregister, snap with registered', async t => {
     win1 = await createChildWindow({

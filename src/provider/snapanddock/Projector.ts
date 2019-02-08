@@ -3,7 +3,7 @@ import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {EntityState} from '../model/DesktopWindow';
 import {eTargetType} from '../WindowHandler';
 
-import {ANCHOR_DISTANCE, MIN_OVERLAP, SNAP_DISTANCE} from './Config';
+import {ANCHOR_DISTANCE, MIN_OVERLAP, SNAP_DISTANCE} from './Constants';
 import {Orientation, SnapTarget} from './Resolver';
 import {Point, PointUtils} from './utils/PointUtils';
 import {Range, RangeUtils} from './utils/RangeUtils';

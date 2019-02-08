@@ -9,7 +9,7 @@ const FAILURE_PREVIEW_BACKGROUND_CSS = `repeating-linear-gradient(45deg, #3D4059
 export type PreviewableTarget = SnapTarget|TabTarget;
 
 /**
- * Visual indicator of the current stap target.
+ * Visual indicator of the current snap target.
  *
  * Will create colored rectangles based on the given group. Rectangle color will be set according to snap validity.
  */

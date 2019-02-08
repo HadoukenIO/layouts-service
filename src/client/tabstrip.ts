@@ -17,7 +17,7 @@ export async function startDrag(window: Identity) {
     // will default to the active tab if no window is specified. Here we just check that
     // if a window was provided,it is valid
     if (window && (!window.name || !window.uuid)) {
-        return Promise.reject('Invalid window provided');
+        throw new Error('Invalid window provided');
     }
 
     return tryServiceDispatch<StartDragPayload, void>(TabAPI.STARTDRAG, {window});
@@ -27,8 +27,11 @@ export async function startDrag(window: Identity) {
  * Ends the HTML5 Dragging Sequence.
  */
 export async function endDrag(event: DragEvent, window: Identity) {
+    if (!event) {
+        throw new Error('Event is required');
+    }
     if (!window || !window.name || !window.uuid) {
-        return Promise.reject('Invalid window provided');
+        throw new Error('Invalid window provided');
     }
 
     const dropPoint: DropPosition = {screenX: event.screenX, screenY: event.screenY};
@@ -41,7 +44,7 @@ export async function endDrag(event: DragEvent, window: Identity) {
  */
 export async function reorderTabs(newOrdering: Identity[]): Promise<void> {
     if (!newOrdering || newOrdering.length === 0) {
-        return Promise.reject('Invalid new Order array');
+        throw new Error('Invalid new Order array');
     }
 
     return tryServiceDispatch<Identity[], void>(TabAPI.REORDERTABS, newOrdering);

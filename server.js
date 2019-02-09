@@ -101,6 +101,9 @@ async function createServer() {
     // Add special route for any 'app.json' files - will re-write the contents according to the command-line arguments of this server
     app.use(/\/?(.*app\.json)/, createAppJsonMiddleware());
 
+    // Add special route for any 'app.json' files - will re-write the contents according to the command-line arguments of this server
+    app.use('/manifest', createCustomManifestMiddleware());
+
     // Add route for serving static resources
     app.use(express.static('res'));
 
@@ -226,6 +229,56 @@ function createAppJsonMiddleware() {
         // Return modified JSON to client
         res.header('Content-Type', 'application/json; charset=utf-8');
         res.send(JSON.stringify(config, null, 4));
+    };
+}
+
+/**
+ * Creates express-compatible middleware function to generate custom application manifests.
+ * 
+ * Differs from createAppJsonMiddleware, as this spawns custom demo windows, rather than re-writing existing 
+ * demo/provider manifests.
+ */
+function createCustomManifestMiddleware() {
+    return async (req, res, next) => {
+        const defaultConfig = await readJsonFile(path.resolve('res/demo/app.json')).catch(next);
+        const {uuid, runtime, provider, url, config, useService} = {
+            uuid: `demo-app-${Math.random().toString(36).substr(2, 4)}`,
+            runtime: defaultConfig.runtime.version,
+            provider: 'local',
+            url: `http://localhost:${PORT}/demo/popup.html`,
+            config: null,
+            ...req.query,
+            useService: req.query.useService !== 'false'
+        };
+
+        const manifest = {
+            startup_app: {
+                uuid,
+                name: uuid,
+                url,
+                autoShow: true,
+                saveWindowState: false,
+                defaultWidth: 860,
+                defaultHeight: 605
+            },
+            runtime: {
+                arguments: "--v=1",
+                version: runtime
+            }
+        };
+        if (useService) {
+            manifest.services = [{
+                name: "layouts",
+                manifestUrl: getProviderUrl(provider)
+            }];
+            if (config) {
+                manifest.services[0].config = JSON.parse(config);
+            }
+        }
+
+        // Return modified JSON to client
+        res.header('Content-Type', 'application/json; charset=utf-8');
+        res.send(JSON.stringify(manifest, null, 4));
     };
 }
 

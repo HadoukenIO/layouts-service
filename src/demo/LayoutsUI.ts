@@ -1,9 +1,13 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import * as Layouts from '../client/main';
+import {ConfigurationObject, Tabstrip} from '../../gen/provider/config/layouts-config';
+
+import {register, deregister, snapAndDock, tabbing, tabstrip, workspaces} from '../client/main';
 import {Workspace} from '../client/types';
 
 import * as Storage from './storage';
+import {channelPromise} from '../client/connection';
+import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/system/application';
 
 export interface Workspace {
     id: string;
@@ -13,10 +17,46 @@ export interface Workspace {
 let numTabbedWindows = 0;
 const launchDir = location.href.slice(0, location.href.lastIndexOf('/'));
 
+interface AppData {
+    // Common
+    uuid: string;
+    url: string;
+
+    // Manifest
+    runtime?: string;
+    useService?: boolean;
+
+    // Programmatic
+    parent?: string;
+}
+interface ConfigData {
+    enabled: boolean;
+    snap: boolean;
+    dock: boolean;
+    tab: boolean;
+    'tabstrip-url': string;
+    'tabstrip-height': number;
+}
+interface ManifestData extends AppData {
+    config: ConfigData;
+}
+
+// ID's of input/select elements in the "custom app" window
+const manifestInputs: (keyof AppData)[] = ['uuid', 'url', 'runtime', 'useService'];
+const programmaticInputs: (keyof AppData)[] = ['uuid', 'url', 'parent'];
+const configInputs: (keyof ConfigData)[] = ['enabled', 'snap', 'dock', 'tab', 'tabstrip-url', 'tabstrip-height'];
+
+export async function deregisterManager(): Promise<void> {
+    await deregister();
+}
+export async function reregisterManager(): Promise<void> {
+    await register();
+}
+
 export async function setLayout(layoutParam?: Workspace) {
     const id = (document.getElementById('layoutName') as HTMLTextAreaElement).value;
     const layoutSelect = document.getElementById('layoutSelect') as HTMLSelectElement;
-    const layout = layoutParam || await Layouts.workspaces.generate();
+    const layout = layoutParam || await workspaces.generate();
     const workspace = {id, layout};
 
     if (layoutSelect) {
@@ -35,7 +75,170 @@ export async function setLayout(layoutParam?: Workspace) {
     }
 
     Storage.saveLayout(workspace);
-    document.getElementById('showLayout')!.innerHTML = JSON.stringify(layout, null, 2);
+    updateTextArea(layout);
+}
+
+export async function showCreateFromManifestPopup(): Promise<void> {
+    await fin.Window.create({
+        name: 'create-app-manifest',
+        url: './create-app-manifest.html',
+        autoShow: true,
+        resizable: false,
+        defaultWidth: 317,
+        defaultHeight: 605,
+        saveWindowState: false
+    });
+}
+
+export async function showCreateProgrammaticPopup(): Promise<void> {
+    await fin.Window.create({
+        name: 'create-app-programmatic',
+        url: './create-app-programmatic.html',
+        autoShow: true,
+        resizable: false,
+        defaultWidth: 317,
+        defaultHeight: 218,
+        saveWindowState: false
+    });
+}
+
+export function initAppPopup(document: HTMLDocument) {
+    const elements = configInputs.map(id => document.getElementById(`config-${id}`) as HTMLInputElement | HTMLSelectElement).filter(e => !!e);
+
+    elements.forEach(element => {
+        element.onchange = element.onkeyup = updateConfig.bind(null, document);
+    });
+
+    updateUUID(document);
+    updateConfig(document);
+
+    const parent = document.getElementById('parent');
+    if (parent) {
+        fin.System.getAllApplications().then((info: ApplicationInfo[]) => {
+            const uuids = info.filter(i => i.isRunning).map(i => i.uuid).sort();
+
+            uuids.forEach(uuid => {
+                const option = document.createElement('option');
+                option.innerText = uuid;
+                option.selected = (uuid === fin.Application.me.uuid);
+                parent.appendChild(option);
+            });
+        });
+    }
+}
+
+function updateUUID(document: HTMLDocument): void {
+    const input = document.getElementById('uuid') as HTMLInputElement;
+
+    if (input.value.startsWith('custom-app-')) {
+        input.value = `custom-app-${Math.random().toString(36).substr(2, 4)}`;
+    }
+}
+
+function updateConfig(document: HTMLDocument): void {
+    const preview = document.getElementById('config-preview') as HTMLPreElement;
+
+    if (preview) {
+        const config = getConfig(document);
+        preview.innerText = config ? JSON.stringify(config, null, 4) : 'No Config';
+    }
+}
+
+export function createAppFromManifest(document: HTMLDocument) {
+    const manifest: ManifestData = {config: getConfig(document), ...getInputs(document, manifestInputs)};
+
+    const queryParams: string[] = [];
+    Object.keys(manifest).forEach(param => {
+        const value = manifest[param as keyof ManifestData];
+
+        if (value) {
+            queryParams.push(`${param}=${encodeURIComponent(typeof value === 'object' ? JSON.stringify(value) : value.toString())}`);
+        }
+    });
+
+    fin.Application.createFromManifest(`${location.origin}/manifest?${queryParams.join('&')}`).then(app => app.run()).catch(alert);
+    updateUUID(document);
+}
+
+export function createAppProgrammatically(document: HTMLDocument) {
+    const data: AppData = getInputs(document, programmaticInputs);
+    const options: fin.ApplicationOptions = {uuid: data.uuid, name: data.uuid, mainWindowOptions: {name: data.uuid, url: data.url, autoShow: true}};
+
+    if (data.parent === fin.Application.me.uuid) {
+        fin.Application.create(options).then(app => app.run().catch(alert)).catch(alert);
+    } else {
+        fin.InterApplicationBus.send({uuid: data.uuid, name: data.uuid}, 'create-app', options);
+    }
+
+    updateUUID(document);
+}
+
+function getInputs<T>(document: HTMLDocument, keys: (keyof T)[], prefix = ''): T {
+    return keys.reduce((data: T, key: keyof T) => {
+        const input = document.getElementById(prefix + key) as HTMLInputElement;  // | HTMLSelectElement;
+
+        if (input) {
+            let value = input.type === 'checkbox' ? input.checked : input.value;
+
+            // Special handling of certain elements
+            if (key === 'url') {
+                if (value && !value.toString().includes('://')) {
+                    // Assume this is a relative URL
+                    value = `${location.origin}${value.toString().startsWith('/') ? '' : '/'}${value}`;
+                }
+            }
+
+            // Parse value
+            const dataAny: any = data;  // tslint:disable-line:no-any
+            if (value !== undefined && value !== 'default') {
+                if (typeof value === 'boolean') {
+                    dataAny[key] = value;
+                } else if (value === 'true' || value === 'false') {
+                    dataAny[key] = (value === 'true');
+                } else if (Number.parseFloat(value).toString() === value) {
+                    dataAny[key] = Number.parseFloat(value);
+                } else {
+                    dataAny[key] = value;
+                }
+            }
+        }
+
+        return data;
+    }, {} as T);
+}
+
+function getConfig(document: HTMLDocument): ConfigurationObject|null {
+    const data = getInputs(document, configInputs, 'config-');
+    const config: ConfigurationObject = {};
+    const configParams = Object.keys(data);
+
+    configParams.forEach((param) => {
+        switch (param) {
+            case 'enabled':
+                config.enabled = data.enabled as boolean;
+                break;
+            case 'snap':
+            case 'dock':
+            case 'tab':
+                config.features = config.features || {};
+                config.features[param] = data[param] as boolean;
+                break;
+            case 'tabstrip-url':
+            case 'tabstrip-height':
+                config.tabstrip = config.tabstrip || {} as Tabstrip;
+                config.tabstrip[param.replace('tabstrip-', '') as keyof Tabstrip] = data[param] as number | string;
+                break;
+            default:
+                console.warn('Unknown param:', param);
+        }
+    });
+
+    // Must have either both tabstrip args, or neither
+    if (config.tabstrip && !(config.tabstrip.url && config.tabstrip.height)) {
+        delete config.tabstrip;
+    }
+
+    return Object.keys(config).length > 0 ? config : null;
 }
 
 export async function killAllWindows() {
@@ -58,20 +261,20 @@ export async function killAllWindows() {
 export async function getLayout() {
     const id = (document.getElementById('layoutSelect') as HTMLSelectElement).value;
     const workspace = Storage.getLayout(id);
-    document.getElementById('showLayout')!.innerHTML = JSON.stringify(workspace, null, 2);
+    updateTextArea(workspace);
 }
 
 export async function getAllLayouts() {
     const layoutIDs = Storage.getAllLayoutIDs();
-    document.getElementById('showLayout')!.innerHTML = JSON.stringify(layoutIDs, null, 2);
+    updateTextArea(layoutIDs);
 }
 
 export async function restoreLayout() {
     const id = (document.getElementById('layoutSelect') as HTMLSelectElement).value;
     const workspace = Storage.getLayout(id);
     console.log('Restoring layout');
-    const afterLayout = await Layouts.workspaces.restore(workspace.layout);
-    document.getElementById('showLayout')!.innerHTML = JSON.stringify(afterLayout, null, 2);
+    const afterLayout = await workspaces.restore(workspace.layout);
+    updateTextArea(afterLayout);
 }
 
 export async function createAppFromManifest2() {
@@ -161,6 +364,11 @@ export function createSimpleWindow(page: string) {
         console.error);
 }
 
+function updateTextArea(content: {}): void {
+    const textArea = document.getElementById('showLayout') as HTMLTextAreaElement;
+    textArea.value = JSON.stringify(content, null, 2);
+}
+
 function addLayoutNamesToDropdown() {
     const ids = Storage.getAllLayoutIDs();
     const layoutSelect = document.getElementById('layoutSelect');
@@ -180,16 +388,24 @@ function createOptionElement(id: string) {
 }
 
 export function importLayout() {
-    const textfield = document.getElementById('showLayout')! as HTMLTextAreaElement;
+    const textfield = document.getElementById('showLayout') as HTMLTextAreaElement;
     const layout = JSON.parse(textfield.value);
     setLayout(layout.layout || layout);
 }
 
-Layouts.workspaces.ready();
+workspaces.ready();
 
 fin.desktop.main(() => {
     addLayoutNamesToDropdown();
 });
 
 // Expose layouts API on window for debugging/demoing
-(window as Window & {layouts: typeof Layouts}).layouts = Layouts;
+const api = {
+    register,
+    deregister,
+    snapAndDock,
+    tabbing,
+    tabstrip,
+    workspaces
+};
+(window as Window & {layouts: typeof api}).layouts = api;

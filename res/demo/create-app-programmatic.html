@@ -1,0 +1,27 @@
+<head>
+        <link rel="stylesheet" href="./layouts-ui.css">
+        <link rel="stylesheet" href="./create-app.css">
+        <script src="./LayoutsUI-bundle.js"></script>
+        <title>Create Programmatically</title>
+    </head>
+    <body onload="LayoutsUI.initAppPopup(document)">
+        <h3>Application Info</h3>
+        <div>
+            <label for="uuid">UUID:</label>
+            <input id="uuid" type="text" value="custom-app-????" />
+        </div>
+        <div>
+            <label for="url">URL:</label>
+            <input id="url" type="text" value="/demo/sample.html" />
+        </div>
+        <div>
+            <label for="parent">Parent:</label>
+            <a href="#" onclick="alert('Select which application should call fin.Application.create')">?</a>
+            <select id="parent"></select>
+        </div>
+        <div>
+            <button style="width: 278px" onclick="LayoutsUI.createAppProgrammatically(document)">Create Application</button>
+            <button style="width: 278px" onclick="LayoutsUI.createAppProgrammatically(document); window.close();">Create Application & Close</button>
+        </div>
+    </body>
+    

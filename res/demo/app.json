@@ -5,12 +5,10 @@
         "uuid": "Layouts-Manager",
         "autoShow": true,
         "saveWindowState": false,
-        "defaultHeight": 540,
-        "defaultWidth": 542,
+        "defaultHeight": 605,
+        "defaultWidth": 767,
         "defaultCentered": true,
-        "_experimental": {
-            "v2Api": true
-        }
+        "resizable": false
     },
     "runtime": {
         "arguments": "--v=1 --enable-crash-reporting --inspect=9222 --enable-aggressive-domstorage-flushing",

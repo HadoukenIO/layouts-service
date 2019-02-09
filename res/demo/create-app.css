@@ -1,0 +1,27 @@
+label {
+    display: inline-block;
+    width: 100px;
+    font-weight: bold;
+    vertical-align: top;
+}
+
+select, input {
+    min-width: 180px;
+}
+input[type='checkbox'] {
+    min-width: 0;
+}
+a {
+    color: white;
+    text-decoration: none;
+    font-size: small;
+    vertical-align: text-top;
+    margin-left: -12px;
+}
+
+pre {
+    height: 180px;
+    overflow: auto;
+    background-color: white;
+    border: solid black 1px;
+}

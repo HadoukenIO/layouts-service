@@ -31,6 +31,7 @@ interface AppState {
     isRunning: boolean;
     parent: AppState|null;
     children: AppState[];
+    isServiceAware: boolean;
 }
 
 /**
@@ -40,6 +41,7 @@ interface AppState {
 export class Loader<T> {
     private _store: Store<T>;
     private _serviceNames: string[];
+    private _defaultConfig: T|null;
 
     private _appState: {[uuid: string]: AppState};
 
@@ -47,10 +49,25 @@ export class Loader<T> {
     private _windowsWithConfig: string[];
     private _watch: SourceWatch<T>;
 
-    constructor(store: Store<T>, serviceName: string, ...aliases: string[]) {
+    /**
+     * Creates a config loader.
+     *
+     * The loader needs to know the name of the service, so that it knows where to look within the application
+     * manifests. Multiple names can be provided, due to the need to possibly define multiple versions of the service,
+     * for example to run the service both in the "default" realm and within one or more security realms.
+     *
+     * For any applications that are not service-aware, some default configuration can also be specified. Here,
+     * "service-aware" is defined as either declaring the service within the application's manifest, or being a
+     * programmatically-launched application, that was launched by a "service-aware" application.
+     *
+     * @param store Store to which application-defined config will be placed
+     * @param serviceName The name of the service, plus aliases if appropriate
+     * @param defaultConfig Optionally, config to add to the store for any application that isn't service-aware
+     */
+    constructor(store: Store<T>, serviceName: string|string[], defaultConfig?: T) {
         this._store = store;
-        this._serviceNames = aliases;
-        this._serviceNames.unshift(serviceName);
+        this._serviceNames = Array.isArray(serviceName) ? serviceName.slice() : [serviceName];
+        this._defaultConfig = defaultConfig || null;
         this._appState = {};
 
         this._windowsWithConfig = [];
@@ -89,20 +106,33 @@ export class Loader<T> {
                         console.log(`Loading config from ${identity.uuid}/${service.name}`);
 
                         // Will need to unload this config when the application exits, ensure we track it
-                        this.getAppState(app);
+                        this.getOrCreateAppState(app, true);
 
                         // Load the config from the application's manifest
                         this._store.add({level: 'application', uuid: identity.uuid}, service.config);
+                    } else if (this._defaultConfig) {
+                        const parentState: AppState|null = this.getAppState(parentUuid || '');
+
+                        if (!parentState || !parentState.isServiceAware) {
+                            console.log(`Using default config for ${identity.uuid}`);
+
+                            // Application doesn't reference this service, use whatever fall-back configuration was specified for this scenario
+                            this._store.add({level: 'application', uuid: identity.uuid}, this._defaultConfig);
+                        } else {
+                            console.log(`Not applying default state to ${identity.uuid}, due to service-aware parent app`);
+                        }
                     }
                 });
             }
 
             if (parentUuid && this._appState.hasOwnProperty(parentUuid)) {
-                const state = this.getAppState(app);
-                const parent = this.getAppState(fin.Application.wrapSync({uuid: parentUuid}));
+                const parentState = this.getAppState(parentUuid)!;
 
-                state.parent = parent;
-                parent.children.push(state);
+                // App *may* be service-aware on it's own, but if it's state hasn't already been created by this point, then inerhit awareness from parent app
+                const state = this.getOrCreateAppState(app, parentState.isServiceAware);
+
+                state.parent = parentState;
+                parentState.children.push(state);
             }
         });
     }
@@ -180,12 +210,17 @@ export class Loader<T> {
         }
     }
 
-    private getAppState(app: Application): AppState {
+    private getAppState(app: string|Identity): AppState|null {
+        const uuid: string = (app as Identity).uuid || (app as string);
+        return this._appState[uuid] || null;
+    }
+
+    private getOrCreateAppState(app: Application, isServiceAware: boolean): AppState {
         const uuid = app.identity.uuid;
         let state: AppState = this._appState[uuid];
 
         if (!state) {
-            state = {scope: {level: 'application', uuid}, isRunning: true, parent: null, children: []};
+            state = {scope: {level: 'application', uuid}, isRunning: true, parent: null, children: [], isServiceAware};
 
             app.addListener('closed', this.onApplicationClosed);
 

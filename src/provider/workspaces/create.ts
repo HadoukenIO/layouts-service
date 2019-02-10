@@ -5,7 +5,7 @@ import {WindowInfo as WindowInfo_Window} from 'hadouken-js-adapter/out/types/src
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {WorkspaceAPI} from '../../client/internal';
-import {CustomData, TabGroup, Workspace, WorkspaceApp, WorkspaceWindow} from '../../client/types';
+import {CustomData, TabGroup, WindowState, Workspace, WorkspaceApp, WorkspaceWindow} from '../../client/types';
 import {LegacyAPI} from '../APIMessages';
 import {apiHandler, model, tabService} from '../main';
 import {WindowIdentity} from '../model/DesktopWindow';
@@ -25,7 +25,7 @@ export const SCHEMA_MAJOR_VERSION = parseVersionString(LAYOUTS_SCHEMA_VERSION).m
 interface WorkspaceWindowData {
     uuid: string;
     isShowing: boolean;
-    state: 'normal'|'minimized'|'maximized';
+    state: WindowState;
     frame: boolean;
     info: WindowInfo_Window;
     windowGroup: Identity[];

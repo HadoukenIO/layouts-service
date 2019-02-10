@@ -3,6 +3,7 @@ import {Identity, Window} from 'hadouken-js-adapter';
 
 import {WindowScope} from '../../../gen/provider/config/scope';
 import {SERVICE_IDENTITY} from '../../client/internal';
+import {WindowState} from '../../client/types';
 import {WindowMessages} from '../APIMessages';
 import {apiHandler} from '../main';
 import {Aggregators, Signal1, Signal2} from '../Signal';
@@ -23,7 +24,7 @@ export interface EntityState extends Rectangle {
 
     frame: boolean;
     hidden: boolean;
-    state: 'normal'|'minimized'|'maximized';
+    state: WindowState;
 
     icon: string;
     title: string;
@@ -34,6 +35,7 @@ export interface EntityState extends Rectangle {
     opacity: number;
 
     alwaysOnTop: boolean;
+    maximizable: boolean;
 }
 
 export interface ResizeConstraint {
@@ -157,7 +159,8 @@ export class DesktopWindow implements DesktopEntity {
                     title: options.name!,
                     showTaskbarIcon: options.showTaskbarIcon!,
                     opacity: options.opacity!,
-                    alwaysOnTop: options.alwaysOnTop!
+                    alwaysOnTop: options.alwaysOnTop!,
+                    maximizable: options.maximizable!
                 };
             });
     }
@@ -187,15 +190,18 @@ export class DesktopWindow implements DesktopEntity {
                 this)
         };
         this.activeTransactions.push(transaction);
-        await Promise.all(windows.map(w => w.sync()));
-        await Promise.all(windows.map(w => w.unsnap()));
-        // await Promise.all(windows.map(w => w.sync()));
-        await transform(windows);
-        await Promise.all(windows.map(w => w.snap()));
-        // await Promise.all(windows.map(w => w.sync()));
-        // We use the debounced here rather than removing it directly to allow time for
-        // all related events to be handled.
-        transaction.remove.call();
+        try {
+            await Promise.all(windows.map(w => w.sync()));
+            await Promise.all(windows.map(w => w.unsnap()));
+            // await Promise.all(windows.map(w => w.sync()));
+            await transform(windows);
+            await Promise.all(windows.map(w => w.snap()));
+            // await Promise.all(windows.map(w => w.sync()));
+        } finally {
+            // We use the debounced here rather than removing it directly to allow time for
+            // all related events to be handled.
+            transaction.remove.call();
+        }
     }
 
     private static isWindow(window: Window|fin.WindowOptions): window is Window {
@@ -392,7 +398,8 @@ export class DesktopWindow implements DesktopEntity {
                 y: {minSize: 0, maxSize: Number.MAX_SAFE_INTEGER, resizableMin: true, resizableMax: true}
             },
             opacity: 1,
-            alwaysOnTop: false
+            alwaysOnTop: false,
+            maximizable: true
         };
     }
 
@@ -508,14 +515,16 @@ export class DesktopWindow implements DesktopEntity {
 
         this._tabGroup = group;
 
-        // Hide tabbed windows in the task bar (except for tabstrip windows)
+        // Modify state for tabbed windows (except for tabstrip windows)
         if (this._identity.uuid !== SERVICE_IDENTITY.uuid) {
             if (group) {
-                // Hide tabbed windows in taskbar
-                return this._ready ? this.updateState({showTaskbarIcon: false}, ActionOrigin.SERVICE) : Promise.resolve();
+                // Set tabbed windows to be hidden in taskbar, and to be non-maximizable
+                const delta: Partial<EntityState> = {showTaskbarIcon: false, maximizable: false};
+                return this._ready ? this.updateState(delta, ActionOrigin.SERVICE) : Promise.resolve();
             } else if (this._currentState.showTaskbarIcon !== this._applicationState.showTaskbarIcon) {
-                // Revert taskbar icon to application-specified state
-                return this._ready ? this.updateState({showTaskbarIcon: this._applicationState.showTaskbarIcon}, ActionOrigin.SERVICE) : Promise.resolve();
+                // Revert tabbed windows to use application-specified taskbar icon , and to be maximizable
+                const delta: Partial<EntityState> = {showTaskbarIcon: this._applicationState.showTaskbarIcon, maximizable: true};
+                return this._ready ? this.updateState(delta, ActionOrigin.SERVICE) : Promise.resolve();
             }
         }
 
@@ -1032,7 +1041,7 @@ export class DesktopWindow implements DesktopEntity {
     private isMaximizedOrInMaximizedTab(): boolean {
         if (this._currentState.state === 'maximized') {
             return true;
-        } else if (this._tabGroup !== null && this._tabGroup.isMaximized) {
+        } else if (this._tabGroup !== null && this._tabGroup.state === 'maximized') {
             return true;
         } else {
             return false;

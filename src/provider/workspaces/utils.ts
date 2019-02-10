@@ -24,8 +24,6 @@ export const positionWindow = async (win: WorkspaceWindow) => {
         }
         await ofWin.leaveGroup();
 
-
-        // COMMENTED OUT FOR DEMO
         if (win.state === 'normal') {
             await ofWin.restore();
         } else if (win.state === 'minimized') {

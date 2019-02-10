@@ -2,7 +2,7 @@ import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {Scope} from '../../../gen/provider/config/scope';
 
-import {ApplicationUIConfig, TabAddedPayload, TabGroupEventPayload, TabProperties, WindowIdentity} from '../../client/types';
+import {ApplicationUIConfig, TabAddedPayload, TabGroupEventPayload, TabProperties, WindowIdentity, WindowState} from '../../client/types';
 import {WindowMessages} from '../APIMessages';
 import {tabService} from '../main';
 import {Signal1} from '../Signal';
@@ -155,8 +155,12 @@ export class DesktopTabGroup implements DesktopEntity {
         return activeWindow.scope;
     }
 
-    public get isMaximized(): boolean {
-        return this._isMaximized;
+    /**
+     * Returns the window state this tab group is currently mimicing. Note this may not match the internal underlying state
+     * as 'maximized' tabs are not truely maximized as far as Windows is concerned
+     */
+    public get state(): WindowState {
+        return this._window.currentState.state === 'minimized' ? 'minimized' : this._isMaximized ? 'maximized' : 'normal';
     }
 
     public applyOverride<K extends keyof EntityState>(property: K, value: EntityState[K]): Promise<void> {

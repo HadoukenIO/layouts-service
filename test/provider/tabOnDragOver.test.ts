@@ -4,7 +4,7 @@ import * as robot from 'robotjs';
 
 import {teardown} from '../teardown';
 
-import {assertNotTabbed, assertTabbed} from './utils/assertions';
+import {assertAllMaximized, assertAllNormalState, assertNotTabbed, assertTabbed} from './utils/assertions';
 import {getConnection} from './utils/connect';
 import {createChildWindow} from './utils/createChildWindow';
 import {delay} from './utils/delay';
@@ -20,7 +20,7 @@ test.before(async () => {
     fin = await getConnection();
 });
 test.beforeEach(async () => {
-    // Spawn two windows - wins[0] untabbed, wins[1] tabbed.  Any additional windows needed should be created in the test.
+    // Spawn two windows - wins[0] unframed, wins[1] framed.  Any additional windows needed should be created in the test.
     wins[0] = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
@@ -476,4 +476,38 @@ test('Tearout tab onto itself - should remain in tabgroup', async t => {
     await assertTabbed(wins[0], wins[1], t);
 
     await delay(1000);
+});
+
+test('Drag window into tabgroup then tearout - window should be maximizable if-and-only-if not in tabgroup', async t => {
+    // Check that we can maximize windows
+    wins[0].maximize();
+    wins[1].maximize();
+
+    assertAllMaximized(t, wins);
+
+    wins[0].restore();
+    wins[1].restore();
+
+    // Create a tab group, and check we can no longer maximize windows
+    await tabWindowsTogether(wins[0], wins[1]);
+
+    wins[0].maximize();
+    wins[1].maximize();
+
+    assertAllNormalState(t, wins);
+
+    // Tearout tab. and check that we can maximize windows again
+    const bounds1 = await getBounds(wins[0]);
+    robot.mouseToggle('up');
+    robot.moveMouseSmooth(bounds1.left + 15, bounds1.top - 20);
+    robot.mouseToggle('down');
+    robot.moveMouseSmooth(bounds1.left + 30, bounds1.top - 20);
+    robot.mouseToggle('up');
+
+    await delay(500);
+
+    wins[0].maximize();
+    wins[1].maximize();
+
+    assertAllMaximized(t, wins);
 });

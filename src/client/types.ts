@@ -40,6 +40,11 @@ export interface RegEx {
     invert?: boolean;
 }
 
+/**
+ * Window state, corresponds to `WindowOptions.state`
+ */
+export type WindowState = 'normal'|'minimized'|'maximized';
+
 
 /* Tabbing */
 
@@ -201,7 +206,7 @@ export interface WorkspaceWindow extends Bounds, WindowIdentity {
     /**
      * Window state, corresponds to `WindowOptions.state`
      */
-    state: 'normal'|'minimized'|'maximized';
+    state: WindowState;
 
     /**
      * If the window is framed or frameless, corresponds to `WindowOptions.frame`
@@ -268,6 +273,11 @@ export interface TabGroupInfo {
      * Object containing the tabstrip configuration
      */
     config: ApplicationUIConfig|'default';
+
+    /**
+     * The state the TabGroup and contained windows are mimicing
+     */
+    state: WindowState;
 }
 
 /**

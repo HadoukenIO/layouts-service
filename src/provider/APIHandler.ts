@@ -62,11 +62,12 @@ export class APIHandler {
         await this._providerChannel.publish(action, payload);
     }
 
-    public async register(): Promise<void> {
+    public async registerListeners(): Promise<void> {
         const providerChannel: ChannelProvider = this._providerChannel = await fin.InterApplicationBus.Channel.create(SERVICE_CHANNEL);
 
         // Common
         providerChannel.onConnection(this.onConnection);
+        this.registerListener(RegisterAPI.REGISTER, this.register);
         this.registerListener(RegisterAPI.DEREGISTER, this.deregister);
 
         // Snap & Dock
@@ -119,6 +120,15 @@ export class APIHandler {
             console.log(`connection from client: ${app.name}, version: ${payload.version}`);
         } else {
             console.log(`connection from client: ${app.name}, unable to determine version`);
+        }
+    }
+
+    private async register(identity: WindowIdentity, id: ProviderIdentity): Promise<void> {
+        try {
+            this._model.register(identity, {level: 'window', uuid: id.uuid, name: id.name || id.uuid});
+        } catch (error) {
+            console.error(error);
+            throw new Error(`Unexpected error when registering: ${error}`);
         }
     }
 
@@ -182,7 +192,7 @@ export class APIHandler {
             throw new Error('Could not find \'windowToAdd\'.');
         }
 
-        if (this._tabService.canTabTogether(payload.targetWindow, payload.windowToAdd)) {
+        if (this._tabService.canTabTogether(targetTab!, tabToAdd)) {
             return targetGroup.addTab(tabToAdd);
         } else {
             console.error('The tabs provided have incompatible tabstrip URLs');

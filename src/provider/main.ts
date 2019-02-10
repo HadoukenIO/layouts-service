@@ -45,5 +45,5 @@ export async function main() {
     DesktopTabGroup.windowPool;  // tslint:disable-line:no-unused-expression
 
     await win10Check;
-    await apiHandler.register();
+    await apiHandler.registerListeners();
 }

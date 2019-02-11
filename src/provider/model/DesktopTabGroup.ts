@@ -203,6 +203,11 @@ export class DesktopTabGroup implements DesktopEntity {
      */
     public async maximize(): Promise<void> {
         if (!this._isMaximized) {
+            // Before doing anything else we will undock the tabGroup (mitigation for SERVICE-314)
+            if (this.snapGroup.entities.length > 1) {
+                await this.setSnapGroup(new DesktopSnapGroup());
+            }
+
             const {center, halfSize} = this._activeTab.currentState;
             this._beforeMaximizeBounds = {center: {...center}, halfSize: {...halfSize}};
 

@@ -85,7 +85,8 @@ export class DesktopTabstripFactory {
             saveWindowState: false,
             taskbarIconGroup: name,
             backgroundThrottling: true,
-            waitForPageLoad: false
+            waitForPageLoad: false,
+            showTaskbarIcon: false
         };
     }
 

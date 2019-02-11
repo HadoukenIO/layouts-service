@@ -634,9 +634,6 @@ export class DesktopTabGroup implements DesktopEntity {
         }
 
         this.currentState.resizeConstraints = result;
-
-        // Apply the new constraints to all windows
-        await Promise.all(this.tabs.map((tab: DesktopWindow) => tab.applyProperties({resizeConstraints: this.currentState.resizeConstraints})));
         // Update the tabStrip constraints accordingly
         if (this._window.isReady) {
             await this._window.applyProperties({
@@ -645,12 +642,16 @@ export class DesktopTabGroup implements DesktopEntity {
                     y: {
                         minSize: this._config.height,
                         maxSize: this._config.height,
-                        resizableMin: false,
+                        resizableMin: result.y.resizableMin,
                         resizableMax: false,
                     }
                 }
             });
         }
+
+        result.y.resizableMin = false;  // Cannot resize on the edge between tab and tabstrip (SERVICE-287)
+        // Apply the new constraints to all windows
+        await Promise.all(this.tabs.map((tab: DesktopWindow) => tab.applyProperties({resizeConstraints: result})));
     }
 
     // Will check that all of the tabs and the tabstrip are still in the correct relative positions, and if not

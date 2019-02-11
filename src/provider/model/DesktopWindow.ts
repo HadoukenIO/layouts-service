@@ -35,6 +35,7 @@ export interface EntityState extends Rectangle {
     opacity: number;
 
     alwaysOnTop: boolean;
+    maximizable: boolean;
 }
 
 export interface ResizeConstraint {
@@ -158,7 +159,8 @@ export class DesktopWindow implements DesktopEntity {
                     title: options.name!,
                     showTaskbarIcon: options.showTaskbarIcon!,
                     opacity: options.opacity!,
-                    alwaysOnTop: options.alwaysOnTop!
+                    alwaysOnTop: options.alwaysOnTop!,
+                    maximizable: options.maximizable!
                 };
             });
     }
@@ -396,7 +398,8 @@ export class DesktopWindow implements DesktopEntity {
                 y: {minSize: 0, maxSize: Number.MAX_SAFE_INTEGER, resizableMin: true, resizableMax: true}
             },
             opacity: 1,
-            alwaysOnTop: false
+            alwaysOnTop: false,
+            maximizable: true
         };
     }
 
@@ -512,14 +515,16 @@ export class DesktopWindow implements DesktopEntity {
 
         this._tabGroup = group;
 
-        // Hide tabbed windows in the task bar (except for tabstrip windows)
+        // Modify state for tabbed windows (except for tabstrip windows)
         if (this._identity.uuid !== SERVICE_IDENTITY.uuid) {
             if (group) {
-                // Hide tabbed windows in taskbar
-                return this._ready ? this.updateState({showTaskbarIcon: false}, ActionOrigin.SERVICE) : Promise.resolve();
+                // Set tabbed windows to be hidden in taskbar, and to be non-maximizable
+                const delta: Partial<EntityState> = {showTaskbarIcon: false, maximizable: false};
+                return this._ready ? this.updateState(delta, ActionOrigin.SERVICE) : Promise.resolve();
             } else if (this._currentState.showTaskbarIcon !== this._applicationState.showTaskbarIcon) {
-                // Revert taskbar icon to application-specified state
-                return this._ready ? this.updateState({showTaskbarIcon: this._applicationState.showTaskbarIcon}, ActionOrigin.SERVICE) : Promise.resolve();
+                // Revert tabbed windows to use application-specified taskbar icon , and to be maximizable
+                const delta: Partial<EntityState> = {showTaskbarIcon: this._applicationState.showTaskbarIcon, maximizable: true};
+                return this._ready ? this.updateState(delta, ActionOrigin.SERVICE) : Promise.resolve();
             }
         }
 

@@ -91,7 +91,7 @@ const requestClientRestoreApp = async(layoutApp: WorkspaceApp, resolve: Function
             // Instruct app to restore its child windows
             appsCurrentlyRestoring.set(uuid, true);
 
-            const appLayout = await clientRestoreAppWithTimeout(layoutApp);
+            const appLayout = await clientRestoreAppWithTimeout(layoutApp, false);
 
             // Flag app as restored
             appsCurrentlyRestoring.delete(uuid);
@@ -239,7 +239,7 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
                 await positionWindow(app.mainWindow);
                 console.log('App is running:', app);
                 // Send LayoutApp to connected application so it can handle child windows
-                return await clientRestoreAppWithTimeout(app);
+                return await clientRestoreAppWithTimeout(app, true);
             } else {
                 // Not connected to service
                 await positionWindow(app.mainWindow);
@@ -285,18 +285,18 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
     }
 };
 
-const clientRestoreAppWithTimeout = async(app: WorkspaceApp): Promise<WorkspaceApp> => {
+const clientRestoreAppWithTimeout = async(app: WorkspaceApp, mayBeLegacyApp: boolean): Promise<WorkspaceApp> => {
     const {uuid} = app;
     const name = uuid;
 
     const defaultResponse = {...app, childWindows: []};
 
-    const sendToClientPromise = Promise.race([
-        apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name}, WorkspaceAPI.RESTORE_HANDLER, app),
-        apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name}, LegacyAPI.RESTORE_HANDLER, app)
-    ]);
+    const sendToClientPromises = [apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name}, WorkspaceAPI.RESTORE_HANDLER, app)];
+    if (mayBeLegacyApp) {
+        sendToClientPromises.push(apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name}, LegacyAPI.RESTORE_HANDLER, app));
+    }
 
-    const responsePromise = sendToClientPromise.then((response: WorkspaceApp|false|undefined) => response ? response : defaultResponse);
+    const responsePromise = Promise.race(sendToClientPromises).then((response: WorkspaceApp|false|undefined) => response ? response : defaultResponse);
 
     const timeoutPromise = new Promise<WorkspaceApp>((response) => setTimeout(() => response(defaultResponse), CLIENT_RESTORE_TIMEOUT));
 

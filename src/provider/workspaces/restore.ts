@@ -13,8 +13,13 @@ import {SCHEMA_MAJOR_VERSION} from './create';
 import {regroupWorkspace} from './group';
 import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, parseVersionString, positionWindow, SemVer, TabbedPlaceholders, wasCreatedProgrammatically, WindowObject} from './utils';
 
-const GLOBAL_RESTORE_TIMEOUT = 120000;
+// Duration in milliseconds that the entire Workspace restore may take, before we allow another restore to start
+const GLOBAL_EXCLUSIVITY_TIMEOUT = 120000;
+
+// Duration in milliseconds that we give a client app to startup when restoring a Workspace
 const CLIENT_STARTUP_TIMEOUT = 60000;
+
+// Duration in milliseconds that we give a client app to restore itself when restoring a Workspace
 const CLIENT_RESTORE_TIMEOUT = 60000;
 
 const appsCurrentlyStarting = new Map();
@@ -148,7 +153,7 @@ const startRestoreBlockerTimeout = (): void => {
                 appsToRestore.clear();
                 appsCurrentlyRestoring.clear();
             }
-        }, GLOBAL_RESTORE_TIMEOUT);
+        }, GLOBAL_EXCLUSIVITY_TIMEOUT);
     })();
 };
 

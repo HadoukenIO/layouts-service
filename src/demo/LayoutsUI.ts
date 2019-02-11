@@ -332,7 +332,7 @@ export function createSnapWindows(): void {
         for (let i = 0; i < 6; i++) {
             fin.Window
                 .create({
-                    url: `${launchDir}/popup.html`,
+                    url: `${launchDir}/testbed/index.html`,
                     autoShow: true,
                     defaultHeight: i > 2 ? 275 : 200,
                     defaultWidth: i > 4 ? 400 : 300,
@@ -348,11 +348,13 @@ export function createSnapWindows(): void {
     });
 }
 
-export function createSimpleWindow(page: string) {
+export function createSimpleWindow(page: string, args?: {[key: string]: string}) {
     const uuid = `App${numTabbedWindows}`;
+    const query = args ? toQueryString(args) : '';
+
     const app = new fin.desktop.Application(
         {
-            url: `http://localhost:1337/demo/${page}.html`,
+            url: `http://localhost:1337/demo/${page}.html${query}`,
             uuid,
             name: uuid,
             mainWindowOptions: {defaultWidth: 400, defaultHeight: 300, saveWindowState: false, autoShow: true, defaultCentered: true}
@@ -362,6 +364,10 @@ export function createSimpleWindow(page: string) {
             numTabbedWindows++;
         },
         console.error);
+}
+
+function toQueryString(args: {[key: string]: string|number|boolean|{}}): string {
+    return '?' + Object.keys(args).map(arg => `${arg}=${encodeURIComponent(JSON.stringify(args[arg]))}`).join('&');
 }
 
 function updateTextArea(content: {}): void {

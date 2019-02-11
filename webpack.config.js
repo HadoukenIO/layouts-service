@@ -131,7 +131,7 @@ module.exports = [
     }, undefined, manifestPlugin, versionPlugin, schemaDefaultsPlugin, schemaTypesPlugin),
     createConfig(`${outputDir}/demo`, {
         LayoutsUI: './src/demo/LayoutsUI.ts',
-        sample: './src/demo/sample.ts',
+        testbed: './src/demo/testbed/index.ts',
         popup: './src/demo/popup.ts',
         deregisteredApp: './src/demo/deregisteredApp.ts',
         normalApp: './src/demo/normalApp.ts',

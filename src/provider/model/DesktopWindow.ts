@@ -842,9 +842,9 @@ export class DesktopWindow implements DesktopEntity {
                         }
                     },
                     minWidth: resizeConstraints.x.minSize,
-                    maxWidth: resizeConstraints.x.maxSize === Number.MAX_SAFE_INTEGER ? undefined : resizeConstraints.x.maxSize,
+                    maxWidth: resizeConstraints.x.maxSize,
                     minHeight: resizeConstraints.y.minSize,
-                    maxHeight: resizeConstraints.y.maxSize === Number.MAX_SAFE_INTEGER ? undefined : resizeConstraints.y.maxSize,
+                    maxHeight: resizeConstraints.y.maxSize,
                 }));
             }
 

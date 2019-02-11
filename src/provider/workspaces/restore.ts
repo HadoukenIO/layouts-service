@@ -26,7 +26,8 @@ const appsCurrentlyStarting = new Map();
 const appsToRestore = new Map();
 const appsCurrentlyRestoring = new Map();
 
-let restoreBlocker: {}|null = null;
+// A token unique to the current run of restoreWorkspace, needed so that we can correctly release the exclusivity token after a timeout if needed
+let restoreExclusivityToken: {}|null = null;
 
 interface AppToRestore {
     layoutApp: WorkspaceApp;
@@ -47,7 +48,7 @@ export const appReadyForRestore = async(uuid: string): Promise<void> => {
 };
 
 export const restoreWorkspace = async(payload: Workspace, identity: Identity): Promise<Workspace> => {
-    if (restoreBlocker !== null) {
+    if (restoreExclusivityToken !== null) {
         throw new Error('Attempting to restore while restore in progress');
     }
 
@@ -81,7 +82,7 @@ export const restoreWorkspace = async(payload: Workspace, identity: Identity): P
 
     apiHandler.sendToAll('workspace-restored', layout);
 
-    restoreBlocker = null;
+    restoreExclusivityToken = null;
 
     // Send the layout back to the requester of the restore
     return layout;
@@ -142,12 +143,12 @@ const validatePayload = (payload: Workspace): void => {
 
 const startRestoreBlockerTimeout = (): void => {
     (() => {
-        restoreBlocker = {};
-        const capturedRestoreBlocker = restoreBlocker;
+        restoreExclusivityToken = {};
+        const capturedRestoreExclusivityToken = restoreExclusivityToken;
 
         setTimeout(() => {
-            if (capturedRestoreBlocker === restoreBlocker) {
-                restoreBlocker = null;
+            if (capturedRestoreExclusivityToken === restoreExclusivityToken) {
+                restoreExclusivityToken = null;
 
                 appsCurrentlyStarting.clear();
                 appsToRestore.clear();

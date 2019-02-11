@@ -60,7 +60,7 @@ export const restoreWorkspace = async(payload: Workspace, identity: Identity): P
 
     await createAllPlaceholders(layout);
 
-    const apps = await promiseMap(layout.apps, async(app: WorkspaceApp): Promise<WorkspaceApp> => await restoreApp(app, startupApps));
+    const apps = await promiseMap(layout.apps, app => restoreApp(app, startupApps));
 
     // Wait for all apps to startup
     const startupResponses = await Promise.all(startupApps);

@@ -296,7 +296,7 @@ export class TabService {
             await existingTabGroup.removeTab(activeDesktopWindow, {center, halfSize});
         }
 
-        await activeDesktopWindow.bringToFront();
+        await activeDesktopWindow.setAsForeground();
     }
 
     /**

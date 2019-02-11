@@ -420,17 +420,18 @@ export class DesktopTabGroup implements DesktopEntity {
                 await prevTab.bringToFront();
                 await tab.applyProperties({hidden: false});
                 await new Promise<void>(r => setTimeout(r, 150));
-                await tab.bringToFront();
             } else {
                 // Show tab as quickly as possible
                 await tab.applyProperties({hidden: false});
-                await tab.bringToFront();
             }
+
+            await tab.setAsForeground();
+
             if (prevTab && prevTab.tabGroup === this) {
                 await prevTab.applyProperties({hidden: true});
             }
 
-            await Promise.all([this._window!.sync(), tab.sync()]).catch(e => console.error(e));
+            await Promise.all([this._window.sync(), tab.sync()]).catch(e => console.error(e));
             const payload: TabGroupEventPayload = {tabstripIdentity: this.identity, identity: tab.identity};
             this._window.sendMessage('tab-activated', payload);
         }
@@ -539,7 +540,7 @@ export class DesktopTabGroup implements DesktopEntity {
 
             this.sendTabEvent(tab, 'tab-added', payload);
             await tab.applyProperties({hidden: tab !== this._activeTab});
-            await this._window.bringToFront();
+            await this._window.setAsForeground();
         })();
         await addTabPromise;  // TODO: Need to add this to a pendingActions queue?
 

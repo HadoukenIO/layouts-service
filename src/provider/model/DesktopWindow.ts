@@ -585,6 +585,10 @@ export class DesktopWindow implements DesktopEntity {
         return this.addPendingActions('bringToFront ' + this._id, this._window.bringToFront());
     }
 
+    public async setAsForeground(): Promise<void> {
+        return this.addPendingActions('setAsForeground ' + this._id, this._window.setAsForeground());
+    }
+
     public async close(): Promise<void> {
         this._ready = false;
         return this.addPendingActions('close ' + this._id, this._window.close(true));

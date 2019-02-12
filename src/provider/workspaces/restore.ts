@@ -11,7 +11,7 @@ import {promiseMap} from '../snapanddock/utils/async';
 
 import {SCHEMA_MAJOR_VERSION} from './create';
 import {regroupWorkspace} from './group';
-import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, parseVersionString, positionWindow, SemVer, TabbedPlaceholders, wasCreatedProgrammatically, WindowObject, waitUntilAllPlaceholdersClosed} from './utils';
+import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, parseVersionString, positionWindow, SemVer, TabbedPlaceholders, waitUntilAllPlaceholdersClosed, wasCreatedProgrammatically, WindowObject} from './utils';
 
 const appsToRestore = new Map();
 const appsCurrentlyRestoring = new Map();
@@ -182,6 +182,7 @@ export const restoreWorkspace = async(payload: Workspace, identity: Identity): P
                     return response ? response : defaultResponse;
                 } else {
                     // Not connected to service
+                    console.log('App is open, but not connected to the service:', app);
                     await positionWindow(app.mainWindow);
                     return defaultResponse;
                 }
@@ -205,13 +206,6 @@ export const restoreWorkspace = async(payload: Workspace, identity: Identity): P
                     // If application created programmatically
                     if (wasCreatedProgrammatically(app)) {
                         console.warn('App created programmatically, app may not restart again:', app);
-                        if (app.initialOptions) {
-                            if (app.initialOptions.mainWindowOptions) {
-                                app.initialOptions.mainWindowOptions.autoShow = false;
-                            } else {
-                                app.initialOptions.mainWindowOptions = {autoShow: false};
-                            }
-                        }
                         ofAppNotRunning = await fin.Application.create(app.initialOptions);
                     } else {
                         console.error('Unable to restart programmatically launched app:', app);
@@ -221,7 +215,21 @@ export const restoreWorkspace = async(payload: Workspace, identity: Identity): P
                 if (ofAppNotRunning) {
                     await ofAppNotRunning.run().catch(console.log);
                     await model.expect({name, uuid});
-                    await positionWindow(app.mainWindow);
+
+                    if (app.initialOptions) {
+                        // If the app's main window is tabbed, position it in the proper location.
+                        if (app.mainWindow.isTabbed) {
+                            await positionWindow(app.mainWindow);
+                        }
+
+                        // If the app's autoShow is set to false, but isShowing is true for the application, then position it.
+                        // Otherwise, placeholder resolution may not complete properly.
+                        if (app.initialOptions.mainWindowOptions) {
+                            if (app.initialOptions.mainWindowOptions.autoShow === false && app.mainWindow.isShowing) {
+                                await positionWindow(app.mainWindow);
+                            }
+                        }
+                    }
                 }
                 // SHOULD WE RETURN DEFAULT RESPONSE HERE?!?
                 return defaultResponse;
@@ -232,17 +240,24 @@ export const restoreWorkspace = async(payload: Workspace, identity: Identity): P
         }
     });
     // Wait for all apps to startup
-    await Promise.all(startupApps);
+    const startupResponses = await Promise.all(startupApps);
 
-    // Wait for all child windows to appear. Continue and Warn if placeholders aren't closed in 30 seconds.
+    // Wait for all child windows to appear. Continue and Warn if placeholders aren't closed in 60 seconds.
     try {
         await waitUntilAllPlaceholdersClosed();
     } catch (error) {
         console.warn(error);
     }
 
+    // Consolidate application responses
+    const allAppResponses = apps.map(app => {
+        const appResponse = startupResponses.find(appRes => appRes.uuid === app.uuid);
+        return appResponse ? appResponse : app;
+    });
+    layout.apps = allAppResponses;
+
     // Regroup the windows
-    await regroupWorkspace(layout.apps).catch(console.log);
+    await regroupWorkspace(allAppResponses).catch(console.log);
 
     // Validate groups
     for (const group of model.snapGroups) {
@@ -251,7 +266,7 @@ export const restoreWorkspace = async(payload: Workspace, identity: Identity): P
 
     apiHandler.sendToAll('workspace-restored', layout);
 
-    console.log("Restore completed");
+    console.log('Restore completed');
 
     // Send the layout back to the requester of the restore
     return layout;

@@ -14,23 +14,24 @@ export interface SemVer {
     patch: number;
 }
 
-
-// TODO: Create Placeholder and PlaceholderStore classes
+// TODO: Create Placeholder and PlaceholderStore classes?
 // This keeps track of how many placeholders we have open, so we know when we can start regrouping a layout.
 let numOfPlaceholders = 0;
-let placeholderResolve: (() => void) | undefined;
+let placeholderResolve: (() => void)|undefined;
 
 function placeholderCreated(): void {
-    numOfPlaceholders ++;
+    numOfPlaceholders++;
 }
 
-function placeholderClosed(): void {
-    numOfPlaceholders--;
-    if (numOfPlaceholders === 0 && placeholderResolve) {
-        placeholderResolve();
-        placeholderResolve = undefined;
+fin.System.addListener('window-closed', (win) => {
+    if (win.name.startsWith('Placeholder-')) {
+        numOfPlaceholders--;
+        if (numOfPlaceholders === 0 && placeholderResolve) {
+            placeholderResolve();
+            placeholderResolve = undefined;
+        }
     }
-}
+});
 
 export async function waitUntilAllPlaceholdersClosed() {
     if (numOfPlaceholders === 0) {
@@ -39,7 +40,10 @@ export async function waitUntilAllPlaceholdersClosed() {
 
     return new Promise((res, rej) => {
         placeholderResolve = res;
-        setTimeout(() => rej(`${numOfPlaceholders} Placeholder(s) Left Open after 30 seconds. ${numOfPlaceholders} Window(s) did not come up. Attempting to group anyway.`), 30000);
+        setTimeout(
+            () => rej(
+                `${numOfPlaceholders} Placeholder(s) Left Open after 60 seconds. ${numOfPlaceholders} Window(s) did not come up. Attempting to group anyway.`),
+            60000);
     });
 }
 
@@ -64,7 +68,9 @@ export const positionWindow = async (win: WorkspaceWindow) => {
         }
 
         if (win.state === 'normal') {
+            // Need to both restore and show because the restore function doesn't emit a `shown` or `show-requested` event
             await ofWin.restore();
+            await ofWin.show();
         } else if (win.state === 'minimized') {
             await ofWin.minimize();
         } else if (win.state === 'maximized') {
@@ -81,7 +87,7 @@ const createPlaceholderWindow = async (win: WorkspaceWindow) => {
 
     const placeholderName = 'Placeholder-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
-    return await fin.Window.create({
+    const placeholderWindow = await fin.Window.create({
         name: placeholderName,
         autoShow: true,
         defaultHeight: height,
@@ -93,6 +99,12 @@ const createPlaceholderWindow = async (win: WorkspaceWindow) => {
         frame: false,
         backgroundColor: '#D3D3D3'
     });
+
+    if (placeholderWindow) {
+        placeholderCreated();
+    }
+
+    return placeholderWindow;
 };
 
 // Creates a placeholder for a normal, non-tabbed window.
@@ -106,29 +118,29 @@ export const createNormalPlaceholder = async (win: WorkspaceWindow) => {
 
     if (state !== 'minimized') {
         placeholderWindow = await createPlaceholderWindow(win);
-        placeholderCreated();
     }
-
 
     const actualWindow = await fin.Window.wrap({uuid, name});
     const updateOptionsAndShow = async () => {
         try {
-            await actualWindow.removeListener('shown', updateOptionsAndShow);
+            await actualWindow.removeListener('show-requested', updateOptionsAndShow);
             await model.expect(actualWindow.identity as WindowIdentity);
-            // If window is a child window, position it.
-            if (name !== uuid) {
-                await positionWindow(win);
-            }
+            await positionWindow(win);
         } finally {
             if (placeholderWindow) {
                 await placeholderWindow.close();
-                placeholderClosed();
             }
         }
     };
-    await actualWindow.addListener('shown', updateOptionsAndShow);
+    // We add a listener to show-requested so that the window shows up in the location it's supposed to be restored at.
+    // If we added a listener to shown, we'd see the window appear in its original spot and then flash to the next spot.
+    await actualWindow.addListener('show-requested', updateOptionsAndShow);
     return placeholderWindow;
 };
+
+async function delay(milliseconds: number) {
+    return new Promise<void>(r => setTimeout(r, milliseconds));
+}
 
 // Creates a placeholder for a tabbed window.
 // When the window that is supposed to be tabbed comes up, swaps the placeholder tab with the real window tab and closes the placeholder.
@@ -136,20 +148,20 @@ export const createTabPlaceholder = async (win: WorkspaceWindow) => {
     const {name, uuid} = win;
 
     const placeholderWindow = await createPlaceholderWindow(win);
-    placeholderCreated();
 
     const actualWindow = await fin.Window.wrap({uuid, name});
     const updateOptionsAndShow = async () => {
         try {
             await actualWindow.removeListener('shown', updateOptionsAndShow);
             await model.expect(actualWindow.identity as WindowIdentity);
-            await tabService.swapTab(
-                placeholderWindow.identity as WindowIdentity, actualWindow.identity as WindowIdentity);
+            // TODO: Remove this once RUN-5006 has been resolved. If you try to swapTab too early after the window shows, you get a JS exception.
+            await delay(300);
+            await tabService.swapTab(placeholderWindow.identity as WindowIdentity, actualWindow.identity as WindowIdentity);
         } finally {
             await placeholderWindow.close();
-            placeholderClosed();
         }
     };
+    // We add a listener to shown so that the core has time to set the proper properties on the window for grouping.
     await actualWindow.addListener('shown', updateOptionsAndShow);
 
     return placeholderWindow;

@@ -31,6 +31,7 @@ testParameterized<CreateAppData, AppContext>(
             testOptions.apps.length} App(s) - ${testOptions.apps[0].childWindows.length} Child(ren) Each`,
     hiddenParentTestArray,
     createAppTest(async (t, applicationData: CreateAppData) => {
+        // Set up the callback to fail the test if the parent window shows.
         const failIfShown = (e: WindowEvent<'window', 'shown'>) => {
             t.fail(`Parent Window ${e.uuid} showed when it shouldn't have.`);
         };

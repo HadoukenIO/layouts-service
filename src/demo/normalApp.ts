@@ -72,6 +72,7 @@ const positionWindow = async (win: WorkspaceWindow) => {
         await ofWin.setBounds(win);
 
         if (isTabbed) {
+            await ofWin.show();
             return;
         }
 
@@ -83,7 +84,9 @@ const positionWindow = async (win: WorkspaceWindow) => {
         }
 
         if (win.state === 'normal') {
+            // Need to both restore and show because the restore function doesn't emit a `shown` or `show-requested` event
             await ofWin.restore();
+            await ofWin.show();
         } else if (win.state === 'minimized') {
             await ofWin.minimize();
         } else if (win.state === 'maximized') {

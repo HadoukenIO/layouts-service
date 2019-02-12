@@ -154,7 +154,7 @@ function constraintsUnion(...windowConstraints: Constraints[]): Required<Constra
 
     // Check if the union of side constraints made the window non-resizable
     if (result.resizable) {
-        result.resizable = (Object.keys(result.resizeRegion.sides) as Side[]).every(key => result.resizeRegion.sides[key] !== false);
+        result.resizable = (Object.keys(result.resizeRegion.sides) as Side[]).some(key => result.resizeRegion.sides[key] !== false);
     }
 
     return result;

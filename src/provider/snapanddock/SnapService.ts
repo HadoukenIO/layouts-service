@@ -116,10 +116,11 @@ export class SnapService {
                 // group.center is recalculated on each call, so we assign it here once and use the value.
                 const groupCenter = group.center;
 
-                await Promise.all(entities.map((entity: DesktopEntity) => {
+                // We leave one of the entities in the original snapGroup since we would just be moving it from one solo group to another.
+                // Chose the first because saved a couple of characters in the code, but really doesn't matter which is left behind.
+                await Promise.all(entities.slice(1).map((entity: DesktopEntity) => {
                     return entity.setSnapGroup(new DesktopSnapGroup());
                 }));
-
                 await Promise.all(entities.map((entity: DesktopEntity) => {
                     // Determine the offset for each window before modifying and window state
                     const offset = PointUtils.scale(PointUtils.difference(groupCenter, entity.currentState.center), EXPLODE_MOVE_SCALE);
@@ -138,7 +139,7 @@ export class SnapService {
         return this._resolver.getSnapTarget(this._model.snapGroups, activeGroup);
     }
 
-    public applySnapTarget(snapTarget: SnapTarget): void {
+    public async applySnapTarget(snapTarget: SnapTarget): Promise<void> {
         if (snapTarget.valid) {  // SNAP WINDOWS
             const activeGroup = snapTarget.activeWindow.snapGroup;
 
@@ -147,13 +148,13 @@ export class SnapService {
             }
 
             // Snap all windows in activeGroup to snapTarget.group
-            snapTarget.activeWindow.applyOffset(snapTarget.offset, snapTarget.halfSize!);
+            await snapTarget.activeWindow.applyOffset(snapTarget.offset, snapTarget.halfSize!);
 
             const canDockActive: boolean = this._config.query(snapTarget.activeWindow.scope).features.dock;
             const canDockTarget: boolean = snapTarget.targetGroup.windows.every(window => this._config.query(window.scope).features.dock);
             if (canDockActive && canDockTarget) {
                 // Dock all windows in activeGroup to snapTarget.group
-                snapTarget.activeWindow.setSnapGroup(snapTarget.targetGroup);
+                await snapTarget.activeWindow.setSnapGroup(snapTarget.targetGroup);
 
                 // The active group should now have been removed (since it is empty)
                 if (this._model.snapGroups.indexOf(activeGroup) >= 0) {

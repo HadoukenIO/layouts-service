@@ -58,6 +58,42 @@ export async function assertNotGrouped(win: Window, t: TestContext) {
     t.is(snapGroup.length, 1);
 }
 
+export async function assertNotGroupedTogether(t: TestContext, win1: Window, win2: Window) {
+    const groups = await promiseMap([win1, win2], async win => win.getGroup());
+
+    // Quick pass if groups are of unequal length or of length 0
+    if (groups[0].length !== groups[1].length || groups[0].length === 0) {
+        t.pass();
+        return;
+    }
+
+    t.notDeepEqual(
+        groups[0],
+        groups[1],
+        `Window ${win1.identity.uuid + '/' + win1.identity.name} in same native group as ${win2.identity.uuid + '/' + win2.identity.name}`);
+
+    const snapGroupIDs = await promiseMap([win1, win2], async win => getSnapGroupID(win.identity));
+    t.not(
+        snapGroupIDs[0],
+        snapGroupIDs[1],
+        `Window ${win1.identity.uuid + '/' + win1.identity.name} in same snapGroup as ${win2.identity.uuid + '/' + win2.identity.name}`);
+}
+
+/**
+ * Assert that **none** of the given windows are part of the same snap group.
+ */
+export async function assertNoneGroupedTogether(t: TestContext, ...windows: Window[]) {
+    if (windows.length < 2) {
+        throw new Error('Too few windows passed to assertGrouped. Requires at least two windows');
+    }
+
+    for (let i = 0; i < windows.length; i++) {
+        for (let j = i + 1; j < windows.length; j++) {
+            assertNotGroupedTogether(t, windows[i], windows[j]);
+        }
+    }
+}
+
 export function assertMoved(bounds1: NormalizedBounds, bounds2: NormalizedBounds, t: TestContext) {
     t.notDeepEqual(bounds1, bounds2);
 }

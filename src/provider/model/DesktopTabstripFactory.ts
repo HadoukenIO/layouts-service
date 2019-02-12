@@ -85,7 +85,8 @@ export class DesktopTabstripFactory {
             saveWindowState: false,
             taskbarIconGroup: name,
             backgroundThrottling: true,
-            waitForPageLoad: false
+            waitForPageLoad: false,
+            showTaskbarIcon: false
         };
     }
 
@@ -120,7 +121,9 @@ export class DesktopTabstripFactory {
      * Creates a single non-pooled window.
      * @param {ApplicationUIConfig} options The configuration to create the windows against.
      */
-    private createWindow(options: ApplicationUIConfig) {
-        return fin.Window.create(this.generateTabStripOptions(options));
+    private async createWindow(options: ApplicationUIConfig): Promise<_Window> {
+        const tabStrip = await fin.Window.create(this.generateTabStripOptions(options));
+        await tabStrip.disableFrame();
+        return tabStrip;
     }
 }

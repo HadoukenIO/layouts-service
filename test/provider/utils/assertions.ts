@@ -80,9 +80,7 @@ export async function assertNoneGroupedTogether(t: TestContext, ...windows: Wind
     if (windows.length < 2) {
         throw new Error('Too few windows passed to assertGrouped. Requires at least two windows');
     }
-    // Get the native openfin groups for each window
-    const groups = await promiseMap(windows, async win => win.getGroup());
-    
+
     for (let i = 0; i < windows.length; i++) {
         for (let j = i + 1; j < windows.length; j++) {
             assertNotGroupedTogether(t, windows[i], windows[j]);

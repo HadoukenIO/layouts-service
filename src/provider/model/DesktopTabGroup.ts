@@ -540,7 +540,7 @@ export class DesktopTabGroup implements DesktopEntity {
 
             this.sendTabEvent(tab, 'tab-added', payload);
             await tab.applyProperties({hidden: tab !== this._activeTab});
-            await this._window.setAsForeground();
+            //await this._window.setAsForeground();
         })();
         await addTabPromise;  // TODO: Need to add this to a pendingActions queue?
 

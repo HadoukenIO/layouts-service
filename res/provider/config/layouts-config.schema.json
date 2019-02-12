@@ -5,12 +5,197 @@
     "title": "Layouts Config",
     "description": "Configuration for the OpenFin Layouts Service, allowing the service and/or specific features to be enabled/disabled.",
     "definitions": {
+        "pattern": {
+            "title": "RegEx",
+            "description": "JSON representation of a regular expression.",
+            "type": "object",
+            "required": [
+                "expression"
+            ],
+            "properties": {
+                "expression": {
+                    "type": "string"
+                },
+                "flags": {
+                    "type": "string",
+                    "default": ""
+                },
+                "invert": {
+                    "type": "boolean",
+                    "default": false
+                }
+            },
+            "additionalProperties": false
+        },
+        "rule-app": {
+            "title": "ApplicationRule",
+            "description": "A rule targeting an application (or set of applications) by UUID.",
+            "properties": {
+                "level": {
+                    "type": "string",
+                    "enum": [
+                        "application"
+                    ]
+                },
+                "uuid": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "$ref": "#/definitions/pattern"
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "level",
+                "uuid"
+            ],
+            "additionalProperties": false
+        },
+        "rule-window": {
+            "title": "WindowRule",
+            "description": "A rule targeting a window (or set of windows) by UUID-Name pair.",
+            "properties": {
+                "level": {
+                    "type": "string",
+                    "enum": [
+                        "window"
+                    ]
+                },
+                "uuid": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "$ref": "#/definitions/pattern"
+                        }
+                    ]
+                },
+                "name": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "$ref": "#/definitions/pattern"
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "level",
+                "uuid",
+                "name"
+            ],
+            "additionalProperties": false
+        },
+        "rule-other": {
+            "title": "OtherRule",
+            "properties": {
+                "level": {
+                    "type": "string",
+                    "enum": [
+                        "service",
+                        "desktop"
+                    ]
+                }
+            },
+            "required": [
+                "level"
+            ],
+            "additionalProperties": false
+        },
+        "scope-app": {
+            "title": "ApplicationScope",
+            "description": "A scope targeting a specific OpenFin application and all of its windows",
+            "properties": {
+                "level": {
+                    "type": "string",
+                    "enum": [
+                        "application"
+                    ]
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "level",
+                "uuid"
+            ],
+            "additionalProperties": false
+        },
+        "scope-window": {
+            "title": "WindowScope",
+            "description": "A scope targeting a specific OpenFin window",
+            "properties": {
+                "level": {
+                    "type": "string",
+                    "enum": [
+                        "window"
+                    ]
+                },
+                "uuid": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "level",
+                "uuid",
+                "name"
+            ],
+            "additionalProperties": false
+        },
+        "scope-other": {
+            "title": "OtherScope",
+            "description": "A scope for all levels with no extra data required (e.g. desktop-level configuration)",
+            "properties": {
+                "level": {
+                    "type": "string",
+                    "enum": [
+                        "service",
+                        "desktop"
+                    ]
+                }
+            },
+            "required": [
+                "level"
+            ],
+            "additionalProperties": false
+        },
         "rule": {
-            "$ref": "./rule.schema.json#"
+            "title": "Rule",
+            "oneOf": [
+                {
+                    "$ref": "#/definitions/rule-app"
+                },
+                {
+                    "$ref": "#/definitions/rule-window"
+                },
+                {
+                    "$ref": "#/definitions/rule-other"
+                }
+            ]
         },
         "scope": {
             "title": "Scope",
-            "$ref": "./scope.schema.json#"
+            "oneOf": [
+                {
+                    "$ref": "#/definitions/scope-app"
+                },
+                {
+                    "$ref": "#/definitions/scope-window"
+                },
+                {
+                    "$ref": "#/definitions/scope-other"
+                }
+            ]
         },
         "tabstrip": {
             "type": "object",

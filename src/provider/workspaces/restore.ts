@@ -216,7 +216,7 @@ export const restoreWorkspace = async(payload: Workspace, identity: Identity): P
                     await ofAppNotRunning.run().catch(console.log);
                     await model.expect({name, uuid});
 
-                    // If the app's main window is tabbed or mimnimized, position it in the proper location.
+                    // If the app's main window is tabbed or minimized, position it in the proper location.
                     if (app.mainWindow.isTabbed || app.mainWindow.state === 'minimized') {
                         await positionWindow(app.mainWindow);
                     }

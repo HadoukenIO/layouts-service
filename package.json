@@ -13,8 +13,8 @@
     "test": "npm run test:unit && npm run test:int",
     "check": "gts check && cd test && gts check",
     "clean": "gts clean && rimraf gen",
-    "docs:code": "typedoc --name \"OpenFin Layouts\" --out ./dist/docs/code --excludeNotExported --excludePrivate --excludeProtected --hideGenerator --readme DOCS.md --tsconfig src/client/tsconfig.json --readme none",
-    "docs:json-schema": "npm install bootprint@2.0.1 && npm install bootprint-json-schema@2.0.0-rc.3 && bootprint json-schema ./res/provider/config/layouts-config.schema.json ./dist/docs/json-schema/layouts-config && bootprint json-schema res/provider/config/scope.schema.json ./dist/docs/json-schema/scope && npm uninstall bootprint && npm uninstall bootprint-json-schema",
+    "docs:api": "typedoc --name \"OpenFin Layouts\" --out ./dist/docs/api --excludeNotExported --excludePrivate --excludeProtected --hideGenerator --readme DOCS.md --tsconfig src/client/tsconfig.json --readme none",
+    "docs:config": "bootprint json-schema ./res/provider/config/layouts-config.schema.json ./dist/docs/config/layouts-config && bootprint json-schema res/provider/config/scope.schema.json ./dist/docs/config/scope",
     "docs": "npm run docs:code && npm run docs:json-schema",
     "fix": "gts fix && cd test && gts fix",
     "prepare": "npm run generate",
@@ -54,6 +54,10 @@
     "webpack": "^4.20.2",
     "webpack-cli": "^3.1.0",
     "webpack-dev-middleware": "^3.4.0"
+  },
+  "peerDependencies": {
+    "bootprint": "^2.0.1",
+    "bootprint-json-schema": "2.0.0-rc.3"
   },
   "dependencies": {
     "fast-deep-equal": "^2.0.1",

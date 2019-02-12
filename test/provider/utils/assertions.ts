@@ -59,7 +59,7 @@ export async function assertNotGrouped(win: Window, t: TestContext) {
 }
 
 export async function assertNotGroupedTogether(t: TestContext, win1: Window, win2: Window) {
-    const groups = await promiseMap([win1,win2], async win => win.getGroup());
+    const groups = await promiseMap([win1, win2], async win => win.getGroup());
 
     // Quick pass if groups are of unequal length or of length 0
     if (groups[0].length !== groups[1].length || groups[0].length === 0) {
@@ -67,10 +67,16 @@ export async function assertNotGroupedTogether(t: TestContext, win1: Window, win
         return;
     }
 
-    t.notDeepEqual(groups[0], groups[1], `Window ${win1.identity.uuid + '/' + win1.identity.name} in same native group as ${win2.identity.uuid + '/' + win2.identity.name}`);
+    t.notDeepEqual(
+        groups[0],
+        groups[1],
+        `Window ${win1.identity.uuid + '/' + win1.identity.name} in same native group as ${win2.identity.uuid + '/' + win2.identity.name}`);
 
     const snapGroupIDs = await promiseMap([win1, win2], async win => getSnapGroupID(win.identity));
-    t.not(snapGroupIDs[0], snapGroupIDs[1],`Window ${win1.identity.uuid + '/' + win1.identity.name} in same snapGroup as ${win2.identity.uuid + '/' + win2.identity.name}`);
+    t.not(
+        snapGroupIDs[0],
+        snapGroupIDs[1],
+        `Window ${win1.identity.uuid + '/' + win1.identity.name} in same snapGroup as ${win2.identity.uuid + '/' + win2.identity.name}`);
 }
 
 /**

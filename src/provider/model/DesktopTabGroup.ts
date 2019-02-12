@@ -633,7 +633,11 @@ export class DesktopTabGroup implements DesktopEntity {
             }
         }
 
-        this.currentState.resizeConstraints = result;
+        // Update the internal state of the tabGroup
+        this.currentState.resizeConstraints = {
+            x: {...result.x},
+            y: {...result.y}
+        };
         // Update the tabStrip constraints accordingly
         if (this._window.isReady) {
             await this._window.applyProperties({

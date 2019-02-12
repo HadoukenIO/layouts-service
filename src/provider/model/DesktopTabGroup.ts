@@ -379,7 +379,6 @@ export class DesktopTabGroup implements DesktopEntity {
             // Activate next tab
             if (this._tabs.length >= 2 && this.activeTab.id === tab.id) {
                 const nextTab: DesktopWindow = this._tabs[index] ? this._tabs[index] : this._tabs[index - 1];
-
                 promises.push(this.switchTab(nextTab));
             }
 
@@ -410,23 +409,16 @@ export class DesktopTabGroup implements DesktopEntity {
      * @param {WindowIdentity} ID The ID of the tab to set as active.
      */
     public async switchTab(tab: DesktopWindow): Promise<void> {
-        console.error(tab.identity.name, "switchTab");
         if (tab && tab !== this._activeTab) {
             const prevTab: DesktopWindow = this._activeTab;
-            const redrawRequired: boolean = prevTab && !RectUtils.isEqual(tab.currentState, this._activeTab.currentState);
+            const focus = this._tabs.indexOf(this._activeTab) >= 0 || (!!this._activeTab && !this._activeTab.isReady);
             this._activeTab = tab;
 
-            if (redrawRequired) {
-                // Allow tab time to redraw before being shown to user
-                await prevTab.bringToFront();
-                await tab.applyProperties({hidden: false});
-                await new Promise<void>(r => setTimeout(r, 150));
-            } else {
-                // Show tab as quickly as possible
-                await tab.applyProperties({hidden: false});
-            }
+            await tab.applyProperties({hidden: false});
 
-            await tab.setAsForeground();
+            if (focus) {
+                await tab.setAsForeground();
+            }
 
             if (prevTab && prevTab.tabGroup === this) {
                 await prevTab.applyProperties({hidden: true});
@@ -540,7 +532,7 @@ export class DesktopTabGroup implements DesktopEntity {
             const payload: TabAddedPayload = {tabstripIdentity: this.identity, identity: tab.identity, properties: tabProps, index: this._tabs.indexOf(tab)};
 
             this.sendTabEvent(tab, 'tab-added', payload);
-            if(!setActive){
+            if (!setActive) {
                 await tab.applyProperties({hidden: true});
             }
         })();

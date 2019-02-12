@@ -110,15 +110,11 @@ const createPlaceholderWindow = async (win: WorkspaceWindow) => {
 // Creates a placeholder for a normal, non-tabbed window.
 export const createNormalPlaceholder = async (win: WorkspaceWindow) => {
     const {name, uuid, isShowing, state} = win;
-    if (!isShowing) {
+    if (!isShowing || state === 'minimized') {
         return;
     }
 
-    let placeholderWindow: Window|undefined = undefined;
-
-    if (state !== 'minimized') {
-        placeholderWindow = await createPlaceholderWindow(win);
-    }
+    const placeholderWindow = await createPlaceholderWindow(win);
 
     const actualWindow = await fin.Window.wrap({uuid, name});
     const updateOptionsAndShow = async () => {
@@ -127,9 +123,7 @@ export const createNormalPlaceholder = async (win: WorkspaceWindow) => {
             await model.expect(actualWindow.identity as WindowIdentity);
             await positionWindow(win);
         } finally {
-            if (placeholderWindow) {
-                await placeholderWindow.close();
-            }
+            await placeholderWindow.close();
         }
     };
     // We add a listener to show-requested so that the window shows up in the location it's supposed to be restored at.

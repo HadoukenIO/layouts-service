@@ -216,18 +216,16 @@ export const restoreWorkspace = async(payload: Workspace, identity: Identity): P
                     await ofAppNotRunning.run().catch(console.log);
                     await model.expect({name, uuid});
 
-                    if (app.initialOptions) {
-                        // If the app's main window is tabbed, position it in the proper location.
-                        if (app.mainWindow.isTabbed) {
-                            await positionWindow(app.mainWindow);
-                        }
+                    // If the app's main window is tabbed or mimnimized, position it in the proper location.
+                    if (app.mainWindow.isTabbed || app.mainWindow.state === 'minimized') {
+                        await positionWindow(app.mainWindow);
+                    }
 
+                    if (app.initialOptions && app.initialOptions.mainWindowOptions) {
                         // If the app's autoShow is set to false, but isShowing is true for the application, then position it.
                         // Otherwise, placeholder resolution may not complete properly.
-                        if (app.initialOptions.mainWindowOptions) {
-                            if (app.initialOptions.mainWindowOptions.autoShow === false && app.mainWindow.isShowing) {
-                                await positionWindow(app.mainWindow);
-                            }
+                        if (app.initialOptions.mainWindowOptions.autoShow === false && app.mainWindow.isShowing) {
+                            await positionWindow(app.mainWindow);
                         }
                     }
                 }

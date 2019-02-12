@@ -13,11 +13,12 @@ const numberOfChildren = [1, 2];
 
 numberOfApps.forEach(appNumber => {
     numberOfChildren.forEach(childNumber => {
-        const programmaticHiddenParentTest = createBasicSaveAndRestoreTest(appNumber, childNumber, {autoShow: false});
+        const programmaticHiddenTestOptions = {autoShow: false};
+        const programmaticHiddenParentTest = createBasicSaveAndRestoreTest(appNumber, childNumber, programmaticHiddenTestOptions);
         hiddenParentTestArray.push(programmaticHiddenParentTest);
 
-        const manifestHiddenParentTest = createBasicSaveAndRestoreTest(
-            appNumber, childNumber, {autoShow: false, manifest: true, url: 'http://localhost:1337/test/saveRestoreTestingApp.html?deregistered=false'});
+        const manifestHiddenTestOptions = {autoShow: false, manifest: true, url: 'http://localhost:1337/test/saveRestoreTestingApp.html?deregistered=false'};
+        const manifestHiddenParentTest = createBasicSaveAndRestoreTest(appNumber, childNumber, manifestHiddenTestOptions);
         hiddenParentTestArray.push(manifestHiddenParentTest);
     });
 });

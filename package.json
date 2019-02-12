@@ -15,7 +15,7 @@
     "clean": "gts clean && rimraf gen",
     "docs:api": "typedoc --name \"OpenFin Layouts\" --out ./dist/docs/api --excludeNotExported --excludePrivate --excludeProtected --hideGenerator --readme DOCS.md --tsconfig src/client/tsconfig.json --readme none",
     "docs:config": "bootprint json-schema ./res/provider/config/layouts-config.schema.json ./dist/docs/config/layouts-config && bootprint json-schema res/provider/config/scope.schema.json ./dist/docs/config/scope",
-    "docs": "npm run docs:code && npm run docs:json-schema",
+    "docs": "npm run docs:api && npm run docs:config",
     "fix": "gts fix && cd test && gts fix",
     "prepare": "npm run generate",
     "posttest": "npm run check",

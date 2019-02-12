@@ -22,9 +22,9 @@ const CLIENT_STARTUP_TIMEOUT = 60000;
 // Duration in milliseconds that we give a client app to restore itself when restoring a Workspace
 const CLIENT_RESTORE_TIMEOUT = 60000;
 
-const appsCurrentlyStarting = new Map();
-const appsToRestore = new Map();
-const appsCurrentlyRestoring = new Map();
+const appsCurrentlyStarting = new Map<string, boolean>();
+const appsToRestore = new Map<string, AppToRestore>();
+const appsCurrentlyRestoring = new Map<string, boolean>();
 
 // A token unique to the current run of restoreWorkspace, needed so that we can correctly release the exclusivity token after a timeout if needed
 let restoreExclusivityToken: {}|null = null;
@@ -38,7 +38,6 @@ export const appReadyForRestore = async(uuid: string): Promise<void> => {
     if (appsCurrentlyStarting.get(uuid)) {
         appsCurrentlyStarting.delete(uuid);
         const appToRestore = appsToRestore.get(uuid);
-
 
         if (appToRestore) {
             const {layoutApp, resolve} = appToRestore;
@@ -54,7 +53,7 @@ export const restoreWorkspace = async(payload: Workspace, identity: Identity): P
 
     validatePayload(payload);
 
-    startRestoreBlockerTimeout();
+    startExclusivityTimeout();
 
     const layout = payload;
     const startupApps: Promise<WorkspaceApp>[] = [];
@@ -141,7 +140,7 @@ const validatePayload = (payload: Workspace): void => {
     }
 };
 
-const startRestoreBlockerTimeout = (): void => {
+const startExclusivityTimeout = (): void => {
     (() => {
         restoreExclusivityToken = {};
         const capturedRestoreExclusivityToken = restoreExclusivityToken;

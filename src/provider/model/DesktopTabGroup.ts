@@ -269,7 +269,7 @@ export class DesktopTabGroup implements DesktopEntity {
         const activeTab: DesktopWindow = (activeTabId && this._model.getWindow(activeTabId)) || firstTab;
 
         await DesktopWindow.transaction(allWindows, async () => {
-            await this.addTabInternal(firstTab, true);
+            await this.addTabInternal(firstTab, false);
             await Promise.all([firstTab.sync(), this._window.sync()]);
             // Add the tabs one-at-a-time to avoid potential race conditions with constraints updates.
             for (const tab of tabs) {
@@ -525,7 +525,7 @@ export class DesktopTabGroup implements DesktopEntity {
             const halfSize: Point = {x: tabState.halfSize.x, y: tabState.halfSize.y - (this._config.height / 2)};
             await tab.applyProperties({center, halfSize, frame: false});
         } else {
-            const existingTabState: EntityState = this._activeTab.currentState;
+            const existingTabState: EntityState = this._activeTab && this._activeTab.currentState || this._tabs[0].currentState;
             const {center, halfSize} = existingTabState;
 
             // Align tab with existing tab

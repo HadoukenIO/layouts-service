@@ -118,7 +118,6 @@ const schemaTypesPlugin = new SchemaToTypeScriptPlugin({
     outputPath: schemaOutput,
     input: [
         `${schemaRoot}/layouts-config.schema.json`,
-        `${schemaRoot}/scope.schema.json`
     ]
 });
 

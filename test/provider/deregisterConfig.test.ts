@@ -1,8 +1,7 @@
 import {Context, GenericTestContext, test} from 'ava';
 import {Window} from 'hadouken-js-adapter';
 
-import {ConfigurationObject} from '../../gen/provider/config/layouts-config';
-import {Scope} from '../../gen/provider/config/scope';
+import {ConfigurationObject, Scope} from '../../gen/provider/config/layouts-config';
 import {executeJavascriptOnService} from '../demo/utils/serviceUtils';
 import {isWindowRegistered} from '../demo/utils/snapServiceUtils';
 import {teardown} from '../teardown';

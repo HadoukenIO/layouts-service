@@ -273,11 +273,11 @@ export class DesktopTabGroup implements DesktopEntity {
             await Promise.all([firstTab.sync(), this._window.sync()]);
             // Add the tabs one-at-a-time to avoid potential race conditions with constraints updates.
             for (const tab of tabs) {
-                await this.addTabInternal(tab, false);
+                await this.addTabInternal(tab, !!activeTabId && activeTabId === tab.identity);
             }
         });
 
-        if (activeTab !== firstTab) {
+        if (!activeTabId) {
             // Set the desired tab as active
             await this.switchTab(activeTab);
         } else {
@@ -410,6 +410,7 @@ export class DesktopTabGroup implements DesktopEntity {
      * @param {WindowIdentity} ID The ID of the tab to set as active.
      */
     public async switchTab(tab: DesktopWindow): Promise<void> {
+        console.error(tab.identity.name, "switchTab");
         if (tab && tab !== this._activeTab) {
             const prevTab: DesktopWindow = this._activeTab;
             const redrawRequired: boolean = prevTab && !RectUtils.isEqual(tab.currentState, this._activeTab.currentState);
@@ -539,8 +540,9 @@ export class DesktopTabGroup implements DesktopEntity {
             const payload: TabAddedPayload = {tabstripIdentity: this.identity, identity: tab.identity, properties: tabProps, index: this._tabs.indexOf(tab)};
 
             this.sendTabEvent(tab, 'tab-added', payload);
-            await tab.applyProperties({hidden: tab !== this._activeTab});
-            //await this._window.setAsForeground();
+            if(!setActive){
+                await tab.applyProperties({hidden: true});
+            }
         })();
         await addTabPromise;  // TODO: Need to add this to a pendingActions queue?
 

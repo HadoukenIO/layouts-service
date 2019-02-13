@@ -155,9 +155,15 @@ export class DesktopSnapGroup {
 
             // Inform window of addition
             // Note that client API only considers windows to belong to a group if it contains two or more windows
-            if (this._windows.length >= 2) {
+            
+            if (this._windows.length == 2) {
+                this._windows[0].sendMessage('window-docked', {});
+                this._windows[1].sendMessage('window-docked', {});
+            }
+            else if (this._windows.length > 2) {
                 window.sendMessage('window-docked', {});
             }
+
 
             // Inform service of addition
             this.onWindowAdded.emit(this, window);
@@ -255,8 +261,12 @@ export class DesktopSnapGroup {
 
             // Inform window of removal
             // Note that client API only considers windows to belong to a group if it contains two or more windows
-            if (this._windows.length > 0 && window.isReady) {
-                window.sendMessage('window-undocked', {});
+            if (this._windows.length == 1)
+            {
+                if (window.isReady) {window.sendMessage('window-undocked', {})};
+                if (this._windows[0].isReady) {this._windows[0].sendMessage('window-undocked', {})};
+            } else if (this._windows.length > 0 && window.isReady) {
+                if (window.isReady) {window.sendMessage('window-undocked', {})};
             }
 
             // Inform the service that the group has been modified

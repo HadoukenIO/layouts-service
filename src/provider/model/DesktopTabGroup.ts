@@ -411,6 +411,10 @@ export class DesktopTabGroup implements DesktopEntity {
     public async switchTab(tab: DesktopWindow): Promise<void> {
         if (tab && tab !== this._activeTab) {
             const prevTab: DesktopWindow|null = this._activeTab;
+
+            /**
+             * Focus the window if we are ejecting or removing from group.
+             */
             const focus = this._activeTab && this._tabs.indexOf(this._activeTab) >= 0 || (!!this._activeTab && !this._activeTab.isReady);
             this._activeTab = tab;
 

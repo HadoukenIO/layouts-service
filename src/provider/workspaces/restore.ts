@@ -259,7 +259,7 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
                 return defaultResponse;
             }
         } else {
-            let ofAppNotRunning: undefined|Application;
+            let ofAppNotRunning: Application|undefined;
             console.log('App is not running:', app);
 
             // App is not running - setup communication to fire once app is started

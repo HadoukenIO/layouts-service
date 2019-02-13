@@ -30,7 +30,7 @@ const appsCurrentlyRestoring = new Map<string, boolean>();
 let restoreExclusivityToken: {}|null = null;
 
 interface AppToRestore {
-    layoutApp: WorkspaceApp;
+    workspaceApp: WorkspaceApp;
     resolve: Function;
 }
 
@@ -40,8 +40,8 @@ export const appReadyForRestore = async(uuid: string): Promise<void> => {
         const appToRestore = appsToRestore.get(uuid);
 
         if (appToRestore) {
-            const {layoutApp, resolve} = appToRestore;
-            requestClientRestoreApp(layoutApp, resolve);
+            const {workspaceApp, resolve} = appToRestore;
+            requestClientRestoreApp(workspaceApp, resolve);
         }
     }
 };
@@ -55,12 +55,12 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
 
     startExclusivityTimeout();
 
-    const layout = payload;
+    const workspace = payload;
     const startupApps: Promise<WorkspaceApp>[] = [];
 
-    await createAllPlaceholders(layout);
+    await createAllPlaceholders(workspace);
 
-    const apps = await promiseMap(layout.apps, app => restoreApp(app, startupApps));
+    const apps = await promiseMap(workspace.apps, app => restoreApp(app, startupApps));
 
     // Wait for all apps to startup
     const startupResponses = await Promise.all(startupApps);
@@ -77,7 +77,7 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
         const appResponse = startupResponses.find(appRes => appRes.uuid === app.uuid);
         return appResponse ? appResponse : app;
     });
-    layout.apps = allAppResponses;
+    workspace.apps = allAppResponses;
 
     // Regroup the windows
     await regroupWorkspace(allAppResponses).catch(console.log);
@@ -86,18 +86,18 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
         group.validate();
     }
 
-    apiHandler.sendToAll('workspace-restored', layout);
+    apiHandler.sendToAll('workspace-restored', workspace);
 
     restoreExclusivityToken = null;
 
     console.log('Restore completed');
 
-    // Send the layout back to the requester of the restore
-    return layout;
+    // Send the workspace back to the requester of the restore
+    return workspace;
 };
 
-const requestClientRestoreApp = async(layoutApp: WorkspaceApp, resolve: Function): Promise<void> => {
-    const {uuid} = layoutApp;
+const requestClientRestoreApp = async(workspaceApp: WorkspaceApp, resolve: Function): Promise<void> => {
+    const {uuid} = workspaceApp;
     const name = uuid;
     const appConnection = apiHandler.isClientConnection({uuid, name});
     if (appConnection) {
@@ -105,13 +105,13 @@ const requestClientRestoreApp = async(layoutApp: WorkspaceApp, resolve: Function
             // Instruct app to restore its child windows
             appsCurrentlyRestoring.set(uuid, true);
 
-            const appLayout = await clientRestoreAppWithTimeout(layoutApp, false);
+            const appworkspaceAppResult = await clientRestoreAppWithTimeout(workspaceApp, false);
 
             // Flag app as restored
             appsCurrentlyRestoring.delete(uuid);
             appsToRestore.delete(uuid);
 
-            resolve(appLayout);
+            resolve(appworkspaceAppResult);
         } else {
             console.warn('Ignoring duplicate \'ready\' call');
         }
@@ -119,33 +119,33 @@ const requestClientRestoreApp = async(layoutApp: WorkspaceApp, resolve: Function
 };
 
 const validatePayload = (payload: Workspace): void => {
-    // Guards against invalid layout objects (since we are receiving them over the service bus, this is in theory possible)
+    // Guards against invalid workspace objects (since we are receiving them over the service bus, this is in theory possible)
     // These allow us to return sensible error messages back to the consumer
     if (!payload) {
-        throw new Error('Received invalid layout object');
+        throw new Error('Received invalid workspace object');
     }
     if (!payload.schemaVersion) {
-        throw new Error('Received invalid layout object: layout.schemaVersion is undefined');
+        throw new Error('Received invalid workspace object: payload.schemaVersion is undefined');
     } else {
         let providedSchemaVersion: SemVer;
         try {
             providedSchemaVersion = parseVersionString(payload.schemaVersion);
         } catch (e) {
-            throw new Error('Received invalid layout object: schemaVersion string does not comply with semver format ("a.b.c")');
+            throw new Error('Received invalid workspace object: schemaVersion string does not comply with semver format ("a.b.c")');
         }
 
         // Only checks major version. Service is assumed to work with minor and patch version changes.
         if (providedSchemaVersion.major > SCHEMA_MAJOR_VERSION) {
-            throw new Error(`Received incompatible layout object. Provided schemaVersion is ${
+            throw new Error(`Received incompatible worksapce object. Provided schemaVersion is ${
                 payload.schemaVersion}, but this version of the service only supports versions up to ${SCHEMA_MAJOR_VERSION}.x.x`);
         }
     }
 
     if (!payload.apps) {
-        throw new Error('Received invalid layout object: layout.apps is undefined');
+        throw new Error('Received invalid workspace object: payload.apps is undefined');
     }
     if (!payload.monitorInfo) {
-        throw new Error('Received invalid layout object: layout.monitorInfo is undefined');
+        throw new Error('Received invalid workspace object: payload.monitorInfo is undefined');
     }
 };
 
@@ -166,13 +166,13 @@ const startExclusivityTimeout = (): void => {
     })();
 };
 
-const createAllPlaceholders = async(layout: Workspace): Promise<void> => {
+const createAllPlaceholders = async(workspace: Workspace): Promise<void> => {
     const tabbedWindows: WindowObject = {};
     const openWindows: WindowObject = {};
     const tabbedPlaceholdersToWindows: TabbedPlaceholders = {};
 
     // Create tabbedWindows list so we don't have to iterate over all of the tabGroup arrays.
-    layout.tabGroups.forEach((tabGroup) => {
+    workspace.tabGroups.forEach((tabGroup) => {
         tabGroup.tabs.forEach(tabWindow => {
             addToWindowObject(tabWindow, tabbedWindows);
         });
@@ -188,7 +188,7 @@ const createAllPlaceholders = async(layout: Workspace): Promise<void> => {
         });
     });
 
-    // Iterate over apps in layout.
+    // Iterate over apps in workspace.
     // Check if we need to make tabbed vs. normal placeholders for both main windows and child windows.
     // Push those placeholder windows into tabbedPlaceholdersToWindows object
     // If an app is running, we need to check which of its child windows are open.
@@ -217,11 +217,11 @@ const createAllPlaceholders = async(layout: Workspace): Promise<void> => {
     }
 
     // Kick off placeholder creation for all apps.
-    await promiseMap(layout.apps, createAllPlaceholders);
+    await promiseMap(workspace.apps, createAllPlaceholders);
 
     // Edit the tabGroups object with the placeholder window names/uuids, so we can create a Tab Group with a combination of open applications and placeholder
     // windows.
-    layout.tabGroups.forEach((groupDef: TabGroup) => {
+    workspace.tabGroups.forEach((groupDef: TabGroup) => {
         const activeWindow = groupDef.groupInfo.active;
         // Active Window could be a placeholder window.
         if (inWindowObject(activeWindow, tabbedPlaceholdersToWindows)) {
@@ -235,7 +235,7 @@ const createAllPlaceholders = async(layout: Workspace): Promise<void> => {
         });
     });
 
-    await tabService.createTabGroupsFromWorkspace(layout.tabGroups);
+    await tabService.createTabGroupsFromWorkspace(workspace.tabGroups);
 };
 
 const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]): Promise<WorkspaceApp> => {
@@ -252,7 +252,7 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
             if (appConnected) {
                 await positionWindow(app.mainWindow);
                 console.log('App is running:', app);
-                // Send LayoutApp to connected application so it can handle child windows
+                // Send WorkspaceApp to connected application so it can handle child windows
                 return await clientRestoreAppWithTimeout(app, true);
             } else {
                 // Not connected to service
@@ -266,7 +266,7 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
 
             // App is not running - setup communication to fire once app is started
             if (app.confirmed) {
-                startupApps.push(new Promise((resolve: (layoutApp: WorkspaceApp) => void) => {
+                startupApps.push(new Promise((resolve: (workspaceApp: WorkspaceApp) => void) => {
                     setAppToClientRestoreWithTimeout(app, resolve);
                 }));
             }
@@ -318,11 +318,11 @@ const clientRestoreAppWithTimeout = async(app: WorkspaceApp, mayBeLegacyApp: boo
     return Promise.race([responsePromise, timeoutPromise]);
 };
 
-const setAppToClientRestoreWithTimeout = (layoutApp: WorkspaceApp, resolve: Function): void => {
-    const {uuid} = layoutApp;
-    const save = {layoutApp, resolve};
+const setAppToClientRestoreWithTimeout = (workspaceApp: WorkspaceApp, resolve: Function): void => {
+    const {uuid} = workspaceApp;
+    const save = {workspaceApp: workspaceApp, resolve};
 
-    const defaultResponse = {...layoutApp, childWindows: []};
+    const defaultResponse = {...workspaceApp, childWindows: []};
 
     appsCurrentlyStarting.set(uuid, true);
     appsToRestore.set(uuid, save);

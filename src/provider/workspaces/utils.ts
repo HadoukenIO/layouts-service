@@ -16,8 +16,8 @@ export interface SemVer {
 // TODO: Create Placeholder and PlaceholderStore classes?
 // This keeps track of how many placeholders we have open, so we know when we can start regrouping a layout.
 let numOfPlaceholders = 0;
-let functionToContinueRestorationWhenPlaceholdersClosed: (() => void) | undefined;
-let rejectTimeout: number | undefined;
+let functionToContinueRestorationWhenPlaceholdersClosed: (() => void)|undefined;
+let rejectTimeout: number|undefined;
 
 fin.System.addListener('window-closed', (win) => {
     if (win.name.startsWith('Placeholder-')) {

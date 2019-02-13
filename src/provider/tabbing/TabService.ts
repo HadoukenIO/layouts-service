@@ -208,6 +208,7 @@ export class TabService {
                 await tabGroup.addTabs(tabs, groupDef.groupInfo.active);
                 await tabGroup.window.sync();
 
+                // TODO: Change to look at groupDef.groupInfo.state
                 if (tabGroup.state === 'maximized') {
                     await tabGroup.maximize();
                 } else if (tabGroup.state === 'minimized') {

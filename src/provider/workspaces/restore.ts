@@ -58,7 +58,7 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
     const workspace = payload;
     const startupApps: Promise<WorkspaceApp>[] = [];
 
-    await createAllPlaceholders(workspace);
+    await createWorkspacePlaceholders(workspace);
 
     const apps: WorkspaceApp[] = await promiseMap(workspace.apps, app => restoreApp(app, startupApps));
 
@@ -165,7 +165,7 @@ const startExclusivityTimeout = (): void => {
     })();
 };
 
-const createAllPlaceholders = async(workspace: Workspace): Promise<void> => {
+const createWorkspacePlaceholders = async(workspace: Workspace): Promise<void> => {
     const tabbedWindows: WindowObject = {};
     const openWindows: WindowObject = {};
     const tabbedPlaceholdersToWindows: TabbedPlaceholders = {};
@@ -191,7 +191,7 @@ const createAllPlaceholders = async(workspace: Workspace): Promise<void> => {
     // Check if we need to make tabbed vs. normal placeholders for both main windows and child windows.
     // Push those placeholder windows into tabbedPlaceholdersToWindows object
     // If an app is running, we need to check which of its child windows are open.
-    async function createAllPlaceholders(app: WorkspaceApp) {
+    async function createWorkspaceAppPlaceholders(app: WorkspaceApp) {
         const ofApp = fin.Application.wrapSync(app);
         const isRunning = await ofApp.isRunning();
         if (isRunning) {
@@ -216,7 +216,7 @@ const createAllPlaceholders = async(workspace: Workspace): Promise<void> => {
     }
 
     // Kick off placeholder creation for all apps.
-    await promiseMap(workspace.apps, createAllPlaceholders);
+    await promiseMap(workspace.apps, createWorkspaceAppPlaceholders);
 
     // Edit the tabGroups object with the placeholder window names/uuids, so we can create a Tab Group with a combination of open applications and placeholder
     // windows.

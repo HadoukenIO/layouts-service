@@ -1,5 +1,3 @@
-import {stringify} from 'querystring';
-
 import {QueryParams} from '.';
 
 export interface Elements {
@@ -24,14 +22,23 @@ export interface Elements {
     createWindow: HTMLButtonElement;
 
     // Application form elements
-    inputUUID: HTMLInputElement;
+    inputID: HTMLInputElement;
     inputURL: HTMLInputElement;
-    inputRuntine: HTMLSelectElement;
+    inputSection: HTMLSelectElement;
+    inputFrame: HTMLSelectElement;
+    inputSize: HTMLSelectElement;
+    inputSizeRandomize: HTMLSelectElement;
+    inputUseService: HTMLSelectElement;
+    inputRuntime: HTMLSelectElement;
+    inputRealmName: HTMLInputElement;
+    inputEnableMesh: HTMLInputElement;
     inputConfig: HTMLTextAreaElement;
     inputConfigEditor: HTMLDivElement;
     inputEditConfig: HTMLButtonElement;
     inputSaveConfig: HTMLButtonElement;
     inputParent: HTMLSelectElement;
+    inputCreate: HTMLButtonElement;
+    inputCreateAndClose: HTMLButtonElement;
 
     // Form tabs
     inputManifestTab: HTMLAnchorElement;
@@ -43,6 +50,9 @@ export interface Elements {
     configEditorRules: HTMLUListElement;
     configEditorApp: HTMLAnchorElement;
     configEditorAddRule: HTMLAnchorElement;
+    configUUID: HTMLInputElement;
+    configName: HTMLInputElement;
+    configScope: HTMLSpanElement;
     configEnabled: HTMLSelectElement;
     configSnap: HTMLSelectElement;
     configDock: HTMLSelectElement;
@@ -52,6 +62,7 @@ export interface Elements {
 
     // Other
     container: HTMLDivElement;
+    modal: HTMLDivElement;
     eventList: HTMLUListElement;
 }
 
@@ -95,14 +106,23 @@ export class View {
             createTabGroupDropdown: document.getElementById('createTabGroupDropdown') as HTMLDivElement,
             createApplication: document.getElementById('createApplication') as HTMLButtonElement,
             createWindow: document.getElementById('createWindow') as HTMLButtonElement,
-            inputUUID: document.getElementById('inputUUID') as HTMLInputElement,
+            inputID: document.getElementById('inputID') as HTMLInputElement,
             inputURL: document.getElementById('inputURL') as HTMLInputElement,
-            inputRuntine: document.getElementById('inputRuntine') as HTMLSelectElement,
+            inputSection: document.getElementById('inputSection') as HTMLSelectElement,
+            inputFrame: document.getElementById('inputFrame') as HTMLSelectElement,
+            inputSize: document.getElementById('inputSize') as HTMLSelectElement,
+            inputSizeRandomize: document.getElementById('inputSizeRandomize') as HTMLSelectElement,
+            inputUseService: document.getElementById('inputUseService') as HTMLSelectElement,
+            inputRuntime: document.getElementById('inputRuntime') as HTMLSelectElement,
+            inputRealmName: document.getElementById('inputRealmName') as HTMLInputElement,
+            inputEnableMesh: document.getElementById('inputEnableMesh') as HTMLInputElement,
             inputConfig: document.getElementById('inputConfig') as HTMLTextAreaElement,
             inputConfigEditor: document.getElementById('inputConfigEditor') as HTMLDivElement,
             inputEditConfig: document.getElementById('inputEditConfig') as HTMLButtonElement,
             inputSaveConfig: document.getElementById('inputSaveConfig') as HTMLButtonElement,
             inputParent: document.getElementById('inputParent') as HTMLSelectElement,
+            inputCreate: document.getElementById('inputCreate') as HTMLButtonElement,
+            inputCreateAndClose: document.getElementById('inputCreateAndClose') as HTMLButtonElement,
             inputManifestTab: document.getElementById('inputManifestTab') as HTMLAnchorElement,
             inputManifestOptions: document.getElementById('inputManifestOptions') as HTMLDivElement,
             inputProgrammaticTab: document.getElementById('inputProgrammaticTab') as HTMLAnchorElement,
@@ -110,6 +130,9 @@ export class View {
             configEditorRules: document.getElementById('configEditorRules') as HTMLUListElement,
             configEditorApp: document.getElementById('configEditorApp') as HTMLAnchorElement,
             configEditorAddRule: document.getElementById('configEditorAddRule') as HTMLAnchorElement,
+            configUUID: document.getElementById('configUUID') as HTMLInputElement,
+            configName: document.getElementById('configName') as HTMLInputElement,
+            configScope: document.getElementById('configScope') as HTMLSpanElement,
             configEnabled: document.getElementById('configEnabled') as HTMLSelectElement,
             configSnap: document.getElementById('configSnap') as HTMLSelectElement,
             configDock: document.getElementById('configDock') as HTMLSelectElement,
@@ -117,13 +140,13 @@ export class View {
             configTabstripUrl: document.getElementById('configTabstripUrl') as HTMLInputElement,
             configTabstripHeight: document.getElementById('configTabstripHeight') as HTMLInputElement,
             container: document.getElementById('container') as HTMLDivElement,
+            modal: document.getElementById('modalCreate') as HTMLDivElement,
             eventList: document.getElementById('eventList') as HTMLUListElement
         };
 
         // Set window title
         const identity = fin.Window.me;
-        document.title = identity.name || identity.uuid;
-        document.getElementById('title')!.innerText = `${identity.uuid} / ${identity.name}`;
+        document.getElementById('title')!.innerText = document.title = `${identity.uuid} / ${identity.name}`;
 
         // Start app initialisation
         this._onReady(this._elements);
@@ -138,12 +161,17 @@ export class View {
             this._args.theme = color;
         }
 
-        // If border property isn't specified, default to the framed status of the window
-        if (this._args.border === undefined) {
-            this._args.border = !(await fin.Window.getCurrentSync().getOptions()).frame;
+        // Fetch framed status of window
+        if (this._args.framed === undefined) {
+            this._args.framed = (await fin.Window.getCurrentSync().getOptions()).frame;
         }
 
-        const {section, locked, theme, border} = this._args;
+        // If border property isn't specified, default to the framed status of the window
+        if (this._args.border === undefined) {
+            this._args.border = !this._args.framed;
+        }
+
+        const {section, locked, theme, framed, border} = this._args;
         if (section) {
             // Allow customisation of default section
             // This is the part of the UI that is kept, when window is only small enough to show one card
@@ -157,7 +185,7 @@ export class View {
         }
         if (theme) {
             // Change the color scheme of the cards
-            const cards = Array.from(document.getElementsByClassName('card')) as HTMLElement[];
+            const cards = Array.from(document.getElementsByClassName('themed')) as HTMLElement[];
             cards.forEach((card) => {
                 card.style.backgroundColor = theme as string;
             });
@@ -171,7 +199,17 @@ export class View {
                 cards.forEach((card) => {
                     card.style.color = textColor;
                 });
+
+                const muted = Array.from(document.getElementsByClassName('text-muted')) as HTMLElement[];
+                const mutedColor = luminence > 0.5 ? '#6c757d' : '#8d979f';
+                muted.forEach((element) => {
+                    element.setAttribute('style', `color: ${mutedColor}!important`);
+                });
             }
+        }
+        if (framed) {
+            // Tag the body as being framed. Will hide the title bar
+            document.body.classList.add('framed');
         }
         if (border) {
             // Add a border to the outside of the window

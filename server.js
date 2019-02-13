@@ -241,13 +241,17 @@ function createAppJsonMiddleware() {
 function createCustomManifestMiddleware() {
     return async (req, res, next) => {
         const defaultConfig = await readJsonFile(path.resolve('res/demo/app.json')).catch(next);
-        const {uuid, runtime, provider, url, config, useService} = {
+        const {uuid, url, frame, defaultWidth, defaultHeight, realmName, enableMesh, runtime, useService, provider, config} = {
             uuid: `demo-app-${Math.random().toString(36).substr(2, 4)}`,
             runtime: defaultConfig.runtime.version,
             provider: 'local',
-            url: `http://localhost:${PORT}/demo/popup.html`,
+            url: `http://localhost:${PORT}/demo/testbed/index.html`,
             config: null,
             ...req.query,
+            defaultWidth: parseInt(req.query.defaultWidth) || 860,
+            defaultHeight: parseInt(req.query.defaultHeight) || 605,
+            frame: req.query.frame !== 'false',
+            enableMesh: req.query.enableMesh !== 'false',
             useService: req.query.useService !== 'false'
         };
 
@@ -256,24 +260,27 @@ function createCustomManifestMiddleware() {
                 uuid,
                 name: uuid,
                 url,
+                frame,
                 autoShow: true,
                 saveWindowState: false,
-                defaultWidth: 860,
-                defaultHeight: 605
+                defaultCentered: true,
+                defaultWidth,
+                defaultHeight
             },
             runtime: {
-                arguments: "--v=1",
+                arguments: "--v=1" + (realmName ? ` --security-realm=${realmName}${enableMesh ? ' --enable-mesh' : ''}` : ''),
                 version: runtime
             }
         };
         if (useService) {
-            manifest.services = [{
-                name: "layouts",
-                manifestUrl: getProviderUrl(provider)
-            }];
-            if (config) {
-                manifest.services[0].config = JSON.parse(config);
+            const service = {name: 'layouts'};
+            if (provider !== 'default') {
+                service.manifestUrl = getProviderUrl(provider);
             }
+            if (config) {
+                service.config = JSON.parse(config);
+            }
+            manifest.services = [service];
         }
 
         // Return modified JSON to client

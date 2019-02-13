@@ -1,3 +1,5 @@
+import {addSpawnListeners} from '../spawn';
+
 import {EventsUI} from './EventsUI';
 import {SnapAndDockUI} from './SnapAndDockUI';
 import {TabbingUI} from './TabbingUI';
@@ -36,6 +38,9 @@ view.ready.then((elements: Elements) => {
 
     // Make objects accessible from the debugger
     Object.assign(window, {view, eventsUI, snapAndDockUI, tabbingUI, windowUI});
+
+    // Listen for requests to spawn child windows/applications
+    addSpawnListeners();
 });
 
 function getQueryParams(): QueryParams {

@@ -8,8 +8,11 @@ body {
     white-space: nowrap;
     text-overflow: ellipsis;
 }
-body.tabbed #title {
+body.framed #title, body.tabbed #title {
     display: none;
+}
+body.framed #container, body.tabbed #container {
+    padding-top: 16px;
 }
 
 .card {
@@ -50,8 +53,20 @@ i.fa-chevron-right, i.fa-bolt {
     width: 100%;
 }
 .modal textarea {
-    min-height: 250px;
+    min-height: 150px;
     font-family: monospace;
+}
+.modal label {
+    max-width: 150px;
+}
+.modal input.pattern {
+    color: #e83e8c;
+}
+.modal.modal-application .modal-application, .modal.modal-window .modal-window {
+    display: inherit;
+}
+.modal.modal-application .modal-window, .modal.modal-window .modal-application {
+    display: none;
 }
 
 #inputLaunchType {
@@ -73,7 +88,7 @@ i.fa-chevron-right, i.fa-bolt {
         margin: 0 -16px !important;
         border-radius: 0;
     }
-    .card {
+    .card.themed {
         border-radius: 0 !important;
     }
     .card-deck {
@@ -85,7 +100,7 @@ i.fa-chevron-right, i.fa-bolt {
 
 /* When both width and height are constrained, only show '.small' cards */
 @media (max-width: 576px) and (max-height: 400px) {
-    .card {
+    .card.themed {
         display: none !important;
     }
     .card.small {
@@ -104,10 +119,10 @@ i.fa-chevron-right, i.fa-bolt {
         bottom: 2px;
         top: 32px;
     }
-    body.tabbed .card.small {
+    body.tabbed .card.small, body.framed .card.small {
         top: 0;
     }
-    body.tabbed .border .card.small {
+    body.tabbed .border .card.small, body.framed .border .card.small {
         top: 2px;
     }
 }
@@ -157,9 +172,9 @@ body.locked .border .card.small {
     bottom: 2px;
     top: 32px;
 }
-body.locked.tabbed .card.small {
+body.locked.tabbed .card.small, body.locked.framed .card.small {
     top: 0;
 }
-body.locked.tabbed .border .card.small {
+body.locked.tabbed .border .card.small, body.locked.framed .border .card.small {
     top: 2px;
 }

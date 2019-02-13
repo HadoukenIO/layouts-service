@@ -17,27 +17,28 @@
     <h3>Spawn Windows</h3>
     <div>
         <div>
-            <h4>Registered:</h4>
-            <button onclick="LayoutsUI.createAppFromManifest2()">Create App2 From Manifest</button>
-            <button onclick="LayoutsUI.createAppProgrammatically4()">Create App4 Programmatically</button>
-            <button onclick="LayoutsUI.createSimpleWindow('libScriptIncluded')">App with Client Script Added</button>
+            <h4>Apps:</h4>
+            <button onclick="LayoutsUI.createTemplateApp('manifest')">Create From Manifest</button>
+            <button onclick="LayoutsUI.createTemplateApp('programmatic')">Create Programmatically</button>
+            <button onclick="LayoutsUI.createTemplateApp('script')">App with Client Script Added</button>
         </div>
         <div>
-            <h4>Deregistered:</h4>
-            <button onclick="LayoutsUI.createAppFromManifest3()">Create App3 From Manifest</button>
-            <button onclick="LayoutsUI.createAppProgrammatically5()">Create App5 Programmatically</button>
+            <h4></h4>
+            <button onclick="LayoutsUI.createTemplateApp('manifest-random')">Create Random App From Manifest</button>
+            <button onclick="LayoutsUI.createTemplateApp('programmatic-random')">Create Random App Programmatically</button>
+            <button onclick="LayoutsUI.createTemplateApp('deregistered')">Create De-registered App</button>
+        </div>
+        <div>
+            <h4>Custom Tabstrip:</h4>
+            <button onclick="LayoutsUI.createTemplateApp('tab-default')">Default Tab UI</button>
+            <button onclick="LayoutsUI.createTemplateApp('tab-custom1')">Custom Tab UI 1</button>
+            <button onclick="LayoutsUI.createTemplateApp('tab-custom2')">Custom Tab UI 2</button>
+        </div>
+        <div>
+            <h4>Windows:</h4>
+            <button onclick="LayoutsUI.createTemplateWindow('default')">Default Window</button>
+            <button onclick="LayoutsUI.createTemplateWindow('small')">Small Window</button>
             <button onclick="LayoutsUI.createSnapWindows()">Create Manager Children<br />(Snap/Tab, no Restore)</button>
-        </div>
-        <div>
-            <h4>Tabbed:</h4>
-            <button onclick="LayoutsUI.createSimpleWindow('testbed/index', {section: 'tabbing'})">Default Tab UI</button>
-            <button onclick="LayoutsUI.createSimpleWindow('testbed/index', {section: 'tabbing'})">Custom Tab UI 1</button>
-            <button onclick="LayoutsUI.createSimpleWindow('testbed/index', {section: 'tabbing'})">Custom Tab UI 2</button>
-        </div>
-        <div>
-            <h4>Custom:</h4>
-            <button onclick="LayoutsUI.showCreateFromManifestPopup()">Create From Manifest</button>
-            <button onclick="LayoutsUI.showCreateProgrammaticPopup()">Create Programmatically</button>
         </div>
     </div>
 

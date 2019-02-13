@@ -123,6 +123,7 @@ export class TabbingUI {
         const isTabbed: boolean = (e.type === 'tab-added');
         const message: string = isTabbed ? Messages.STATUS_TABBED : Messages.STATUS_UNTABBED;
 
+        document.body.classList.toggle('tabbed', isTabbed);
         document.getElementById('tab-status')!.innerText = message;
     }
 

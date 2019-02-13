@@ -22,9 +22,7 @@ const CLIENT_STARTUP_TIMEOUT = 60000;
 // Duration in milliseconds that we give a client app to restore itself when restoring a Workspace
 const CLIENT_RESTORE_TIMEOUT = 60000;
 
-const appsCurrentlyStarting = new Map<string, boolean>();
-const appsToRestore = new Map<string, AppToRestore>();
-const appsCurrentlyRestoring = new Map<string, boolean>();
+const appsToRestoreWhenReady = new Map<string, AppToRestore>();
 
 // A token unique to the current run of restoreWorkspace, needed so that we can correctly release the exclusivity token after a timeout if needed
 let restoreExclusivityToken: {}|null = null;
@@ -35,14 +33,16 @@ interface AppToRestore {
 }
 
 export const appReadyForRestore = async(uuid: string): Promise<void> => {
-    if (appsCurrentlyStarting.get(uuid)) {
-        appsCurrentlyStarting.delete(uuid);
-        const appToRestore = appsToRestore.get(uuid);
+    const appToRestore = appsToRestoreWhenReady.get(uuid)!;
+    
+    if (appToRestore) {
+        const {workspaceApp, resolve} = appToRestore;
+        
+        appsToRestoreWhenReady.delete(uuid);
 
-        if (appToRestore) {
-            const {workspaceApp, resolve} = appToRestore;
-            requestClientRestoreApp(workspaceApp, resolve);
-        }
+        requestClientRestoreApp(workspaceApp, resolve);
+    } else {
+        console.warn('Ignoring duplicate \'appReadyForRestore\' call');
     }
 };
 
@@ -100,20 +100,10 @@ const requestClientRestoreApp = async(workspaceApp: WorkspaceApp, resolve: Funct
     const {uuid} = workspaceApp;
     const appConnection = apiHandler.isClientConnection({uuid, name: uuid});
     if (appConnection) {
-        if (appsToRestore.has(uuid) && !appsCurrentlyRestoring.has(uuid)) {
             // Instruct app to restore its child windows
-            appsCurrentlyRestoring.set(uuid, true);
-
             const appworkspaceAppResult = await clientRestoreAppWithTimeout(workspaceApp, false);
 
-            // Flag app as restored
-            appsCurrentlyRestoring.delete(uuid);
-            appsToRestore.delete(uuid);
-
             resolve(appworkspaceAppResult);
-        } else {
-            console.warn('Ignoring duplicate \'ready\' call');
-        }
     }
 };
 
@@ -157,9 +147,7 @@ const startExclusivityTimeout = (): void => {
             if (capturedRestoreExclusivityToken === restoreExclusivityToken) {
                 restoreExclusivityToken = null;
 
-                appsCurrentlyStarting.clear();
-                appsToRestore.clear();
-                appsCurrentlyRestoring.clear();
+                appsToRestoreWhenReady.clear();
             }
         }, GLOBAL_EXCLUSIVITY_TIMEOUT);
     })();
@@ -321,13 +309,10 @@ const setAppToClientRestoreWithTimeout = (workspaceApp: WorkspaceApp, resolve: F
 
     const defaultResponse = {...workspaceApp, childWindows: []};
 
-    appsCurrentlyStarting.set(uuid, true);
-    appsToRestore.set(uuid, save);
+    appsToRestoreWhenReady.set(uuid, save);
 
     setTimeout(() => {
-        if (appsCurrentlyStarting.get(uuid)) {
-            appsCurrentlyStarting.delete(uuid);
-            appsToRestore.delete(uuid);
+        if (appsToRestoreWhenReady.delete(uuid)) {
 
             resolve(defaultResponse);
         }

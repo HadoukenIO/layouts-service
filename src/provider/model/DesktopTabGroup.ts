@@ -528,19 +528,18 @@ export class DesktopTabGroup implements DesktopEntity {
         await tab.setTabGroup(this);
         tab.setSnapGroup(this._window.snapGroup);
 
-        const addTabPromise: Promise<void> = (async () => {
-            const payload: TabAddedPayload = {tabstripIdentity: this.identity, identity: tab.identity, properties: tabProps, index: this._tabs.indexOf(tab)};
 
-            this.sendTabEvent(tab, 'tab-added', payload);
-            if (!setActive) {
-                await tab.applyProperties({hidden: true});
-            }
-        })();
-        await addTabPromise;  // TODO: Need to add this to a pendingActions queue?
+        const payload: TabAddedPayload = {tabstripIdentity: this.identity, identity: tab.identity, properties: tabProps, index: this._tabs.indexOf(tab)};
+        this.sendTabEvent(tab, 'tab-added', payload);
+
+        if (!setActive) {
+            await tab.applyProperties({hidden: true});
+        }
 
         if (setActive) {
             await this.switchTab(tab);
         }
+
         await Promise.all([tab.sync(), this._window.sync()]);
 
         await this.updateGroupConstraints();

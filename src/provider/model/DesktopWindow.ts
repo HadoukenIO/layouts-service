@@ -582,12 +582,10 @@ export class DesktopWindow implements DesktopEntity {
     }
 
     public async bringToFront(): Promise<void> {
-        console.error(this.identity.name, 'bringToFront');
         return this.addPendingActions('bringToFront ' + this._id, this._window.bringToFront());
     }
 
     public async setAsForeground(): Promise<void> {
-        console.error(this.identity.name, 'setAsForeground');
         return this.addPendingActions('setAsForeground ' + this._id, this._window.setAsForeground());
     }
 
@@ -597,7 +595,6 @@ export class DesktopWindow implements DesktopEntity {
     }
 
     public async applyProperties(properties: Partial<EntityState>): Promise<void> {
-        console.error(this.identity.name, properties);
         this.updateState(properties, ActionOrigin.SERVICE);
     }
 

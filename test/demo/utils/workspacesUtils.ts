@@ -61,17 +61,12 @@ export async function createCloseAndRestoreLayout(t: SaveRestoreTestContext) {
     await assertAllAppsClosed(t);
 
     await sendServiceMessage(WorkspaceAPI.RESTORE_LAYOUT, generatedLayout);
-    // To give placeholder windows time to disappear.
-    // The tests close out all testing windows upon completion.
-    // The placeholders listens to the show-requested event of its testing window, moves the window, shows it, and closes itself.
-    // If the tests run too quickly after restore, the placeholder windows may receive the child window show event too late,
-    // and the window may not exist, which makes the placeholder windows stay open.
-    await delay(500);
 }
 
 export interface TestCreationOptions {
-    url: string;
-    manifest: boolean;
+    url?: string;
+    manifest?: boolean;
+    autoShow?: boolean;
 }
 
 export function createBasicSaveAndRestoreTest(

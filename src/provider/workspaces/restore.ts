@@ -215,19 +215,7 @@ export const restoreWorkspace = async(payload: Workspace, identity: Identity): P
                 if (ofAppNotRunning) {
                     await ofAppNotRunning.run().catch(console.log);
                     await model.expect({name, uuid});
-
-                    // If the app's main window is tabbed or minimized, position it in the proper location.
-                    if (app.mainWindow.isTabbed || app.mainWindow.state === 'minimized') {
-                        await positionWindow(app.mainWindow);
-                    }
-
-                    if (app.initialOptions && app.initialOptions.mainWindowOptions) {
-                        // If the app's autoShow is set to false, but isShowing is true for the application, then position it.
-                        // Otherwise, placeholder resolution may not complete properly.
-                        if (app.initialOptions.mainWindowOptions.autoShow === false && app.mainWindow.isShowing) {
-                            await positionWindow(app.mainWindow);
-                        }
-                    }
+                    await positionWindow(app.mainWindow);
                 }
                 // SHOULD WE RETURN DEFAULT RESPONSE HERE?!?
                 return defaultResponse;

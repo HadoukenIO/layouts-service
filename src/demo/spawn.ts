@@ -13,7 +13,7 @@ export type Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
 
 /**
  * Higher-level abstraction of 'fin.WindowOptions'.
- * 
+ *
  * Any fields not specified will be filled-in with default values.
  */
 export interface WindowData {
@@ -65,9 +65,9 @@ export interface WindowData {
 }
 
 /**
- * Higher-level abstraction of 'fin.ApplicationOptions'. If type is 'programmatic', none of the other fields in this 
+ * Higher-level abstraction of 'fin.ApplicationOptions'. If type is 'programmatic', none of the other fields in this
  * interface will apply. Fields inherited from base interface work on both 'manifest' and 'programmatic'-launched apps.
- * 
+ *
  * Any fields not specified will be filled-in with default values.
  */
 export interface AppData extends WindowData {
@@ -80,11 +80,11 @@ export interface AppData extends WindowData {
 
     /**
      * The version of the provider to use. Either local/staging/stable, or a version number from the CDN.
-     * 
+     *
      * Has no effect if `useService` is false.
      */
     provider?: string;
-    
+
     /**
      * Config object to include within the manifest. May also contain rules.
      */
@@ -102,7 +102,7 @@ export interface AppData extends WindowData {
 
     /**
      * If the security realm should be created with the `--enableMesh` flag. Has no effect if not also passing `realm`.
-     * 
+     *
      * Defaults to true, as service wouldn't otherwise be able to access the window.
      */
     enableMesh?: boolean;

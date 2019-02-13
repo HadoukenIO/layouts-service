@@ -69,62 +69,72 @@ class Dropdown {
 }
 
 export class TabbingUI {
-    private addToGroup!: Dropdown;
-    private createGroup!: Dropdown;
+    private _addToGroup!: Dropdown;
+    private _createGroup!: Dropdown;
+
+    private _log: EventsUI;
 
     constructor(elements: Elements, log: EventsUI) {
         elements.removeTab.addEventListener('click', () => {
             const promise: Promise<void> = tabbing.removeTab();
-            log.add(promise, tabbing.removeTab);
+            log.addApiCall(promise, tabbing.removeTab);
         });
         elements.closeTab.addEventListener('click', () => {
             const promise: Promise<void> = tabbing.closeTab();
-            log.add(promise, tabbing.closeTab);
+            log.addApiCall(promise, tabbing.closeTab);
         });
         elements.minimizeTabGroup.addEventListener('click', () => {
             const promise: Promise<void> = tabbing.minimizeTabGroup();
-            log.add(promise, tabbing.minimizeTabGroup);
+            log.addApiCall(promise, tabbing.minimizeTabGroup);
         });
         elements.maximizeTabGroup.addEventListener('click', () => {
             const promise: Promise<void> = tabbing.maximizeTabGroup();
-            log.add(promise, tabbing.maximizeTabGroup);
+            log.addApiCall(promise, tabbing.maximizeTabGroup);
         });
         elements.restoreTabGroup.addEventListener('click', () => {
             const promise: Promise<void> = tabbing.restoreTabGroup();
-            log.add(promise, tabbing.restoreTabGroup);
+            log.addApiCall(promise, tabbing.restoreTabGroup);
         });
         elements.closeTabGroup.addEventListener('click', () => {
             const promise: Promise<void> = tabbing.removeTab();
-            log.add(promise, tabbing.removeTab);
+            log.addApiCall(promise, tabbing.removeTab);
         });
 
-        this.addToGroup = new Dropdown(elements.addTab, elements.addTabDropdown);
-        this.addToGroup.header = 'Tabbed Windows';
-        this.addToGroup.placeholder = 'No tabbed windows<br />(Use \'Create Tab Group\')';
-        this.addToGroup.dataProvider = this.getTabbedWindows.bind(this);
-        this.addToGroup.onSelect = (identity: WindowIdentity) => {
-            tabbing.addTab(identity);
+        this._addToGroup = new Dropdown(elements.addTab, elements.addTabDropdown);
+        this._addToGroup.header = 'Tabbed Windows';
+        this._addToGroup.placeholder = 'No tabbed windows<br />(Use \'Create Tab Group\')';
+        this._addToGroup.dataProvider = this.getTabbedWindows.bind(this);
+        this._addToGroup.onSelect = (identity: WindowIdentity) => {
+            const promise: Promise<void> = tabbing.addTab(identity);
+
+            this._log.addApiCall(promise, tabbing.addTab, identity);
         };
 
-        this.createGroup = new Dropdown(elements.createTabGroup, elements.createTabGroupDropdown);
-        this.createGroup.header = 'Untabbed Windows';
-        this.createGroup.placeholder = 'No Untabbed Windows<br />(Use \'Add to Tab Group\' or create another window)';
-        this.createGroup.dataProvider = this.getUntabbedWindows.bind(this);
-        this.createGroup.onSelect = (identity: WindowIdentity) => {
-            tabbing.createTabGroup([fin.Window.me, identity]);
+        this._createGroup = new Dropdown(elements.createTabGroup, elements.createTabGroupDropdown);
+        this._createGroup.header = 'Untabbed Windows';
+        this._createGroup.placeholder = 'No Untabbed Windows<br />(Use \'Add to Tab Group\' or create another window)';
+        this._createGroup.dataProvider = this.getUntabbedWindows.bind(this);
+        this._createGroup.onSelect = (identity: WindowIdentity) => {
+            const promise: Promise<void> = tabbing.createTabGroup([fin.Window.me, identity]);
+
+            this._log.addApiCall(promise, tabbing.createTabGroup, [fin.Window.me, identity]);
         };
+
+        this._log = log;
 
         this.onTabEvent = this.onTabEvent.bind(this);
         tabbing.addEventListener('tab-added', this.onTabEvent);
         tabbing.addEventListener('tab-removed', this.onTabEvent);
     }
 
-    private async onTabEvent(e: TabAddedEvent|TabRemovedEvent): Promise<void> {
-        const isTabbed: boolean = (e.type === 'tab-added');
+    private async onTabEvent(event: TabAddedEvent|TabRemovedEvent): Promise<void> {
+        const isTabbed: boolean = (event.type === 'tab-added');
         const message: string = isTabbed ? Messages.STATUS_TABBED : Messages.STATUS_UNTABBED;
 
         document.body.classList.toggle('tabbed', isTabbed);
         document.getElementById('tab-status')!.innerText = message;
+
+        this._log.addEvent(event);
     }
 
     private async getWindowsMatching(filter: (identity: WindowIdentity) => Promise<boolean>): Promise<WindowIdentity[]> {

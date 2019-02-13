@@ -8,14 +8,16 @@ import {Elements} from './View';
 export class SnapAndDockUI {
     private _buttons: HTMLButtonElement[];
 
-    constructor(elements: Elements, eventsUI: EventsUI) {
+    private _log: EventsUI;
+
+    constructor(elements: Elements, log: EventsUI) {
         elements.undockWindow.addEventListener('click', (e: Event) => {
             const promise: Promise<void> = snapAndDock.undockWindow();
-            eventsUI.add(promise, snapAndDock.undockWindow);
+            log.addApiCall(promise, snapAndDock.undockWindow);
         });
         elements.undockGroup.addEventListener('click', () => {
             const promise: Promise<void> = snapAndDock.undockGroup();
-            eventsUI.add(promise, snapAndDock.undockGroup);
+            log.addApiCall(promise, snapAndDock.undockGroup);
         });
 
         this.onDockEvent = this.onDockEvent.bind(this);
@@ -23,10 +25,11 @@ export class SnapAndDockUI {
         snapAndDock.addEventListener('window-undocked', this.onDockEvent);
 
         this._buttons = [elements.undockWindow, elements.undockGroup];
+        this._log = log;
     }
 
-    private onDockEvent(e: WindowDockedEvent|WindowUndockedEvent): void {
-        const isDocked = (e.type === 'window-docked');
+    private onDockEvent(event: WindowDockedEvent|WindowUndockedEvent): void {
+        const isDocked = (event.type === 'window-docked');
         const message = isDocked ? Messages.STATUS_DOCKED : Messages.STATUS_UNDOCKED;
 
         document.body.classList.toggle('docked', isDocked);
@@ -37,5 +40,7 @@ export class SnapAndDockUI {
             button.classList.toggle('btn-primary', isDocked);
             button.classList.toggle('btn-secondary', !isDocked);
         });
+
+        this._log.addEvent(event);
     }
 }

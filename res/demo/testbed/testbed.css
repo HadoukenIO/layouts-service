@@ -32,6 +32,7 @@ body.framed #container, body.tabbed #container {
 .container-fluid > div:last-child {
     position: relative;
     flex-grow: 1;
+    min-height: 200px;
 }
 
 #log {
@@ -42,6 +43,15 @@ body.framed #container, body.tabbed #container {
     right: 20px;
 }
 
+#eventList {
+    position: absolute;
+    overflow-x: auto;
+    overflow-y: scroll;
+    left: 20px;
+    top: 56px;
+    right: 20px;
+    bottom: 20px;
+}
 #eventList li {
     display: block;
 }

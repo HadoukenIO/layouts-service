@@ -11,7 +11,7 @@ import {promiseMap} from '../snapanddock/utils/async';
 
 import {SCHEMA_MAJOR_VERSION} from './create';
 import {regroupWorkspace} from './group';
-import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, parseVersionString, positionWindow, SemVer, TabbedPlaceholders, wasCreatedProgrammatically, WindowObject} from './utils';
+import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, parseVersionString, positionWindow, SemVer, TabbedPlaceholders, waitUntilAllPlaceholdersClosed, wasCreatedProgrammatically, WindowObject} from './utils';
 
 // Duration in milliseconds that the entire Workspace restore may take, before we allow another restore to start
 const GLOBAL_EXCLUSIVITY_TIMEOUT = 120000;
@@ -64,6 +64,13 @@ export const restoreWorkspace = async(payload: Workspace, identity: Identity): P
 
     // Wait for all apps to startup
     const startupResponses = await Promise.all(startupApps);
+    
+    // Wait for all child windows to appear. Continue and Warn if placeholders aren't closed in 60 seconds.
+    try {
+        await waitUntilAllPlaceholdersClosed();
+    } catch (error) {
+        console.warn(error);
+    }
 
     // Consolidate application responses
     const allAppResponses = apps.map(app => {
@@ -82,6 +89,8 @@ export const restoreWorkspace = async(payload: Workspace, identity: Identity): P
     apiHandler.sendToAll('workspace-restored', layout);
 
     restoreExclusivityToken = null;
+
+    console.log('Restore completed');
 
     // Send the layout back to the requester of the restore
     return layout;
@@ -247,6 +256,7 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
                 return await clientRestoreAppWithTimeout(app, true);
             } else {
                 // Not connected to service
+                console.log('App is open, but not connected to the service:', app);
                 await positionWindow(app.mainWindow);
                 return defaultResponse;
             }
@@ -278,7 +288,7 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
 
             if (ofAppNotRunning) {
                 await ofAppNotRunning.run().catch(console.log);
-                const ofWindowNotRunning = await ofAppNotRunning.getWindow();
+                await model.expect({name, uuid});
                 await positionWindow(app.mainWindow);
             }
             // SHOULD WE RETURN DEFAULT RESPONSE HERE?!?

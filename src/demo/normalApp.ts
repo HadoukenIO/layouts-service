@@ -15,7 +15,7 @@ export async function createChild(parentWindowName: string): Promise<void> {
     await openChild(parentWindowName + ' - win' + numChildren, numChildren);
 }
 
-export async function openChild(name: string, i: number, frame = true, url?: string, bounds?: Bounds) {
+export async function openChild(name: string, i: number, frame = true, state = 'normal', url?: string, bounds?: Bounds) {
     numChildren++;
 
     if (bounds) {
@@ -28,6 +28,7 @@ export async function openChild(name: string, i: number, frame = true, url?: str
             defaultTop: bounds.top,
             saveWindowState: false,
             frame,
+            state,
             name
         });
     } else {
@@ -40,6 +41,7 @@ export async function openChild(name: string, i: number, frame = true, url?: str
             defaultTop: i > 2 ? 400 : 50,
             saveWindowState: false,
             frame,
+            state,
             name
         });
     }
@@ -51,7 +53,7 @@ export async function onAppRes(layoutApp: WorkspaceApp): Promise<WorkspaceApp> {
     const openWindows = await ofApp.getChildWindows();
     const openAndPosition = layoutApp.childWindows.map(async (win: WorkspaceWindow, index: number) => {
         if (!openWindows.some((w: _Window) => w.identity.name === win.name)) {
-            await openChild(win.name, index, win.frame, win.info.url, win);
+            await openChild(win.name, index, win.frame, win.state, win.info.url, win);
         } else {
             await positionWindow(win);
         }
@@ -64,28 +66,33 @@ export async function onAppRes(layoutApp: WorkspaceApp): Promise<WorkspaceApp> {
 // Also given to the client to use.
 const positionWindow = async (win: WorkspaceWindow) => {
     try {
+        const {isShowing, isTabbed} = win;
+
         const ofWin = await fin.Window.wrap(win);
         await ofWin.setBounds(win);
-        if (win.isTabbed) {
+
+        if (isTabbed) {
+            await ofWin.show();
             return;
         }
+
         await ofWin.leaveGroup();
 
+        if (!isShowing) {
+            await ofWin.hide();
+            return;
+        }
 
-        // COMMENTED OUT FOR DEMO
         if (win.state === 'normal') {
+            // Need to both restore and show because the restore function doesn't emit a `shown` or `show-requested` event
             await ofWin.restore();
+            await ofWin.show();
         } else if (win.state === 'minimized') {
             await ofWin.minimize();
         } else if (win.state === 'maximized') {
             await ofWin.maximize();
         }
 
-        if (win.isShowing) {
-            await ofWin.show();
-        } else {
-            await ofWin.hide();
-        }
     } catch (e) {
         console.error('position window error', e);
     }

@@ -46,7 +46,7 @@ export const appReadyForRestore = async(uuid: string): Promise<void> => {
     }
 };
 
-export const restoreWorkspace = async(payload: Workspace, identity: Identity): Promise<Workspace> => {
+export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> => {
     if (restoreExclusivityToken !== null) {
         throw new Error('Attempting to restore while restore in progress');
     }

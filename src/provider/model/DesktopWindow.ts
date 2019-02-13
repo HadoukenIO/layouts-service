@@ -689,7 +689,23 @@ export class DesktopWindow implements DesktopEntity {
             return Promise.all([this.sync(), other.sync()]).then(() => {
                 const joinGroupPromise: Promise<void> = (async () => {
                     if (this._ready && group === this._snapGroup) {
-                        await this._window.mergeGroups(other._window).catch((error) => this.checkClose(error));
+                        // It's possible that "other" has closed in the inervening time between registration of this pending
+                        // action and its execution. If that is the case, we will roll over to the next window in the group
+                        // until we find one that is groupable. If there are no groupable windows left in the group we will 
+                        // log a warning and not proceed with the snap.
+                        let target: DesktopWindow|undefined;
+                        if (other.isReady) {
+                            target = other;
+                        } else {
+                            target = group.windows.find((item) => item.isReady && item !== this);
+                        }
+
+                        if (!target) {
+                            console.warn('Found no ready windows when attempting to group window ', this.id);
+                            return;
+                        }
+
+                        await this._window.mergeGroups(target._window).catch((error) => this.checkClose(error));
 
                         // Re-fetch window list in case it has changed during sync
                         const windows: DesktopWindow[] = this._snapGroup.windows as DesktopWindow[];

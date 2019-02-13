@@ -60,10 +60,10 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
 
     await createAllPlaceholders(workspace);
 
-    const apps = await promiseMap(workspace.apps, app => restoreApp(app, startupApps));
+    const apps: WorkspaceApp[] = await promiseMap(workspace.apps, app => restoreApp(app, startupApps));
 
     // Wait for all apps to startup
-    const startupResponses = await Promise.all(startupApps);
+    const startupResponses: WorkspaceApp[] = await Promise.all(startupApps);
     
     // Wait for all child windows to appear. Continue and Warn if placeholders aren't closed in 60 seconds.
     try {
@@ -73,7 +73,7 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
     }
 
     // Consolidate application responses
-    const allAppResponses = apps.map(app => {
+    const allAppResponses: WorkspaceApp[] = apps.map(app => {
         const appResponse = startupResponses.find(appRes => appRes.uuid === app.uuid);
         return appResponse ? appResponse : app;
     });
@@ -98,8 +98,7 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
 
 const requestClientRestoreApp = async(workspaceApp: WorkspaceApp, resolve: Function): Promise<void> => {
     const {uuid} = workspaceApp;
-    const name = uuid;
-    const appConnection = apiHandler.isClientConnection({uuid, name});
+    const appConnection = apiHandler.isClientConnection({uuid, name: uuid});
     if (appConnection) {
         if (appsToRestore.has(uuid) && !appsCurrentlyRestoring.has(uuid)) {
             // Instruct app to restore its child windows
@@ -243,12 +242,11 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
     const defaultResponse = {...app, childWindows: []};
     try {
         const {uuid} = app;
-        const name = uuid;
         console.log('Restoring App:', app);
         const ofApp = await fin.Application.wrap({uuid});
         const isRunning = await ofApp.isRunning();
         if (isRunning) {
-            const appConnected = apiHandler.channel.connections.some((conn: Identity) => conn.uuid === uuid && conn.name === name);
+            const appConnected = apiHandler.channel.connections.some((conn: Identity) => conn.uuid === uuid && conn.name === uuid);
             if (appConnected) {
                 await positionWindow(app.mainWindow);
                 console.log('App is running:', app);
@@ -302,13 +300,12 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
 
 const clientRestoreAppWithTimeout = async(app: WorkspaceApp, mayBeLegacyApp: boolean): Promise<WorkspaceApp> => {
     const {uuid} = app;
-    const name = uuid;
 
     const defaultResponse = {...app, childWindows: []};
 
-    const sendToClientPromises = [apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name}, WorkspaceAPI.RESTORE_HANDLER, app)];
+    const sendToClientPromises = [apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name: uuid}, WorkspaceAPI.RESTORE_HANDLER, app)];
     if (mayBeLegacyApp) {
-        sendToClientPromises.push(apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name}, LegacyAPI.RESTORE_HANDLER, app));
+        sendToClientPromises.push(apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name: uuid}, LegacyAPI.RESTORE_HANDLER, app));
     }
 
     const responsePromise = Promise.race(sendToClientPromises).then((response: WorkspaceApp|false|undefined) => response ? response : defaultResponse);

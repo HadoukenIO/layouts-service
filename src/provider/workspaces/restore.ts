@@ -47,6 +47,8 @@ export const appReadyForRestore = async(uuid: string): Promise<void> => {
 };
 
 export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> => {
+    console.log('Restoring workspace:', payload);
+
     if (restoreExclusivityToken !== null) {
         throw new Error('Attempting to restore while restore in progress');
     }
@@ -274,7 +276,7 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
 
             if (ofAppNotRunning) {
                 await ofAppNotRunning.run().catch(console.log);
-                await model.expect({name, uuid});
+                await model.expect({uuid, name: uuid});
                 await positionWindow(app.mainWindow);
             }
             // SHOULD WE RETURN DEFAULT RESPONSE HERE?!?

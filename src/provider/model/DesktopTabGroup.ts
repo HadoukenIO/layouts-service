@@ -58,7 +58,7 @@ export class DesktopTabGroup implements DesktopEntity {
     /**
      * The active tab in the tab group.
      */
-    private _activeTab!: DesktopWindow;
+    private _activeTab: DesktopWindow|null;
 
     private _isMaximized: boolean;
     private _beforeMaximizeBounds: Rectangle|undefined;
@@ -77,6 +77,7 @@ export class DesktopTabGroup implements DesktopEntity {
         const windowSpec: _Window|fin.WindowOptions = pool.getNextWindow(config) || pool.generateTabStripOptions(config);
 
         this._model = model;
+        this._activeTab = null;
         this._window = new DesktopWindow(model, group, windowSpec);
         this._window.onModified.add((window: DesktopWindow) => this.updateBounds());
         this._window.onTransform.add((window: DesktopWindow, type: Mask<eTransformType>) => this.updateBounds());
@@ -203,7 +204,7 @@ export class DesktopTabGroup implements DesktopEntity {
      */
     public async maximize(): Promise<void> {
         if (!this._isMaximized) {
-            const {center, halfSize} = this._activeTab.currentState;
+            const {center, halfSize} = this._activeTab && this._activeTab.currentState || this._tabs[0].currentState;
             this._beforeMaximizeBounds = {center: {...center}, halfSize: {...halfSize}};
 
             await this._window.applyProperties(
@@ -273,7 +274,7 @@ export class DesktopTabGroup implements DesktopEntity {
             await Promise.all([firstTab.sync(), this._window.sync()]);
             // Add the tabs one-at-a-time to avoid potential race conditions with constraints updates.
             for (const tab of tabs) {
-                await this.addTabInternal(tab, !!activeTabId && activeTabId === tab.identity);
+                await this.addTabInternal(tab, activeTab.identity === tab.identity);
             }
         });
 
@@ -290,12 +291,11 @@ export class DesktopTabGroup implements DesktopEntity {
 
     public async swapTab(tabToRemove: DesktopWindow, tabToAdd: DesktopWindow): Promise<void> {
         const tabIndex = this._tabs.indexOf(tabToRemove!);
-
         if (tabIndex >= 0) {
             await this.addTabInternal(tabToAdd, false, this._tabs.indexOf(tabToRemove!) + 1);
             await this.removeTabInternal(tabToRemove, this._tabs.indexOf(tabToRemove!));
 
-            if (this._activeTab.id === tabToRemove.id) {
+            if (this._activeTab && this._activeTab.id === tabToRemove.id) {
                 // if the switched-with tab was the active one, we make the added tab active
                 this.switchTab(tabToAdd);
             } else {
@@ -410,8 +410,8 @@ export class DesktopTabGroup implements DesktopEntity {
      */
     public async switchTab(tab: DesktopWindow): Promise<void> {
         if (tab && tab !== this._activeTab) {
-            const prevTab: DesktopWindow = this._activeTab;
-            const focus = this._tabs.indexOf(this._activeTab) >= 0 || (!!this._activeTab && !this._activeTab.isReady);
+            const prevTab: DesktopWindow|null = this._activeTab;
+            const focus = this._activeTab && this._tabs.indexOf(this._activeTab) >= 0 || (!!this._activeTab && !this._activeTab.isReady);
             this._activeTab = tab;
 
             await tab.applyProperties({hidden: false});
@@ -534,9 +534,7 @@ export class DesktopTabGroup implements DesktopEntity {
 
         if (!setActive) {
             await tab.applyProperties({hidden: true});
-        }
-
-        if (setActive) {
+        } else {
             await this.switchTab(tab);
         }
 

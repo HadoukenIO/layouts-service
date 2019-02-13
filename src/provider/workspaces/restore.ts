@@ -299,13 +299,13 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
 };
 
 const clientRestoreAppWithTimeout = async(app: WorkspaceApp, mayBeLegacyApp: boolean): Promise<WorkspaceApp> => {
-    const {uuid} = app;
+    const identity = {uuid: app.uuid, name: app.uuid};
 
     const defaultResponse = {...app, childWindows: []};
 
-    const sendToClientPromises = [apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name: uuid}, WorkspaceAPI.RESTORE_HANDLER, app)];
+    const sendToClientPromises = [apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>(identity, WorkspaceAPI.RESTORE_HANDLER, app)];
     if (mayBeLegacyApp) {
-        sendToClientPromises.push(apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>({uuid, name: uuid}, LegacyAPI.RESTORE_HANDLER, app));
+        sendToClientPromises.push(apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>(identity, LegacyAPI.RESTORE_HANDLER, app));
     }
 
     const responsePromise = Promise.race(sendToClientPromises).then((response: WorkspaceApp|false|undefined) => response ? response : defaultResponse);

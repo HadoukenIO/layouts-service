@@ -34,10 +34,10 @@ interface AppToRestore {
 
 export const appReadyForRestore = async(uuid: string): Promise<void> => {
     const appToRestore = appsToRestoreWhenReady.get(uuid)!;
-    
+
     if (appToRestore) {
         const {workspaceApp, resolve} = appToRestore;
-        
+
         appsToRestoreWhenReady.delete(uuid);
 
         requestClientRestoreApp(workspaceApp, resolve);
@@ -64,7 +64,7 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
 
     // Wait for all apps to startup
     const startupResponses: WorkspaceApp[] = await Promise.all(startupApps);
-    
+
     // Wait for all child windows to appear. Continue and Warn if placeholders aren't closed in 60 seconds.
     try {
         await waitUntilAllPlaceholdersClosed();
@@ -100,10 +100,10 @@ const requestClientRestoreApp = async(workspaceApp: WorkspaceApp, resolve: Funct
     const {uuid} = workspaceApp;
     const appConnection = apiHandler.isClientConnection({uuid, name: uuid});
     if (appConnection) {
-            // Instruct app to restore its child windows
-            const appworkspaceAppResult = await clientRestoreAppWithTimeout(workspaceApp, false);
+        // Instruct app to restore its child windows
+        const appworkspaceAppResult = await clientRestoreAppWithTimeout(workspaceApp, false);
 
-            resolve(appworkspaceAppResult);
+        resolve(appworkspaceAppResult);
     }
 };
 
@@ -305,7 +305,7 @@ const clientRestoreAppWithTimeout = async(app: WorkspaceApp, mayBeLegacyApp: boo
 
 const setAppToClientRestoreWithTimeout = (workspaceApp: WorkspaceApp, resolve: Function): void => {
     const {uuid} = workspaceApp;
-    const save = {workspaceApp: workspaceApp, resolve};
+    const save = {workspaceApp, resolve};
 
     const defaultResponse = {...workspaceApp, childWindows: []};
 
@@ -313,7 +313,6 @@ const setAppToClientRestoreWithTimeout = (workspaceApp: WorkspaceApp, resolve: F
 
     setTimeout(() => {
         if (appsToRestoreWhenReady.delete(uuid)) {
-
             resolve(defaultResponse);
         }
     }, CLIENT_STARTUP_TIMEOUT);

@@ -419,9 +419,10 @@ export class DesktopTabGroup implements DesktopEntity {
             const prevTab: DesktopWindow|null = this._activeTab;
 
             /**
-             * Focus the window if we are ejecting or removing from group.
+             * Focus the window in the tabstrip.  Should be falsy in cases of a window being ejected.
              */
-            const focus = this._activeTab && this._tabs.indexOf(this._activeTab) >= 0 || (!!this._activeTab && !this._activeTab.isReady);
+            const focus = this._activeTab && (this._tabs.indexOf(this._activeTab) >= 0 || !this._activeTab.isReady);
+
             this._activeTab = tab;
 
             await tab.applyProperties({hidden: false});
@@ -636,10 +637,7 @@ export class DesktopTabGroup implements DesktopEntity {
         }
 
         // Update the internal state of the tabGroup
-        this.currentState.resizeConstraints = {
-            x: {...result.x},
-            y: {...result.y}
-        };
+        this.currentState.resizeConstraints = {x: {...result.x}, y: {...result.y}};
         // Update the tabStrip constraints accordingly
         if (this._window.isReady) {
             await this._window.applyProperties({

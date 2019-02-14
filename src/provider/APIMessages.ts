@@ -2,6 +2,7 @@ import {WorkspaceAPI} from '../client/internal';
 import {EventMap as SnapAndDockEventMap} from '../client/snapanddock';
 import {EventMap as TabbingEventMap} from '../client/tabbing';
 import {EventMap as WorkspacesEventMap} from '../client/workspaces';
+import {EventMap as TabstripEventMap} from '../client/tabstrip';
 
 // LegacyAPI to allow for backwards compatibility of older clients (pre 1.0)
 export enum LegacyAPI {
@@ -17,4 +18,4 @@ export enum LegacyAPI {
 
 export type WindowMessages = keyof EventMap|WorkspaceAPI.RESTORE_HANDLER|WorkspaceAPI.GENERATE_HANDLER|LegacyAPI.GENERATE_HANDLER|LegacyAPI.RESTORE_HANDLER;
 
-export type EventMap = TabbingEventMap&WorkspacesEventMap&SnapAndDockEventMap;
+export type EventMap = TabstripEventMap&TabbingEventMap&WorkspacesEventMap&SnapAndDockEventMap;

@@ -1,6 +1,7 @@
 import * as layouts from '../../../client/main';
-import {TabActivatedEvent, TabAddedEvent, TabPropertiesUpdatedEvent, TabRemovedEvent, TabGroupMaximizedEvent, TabGroupRestoredEvent} from '../../../client/tabbing';
-import {TabAddedPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload, WindowIdentity} from '../../../client/types';
+import {TabActivatedEvent, TabAddedEvent, TabPropertiesUpdatedEvent, TabRemovedEvent} from '../../../client/tabbing';
+import {TabGroupRestoredEvent, TabGroupMaximizedEvent} from '../../../client/tabstrip';
+import {TabAddedPayload, TabGroupEventPayload, WindowIdentity} from '../../../client/types';
 
 import {TabManager} from './TabManager';
 
@@ -44,12 +45,12 @@ const createLayoutsEventListeners = () => {
 
     const maximizeElem: HTMLElement|null = document.getElementById('window-button-maximize');
 
-    layouts.tabbing.addEventListener('tab-group-maximized', (event: TabGroupMaximizedEvent) => {        
+    layouts.tabstrip.addEventListener('tab-group-maximized', (event: TabGroupMaximizedEvent) => {        
         tabManager.isMaximized = true;
         maximizeElem!.classList.add('restore');
     });
 
-    layouts.tabbing.addEventListener('tab-group-restored', (event: TabGroupRestoredEvent) => {        
+    layouts.tabstrip.addEventListener('tab-group-restored', (event: TabGroupRestoredEvent) => {        
         tabManager.isMaximized = false;
         if (maximizeElem!.classList.contains('restore')) {
             maximizeElem!.classList.remove('restore');

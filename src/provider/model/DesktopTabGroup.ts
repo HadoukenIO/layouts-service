@@ -420,19 +420,21 @@ export class DesktopTabGroup implements DesktopEntity {
             const redrawRequired: boolean = prevTab && !RectUtils.isEqual(tab.currentState, this._activeTab.currentState);
             this._activeTab = tab;
 
+            const tabState = this.state === 'minimized' ? 'minimized' : 'normal';
+
             if (redrawRequired) {
                 // Allow tab time to redraw before being shown to user
                 await prevTab.bringToFront();
-                await tab.applyProperties({hidden: false});
+                await tab.applyProperties({hidden: false, state: tabState});
                 await new Promise<void>(r => setTimeout(r, 150));
                 await tab.bringToFront();
             } else {
                 // Show tab as quickly as possible
-                await tab.applyProperties({hidden: false});
+                await tab.applyProperties({hidden: false, state: tabState});
                 await tab.bringToFront();
             }
             if (prevTab && prevTab.tabGroup === this) {
-                await prevTab.applyProperties({hidden: true});
+                await prevTab.applyProperties({hidden: true, state: 'normal'});
             }
 
             await Promise.all([this._window!.sync(), tab.sync()]).catch(e => console.error(e));

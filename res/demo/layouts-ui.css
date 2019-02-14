@@ -45,6 +45,10 @@ button:hover {
     cursor: pointer;
 }
 
+.button-row {
+    display: inline-flex;
+}
+
 .windows-generator {
     display: flex;
     flex-wrap: wrap;
@@ -63,6 +67,7 @@ button:hover {
 }
 
 #layoutName {
+    width: 182px;
     height: 30px;
     padding-left: 10px;
     margin: 3px;
@@ -70,11 +75,18 @@ button:hover {
 }
 
 #layoutSelect {
+    width: 182px;
     height: 30px;
     border-radius: 0px;
     margin-left: 3px;
-    width: 183px;
     margin-right: 3px;
+}
+
+#showLayout {
+    display: inline-block;
+    margin-right: 5px;
+    width: 539px;
+    height: 155px;
 }
 
 .text-box {
@@ -86,11 +98,4 @@ button:hover {
     display: inline-block;
     padding-left: 1px;
     width: 190px;
-}
-
-#showLayout {
-    display: inline-block;
-    margin-right: 5px;
-    width: 540px;
-    height: 155px;
 }

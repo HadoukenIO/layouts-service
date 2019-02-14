@@ -10,31 +10,33 @@
 <body>
     <h3>Layouts Manager</h3>
     This application will start out de-registered, but all applications can still opt in/out of the service.<br />
-    <h4>Toggle:</h4>
-    <button onclick="LayoutsUI.deregisterManager()">De-register</button>
-    <button onclick="LayoutsUI.reregisterManager()">Re-register</button>
+    <div class="button-row">
+        <h4>Toggle:</h4>
+        <button onclick="LayoutsUI.deregisterManager()">De-register</button>
+        <button onclick="LayoutsUI.reregisterManager()">Re-register</button>
+    </div>
 
     <h3>Spawn Windows</h3>
     <div>
-        <div>
+        <div class="button-row">
             <h4>Apps:</h4>
             <button onclick="LayoutsUI.createTemplateApp('manifest')">Create From Manifest</button>
             <button onclick="LayoutsUI.createTemplateApp('programmatic')">Create Programmatically</button>
             <button onclick="LayoutsUI.createTemplateApp('script')">App with Client Script Added</button>
         </div>
-        <div>
+        <div class="button-row">
             <h4></h4>
             <button onclick="LayoutsUI.createTemplateApp('manifest-random')">Create Random App From Manifest</button>
             <button onclick="LayoutsUI.createTemplateApp('programmatic-random')">Create Random App Programmatically</button>
             <button onclick="LayoutsUI.createTemplateApp('deregistered')">Create De-registered App</button>
         </div>
-        <div>
+        <div class="button-row">
             <h4>Custom Tabstrip:</h4>
             <button onclick="LayoutsUI.createTemplateApp('tab-default')">Default Tab UI</button>
             <button onclick="LayoutsUI.createTemplateApp('tab-custom1')">Custom Tab UI 1</button>
             <button onclick="LayoutsUI.createTemplateApp('tab-custom2')">Custom Tab UI 2</button>
         </div>
-        <div>
+        <div class="button-row">
             <h4>Windows:</h4>
             <button onclick="LayoutsUI.createTemplateWindow('default')">Default Window</button>
             <button onclick="LayoutsUI.createTemplateWindow('small')">Small Window</button>
@@ -43,12 +45,12 @@
     </div>
 
     <h3>Workspaces</h3>
-    <div>
+    <div class="button-row">
         <h4>Generate:</h4>
         <input placeholder="Name of Workspace" id="layoutName">
         <button onclick="LayoutsUI.setLayout()">Save Current Workspaces</button>
     </div>
-    <div>
+    <div class="button-row">
         <h4>Restore:</h4>
         <select name="" id="layoutSelect" selected>
             <option value="" selected disabled hidden>Select Workspace</option>

@@ -44,11 +44,11 @@ export interface EventMap {
  * Event fired whenever the current tab group is restored from being maximized or minimized.
  *
  * ```ts
- * import {tabbing} from 'openfin-layouts';
+ * import {tabstrip} from 'openfin-layouts';
  *
- * tabbing.addEventListener('tab-group-restored', (event: TabGroupRestoredEvent) => {
+ * tabstrip.addEventListener('tab-group-restored', (event: TabGroupRestoredEvent) => {
  *     const tabGroupID = event.detail.identity;
- *     console.log(`Tab group restored: ${tabID.uuid}/${tabID.name}`);
+ *     console.log(`Tab group restored: ${tabGroupID.uuid}/${tabGroupID.name}`);
  * });
  * ```
  *
@@ -61,11 +61,11 @@ export async function addEventListener(eventType: 'tab-group-restored', listener
  * Event fired whenever the current tab group is minimized.
  *
  * ```ts
- * import {tabbing} from 'openfin-layouts';
+ * import {tabstrip} from 'openfin-layouts';
  *
- * tabbing.addEventListener('tab-group-minimized', (event: TabGroupMinimizedEvent) => {
+ * tabstrip.addEventListener('tab-group-minimized', (event: TabGroupMinimizedEvent) => {
  *     const tabGroupID = event.detail.identity;
- *     console.log(`Tab group minimized: ${tabID.uuid}/${tabID.name}`);
+ *     console.log(`Tab group minimized: ${tabGroupID.uuid}/${tabGroupID.name}`);
  * });
  * ```
  *
@@ -78,11 +78,11 @@ export async function addEventListener(eventType: 'tab-group-minimized', listene
  * Event fired whenever the current tab group is maximized.
  *
  * ```ts
- * import {tabbing} from 'openfin-layouts';
+ * import {tabstrip} from 'openfin-layouts';
  *
- * tabbing.addEventListener('tab-group-maximized', (event: TabGroupMaximizedEvent) => {
+ * tabstrip.addEventListener('tab-group-maximized', (event: TabGroupMaximizedEvent) => {
  *     const tabGroupID = event.detail.identity;
- *     console.log(`Tab group maximized: ${tabID.uuid}/${tabID.name}`);
+ *     console.log(`Tab group maximized: ${tabGroupID.uuid}/${tabGroupID.name}`);
  * });
  * ```
  *

@@ -11,6 +11,7 @@ interface LogItem {
     caption: string;
     status: eLogStatus;
     element: HTMLLIElement;
+    captionElement: HTMLSpanElement;
     promise?: Promise<any>;  // tslint:disable-line:no-any
 }
 
@@ -49,19 +50,26 @@ export class EventsUI {
                     })
                     .join(', ')})`,
             eLogStatus.PENDING,
-            promise);
+            'chevron-right', promise);
     }
 
     public addEvent(event: Event): void {
-        this.addItem(`Recieved Event: ${event.type}`, eLogStatus.INFO);
+        this.addItem(`Recieved Event: ${event.type}`, eLogStatus.INFO, 'bolt');
     }
 
-    private addItem<T>(caption: string, status: eLogStatus, promise?: Promise<T>): void {
-        const element = document.createElement('li');
-        element.innerText = status === eLogStatus.PENDING ? `${caption}...` : caption;
-        element.classList.add(EventsUI.STATUS_CLASSES[status]);
+    private addItem<T>(caption: string, status: eLogStatus, icon: string, promise?: Promise<T>): void {
+        const atEnd: boolean = this._list.scrollTop === this._list.scrollHeight - this._list.clientHeight;
 
-        const item = {caption, status, promise, element};
+        const iconElement = document.createElement('i');
+        iconElement.classList.add('fa', 'fa-fw', `fa-${icon}`);
+        const captionElement = document.createElement('span');
+        captionElement.innerText = status === eLogStatus.PENDING ? `${caption}...` : caption;
+        captionElement.classList.add(EventsUI.STATUS_CLASSES[status]);
+        const element = document.createElement('li');
+        element.appendChild(iconElement);
+        element.appendChild(captionElement);
+
+        const item: LogItem = {caption, status, promise, element, captionElement};
         this._list.appendChild(element);
         this._log.push(item);
 
@@ -77,12 +85,16 @@ export class EventsUI {
                     this.updateStatus(item, eLogStatus.FAIL);
                 });
         }
+
+        if (atEnd) {
+            this._list.scrollTop = this._list.scrollHeight - this._list.clientHeight;
+        }
     }
 
     private updateStatus(item: LogItem, status: eLogStatus): void {
-        item.element.innerText = item.caption;
-        item.element.classList.remove(EventsUI.STATUS_CLASSES[item.status]);
-        item.element.classList.add(EventsUI.STATUS_CLASSES[status]);
+        item.captionElement.innerText = item.caption;
+        item.captionElement.classList.remove(EventsUI.STATUS_CLASSES[item.status]);
+        item.captionElement.classList.add(EventsUI.STATUS_CLASSES[status]);
         item.status = status;
     }
 }

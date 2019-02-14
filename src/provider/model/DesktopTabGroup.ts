@@ -1,8 +1,7 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {Scope} from '../../../gen/provider/config/scope';
-
-import {ApplicationUIConfig, TabAddedPayload, TabGroupEventPayload, TabProperties, WindowIdentity, WindowState, TabPropertiesUpdatedPayload, TabGroupMaximizedPayload, TabGroupDimensions} from '../../client/types';
+import {ApplicationUIConfig, TabAddedPayload, TabGroupDimensions, TabGroupEventPayload, TabGroupMaximizedPayload, TabProperties, TabPropertiesUpdatedPayload, WindowIdentity, WindowState} from '../../client/types';
 import {WindowMessages} from '../APIMessages';
 import {tabService} from '../main';
 import {Signal1} from '../Signal';
@@ -219,7 +218,7 @@ export class DesktopTabGroup implements DesktopEntity {
             });
 
             this._isMaximized = true;
-    
+
             this.window.sendMessage('tab-group-maximized', {identity: this.window.identity});
         }
     }
@@ -228,9 +227,8 @@ export class DesktopTabGroup implements DesktopEntity {
      * Restores the tab set window.  If the tab set window is in a maximized state we will restore the window to its "before maximized" bounds.
      */
     public async restore(): Promise<void> {
-
         if (await this.state === 'minimized') {
-            const result =  this.window.applyProperties({state: 'normal'});
+            const result = this.window.applyProperties({state: 'normal'});
             this.window.sendMessage('tab-group-restored', {identity: this.window.identity});
 
             return result;
@@ -478,17 +476,16 @@ export class DesktopTabGroup implements DesktopEntity {
         this._validateGroup.call();
     }
 
-    public getSaveDimensions() : TabGroupDimensions {
-        
+    public getSaveDimensions(): TabGroupDimensions {
         if (this._isMaximized && this._beforeMaximizeBounds) {
             const bounds: Rectangle = this._beforeMaximizeBounds;
-            
+
             return {
                 x: bounds.center.x - bounds.halfSize.x,
                 y: (bounds.center.y - bounds.halfSize.y) - (this._config.height),
                 width: bounds.halfSize.x * 2,
                 appHeight: bounds.halfSize.y * 2
-            }
+            };
         } else {
             const appRect: Rectangle = this.activeTab.currentState;
             const groupRect: Rectangle = this.window.currentState;
@@ -498,7 +495,7 @@ export class DesktopTabGroup implements DesktopEntity {
                 y: groupRect.center.y - groupRect.halfSize.y,
                 width: groupRect.halfSize.x * 2,
                 appHeight: appRect.halfSize.y * 2
-            }
+            };
         }
     }
 
@@ -679,10 +676,7 @@ export class DesktopTabGroup implements DesktopEntity {
         }
 
         // Update the internal state of the tabGroup
-        this.currentState.resizeConstraints = {
-            x: {...result.x},
-            y: {...result.y}
-        };
+        this.currentState.resizeConstraints = {x: {...result.x}, y: {...result.y}};
         // Update the tabStrip constraints accordingly
         if (this._window.isReady) {
             await this._window.applyProperties({

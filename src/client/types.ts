@@ -392,4 +392,3 @@ export interface TabGroupMaximizedPayload {
      */
     identity: WindowIdentity;
 }
-

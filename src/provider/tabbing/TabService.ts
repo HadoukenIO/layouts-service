@@ -155,12 +155,7 @@ export class TabService {
 
             const config: Tabstrip|'default' = (group.config === DesktopTabstripFactory.DEFAULT_CONFIG) ? 'default' : group.config;
 
-            const groupInfo = {
-                active: group.activeTab.identity,
-                dimensions: group.getSaveDimensions(),
-                config,
-                state: group.state
-            };
+            const groupInfo = {active: group.activeTab.identity, dimensions: group.getSaveDimensions(), config, state: group.state};
 
             return {tabs, groupInfo};
         }));

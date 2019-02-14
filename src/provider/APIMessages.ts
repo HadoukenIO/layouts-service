@@ -1,8 +1,8 @@
 import {WorkspaceAPI} from '../client/internal';
 import {EventMap as SnapAndDockEventMap} from '../client/snapanddock';
 import {EventMap as TabbingEventMap} from '../client/tabbing';
-import {EventMap as WorkspacesEventMap} from '../client/workspaces';
 import {EventMap as TabstripEventMap} from '../client/tabstrip';
+import {EventMap as WorkspacesEventMap} from '../client/workspaces';
 
 // LegacyAPI to allow for backwards compatibility of older clients (pre 1.0)
 export enum LegacyAPI {

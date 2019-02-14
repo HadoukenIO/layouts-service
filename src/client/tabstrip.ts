@@ -5,12 +5,12 @@ import {Identity} from 'hadouken-js-adapter';
 
 import {tryServiceDispatch} from './connection';
 import {DropPosition, EndDragPayload, StartDragPayload, TabAPI} from './internal';
-import { TabGroupRestoredPayload, TabGroupMinimizedPayload, TabGroupMaximizedPayload } from './types';
+import {TabGroupMaximizedPayload, TabGroupMinimizedPayload, TabGroupRestoredPayload} from './types';
 /**
  * Functions required to implement a tabstrip
  */
 
- /**
+/**
  * Fired when a tab group is restored.  See {@link addEventListener}.
  */
 export interface TabGroupRestoredEvent extends CustomEvent<TabGroupRestoredPayload> {

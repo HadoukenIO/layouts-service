@@ -137,7 +137,7 @@ export async function createApp(options: AppData): Promise<Application> {
 export async function createWindow(options: WindowData): Promise<_Window> {
     const parent = options.parent;
 
-    if (parent) {
+    if (parent && parent.uuid !== fin.Application.me.uuid) {
         // Connect to parent app, and instruct it to create this window
         const channel: ChannelClient = await fin.InterApplicationBus.Channel.connect(`spawn-${parent.uuid}`);
         const identity: Identity = await channel.dispatch('createWindow', options);

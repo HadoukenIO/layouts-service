@@ -153,18 +153,11 @@ export class TabService {
                 return tab.identity;
             });
 
-            const appRect: Rectangle = group.activeTab.currentState;
-            const groupRect: Rectangle = group.window.currentState;
             const config: Tabstrip|'default' = (group.config === DesktopTabstripFactory.DEFAULT_CONFIG) ? 'default' : group.config;
 
             const groupInfo = {
                 active: group.activeTab.identity,
-                dimensions: {
-                    x: groupRect.center.x - groupRect.halfSize.x,
-                    y: groupRect.center.y - groupRect.halfSize.y,
-                    width: groupRect.halfSize.x * 2,
-                    appHeight: appRect.halfSize.y * 2
-                },
+                dimensions: group.getSaveDimensions(),
                 config,
                 state: group.state
             };

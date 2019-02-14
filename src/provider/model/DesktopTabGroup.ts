@@ -2,7 +2,7 @@ import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {Scope} from '../../../gen/provider/config/scope';
 
-import {ApplicationUIConfig, TabAddedPayload, TabGroupEventPayload, TabProperties, WindowIdentity, WindowState, TabPropertiesUpdatedPayload, TabGroupMaximizedPayload} from '../../client/types';
+import {ApplicationUIConfig, TabAddedPayload, TabGroupEventPayload, TabProperties, WindowIdentity, WindowState, TabPropertiesUpdatedPayload, TabGroupMaximizedPayload, TabGroupDimensions} from '../../client/types';
 import {WindowMessages} from '../APIMessages';
 import {tabService} from '../main';
 import {Signal1} from '../Signal';
@@ -476,6 +476,30 @@ export class DesktopTabGroup implements DesktopEntity {
 
     public validate(): void {
         this._validateGroup.call();
+    }
+
+    public getSaveDimensions() : TabGroupDimensions {
+        
+        if (this._isMaximized && this._beforeMaximizeBounds) {
+            const bounds: Rectangle = this._beforeMaximizeBounds;
+            
+            return {
+                x: bounds.center.x - bounds.halfSize.x,
+                y: (bounds.center.y - bounds.halfSize.y) - (this._config.height),
+                width: bounds.halfSize.x * 2,
+                appHeight: bounds.halfSize.y * 2
+            }
+        } else {
+            const appRect: Rectangle = this.activeTab.currentState;
+            const groupRect: Rectangle = this.window.currentState;
+
+            return {
+                x: groupRect.center.x - groupRect.halfSize.x,
+                y: groupRect.center.y - groupRect.halfSize.y,
+                width: groupRect.halfSize.x * 2,
+                appHeight: appRect.halfSize.y * 2
+            }
+        }
     }
 
     private updateBounds(): void {

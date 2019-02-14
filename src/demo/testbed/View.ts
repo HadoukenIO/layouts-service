@@ -12,6 +12,8 @@ export interface Elements {
     minimizeTabGroup: HTMLButtonElement;
     restoreTabGroup: HTMLButtonElement;
     closeTabGroup: HTMLButtonElement;
+    deregister: HTMLButtonElement;
+    reregister: HTMLButtonElement;
 
     // Dropdown content
     addTabDropdown: HTMLDivElement;
@@ -102,6 +104,8 @@ export class View {
             minimizeTabGroup: document.getElementById('minimizeTabGroup') as HTMLButtonElement,
             restoreTabGroup: document.getElementById('restoreTabGroup') as HTMLButtonElement,
             closeTabGroup: document.getElementById('closeTabGroup') as HTMLButtonElement,
+            deregister: document.getElementById('deregister') as HTMLButtonElement,
+            reregister: document.getElementById('reregister') as HTMLButtonElement,
             addTabDropdown: document.getElementById('addTabDropdown') as HTMLDivElement,
             createTabGroupDropdown: document.getElementById('createTabGroupDropdown') as HTMLDivElement,
             createApplication: document.getElementById('createApplication') as HTMLButtonElement,

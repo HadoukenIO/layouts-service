@@ -1,6 +1,7 @@
 import {addSpawnListeners} from '../spawn';
 
 import {EventsUI} from './EventsUI';
+import {RegistrationUI} from './RegistrationUI';
 import {SnapAndDockUI} from './SnapAndDockUI';
 import {TabbingUI} from './TabbingUI';
 import {Elements, View} from './View';
@@ -34,10 +35,11 @@ view.ready.then((elements: Elements) => {
     const eventsUI: EventsUI = new EventsUI(elements);
     const snapAndDockUI: SnapAndDockUI = new SnapAndDockUI(elements, eventsUI);
     const tabbingUI: TabbingUI = new TabbingUI(elements, eventsUI);
+    const registrationUI: RegistrationUI = new RegistrationUI(elements, eventsUI);
     const windowUI: WindowsUI = new WindowsUI(elements);
 
     // Make objects accessible from the debugger
-    Object.assign(window, {view, eventsUI, snapAndDockUI, tabbingUI, windowUI});
+    Object.assign(window, {view, eventsUI, snapAndDockUI, tabbingUI, registrationUI, windowUI});
 
     // Listen for requests to spawn child windows/applications
     addSpawnListeners();

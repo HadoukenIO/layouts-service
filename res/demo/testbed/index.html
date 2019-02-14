@@ -59,10 +59,20 @@
             </div>
         </div>
         <div class="card-deck row mt-sm-4">
+            <div id="registration" class="card themed">
+                <div class="card-body sm12">
+                    <h5 class="card-title">Window register/de-register</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">Programmatically opt this window into/out-of the service</h6>
+                    <div class="btn-group">
+                        <button id="deregister" class="btn btn-primary border-dark mb-2">De-register</button>
+                        <button id="reregister" class="btn btn-primary border-dark mb-2">Re-register</button>
+                    </div>
+                </div>
+            </div>
             <div id="windows" class="card themed">
                 <div class="card-body sm12">
                     <h5 class="card-title">Create Windows</h5>
-                    <h6 class="card-subtitle mb-2 text-muted">The state of the controls below will be preserved when saving and restoring the workspace</h6>
+                    <h6 class="card-subtitle mb-2 text-muted">Spawn a new application or child window</h6>
                     <div class="btn-group">
                         <button id="createApplication" class="btn btn-primary border-dark mb-2"><span class="d-none d-sm-inline">Create </span>Application</span></button>
                         <button id="createWindow" class="btn btn-primary border-dark mb-2"><span class="d-none d-sm-inline">Create </span>Child Window</button>

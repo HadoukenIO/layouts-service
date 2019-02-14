@@ -50,7 +50,8 @@ export class EventsUI {
                     })
                     .join(', ')})`,
             eLogStatus.PENDING,
-            'chevron-right', promise);
+            'chevron-right',
+            promise);
     }
 
     public addEvent(event: Event): void {

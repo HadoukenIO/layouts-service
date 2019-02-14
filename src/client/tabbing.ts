@@ -5,7 +5,7 @@ import {Identity} from 'hadouken-js-adapter';
 
 import {tryServiceDispatch} from './connection';
 import {AddTabPayload, getId, parseIdentity, SetTabstripPayload, TabAPI, UpdateTabPropertiesPayload} from './internal';
-import {ApplicationUIConfig, TabAddedPayload, TabGroupEventPayload, TabProperties, TabPropertiesUpdatedPayload, WindowIdentity} from './types';
+import {ApplicationUIConfig, TabAddedPayload, TabGroupEventPayload, TabProperties, TabPropertiesUpdatedPayload, WindowIdentity, TabGroupMaximizedPayload, TabGroupRestoredPayload, TabGroupMinimizedPayload} from './types';
 
 /**
  * Fired when a window has had its tab properties updated.  See {@link addEventListener}.
@@ -36,6 +36,27 @@ export interface TabAddedEvent extends CustomEvent<TabAddedPayload> {
 }
 
 /**
+ * Fired when a tab group is restored.  See {@link addEventListener}.
+ */
+export interface TabGroupRestoredEvent extends CustomEvent<TabGroupRestoredPayload> {
+    type: 'tab-group-restored';
+}
+
+/**
+ * Fired when a tab group is minimized.  See {@link addEventListener}.
+ */
+export interface TabGroupMinimizedEvent extends CustomEvent<TabGroupMinimizedPayload> {
+    type: 'tab-group-minimized';
+}
+
+/**
+ * Fired when a tab group is maximized.  See {@link addEventListener}.
+ */
+export interface TabGroupMaximizedEvent extends CustomEvent<TabGroupMaximizedPayload> {
+    type: 'tab-group-maximized';
+}
+
+/**
  * @hidden
  */
 export interface EventMap {
@@ -43,6 +64,9 @@ export interface EventMap {
     'tab-removed': TabRemovedEvent;
     'tab-activated': TabActivatedEvent;
     'tab-properties-updated': TabPropertiesUpdatedEvent;
+    'tab-group-restored': TabGroupRestoredEvent;
+    'tab-group-minimized': TabGroupMinimizedEvent;
+    'tab-group-maximized': TabGroupMaximizedEvent;
 }
 
 /**
@@ -66,7 +90,6 @@ export interface EventMap {
  * @event
  */
 export async function addEventListener(eventType: 'tab-added', listener: (event: TabAddedEvent) => void): Promise<void>;
-
 
 /**
  * Event fired whenever the current window is removed from it's previous tabset.
@@ -124,6 +147,57 @@ export async function addEventListener(eventType: 'tab-activated', listener: (ev
  * @event
  */
 export async function addEventListener(eventType: 'tab-properties-updated', listener: (event: TabPropertiesUpdatedEvent) => void): Promise<void>;
+
+/**
+ * Event fired whenever the current tab group is restored from being maximized or minimized.
+ *
+ * ```ts
+ * import {tabbing} from 'openfin-layouts';
+ *
+ * tabbing.addEventListener('tab-group-restored', (event: TabGroupRestoredEvent) => {
+ *     const tabGroupID = event.detail.identity;
+ *     console.log(`Tab group restored: ${tabID.uuid}/${tabID.name}`);
+ * });
+ * ```
+ *
+ * @type tab-group-restored
+ * @event
+ */
+export async function addEventListener(eventType: 'tab-group-restored', listener: (event: TabGroupRestoredEvent) => void): Promise<void>;
+
+/**
+ * Event fired whenever the current tab group is minimized.
+ *
+ * ```ts
+ * import {tabbing} from 'openfin-layouts';
+ *
+ * tabbing.addEventListener('tab-group-minimized', (event: TabGroupMinimizedEvent) => {
+ *     const tabGroupID = event.detail.identity;
+ *     console.log(`Tab group minimized: ${tabID.uuid}/${tabID.name}`);
+ * });
+ * ```
+ *
+ * @type tab-group-minimized
+ * @event
+ */
+export async function addEventListener(eventType: 'tab-group-minimized', listener: (event: TabGroupMinimizedEvent) => void): Promise<void>;
+
+/**
+ * Event fired whenever the current tab group is maximized.
+ *
+ * ```ts
+ * import {tabbing} from 'openfin-layouts';
+ *
+ * tabbing.addEventListener('tab-group-maximized', (event: TabGroupMaximizedEvent) => {
+ *     const tabGroupID = event.detail.identity;
+ *     console.log(`Tab group maximized: ${tabID.uuid}/${tabID.name}`);
+ * });
+ * ```
+ *
+ * @type tab-group-minimized
+ * @event
+ */
+export async function addEventListener(eventType: 'tab-group-maximized', listener: (event: TabGroupMaximizedEvent) => void): Promise<void>;
 
 export async function addEventListener<K extends keyof EventMap>(eventType: K, listener: (event: EventMap[K]) => void): Promise<void> {
     if (typeof fin === 'undefined') {

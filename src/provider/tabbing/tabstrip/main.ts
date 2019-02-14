@@ -1,5 +1,5 @@
 import * as layouts from '../../../client/main';
-import {TabActivatedEvent, TabAddedEvent, TabPropertiesUpdatedEvent, TabRemovedEvent} from '../../../client/tabbing';
+import {TabActivatedEvent, TabAddedEvent, TabPropertiesUpdatedEvent, TabRemovedEvent, TabGroupMaximizedEvent, TabGroupRestoredEvent} from '../../../client/tabbing';
 import {TabAddedPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload, WindowIdentity} from '../../../client/types';
 
 import {TabManager} from './TabManager';
@@ -41,6 +41,20 @@ const createLayoutsEventListeners = () => {
             if (props.title) tab.updateText(props.title);
         }
     });
+
+    const maximizeElem: HTMLElement|null = document.getElementById('window-button-maximize');
+
+    layouts.tabbing.addEventListener('tab-group-maximized', (event: TabGroupMaximizedEvent) => {        
+        tabManager.isMaximized = true;
+        maximizeElem!.classList.add('restore');
+    });
+
+    layouts.tabbing.addEventListener('tab-group-restored', (event: TabGroupRestoredEvent) => {        
+        tabManager.isMaximized = false;
+        if (maximizeElem!.classList.contains('restore')) {
+            maximizeElem!.classList.remove('restore');
+        }
+    });
 };
 
 /**
@@ -60,17 +74,8 @@ const createWindowUIListeners = () => {
     maximizeElem!.onclick = () => {
         if (!tabManager.isMaximized) {
             layouts.tabbing.maximizeTabGroup(tabManager.getTabs[0].ID);
-
-            maximizeElem!.classList.add('restore');
-            tabManager.isMaximized = true;
         } else {
             layouts.tabbing.restoreTabGroup(tabManager.getTabs[0].ID);
-
-            tabManager.isMaximized = false;
-
-            if (maximizeElem!.classList.contains('restore')) {
-                maximizeElem!.classList.remove('restore');
-            }
         }
     };
 

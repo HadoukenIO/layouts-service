@@ -2,7 +2,7 @@ import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {Scope} from '../../../gen/provider/config/scope';
 
-import {ApplicationUIConfig, TabAddedPayload, TabGroupEventPayload, TabProperties, WindowIdentity, WindowState} from '../../client/types';
+import {ApplicationUIConfig, TabAddedPayload, TabGroupEventPayload, TabProperties, WindowIdentity, WindowState, TabPropertiesUpdatedPayload, TabGroupMaximizedPayload} from '../../client/types';
 import {WindowMessages} from '../APIMessages';
 import {tabService} from '../main';
 import {Signal1} from '../Signal';
@@ -219,6 +219,8 @@ export class DesktopTabGroup implements DesktopEntity {
             });
 
             this._isMaximized = true;
+    
+            this.window.sendMessage('tab-group-maximized', {identity: this.window.identity});
         }
     }
 
@@ -226,21 +228,31 @@ export class DesktopTabGroup implements DesktopEntity {
      * Restores the tab set window.  If the tab set window is in a maximized state we will restore the window to its "before maximized" bounds.
      */
     public async restore(): Promise<void> {
-        if (this._isMaximized) {
-            if (await this.activeTab.currentState.state === 'minimized') {
-                await Promise.all(this._tabs.map(tab => tab.applyProperties({state: 'normal'})));
-            } else if (this._beforeMaximizeBounds) {
-                this._isMaximized = false;
 
-                const bounds: Rectangle = this._beforeMaximizeBounds;
-                await this._window.applyProperties({
-                    center: {x: bounds.center.x, y: bounds.center.y - bounds.halfSize.y - (this._config.height / 2)},
-                    halfSize: {x: bounds.halfSize.x, y: this._config.height / 2}
-                });
-                await this.activeTab.applyProperties(bounds);
-            }
+        if (await this.state === 'minimized') {
+            const result =  this.window.applyProperties({state: 'normal'});
+            this.window.sendMessage('tab-group-restored', {identity: this.window.identity});
+
+            return result;
         } else {
-            await Promise.all(this._tabs.map(tab => tab.applyProperties({state: 'normal'})));
+            if (this._isMaximized) {
+                if (await this.activeTab.currentState.state === 'minimized') {
+                    await Promise.all(this._tabs.map(tab => tab.applyProperties({state: 'normal'})));
+                } else if (this._beforeMaximizeBounds) {
+                    this._isMaximized = false;
+
+                    const bounds: Rectangle = this._beforeMaximizeBounds;
+                    await this._window.applyProperties({
+                        center: {x: bounds.center.x, y: bounds.center.y - bounds.halfSize.y - (this._config.height / 2)},
+                        halfSize: {x: bounds.halfSize.x, y: this._config.height / 2}
+                    });
+                    await this.activeTab.applyProperties(bounds);
+                }
+            } else {
+                await Promise.all(this._tabs.map(tab => tab.applyProperties({state: 'normal'})));
+            }
+
+            this.window.sendMessage('tab-group-restored', {identity: this.window.identity});
         }
     }
 
@@ -251,6 +263,8 @@ export class DesktopTabGroup implements DesktopEntity {
         // Only minimize the tabstrip and active tab since minimizing hidden windows causes issues.
         // This may cause problems if switching tabs while minimized, but that would require a questionable custom tabstrip.
         await Promise.all([this._window.applyProperties({state: 'minimized'}), this.activeTab.applyProperties({state: 'minimized'})]);
+
+        this.window.sendMessage('tab-group-minimized', {identity: this.window.identity});
     }
 
     /**

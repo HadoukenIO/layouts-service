@@ -365,3 +365,31 @@ export interface TabPropertiesUpdatedPayload {
      */
     properties: TabProperties;
 }
+
+export interface TabGroupRestoredPayload {
+    /**
+     * Identifies the window that is the source of the current event.
+     *
+     * See the documentation for individual events for more details.
+     */
+    identity: WindowIdentity;
+}
+
+export interface TabGroupMinimizedPayload {
+    /**
+     * Identifies the window that is the source of the current event.
+     *
+     * See the documentation for individual events for more details.
+     */
+    identity: WindowIdentity;
+}
+
+export interface TabGroupMaximizedPayload {
+    /**
+     * Identifies the window that is the source of the current event.
+     *
+     * See the documentation for individual events for more details.
+     */
+    identity: WindowIdentity;
+}
+

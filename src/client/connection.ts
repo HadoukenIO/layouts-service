@@ -14,7 +14,7 @@
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
 import {APITopic, SERVICE_CHANNEL} from './internal';
-import {TabAddedPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload, Workspace} from './types';
+import {TabAddedPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload, Workspace, TabGroupMaximizedPayload, TabGroupMinimizedPayload, TabGroupRestoredPayload} from './types';
 
 
 /**
@@ -49,6 +49,15 @@ export const channelPromise: Promise<ChannelClient> = typeof fin === 'undefined'
         });
         channel.register('tab-properties-updated', (payload: TabPropertiesUpdatedPayload) => {
             window.dispatchEvent(new CustomEvent<TabPropertiesUpdatedPayload>('tab-properties-updated', {detail: payload}));
+        });
+        channel.register('tab-group-restored', (payload: TabGroupRestoredPayload) => {
+            window.dispatchEvent(new CustomEvent<TabGroupRestoredPayload>('tab-group-restored', {detail: payload}));
+        });
+        channel.register('tab-group-minimized', (payload: TabGroupMinimizedPayload) => {
+            window.dispatchEvent(new CustomEvent<TabGroupMinimizedPayload>('tab-group-minimized', {detail: payload}));
+        });
+        channel.register('tab-group-maximized', (payload: TabGroupMaximizedPayload) => {
+            window.dispatchEvent(new CustomEvent<TabGroupMaximizedPayload>('tab-group-maximized', {detail: payload}));
         });
 
         channel.register('workspace-generated', (payload: Workspace) => {

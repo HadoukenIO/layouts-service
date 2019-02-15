@@ -13,7 +13,7 @@ import {DesktopWindow, WindowIdentity} from './model/DesktopWindow';
 import {SnapService} from './snapanddock/SnapService';
 import {TabService} from './tabbing/TabService';
 import {generateWorkspace} from './workspaces/create';
-import {getAppToRestore, restoreApplication, restoreWorkspace} from './workspaces/restore';
+import {appReadyForRestore, restoreWorkspace} from './workspaces/restore';
 
 
 /**
@@ -150,13 +150,7 @@ export class APIHandler {
     }
 
     private appReady(payload: void, identity: Identity): void {
-        const {uuid} = identity;
-        const appToRestore = getAppToRestore(uuid);
-
-        if (appToRestore) {
-            const {layoutApp, resolve} = appToRestore;
-            restoreApplication(layoutApp, resolve);
-        }
+        appReadyForRestore(identity.uuid);
     }
 
     private setTabstrip(payload: {config: ApplicationUIConfig, id: Identity}) {

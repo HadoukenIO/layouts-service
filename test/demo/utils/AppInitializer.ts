@@ -90,10 +90,19 @@ export function createAppsArray(numAppsToCreate: number, numberOfChildren: numbe
 
         let appInitializerOptions: AppInitializerParams = {...APP_INITIALIZER_BASE_PROGRAMMATIC, appOptions, childWindows};
 
-        if (testOptions && testOptions.manifest && testOptions.url) {
-            appInitializerOptions = {...APP_INITIALIZER_BASE_MANIFEST, childWindows};
-            appInitializerOptions.manifestUrl =
-                `http://localhost:1337/create-manifest?defaultTop=${defaultTop}&uuid=${id}&url=${encodeURIComponent(`${testOptions.url}`)}`;
+        if (testOptions) {
+            if (testOptions.autoShow === false) {
+                appInitializerOptions.appOptions.mainWindowOptions = Object.assign({}, appInitializerOptions.appOptions.mainWindowOptions, {autoShow: false});
+            }
+
+            if (testOptions.manifest && testOptions.url) {
+                appInitializerOptions = {...APP_INITIALIZER_BASE_MANIFEST, childWindows};
+                appInitializerOptions.manifestUrl =
+                    `http://localhost:1337/create-manifest?defaultTop=${defaultTop}&uuid=${id}&url=${encodeURIComponent(`${testOptions.url}`)}`;
+                if (testOptions.autoShow === false) {
+                    appInitializerOptions.manifestUrl += `&autoShow=false`;
+                }
+            }
         }
 
         appsArray.push(appInitializerOptions);

@@ -200,7 +200,7 @@ export class TabService {
                     await tabGroup.maximize();
                 } else if (groupDef.groupInfo.state === 'minimized') {
                     // TODO: Uncomment this line once SERVICE-351 is fixed. Commented for now as it readily triggers a wider restore bug
-                    //await tabGroup.minimize();
+                    // await tabGroup.minimize();
                 }
 
                 tabGroups.push(tabGroup);

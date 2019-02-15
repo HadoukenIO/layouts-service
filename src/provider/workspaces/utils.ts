@@ -47,7 +47,7 @@ export async function waitUntilAllPlaceholdersClosed() {
 }
 
 // Positions a window when it is restored.
-export const positionWindow = async (win: WorkspaceWindow) => {
+export const positionWindow = async (win: WorkspaceWindow, replacingPlaceholder: boolean) => {
     try {
         const {isShowing, isTabbed} = win;
 
@@ -55,7 +55,11 @@ export const positionWindow = async (win: WorkspaceWindow) => {
         await ofWin.setBounds(win);
 
         if (isTabbed) {
-            await ofWin.show();
+            if (replacingPlaceholder) {
+                // When not replacing a placeholder, and hence no further handling done in a show-requested listener,
+                // this would interfere with the normal tab set-up process in DesktopTabGroup
+                await ofWin.show();
+            }
             return;
         }
 
@@ -95,7 +99,7 @@ export const createNormalPlaceholder = async (win: WorkspaceWindow) => {
         try {
             await actualWindow.removeListener('show-requested', updateOptionsAndShow);
             await model.expect(actualWindow.identity as WindowIdentity);
-            await positionWindow(win);
+            await positionWindow(win, true);
         } finally {
             await placeholderWindow.close();
         }

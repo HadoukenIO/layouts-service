@@ -280,7 +280,7 @@ export class DesktopTabGroup implements DesktopEntity {
             await Promise.all([firstTab.sync(), this._window.sync()]);
             // Add the tabs one-at-a-time to avoid potential race conditions with constraints updates.
             for (const tab of tabs) {
-                await this.addTabInternal(tab, activeTab.identity === tab.identity);
+                await this.addTabInternal(tab, activeTab === tab);
             }
         });
 

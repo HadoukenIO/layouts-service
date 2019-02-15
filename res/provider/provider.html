@@ -12,6 +12,12 @@
   <h3>Layouts Service Provider</h3>
 
   <button onclick="fin.System.showDeveloperTools({uuid: 'layouts-service', name: 'layouts-service'})">Show Debugger</button>
+
+  <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./ServiceWorker.js')
+  }
+</script>
 </body>
 
 </html>

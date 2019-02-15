@@ -1,6 +1,7 @@
 {
     "licenseKey": "64605fac-add3-48a0-8710-64b38e96a2dd",
     "devtools_port": 9091,
+    "offlineAccess": true,
     "startup_app": {
         "name": "layouts-service",
         "description": "OpenFin Layouts Managing Service",
@@ -10,8 +11,7 @@
         "showTaskbarIcon": true,
         "defaultHeight": 300,
         "defaultWidth": 400,
-        "enableAppLogging": true,
-        "offlineAccess": true
+        "enableAppLogging": true
     },
     "runtime": {
         "arguments": "--enable-aggressive-domstorage-flushing --high-dpi-support=1 --force-device-scale-factor=1",

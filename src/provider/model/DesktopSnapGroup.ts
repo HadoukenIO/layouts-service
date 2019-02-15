@@ -130,6 +130,9 @@ export class DesktopSnapGroup {
 
     public addWindow(window: DesktopWindow): void {
         if (!this._windows.includes(window)) {
+
+            const nonTrivialGroupBefore = this.isNonTrivialGroup();
+
             // Remove window from it's previous group
             const prevGroup = (window.snapGroup === this) ? window.prevGroup : window.snapGroup;
             if (prevGroup) {
@@ -153,17 +156,13 @@ export class DesktopSnapGroup {
             // Will need to re-calculate cached properties
             this._localBounds.markStale();
 
-            // Inform window of addition
-            // Note that client API only considers windows to belong to a group if it contains two or more windows
-            
-            if (this._windows.length == 2) {
-                this._windows[0].sendMessage('window-docked', {});
-                this._windows[1].sendMessage('window-docked', {});
-            }
-            else if (this._windows.length > 2) {
-                window.sendMessage('window-docked', {});
-            }
+            const isNonTrivialGroupAfter = this.isNonTrivialGroup();
 
+            if (nonTrivialGroupBefore && isNonTrivialGroupAfter) {
+                window.sendMessage('window-docked', {});
+            } else if (!nonTrivialGroupBefore && isNonTrivialGroupAfter) {
+                this._windows.forEach(window => window.sendMessage('window-docked', {}));
+            }
 
             // Inform service of addition
             this.onWindowAdded.emit(this, window);
@@ -246,6 +245,9 @@ export class DesktopSnapGroup {
         const index: number = this._windows.indexOf(window);
 
         if (index >= 0) {
+
+            const nonTrivialGroupBefore = this.isNonTrivialGroup();
+
             this._windows.splice(index, 1);
             this.buildEntities();
 
@@ -259,14 +261,24 @@ export class DesktopSnapGroup {
             // Will need to re-calculate cached properties
             this._localBounds.markStale();
 
+            const nonTrivialGroupAfter = this.isNonTrivialGroup();
+
             // Inform window of removal
             // Note that client API only considers windows to belong to a group if it contains two or more windows
-            if (this._windows.length == 1)
-            {
-                if (window.isReady) {window.sendMessage('window-undocked', {})};
-                if (this._windows[0].isReady) {this._windows[0].sendMessage('window-undocked', {})};
-            } else if (this._windows.length > 0 && window.isReady) {
-                if (window.isReady) {window.sendMessage('window-undocked', {})};
+            if (nonTrivialGroupBefore && nonTrivialGroupAfter) {
+                if (window.isReady) {
+                    window.sendMessage('window-undocked', {})
+                };
+            } else if (nonTrivialGroupBefore && !nonTrivialGroupAfter) {
+                if (window.isReady) {
+                    window.sendMessage('window-undocked', {})
+                };
+
+                this._windows.forEach(window => {
+                    if (window.isReady) {
+                        window.sendMessage('window-undocked', {})
+                    }
+                });
             }
 
             // Inform the service that the group has been modified
@@ -401,5 +413,9 @@ export class DesktopSnapGroup {
                 halfSize: {x: (max.x - min.x) / 2, y: (max.y - min.y) / 2}
             };
         }
+    }
+
+    private isNonTrivialGroup(): boolean {
+        return this._entities.length >= 2;
     }
 }

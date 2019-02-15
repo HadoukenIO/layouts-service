@@ -3,7 +3,7 @@ import {Identity, Window} from 'hadouken-js-adapter';
 
 import {WindowScope} from '../../../gen/provider/config/scope';
 import {SERVICE_IDENTITY} from '../../client/internal';
-import {WindowState} from '../../client/types';
+import {WindowState, TabGroup} from '../../client/types';
 import {WindowMessages} from '../APIMessages';
 import {apiHandler} from '../main';
 import {Aggregators, Signal1, Signal2} from '../Signal';
@@ -298,7 +298,7 @@ export class DesktopWindow implements DesktopEntity {
 
     private _userInitiatedBoundsChange = false;
 
-    constructor(model: DesktopModel, group: DesktopSnapGroup, window: fin.WindowOptions|Window, initialState?: EntityState) {
+    constructor(model: DesktopModel, window: fin.WindowOptions|Window, initialState?: EntityState) {
         const identity = DesktopWindow.getIdentity(window);
 
         this._model = model;
@@ -341,10 +341,10 @@ export class DesktopWindow implements DesktopEntity {
         this._applicationState = this.cloneState(initialState);
         this._modifiedState = {};
         this._temporaryState = {};
-        this._snapGroup = group;
+        this._snapGroup = new DesktopSnapGroup();
         this._tabGroup = null;
         this._prevGroup = null;
-        group.addWindow(this);
+        this._snapGroup.addWindow(this);
 
         if (this._ready) {
             this.addListeners();

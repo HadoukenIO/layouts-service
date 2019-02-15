@@ -77,12 +77,15 @@ export class DesktopTabGroup implements DesktopEntity {
         const windowSpec: _Window|fin.WindowOptions = pool.getNextWindow(config) || pool.generateTabStripOptions(config);
 
         this._model = model;
-        this._window = new DesktopWindow(model, group, windowSpec);
+        this._window = new DesktopWindow(model, windowSpec);
         this._window.onModified.add((window: DesktopWindow) => this.updateBounds());
         this._window.onTransform.add((window: DesktopWindow, type: Mask<eTransformType>) => this.updateBounds());
         this._window.onCommit.add((window: DesktopWindow, type: Mask<eTransformType>) => this.updateBounds());
         this._groupState = {...this._window.currentState};
+
         this._window.setTabGroup(this);
+        this._window.setSnapGroup(group);
+
         this._tabs = [];
         this._config = config;
 

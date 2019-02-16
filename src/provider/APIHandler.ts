@@ -283,6 +283,10 @@ export class APIHandler {
     }
 
     private reorderTabs(newOrdering: WindowIdentity[], tabId: ProviderIdentity): void {
+        if (!newOrdering || newOrdering.length === 0) {
+            throw new Error('Invalid new Order array');
+        }
+
         const tab: DesktopWindow|null = this._model.getWindow(tabId as WindowIdentity);
         const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
@@ -308,6 +312,7 @@ export class APIHandler {
     private startDrag(payload: {window: WindowIdentity}, source: ProviderIdentity): void {
         let tab: DesktopWindow|null;
         let group: DesktopTabGroup|null;
+
 
         // Previous client version had no payload. To avoid breaking changes, we
         // default to the active tab if no window is specified.

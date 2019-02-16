@@ -4,7 +4,7 @@
 import {Identity} from 'hadouken-js-adapter';
 
 import {tryServiceDispatch} from './connection';
-import {DropPosition, EndDragPayload, StartDragPayload, TabAPI} from './internal';
+import {DropPosition, EndDragPayload, StartDragPayload, TabAPI, parseIdentity} from './internal';
 /**
  * Functions required to implement a tabstrip
  */
@@ -24,28 +24,42 @@ export async function startDrag(window: Identity) {
 }
 
 /**
- * Ends the HTML5 Dragging Sequence.
+ * Acknowledges the end of the HTML5 drag and drop sequence, passing the generated event on to the layouts service.
+ * 
+ * ```ts
+ * import {tabstrip} from 'openfin-layouts';
+ * 
+ * window.document.body.addEventListener("dragend", (event)=>{
+ *      tabstrip.endDrag(event,  )
+ * })
+ * ```
  */
 export async function endDrag(event: DragEvent, window: Identity) {
     if (!event) {
         throw new Error('Event is required');
     }
-    if (!window || !window.name || !window.uuid) {
-        throw new Error('Invalid window provided');
-    }
 
     const dropPoint: DropPosition = {screenX: event.screenX, screenY: event.screenY};
-    return tryServiceDispatch<EndDragPayload, void>(TabAPI.ENDDRAG, {event: dropPoint, window});
+    return tryServiceDispatch<EndDragPayload, void>(TabAPI.ENDDRAG, {event: dropPoint, window: parseIdentity(window)});
 }
 
 /**
- * Resets the tabs to the order provided.  The length of tabs Identity array must match the current number of tabs, and each current tab must appear in the
- * array exactly once to be valid.  If the input isn’t valid, the call will reject and no change will be made.
+ * Updates the layouts service provider with the new order of tabs in a tabstrip.  Required for workspace restore operations to restore the tabs in the correct order.
+ * The length of the provided array must match the current number of tabs, and each current tab must appear in the
+ * array exactly once to be valid.
+ * 
+ * ```ts
+ * import {tabstrip} from 'openfin-layouts';
+ * 
+ * const tabs = [{uuid: 'App0', name: 'App0'}, {uuid: 'App1', name: 'App1'}, {uuid: 'App2', name: 'App2'}];
+ * 
+ * tabstrip.reorderTabs(tabs);
+ * ```
+ * 
+ * @param newOrder The new order of the tabs.  First index in the array will match the first tab in the strip.
+ * @throws `Promise.reject`: If the provided value is not an array.
+ * @throws `Promise.reject`: If not all tabs present in the tabstrip are in the provided array.
  */
-export async function reorderTabs(newOrdering: Identity[]): Promise<void> {
-    if (!newOrdering || newOrdering.length === 0) {
-        throw new Error('Invalid new Order array');
-    }
-
-    return tryServiceDispatch<Identity[], void>(TabAPI.REORDERTABS, newOrdering);
+export async function reorderTabs(newOrder: Identity[]): Promise<void> {
+    return tryServiceDispatch<Identity[], void>(TabAPI.REORDERTABS, newOrder.map(identity => parseIdentity(identity)));
 }

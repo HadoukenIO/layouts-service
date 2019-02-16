@@ -282,12 +282,12 @@ export class APIHandler {
         }
     }
 
-    private reorderTabs(newOrdering: WindowIdentity[], tabId: ProviderIdentity): void {
-        if (!newOrdering || newOrdering.length === 0) {
+    private reorderTabs(newOrdering: WindowIdentity[], tabstrip: ProviderIdentity): void {
+        if (Array.isArray(newOrdering) && (!newOrdering || newOrdering.length === 0)) {
             throw new Error('Invalid new Order array');
         }
 
-        const tab: DesktopWindow|null = this._model.getWindow(tabId as WindowIdentity);
+        const tab: DesktopWindow|null = this._model.getWindow(tabstrip as WindowIdentity);
         const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
         if (!group) {

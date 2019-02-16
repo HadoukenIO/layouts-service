@@ -44,7 +44,11 @@ export async function endDrag() {
 
 /**
  * Updates the layouts service provider with the new order of tabs in a tabstrip.  Required for workspace restore operations to restore the tabs in the correct
- * order. The length of the provided array must match the current number of tabs, and each current tab must appear in the array exactly once to be valid.
+ * order.
+ *
+ * This call is purely informational and will not trigger any events.
+ *
+ * The length of the provided array must match the current number of tabs, and each current tab must appear in the array exactly once to be valid.
  *
  * ```ts
  * import {tabstrip} from 'openfin-layouts';
@@ -56,7 +60,10 @@ export async function endDrag() {
  *
  * @param newOrder The new order of the tabs.  First index in the array will match the first tab in the strip.
  * @throws `Promise.reject`: If the provided value is not an array.
+ * @throws `Promise.reject`: If array item type `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity |
+ * Identity}.
  * @throws `Promise.reject`: If not all tabs present in the tabstrip are in the provided array.
+ * @throws `Promise.reject`: If array item is not in the calling tab group.
  */
 export async function reorderTabs(newOrder: Identity[]): Promise<void> {
     return tryServiceDispatch<Identity[], void>(TabAPI.REORDERTABS, newOrder.map(identity => parseIdentity(identity)));

@@ -135,12 +135,3 @@ export interface UpdateTabPropertiesPayload {
     properties: Partial<TabProperties>;
 }
 
-export interface DropPosition {
-    screenX: number;
-    screenY: number;
-}
-
-export interface StartDragPayload {
-    window: Identity;
-}
-

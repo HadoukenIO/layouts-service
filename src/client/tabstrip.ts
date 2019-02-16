@@ -22,7 +22,7 @@ import {parseIdentity, TabAPI} from './internal';
  * @param identity: The identity of the tab which is being dragged.
  * @throws `Promise.reject`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
  */
-export async function startDrag(identity: Identity) {
+export async function startDrag(identity: Identity): Promise<void> {
     return tryServiceDispatch<Identity, void>(TabAPI.STARTDRAG, parseIdentity(identity));
 }
 
@@ -38,7 +38,7 @@ export async function startDrag(identity: Identity) {
  * })
  * ```
  */
-export async function endDrag() {
+export async function endDrag(): Promise<void> {
     return tryServiceDispatch<void, void>(TabAPI.ENDDRAG);
 }
 

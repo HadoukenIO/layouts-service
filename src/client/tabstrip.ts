@@ -4,27 +4,31 @@
 import {Identity} from 'hadouken-js-adapter';
 
 import {tryServiceDispatch} from './connection';
-import {StartDragPayload, TabAPI, parseIdentity} from './internal';
+import {TabAPI, parseIdentity} from './internal';
 /**
  * Functions required to implement a tabstrip
  */
 
 /**
- * Starts the HTML5 Dragging Sequence
+ * Informs the layouts service a tab HTML5 drag sequence has begun.  Required at the beginning of any tabstrip drag operation.
+ * Only one dragging operation should ever be taking place.
+ * 
+ * ```ts
+ * import {tabstrip} from 'openfin-layouts';
+ * 
+ * tabstrip.startDrag({uuid: 'App0', name: 'App0'});
+ * ```
+ * 
+ * @param identity: The identity of the tab which is being dragged.
+ * @throws `Promise.reject`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
  */
-export async function startDrag(window: Identity) {
-    // Previous client version had no payload. To avoid breaking changes, the service
-    // will default to the active tab if no window is specified. Here we just check that
-    // if a window was provided,it is valid
-    if (window && (!window.name || !window.uuid)) {
-        throw new Error('Invalid window provided');
-    }
-
-    return tryServiceDispatch<StartDragPayload, void>(TabAPI.STARTDRAG, {window});
+export async function startDrag(identity: Identity) {
+    return tryServiceDispatch<Identity, void>(TabAPI.STARTDRAG, parseIdentity(identity));
 }
 
 /**
- * Informs the layouts service the HTML5 drag sequence has ended.  Required at the end of any tabstrip drag operation.
+ * Informs the layouts service a tab HTML5 drag sequence has ended.  Required at the end of any tabstrip drag operation.  
+ * Only one dragging operation should ever be taking place.
  * 
  * ```ts
  * import {tabstrip} from 'openfin-layouts';

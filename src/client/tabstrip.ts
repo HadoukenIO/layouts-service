@@ -4,7 +4,7 @@
 import {Identity} from 'hadouken-js-adapter';
 
 import {tryServiceDispatch} from './connection';
-import {DropPosition, EndDragPayload, StartDragPayload, TabAPI, parseIdentity} from './internal';
+import {StartDragPayload, TabAPI, parseIdentity} from './internal';
 /**
  * Functions required to implement a tabstrip
  */
@@ -24,23 +24,18 @@ export async function startDrag(window: Identity) {
 }
 
 /**
- * Acknowledges the end of the HTML5 drag and drop sequence, passing the generated event on to the layouts service.
+ * Informs the layouts service the HTML5 drag sequence has ended.  Required at the end of any tabstrip drag operation.
  * 
  * ```ts
  * import {tabstrip} from 'openfin-layouts';
  * 
- * window.document.body.addEventListener("dragend", (event)=>{
- *      tabstrip.endDrag(event,  )
+ * window.document.body.addEventListener("dragend", (event) => {
+ *      tabstrip.endDrag();
  * })
  * ```
  */
-export async function endDrag(event: DragEvent, window: Identity) {
-    if (!event) {
-        throw new Error('Event is required');
-    }
-
-    const dropPoint: DropPosition = {screenX: event.screenX, screenY: event.screenY};
-    return tryServiceDispatch<EndDragPayload, void>(TabAPI.ENDDRAG, {event: dropPoint, window: parseIdentity(window)});
+export async function endDrag() {
+    return tryServiceDispatch<void, void>(TabAPI.ENDDRAG);
 }
 
 /**

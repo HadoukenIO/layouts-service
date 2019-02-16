@@ -144,7 +144,3 @@ export interface StartDragPayload {
     window: Identity;
 }
 
-export interface EndDragPayload {
-    event: DropPosition;
-    window: Identity;
-}

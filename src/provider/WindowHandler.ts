@@ -45,7 +45,7 @@ export class WindowHandler {
     constructor(model: DesktopModel) {
         this.model = model;
         this.view = new View();
-
+    
         DragWindowManager.onDragOver.add(this.onTabDrag, this);
         DragWindowManager.onDragDrop.add(this.onTabDrop, this);
         // Register lifecycle listeners
@@ -86,12 +86,17 @@ export class WindowHandler {
 
     private onTabDrag(window: DesktopWindow, mousePosition: Point) {
         const target = tabService.getTarget(window);
-
         this.view.update(target);
     }
 
-    private onTabDrop() {
+    private onTabDrop(window: DesktopWindow) {
         this.view.update(null);
+
+        const target = tabService.getTarget(window);
+
+        if (target) {
+            tabService.applyTabTarget(target);
+        }
     }
 
     /**

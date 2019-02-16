@@ -332,20 +332,7 @@ export class APIHandler {
         this._tabService.dragWindowManager.showWindow(tab);
     }
 
-    private async endDrag(payload: {event: DropPosition, window: WindowIdentity}): Promise<void> {
-        const tab: DesktopWindow|null = this._model.getWindow(payload.window);
-        const group: DesktopTabGroup|null = tab && tab.tabGroup;
-
-        if (!group || !tab) {
-            console.error('Window is not registered for tabbing');
-            throw new Error('Window is not registered for tabbing');
-        }
-
-        const target = this._tabService.getTarget(tab);
+    private async endDrag(): Promise<void> {
         this._tabService.dragWindowManager.hideWindow();
-
-        if (target) {
-            await this._tabService.applyTabTarget(target);
-        }
     }
 }

@@ -4,7 +4,7 @@ import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopWindow} from '../model/DesktopWindow';
-import {Signal2, Signal1} from '../Signal';
+import {Signal1, Signal2} from '../Signal';
 
 /**
  * Handles the Drag Window which appears when API drag and drop is initialized.
@@ -31,7 +31,8 @@ export class DragWindowManager {
 
     /**
      * Timeout for the drag window failsafe.
-     * Consideration must be taken for the case of user dragging tab on top of the source tabstrip - Timer is not cleared or reset as no event from us is generated.
+     * Consideration must be taken for the case of user dragging tab on top of the source tabstrip - Timer is not cleared or reset as no event from us is
+     * generated.
      */
     private readonly HIDE_TIMEOUT = 30000;
 
@@ -80,7 +81,7 @@ export class DragWindowManager {
      */
     public hideWindow(): void {
         // Check if we've got a timer running.  If not then we're liking being called from an invalid drag end event (Erroneous or duplicate call)
-        if(this._hideTimer !== -1){
+        if (this._hideTimer !== -1) {
             DragWindowManager.onDragDrop.emit(this._sourceWindow!);
         }
 
@@ -143,7 +144,7 @@ export class DragWindowManager {
             return true;
         });
 
-        nativeWin.document.body.addEventListener('drop', (ev: DragEvent) => {    
+        nativeWin.document.body.addEventListener('drop', (ev: DragEvent) => {
             this.hideWindow();
 
             ev.preventDefault();

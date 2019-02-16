@@ -134,4 +134,3 @@ export interface UpdateTabPropertiesPayload {
     window: Identity;
     properties: Partial<TabProperties>;
 }
-

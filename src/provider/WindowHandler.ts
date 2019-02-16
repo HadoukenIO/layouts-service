@@ -45,7 +45,7 @@ export class WindowHandler {
     constructor(model: DesktopModel) {
         this.model = model;
         this.view = new View();
-    
+
         DragWindowManager.onDragOver.add(this.onTabDrag, this);
         DragWindowManager.onDragDrop.add(this.onTabDrop, this);
         // Register lifecycle listeners

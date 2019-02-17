@@ -4,7 +4,7 @@
 import {Identity} from 'hadouken-js-adapter';
 
 import {tryServiceDispatch} from './connection';
-import {DropPosition, EndDragPayload, TabAPI} from './internal';
+import {DropPosition, EndDragPayload, StartDragPayload, TabAPI} from './internal';
 /**
  * Functions required to implement a tabstrip
  */
@@ -12,16 +12,26 @@ import {DropPosition, EndDragPayload, TabAPI} from './internal';
 /**
  * Starts the HTML5 Dragging Sequence
  */
-export async function startDrag() {
-    return tryServiceDispatch<undefined, void>(TabAPI.STARTDRAG);
+export async function startDrag(window: Identity) {
+    // Previous client version had no payload. To avoid breaking changes, the service
+    // will default to the active tab if no window is specified. Here we just check that
+    // if a window was provided,it is valid
+    if (window && (!window.name || !window.uuid)) {
+        throw new Error('Invalid window provided');
+    }
+
+    return tryServiceDispatch<StartDragPayload, void>(TabAPI.STARTDRAG, {window});
 }
 
 /**
  * Ends the HTML5 Dragging Sequence.
  */
 export async function endDrag(event: DragEvent, window: Identity) {
+    if (!event) {
+        throw new Error('Event is required');
+    }
     if (!window || !window.name || !window.uuid) {
-        return Promise.reject('Invalid window provided');
+        throw new Error('Invalid window provided');
     }
 
     const dropPoint: DropPosition = {screenX: event.screenX, screenY: event.screenY};
@@ -34,7 +44,7 @@ export async function endDrag(event: DragEvent, window: Identity) {
  */
 export async function reorderTabs(newOrdering: Identity[]): Promise<void> {
     if (!newOrdering || newOrdering.length === 0) {
-        return Promise.reject('Invalid new Order array');
+        throw new Error('Invalid new Order array');
     }
 
     return tryServiceDispatch<Identity[], void>(TabAPI.REORDERTABS, newOrdering);

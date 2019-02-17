@@ -3,17 +3,42 @@ pipeline {
     agent { label 'linux-slave' }
 
     stages {
+        stage('Run Tests') {
+            parallel {
+                stage('Unit Tests') {
+                    agent { label 'linux-slave' }
+                    steps {
+                        sh "npm i"
+                        sh "npm run test:unit -- --color=false --reporters=default --reporters=jest-junit"
+                        sh "npm run check"
+                    }
+                    post {
+                        always {
+                            junit "dist/test/results-unit.xml"
+                        }
+                    }
+                }
 
-        stage ('test'){
-            agent { label 'win10-dservices' }
-            steps {
-                bat "npm i"
-                bat "npm run check"
-                bat "npm test -- --verbose"
+                stage('Integration Tests') {
+                    agent { label 'win10-dservices' }
+                    steps {
+                        bat "npm i"
+                        bat "npm run test:int -- --verbose"
+                    }
+                    // Still needs some research:
+                    //   - No obvious way to have ava write to both console and file
+                    //   - Need to check that Jenkins env can read 'tap' output
+                    // 
+                    // post {
+                    //     always {
+                    //         step([$class: "TapPublisher", testResults: "dist/test/results-int.txt"])
+                    //     }
+                    // }
+                }
             }
         }
 
-        stage ('build') {
+        stage('Build & Deploy (Staging)') {
             agent { label 'linux-slave' }
             when { branch "develop" }
             steps {
@@ -44,7 +69,7 @@ pipeline {
             }
         }
 
-        stage ('build-prod') {
+        stage ('Build & Deploy (Production)') {
             agent { label 'linux-slave' }
             when { branch "master" }
             steps {

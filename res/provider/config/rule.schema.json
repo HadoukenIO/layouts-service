@@ -1,0 +1,102 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "title": "Rule",
+    "type": "object",
+    "oneOf": [
+        {
+            "$ref": "#/definitions/rule-app"
+        },
+        {
+            "$ref": "#/definitions/rule-window"
+        },
+        {
+            "$ref": "#/definitions/rule-other"
+        }
+    ],
+    "definitions": {
+        "pattern": {
+            "$ref": "./common.schema.json#/definitions/pattern"
+        },
+        "rule-app": {
+            "title": "ApplicationRule",
+            "description": "A rule targeting an application (or set of applications) by UUID.",
+            "properties": {
+                "level": {
+                    "type": "string",
+                    "enum": [
+                        "application"
+                    ]
+                },
+                "uuid": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "$ref": "#/definitions/pattern"
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "level",
+                "uuid"
+            ],
+            "additionalProperties": false
+        },
+        "rule-window": {
+            "title": "WindowRule",
+            "description": "A rule targeting a window (or set of windows) by UUID-Name pair.",
+            "properties": {
+                "level": {
+                    "type": "string",
+                    "enum": [
+                        "window"
+                    ]
+                },
+                "uuid": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "$ref": "#/definitions/pattern"
+                        }
+                    ]
+                },
+                "name": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "$ref": "#/definitions/pattern"
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "level",
+                "uuid",
+                "name"
+            ],
+            "additionalProperties": false
+        },
+        "rule-other": {
+            "title": "OtherRule",
+            "properties": {
+                "level": {
+                    "type": "string",
+                    "enum": [
+                        "service",
+                        "desktop"
+                    ]
+                }
+            },
+            "required": [
+                "level"
+            ],
+            "additionalProperties": false
+        }
+    }
+}

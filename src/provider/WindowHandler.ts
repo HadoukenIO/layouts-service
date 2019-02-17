@@ -74,7 +74,7 @@ export class WindowHandler {
 
         this.view.update(null);
 
-        if (target) {
+        if (target && target.valid) {
             if (target.type === eTargetType.TAB) {
                 tabService.applyTabTarget(target);
 
@@ -85,7 +85,6 @@ export class WindowHandler {
     }
 
     private onTabDrag(window: DesktopWindow, mousePosition: Point) {
-        const activeGroup = window.snapGroup;
         const target = tabService.getTarget(window);
 
         this.view.update(target);

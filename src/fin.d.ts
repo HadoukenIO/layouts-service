@@ -343,10 +343,10 @@ declare namespace fin {
         bottomRightCorner?: number;
         
         sides: {
-            top: boolean;
-            bottom: boolean;
-            left: boolean;
-            right: boolean;
+            top?: boolean;
+            bottom?: boolean;
+            left?: boolean;
+            right?: boolean;
         };
     }
 

@@ -1,13 +1,17 @@
  // Set a name for the current cache
-const cacheName = '1.0'; 
+const cacheName = PACKAGE_VERSION; 
 
 // Default files to always cache
 const cacheFiles = [
-	'./tabbing/tabstrip/tabstrip.html',
-	'./tabStrip-bundle.js',
 	'./provider.html',
 	'./main-bundle.js',
-	'./tabbing/tabstrip/css/tabs.css'
+	'./tabStrip-bundle.js',
+	'./tabbing/tabstrip/tabstrip.html',
+	'./tabbing/tabstrip/css/tabs.css',
+	'./tabbing/tabstrip/css/image/close.png',
+	'./tabbing/tabstrip/css/image/maximise.png',
+	'./tabbing/tabstrip/css/image/minimize.png',
+	'./tabbing/tabstrip/css/image/restore.png'
 ]
 
 self.addEventListener('install', function(e) {
@@ -19,7 +23,7 @@ self.addEventListener('install', function(e) {
 	    	// Add all the default files to the cache
 				return cache.addAll(cacheFiles);
 	    })
-	); // end e.waitUntil
+	);
 });
 
 self.addEventListener('activate', function(e) {
@@ -35,7 +39,7 @@ self.addEventListener('activate', function(e) {
 				}
 			}));
 		})
-	); // end e.waitUntil
+	);
 });
 
 self.addEventListener('fetch', function(event) {

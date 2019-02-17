@@ -2,10 +2,10 @@ import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {ConfigurationObject, Tabstrip} from '../../../gen/provider/config/layouts-config';
 import {Scope} from '../../../gen/provider/config/scope';
-import {ApplicationUIConfig} from '../../client/types';
 import {ScopedConfig} from '../config/Store';
 import {MaskWatch} from '../config/Watch';
 import {config} from '../main';
+import { ApplicationUIConfig } from '../../client/tabbing';
 
 const DEFAULT_UI_URL = (() => {
     let providerLocation = window.location.href;

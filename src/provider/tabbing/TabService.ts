@@ -1,19 +1,19 @@
 import {Tabstrip} from '../../../gen/provider/config/layouts-config';
 import {Scope} from '../../../gen/provider/config/scope';
-import {TabPropertiesUpdatedPayload, WindowState} from '../../client/types';
-import {TabGroup, TabGroupDimensions, TabProperties, WindowIdentity} from '../../client/types';
 import {ConfigStore} from '../main';
 import {DesktopEntity} from '../model/DesktopEntity';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {DesktopTabstripFactory} from '../model/DesktopTabstripFactory';
-import {DesktopWindow, EntityState} from '../model/DesktopWindow';
+import {DesktopWindow, EntityState, WindowIdentity} from '../model/DesktopWindow';
 import {Point, PointUtils} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 import {eTargetType, TargetBase} from '../WindowHandler';
 
 import {DragWindowManager} from './DragWindowManager';
+import { TabGroup, TabGroupDimensions } from '../../client/workspaces';
+import { TabProperties, TabPropertiesUpdatedPayload } from '../../client/tabbing';
 
 /**
  * TabTarget constructs an interface which represents an area on a window where a tab strip will be placed.

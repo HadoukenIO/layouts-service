@@ -8,7 +8,7 @@ import {WorkspaceAPI} from './internal';
 import {WindowIdentity, WindowState} from './main';
 import { MonitorInfo } from 'hadouken-js-adapter/out/types/src/api/system/monitor';
 import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
-import { WindowInfo } from 'hadouken-js-adapter/out/types/src/api/system/window';
+import {WindowInfo} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import { Identity } from 'hadouken-js-adapter';
 import { ApplicationUIConfig } from './tabbing';
 

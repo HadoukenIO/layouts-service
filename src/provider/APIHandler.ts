@@ -3,7 +3,6 @@ import {Action, ProviderIdentity} from 'hadouken-js-adapter/out/types/src/api/in
 import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
 
 import {RegisterAPI, SERVICE_CHANNEL, SnapAndDockAPI, TabAPI, WorkspaceAPI} from '../client/internal';
-import {ApplicationUIConfig, TabProperties} from '../client/types';
 
 import {LegacyAPI, WindowMessages} from './APIMessages';
 import {ConfigStore} from './main';
@@ -14,6 +13,7 @@ import {SnapService} from './snapanddock/SnapService';
 import {TabService} from './tabbing/TabService';
 import {generateWorkspace} from './workspaces/create';
 import {appReadyForRestore, restoreWorkspace} from './workspaces/restore';
+import { ApplicationUIConfig, TabProperties } from '../client/tabbing';
 
 
 /**

@@ -1,7 +1,7 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import * as Layouts from '../client/main';
-import {Workspace} from '../client/types';
+import {Workspace} from '../client/workspaces';
 
 import * as Storage from './storage';
 

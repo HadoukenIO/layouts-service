@@ -1,5 +1,5 @@
 /**
- * @module Home
+ * @module Index
  */
 import {tryServiceDispatch} from './connection';
 import {getId, RegisterAPI} from './internal';

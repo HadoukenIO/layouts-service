@@ -1,13 +1,12 @@
 import * as layouts from '../../../client/main';
-import {TabActivatedEvent, TabAddedEvent, TabPropertiesUpdatedEvent, TabRemovedEvent} from '../../../client/tabbing';
-import {TabAddedPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload, WindowIdentity} from '../../../client/types';
+import {TabActivatedEvent, TabAddedEvent, TabPropertiesUpdatedEvent, TabRemovedEvent, TabAddedPayload, TabGroupEventPayload} from '../../../client/tabbing';
+import {WindowIdentity} from '../../../client/types';
 
 import {TabManager} from './TabManager';
 
 let tabManager: TabManager;
 
 tabManager = new TabManager();
-
 
 /**
  * Creates event listeners for events fired from the openfin layouts service.

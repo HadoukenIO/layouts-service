@@ -4,8 +4,8 @@
 import {Identity} from 'hadouken-js-adapter';
 
 import {tryServiceDispatch} from './connection';
-import {AddTabPayload, getId, parseIdentity, SetTabstripPayload, TabAPI, UpdateTabPropertiesPayload} from './internal';
-import {ApplicationUIConfig, TabAddedPayload, TabGroupEventPayload, TabProperties, TabPropertiesUpdatedPayload, WindowIdentity} from './types';
+import {getId, parseIdentity, TabAPI} from './internal';
+import { WindowIdentity } from './main';
 
 /**
  * Fired when a window has had its tab properties updated.  See {@link addEventListener}.
@@ -35,6 +35,81 @@ export interface TabAddedEvent extends CustomEvent<TabAddedPayload> {
     type: 'tab-added';
 }
 
+
+
+/**
+ * Data passed as part of tabbing-related events
+ */
+export interface TabGroupEventPayload {
+    /**
+     * String that uniquely identifies the current tabset.
+     */
+    tabstripIdentity: WindowIdentity;
+
+    /**
+     * Identifies the window that is the source of the current event.
+     *
+     * See the documentation for individual events for more details.
+     */
+    identity: WindowIdentity;
+}
+
+/**
+ * Details of the {@link TabAddedEvent|'tab-added'} event
+ */
+export interface TabAddedPayload extends TabGroupEventPayload {
+    /**
+     * The properties of the newly-added tab.
+     *
+     * These will be generated from the `tabID` window, or will be whatever properties were previously set for the `tabID` window using
+     * {@link updateTabProperties}.
+     */
+    properties: TabProperties;
+
+    /**
+     * The index at which the tab was inserted.
+     *
+     * An integer in the range `[0, <tab count>-1]`.
+     */
+    index: number;
+}
+
+/**
+ * Details of the {@link TabPropertiesUpdatedEvent|'tab-properties-updated'} event
+ */
+export interface TabPropertiesUpdatedPayload {
+    /**
+     * Identifies the window that is the source of the current event.
+     *
+     * See the documentation for individual events for more details.
+     */
+    identity: WindowIdentity;
+
+    /**
+     * New tab properties.
+     *
+     * This will always contain the full set of properties for the tab, even if only a subset of the properties were
+     * updated in the {@link updateTabProperties} call.
+     */
+    properties: TabProperties;
+}
+
+
+export interface SetTabstripPayload {
+    config: Partial<ApplicationUIConfig>;
+    id: Identity;
+}
+
+export interface AddTabPayload {
+    targetWindow: Identity;
+    windowToAdd: Identity;
+}
+
+export interface UpdateTabPropertiesPayload {
+    window: Identity;
+    properties: Partial<TabProperties>;
+}
+
 /**
  * @hidden
  */
@@ -44,6 +119,47 @@ export interface EventMap {
     'tab-activated': TabActivatedEvent;
     'tab-properties-updated': TabPropertiesUpdatedEvent;
 }
+
+
+
+/**
+ * Represents the state of a tab within a tabstrip.
+ *
+ * These properties will be passed to the tabstrip whenever a tab is added. Tabstrips can also update these properties
+ * at any time, and the service will persist these changes (See {@link updateTabProperties}).
+ */
+export interface TabProperties {
+    /**
+     * Tab title - the text that is shown on the tab widget so that a user can identify the contents of that tab.
+     *
+     * This will be initialised to the 'name' of the associated window object.
+     */
+    title: string;
+
+    /**
+     * URL to an icon image that will be displayed within the tab widget.
+     */
+    icon: string;
+}
+
+/**
+ * Configuration options that can be set on a per-application basis, to control the tabbing behavior of any windows
+ * belonging to that application.
+ *
+ * These parameters are set via the {@link setTabClient} API.
+ */
+export interface ApplicationUIConfig {
+    /**
+     * The URL of the tabstrip to use for any tab groups created by this application.
+     */
+    url: string;
+
+    /**
+     * The height of the tabstrip window referenced by 'url', in pixels.
+     */
+    height: number;
+}
+
 
 /**
  * Event fired whenever the current window is tabbed. This event is used when adding windows to both new and existing

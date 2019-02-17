@@ -9,8 +9,8 @@
  * This file is excluded from the public-facing TypeScript documentation.
  */
 import {Identity} from 'hadouken-js-adapter';
+import { WindowIdentity } from './main';
 
-import {ApplicationUIConfig, TabProperties, WindowIdentity} from './types';
 
 /**
  * Cached window identity (@see getId)
@@ -93,44 +93,3 @@ export enum RegisterAPI {
 }
 
 export type APITopic = TabAPI|WorkspaceAPI|SnapAndDockAPI|RegisterAPI;
-
-/**
- * Each action coming into the will have an action attached
- */
-export interface TabAPIMessage {
-    action: string;
-}
-
-/**
- * When the tab API makes a call to the service a uuid and name should be provided
- */
-export interface TabAPIInteractionMessage extends TabAPIMessage {
-    uuid: string;
-    name: string;
-    properties?: TabProperties;
-}
-
-export interface TabAPIDragMessage extends TabAPIMessage {
-    event: ApplicationUIConfig|null;
-    uuid: string;
-    name: string;
-}
-
-export interface TabAPIReorderMessage extends TabAPIMessage {
-    tabOrder: WindowIdentity[];
-}
-
-export interface SetTabstripPayload {
-    config: Partial<ApplicationUIConfig>;
-    id: Identity;
-}
-
-export interface AddTabPayload {
-    targetWindow: Identity;
-    windowToAdd: Identity;
-}
-
-export interface UpdateTabPropertiesPayload {
-    window: Identity;
-    properties: Partial<TabProperties>;
-}

@@ -6,10 +6,45 @@ import {getId, RegisterAPI} from './internal';
 import * as snapAndDock from './snapanddock';
 import * as tabbing from './tabbing';
 import * as tabstrip from './tabstrip';
-import {IdentityRule} from './types';
 import * as workspaces from './workspaces';
 
 export {snapAndDock, tabbing, tabstrip, workspaces};
+
+/**
+ * Interface used to identify window instances. Unlike `hadouken-js-adapter` types, the layouts service expects the
+ * `name` field to be present on every identity object.
+ *
+ * For convenience, client functions are typed to take the `Identity` type rather than `WindowIdentity` in order to
+ * prevent excessive casting. Any window identities returned by the service will always be of type `WindowIdentity`.
+ */
+export interface WindowIdentity {
+    /**
+     * Application identifier
+     */
+    uuid: string;
+
+    /**
+     * Window identifier
+     */
+    name: string;
+}
+
+// To be updated/moved once config story is fully merged. SERVICE-306
+export interface IdentityRule {
+    uuid: string|RegEx;
+    name: string|RegEx;
+}
+
+export interface RegEx {
+    expression: string;
+    flags?: string;
+    invert?: boolean;
+}
+
+/**
+ * Window state, corresponds to `WindowOptions.state`
+ */
+export type WindowState = 'normal'|'minimized'|'maximized';
 
 /**
  * Allows a window to opt-out of this service.

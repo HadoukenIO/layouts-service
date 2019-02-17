@@ -1,9 +1,10 @@
 import Sortable from 'sortablejs';
 
 import * as layouts from '../../../client/main';
-import {TabProperties, WindowIdentity} from '../../../client/types';
 
 import {Tab} from './TabItem';
+import { TabProperties } from '../../../client/tabbing';
+import { WindowIdentity } from '../../../client/main';
 
 /**
  * Handles the management of tabs and some of their functionality in the tab strip.

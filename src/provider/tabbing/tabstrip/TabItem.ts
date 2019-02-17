@@ -1,8 +1,8 @@
 
 import * as layouts from '../../../client/main';
-import {TabProperties, WindowIdentity} from '../../../client/types';
 
 import {TabManager} from './TabManager';
+import { TabProperties } from '../../../client/tabbing';
 
 export class Tab {
     /**
@@ -18,7 +18,7 @@ export class Tab {
     /**
      * ID of the Tab (uuid, name);
      */
-    private _ID: WindowIdentity;
+    private _ID: layouts.WindowIdentity;
 
     /**
      * Handle to the TabManager
@@ -30,7 +30,7 @@ export class Tab {
      * @param {WindowIdentity} tabID An object containing the uuid, name for the external application/window.
      * @param {TabManager} tabManager Reference to the tab manager handling this tab.
      */
-    constructor(tabID: WindowIdentity, tabProperties: TabProperties, tabManager: TabManager) {
+    constructor(tabID: layouts.WindowIdentity, tabProperties: TabProperties, tabManager: TabManager) {
         this._ID = tabID;
         this._properties = tabProperties;
         this._tabManager = tabManager;
@@ -224,7 +224,7 @@ export class Tab {
      * Returns tab identifier object consisting of UUID, Name
      * @returns {WindowIdentity} {uuid, name}
      */
-    public get ID(): WindowIdentity {
+    public get ID(): layouts.WindowIdentity {
         return this._ID;
     }
 

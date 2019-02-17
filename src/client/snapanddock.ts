@@ -6,26 +6,13 @@ import {Identity} from 'hadouken-js-adapter';
 import {tryServiceDispatch} from './connection';
 import {getId, SnapAndDockAPI} from './internal';
 
-/**
- * Fired when a window has become docked with another window.  See {@link addEventListener}.
- */
-export interface WindowDockedEvent extends Event {
-    type: 'window-docked';
-}
-
-/**
- * Fired when a window has become undocked from another window.  See {@link addEventListener}.
- */
-export interface WindowUndockedEvent extends Event {
-    type: 'window-undocked';
-}
 
 /**
  * @hidden
  */
 export interface EventMap {
-    'window-docked': WindowDockedEvent;
-    'window-undocked': WindowUndockedEvent;
+    'window-docked': Event;
+    'window-undocked': Event;
 }
 
 /**
@@ -37,7 +24,7 @@ export interface EventMap {
  * ```ts
  * import {addEventListener} from 'openfin-layouts';
  *
- * addEventListener('window-docked', async (event: WindowDockedEvent) => {
+ * addEventListener('window-docked', async (event: Event) => {
  *     console.log("Docked to another window");
  *
  *     // Using 'v1' API
@@ -56,7 +43,7 @@ export interface EventMap {
  * @type window-docked
  * @event
  */
-export async function addEventListener(eventType: 'window-docked', listener: (event: WindowDockedEvent) => void): Promise<void>;
+export async function addEventListener(eventType: 'window-docked', listener: (event: Event) => void): Promise<void>;
 
 /**
  * Event fired when one window is undocked from it's neighbor(s).
@@ -67,7 +54,7 @@ export async function addEventListener(eventType: 'window-docked', listener: (ev
  * ```ts
  * import {addEventListener} from 'openfin-layouts';
  *
- * addEventListener('window-undocked', async (event: WindowUndockedEvent) => {
+ * addEventListener('window-undocked', async (event: Event) => {
  *     console.log("Undocked from another window");
  *
  *     // Using 'v1' API
@@ -86,7 +73,7 @@ export async function addEventListener(eventType: 'window-docked', listener: (ev
  * @type window-undocked
  * @event
  */
-export async function addEventListener(eventType: 'window-undocked', listener: (event: WindowUndockedEvent) => void): Promise<void>;
+export async function addEventListener(eventType: 'window-undocked', listener: (event: Event) => void): Promise<void>;
 
 export async function addEventListener<K extends keyof EventMap>(eventType: K, listener: (event: EventMap[K]) => void): Promise<void> {
     if (typeof fin === 'undefined') {

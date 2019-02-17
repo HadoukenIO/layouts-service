@@ -9,7 +9,7 @@
  * This file is excluded from the public-facing TypeScript documentation.
  */
 import {Identity} from 'hadouken-js-adapter';
-import { WindowIdentity } from './main';
+import {WindowIdentity} from './main';
 
 
 /**

@@ -5,6 +5,8 @@ import {WindowInfo as WindowInfo_Window} from 'hadouken-js-adapter/out/types/src
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {WorkspaceAPI} from '../../client/internal';
+import {WindowState} from '../../client/main';
+import {CustomData, TabGroup, Workspace, WorkspaceApp, WorkspaceWindow} from '../../client/workspaces';
 import {LegacyAPI} from '../APIMessages';
 import {apiHandler, model, tabService} from '../main';
 import {WindowIdentity} from '../model/DesktopWindow';
@@ -12,8 +14,6 @@ import {promiseMap} from '../snapanddock/utils/async';
 
 import {getGroup} from './group';
 import {addToWindowObject, adjustSizeOfFormerlyTabbedWindows, inWindowObject, parseVersionString, wasCreatedFromManifest, wasCreatedProgrammatically, WindowObject} from './utils';
-import { Workspace, TabGroup, WorkspaceApp, WorkspaceWindow, CustomData } from '../../client/workspaces';
-import { WindowState } from '../../client/main';
 
 // This value should be updated any time changes are made to the Workspace schema.
 // Major version indicates breaking changes.

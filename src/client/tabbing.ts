@@ -5,7 +5,7 @@ import {Identity} from 'hadouken-js-adapter';
 
 import {tryServiceDispatch} from './connection';
 import {getId, parseIdentity, TabAPI} from './internal';
-import { WindowIdentity } from './main';
+import {WindowIdentity} from './main';
 
 interface SetTabstripPayload {
     config: Partial<ApplicationUIConfig>;

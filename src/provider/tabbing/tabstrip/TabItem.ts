@@ -1,8 +1,8 @@
 
 import * as layouts from '../../../client/main';
+import {TabProperties} from '../../../client/tabbing';
 
 import {TabManager} from './TabManager';
-import { TabProperties } from '../../../client/tabbing';
 
 export class Tab {
     /**

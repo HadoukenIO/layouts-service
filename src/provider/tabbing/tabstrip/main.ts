@@ -1,8 +1,8 @@
 import * as layouts from '../../../client/main';
+import {WindowIdentity} from '../../../client/main';
 import {TabAddedPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload} from '../../../client/tabbing';
 
 import {TabManager} from './TabManager';
-import { WindowIdentity } from '../../../client/main';
 
 let tabManager: TabManager;
 
@@ -26,7 +26,7 @@ const createLayoutsEventListeners = () => {
         document.title = tabManager.getTabs.map(tab => tab.ID.name).join(', ');
     });
 
-    layouts.tabbing.addEventListener('tab-activated', (event:CustomEvent<TabGroupEventPayload>) => {
+    layouts.tabbing.addEventListener('tab-activated', (event: CustomEvent<TabGroupEventPayload>) => {
         const tabInfo: WindowIdentity = event.detail.identity;
         tabManager.setActiveTab(tabInfo);
     });

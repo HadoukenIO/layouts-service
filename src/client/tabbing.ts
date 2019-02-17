@@ -7,11 +7,25 @@ import {tryServiceDispatch} from './connection';
 import {getId, parseIdentity, TabAPI} from './internal';
 import { WindowIdentity } from './main';
 
+interface SetTabstripPayload {
+    config: Partial<ApplicationUIConfig>;
+    id: Identity;
+}
+
+interface AddTabPayload {
+    targetWindow: Identity;
+    windowToAdd: Identity;
+}
+
+interface UpdateTabPropertiesPayload {
+    window: Identity;
+    properties: Partial<TabProperties>;
+}
 
 /**
  * Data passed as part of tabbing-related events
  */
-export interface TabGroupEventPayload {
+export interface TabGroupEvent {
     /**
      * String that uniquely identifies the current tabset.
      */
@@ -26,9 +40,9 @@ export interface TabGroupEventPayload {
 }
 
 /**
- * Details of the {@link TabAddedEvent|'tab-added'} event
+ * Details of the {@link addEventListener|'tab-added'} event
  */
-export interface TabAddedPayload extends TabGroupEventPayload {
+export interface TabAddedEvent extends TabGroupEvent {
     /**
      * The properties of the newly-added tab.
      *
@@ -46,9 +60,9 @@ export interface TabAddedPayload extends TabGroupEventPayload {
 }
 
 /**
- * Details of the {@link TabPropertiesUpdatedEvent|'tab-properties-updated'} event
+ * Details of the {@link addEventListener|'tab-properties-updated'} event
  */
-export interface TabPropertiesUpdatedPayload {
+export interface TabPropertiesUpdatedEvent {
     /**
      * Identifies the window that is the source of the current event.
      *
@@ -65,30 +79,14 @@ export interface TabPropertiesUpdatedPayload {
     properties: TabProperties;
 }
 
-
-interface SetTabstripPayload {
-    config: Partial<ApplicationUIConfig>;
-    id: Identity;
-}
-
-interface AddTabPayload {
-    targetWindow: Identity;
-    windowToAdd: Identity;
-}
-
-interface UpdateTabPropertiesPayload {
-    window: Identity;
-    properties: Partial<TabProperties>;
-}
-
 /**
  * @hidden
  */
 export interface EventMap {
-    'tab-added': CustomEvent<TabAddedPayload>;
-    'tab-removed': CustomEvent<TabGroupEventPayload>;
-    'tab-activated': CustomEvent<TabGroupEventPayload>;
-    'tab-properties-updated': CustomEvent<TabPropertiesUpdatedPayload>;
+    'tab-added': CustomEvent<TabAddedEvent>;
+    'tab-removed': CustomEvent<TabGroupEvent>;
+    'tab-activated': CustomEvent<TabGroupEvent>;
+    'tab-properties-updated': CustomEvent<TabPropertiesUpdatedEvent>;
 }
 
 /**
@@ -115,7 +113,7 @@ export interface TabProperties {
  * Configuration options that can be set on a per-application basis, to control the tabbing behavior of any windows
  * belonging to that application.
  *
- * These parameters are set via the {@link setTabClient} API.
+ * These parameters are set via the {@link setTabstrip} API.
  */
 export interface ApplicationUIConfig {
     /**
@@ -139,7 +137,7 @@ export interface ApplicationUIConfig {
  * ```ts
  * import {tabbing} from 'openfin-layouts';
  *
- * tabbing.addEventListener('tab-added', async (event: CustomEvent<TabAddedPayload>) => {
+ * tabbing.addEventListener('tab-added', async (event: CustomEvent<TabAddedEvent>) => {
  *     console.log("Window added to tab group: ", event.detail.identity);
  *     console.log("Windows in current group: ", await tabbing.getTabs());
  * });
@@ -150,7 +148,7 @@ export interface ApplicationUIConfig {
  * @type tab-added
  * @event
  */
-export async function addEventListener(eventType: 'tab-added', listener: (event: CustomEvent<TabAddedPayload>) => void): Promise<void>;
+export async function addEventListener(eventType: 'tab-added', listener: (event: CustomEvent<TabAddedEvent>) => void): Promise<void>;
 
 
 /**
@@ -161,7 +159,7 @@ export async function addEventListener(eventType: 'tab-added', listener: (event:
  * ```ts
  * import {tabbing} from 'openfin-layouts';
  *
- * tabbing.addEventListener('tab-removed', async (event: CustomEvent<TabGroupEventPayload>) => {
+ * tabbing.addEventListener('tab-removed', async (event: CustomEvent<TabGroupEvent>) => {
  *     console.log("Window removed from tab group");
  * });
  * ```
@@ -171,7 +169,7 @@ export async function addEventListener(eventType: 'tab-added', listener: (event:
  * @type tab-removed
  * @event
  */
-export async function addEventListener(eventType: 'tab-removed', listener: (event: CustomEvent<TabGroupEventPayload>) => void): Promise<void>;
+export async function addEventListener(eventType: 'tab-removed', listener: (event: CustomEvent<TabGroupEvent>) => void): Promise<void>;
 
 /**
  * Event fired whenever the active tab within a tab group is changed.
@@ -179,7 +177,7 @@ export async function addEventListener(eventType: 'tab-removed', listener: (even
  * ```ts
  * import {tabbing} from 'openfin-layouts';
  *
- * tabbing.addEventListener('tab-activated', (event: CustomEvent<TabGroupEventPayload>) => {
+ * tabbing.addEventListener('tab-activated', (event: CustomEvent<TabGroupEvent>) => {
  *     const activeTab = event.detail.tabID;
  *     console.log("Active tab:", activeTab.uuid, activeTab.name);
  * });
@@ -188,7 +186,7 @@ export async function addEventListener(eventType: 'tab-removed', listener: (even
  * @type tab-activated
  * @event
  */
-export async function addEventListener(eventType: 'tab-activated', listener: (event: CustomEvent<TabGroupEventPayload>) => void): Promise<void>;
+export async function addEventListener(eventType: 'tab-activated', listener: (event: CustomEvent<TabGroupEvent>) => void): Promise<void>;
 
 /**
  * Event fired whenever a windows tab properties are {@link updateTabProperties|updated}.
@@ -198,7 +196,7 @@ export async function addEventListener(eventType: 'tab-activated', listener: (ev
  * ```ts
  * import {tabbing} from 'openfin-layouts';
  *
- * tabbing.addEventListener('tab-properties-updated', (event: CustomEvent<TabPropertiesUpdatedPayload>) => {
+ * tabbing.addEventListener('tab-properties-updated', (event: CustomEvent<TabPropertiesUpdatedEvent>) => {
  *     const tabID = event.detail.identity;
  *     const properties = event.detail.properties;
  *     console.log(`Properties for ${tabID.uuid}/${tabID.name} are:`, properties);
@@ -208,7 +206,7 @@ export async function addEventListener(eventType: 'tab-activated', listener: (ev
  * @type tab-properties-updated
  * @event
  */
-export async function addEventListener(eventType: 'tab-properties-updated', listener: (event: CustomEvent<TabPropertiesUpdatedPayload>) => void): Promise<void>;
+export async function addEventListener(eventType: 'tab-properties-updated', listener: (event: CustomEvent<TabPropertiesUpdatedEvent>) => void): Promise<void>;
 
 export async function addEventListener<K extends keyof EventMap>(eventType: K, listener: (event: EventMap[K]) => void): Promise<void> {
     if (typeof fin === 'undefined') {

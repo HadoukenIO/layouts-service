@@ -15,7 +15,7 @@ import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/c
 
 import {APITopic, SERVICE_CHANNEL} from './internal';
 import { Workspace } from './workspaces';
-import { TabAddedPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload } from './tabbing';
+import { TabAddedEvent, TabGroupEvent, TabPropertiesUpdatedEvent } from './tabbing';
 
 
 /**
@@ -39,17 +39,17 @@ export const channelPromise: Promise<ChannelClient> = typeof fin === 'undefined'
         channel.register('window-undocked', () => {
             window.dispatchEvent(new Event('window-undocked'));
         });
-        channel.register('tab-added', (payload: TabAddedPayload) => {
-            window.dispatchEvent(new CustomEvent<TabAddedPayload>('tab-added', {detail: payload}));
+        channel.register('tab-added', (payload: TabAddedEvent) => {
+            window.dispatchEvent(new CustomEvent<TabAddedEvent>('tab-added', {detail: payload}));
         });
-        channel.register('tab-removed', (payload: TabGroupEventPayload) => {
-            window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('tab-removed', {detail: payload}));
+        channel.register('tab-removed', (payload: TabGroupEvent) => {
+            window.dispatchEvent(new CustomEvent<TabGroupEvent>('tab-removed', {detail: payload}));
         });
-        channel.register('tab-activated', (payload: TabGroupEventPayload) => {
-            window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('tab-activated', {detail: payload}));
+        channel.register('tab-activated', (payload: TabGroupEvent) => {
+            window.dispatchEvent(new CustomEvent<TabGroupEvent>('tab-activated', {detail: payload}));
         });
-        channel.register('tab-properties-updated', (payload: TabPropertiesUpdatedPayload) => {
-            window.dispatchEvent(new CustomEvent<TabPropertiesUpdatedPayload>('tab-properties-updated', {detail: payload}));
+        channel.register('tab-properties-updated', (payload: TabPropertiesUpdatedEvent) => {
+            window.dispatchEvent(new CustomEvent<TabPropertiesUpdatedEvent>('tab-properties-updated', {detail: payload}));
         });
 
         channel.register('workspace-generated', (payload: Workspace) => {

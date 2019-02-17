@@ -1,5 +1,5 @@
 /**
- * @module Snap-and-Dock
+ * @module SnapAndDock
  */
 import {Identity} from 'hadouken-js-adapter';
 

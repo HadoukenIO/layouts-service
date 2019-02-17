@@ -1,6 +1,6 @@
 import {Tabstrip} from '../../../gen/provider/config/layouts-config';
 import {Scope} from '../../../gen/provider/config/scope';
-import {TabProperties, TabPropertiesUpdatedPayload} from '../../client/tabbing';
+import {TabProperties, TabPropertiesUpdatedEvent} from '../../client/tabbing';
 import {TabGroup, TabGroupDimensions} from '../../client/workspaces';
 import {ConfigStore} from '../main';
 import {DesktopEntity} from '../model/DesktopEntity';
@@ -241,7 +241,7 @@ export class TabService {
         Object.assign(tabProps, properties);
         localStorage.setItem(tab.id, JSON.stringify(tabProps));
 
-        const payload: TabPropertiesUpdatedPayload = {identity: tab.identity, properties: tabProps};
+        const payload: TabPropertiesUpdatedEvent = {identity: tab.identity, properties: tabProps};
         tab.sendMessage('tab-properties-updated', payload);
 
         if (tab.tabGroup) {

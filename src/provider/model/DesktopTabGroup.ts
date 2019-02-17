@@ -2,7 +2,7 @@ import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {Scope} from '../../../gen/provider/config/scope';
 import {WindowState} from '../../client/main';
-import {ApplicationUIConfig, TabAddedPayload, TabGroupEventPayload} from '../../client/tabbing';
+import {ApplicationUIConfig, TabAddedEvent, TabGroupEvent} from '../../client/tabbing';
 import {WindowMessages} from '../APIMessages';
 import {tabService} from '../main';
 import {Signal1} from '../Signal';
@@ -288,7 +288,7 @@ export class DesktopTabGroup implements DesktopEntity {
         } else {
             // Need to re-send tab-activated event to ensure tab is active within tabstrip
             // TODO: See if this can be avoided
-            const payload: TabGroupEventPayload = {tabstripIdentity: this.identity, identity: activeTab.identity};
+            const payload: TabGroupEvent = {tabstripIdentity: this.identity, identity: activeTab.identity};
             this._window.sendMessage('tab-activated', payload);
         }
     }
@@ -436,7 +436,7 @@ export class DesktopTabGroup implements DesktopEntity {
             }
 
             await Promise.all([this._window!.sync(), tab.sync()]).catch(e => console.error(e));
-            const payload: TabGroupEventPayload = {tabstripIdentity: this.identity, identity: tab.identity};
+            const payload: TabGroupEvent = {tabstripIdentity: this.identity, identity: tab.identity};
             this._window.sendMessage('tab-activated', payload);
         }
     }
@@ -540,7 +540,7 @@ export class DesktopTabGroup implements DesktopEntity {
         tab.setSnapGroup(this._window.snapGroup);
 
         const addTabPromise: Promise<void> = (async () => {
-            const payload: TabAddedPayload = {tabstripIdentity: this.identity, identity: tab.identity, properties: tabProps, index: this._tabs.indexOf(tab)};
+            const payload: TabAddedEvent = {tabstripIdentity: this.identity, identity: tab.identity, properties: tabProps, index: this._tabs.indexOf(tab)};
 
             this.sendTabEvent(tab, 'tab-added', payload);
             await tab.applyProperties({hidden: tab !== this._activeTab});
@@ -574,7 +574,7 @@ export class DesktopTabGroup implements DesktopEntity {
 
         await this.updateGroupConstraints();
 
-        const payload: TabGroupEventPayload = {tabstripIdentity: this.identity, identity: tab.identity};
+        const payload: TabGroupEvent = {tabstripIdentity: this.identity, identity: tab.identity};
         await this.sendTabEvent(tab, 'tab-removed', payload);
 
         if (this._tabs.length < 2) {
@@ -607,7 +607,7 @@ export class DesktopTabGroup implements DesktopEntity {
         }
     }
 
-    private async sendTabEvent<T extends TabGroupEventPayload>(tab: DesktopWindow, event: WindowMessages, payload: T): Promise<void> {
+    private async sendTabEvent<T extends TabGroupEvent>(tab: DesktopWindow, event: WindowMessages, payload: T): Promise<void> {
         await Promise.all([
             // Send event to application
             tab.sendMessage(event, payload),

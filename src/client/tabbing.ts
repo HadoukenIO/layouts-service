@@ -178,7 +178,7 @@ export async function addEventListener(eventType: 'tab-removed', listener: (even
  * import {tabbing} from 'openfin-layouts';
  *
  * tabbing.addEventListener('tab-activated', (event: CustomEvent<TabGroupEvent>) => {
- *     const activeTab = event.detail.tabID;
+ *     const activeTab = event.detail.identity;
  *     console.log("Active tab:", activeTab.uuid, activeTab.name);
  * });
  * ```

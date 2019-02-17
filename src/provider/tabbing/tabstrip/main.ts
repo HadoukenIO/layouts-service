@@ -1,6 +1,6 @@
 import * as layouts from '../../../client/main';
 import {WindowIdentity} from '../../../client/main';
-import {TabAddedPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload} from '../../../client/tabbing';
+import {TabAddedEvent, TabGroupEvent, TabPropertiesUpdatedEvent} from '../../../client/tabbing';
 
 import {TabManager} from './TabManager';
 
@@ -12,26 +12,26 @@ tabManager = new TabManager();
  * Creates event listeners for events fired from the openfin layouts service.
  */
 const createLayoutsEventListeners = () => {
-    layouts.tabbing.addEventListener('tab-added', (event: CustomEvent<TabAddedPayload>) => {
-        const tabInfo: TabAddedPayload = event.detail;
+    layouts.tabbing.addEventListener('tab-added', (event: CustomEvent<TabAddedEvent>) => {
+        const tabInfo: TabAddedEvent = event.detail;
         tabManager.addTab(tabInfo.identity, tabInfo.properties, tabInfo.index);
 
         document.title = tabManager.getTabs.map(tab => tab.ID.name).join(', ');
     });
 
-    layouts.tabbing.addEventListener('tab-removed', (event: CustomEvent<TabGroupEventPayload>) => {
-        const tabInfo: TabGroupEventPayload = event.detail;
+    layouts.tabbing.addEventListener('tab-removed', (event: CustomEvent<TabGroupEvent>) => {
+        const tabInfo: TabGroupEvent = event.detail;
         tabManager.removeTab(tabInfo.identity);
 
         document.title = tabManager.getTabs.map(tab => tab.ID.name).join(', ');
     });
 
-    layouts.tabbing.addEventListener('tab-activated', (event: CustomEvent<TabGroupEventPayload>) => {
+    layouts.tabbing.addEventListener('tab-activated', (event: CustomEvent<TabGroupEvent>) => {
         const tabInfo: WindowIdentity = event.detail.identity;
         tabManager.setActiveTab(tabInfo);
     });
 
-    layouts.tabbing.addEventListener('tab-properties-updated', (event: CustomEvent<TabPropertiesUpdatedPayload>) => {
+    layouts.tabbing.addEventListener('tab-properties-updated', (event: CustomEvent<TabPropertiesUpdatedEvent>) => {
         const tab = tabManager.getTab(event.detail.identity);
         const props = event.detail.properties;
 

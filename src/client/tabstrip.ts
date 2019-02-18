@@ -99,7 +99,7 @@ export async function addEventListener<K extends keyof EventMap>(eventType: K, l
 /**
  * Informs the layouts service a tab HTML5 drag sequence has begun.  Required at the beginning of any tabstrip drag operation.
  * Only one dragging operation should ever be taking place.
- * 
+ *
  * ```ts
  * import {tabstrip} from 'openfin-layouts';
  *

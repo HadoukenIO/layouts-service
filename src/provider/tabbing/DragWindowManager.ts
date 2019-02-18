@@ -134,9 +134,9 @@ export class DragWindowManager {
             return true;
         });
 
-        nativeWin.document.body.addEventListener("click", ()=>{
+        nativeWin.document.body.addEventListener('click', () => {
             // If we are here, then something has gone wrong!  endDrag may have not been called...
-            console.error("Drag Window Clicked!  Have you called endDrag?");
+            console.error('Drag Window Clicked!  Have you called endDrag?');
             this.hideWindow();
         });
     }

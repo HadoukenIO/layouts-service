@@ -1,7 +1,7 @@
 import deepEqual from 'fast-deep-equal';
 import {Identity, Window} from 'hadouken-js-adapter';
 
-import {WindowScope} from '../../../gen/provider/config/scope';
+import {WindowScope} from '../../../gen/provider/config/layouts-config';
 import {SERVICE_IDENTITY} from '../../client/internal';
 import {WindowState} from '../../client/types';
 import {WindowMessages} from '../APIMessages';

@@ -9,7 +9,7 @@ import {WindowInfo} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {channelPromise, tryServiceDispatch} from './connection';
 import {WorkspaceAPI} from './internal';
-import {WindowIdentity, WindowState} from './main';
+import {WindowIdentity} from './main';
 import {ApplicationUIConfig} from './tabbing';
 
 
@@ -161,6 +161,11 @@ export interface WorkspaceWindow extends Bounds, WindowIdentity {
 export type CustomData = {}|null|undefined;
 
 /**
+ * Window state, corresponds to `WindowOptions.state`
+ */
+export type WindowState = 'normal'|'minimized'|'maximized';
+
+/**
  * Defines a set of tabbed windows within a saved workspace.
  *
  * Lists the windows that are tabbed together, and the state of the tabstrip window that joins them together.
@@ -234,14 +239,8 @@ export interface TabGroupDimensions {
 }
 
 /**
- * @hidden
- */
-export interface EventMap {
-    'workspace-restored': CustomEvent<Workspace>;
-    'workspace-generated': CustomEvent<Workspace>;
-}
-
-/**
+ * Details of the {@link addEventListener|'workspace-restored'} event
+ * 
  * Event fired when a workspace is {@link restore|restored}.
  *
  * The event will contain the full detail of the {@link Workspace}.
@@ -249,17 +248,17 @@ export interface EventMap {
  * ```ts
  * import {workspaces} from 'openfin-layouts';
  *
- * workspaces.addEventListener('workspace-restored', async (event: CustomEvent<Workspace>) => {
+ * workspaces.addEventListener('workspace-restored', async (event: CustomEvent<WorkspaceRestoredEvent>) => {
  *      console.log(`Properties for the restored workspace: ${event.detail}`);
  * });
  * ```
- *
- * @type workspace-restored
  * @event
  */
-export async function addEventListener(eventType: 'workspace-restored', listener: (event: CustomEvent<Workspace>) => void): Promise<void>;
+export interface WorkspaceRestoredEvent { workspace:  Workspace; }
 
 /**
+ * Details of the {@link addEventListener|'workspace-generated'} event.
+ * 
  * Event fired whenever a workspace is {@link generate|generated}.
  *
  * The event will contain the full detail of the {@link Workspace}.
@@ -267,15 +266,34 @@ export async function addEventListener(eventType: 'workspace-restored', listener
  * ```ts
  * import {workspaces} from 'openfin-layouts';
  *
- * workspaces.addEventListener('workspace-generated', async (event: CustomEvent<Workspace>) => {
+ * workspaces.addEventListener('workspace-generated', async (event: CustomEvent<WorkspaceGeneratedEvent>) => {
  *     console.log(`Properties for the generated workspace: ${event.detail}`);
  * });
  * ```
  *
- * @type workspace-generated
  * @event
  */
-export async function addEventListener(eventType: 'workspace-generated', listener: (event: CustomEvent<Workspace>) => void): Promise<void>;
+export interface WorkspaceGeneratedEvent {
+    workspace: Workspace;
+}
+
+/**
+ * @hidden
+ */
+export interface EventMap {
+    'workspace-restored': CustomEvent<WorkspaceRestoredEvent>;
+    'workspace-generated': CustomEvent<WorkspaceRestoredEvent>;
+}
+
+/**
+ * @type workspace-restored
+ */
+export async function addEventListener(eventType: 'workspace-restored', listener: (event: CustomEvent<WorkspaceRestoredEvent>) => void): Promise<void>;
+
+/**
+ * @type workspace-generated
+ */
+export async function addEventListener(eventType: 'workspace-generated', listener: (event: CustomEvent<WorkspaceGeneratedEvent>) => void): Promise<void>;
 
 export async function addEventListener<K extends keyof EventMap>(eventType: K, listener: (event: EventMap[K]) => void): Promise<void> {
     if (typeof fin === 'undefined') {

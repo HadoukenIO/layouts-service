@@ -14,8 +14,8 @@
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
 import {APITopic, SERVICE_CHANNEL} from './internal';
-import {TabAddedEvent, TabGroupEvent, TabPropertiesUpdatedEvent} from './tabbing';
-import {Workspace} from './workspaces';
+import {TabAddedEvent, TabPropertiesUpdatedEvent, TabRemovedEvent, TabActivatedEvent} from './tabbing';
+import {Workspace, WorkspaceGeneratedEvent, WorkspaceRestoredEvent} from './workspaces';
 
 
 /**
@@ -42,22 +42,22 @@ export const channelPromise: Promise<ChannelClient> = typeof fin === 'undefined'
         channel.register('tab-added', (payload: TabAddedEvent) => {
             window.dispatchEvent(new CustomEvent<TabAddedEvent>('tab-added', {detail: payload}));
         });
-        channel.register('tab-removed', (payload: TabGroupEvent) => {
-            window.dispatchEvent(new CustomEvent<TabGroupEvent>('tab-removed', {detail: payload}));
+        channel.register('tab-removed', (payload: TabRemovedEvent) => {
+            window.dispatchEvent(new CustomEvent<TabRemovedEvent>('tab-removed', {detail: payload}));
         });
-        channel.register('tab-activated', (payload: TabGroupEvent) => {
-            window.dispatchEvent(new CustomEvent<TabGroupEvent>('tab-activated', {detail: payload}));
+        channel.register('tab-activated', (payload: TabActivatedEvent) => {
+            window.dispatchEvent(new CustomEvent<TabActivatedEvent>('tab-activated', {detail: payload}));
         });
         channel.register('tab-properties-updated', (payload: TabPropertiesUpdatedEvent) => {
             window.dispatchEvent(new CustomEvent<TabPropertiesUpdatedEvent>('tab-properties-updated', {detail: payload}));
         });
 
         channel.register('workspace-generated', (payload: Workspace) => {
-            window.dispatchEvent(new CustomEvent<Workspace>('workspace-generated', {detail: payload}));
+            window.dispatchEvent(new CustomEvent<WorkspaceGeneratedEvent>('workspace-generated', {detail: {workspace: payload}}));
         });
 
         channel.register('workspace-restored', (payload: Workspace) => {
-            window.dispatchEvent(new CustomEvent<Workspace>('workspace-restored', {detail: payload}));
+            window.dispatchEvent(new CustomEvent<WorkspaceRestoredEvent>('workspace-restored', {detail: {workspace: payload}}));
         });
         // Any unregistered action will simply return false
         channel.setDefaultAction(() => false);

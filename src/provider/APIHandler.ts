@@ -275,11 +275,7 @@ export class APIHandler {
             throw new Error('No tab group found for window');
         }
 
-        if (await group.window.currentState.state === 'minimized') {
-            return group.window.applyProperties({state: 'normal'});
-        } else {
-            return group.restore();
-        }
+        return group.restore();
     }
 
     private reorderTabs(newOrdering: WindowIdentity[], tabId: ProviderIdentity): void {

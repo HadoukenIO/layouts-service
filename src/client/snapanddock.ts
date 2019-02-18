@@ -8,14 +8,8 @@ import {getId, SnapAndDockAPI} from './internal';
 
 
 /**
- * @hidden
- */
-export interface EventMap {
-    'window-docked': Event;
-    'window-undocked': Event;
-}
-
-/**
+ * Details of the {@link addEventListener|'window-docked'} event.
+ * 
  * Event fired when one window is docked to another.
  *
  * It is not possible to receive events for another window. When adding a listener, the listener will only ever fire for the "`fin.desktop.Window.getCurrent()`"
@@ -39,13 +33,14 @@ export interface EventMap {
  *
  * The service considers any windows that are tabbed together to also be in the same snap group, so this event will also fire when a window is added to a tab
  * group. This may change in future versions of the service.
- *
- * @type window-docked
+ * 
  * @event
  */
-export async function addEventListener(eventType: 'window-docked', listener: (event: Event) => void): Promise<void>;
+export interface WindowDockedEvent {}
 
 /**
+ * Details of the {@link addEventListener|'window-undocked'} event.
+ * 
  * Event fired when one window is undocked from it's neighbor(s).
  *
  * It is not possible to receive events for another window. When adding a listener, the listener will only ever fire for the "`fin.desktop.Window.getCurrent()`"
@@ -70,8 +65,25 @@ export async function addEventListener(eventType: 'window-docked', listener: (ev
  * The service considers any windows that are tabbed together to also be in the same snap group, so this event will also fire when a window is removed from a
  * tab group. This may change in future versions of the service.
  *
- * @type window-undocked
  * @event
+ */
+export interface WindowUndockedEvent {}
+
+/**
+ * @hidden
+ */
+export interface EventMap {
+    'window-docked': Event;
+    'window-undocked': Event;
+}
+
+/**
+ * @type window-docked
+ */
+export async function addEventListener(eventType: 'window-docked', listener: (event: Event) => void): Promise<void>;
+
+/**
+ * @type window-undocked
  */
 export async function addEventListener(eventType: 'window-undocked', listener: (event: Event) => void): Promise<void>;
 

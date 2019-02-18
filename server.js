@@ -101,7 +101,7 @@ async function createServer() {
     // Add special route for any 'app.json' files - will re-write the contents according to the command-line arguments of this server
     app.use(/\/?(.*app\.json)/, createAppJsonMiddleware());
 
-    // Add special route for any 'app.json' files - will re-write the contents according to the command-line arguments of this server
+    // Add endpoint for creating new application manifests from scratch - used within demo app for lauching 'custom' applications
     app.use('/manifest', createCustomManifestMiddleware());
 
     // Add route for serving static resources

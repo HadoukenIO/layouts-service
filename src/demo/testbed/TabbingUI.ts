@@ -96,8 +96,8 @@ export class TabbingUI {
             log.addApiCall(promise, tabbing.restoreTabGroup);
         });
         elements.closeTabGroup.addEventListener('click', () => {
-            const promise: Promise<void> = tabbing.removeTab();
-            log.addApiCall(promise, tabbing.removeTab);
+            const promise: Promise<void> = tabbing.closeTabGroup();
+            log.addApiCall(promise, tabbing.closeTabGroup);
         });
 
         this._addToGroup = new Dropdown(elements.addTab, elements.addTabDropdown);

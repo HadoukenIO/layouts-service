@@ -206,6 +206,10 @@ export class WindowsUI {
 
     private async create(): Promise<void> {
         if (this.isApplication) {
+            // If config form is currently open, apply any changes before creating application
+            this.updateConfig();
+
+            // Create new application
             const isManifest: boolean = this.isManifest;
             const data: AppData = this.getInputs<AppData>(isManifest ? this._manifestInputs : this._programmaticInputs);
             await createApp({type: isManifest ? 'manifest' : 'programmatic', ...data});

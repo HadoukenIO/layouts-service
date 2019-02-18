@@ -100,7 +100,7 @@ export class Tab {
      * @param {DragEvent} e DragEvent
      */
     private _onDragEnd(e: DragEvent): void {
-        layouts.tabstrip.endDrag(e, this._ID);
+        layouts.tabstrip.endDrag();
     }
 
     /**

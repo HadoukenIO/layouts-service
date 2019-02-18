@@ -329,7 +329,7 @@ export class DesktopTabGroup implements DesktopEntity {
      * Reorders the tab structure to match what is present in the UI.
      * @param {WindowIdentity[]} orderReference The order which we should rearrange our tabs to match.  This will come from the UI component.
      */
-    public reOrderTabArray(orderReference: WindowIdentity[]): void {
+    public reorderTabArray(orderReference: WindowIdentity[]): void {
         const newlyOrdered: DesktopWindow[] = orderReference
                                                   .map((ref: WindowIdentity) => {
                                                       // Look-up each given identity within list of tabs

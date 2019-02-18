@@ -275,15 +275,11 @@ export class APIHandler {
             throw new Error('No tab group found for window');
         }
 
-        if (await group.window.currentState.state === 'minimized') {
-            return group.window.applyProperties({state: 'normal'});
-        } else {
-            return group.restore();
-        }
+        return group.restore();
     }
 
     private reorderTabs(newOrdering: WindowIdentity[], tabstrip: ProviderIdentity): void {
-        if (Array.isArray(newOrdering) && (!newOrdering || newOrdering.length === 0)) {
+        if (!Array.isArray(newOrdering) || newOrdering.length === 0) {
             throw new Error('Invalid new Order array');
         }
 
@@ -295,7 +291,7 @@ export class APIHandler {
             throw new Error('No tab group found for window');
         }
 
-        return group.reOrderTabArray(newOrdering);
+        return group.reorderTabArray(newOrdering);
     }
 
     private updateTabProperties(payload: {properties: Partial<TabProperties>, window: WindowIdentity}): void {
@@ -309,18 +305,18 @@ export class APIHandler {
         }
     }
 
-    private startDrag(payload: WindowIdentity, source: ProviderIdentity): void {
+    private startDrag(identity: WindowIdentity, source: ProviderIdentity): void {
         let tab: DesktopWindow|null;
         let group: DesktopTabGroup|null;
 
 
         // Previous client version had no payload. To avoid breaking changes, we
         // default to the active tab if no window is specified.
-        if (!payload) {
+        if (!identity) {
             group = this._model.getTabGroup(this._model.getId(source as WindowIdentity));
             tab = group && group.activeTab;
         } else {
-            tab = this._model.getWindow(payload);
+            tab = this._model.getWindow(identity);
             group = tab && tab.tabGroup;
         }
 

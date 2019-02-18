@@ -94,7 +94,7 @@ export class WindowHandler {
 
         const target = tabService.getTarget(window);
 
-        if (target) {
+        if (target && target.valid) {
             tabService.applyTabTarget(target);
         }
     }

@@ -44,8 +44,8 @@ export class TabManager {
         fin.Window.getCurrentSync().getState().then(state => {
             if (state === 'maximized') {
                 this.maximized = true;
-                const maximizeElem: HTMLElement|null = document.getElementById('window-button-maximize');
-                maximizeElem!.classList.add('restored');
+                const maximizeElem: HTMLElement = document.getElementById('window-button-maximize')!;
+                maximizeElem.classList.add('restored');
             }
         });
 

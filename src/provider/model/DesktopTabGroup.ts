@@ -8,7 +8,7 @@ import {tabService} from '../main';
 import {Signal1} from '../Signal';
 import {Debounced} from '../snapanddock/utils/Debounced';
 import {Point, PointUtils} from '../snapanddock/utils/PointUtils';
-import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
+import {Rectangle} from '../snapanddock/utils/RectUtils';
 
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
@@ -221,6 +221,8 @@ export class DesktopTabGroup implements DesktopEntity {
             });
 
             this._isMaximized = true;
+
+            this.window.sendMessage('tab-group-maximized', {identity: this.window.identity});
         }
     }
 
@@ -228,21 +230,30 @@ export class DesktopTabGroup implements DesktopEntity {
      * Restores the tab set window.  If the tab set window is in a maximized state we will restore the window to its "before maximized" bounds.
      */
     public async restore(): Promise<void> {
-        if (this._isMaximized) {
-            if (await this.activeTab.currentState.state === 'minimized') {
-                await Promise.all(this._tabs.map(tab => tab.applyProperties({state: 'normal'})));
-            } else if (this._beforeMaximizeBounds) {
-                this._isMaximized = false;
+        if (this.state === 'minimized') {
+            const result = this.window.applyProperties({state: 'normal'});
+            this.window.sendMessage('tab-group-restored', {identity: this.window.identity});
 
-                const bounds: Rectangle = this._beforeMaximizeBounds;
-                await this._window.applyProperties({
-                    center: {x: bounds.center.x, y: bounds.center.y - bounds.halfSize.y - (this._config.height / 2)},
-                    halfSize: {x: bounds.halfSize.x, y: this._config.height / 2}
-                });
-                await this.activeTab.applyProperties(bounds);
-            }
+            return result;
         } else {
-            await Promise.all(this._tabs.map(tab => tab.applyProperties({state: 'normal'})));
+            if (this._isMaximized) {
+                if (this.activeTab.currentState.state === 'minimized') {
+                    await Promise.all(this._tabs.map(tab => tab.applyProperties({state: 'normal'})));
+                } else if (this._beforeMaximizeBounds) {
+                    this._isMaximized = false;
+
+                    const bounds: Rectangle = this._beforeMaximizeBounds;
+                    await this._window.applyProperties({
+                        center: {x: bounds.center.x, y: bounds.center.y - bounds.halfSize.y - (this._config.height / 2)},
+                        halfSize: {x: bounds.halfSize.x, y: this._config.height / 2}
+                    });
+                    await this.activeTab.applyProperties(bounds);
+                }
+            } else {
+                await Promise.all(this._tabs.map(tab => tab.applyProperties({state: 'normal'})));
+            }
+
+            this.window.sendMessage('tab-group-restored', {identity: this.window.identity});
         }
     }
 
@@ -253,6 +264,8 @@ export class DesktopTabGroup implements DesktopEntity {
         // Only minimize the tabstrip and active tab since minimizing hidden windows causes issues.
         // This may cause problems if switching tabs while minimized, but that would require a questionable custom tabstrip.
         await Promise.all([this._window.applyProperties({state: 'minimized'}), this.activeTab.applyProperties({state: 'minimized'})]);
+
+        this.window.sendMessage('tab-group-minimized', {identity: this.window.identity});
     }
 
     /**
@@ -317,7 +330,7 @@ export class DesktopTabGroup implements DesktopEntity {
      * Reorders the tab structure to match what is present in the UI.
      * @param {WindowIdentity[]} orderReference The order which we should rearrange our tabs to match.  This will come from the UI component.
      */
-    public reOrderTabArray(orderReference: WindowIdentity[]): void {
+    public reorderTabArray(orderReference: WindowIdentity[]): void {
         const newlyOrdered: DesktopWindow[] = orderReference
                                                   .map((ref: WindowIdentity) => {
                                                       // Look-up each given identity within list of tabs
@@ -425,14 +438,16 @@ export class DesktopTabGroup implements DesktopEntity {
 
             this._activeTab = tab;
 
-            await tab.applyProperties({hidden: false});
+            const tabState = this.state === 'minimized' ? 'minimized' : 'normal';
+
+            await tab.applyProperties({hidden: false, state: tabState});
 
             if (focus) {
                 await tab.setAsForeground();
             }
 
             if (prevTab && prevTab.tabGroup === this) {
-                await prevTab.applyProperties({hidden: true});
+                await prevTab.applyProperties({hidden: true, state: 'normal'});
             }
 
             await Promise.all([this._window!.sync(), tab.sync()]).catch(e => console.error(e));
@@ -460,6 +475,29 @@ export class DesktopTabGroup implements DesktopEntity {
 
     public validate(): void {
         this._validateGroup.call();
+    }
+
+    public getSaveDimensions(): TabGroupDimensions {
+        if (this._isMaximized && this._beforeMaximizeBounds) {
+            const bounds: Rectangle = this._beforeMaximizeBounds;
+
+            return {
+                x: bounds.center.x - bounds.halfSize.x,
+                y: (bounds.center.y - bounds.halfSize.y) - (this._config.height),
+                width: bounds.halfSize.x * 2,
+                appHeight: bounds.halfSize.y * 2
+            };
+        } else {
+            const appRect: Rectangle = this.activeTab.currentState;
+            const groupRect: Rectangle = this.window.currentState;
+
+            return {
+                x: groupRect.center.x - groupRect.halfSize.x,
+                y: groupRect.center.y - groupRect.halfSize.y,
+                width: groupRect.halfSize.x * 2,
+                appHeight: appRect.halfSize.y * 2
+            };
+        }
     }
 
     private updateBounds(): void {

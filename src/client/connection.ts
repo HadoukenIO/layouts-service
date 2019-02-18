@@ -51,6 +51,15 @@ export const channelPromise: Promise<ChannelClient> = typeof fin === 'undefined'
         channel.register('tab-properties-updated', (payload: TabPropertiesUpdatedEvent) => {
             window.dispatchEvent(new CustomEvent<TabPropertiesUpdatedEvent>('tab-properties-updated', {detail: payload}));
         });
+        channel.register('tab-group-restored', (payload: TabGroupRestoredPayload) => {
+            window.dispatchEvent(new CustomEvent<TabGroupRestoredPayload>('tab-group-restored', {detail: payload}));
+        });
+        channel.register('tab-group-minimized', (payload: TabGroupMinimizedPayload) => {
+            window.dispatchEvent(new CustomEvent<TabGroupMinimizedPayload>('tab-group-minimized', {detail: payload}));
+        });
+        channel.register('tab-group-maximized', (payload: TabGroupMaximizedPayload) => {
+            window.dispatchEvent(new CustomEvent<TabGroupMaximizedPayload>('tab-group-maximized', {detail: payload}));
+        });
 
         channel.register('workspace-generated', (payload: Workspace) => {
             window.dispatchEvent(new CustomEvent<WorkspaceGeneratedEvent>('workspace-generated', {detail: {workspace: payload}}));

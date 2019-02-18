@@ -248,8 +248,6 @@ export async function addEventListener<K extends keyof EventMap>(eventType: K, l
     window.addEventListener(eventType, listener as EventListener);
 }
 
-
-
 /**
  * Returns array of window identity references for tabs belonging to the tab group of the provided window context.
  *

@@ -152,21 +152,9 @@ export class TabService {
                 return tab.identity;
             });
 
-            const appRect: Rectangle = group.activeTab.currentState;
-            const groupRect: Rectangle = group.window.currentState;
             const config: Tabstrip|'default' = (group.config === DesktopTabstripFactory.DEFAULT_CONFIG) ? 'default' : group.config;
 
-            const groupInfo = {
-                active: group.activeTab.identity,
-                dimensions: {
-                    x: groupRect.center.x - groupRect.halfSize.x,
-                    y: groupRect.center.y - groupRect.halfSize.y,
-                    width: groupRect.halfSize.x * 2,
-                    appHeight: appRect.halfSize.y * 2
-                },
-                config,
-                state: group.state
-            };
+            const groupInfo = {active: group.activeTab.identity, dimensions: group.getSaveDimensions(), config, state: group.state};
 
             return {tabs, groupInfo};
         }));
@@ -207,10 +195,9 @@ export class TabService {
                 await tabGroup.addTabs(tabs, groupDef.groupInfo.active);
                 await tabGroup.window.sync();
 
-                // TODO: Change to look at groupDef.groupInfo.state
-                if (tabGroup.state === 'maximized') {
+                if (groupDef.groupInfo.state === 'maximized') {
                     await tabGroup.maximize();
-                } else if (tabGroup.state === 'minimized') {
+                } else if (groupDef.groupInfo.state === 'minimized') {
                     await tabGroup.minimize();
                 }
 

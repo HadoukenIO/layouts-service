@@ -10,13 +10,103 @@ import {parseIdentity, TabAPI} from './internal';
  */
 
 /**
+ * Fired when a tab group is restored.  See {@link addEventListener}.
+ */
+export interface TabGroupRestoredEvent extends CustomEvent<TabGroupRestoredPayload> {
+    type: 'tab-group-restored';
+}
+
+/**
+ * Fired when a tab group is minimized.  See {@link addEventListener}.
+ */
+export interface TabGroupMinimizedEvent extends CustomEvent<TabGroupMinimizedPayload> {
+    type: 'tab-group-minimized';
+}
+
+/**
+ * Fired when a tab group is maximized.  See {@link addEventListener}.
+ */
+export interface TabGroupMaximizedEvent extends CustomEvent<TabGroupMaximizedPayload> {
+    type: 'tab-group-maximized';
+}
+
+/**
+ * @hidden
+ */
+export interface EventMap {
+    'tab-group-restored': TabGroupRestoredEvent;
+    'tab-group-minimized': TabGroupMinimizedEvent;
+    'tab-group-maximized': TabGroupMaximizedEvent;
+}
+
+/**
+ * Event fired whenever the current tab group is restored from being maximized or minimized.
+ * 
+ * ```ts
+ * tabstrip.addEventListener('tab-group-restored', (event: TabGroupRestoredEvent) => {
+ *     const tabGroupID = event.detail.identity;
+ *     console.log(`Tab group restored: ${tabGroupID.uuid}/${tabGroupID.name}`);
+ * });
+ * ```
+ *
+ * @type tab-group-restored
+ * @event
+ */
+export async function addEventListener(eventType: 'tab-group-restored', listener: (event: TabGroupRestoredEvent) => void): Promise<void>;
+
+/**
+ * Event fired whenever the current tab group is minimized.
+ *
+ * ```ts
+ * import {tabstrip} from 'openfin-layouts';
+ *
+ * tabstrip.addEventListener('tab-group-minimized', (event: TabGroupMinimizedEvent) => {
+ *     const tabGroupID = event.detail.identity;
+ *     console.log(`Tab group minimized: ${tabGroupID.uuid}/${tabGroupID.name}`);
+ * });
+ * ```
+ *
+ * @type tab-group-minimized
+ * @event
+ */
+export async function addEventListener(eventType: 'tab-group-minimized', listener: (event: TabGroupMinimizedEvent) => void): Promise<void>;
+
+/**
+ * Event fired whenever the current tab group is maximized.
+ *
+ * ```ts
+ * import {tabstrip} from 'openfin-layouts';
+ *
+ * tabstrip.addEventListener('tab-group-maximized', (event: TabGroupMaximizedEvent) => {
+ *     const tabGroupID = event.detail.identity;
+ *     console.log(`Tab group maximized: ${tabGroupID.uuid}/${tabGroupID.name}`);
+ * });
+ * ```
+ *
+ * @type tab-group-minimized
+ * @event
+ */
+export async function addEventListener(eventType: 'tab-group-maximized', listener: (event: TabGroupMaximizedEvent) => void): Promise<void>;
+
+export async function addEventListener<K extends keyof EventMap>(eventType: K, listener: (event: EventMap[K]) => void): Promise<void> {
+    if (typeof fin === 'undefined') {
+        throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
+    }
+    // Use native js event system to pass internal events around.
+    // Without this we would need to handle multiple registration ourselves.
+    window.addEventListener(eventType, listener as EventListener);
+}
+
+/**
  * Informs the layouts service a tab HTML5 drag sequence has begun.  Required at the beginning of any tabstrip drag operation.
  * Only one dragging operation should ever be taking place.
  *
  * ```ts
  * import {tabstrip} from 'openfin-layouts';
  *
- * tabstrip.startDrag({uuid: 'App0', name: 'App0'});
+ * window.document.body.addEventListener("dragstart", (event) => {
+ *      tabstrip.startDrag({uuid: 'App0', name: 'App0'});
+ * });
  * ```
  *
  * @param identity: The identity of the tab which is being dragged.

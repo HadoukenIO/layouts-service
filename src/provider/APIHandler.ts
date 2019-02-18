@@ -309,18 +309,18 @@ export class APIHandler {
         }
     }
 
-    private startDrag(payload: WindowIdentity, source: ProviderIdentity): void {
+    private startDrag(identity: WindowIdentity, source: ProviderIdentity): void {
         let tab: DesktopWindow|null;
         let group: DesktopTabGroup|null;
 
 
         // Previous client version had no payload. To avoid breaking changes, we
         // default to the active tab if no window is specified.
-        if (!payload) {
+        if (!identity) {
             group = this._model.getTabGroup(this._model.getId(source as WindowIdentity));
             tab = group && group.activeTab;
         } else {
-            tab = this._model.getWindow(payload);
+            tab = this._model.getWindow(identity);
             group = tab && tab.tabGroup;
         }
 

@@ -11,7 +11,6 @@ import {getTabGroupState} from '../utils/tabServiceUtils';
 
 interface TabToMaximizedWindowTestOptions extends CreateWindowData {
     windowCount: 2;
-    frame: boolean;
     tabTo: 'apparent'|'actual';
 }
 
@@ -50,3 +49,29 @@ testParameterized(
             await Promise.all(windows.map(win => assertNotTabbed(win, t)));
         }
     }));
+
+
+testParameterized(
+    `Cannot tab to window hidden by maximized window`, 
+    [
+        {frame: true, windowCount: 3},
+        {frame: false, windowCount: 3},
+    ],
+    createWindowTest(async t => {
+        const {windows} = t.context;
+
+        await windows[2].moveBy(200, 200);
+        await windows[1].maximize();
+
+        // Stack the windows in z-order from top to bottom: 0 - 1 (maximized) - 2
+        await windows[2].setAsForeground();
+        await windows[1].setAsForeground();
+        await windows[0].setAsForeground();
+
+        await tabWindowsTogether(windows[2], windows[0]);
+
+        // None of the windows should be tabbed
+        await Promise.all(windows.map(win => assertNotTabbed(win, t)));
+
+    })
+)

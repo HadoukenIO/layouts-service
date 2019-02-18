@@ -269,6 +269,7 @@ export class TabService {
             // If there is a window under our Point, and its not part of a tab group, and we are over a valid drop area
             if (existingTabGroup) {
                 await existingTabGroup.removeTab(activeDesktopWindow);
+                await activeDesktopWindow.setAsForeground();
             }
 
             // Create new tab group
@@ -281,9 +282,8 @@ export class TabService {
             const halfSize = {x: prevHalfSize.x, y: prevHalfSize.y + existingTabGroup.config.height / 2};
             const center = {x: target.position.x + halfSize.x, y: target.position.y + halfSize.y};
             await existingTabGroup.removeTab(activeDesktopWindow, {center, halfSize});
+            await activeDesktopWindow.setAsForeground();
         }
-
-        await activeDesktopWindow.bringToFront();
     }
 
     /**

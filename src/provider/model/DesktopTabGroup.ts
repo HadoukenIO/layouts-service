@@ -57,7 +57,7 @@ export class DesktopTabGroup implements DesktopEntity {
     /**
      * The active tab in the tab group.
      */
-    private _activeTab!: DesktopWindow;
+    private _activeTab: DesktopWindow|null;
 
     private _isMaximized: boolean;
     private _beforeMaximizeBounds: Rectangle|undefined;
@@ -76,6 +76,7 @@ export class DesktopTabGroup implements DesktopEntity {
         const windowSpec: _Window|fin.WindowOptions = pool.getNextWindow(config) || pool.generateTabStripOptions(config);
 
         this._model = model;
+        this._activeTab = null;
         this._window = new DesktopWindow(model, group, windowSpec);
         this._window.onModified.add((window: DesktopWindow) => this.updateBounds());
         this._window.onTransform.add((window: DesktopWindow, type: Mask<eTransformType>) => this.updateBounds());
@@ -207,7 +208,8 @@ export class DesktopTabGroup implements DesktopEntity {
                 await this.setSnapGroup(new DesktopSnapGroup());
             }
 
-            const {center, halfSize} = this._activeTab.currentState;
+            const {center, halfSize} = this._activeTab && this._activeTab.currentState || this._tabs[0].currentState;
+
             this._beforeMaximizeBounds = {center: {...center}, halfSize: {...halfSize}};
 
             await this._window.applyProperties(
@@ -286,15 +288,15 @@ export class DesktopTabGroup implements DesktopEntity {
         const activeTab: DesktopWindow = (activeTabId && this._model.getWindow(activeTabId)) || firstTab;
 
         await DesktopWindow.transaction(allWindows, async () => {
-            await this.addTabInternal(firstTab, true);
+            await this.addTabInternal(firstTab, false);
             await Promise.all([firstTab.sync(), this._window.sync()]);
             // Add the tabs one-at-a-time to avoid potential race conditions with constraints updates.
             for (const tab of tabs) {
-                await this.addTabInternal(tab, false);
+                await this.addTabInternal(tab, activeTab === tab);
             }
         });
 
-        if (activeTab !== firstTab) {
+        if (!activeTabId) {
             // Set the desired tab as active
             await this.switchTab(activeTab);
         } else {
@@ -307,12 +309,11 @@ export class DesktopTabGroup implements DesktopEntity {
 
     public async swapTab(tabToRemove: DesktopWindow, tabToAdd: DesktopWindow): Promise<void> {
         const tabIndex = this._tabs.indexOf(tabToRemove!);
-
         if (tabIndex >= 0) {
             await this.addTabInternal(tabToAdd, false, this._tabs.indexOf(tabToRemove!) + 1);
             await this.removeTabInternal(tabToRemove, this._tabs.indexOf(tabToRemove!));
 
-            if (this._activeTab.id === tabToRemove.id) {
+            if (this._activeTab && this._activeTab.id === tabToRemove.id) {
                 // if the switched-with tab was the active one, we make the added tab active
                 this.switchTab(tabToAdd);
             } else {
@@ -396,7 +397,6 @@ export class DesktopTabGroup implements DesktopEntity {
             // Activate next tab
             if (this._tabs.length >= 2 && this.activeTab.id === tab.id) {
                 const nextTab: DesktopWindow = this._tabs[index] ? this._tabs[index] : this._tabs[index - 1];
-
                 promises.push(this.switchTab(nextTab));
             }
 
@@ -428,28 +428,28 @@ export class DesktopTabGroup implements DesktopEntity {
      */
     public async switchTab(tab: DesktopWindow): Promise<void> {
         if (tab && tab !== this._activeTab) {
-            const prevTab: DesktopWindow = this._activeTab;
-            const redrawRequired: boolean = prevTab && !RectUtils.isEqual(tab.currentState, this._activeTab.currentState);
+            const prevTab: DesktopWindow|null = this._activeTab;
+
+            /**
+             * Focus the window in the tabstrip.  Should be falsy in cases of a window being ejected.
+             */
+            const focus = this._activeTab && (this._tabs.indexOf(this._activeTab) >= 0 || !this._activeTab.isReady);
+
             this._activeTab = tab;
 
             const tabState = this.state === 'minimized' ? 'minimized' : 'normal';
 
-            if (redrawRequired) {
-                // Allow tab time to redraw before being shown to user
-                await prevTab.bringToFront();
-                await tab.applyProperties({hidden: false, state: tabState});
-                await new Promise<void>(r => setTimeout(r, 150));
-                await tab.bringToFront();
-            } else {
-                // Show tab as quickly as possible
-                await tab.applyProperties({hidden: false, state: tabState});
-                await tab.bringToFront();
+            await tab.applyProperties({hidden: false, state: tabState});
+
+            if (focus) {
+                await tab.setAsForeground();
             }
+
             if (prevTab && prevTab.tabGroup === this) {
                 await prevTab.applyProperties({hidden: true, state: 'normal'});
             }
 
-            await Promise.all([this._window!.sync(), tab.sync()]).catch(e => console.error(e));
+            await Promise.all([this._window.sync(), tab.sync()]).catch(e => console.error(e));
             const payload: TabGroupEventPayload = {tabstripIdentity: this.identity, identity: tab.identity};
             this._window.sendMessage('tab-activated', payload);
         }
@@ -566,7 +566,7 @@ export class DesktopTabGroup implements DesktopEntity {
             const halfSize: Point = {x: tabState.halfSize.x, y: tabState.halfSize.y - (this._config.height / 2)};
             await tab.applyProperties({center, halfSize, frame: false});
         } else {
-            const existingTabState: EntityState = this._activeTab.currentState;
+            const existingTabState: EntityState = this._activeTab && this._activeTab.currentState || this._tabs[0].currentState;
             const {center, halfSize} = existingTabState;
 
             // Align tab with existing tab
@@ -576,18 +576,16 @@ export class DesktopTabGroup implements DesktopEntity {
         await tab.setTabGroup(this);
         tab.setSnapGroup(this._window.snapGroup);
 
-        const addTabPromise: Promise<void> = (async () => {
-            const payload: TabAddedPayload = {tabstripIdentity: this.identity, identity: tab.identity, properties: tabProps, index: this._tabs.indexOf(tab)};
 
-            this.sendTabEvent(tab, 'tab-added', payload);
-            await tab.applyProperties({hidden: tab !== this._activeTab});
-            await this._window.bringToFront();
-        })();
-        await addTabPromise;  // TODO: Need to add this to a pendingActions queue?
+        const payload: TabAddedPayload = {tabstripIdentity: this.identity, identity: tab.identity, properties: tabProps, index: this._tabs.indexOf(tab)};
+        this.sendTabEvent(tab, 'tab-added', payload);
 
-        if (setActive) {
+        if (!setActive) {
+            await tab.applyProperties({hidden: true});
+        } else {
             await this.switchTab(tab);
         }
+
         await Promise.all([tab.sync(), this._window.sync()]);
 
         await this.updateGroupConstraints();

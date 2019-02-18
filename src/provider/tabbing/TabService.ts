@@ -1,5 +1,4 @@
-import {Tabstrip} from '../../../gen/provider/config/layouts-config';
-import {Scope} from '../../../gen/provider/config/scope';
+import {Scope, Tabstrip} from '../../../gen/provider/config/layouts-config';
 import {TabPropertiesUpdatedPayload, WindowState} from '../../client/types';
 import {TabGroup, TabGroupDimensions, TabProperties, WindowIdentity} from '../../client/types';
 import {ConfigStore} from '../main';

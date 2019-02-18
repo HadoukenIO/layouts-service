@@ -130,7 +130,6 @@ export class DesktopSnapGroup {
 
     public addWindow(window: DesktopWindow): void {
         if (!this._windows.includes(window)) {
-
             const nonTrivialGroupBefore = this.isNonTrivialGroup();
 
             // Remove window from it's previous group
@@ -162,6 +161,9 @@ export class DesktopSnapGroup {
                 window.sendMessage('window-docked', {});
             } else if (!nonTrivialGroupBefore && isNonTrivialGroupAfter) {
                 this._windows.forEach(window => window.sendMessage('window-docked', {}));
+            } else if (nonTrivialGroupBefore && !isNonTrivialGroupAfter) {
+                // This case can occur if the tabstrip window gets added to the snap group after the individual tab windows
+                this._windows.forEach(window => window.sendMessage('window-undocked', {}));
             }
 
             // Inform service of addition
@@ -245,7 +247,6 @@ export class DesktopSnapGroup {
         const index: number = this._windows.indexOf(window);
 
         if (index >= 0) {
-
             const nonTrivialGroupBefore = this.isNonTrivialGroup();
 
             this._windows.splice(index, 1);
@@ -277,6 +278,13 @@ export class DesktopSnapGroup {
                 this._windows.forEach(window => {
                     if (window.isReady) {
                         window.sendMessage('window-undocked', {});
+                    }
+                });
+            } else if (!nonTrivialGroupBefore && nonTrivialGroupAfter) {
+                // This case can occur if the tabstrip window gets removed from the snap group before the individual tab windows
+                this._windows.forEach(window => {
+                    if (window.isReady) {
+                        window.sendMessage('window-docked', {});
                     }
                 });
             }

@@ -3,7 +3,7 @@ import {Identity, Window} from 'hadouken-js-adapter';
 
 import {WindowScope} from '../../../gen/provider/config/scope';
 import {SERVICE_IDENTITY} from '../../client/internal';
-import {WindowState, TabGroup} from '../../client/types';
+import {TabGroup, WindowState} from '../../client/types';
 import {WindowMessages} from '../APIMessages';
 import {apiHandler} from '../main';
 import {Aggregators, Signal1, Signal2} from '../Signal';

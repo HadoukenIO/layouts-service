@@ -267,16 +267,16 @@ export class DesktopSnapGroup {
             // Note that client API only considers windows to belong to a group if it contains two or more windows
             if (nonTrivialGroupBefore && nonTrivialGroupAfter) {
                 if (window.isReady) {
-                    window.sendMessage('window-undocked', {})
-                };
+                    window.sendMessage('window-undocked', {});
+                }
             } else if (nonTrivialGroupBefore && !nonTrivialGroupAfter) {
                 if (window.isReady) {
-                    window.sendMessage('window-undocked', {})
-                };
+                    window.sendMessage('window-undocked', {});
+                }
 
                 this._windows.forEach(window => {
                     if (window.isReady) {
-                        window.sendMessage('window-undocked', {})
+                        window.sendMessage('window-undocked', {});
                     }
                 });
             }

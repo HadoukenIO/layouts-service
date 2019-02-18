@@ -10,7 +10,7 @@ import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
 import {refreshWindowState} from '../utils/modelUtils';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {layoutsClientPromise} from '../utils/serviceUtils';
-import { getTabGroupState } from '../utils/tabServiceUtils';
+import {getTabGroupState} from '../utils/tabServiceUtils';
 
 interface TabConstraintsOptions extends CreateWindowData {
     windowConstraints: Constraints[];

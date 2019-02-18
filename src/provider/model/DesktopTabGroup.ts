@@ -204,25 +204,24 @@ export class DesktopTabGroup implements DesktopEntity {
      */
     public async maximize(): Promise<void> {
         if (!this.currentState.maximizable) {
-            // This all looks a bit messy, but is basically just determining which windows are preventing the maximize and including them in the error message.
             const nonMaximizableWindows: string[] = this._tabs.filter(tab => !tab.applicationState.maximizable).map(tab => tab.id);
+            const sizeConstrainedWindows: string[] =
+                this._tabs
+                    .filter(tab => {
+                        const constraints: Point<ResizeConstraint> = tab.applicationState.resizeConstraints;
+                        return constraints.x.maxSize < Number.MAX_SAFE_INTEGER || constraints.y.maxSize < Number.MAX_SAFE_INTEGER;
+                    })
+                    .map(tab => tab.id);
+
             if (nonMaximizableWindows.length > 0) {
                 throw new Error(`Unable to maximize tabGroup: The following tabs are not resizable: [${nonMaximizableWindows.join(', ')}]`);
-            }
-            const sizeConstrainedWindows = this._tabs
-                                               .filter(
-                                                   tab => tab.applicationState.resizeConstraints.x.maxSize < Number.MAX_SAFE_INTEGER ||
-                                                       tab.applicationState.resizeConstraints.y.maxSize < Number.MAX_SAFE_INTEGER)
-                                               .map(tab => tab.id);
-            if (sizeConstrainedWindows.length > 0) {
+            } else if (sizeConstrainedWindows.length > 0) {
                 throw new Error(`Unable to maximize tabGroup: The following tabs have maximum size constraints: [${sizeConstrainedWindows.join(', ')}]`);
+            } else {
+                throw new Error('Unable to maximize tabGroup: Group is not maximizable');
             }
-
-            // This should never be called since currentState.maximizable should only be false if one of
-            // the two conditions above is met. This catch-all is here just in case something weird happens.
-            throw new Error('Unable to maximize tabGroup: Group is not maximizable');
         }
-        if (!this._isMaximized && this.currentState.maximizable) {
+        if (!this._isMaximized) {
             // Before doing anything else we will undock the tabGroup (mitigation for SERVICE-314)
             if (this.snapGroup.entities.length > 1) {
                 await this.setSnapGroup(new DesktopSnapGroup());

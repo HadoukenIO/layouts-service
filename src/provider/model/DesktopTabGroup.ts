@@ -83,11 +83,11 @@ export class DesktopTabGroup implements DesktopEntity {
         this._window.onCommit.add((window: DesktopWindow, type: Mask<eTransformType>) => this.updateBounds());
         this._groupState = {...this._window.currentState};
 
-        this._window.setTabGroup(this);
-        this._window.setSnapGroup(group);
-
         this._tabs = [];
         this._config = config;
+
+        this._window.setTabGroup(this);
+        this._window.setSnapGroup(group);
 
         this._isMaximized = false;
 

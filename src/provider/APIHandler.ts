@@ -283,7 +283,7 @@ export class APIHandler {
     }
 
     private reorderTabs(newOrdering: WindowIdentity[], tabstrip: ProviderIdentity): void {
-        if (Array.isArray(newOrdering) && (!newOrdering || newOrdering.length === 0)) {
+        if (!Array.isArray(newOrdering) || newOrdering.length === 0) {
             throw new Error('Invalid new Order array');
         }
 

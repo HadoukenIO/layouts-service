@@ -23,9 +23,22 @@ interface UpdateTabPropertiesPayload {
 }
 
 /**
- * Data passed as part of tabbing-related events
+ * Details of the {@link addEventListener|'tab-activated'} event
+ * 
+ * Event fired whenever the active tab within a tab group is changed.
+ *
+ * ```ts
+ * import {tabbing} from 'openfin-layouts';
+ *
+ * tabbing.addEventListener('tab-activated', (event: CustomEvent<TabGroupEvent>) => {
+ *     const activeTab = event.detail.identity;
+ *     console.log("Active tab:", activeTab.uuid, activeTab.name);
+ * });
+ * ```
+ *
+ * @event
  */
-export interface TabGroupEvent {
+export interface TabActivatedEvent {
     /**
      * String that uniquely identifies the current tabset.
      */
@@ -40,9 +53,71 @@ export interface TabGroupEvent {
 }
 
 /**
- * Details of the {@link addEventListener|'tab-added'} event
+ * Details of the {@link addEventListener|'tab-removed'} event.
+ * 
+ * Event fired whenever the current window is removed from it's previous tabset.
+ *
+ * To find out which other windows are in the tabset, use the `getTabs()` method.
+ *
+ * ```ts
+ * import {tabbing} from 'openfin-layouts';
+ *
+ * tabbing.addEventListener('tab-removed', async (event: CustomEvent<TabGroupEvent>) => {
+ *     console.log("Window removed from tab group");
+ * });
+ * ```
+ *
+ * If a window is moved from one tab group to another, this will be messaged as a `tab-removed` event, followed by a `tab-added`.
+ * 
+ * @event
  */
-export interface TabAddedEvent extends TabGroupEvent {
+export interface TabRemovedEvent {
+    /**
+     * String that uniquely identifies the current tabset.
+     */
+    tabstripIdentity: WindowIdentity;
+
+    /**
+     * Identifies the window that is the source of the current event.
+     *
+     * See the documentation for individual events for more details.
+     */
+    identity: WindowIdentity;
+}
+
+/**
+ * Details of the {@link addEventListener|'tab-added'} event.
+ * 
+ * Event fired whenever the current window is tabbed. This event is used when adding windows to both new and existing
+ * tabsets.
+ *
+ * To find out which other windows are in the tabset, use the `getTabs()` method.
+ *
+ * ```ts
+ * import {tabbing} from 'openfin-layouts';
+ *
+ * tabbing.addEventListener('tab-added', async (event: CustomEvent<TabAddedEvent>) => {
+ *     console.log("Window added to tab group: ", event.detail.identity);
+ *     console.log("Windows in current group: ", await tabbing.getTabs());
+ * });
+ * ```
+ *
+ * If a window is moved from one tab group to another, this will be messaged as a `tab-removed` event, followed by a `tab-added`.
+ * 
+ * @event
+ */
+export interface TabAddedEvent {
+    /**
+     * String that uniquely identifies the current tabset.
+     */
+    tabstripIdentity: WindowIdentity;
+
+    /**
+     * Identifies the window that is the source of the current event.
+     *
+     * See the documentation for individual events for more details.
+     */
+    identity: WindowIdentity;
     /**
      * The properties of the newly-added tab.
      *
@@ -60,7 +135,23 @@ export interface TabAddedEvent extends TabGroupEvent {
 }
 
 /**
- * Details of the {@link addEventListener|'tab-properties-updated'} event
+ * Details of the {@link addEventListener|'tab-properties-updated'} event.
+ * 
+ * Event fired whenever a windows tab properties are {@link updateTabProperties|updated}.
+ *
+ * The event will always contain the full properties of the tab, even if only a subset of them were updated.
+ *
+ * ```ts
+ * import {tabbing} from 'openfin-layouts';
+ *
+ * tabbing.addEventListener('tab-properties-updated', (event: CustomEvent<TabPropertiesUpdatedEvent>) => {
+ *     const tabID = event.detail.identity;
+ *     const properties = event.detail.properties;
+ *     console.log(`Properties for ${tabID.uuid}/${tabID.name} are:`, properties);
+ * });
+ * ```
+ * 
+ * @event
  */
 export interface TabPropertiesUpdatedEvent {
     /**
@@ -84,8 +175,8 @@ export interface TabPropertiesUpdatedEvent {
  */
 export interface EventMap {
     'tab-added': CustomEvent<TabAddedEvent>;
-    'tab-removed': CustomEvent<TabGroupEvent>;
-    'tab-activated': CustomEvent<TabGroupEvent>;
+    'tab-removed': CustomEvent<TabRemovedEvent>;
+    'tab-activated': CustomEvent<TabActivatedEvent>;
     'tab-properties-updated': CustomEvent<TabPropertiesUpdatedEvent>;
 }
 
@@ -129,82 +220,22 @@ export interface ApplicationUIConfig {
 
 
 /**
- * Event fired whenever the current window is tabbed. This event is used when adding windows to both new and existing
- * tabsets.
- *
- * To find out which other windows are in the tabset, use the `getTabs()` method.
- *
- * ```ts
- * import {tabbing} from 'openfin-layouts';
- *
- * tabbing.addEventListener('tab-added', async (event: CustomEvent<TabAddedEvent>) => {
- *     console.log("Window added to tab group: ", event.detail.identity);
- *     console.log("Windows in current group: ", await tabbing.getTabs());
- * });
- * ```
- *
- * If a window is moved from one tab group to another, this will be messaged as a `tab-removed` event, followed by a `tab-added`.
- *
  * @type tab-added
- * @event
  */
 export async function addEventListener(eventType: 'tab-added', listener: (event: CustomEvent<TabAddedEvent>) => void): Promise<void>;
 
-
 /**
- * Event fired whenever the current window is removed from it's previous tabset.
- *
- * To find out which other windows are in the tabset, use the `getTabs()` method.
- *
- * ```ts
- * import {tabbing} from 'openfin-layouts';
- *
- * tabbing.addEventListener('tab-removed', async (event: CustomEvent<TabGroupEvent>) => {
- *     console.log("Window removed from tab group");
- * });
- * ```
- *
- * If a window is moved from one tab group to another, this will be messaged as a `tab-removed` event, followed by a `tab-added`.
- *
  * @type tab-removed
- * @event
  */
-export async function addEventListener(eventType: 'tab-removed', listener: (event: CustomEvent<TabGroupEvent>) => void): Promise<void>;
+export async function addEventListener(eventType: 'tab-removed', listener: (event: CustomEvent<TabRemovedEvent>) => void): Promise<void>;
 
 /**
- * Event fired whenever the active tab within a tab group is changed.
- *
- * ```ts
- * import {tabbing} from 'openfin-layouts';
- *
- * tabbing.addEventListener('tab-activated', (event: CustomEvent<TabGroupEvent>) => {
- *     const activeTab = event.detail.identity;
- *     console.log("Active tab:", activeTab.uuid, activeTab.name);
- * });
- * ```
- *
  * @type tab-activated
- * @event
  */
-export async function addEventListener(eventType: 'tab-activated', listener: (event: CustomEvent<TabGroupEvent>) => void): Promise<void>;
+export async function addEventListener(eventType: 'tab-activated', listener: (event: CustomEvent<TabActivatedEvent>) => void): Promise<void>;
 
 /**
- * Event fired whenever a windows tab properties are {@link updateTabProperties|updated}.
- *
- * The event will always contain the full properties of the tab, even if only a subset of them were updated.
- *
- * ```ts
- * import {tabbing} from 'openfin-layouts';
- *
- * tabbing.addEventListener('tab-properties-updated', (event: CustomEvent<TabPropertiesUpdatedEvent>) => {
- *     const tabID = event.detail.identity;
- *     const properties = event.detail.properties;
- *     console.log(`Properties for ${tabID.uuid}/${tabID.name} are:`, properties);
- * });
- * ```
- *
  * @type tab-properties-updated
- * @event
  */
 export async function addEventListener(eventType: 'tab-properties-updated', listener: (event: CustomEvent<TabPropertiesUpdatedEvent>) => void): Promise<void>;
 

@@ -12,6 +12,8 @@ import {WindowIdentity} from './main';
 
 
 /**
+ * Details of the {@link addEventListener|'tab-group-restored'} event.
+ *
  * Fired when a tab group is restored from being maximized or minimized..  See {@link addEventListener}.
  *
  * ```ts
@@ -20,6 +22,8 @@ import {WindowIdentity} from './main';
  *     console.log(`Tab group restored: ${tabGroupID.uuid}/${tabGroupID.name}`);
  * });
  * ```
+ *
+ * @event
  */
 export interface TabGroupRestoredEvent {
     /**
@@ -31,6 +35,8 @@ export interface TabGroupRestoredEvent {
 }
 
 /**
+ * Details of the {@link addEventListener|'tab-group-minimized'} event.
+ *
  * Event fired whenever the current tab group is minimized.  See {@link addEventListener}.
  *
  * ```ts
@@ -41,6 +47,8 @@ export interface TabGroupRestoredEvent {
  *     console.log(`Tab group minimized: ${tabGroupID.uuid}/${tabGroupID.name}`);
  * });
  * ```
+ *
+ * @event
  */
 export interface TabGroupMinimizedEvent {
     /**
@@ -52,6 +60,8 @@ export interface TabGroupMinimizedEvent {
 }
 
 /**
+ * Details of the {@link addEventListener|'tab-group-maximized'} event.
+ *
  * Fired when the current tab group is maximized.  See {@link addEventListener}.
  *
  * ```ts
@@ -62,6 +72,8 @@ export interface TabGroupMinimizedEvent {
  *     console.log(`Tab group maximized: ${tabGroupID.uuid}/${tabGroupID.name}`);
  * });
  * ```
+ *
+ * @event
  */
 export interface TabGroupMaximizedEvent {
     /**

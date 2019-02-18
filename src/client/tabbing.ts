@@ -23,7 +23,7 @@ interface UpdateTabPropertiesPayload {
 }
 
 /**
- * Details of the {@link addEventListener|'tab-activated'} event
+ * Details of the {@link addEventListener|'tab-activated'} event.
  *
  * Event fired whenever the active tab within a tab group is changed.
  *

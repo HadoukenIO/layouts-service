@@ -17,35 +17,35 @@ const cacheFiles = [
 self.addEventListener('install', function(e) {
     // e.waitUntil Delays the event until the Promise is resolved
     e.waitUntil(
-    	// Open the cache
-	    caches.open(cacheName).then(function(cache) {
+        // Open the cache
+        caches.open(cacheName).then(function(cache) {
 
-	    	// Add all the default files to the cache
-				return cache.addAll(cacheFiles);
-	    })
+        // Add all the default files to the cache
+        return cache.addAll(cacheFiles);
+    })
 	);
 });
 
 self.addEventListener('activate', function(e) {
     e.waitUntil(
     	// Get all the cache keys (cacheName)
-		caches.keys().then(function(cacheNames) {
-			return Promise.all(cacheNames.map(function(thisCacheName) {
+    caches.keys().then(function(cacheNames) {
+        return Promise.all(cacheNames.map(function(thisCacheName) {
 
-				// If a cached item is saved under a previous cacheName
-				if (thisCacheName !== cacheName) {
-					// Delete that cached file
-					return caches.delete(thisCacheName);
-				}
-			}));
-		})
-	);
+            // If a cached item is saved under a previous cacheName
+            if (thisCacheName !== cacheName) {
+                // Delete that cached file
+                return caches.delete(thisCacheName);
+            }
+        }));
+		 })
+	 );
 });
 
 self.addEventListener('fetch', function(event) {
-	event.respondWith(
-	  fetch(event.request).catch(function() {
-			return caches.match(event.request);
-	  })
-	);
+    event.respondWith(
+        fetch(event.request).catch(function() {
+           return caches.match(event.request);
+        })
+    );
 });

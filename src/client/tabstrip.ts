@@ -5,7 +5,7 @@ import {Identity} from 'hadouken-js-adapter';
 
 import {tryServiceDispatch} from './connection';
 import {parseIdentity, TabAPI} from './internal';
-import { WindowIdentity } from './main';
+import {WindowIdentity} from './main';
 /**
  * Functions required to implement a tabstrip
  */
@@ -13,7 +13,7 @@ import { WindowIdentity } from './main';
 
 /**
  * Fired when a tab group is restored from being maximized or minimized..  See {@link addEventListener}.
- * 
+ *
  * ```ts
  * tabstrip.addEventListener('tab-group-restored', (event: TabGroupRestoredEvent) => {
  *     const tabGroupID = event.detail.identity;

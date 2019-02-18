@@ -1,9 +1,9 @@
 import * as layouts from '../../../client/main';
 import {WindowIdentity} from '../../../client/main';
 import {TabActivatedEvent, TabAddedEvent, TabPropertiesUpdatedEvent, TabRemovedEvent} from '../../../client/tabbing';
+import {TabGroupMaximizedEvent, TabGroupRestoredEvent} from '../../../client/tabstrip';
 
 import {TabManager} from './TabManager';
-import { TabGroupMaximizedEvent, TabGroupRestoredEvent } from '../../../client/tabstrip';
 
 let tabManager: TabManager;
 

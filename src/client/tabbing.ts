@@ -24,7 +24,7 @@ interface UpdateTabPropertiesPayload {
 
 /**
  * Details of the {@link addEventListener|'tab-activated'} event
- * 
+ *
  * Event fired whenever the active tab within a tab group is changed.
  *
  * ```ts
@@ -54,7 +54,7 @@ export interface TabActivatedEvent {
 
 /**
  * Details of the {@link addEventListener|'tab-removed'} event.
- * 
+ *
  * Event fired whenever the current window is removed from it's previous tabset.
  *
  * To find out which other windows are in the tabset, use the `getTabs()` method.
@@ -68,7 +68,7 @@ export interface TabActivatedEvent {
  * ```
  *
  * If a window is moved from one tab group to another, this will be messaged as a `tab-removed` event, followed by a `tab-added`.
- * 
+ *
  * @event
  */
 export interface TabRemovedEvent {
@@ -87,7 +87,7 @@ export interface TabRemovedEvent {
 
 /**
  * Details of the {@link addEventListener|'tab-added'} event.
- * 
+ *
  * Event fired whenever the current window is tabbed. This event is used when adding windows to both new and existing
  * tabsets.
  *
@@ -103,7 +103,7 @@ export interface TabRemovedEvent {
  * ```
  *
  * If a window is moved from one tab group to another, this will be messaged as a `tab-removed` event, followed by a `tab-added`.
- * 
+ *
  * @event
  */
 export interface TabAddedEvent {
@@ -136,7 +136,7 @@ export interface TabAddedEvent {
 
 /**
  * Details of the {@link addEventListener|'tab-properties-updated'} event.
- * 
+ *
  * Event fired whenever a windows tab properties are {@link updateTabProperties|updated}.
  *
  * The event will always contain the full properties of the tab, even if only a subset of them were updated.
@@ -150,7 +150,7 @@ export interface TabAddedEvent {
  *     console.log(`Properties for ${tabID.uuid}/${tabID.name} are:`, properties);
  * });
  * ```
- * 
+ *
  * @event
  */
 export interface TabPropertiesUpdatedEvent {

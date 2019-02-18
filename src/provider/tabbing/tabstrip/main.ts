@@ -1,6 +1,6 @@
 import * as layouts from '../../../client/main';
 import {WindowIdentity} from '../../../client/main';
-import {TabAddedEvent, TabGroupEvent, TabPropertiesUpdatedEvent} from '../../../client/tabbing';
+import {TabActivatedEvent, TabAddedEvent, TabPropertiesUpdatedEvent, TabRemovedEvent} from '../../../client/tabbing';
 
 import {TabManager} from './TabManager';
 
@@ -19,14 +19,14 @@ const createLayoutsEventListeners = () => {
         document.title = tabManager.getTabs.map(tab => tab.ID.name).join(', ');
     });
 
-    layouts.tabbing.addEventListener('tab-removed', (event: CustomEvent<TabGroupEvent>) => {
-        const tabInfo: TabGroupEvent = event.detail;
+    layouts.tabbing.addEventListener('tab-removed', (event: CustomEvent<TabRemovedEvent>) => {
+        const tabInfo: TabRemovedEvent = event.detail;
         tabManager.removeTab(tabInfo.identity);
 
         document.title = tabManager.getTabs.map(tab => tab.ID.name).join(', ');
     });
 
-    layouts.tabbing.addEventListener('tab-activated', (event: CustomEvent<TabGroupEvent>) => {
+    layouts.tabbing.addEventListener('tab-activated', (event: CustomEvent<TabActivatedEvent>) => {
         const tabInfo: WindowIdentity = event.detail.identity;
         tabManager.setActiveTab(tabInfo);
     });

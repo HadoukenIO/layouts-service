@@ -9,7 +9,7 @@ import {getId, SnapAndDockAPI} from './internal';
 
 /**
  * Details of the {@link addEventListener|'window-docked'} event.
- * 
+ *
  * Event fired when one window is docked to another.
  *
  * It is not possible to receive events for another window. When adding a listener, the listener will only ever fire for the "`fin.desktop.Window.getCurrent()`"
@@ -33,14 +33,14 @@ import {getId, SnapAndDockAPI} from './internal';
  *
  * The service considers any windows that are tabbed together to also be in the same snap group, so this event will also fire when a window is added to a tab
  * group. This may change in future versions of the service.
- * 
+ *
  * @event
  */
 export interface WindowDockedEvent {}
 
 /**
  * Details of the {@link addEventListener|'window-undocked'} event.
- * 
+ *
  * Event fired when one window is undocked from it's neighbor(s).
  *
  * It is not possible to receive events for another window. When adding a listener, the listener will only ever fire for the "`fin.desktop.Window.getCurrent()`"

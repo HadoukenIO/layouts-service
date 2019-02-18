@@ -1,8 +1,7 @@
 import {WindowInfo} from 'hadouken-js-adapter/out/types/src/api/system/window';
 
-import {tabbing} from '../../client/main';
+import {tabbing, WindowIdentity} from '../../client/main';
 import {TabAddedEvent, TabRemovedEvent} from '../../client/tabbing';
-import {WindowIdentity} from '../../client/types';
 
 import {Messages} from '.';
 import {EventsUI} from './EventsUI';
@@ -127,7 +126,7 @@ export class TabbingUI {
         tabbing.addEventListener('tab-removed', this.onTabEvent);
     }
 
-    private async onTabEvent(event: TabAddedEvent|TabRemovedEvent): Promise<void> {
+    private async onTabEvent(event: CustomEvent<TabAddedEvent|TabRemovedEvent>): Promise<void> {
         const isTabbed: boolean = (event.type === 'tab-added');
         const message: string = isTabbed ? Messages.STATUS_TABBED : Messages.STATUS_UNTABBED;
 

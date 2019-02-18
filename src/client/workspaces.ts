@@ -240,7 +240,7 @@ export interface TabGroupDimensions {
 
 /**
  * Details of the {@link addEventListener|'workspace-restored'} event
- * 
+ *
  * Event fired when a workspace is {@link restore|restored}.
  *
  * The event will contain the full detail of the {@link Workspace}.
@@ -254,11 +254,13 @@ export interface TabGroupDimensions {
  * ```
  * @event
  */
-export interface WorkspaceRestoredEvent { workspace:  Workspace; }
+export interface WorkspaceRestoredEvent {
+    workspace: Workspace;
+}
 
 /**
  * Details of the {@link addEventListener|'workspace-generated'} event.
- * 
+ *
  * Event fired whenever a workspace is {@link generate|generated}.
  *
  * The event will contain the full detail of the {@link Workspace}.

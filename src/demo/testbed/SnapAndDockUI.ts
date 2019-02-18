@@ -1,5 +1,4 @@
 import {snapAndDock} from '../../client/main';
-import {WindowDockedEvent, WindowUndockedEvent} from '../../client/snapanddock';
 
 import {EventsUI} from './EventsUI';
 import {Messages} from './index';
@@ -28,7 +27,7 @@ export class SnapAndDockUI {
         this._log = log;
     }
 
-    private onDockEvent(event: WindowDockedEvent|WindowUndockedEvent): void {
+    private onDockEvent(event: Event): void {
         const isDocked = (event.type === 'window-docked');
         const message = isDocked ? Messages.STATUS_DOCKED : Messages.STATUS_UNDOCKED;
 

@@ -1,8 +1,8 @@
 import {Identity} from 'hadouken-js-adapter';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import {SERVICE_IDENTITY, TabAPI, UpdateTabPropertiesPayload} from '../../../src/client/internal';
-import {TabProperties, WindowIdentity} from '../../../src/client/types';
+import {TabAPI, UpdateTabPropertiesPayload} from '../../../src/client/internal';
+import {TabProperties, WindowIdentity, WindowState} from '../../../src/client/types';
 import {DesktopTabGroup} from '../../../src/provider/model/DesktopTabGroup';
 import {DesktopWindow} from '../../../src/provider/model/DesktopWindow';
 import {getConnection} from '../../provider/utils/connect';
@@ -120,4 +120,24 @@ export async function getActiveTab(identity: Identity): Promise<Identity> {
  */
 export async function updateTabProperties(identity: Identity, properties: Partial<TabProperties>) {
     await sendServiceMessage<UpdateTabPropertiesPayload, void>(TabAPI.UPDATETABPROPERTIES, {window: identity, properties});
+}
+
+export async function getTabGroupState(identity: Identity): Promise<WindowState> {
+    return executeJavascriptOnService<WindowIdentity, WindowState>(function(this: ProviderWindow, identity: WindowIdentity): WindowState {
+        const desktopWindow = this.model.getWindow(identity);
+
+        if (desktopWindow) {
+            const tabGroup = desktopWindow.tabGroup;
+
+            if (tabGroup) {
+                return tabGroup.state;
+
+            } else {
+                throw new Error(`Error when determining tabGroup state: window ${desktopWindow.id} is not in a tab group`);
+            }
+
+        } else {
+            throw new Error(`Attempted to get the tabGroup of non-existent or deregistered window: ${identity.uuid}/${identity.name}`);
+        }
+    }, identity as WindowIdentity);
 }

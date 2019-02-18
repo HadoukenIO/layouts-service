@@ -227,14 +227,14 @@ export class DesktopTabGroup implements DesktopEntity {
      * Restores the tab set window.  If the tab set window is in a maximized state we will restore the window to its "before maximized" bounds.
      */
     public async restore(): Promise<void> {
-        if (await this.state === 'minimized') {
+        if (this.state === 'minimized') {
             const result = this.window.applyProperties({state: 'normal'});
             this.window.sendMessage('tab-group-restored', {identity: this.window.identity});
 
             return result;
         } else {
             if (this._isMaximized) {
-                if (await this.activeTab.currentState.state === 'minimized') {
+                if (this.activeTab.currentState.state === 'minimized') {
                     await Promise.all(this._tabs.map(tab => tab.applyProperties({state: 'normal'})));
                 } else if (this._beforeMaximizeBounds) {
                     this._isMaximized = false;

@@ -207,7 +207,7 @@ export class DesktopTabGroup implements DesktopEntity {
             // This all looks a bit messy, but is basically just determining which windows are preventing the maximize and including them in the error message.
             const nonMaximizableWindows: string[] = this._tabs.filter(tab => !tab.applicationState.maximizable).map(tab => tab.id);
             if (nonMaximizableWindows.length > 0) {
-                throw new Error(`Unable to maximize tabGroup: The following tas are not resizable: [${nonMaximizableWindows.join(', ')}]`);
+                throw new Error(`Unable to maximize tabGroup: The following tabs are not resizable: [${nonMaximizableWindows.join(', ')}]`);
             }
             const sizeConstrainedWindows = this._tabs
                                                .filter(

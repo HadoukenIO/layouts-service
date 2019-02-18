@@ -1,7 +1,7 @@
 import {test} from 'ava';
 import {Window} from 'hadouken-js-adapter';
 
-import {Scope} from '../../gen/provider/config/scope';
+import {Scope} from '../../gen/provider/config/layouts-config';
 import {promiseMap} from '../../src/provider/snapanddock/utils/async';
 import {executeJavascriptOnService} from '../demo/utils/serviceUtils';
 import {teardown} from '../teardown';

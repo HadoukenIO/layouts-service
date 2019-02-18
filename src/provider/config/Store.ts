@@ -1,5 +1,4 @@
-import {Rule} from '../../../gen/provider/config/layouts-config';
-import {Scope} from '../../../gen/provider/config/scope';
+import {Rule, Scope} from '../../../gen/provider/config/layouts-config';
 
 import {ConfigUtil, Mask, Masked, RequiredRecursive, ScopePrecedence} from './ConfigUtil';
 import {Watch} from './Watch';

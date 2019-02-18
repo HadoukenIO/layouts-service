@@ -1,4 +1,4 @@
-import {Scope} from '../../gen/provider/config/scope';
+import {Scope} from '../../gen/provider/config/layouts-config';
 
 import {RequiredRecursive} from '../../src/provider/config/ConfigUtil';
 import {ScopedConfig, Store} from '../../src/provider/config/Store';

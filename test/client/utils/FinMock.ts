@@ -2,7 +2,7 @@ import {HostSpecs} from "hadouken-js-adapter/out/types/src/api/system/host-specs
 import {ApplicationInfo} from "hadouken-js-adapter/out/types/src/api/system/application";
 import {WindowInfo} from "hadouken-js-adapter/out/types/src/api/system/window";
 import {_Window} from "hadouken-js-adapter/out/types/src/api/window/window";
-import {WindowIdentity} from "../../../src/client/types";
+import {WindowIdentity} from "../../../src/client/main";
 import {Application, Identity} from "hadouken-js-adapter";
 import {ChannelProvider} from "hadouken-js-adapter/out/types/src/api/interappbus/channel/provider";
 import {ConnectOptions} from "hadouken-js-adapter/out/types/src/api/interappbus/channel";

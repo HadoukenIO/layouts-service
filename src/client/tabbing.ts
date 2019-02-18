@@ -4,23 +4,8 @@
 import {Identity} from 'hadouken-js-adapter';
 
 import {tryServiceDispatch} from './connection';
-import {getId, parseIdentity, TabAPI} from './internal';
+import {getId, parseIdentity, TabAPI, SetTabstripPayload, AddTabPayload, UpdateTabPropertiesPayload} from './internal';
 import {WindowIdentity} from './main';
-
-interface SetTabstripPayload {
-    config: Partial<ApplicationUIConfig>;
-    id: Identity;
-}
-
-interface AddTabPayload {
-    targetWindow: Identity;
-    windowToAdd: Identity;
-}
-
-interface UpdateTabPropertiesPayload {
-    window: Identity;
-    properties: Partial<TabProperties>;
-}
 
 /**
  * Details of the {@link addEventListener|'tab-activated'} event.

@@ -4,9 +4,9 @@ import {stub} from './utils/FinMock';
 import {ErrorMsgs} from './utils/ErrorMsgs';
 
 import {channelPromise} from '../../src/client/connection';
-import {TabAPI, EndDragPayload, AddTabPayload, UpdateTabPropertiesPayload, StartDragPayload} from '../../src/client/internal';
-import {tabbing, tabstrip} from '../../src/client/main';
-import {TabProperties, WindowIdentity} from '../../src/client/types';
+import {TabAPI, UpdateTabPropertiesPayload} from '../../src/client/internal';
+import {tabbing, tabstrip, WindowIdentity} from '../../src/client/main';
+import {TabProperties} from "../../src/client/tabbing";
 
 stub();
 
@@ -63,53 +63,10 @@ describe('Tabstrip API Actions', () => {
         it('should call fin.desktop.InterApplicationBus.send', async () => {
             const uuid = 'someuuid';
             const name = 'somename';
-            const expectedPayload: StartDragPayload = {window: {uuid, name}};
+            const expectedPayload: WindowIdentity = {uuid, name};
 
             await tabstrip.startDrag({uuid, name});
             await expect(channelDispatch).toBeCalledWith(TabAPI.STARTDRAG, expectedPayload);
-        });
-    });
-
-    describe('When calling endDrag', () => {
-        it('Calling with invalid uuid rejects with error message', async () => {
-            const uuid: string = null!;
-            const name = 'somename';
-            const dragEvent: DragEvent = new Event('dragend') as DragEvent;
-
-            const promise = tabstrip.endDrag(dragEvent, {uuid, name});
-            await expect(promise).rejects.toThrowError(ErrorMsgs.INVALID_WINDOW);
-        });
-
-        it('Calling with invalid name rejects with error message', async () => {
-            const uuid = 'someuuid';
-            const name: string = null!;
-            const dragEvent: DragEvent = new Event('dragend') as DragEvent;
-
-            const promise = tabstrip.endDrag(dragEvent, {uuid, name});
-            await expect(promise).rejects.toThrowError(ErrorMsgs.INVALID_WINDOW);
-        });
-
-        it('Calling with invalid event rejects with error message', async () => {
-            const uuid = 'someuuid';
-            const name = 'somename';
-
-            const promise = tabstrip.endDrag(null!, {uuid, name});
-            await expect(promise).rejects.toThrowError(ErrorMsgs.EVENT_REQUIRED);
-        });
-
-        it('Calling with valid arguments sends a ENDDRAG message for the specified window', async () => {
-            const uuid = 'someuuid';
-            const name = 'somename';
-            const screenX = 100;
-            const screenY = 200;
-            const mockDragEvent: DragEvent = Object.assign(new Event('dragend'), {screenX, screenY}) as DragEvent;
-            const expectedPayload: EndDragPayload = {
-                window: {uuid, name},
-                event: {screenX, screenY}
-            };
-
-            await tabstrip.endDrag(mockDragEvent, {uuid, name});
-            await expect(channelDispatch).toBeCalledWith(TabAPI.ENDDRAG, expectedPayload);
         });
     });
 });

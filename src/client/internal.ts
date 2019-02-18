@@ -10,6 +10,7 @@
  */
 import {Identity} from 'hadouken-js-adapter';
 import {WindowIdentity} from './main';
+import { ApplicationUIConfig, TabProperties } from './tabbing';
 
 
 /**
@@ -93,3 +94,19 @@ export enum RegisterAPI {
 }
 
 export type APITopic = TabAPI|WorkspaceAPI|SnapAndDockAPI|RegisterAPI;
+
+
+export interface SetTabstripPayload {
+    config: Partial<ApplicationUIConfig>;
+    id: Identity;
+}
+
+export interface AddTabPayload {
+    targetWindow: Identity;
+    windowToAdd: Identity;
+}
+
+export interface UpdateTabPropertiesPayload {
+    window: Identity;
+    properties: Partial<TabProperties>;
+}

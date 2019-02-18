@@ -1,13 +1,13 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import {Scope} from '../../../gen/provider/config/scope';
+import {Scope} from '../../../gen/provider/config/layouts-config';
 import {ApplicationUIConfig, TabAddedPayload, TabGroupDimensions, TabGroupEventPayload, WindowIdentity, WindowState} from '../../client/types';
 import {WindowMessages} from '../APIMessages';
 import {tabService} from '../main';
 import {Signal1} from '../Signal';
 import {Debounced} from '../snapanddock/utils/Debounced';
 import {Point, PointUtils} from '../snapanddock/utils/PointUtils';
-import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
+import {Rectangle} from '../snapanddock/utils/RectUtils';
 
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';

@@ -56,10 +56,11 @@ export const positionWindow = async (win: WorkspaceWindow, replacingPlaceholder:
 
         if (isTabbed) {
             if (replacingPlaceholder) {
-                // When not replacing a placeholder, and hence no further handling done in a show-requested listener,
-                // this would interfere with the normal tab set-up process in DesktopTabGroup
+                // Trigger the `shown` event listener set up in createTabPlaceholder
                 await ofWin.show();
             }
+
+            // Early exit for tabbed windows, as remaining tab setup will occur in DesktopTabWindow
             return;
         }
 

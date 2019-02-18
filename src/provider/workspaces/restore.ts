@@ -238,14 +238,14 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
         if (isRunning) {
             const appConnected = apiHandler.channel.connections.some((conn: Identity) => conn.uuid === uuid && conn.name === uuid);
             if (appConnected) {
-                await positionWindow(app.mainWindow);
+                await positionWindow(app.mainWindow, false);
                 console.log('App is running:', app);
                 // Send WorkspaceApp to connected application so it can handle child windows
                 return await clientRestoreAppWithTimeout(app, true);
             } else {
                 // Not connected to service
                 console.log('App is open, but not connected to the service:', app);
-                await positionWindow(app.mainWindow);
+                await positionWindow(app.mainWindow, false);
                 return defaultResponse;
             }
         } else {
@@ -277,7 +277,7 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
             if (ofAppNotRunning) {
                 await ofAppNotRunning.run().catch(console.log);
                 await model.expect({uuid, name: uuid});
-                await positionWindow(app.mainWindow);
+                await positionWindow(app.mainWindow, true);
             }
             // SHOULD WE RETURN DEFAULT RESPONSE HERE?!?
             return defaultResponse;

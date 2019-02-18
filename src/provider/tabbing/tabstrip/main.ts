@@ -43,17 +43,17 @@ const createLayoutsEventListeners = () => {
         }
     });
 
-    const maximizeElem: HTMLElement|null = document.getElementById('window-button-maximize');
+    const maximizeElem: HTMLElement = document.getElementById('window-button-maximize')!;
 
     layouts.tabstrip.addEventListener('tab-group-maximized', (event: TabGroupMaximizedEvent) => {
         tabManager.isMaximized = true;
-        maximizeElem!.classList.add('restore');
+        maximizeElem.classList.add('restore');
     });
 
     layouts.tabstrip.addEventListener('tab-group-restored', (event: TabGroupRestoredEvent) => {
         tabManager.isMaximized = false;
-        if (maximizeElem!.classList.contains('restore')) {
-            maximizeElem!.classList.remove('restore');
+        if (maximizeElem.classList.contains('restore')) {
+            maximizeElem.classList.remove('restore');
         }
     });
 };
@@ -62,17 +62,17 @@ const createLayoutsEventListeners = () => {
  * Creates Event Listeners for window controls (close, maximize, minimize, etc);
  */
 const createWindowUIListeners = () => {
-    const minimizeElem: HTMLElement|null = document.getElementById('window-button-minimize');
-    const maximizeElem: HTMLElement|null = document.getElementById('window-button-maximize');
-    const closeElem: HTMLElement|null = document.getElementById('window-button-exit');
+    const minimizeElem: HTMLElement = document.getElementById('window-button-minimize')!;
+    const maximizeElem: HTMLElement = document.getElementById('window-button-maximize')!;
+    const closeElem: HTMLElement = document.getElementById('window-button-exit')!;
 
     // Minimize Button
-    minimizeElem!.onclick = () => {
+    minimizeElem.onclick = () => {
         layouts.tabbing.minimizeTabGroup(tabManager.getTabs[0].ID);
     };
 
     // Maximize / Restore button
-    maximizeElem!.onclick = () => {
+    maximizeElem.onclick = () => {
         if (!tabManager.isMaximized) {
             layouts.tabbing.maximizeTabGroup(tabManager.getTabs[0].ID);
         } else {
@@ -81,7 +81,7 @@ const createWindowUIListeners = () => {
     };
 
     // Close Button
-    closeElem!.onclick = () => {
+    closeElem.onclick = () => {
         layouts.tabbing.closeTabGroup(tabManager.getTabs[0].ID);
     };
 };

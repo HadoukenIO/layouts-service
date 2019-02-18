@@ -1,9 +1,10 @@
 import {Window} from 'hadouken-js-adapter';
 import {WindowEvent} from 'hadouken-js-adapter/out/types/src/api/events/base';
+import {MonitorEvent} from 'hadouken-js-adapter/out/types/src/api/events/system';
+import {MonitorInfo} from 'hadouken-js-adapter/out/types/src/api/system/monitor';
 import {WindowDetail, WindowInfo} from 'hadouken-js-adapter/out/types/src/api/system/window';
 
 import {ConfigurationObject, RegEx, Rule, Scope, WindowScope} from '../../../gen/provider/config/layouts-config';
-
 import {ConfigUtil, Masked} from '../config/ConfigUtil';
 import {ScopedConfig} from '../config/Store';
 import {MaskWatch} from '../config/Watch';
@@ -17,8 +18,6 @@ import {DesktopTabGroup} from './DesktopTabGroup';
 import {DesktopWindow, EntityState, WindowIdentity} from './DesktopWindow';
 import {MouseTracker} from './MouseTracker';
 import {ZIndexer} from './ZIndexer';
-import { MonitorEvent } from 'hadouken-js-adapter/out/types/src/api/events/system';
-import { MonitorInfo } from 'hadouken-js-adapter/out/types/src/api/system/monitor';
 
 type EnabledMask = {
     enabled: true
@@ -88,7 +87,7 @@ export class DesktopModel {
         });
 
         // Validate everything on monitor change, as groups may become disjointed
-        fin.System.addListener('monitor-info-changed', async (evt: MonitorEvent<"system", "monitor-info-changed">) => {
+        fin.System.addListener('monitor-info-changed', async (evt: MonitorEvent<'system', 'monitor-info-changed'>) => {
             this._monitors = [evt.primaryMonitor, ...evt.nonPrimaryMonitors].map(mon => RectUtils.convertToCenterHalfSize(mon.monitorRect));
 
             // Validate all tabgroups

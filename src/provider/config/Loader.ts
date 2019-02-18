@@ -4,7 +4,7 @@ import {ApplicationEvent, WindowEvent} from 'hadouken-js-adapter/out/types/src/a
 import {ApplicationInfo as SystemApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/system/application';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import {ApplicationScope, Scope} from '../../../gen/provider/config/scope';
+import {ApplicationScope, Scope} from '../../../gen/provider/config/layouts-config';
 
 import {ConfigUtil} from './ConfigUtil';
 import {ConfigWithRules, ScopedConfig, Store} from './Store';

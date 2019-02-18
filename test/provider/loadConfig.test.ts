@@ -1,8 +1,7 @@
 import test from 'ava';
 import {Application, Fin, Identity} from 'hadouken-js-adapter';
 
-import {ConfigurationObject} from '../../gen/provider/config/layouts-config';
-import {Scope} from '../../gen/provider/config/scope';
+import {ConfigurationObject, Scope} from '../../gen/provider/config/layouts-config';
 import {ConfigWithRules} from '../../src/provider/config/Store';
 import {executeJavascriptOnService} from '../demo/utils/serviceUtils';
 import {isWindowRegistered} from '../demo/utils/snapServiceUtils';

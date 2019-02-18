@@ -16,7 +16,9 @@ import {parseIdentity, TabAPI} from './internal';
  * ```ts
  * import {tabstrip} from 'openfin-layouts';
  *
- * tabstrip.startDrag({uuid: 'App0', name: 'App0'});
+ * window.document.body.addEventListener("dragstart", (event) => {
+ *      tabstrip.startDrag({uuid: 'App0', name: 'App0'});
+ * });
  * ```
  *
  * @param identity: The identity of the tab which is being dragged.

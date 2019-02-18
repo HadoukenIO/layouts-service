@@ -21,20 +21,20 @@ export class DragWindowManager {
     /**
      * Fires when a tab has been dropped on the drag window, indicating an end to the drag/drop operation.
      *
-     * Arguments: None.
+     * Arguments: (window: DesktopWindow);
      */
     public static readonly onDragDrop: Signal1<DesktopWindow> = new Signal1();
-
-    // Multiple definitions of setTimeout/clearTimeout, and not possible to point TSC at the correct (non-Node) definition.
-    // Usecase: failsafe for the drag window overlay should somehow it not close, the user would be "locked out" of the desktop.
-    private _hideTimer: number|NodeJS.Timer;
 
     /**
      * Timeout for the drag window failsafe.
      * Consideration must be taken for the case of user dragging tab on top of the source tabstrip - Timer is not cleared or reset as no event from us is
      * generated.
      */
-    private readonly HIDE_TIMEOUT = 30000;
+    private static readonly HIDE_TIMEOUT = 30000;
+
+    // Multiple definitions of setTimeout/clearTimeout, and not possible to point TSC at the correct (non-Node) definition.
+    // Usecase: failsafe for the drag window overlay should somehow it not close, the user would be "locked out" of the desktop.
+    private _hideTimer: number|NodeJS.Timer;
 
     /**
      * The drag overlay window
@@ -80,7 +80,7 @@ export class DragWindowManager {
      * Hides the drag window overlay.
      */
     public hideWindow(): void {
-        // Check if we've got a timer running.  If not then we're liking being called from an invalid drag end event (Erroneous or duplicate call)
+        // Check if we've got a timer running.  If not then we're likely being called from an invalid drag end event (Erroneous or duplicate call)
         if (this._hideTimer !== -1) {
             DragWindowManager.onDragDrop.emit(this._sourceWindow!);
         }
@@ -95,7 +95,7 @@ export class DragWindowManager {
 
         this._hideTimer = setTimeout(() => {
             this._window.hide();
-        }, this.HIDE_TIMEOUT);
+        }, DragWindowManager.HIDE_TIMEOUT);
     }
 
     private clearHideTimer(): void {

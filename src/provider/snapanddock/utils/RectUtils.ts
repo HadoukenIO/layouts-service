@@ -1,3 +1,5 @@
+import {Rect} from 'hadouken-js-adapter/out/types/src/api/system/monitor';
+
 import {Point, PointUtils} from './PointUtils';
 
 export class MeasureResult implements Point {
@@ -99,5 +101,16 @@ export class RectUtils {
 
     public static isEqual(rect1: Rectangle, rect2: Rectangle): boolean {
         return PointUtils.isEqual(rect1.center, rect2.center) && PointUtils.isEqual(rect1.halfSize, rect2.halfSize);
+    }
+    
+    /**
+     * Converts a rectangle from the {top,bottom,left,right} format used in the core to the {center, halfsize} format used in 
+     * the model.
+     */
+    public static convertToCenterHalfSize(rect: Rect): Rectangle {
+        return {
+            center: {x: rect.left + (rect.right - rect.left) / 2, y: rect.top + (rect.bottom - rect.top) / 2},
+            halfSize: {x: (rect.right - rect.left) / 2, y: (rect.bottom - rect.top) / 2}
+        };
     }
 }

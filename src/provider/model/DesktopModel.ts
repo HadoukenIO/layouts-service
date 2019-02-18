@@ -11,12 +11,14 @@ import {ConfigStore} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {SignalSlot} from '../Signal';
 import {Point} from '../snapanddock/utils/PointUtils';
-import {RectUtils} from '../snapanddock/utils/RectUtils';
+import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 
 import {DesktopTabGroup} from './DesktopTabGroup';
 import {DesktopWindow, EntityState, WindowIdentity} from './DesktopWindow';
 import {MouseTracker} from './MouseTracker';
 import {ZIndexer} from './ZIndexer';
+import { MonitorEvent } from 'hadouken-js-adapter/out/types/src/api/events/system';
+import { MonitorInfo } from 'hadouken-js-adapter/out/types/src/api/system/monitor';
 
 type EnabledMask = {
     enabled: true
@@ -35,6 +37,7 @@ export class DesktopModel {
     private _windowLookup: {[key: string]: DesktopWindow};
     private _zIndexer: ZIndexer;
     private _mouseTracker: MouseTracker;
+    private _monitors: Rectangle[];
 
     constructor(config: ConfigStore) {
         this._windows = [];
@@ -43,6 +46,7 @@ export class DesktopModel {
         this._windowLookup = {};
         this._zIndexer = new ZIndexer(this);
         this._mouseTracker = new MouseTracker();
+        this._monitors = [];
 
         DesktopWindow.onCreated.add(this.onWindowCreated, this);
         DesktopWindow.onDestroyed.add(this.onWindowDestroyed, this);
@@ -84,12 +88,19 @@ export class DesktopModel {
         });
 
         // Validate everything on monitor change, as groups may become disjointed
-        fin.System.addListener('monitor-info-changed', async () => {
+        fin.System.addListener('monitor-info-changed', async (evt: MonitorEvent<"system", "monitor-info-changed">) => {
+            this._monitors = [evt.primaryMonitor, ...evt.nonPrimaryMonitors].map(mon => RectUtils.convertToCenterHalfSize(mon.monitorRect));
+
             // Validate all tabgroups
             this.tabGroups.map(g => g.validate());
 
             // Validate all snap groups
             this.snapGroups.map(g => g.validate());
+        });
+
+        // Get and store the current monitors
+        fin.System.getMonitorInfo().then((monitorInfo: MonitorInfo) => {
+            this._monitors = [monitorInfo.primaryMonitor, ...monitorInfo.nonPrimaryMonitors].map(mon => RectUtils.convertToCenterHalfSize(mon.availableRect));
         });
     }
 
@@ -111,6 +122,10 @@ export class DesktopModel {
 
     public getId(identity: WindowIdentity): string {
         return `${identity.uuid}/${identity.name}`;
+    }
+
+    public get monitors(): ReadonlyArray<Rectangle> {
+        return this._monitors;
     }
 
     /**

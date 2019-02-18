@@ -11,7 +11,7 @@ import {promiseMap} from '../snapanddock/utils/async';
 import {Debounced} from '../snapanddock/utils/Debounced';
 import {isWin10} from '../snapanddock/utils/platform';
 import {Point} from '../snapanddock/utils/PointUtils';
-import {Rectangle} from '../snapanddock/utils/RectUtils';
+import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
@@ -447,6 +447,11 @@ export class DesktopWindow implements DesktopEntity {
     }
 
     public get currentState(): EntityState {
+        // Special handling to return apparent bounds for maximized windows
+        if (this._currentState.state === 'maximized') {
+            const relevantMonitor = this._model.monitors.find(mon => RectUtils.isPointInRect(mon.center, mon.halfSize, this._currentState.center));
+            return {...this._currentState, ...relevantMonitor};
+        }
         return this._currentState;
     }
 

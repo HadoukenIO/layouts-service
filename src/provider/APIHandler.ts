@@ -295,7 +295,7 @@ export class APIHandler {
             throw new Error('No tab group found for window');
         }
 
-        return group.reOrderTabArray(newOrdering);
+        return group.reorderTabArray(newOrdering);
     }
 
     private updateTabProperties(payload: {properties: Partial<TabProperties>, window: WindowIdentity}): void {

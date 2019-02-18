@@ -1,6 +1,6 @@
+import {Scope, Tabstrip} from '../../../gen/provider/config/layouts-config';
 import {TabProperties, TabPropertiesUpdatedEvent} from '../../client/tabbing';
 import {TabGroup, TabGroupDimensions} from '../../client/workspaces';
-import {Scope, Tabstrip} from '../../../gen/provider/config/layouts-config';
 import {ConfigStore} from '../main';
 import {DesktopEntity} from '../model/DesktopEntity';
 import {DesktopModel} from '../model/DesktopModel';

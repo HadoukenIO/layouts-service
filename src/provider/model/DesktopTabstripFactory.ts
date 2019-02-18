@@ -1,6 +1,7 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
-import {ApplicationUIConfig} from '../../client/tabbing';
+
 import {ConfigurationObject, Scope, Tabstrip} from '../../../gen/provider/config/layouts-config';
+import {ApplicationUIConfig} from '../../client/tabbing';
 import {ScopedConfig} from '../config/Store';
 import {MaskWatch} from '../config/Watch';
 import {config} from '../main';

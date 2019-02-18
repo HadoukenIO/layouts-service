@@ -203,7 +203,26 @@ export class DesktopTabGroup implements DesktopEntity {
      * Maximizes the tab set window.  This will resize the tab window to as large as possible with the tab set window on top.
      */
     public async maximize(): Promise<void> {
-        if (!this._isMaximized) {
+        if (!this.currentState.maximizable) {
+            // This all looks a bit messy, but is basically just determining which windows are preventing the maximize and including them in the error message.
+            const nonMaximizableWindows: string[] = this._tabs.filter(tab => !tab.applicationState.maximizable).map(tab => tab.id);
+            if (nonMaximizableWindows.length > 0) {
+                throw new Error(`Unable to maximize tabGroup: The following tas are not resizable: [${nonMaximizableWindows.join(', ')}]`);
+            }
+            const sizeConstrainedWindows = this._tabs
+                                               .filter(
+                                                   tab => tab.applicationState.resizeConstraints.x.maxSize < Number.MAX_SAFE_INTEGER ||
+                                                       tab.applicationState.resizeConstraints.y.maxSize < Number.MAX_SAFE_INTEGER)
+                                               .map(tab => tab.id);
+            if (sizeConstrainedWindows.length > 0) {
+                throw new Error(`Unable to maximize tabGroup: The following tabs have maximum size constraints: [${sizeConstrainedWindows.join(', ')}]`);
+            }
+
+            // This should never be called since currentState.maximizable should only be false if one of
+            // the two conditions above is met. This catch-all is here just in case something weird happens.
+            throw new Error('Unable to maximize tabGroup: Group is not maximizable');
+        }
+        if (!this._isMaximized && this.currentState.maximizable) {
             // Before doing anything else we will undock the tabGroup (mitigation for SERVICE-314)
             if (this.snapGroup.entities.length > 1) {
                 await this.setSnapGroup(new DesktopSnapGroup());
@@ -656,6 +675,10 @@ export class DesktopTabGroup implements DesktopEntity {
         result.y.resizableMin = false;  // Cannot resize on the edge between tab and tabstrip (SERVICE-287)
         // Apply the new constraints to all windows
         await Promise.all(this.tabs.map((tab: DesktopWindow) => tab.applyProperties({resizeConstraints: result})));
+
+        // Changes to constraints also affect the maximizability of the tabgroup, so we update that here too
+        this._groupState.maximizable = this._tabs.every(tab => tab.applicationState.maximizable) &&        // All tabs must be maximizable
+            result.x.maxSize === Number.MAX_SAFE_INTEGER && result.y.maxSize === Number.MAX_SAFE_INTEGER;  // No tabs have maxSize constraints
     }
 
     // Will check that all of the tabs and the tabstrip are still in the correct relative positions, and if not

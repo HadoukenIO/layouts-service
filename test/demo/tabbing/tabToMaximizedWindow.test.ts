@@ -52,7 +52,7 @@ testParameterized(
 
 
 testParameterized(
-    `Cannot tab to window hidden by maximized window`, 
+    `Cannot tab to window hidden by maximized window`,
     [
         {frame: true, windowCount: 3},
         {frame: false, windowCount: 3},
@@ -72,6 +72,4 @@ testParameterized(
 
         // None of the windows should be tabbed
         await Promise.all(windows.map(win => assertNotTabbed(win, t)));
-
-    })
-)
+    }));

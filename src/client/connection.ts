@@ -16,6 +16,7 @@ import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/c
 import {APITopic, SERVICE_CHANNEL} from './internal';
 import {TabActivatedEvent, TabAddedEvent, TabPropertiesUpdatedEvent, TabRemovedEvent} from './tabbing';
 import {Workspace, WorkspaceGeneratedEvent, WorkspaceRestoredEvent} from './workspaces';
+import { TabGroupRestoredEvent, TabGroupMinimizedEvent, TabGroupMaximizedEvent } from './tabstrip';
 
 
 /**
@@ -51,14 +52,14 @@ export const channelPromise: Promise<ChannelClient> = typeof fin === 'undefined'
         channel.register('tab-properties-updated', (payload: TabPropertiesUpdatedEvent) => {
             window.dispatchEvent(new CustomEvent<TabPropertiesUpdatedEvent>('tab-properties-updated', {detail: payload}));
         });
-        channel.register('tab-group-restored', (payload: TabGroupRestoredPayload) => {
-            window.dispatchEvent(new CustomEvent<TabGroupRestoredPayload>('tab-group-restored', {detail: payload}));
+        channel.register('tab-group-restored', (payload: TabGroupRestoredEvent) => {
+            window.dispatchEvent(new CustomEvent<TabGroupRestoredEvent>('tab-group-restored', {detail: payload}));
         });
-        channel.register('tab-group-minimized', (payload: TabGroupMinimizedPayload) => {
-            window.dispatchEvent(new CustomEvent<TabGroupMinimizedPayload>('tab-group-minimized', {detail: payload}));
+        channel.register('tab-group-minimized', (payload: TabGroupMinimizedEvent) => {
+            window.dispatchEvent(new CustomEvent<TabGroupMinimizedEvent>('tab-group-minimized', {detail: payload}));
         });
-        channel.register('tab-group-maximized', (payload: TabGroupMaximizedPayload) => {
-            window.dispatchEvent(new CustomEvent<TabGroupMaximizedPayload>('tab-group-maximized', {detail: payload}));
+        channel.register('tab-group-maximized', (payload: TabGroupMaximizedEvent) => {
+            window.dispatchEvent(new CustomEvent<TabGroupMaximizedEvent>('tab-group-maximized', {detail: payload}));
         });
 
         channel.register('workspace-generated', (payload: Workspace) => {

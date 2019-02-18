@@ -5,42 +5,14 @@ import {Identity} from 'hadouken-js-adapter';
 
 import {tryServiceDispatch} from './connection';
 import {parseIdentity, TabAPI} from './internal';
+import { WindowIdentity } from './main';
 /**
  * Functions required to implement a tabstrip
  */
 
-/**
- * Fired when a tab group is restored.  See {@link addEventListener}.
- */
-export interface TabGroupRestoredEvent extends CustomEvent<TabGroupRestoredPayload> {
-    type: 'tab-group-restored';
-}
 
 /**
- * Fired when a tab group is minimized.  See {@link addEventListener}.
- */
-export interface TabGroupMinimizedEvent extends CustomEvent<TabGroupMinimizedPayload> {
-    type: 'tab-group-minimized';
-}
-
-/**
- * Fired when a tab group is maximized.  See {@link addEventListener}.
- */
-export interface TabGroupMaximizedEvent extends CustomEvent<TabGroupMaximizedPayload> {
-    type: 'tab-group-maximized';
-}
-
-/**
- * @hidden
- */
-export interface EventMap {
-    'tab-group-restored': TabGroupRestoredEvent;
-    'tab-group-minimized': TabGroupMinimizedEvent;
-    'tab-group-maximized': TabGroupMaximizedEvent;
-}
-
-/**
- * Event fired whenever the current tab group is restored from being maximized or minimized.
+ * Fired when a tab group is restored from being maximized or minimized..  See {@link addEventListener}.
  * 
  * ```ts
  * tabstrip.addEventListener('tab-group-restored', (event: TabGroupRestoredEvent) => {
@@ -48,14 +20,18 @@ export interface EventMap {
  *     console.log(`Tab group restored: ${tabGroupID.uuid}/${tabGroupID.name}`);
  * });
  * ```
- *
- * @type tab-group-restored
- * @event
  */
-export async function addEventListener(eventType: 'tab-group-restored', listener: (event: TabGroupRestoredEvent) => void): Promise<void>;
+export interface TabGroupRestoredEvent {
+    /**
+     * Identifies the window that is the source of the current event.
+     *
+     * See the documentation for individual events for more details.
+     */
+    identity: WindowIdentity;
+}
 
 /**
- * Event fired whenever the current tab group is minimized.
+ * Event fired whenever the current tab group is minimized.  See {@link addEventListener}.
  *
  * ```ts
  * import {tabstrip} from 'openfin-layouts';
@@ -65,14 +41,18 @@ export async function addEventListener(eventType: 'tab-group-restored', listener
  *     console.log(`Tab group minimized: ${tabGroupID.uuid}/${tabGroupID.name}`);
  * });
  * ```
- *
- * @type tab-group-minimized
- * @event
  */
-export async function addEventListener(eventType: 'tab-group-minimized', listener: (event: TabGroupMinimizedEvent) => void): Promise<void>;
+export interface TabGroupMinimizedEvent {
+    /**
+     * Identifies the window that is the source of the current event.
+     *
+     * See the documentation for individual events for more details.
+     */
+    identity: WindowIdentity;
+}
 
 /**
- * Event fired whenever the current tab group is maximized.
+ * Fired when the current tab group is maximized.  See {@link addEventListener}.
  *
  * ```ts
  * import {tabstrip} from 'openfin-layouts';
@@ -82,11 +62,39 @@ export async function addEventListener(eventType: 'tab-group-minimized', listene
  *     console.log(`Tab group maximized: ${tabGroupID.uuid}/${tabGroupID.name}`);
  * });
  * ```
- *
- * @type tab-group-minimized
- * @event
  */
-export async function addEventListener(eventType: 'tab-group-maximized', listener: (event: TabGroupMaximizedEvent) => void): Promise<void>;
+export interface TabGroupMaximizedEvent {
+    /**
+     * Identifies the window that is the source of the current event.
+     *
+     * See the documentation for individual events for more details.
+     */
+    identity: WindowIdentity;
+}
+
+/**
+ * @hidden
+ */
+export interface EventMap {
+    'tab-group-restored': CustomEvent<TabGroupRestoredEvent>;
+    'tab-group-minimized': CustomEvent<TabGroupMinimizedEvent>;
+    'tab-group-maximized': CustomEvent<TabGroupMaximizedEvent>;
+}
+
+/**
+ * @type tab-group-restored
+ */
+export async function addEventListener(eventType: 'tab-group-restored', listener: (event: CustomEvent<TabGroupRestoredEvent>) => void): Promise<void>;
+
+/**
+ * @type tab-group-minimized
+ */
+export async function addEventListener(eventType: 'tab-group-minimized', listener: (event: CustomEvent<TabGroupMinimizedEvent>) => void): Promise<void>;
+
+/**
+ * @type tab-group-minimized
+ */
+export async function addEventListener(eventType: 'tab-group-maximized', listener: (event: CustomEvent<TabGroupMaximizedEvent>) => void): Promise<void>;
 
 export async function addEventListener<K extends keyof EventMap>(eventType: K, listener: (event: EventMap[K]) => void): Promise<void> {
     if (typeof fin === 'undefined') {

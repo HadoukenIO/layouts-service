@@ -3,6 +3,7 @@ import {WindowIdentity} from '../../../client/main';
 import {TabActivatedEvent, TabAddedEvent, TabPropertiesUpdatedEvent, TabRemovedEvent} from '../../../client/tabbing';
 
 import {TabManager} from './TabManager';
+import { TabGroupMaximizedEvent, TabGroupRestoredEvent } from '../../../client/tabstrip';
 
 let tabManager: TabManager;
 
@@ -43,12 +44,12 @@ const createLayoutsEventListeners = () => {
 
     const maximizeElem: HTMLElement = document.getElementById('window-button-maximize')!;
 
-    layouts.tabstrip.addEventListener('tab-group-maximized', (event: TabGroupMaximizedEvent) => {
+    layouts.tabstrip.addEventListener('tab-group-maximized', (event: CustomEvent<TabGroupMaximizedEvent>) => {
         tabManager.isMaximized = true;
         maximizeElem.classList.add('restore');
     });
 
-    layouts.tabstrip.addEventListener('tab-group-restored', (event: TabGroupRestoredEvent) => {
+    layouts.tabstrip.addEventListener('tab-group-restored', (event: CustomEvent<TabGroupRestoredEvent>) => {
         tabManager.isMaximized = false;
         if (maximizeElem.classList.contains('restore')) {
             maximizeElem.classList.remove('restore');

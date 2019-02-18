@@ -2,7 +2,7 @@ import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {Scope} from '../../../gen/provider/config/layouts-config';
 import {ApplicationUIConfig, TabActivatedEvent, TabAddedEvent, TabRemovedEvent} from '../../client/tabbing';
-import {WindowState} from '../../client/workspaces';
+import {WindowState, TabGroupDimensions} from '../../client/workspaces';
 import {WindowMessages} from '../APIMessages';
 import {tabService} from '../main';
 import {Signal1} from '../Signal';

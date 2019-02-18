@@ -113,4 +113,14 @@ export class RectUtils {
             halfSize: {x: (rect.right - rect.left) / 2, y: (rect.bottom - rect.top) / 2}
         };
     }
+
+    public static overlappingArea(rect1: Rectangle, rect2: Rectangle): number {
+        const overlap = PointUtils.scale(this.distanceFromParts(rect1.center, rect1.halfSize, rect2.center, rect2.halfSize), -1);
+
+        return Math.max(0, overlap.x) * Math.max(0, overlap.y);
+    }
+
+    public static clone(rect: Rectangle): Rectangle {
+        return {center: PointUtils.clone(rect.center), halfSize: PointUtils.clone(rect.halfSize)};
+    }
 }

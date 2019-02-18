@@ -155,6 +155,21 @@ export class DesktopModel {
     }
 
     /**
+     * Returns the monitor rectangle which overlaps the most with the given rectangle
+     */
+    public getMonitorByRect(rect: Rectangle): Rectangle {
+        // As a useful heuristic, if the center of teh given rect is inside a monitor rect, that monitor will be the most overlapped.
+        const monitorWithCenter = this._monitors.find(mon => RectUtils.isPointInRect(mon.center, mon.halfSize, rect.center));
+        if (monitorWithCenter) {
+            return monitorWithCenter;
+        }
+        // Finds the monitor which has the largest overlapping area with the given rect
+        const mostOverlappedMonitor =
+            this._monitors.reduce((prev, current) => RectUtils.overlappingArea(prev, rect) > RectUtils.overlappingArea(current, rect) ? prev : current);
+        return RectUtils.clone(mostOverlappedMonitor);
+    }
+
+    /**
      * Re-registers the target window with the service, "white-listing" the window for use with the service for the
      * lifecycle of whichever window requested that the target be registered.
      *

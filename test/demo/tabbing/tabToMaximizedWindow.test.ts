@@ -16,7 +16,7 @@ interface TabToMaximizedWindowTestOptions extends CreateWindowData {
 }
 
 testParameterized(
-    `tab to maximized window`,
+    `Tab to maximized window`,
     [
         {frame: true, windowCount: 2, tabTo: 'actual'},
         {frame: true, windowCount: 2, tabTo: 'apparent'},

@@ -449,8 +449,8 @@ export class DesktopWindow implements DesktopEntity {
     public get currentState(): EntityState {
         // Special handling to return apparent bounds for maximized windows
         if (this._currentState.state === 'maximized') {
-            const relevantMonitor = this._model.monitors.find(mon => RectUtils.isPointInRect(mon.center, mon.halfSize, this._currentState.center));
-            return {...this._currentState, ...relevantMonitor};
+            const currentMonitor = this._model.getMonitorByRect(this._currentState);
+            return {...this._currentState, ...currentMonitor};
         }
         return this._currentState;
     }

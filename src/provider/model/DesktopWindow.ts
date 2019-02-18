@@ -1,7 +1,7 @@
 import deepEqual from 'fast-deep-equal';
 import {Identity, Window} from 'hadouken-js-adapter';
 
-import {WindowScope} from '../../../gen/provider/config/scope';
+import {WindowScope} from '../../../gen/provider/config/layouts-config';
 import {SERVICE_IDENTITY} from '../../client/internal';
 import {WindowState} from '../../client/types';
 import {WindowMessages} from '../APIMessages';
@@ -585,6 +585,10 @@ export class DesktopWindow implements DesktopEntity {
         return this.addPendingActions('bringToFront ' + this._id, this._window.bringToFront());
     }
 
+    public async setAsForeground(): Promise<void> {
+        return this.addPendingActions('setAsForeground ' + this._id, this._window.setAsForeground());
+    }
+
     public async close(): Promise<void> {
         this._ready = false;
         return this.addPendingActions('close ' + this._id, this._window.close(true));
@@ -984,7 +988,8 @@ export class DesktopWindow implements DesktopEntity {
     private async handleFocused(): Promise<void> {
         // If we're not maximized ourself, bring all snapped, non-maximized windows to the front
         if (!this.isMaximizedOrInMaximizedTab()) {
-            this._snapGroup.windows.filter(snapGroupWindow => snapGroupWindow !== this && !snapGroupWindow.isMaximizedOrInMaximizedTab())
+            this._snapGroup.windows
+                .filter(snapGroupWindow => snapGroupWindow !== this && !snapGroupWindow.isMaximizedOrInMaximizedTab() && !snapGroupWindow.currentState.hidden)
                 .forEach(snapGroupWindow => snapGroupWindow.bringToFront());
         }
     }

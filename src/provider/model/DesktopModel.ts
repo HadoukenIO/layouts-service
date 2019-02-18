@@ -2,8 +2,7 @@ import {Window} from 'hadouken-js-adapter';
 import {WindowEvent} from 'hadouken-js-adapter/out/types/src/api/events/base';
 import {WindowDetail, WindowInfo} from 'hadouken-js-adapter/out/types/src/api/system/window';
 
-import {ConfigurationObject, RegEx, Rule} from '../../../gen/provider/config/layouts-config';
-import {Scope, WindowScope} from '../../../gen/provider/config/scope';
+import {ConfigurationObject, RegEx, Rule, Scope, WindowScope} from '../../../gen/provider/config/layouts-config';
 
 import {ConfigUtil, Masked} from '../config/ConfigUtil';
 import {ScopedConfig} from '../config/Store';

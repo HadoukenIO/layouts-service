@@ -101,6 +101,9 @@ async function createServer() {
     // Add special route for any 'app.json' files - will re-write the contents according to the command-line arguments of this server
     app.use(/\/?(.*app\.json)/, createAppJsonMiddleware());
 
+    // Add endpoint for creating new application manifests from scratch - used within demo app for lauching 'custom' applications
+    app.use('/manifest', createCustomManifestMiddleware());
+
     // Add route for serving static resources
     app.use(express.static('res'));
 
@@ -226,6 +229,63 @@ function createAppJsonMiddleware() {
         // Return modified JSON to client
         res.header('Content-Type', 'application/json; charset=utf-8');
         res.send(JSON.stringify(config, null, 4));
+    };
+}
+
+/**
+ * Creates express-compatible middleware function to generate custom application manifests.
+ * 
+ * Differs from createAppJsonMiddleware, as this spawns custom demo windows, rather than re-writing existing 
+ * demo/provider manifests.
+ */
+function createCustomManifestMiddleware() {
+    return async (req, res, next) => {
+        const defaultConfig = await readJsonFile(path.resolve('res/demo/app.json')).catch(next);
+        const {uuid, url, frame, defaultWidth, defaultHeight, realmName, enableMesh, runtime, useService, provider, config} = {
+            uuid: `demo-app-${Math.random().toString(36).substr(2, 4)}`,
+            runtime: defaultConfig.runtime.version,
+            provider: 'local',
+            url: `http://localhost:${PORT}/demo/testbed/index.html`,
+            config: null,
+            ...req.query,
+            defaultWidth: parseInt(req.query.defaultWidth) || 860,
+            defaultHeight: parseInt(req.query.defaultHeight) || 605,
+            frame: req.query.frame !== 'false',
+            enableMesh: req.query.enableMesh !== 'false',
+            useService: req.query.useService !== 'false'
+        };
+
+        const manifest = {
+            startup_app: {
+                uuid,
+                name: uuid,
+                url,
+                frame,
+                autoShow: true,
+                saveWindowState: false,
+                defaultCentered: true,
+                defaultWidth,
+                defaultHeight
+            },
+            runtime: {
+                arguments: "--v=1" + (realmName ? ` --security-realm=${realmName}${enableMesh ? ' --enable-mesh' : ''}` : ''),
+                version: runtime
+            }
+        };
+        if (useService) {
+            const service = {name: 'layouts'};
+            if (provider !== 'default') {
+                service.manifestUrl = getProviderUrl(provider);
+            }
+            if (config) {
+                service.config = JSON.parse(config);
+            }
+            manifest.services = [service];
+        }
+
+        // Return modified JSON to client
+        res.header('Content-Type', 'application/json; charset=utf-8');
+        res.send(JSON.stringify(manifest, null, 4));
     };
 }
 

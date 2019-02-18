@@ -1,5 +1,4 @@
-import {RegEx, Rule} from '../../../gen/provider/config/layouts-config';
-import {ApplicationScope, Scope, WindowScope} from '../../../gen/provider/config/scope';
+import {ApplicationScope, RegEx, Rule, Scope, WindowScope} from '../../../gen/provider/config/layouts-config';
 
 /**
  * Defines the relative precedence of each available scope. The names of the constants match the `Scopes` type (and it

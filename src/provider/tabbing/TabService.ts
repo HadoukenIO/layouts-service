@@ -1,5 +1,4 @@
-import {Tabstrip} from '../../../gen/provider/config/layouts-config';
-import {Scope} from '../../../gen/provider/config/scope';
+import {Scope, Tabstrip} from '../../../gen/provider/config/layouts-config';
 import {TabPropertiesUpdatedPayload, WindowState} from '../../client/types';
 import {TabGroup, TabGroupDimensions, TabProperties, WindowIdentity} from '../../client/types';
 import {ConfigStore} from '../main';
@@ -153,21 +152,9 @@ export class TabService {
                 return tab.identity;
             });
 
-            const appRect: Rectangle = group.activeTab.currentState;
-            const groupRect: Rectangle = group.window.currentState;
             const config: Tabstrip|'default' = (group.config === DesktopTabstripFactory.DEFAULT_CONFIG) ? 'default' : group.config;
 
-            const groupInfo = {
-                active: group.activeTab.identity,
-                dimensions: {
-                    x: groupRect.center.x - groupRect.halfSize.x,
-                    y: groupRect.center.y - groupRect.halfSize.y,
-                    width: groupRect.halfSize.x * 2,
-                    appHeight: appRect.halfSize.y * 2
-                },
-                config,
-                state: group.state
-            };
+            const groupInfo = {active: group.activeTab.identity, dimensions: group.getSaveDimensions(), config, state: group.state};
 
             return {tabs, groupInfo};
         }));
@@ -208,10 +195,9 @@ export class TabService {
                 await tabGroup.addTabs(tabs, groupDef.groupInfo.active);
                 await tabGroup.window.sync();
 
-                // TODO: Change to look at groupDef.groupInfo.state
-                if (tabGroup.state === 'maximized') {
+                if (groupDef.groupInfo.state === 'maximized') {
                     await tabGroup.maximize();
-                } else if (tabGroup.state === 'minimized') {
+                } else if (groupDef.groupInfo.state === 'minimized') {
                     await tabGroup.minimize();
                 }
 
@@ -283,6 +269,7 @@ export class TabService {
             // If there is a window under our Point, and its not part of a tab group, and we are over a valid drop area
             if (existingTabGroup) {
                 await existingTabGroup.removeTab(activeDesktopWindow);
+                await activeDesktopWindow.setAsForeground();
             }
 
             // Create new tab group
@@ -295,9 +282,8 @@ export class TabService {
             const halfSize = {x: prevHalfSize.x, y: prevHalfSize.y + existingTabGroup.config.height / 2};
             const center = {x: target.position.x + halfSize.x, y: target.position.y + halfSize.y};
             await existingTabGroup.removeTab(activeDesktopWindow, {center, halfSize});
+            await activeDesktopWindow.setAsForeground();
         }
-
-        await activeDesktopWindow.bringToFront();
     }
 
     /**

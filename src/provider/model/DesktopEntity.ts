@@ -1,6 +1,6 @@
 import {Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
 
-import {Scope} from '../../../gen/provider/config/scope';
+import {Scope} from '../../../gen/provider/config/layouts-config';
 
 import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {DesktopTabGroup} from './DesktopTabGroup';

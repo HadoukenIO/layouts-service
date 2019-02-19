@@ -104,6 +104,10 @@ export class App {
 
         // Make objects accessible from the debugger
         Object.assign(window, {view, eventsUI, snapAndDockUI, tabbingUI, registrationUI, windowUI});
+
+        // Add listeners for layouts events not covered elsewhere
+        workspaces.addEventListener('workspace-generated', event => eventsUI.addEvent(event));
+        workspaces.addEventListener('workspace-restored', event => eventsUI.addEvent(event));
     }
 
     private getQueryParams(): QueryParams {

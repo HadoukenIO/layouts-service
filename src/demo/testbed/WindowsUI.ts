@@ -3,7 +3,6 @@ import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/system/appl
 import {ConfigurationObject, Rule, Tabstrip} from '../../../gen/provider/config/layouts-config';
 import {RegEx} from '../../client/types';
 import {ConfigWithRules, ScopedConfig, Scopes} from '../../provider/config/Store';
-import {DesktopWindow} from '../../provider/model/DesktopWindow';
 import {AppData, createApp, createWindow, Omit, WindowData} from '../spawn';
 
 import {Elements} from './View';

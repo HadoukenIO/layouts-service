@@ -70,6 +70,7 @@ class Dropdown {
 export class TabbingUI {
     private _addToGroup!: Dropdown;
     private _createGroup!: Dropdown;
+    private _buttons: HTMLButtonElement[];
 
     private _log: EventsUI;
 
@@ -119,11 +120,18 @@ export class TabbingUI {
             this._log.addApiCall(promise, tabbing.createTabGroup, [fin.Window.me, identity]);
         };
 
+        this._buttons = [
+            elements.removeTab,
+            elements.closeTab
+        ];
         this._log = log;
+        this._elements = elements;
 
         this.onTabEvent = this.onTabEvent.bind(this);
         tabbing.addEventListener('tab-added', this.onTabEvent);
         tabbing.addEventListener('tab-removed', this.onTabEvent);
+        tabbing.addEventListener('tab-activated', event => this._log.addEvent(event));
+        tabbing.addEventListener('tab-properties-updated', event => this._log.addEvent(event));
     }
 
     private async onTabEvent(event: TabAddedEvent|TabRemovedEvent): Promise<void> {
@@ -132,6 +140,12 @@ export class TabbingUI {
 
         document.body.classList.toggle('tabbed', isTabbed);
         document.getElementById('tab-status')!.innerText = message;
+
+        // Show which buttons are useful in this state
+        this._buttons.forEach(button => {
+            button.classList.toggle('btn-primary', isTabbed);
+            button.classList.toggle('btn-secondary', !isTabbed);
+        });
 
         this._log.addEvent(event);
     }

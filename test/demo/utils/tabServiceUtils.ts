@@ -2,6 +2,7 @@ import {Identity} from 'hadouken-js-adapter';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {TabAPI, UpdateTabPropertiesPayload} from '../../../src/client/internal';
+
 import {TabProperties, WindowIdentity, WindowState} from '../../../src/client/types';
 import {DesktopTabGroup} from '../../../src/provider/model/DesktopTabGroup';
 import {DesktopWindow} from '../../../src/provider/model/DesktopWindow';

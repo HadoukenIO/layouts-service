@@ -25,6 +25,11 @@ export interface WindowData {
     id?: string;
 
     /**
+     * If restoring an application, the name is passed back to the `createWindow` function to properly restore the child windows and close out placeholders.
+     */
+    name?: string;
+
+    /**
      * URL of the window. Defaults to the testbed app.
      */
     url?: string;
@@ -188,7 +193,7 @@ async function createApplication(options: Omit<AppData, 'parent'>): Promise<Appl
 }
 
 async function createChildWindow(data: Omit<WindowData, 'parent'>): Promise<_Window> {
-    const name: string = data.id || `Win-${Math.random().toString().substr(2, 4)}`;
+    const name: string = data.id || data.name || `Win-${Math.random().toString().substr(2, 4)}`;
     const url = getUrl(data);
     const size = getWindowSize(data);
 

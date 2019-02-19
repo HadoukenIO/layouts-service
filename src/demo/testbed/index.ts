@@ -6,6 +6,7 @@ import {SnapAndDockUI} from './SnapAndDockUI';
 import {TabbingUI} from './TabbingUI';
 import {Elements, View} from './View';
 import {WindowsUI} from './WindowsUI';
+import {WorkspacesUI} from './WorkspacesUI';
 
 /**
  * Dictionary of user-facing strings
@@ -37,9 +38,10 @@ view.ready.then((elements: Elements) => {
     const tabbingUI: TabbingUI = new TabbingUI(elements, eventsUI);
     const registrationUI: RegistrationUI = new RegistrationUI(elements, eventsUI);
     const windowUI: WindowsUI = new WindowsUI(elements);
+    const workspacesUI: WorkspacesUI = new WorkspacesUI(eventsUI);
 
     // Make objects accessible from the debugger
-    Object.assign(window, {view, eventsUI, snapAndDockUI, tabbingUI, registrationUI, windowUI});
+    Object.assign(window, {view, eventsUI, snapAndDockUI, tabbingUI, registrationUI, windowUI, workspacesUI});
 
     // Listen for requests to spawn child windows/applications
     addSpawnListeners();

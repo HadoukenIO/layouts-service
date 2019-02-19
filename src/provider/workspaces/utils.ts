@@ -138,8 +138,21 @@ export const createTabPlaceholder = async (win: WorkspaceWindow) => {
 
 // Check to see if an application was created programmatically.
 export const wasCreatedProgrammatically = (app: ApplicationInfo|WorkspaceApp) => {
-    const initialOptions = app.initialOptions as {uuid: string, url: string};
-    return app && app.initialOptions && initialOptions.uuid && initialOptions.url;
+    const initialOptions = app.initialOptions as fin.ApplicationOptions;
+    if (app && initialOptions && initialOptions.uuid) {
+        if (initialOptions.url) {
+            return true;
+        }
+
+        if (initialOptions.mainWindowOptions) {
+            return !!initialOptions.mainWindowOptions.url;
+        }
+
+        return false;
+        
+    } else {
+        return false;
+    }
 };
 
 // Type here should be ApplicationInfo from the js-adapter (needs to be updated)

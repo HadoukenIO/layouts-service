@@ -96,19 +96,8 @@ export interface TabGroupMaximizedEvent {
 export type EventMap = TabGroupRestoredEvent|TabGroupMinimizedEvent|TabGroupMaximizedEvent;
 
 
-/**
- * @type tab-group-restored
- */
 export async function addEventListener(eventType: 'tab-group-restored', listener: (event: TabGroupRestoredEvent) => void): Promise<void>;
-
-/**
- * @type tab-group-minimized
- */
 export async function addEventListener(eventType: 'tab-group-minimized', listener: (event: TabGroupMinimizedEvent) => void): Promise<void>;
-
-/**
- * @type tab-group-minimized
- */
 export async function addEventListener(eventType: 'tab-group-maximized', listener: (event: TabGroupMaximizedEvent) => void): Promise<void>;
 
 export async function addEventListener<K extends EventMap>(eventType: K['type'], listener: (event: K) => void): Promise<void> {
@@ -117,6 +106,14 @@ export async function addEventListener<K extends EventMap>(eventType: K['type'],
     }
 
     eventEmitter.addListener(eventType, listener);
+}
+
+export function removeEventListener<K extends EventMap>(eventType: K['type'], listener: () => void): void {
+    if (typeof fin === 'undefined') {
+        throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
+    }
+
+    eventEmitter.removeListener(eventType, listener);
 }
 
 /**

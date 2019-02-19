@@ -286,14 +286,7 @@ export interface WorkspaceGeneratedEvent {
  */
 export type EventMap = WorkspaceRestoredEvent|WorkspaceGeneratedEvent;
 
-/**
- * @type workspace-restored
- */
 export async function addEventListener(eventType: 'workspace-restored', listener: (event: WorkspaceRestoredEvent) => void): Promise<void>;
-
-/**
- * @type workspace-generated
- */
 export async function addEventListener(eventType: 'workspace-generated', listener: (event: WorkspaceGeneratedEvent) => void): Promise<void>;
 
 export async function addEventListener<K extends EventMap>(eventType: K['type'], listener: (event: K) => void): Promise<void> {
@@ -303,6 +296,15 @@ export async function addEventListener<K extends EventMap>(eventType: K['type'],
 
     eventEmitter.addListener(eventType, listener);
 }
+
+export function removeEventListener<K extends EventMap>(eventType: K['type'], listener: () => void): void {
+    if (typeof fin === 'undefined') {
+        throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
+    }
+
+    eventEmitter.removeListener(eventType, listener);
+}
+
 /**
  * Register a callback that will save the state of the calling application.
  *

@@ -3,7 +3,7 @@
  */
 import {Identity} from 'hadouken-js-adapter';
 
-import {tryServiceDispatch} from './connection';
+import {eventEmitter, tryServiceDispatch} from './connection';
 import {getId, SnapAndDockAPI} from './internal';
 
 
@@ -18,7 +18,7 @@ import {getId, SnapAndDockAPI} from './internal';
  * ```ts
  * import {addEventListener} from 'openfin-layouts';
  *
- * addEventListener('window-docked', async (event: Event) => {
+ * addEventListener('window-docked', async (event: WindowDockedEvent) => {
  *     console.log("Docked to another window");
  *
  *     // Using 'v1' API
@@ -36,7 +36,9 @@ import {getId, SnapAndDockAPI} from './internal';
  *
  * @event
  */
-export interface WindowDockedEvent {}
+export interface WindowDockedEvent {
+    type: 'window-docked';
+}
 
 /**
  * Details of the {@link addEventListener|'window-undocked'} event.
@@ -49,7 +51,7 @@ export interface WindowDockedEvent {}
  * ```ts
  * import {addEventListener} from 'openfin-layouts';
  *
- * addEventListener('window-undocked', async (event: Event) => {
+ * addEventListener('window-undocked', async (event: WindowUndockedEvent) => {
  *     console.log("Undocked from another window");
  *
  *     // Using 'v1' API
@@ -67,33 +69,32 @@ export interface WindowDockedEvent {}
  *
  * @event
  */
-export interface WindowUndockedEvent {}
+export interface WindowUndockedEvent {
+    type: 'window-undocked';
+}
 
 /**
  * @hidden
  */
-export interface EventMap {
-    'window-docked': Event;
-    'window-undocked': Event;
-}
+export type EventMap = WindowDockedEvent|WindowUndockedEvent;
+
 
 /**
  * @type window-docked
  */
-export async function addEventListener(eventType: 'window-docked', listener: (event: Event) => void): Promise<void>;
+export async function addEventListener(eventType: 'window-docked', listener: (event: WindowDockedEvent) => void): Promise<void>;
 
 /**
  * @type window-undocked
  */
-export async function addEventListener(eventType: 'window-undocked', listener: (event: Event) => void): Promise<void>;
+export async function addEventListener(eventType: 'window-undocked', listener: (event: WindowUndockedEvent) => void): Promise<void>;
 
-export async function addEventListener<K extends keyof EventMap>(eventType: K, listener: (event: EventMap[K]) => void): Promise<void> {
+export async function addEventListener<K extends EventMap>(eventType: K['type'], listener: (event: K) => void): Promise<void> {
     if (typeof fin === 'undefined') {
         throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
     }
-    // Use native js event system to pass internal events around.
-    // Without this we would need to handle multiple registration ourselves.
-    window.addEventListener(eventType, listener as EventListener);
+
+    eventEmitter.addListener(eventType, listener);
 }
 
 /**

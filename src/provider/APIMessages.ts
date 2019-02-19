@@ -2,20 +2,17 @@ import {WorkspaceAPI} from '../client/internal';
 import {EventMap as SnapAndDockEventMap} from '../client/snapanddock';
 import {EventMap as TabbingEventMap} from '../client/tabbing';
 import {EventMap as TabstripEventMap} from '../client/tabstrip';
-import {EventMap as WorkspacesEventMap} from '../client/workspaces';
+import {EventMap as WorkspacesEventMap, WorkspaceApp} from '../client/workspaces';
 
-// LegacyAPI to allow for backwards compatibility of older clients (pre 1.0)
-export enum LegacyAPI {
-    GENERATE_HANDLER = 'savingLayout',
-    RESTORE_HANDLER = 'restoreApp',
-    GENERATE_LAYOUT = 'generateLayout',
-    RESTORE_LAYOUT = 'restoreLayout',
-    APPLICATION_READY = 'appReady',
-    UNDOCK_WINDOW = 'undockWindow',
-    UNDOCK_GROUP = 'undockGroup',
-    DEREGISTER = 'deregister',
-}
+/**
+ * Sets the channel topic used to send events to the windows.  All windows which include the client will be listening to this topic name.
+ */
+export const EVENT_CHANNEL_TOPIC = 'event';
 
-export type WindowMessages = keyof EventMap|WorkspaceAPI.RESTORE_HANDLER|WorkspaceAPI.GENERATE_HANDLER|LegacyAPI.GENERATE_HANDLER|LegacyAPI.RESTORE_HANDLER;
+export type MessageMap = {
+    [WorkspaceAPI.RESTORE_HANDLER]: WorkspaceApp,
+    [WorkspaceAPI.GENERATE_HANDLER]: WorkspaceApp,
+    [EVENT_CHANNEL_TOPIC]: EventMap
+};
 
-export type EventMap = TabstripEventMap&TabbingEventMap&WorkspacesEventMap&SnapAndDockEventMap;
+export type EventMap = TabstripEventMap|TabbingEventMap|WorkspacesEventMap|SnapAndDockEventMap;

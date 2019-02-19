@@ -5,7 +5,7 @@ import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus
 import {RegisterAPI, SERVICE_CHANNEL, SnapAndDockAPI, TabAPI, WorkspaceAPI} from '../client/internal';
 import {ApplicationUIConfig, TabProperties} from '../client/tabbing';
 
-import {LegacyAPI, WindowMessages} from './APIMessages';
+import {MessageMap} from './APIMessages';
 import {ConfigStore} from './main';
 import {DesktopModel} from './model/DesktopModel';
 import {DesktopTabGroup} from './model/DesktopTabGroup';
@@ -51,14 +51,14 @@ export class APIHandler {
      *
      * Will fail silently if client with given identity doesn't exist and/or isn't connected to service.
      */
-    public async sendToClient<P, R = void>(identity: Identity, action: WindowMessages, payload: P): Promise<R|undefined> {
+    public async sendToClient<K extends keyof MessageMap, R = void>(identity: Identity, action: K, payload: MessageMap[K]): Promise<R|undefined> {
         return this._providerChannel.dispatch(identity, action, payload);
     }
 
     /**
      * Sends a message to all connected clients.
      */
-    public async sendToAll<P>(action: WindowMessages, payload: P): Promise<void> {
+    public async sendToAll<K extends keyof MessageMap>(action: K, payload: MessageMap[K]): Promise<void> {
         await this._providerChannel.publish(action, payload);
     }
 
@@ -95,15 +95,6 @@ export class APIHandler {
         this.registerListener(TabAPI.SETTABSTRIP, this.setTabstrip);
         this.registerListener(TabAPI.UPDATETABPROPERTIES, this.updateTabProperties);
         this.registerListener(TabAPI.ADDTAB, this.addTab);
-
-
-        // Legacy API (Used before 1.0 cleanup)
-        this.registerListener(LegacyAPI.APPLICATION_READY, this.appReady);
-        this.registerListener(LegacyAPI.DEREGISTER, this.deregister);
-        this.registerListener(LegacyAPI.GENERATE_LAYOUT, generateWorkspace);
-        this.registerListener(LegacyAPI.RESTORE_LAYOUT, restoreWorkspace);
-        this.registerListener(LegacyAPI.UNDOCK_GROUP, this.undockGroup);
-        this.registerListener(LegacyAPI.UNDOCK_WINDOW, this.undockWindow);
     }
 
     private registerListener(topic: string, handler: Action) {

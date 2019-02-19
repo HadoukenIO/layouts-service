@@ -3,7 +3,7 @@
  */
 import {Identity} from 'hadouken-js-adapter';
 
-import {tryServiceDispatch} from './connection';
+import {eventEmitter, tryServiceDispatch} from './connection';
 import {parseIdentity, TabAPI} from './internal';
 import {WindowIdentity} from './main';
 /**
@@ -32,6 +32,8 @@ export interface TabGroupRestoredEvent {
      * See the documentation for individual events for more details.
      */
     identity: WindowIdentity;
+
+    type: 'tab-group-restored';
 }
 
 /**
@@ -57,6 +59,8 @@ export interface TabGroupMinimizedEvent {
      * See the documentation for individual events for more details.
      */
     identity: WindowIdentity;
+
+    type: 'tab-group-minimized';
 }
 
 /**
@@ -82,39 +86,37 @@ export interface TabGroupMaximizedEvent {
      * See the documentation for individual events for more details.
      */
     identity: WindowIdentity;
+
+    type: 'tab-group-maximized';
 }
 
 /**
  * @hidden
  */
-export interface EventMap {
-    'tab-group-restored': CustomEvent<TabGroupRestoredEvent>;
-    'tab-group-minimized': CustomEvent<TabGroupMinimizedEvent>;
-    'tab-group-maximized': CustomEvent<TabGroupMaximizedEvent>;
-}
+export type EventMap = TabGroupRestoredEvent|TabGroupMinimizedEvent|TabGroupMaximizedEvent;
+
 
 /**
  * @type tab-group-restored
  */
-export async function addEventListener(eventType: 'tab-group-restored', listener: (event: CustomEvent<TabGroupRestoredEvent>) => void): Promise<void>;
+export async function addEventListener(eventType: 'tab-group-restored', listener: (event: TabGroupRestoredEvent) => void): Promise<void>;
 
 /**
  * @type tab-group-minimized
  */
-export async function addEventListener(eventType: 'tab-group-minimized', listener: (event: CustomEvent<TabGroupMinimizedEvent>) => void): Promise<void>;
+export async function addEventListener(eventType: 'tab-group-minimized', listener: (event: TabGroupMinimizedEvent) => void): Promise<void>;
 
 /**
  * @type tab-group-minimized
  */
-export async function addEventListener(eventType: 'tab-group-maximized', listener: (event: CustomEvent<TabGroupMaximizedEvent>) => void): Promise<void>;
+export async function addEventListener(eventType: 'tab-group-maximized', listener: (event: TabGroupMaximizedEvent) => void): Promise<void>;
 
-export async function addEventListener<K extends keyof EventMap>(eventType: K, listener: (event: EventMap[K]) => void): Promise<void> {
+export async function addEventListener<K extends EventMap>(eventType: K['type'], listener: (event: K) => void): Promise<void> {
     if (typeof fin === 'undefined') {
         throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
     }
-    // Use native js event system to pass internal events around.
-    // Without this we would need to handle multiple registration ourselves.
-    window.addEventListener(eventType, listener as EventListener);
+
+    eventEmitter.addListener(eventType, listener);
 }
 
 /**

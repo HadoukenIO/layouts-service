@@ -3,8 +3,8 @@
  */
 import {Identity} from 'hadouken-js-adapter';
 
-import {tryServiceDispatch} from './connection';
-import {getId, parseIdentity, TabAPI, SetTabstripPayload, AddTabPayload, UpdateTabPropertiesPayload} from './internal';
+import {eventEmitter, tryServiceDispatch} from './connection';
+import {AddTabPayload, getId, parseIdentity, SetTabstripPayload, TabAPI, UpdateTabPropertiesPayload} from './internal';
 import {WindowIdentity} from './main';
 
 /**
@@ -15,7 +15,7 @@ import {WindowIdentity} from './main';
  * ```ts
  * import {tabbing} from 'openfin-layouts';
  *
- * tabbing.addEventListener('tab-activated', (event: CustomEvent<TabGroupEvent>) => {
+ * tabbing.addEventListener('tab-activated', (event: TabGroupEvent) => {
  *     const activeTab = event.detail.identity;
  *     console.log("Active tab:", activeTab.uuid, activeTab.name);
  * });
@@ -35,6 +35,8 @@ export interface TabActivatedEvent {
      * See the documentation for individual events for more details.
      */
     identity: WindowIdentity;
+
+    type: 'tab-activated';
 }
 
 /**
@@ -47,7 +49,7 @@ export interface TabActivatedEvent {
  * ```ts
  * import {tabbing} from 'openfin-layouts';
  *
- * tabbing.addEventListener('tab-removed', async (event: CustomEvent<TabGroupEvent>) => {
+ * tabbing.addEventListener('tab-removed', async (event: TabGroupEvent) => {
  *     console.log("Window removed from tab group");
  * });
  * ```
@@ -68,6 +70,8 @@ export interface TabRemovedEvent {
      * See the documentation for individual events for more details.
      */
     identity: WindowIdentity;
+
+    type: 'tab-removed';
 }
 
 /**
@@ -81,7 +85,7 @@ export interface TabRemovedEvent {
  * ```ts
  * import {tabbing} from 'openfin-layouts';
  *
- * tabbing.addEventListener('tab-added', async (event: CustomEvent<TabAddedEvent>) => {
+ * tabbing.addEventListener('tab-added', async (event: TabAddedEvent) => {
  *     console.log("Window added to tab group: ", event.detail.identity);
  *     console.log("Windows in current group: ", await tabbing.getTabs());
  * });
@@ -117,6 +121,8 @@ export interface TabAddedEvent {
      * An integer in the range `[0, <tab count>-1]`.
      */
     index: number;
+
+    type: 'tab-added';
 }
 
 /**
@@ -129,7 +135,7 @@ export interface TabAddedEvent {
  * ```ts
  * import {tabbing} from 'openfin-layouts';
  *
- * tabbing.addEventListener('tab-properties-updated', (event: CustomEvent<TabPropertiesUpdatedEvent>) => {
+ * tabbing.addEventListener('tab-properties-updated', (event: TabPropertiesUpdatedEvent) => {
  *     const tabID = event.detail.identity;
  *     const properties = event.detail.properties;
  *     console.log(`Properties for ${tabID.uuid}/${tabID.name} are:`, properties);
@@ -153,17 +159,14 @@ export interface TabPropertiesUpdatedEvent {
      * updated in the {@link updateTabProperties} call.
      */
     properties: TabProperties;
+
+    type: 'tab-properties-updated';
 }
 
 /**
  * @hidden
  */
-export interface EventMap {
-    'tab-added': CustomEvent<TabAddedEvent>;
-    'tab-removed': CustomEvent<TabRemovedEvent>;
-    'tab-activated': CustomEvent<TabActivatedEvent>;
-    'tab-properties-updated': CustomEvent<TabPropertiesUpdatedEvent>;
-}
+export type EventMap = TabAddedEvent|TabRemovedEvent|TabActivatedEvent|TabPropertiesUpdatedEvent;
 
 /**
  * Represents the state of a tab within a tabstrip.
@@ -207,30 +210,29 @@ export interface ApplicationUIConfig {
 /**
  * @type tab-added
  */
-export async function addEventListener(eventType: 'tab-added', listener: (event: CustomEvent<TabAddedEvent>) => void): Promise<void>;
+export async function addEventListener(eventType: 'tab-added', listener: (event: TabAddedEvent) => void): Promise<void>;
 
 /**
  * @type tab-removed
  */
-export async function addEventListener(eventType: 'tab-removed', listener: (event: CustomEvent<TabRemovedEvent>) => void): Promise<void>;
+export async function addEventListener(eventType: 'tab-removed', listener: (event: TabRemovedEvent) => void): Promise<void>;
 
 /**
  * @type tab-activated
  */
-export async function addEventListener(eventType: 'tab-activated', listener: (event: CustomEvent<TabActivatedEvent>) => void): Promise<void>;
+export async function addEventListener(eventType: 'tab-activated', listener: (event: TabActivatedEvent) => void): Promise<void>;
 
 /**
  * @type tab-properties-updated
  */
-export async function addEventListener(eventType: 'tab-properties-updated', listener: (event: CustomEvent<TabPropertiesUpdatedEvent>) => void): Promise<void>;
+export async function addEventListener(eventType: 'tab-properties-updated', listener: (event: TabPropertiesUpdatedEvent) => void): Promise<void>;
 
-export async function addEventListener<K extends keyof EventMap>(eventType: K, listener: (event: EventMap[K]) => void): Promise<void> {
+export async function addEventListener<K extends EventMap>(eventType: K['type'], listener: (event: K) => void): Promise<void> {
     if (typeof fin === 'undefined') {
         throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
     }
-    // Use native js event system to pass internal events around.
-    // Without this we would need to handle multiple registration ourselves.
-    window.addEventListener(eventType, listener as EventListener);
+
+    eventEmitter.addListener(eventType, listener);
 }
 
 /**

@@ -7,7 +7,7 @@ import {MonitorInfo} from 'hadouken-js-adapter/out/types/src/api/system/monitor'
 import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
 import {WindowInfo} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import {channelPromise, tryServiceDispatch} from './connection';
+import {channelPromise, eventEmitter, tryServiceDispatch} from './connection';
 import {WorkspaceAPI} from './internal';
 import {WindowIdentity} from './main';
 import {ApplicationUIConfig} from './tabbing';
@@ -248,7 +248,7 @@ export interface TabGroupDimensions {
  * ```ts
  * import {workspaces} from 'openfin-layouts';
  *
- * workspaces.addEventListener('workspace-restored', async (event: CustomEvent<WorkspaceRestoredEvent>) => {
+ * workspaces.addEventListener('workspace-restored', async (event: WorkspaceRestoredEvent) => {
  *      console.log(`Properties for the restored workspace: ${event.detail}`);
  * });
  * ```
@@ -256,6 +256,7 @@ export interface TabGroupDimensions {
  */
 export interface WorkspaceRestoredEvent {
     workspace: Workspace;
+    type: 'workspace-restored';
 }
 
 /**
@@ -268,7 +269,7 @@ export interface WorkspaceRestoredEvent {
  * ```ts
  * import {workspaces} from 'openfin-layouts';
  *
- * workspaces.addEventListener('workspace-generated', async (event: CustomEvent<WorkspaceGeneratedEvent>) => {
+ * workspaces.addEventListener('workspace-generated', async (event: WorkspaceGeneratedEvent) => {
  *     console.log(`Properties for the generated workspace: ${event.detail}`);
  * });
  * ```
@@ -277,35 +278,31 @@ export interface WorkspaceRestoredEvent {
  */
 export interface WorkspaceGeneratedEvent {
     workspace: Workspace;
+    type: 'workspace-generated';
 }
 
 /**
  * @hidden
  */
-export interface EventMap {
-    'workspace-restored': CustomEvent<WorkspaceRestoredEvent>;
-    'workspace-generated': CustomEvent<WorkspaceRestoredEvent>;
-}
+export type EventMap = WorkspaceRestoredEvent|WorkspaceGeneratedEvent;
 
 /**
  * @type workspace-restored
  */
-export async function addEventListener(eventType: 'workspace-restored', listener: (event: CustomEvent<WorkspaceRestoredEvent>) => void): Promise<void>;
+export async function addEventListener(eventType: 'workspace-restored', listener: (event: WorkspaceRestoredEvent) => void): Promise<void>;
 
 /**
  * @type workspace-generated
  */
-export async function addEventListener(eventType: 'workspace-generated', listener: (event: CustomEvent<WorkspaceGeneratedEvent>) => void): Promise<void>;
+export async function addEventListener(eventType: 'workspace-generated', listener: (event: WorkspaceGeneratedEvent) => void): Promise<void>;
 
-export async function addEventListener<K extends keyof EventMap>(eventType: K, listener: (event: EventMap[K]) => void): Promise<void> {
+export async function addEventListener<K extends EventMap>(eventType: K['type'], listener: (event: K) => void): Promise<void> {
     if (typeof fin === 'undefined') {
         throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
     }
-    // Use native js event system to pass internal events around.
-    // Without this we would need to handle multiple registration ourselves.
-    window.addEventListener(eventType, listener as EventListener);
-}
 
+    eventEmitter.addListener(eventType, listener);
+}
 /**
  * Register a callback that will save the state of the calling application.
  *

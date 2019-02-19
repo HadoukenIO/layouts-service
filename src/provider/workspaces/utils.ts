@@ -149,7 +149,7 @@ export const wasCreatedProgrammatically = (app: ApplicationInfo|WorkspaceApp) =>
         }
 
         return false;
-        
+
     } else {
         return false;
     }

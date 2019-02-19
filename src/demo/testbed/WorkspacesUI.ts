@@ -1,8 +1,10 @@
-import {workspaces} from '../../client/main';
-import {createWindow} from '../spawn';
-import {EventsUI} from './EventsUI';
-import {WorkspaceWindow, WorkspaceApp} from '../../client/types';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
+
+import {workspaces} from '../../client/main';
+import {WorkspaceApp, WorkspaceWindow} from '../../client/types';
+import {createWindow} from '../spawn';
+
+import {EventsUI} from './EventsUI';
 
 export class WorkspacesUI {
     private _log: EventsUI;
@@ -26,7 +28,6 @@ export class WorkspacesUI {
         const ofApp = fin.Application.getCurrentSync();
         const openWindows = await ofApp.getChildWindows();
         const openAndPosition = layoutApp.childWindows.map(async (win: WorkspaceWindow, index: number) => {
-            console.log("win.name", win.name);
             if (!openWindows.some((w: _Window) => w.identity.name === win.name)) {
                 await createWindow(win);
             } else {

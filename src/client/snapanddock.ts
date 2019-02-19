@@ -59,10 +59,7 @@ export interface WindowDockedEvent {
  *     console.log("Windows in current group: ", await fin.Window.getCurrentSync().getGroup());
  * });
  * ```
- *
- * The service considers any windows that are tabbed together to also be in the same snap group, so this event will also fire when a window is removed from a
- * tab group. This may change in future versions of the service.
- *
+ * 
  * @event
  */
 export interface WindowUndockedEvent {
@@ -114,7 +111,7 @@ export function removeEventListener<K extends EventMap>(eventType: K['type'], li
  * ```
  *
  * @param identity The window to undock, defaults to the current window
- * @throws `Error`: If `identity` is not a valid {@link Identity}
+ * @throws `Error`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
  * @throws `Error`: If the window specified by `identity` does not exist
  * @throws `Error`: If the window specified by `identity` has been de-registered
  */
@@ -142,7 +139,7 @@ export async function undockWindow(identity: Identity = getId()): Promise<void> 
  * ```
  *
  * @param identity A window belonging to the group that should be disbanded, defaults to the current window/group
- * @throws `Error`: If `identity` is not a valid {@link Identity}
+ * @throws `Error`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
  * @throws `Error`: If the window specified by `identity` does not exist
  * @throws `Error`: If the window specified by `identity` has been de-registered
  */

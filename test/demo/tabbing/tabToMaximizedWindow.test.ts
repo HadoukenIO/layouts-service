@@ -11,16 +11,16 @@ import {getTabGroupState} from '../utils/tabServiceUtils';
 
 interface TabToMaximizedWindowTestOptions extends CreateWindowData {
     windowCount: 2;
-    tabTo: 'apparent'|'actual';
+    tabTo: 'maximized'|'restored';
 }
 
 testParameterized(
     `Tab to maximized window`,
     [
-        {frame: true, windowCount: 2, tabTo: 'actual'},
-        {frame: true, windowCount: 2, tabTo: 'apparent'},
-        {frame: false, windowCount: 2, tabTo: 'actual'},
-        {frame: false, windowCount: 2, tabTo: 'apparent'},
+        {frame: true, windowCount: 2, tabTo: 'restored'},
+        {frame: true, windowCount: 2, tabTo: 'maximized'},
+        {frame: false, windowCount: 2, tabTo: 'restored'},
+        {frame: false, windowCount: 2, tabTo: 'maximized'},
     ],
     createWindowTest(async (t, options: TabToMaximizedWindowTestOptions) => {
         const fin = await getConnection();
@@ -28,22 +28,22 @@ testParameterized(
 
         await windows[1].maximize();
 
-        if (options.tabTo === 'apparent') {
-            const apparentBounds: Rect = (await fin.System.getMonitorInfo()).primaryMonitor.availableRect;
-            await dragWindowTo(windows[0], apparentBounds.left + 50, apparentBounds.top + 30);
+        if (options.tabTo === 'maximized') {
+            const maximizedBounds: Rect = (await fin.System.getMonitorInfo()).primaryMonitor.availableRect;
+            await dragWindowTo(windows[0], maximizedBounds.left + 50, maximizedBounds.top + 30);
             // Windows should have tabbed
             await assertTabbed(windows[0], windows[1], t);
             // Make sure that the internal state of the tabGroup is correct
             t.is(await getTabGroupState(windows[0].identity), 'maximized');
             // TabGroup fills the whole screen
             const groupBounds = await getTabsetBounds(windows[0]);
-            for (const side of Object.keys(apparentBounds) as (keyof Rect)[]) {
-                if (apparentBounds.hasOwnProperty(side)) {
-                    t.is(apparentBounds[side], groupBounds[side]);
+            for (const side of Object.keys(maximizedBounds) as (keyof Rect)[]) {
+                if (maximizedBounds.hasOwnProperty(side)) {
+                    t.is(maximizedBounds[side], groupBounds[side]);
                 }
             }
         } else {
-            const actualBounds: NormalizedBounds = await getBounds(windows[1]);
+            const restoredBounds: NormalizedBounds = await getBounds(windows[1]);
             await tabWindowsTogether(windows[1], windows[0]);
             // Windows should not have tabbed
             await Promise.all(windows.map(win => assertNotTabbed(win, t)));

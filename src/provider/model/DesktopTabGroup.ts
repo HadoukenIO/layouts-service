@@ -230,11 +230,13 @@ export class DesktopTabGroup implements DesktopEntity {
 
             this._beforeMaximizeBounds = {center: {...center}, halfSize: {...halfSize}};
 
+            const currentMonitor = this._model.getMonitorByRect(this._groupState) || this._model.monitors[0];
+
             await this._window.applyProperties(
-                {center: {x: screen.availWidth / 2, y: this._config.height / 2}, halfSize: {x: screen.availWidth / 2, y: this._config.height / 2}});
+                {center: {x: currentMonitor.center.x, y: this._config.height / 2}, halfSize: {x: currentMonitor.halfSize.x, y: this._config.height / 2}});
             await this.activeTab.applyProperties({
-                center: {x: screen.availWidth / 2, y: (screen.availHeight + this._config.height) / 2},
-                halfSize: {x: screen.availWidth / 2, y: (screen.availHeight - this._config.height) / 2}
+                center: {x: currentMonitor.center.x, y: currentMonitor.center.y + this._config.height / 2},
+                halfSize: {x: currentMonitor.halfSize.x, y: currentMonitor.halfSize.y - this._config.height / 2}
             });
 
             this._isMaximized = true;

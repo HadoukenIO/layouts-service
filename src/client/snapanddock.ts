@@ -79,10 +79,10 @@ export interface WindowUndockedEvent {
 export type EventMap = WindowDockedEvent|WindowUndockedEvent;
 
 
-export async function addEventListener(eventType: 'window-docked', listener: (event: WindowDockedEvent) => void): Promise<void>;
-export async function addEventListener(eventType: 'window-undocked', listener: (event: WindowUndockedEvent) => void): Promise<void>;
+export function addEventListener(eventType: 'window-docked', listener: (event: WindowDockedEvent) => void): void;
+export function addEventListener(eventType: 'window-undocked', listener: (event: WindowUndockedEvent) => void): void;
 
-export async function addEventListener<K extends EventMap>(eventType: K['type'], listener: (event: K) => void): Promise<void> {
+export function addEventListener<K extends EventMap>(eventType: K['type'], listener: (event: K) => void): void {
     if (typeof fin === 'undefined') {
         throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
     }
@@ -90,6 +90,8 @@ export async function addEventListener<K extends EventMap>(eventType: K['type'],
     eventEmitter.addListener(eventType, listener);
 }
 
+export function removeEventListener(eventType: 'window-docked', listener: () => void): void;
+export function removeEventListener(eventType: 'window-undocked', listener: () => void): void;
 export function removeEventListener<K extends EventMap>(eventType: K['type'], listener: () => void): void {
     if (typeof fin === 'undefined') {
         throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');

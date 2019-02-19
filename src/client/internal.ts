@@ -134,17 +134,3 @@ export interface UpdateTabPropertiesPayload {
     window: Identity;
     properties: Partial<TabProperties>;
 }
-
-export interface DropPosition {
-    screenX: number;
-    screenY: number;
-}
-
-export interface StartDragPayload {
-    window: Identity;
-}
-
-export interface EndDragPayload {
-    event: DropPosition;
-    window: Identity;
-}

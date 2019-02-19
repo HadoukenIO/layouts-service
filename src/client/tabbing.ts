@@ -67,7 +67,6 @@ export interface EventMap {
  */
 export async function addEventListener(eventType: 'tab-added', listener: (event: TabAddedEvent) => void): Promise<void>;
 
-
 /**
  * Event fired whenever the current window is removed from it's previous tabset.
  *
@@ -133,8 +132,6 @@ export async function addEventListener<K extends keyof EventMap>(eventType: K, l
     // Without this we would need to handle multiple registration ourselves.
     window.addEventListener(eventType, listener as EventListener);
 }
-
-
 
 /**
  * Returns array of window identity references for tabs belonging to the tab group of the provided window context.

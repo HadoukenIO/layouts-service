@@ -4,11 +4,12 @@ import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopWindow} from '../model/DesktopWindow';
-import {Signal0, Signal2} from '../Signal';
+import {Signal1, Signal2} from '../Signal';
 
 /**
  * Handles the Drag Window which appears when API drag and drop is initialized.
  */
+
 export class DragWindowManager {
     /**
      * Fires when a tab is in process of being dragged around over the dragWindow.  This will let us know which window + X/Y its position.
@@ -20,13 +21,10 @@ export class DragWindowManager {
     /**
      * Fires when a tab has been dropped on the drag window, indicating an end to the drag/drop operation.
      *
-     * Arguments: None.
+     * Arguments: (window: DesktopWindow);
      */
-    public static readonly onDragDrop: Signal0 = new Signal0();
+    public static readonly onDragDrop: Signal1<DesktopWindow> = new Signal1();
 
-    // Multiple definitions of setTimeout/clearTimeout, and not possible to point TSC at the correct (non-Node) definition.
-    // Usecase: failsafe for the drag window overlay should somehow it not close, the user would be "locked out" of the desktop.
-    private _hideTimeout: number|NodeJS.Timer;
 
     /**
      * The drag overlay window
@@ -43,12 +41,18 @@ export class DragWindowManager {
      */
     private _virtualScreen!: DipRect;
 
+    /**
+     * Flag to keep track if the drag window is currently visible and active.
+     */
+    private _active: boolean;
+
     private _model: DesktopModel;
 
     constructor(model: DesktopModel) {
         this._model = model;
         this._sourceWindow = null;
-        this._hideTimeout = -1;
+        this._active = false;
+
         this.createDragWindow();
 
         fin.System.addListener('monitor-info-changed', event => {
@@ -65,28 +69,22 @@ export class DragWindowManager {
         this._window.show();
         this._window.focus();
 
-        this.resetHideTimer();
+        this._active = true;
     }
 
     /**
      * Hides the drag window overlay.
      */
     public hideWindow(): void {
-        DragWindowManager.onDragDrop.emit();
+        // Check if we are active.  If not then we're likely being called from an invalid drag end event (Erroneous or duplicate call)
+        if (this._active) {
+            DragWindowManager.onDragDrop.emit(this._sourceWindow!);
+        }
+
+        this._active = false;
         this._window.hide();
-
-        clearTimeout(this._hideTimeout as number);
-        this._hideTimeout = -1;
     }
 
-    private resetHideTimer(): void {
-        clearTimeout(this._hideTimeout as number);
-        this._hideTimeout = -1;
-
-        this._hideTimeout = setTimeout(() => {
-            this._window.hide();
-        }, 30000);
-    }
 
     /**
      * Creates the drag overlay window.
@@ -121,7 +119,6 @@ export class DragWindowManager {
 
         nativeWin.document.body.addEventListener('dragover', (ev: DragEvent) => {
             DragWindowManager.onDragOver.emit(this._sourceWindow!, {x: ev.screenX + this._virtualScreen.left, y: ev.screenY + this._virtualScreen.top});
-            this.resetHideTimer();
 
             ev.preventDefault();
             ev.stopPropagation();
@@ -130,12 +127,17 @@ export class DragWindowManager {
         });
 
         nativeWin.document.body.addEventListener('drop', (ev: DragEvent) => {
-            DragWindowManager.onDragDrop.emit();
             this.hideWindow();
 
             ev.preventDefault();
             ev.stopPropagation();
             return true;
+        });
+
+        nativeWin.document.body.addEventListener('click', () => {
+            // If we are here, then something has gone wrong!  endDrag may have not been called...
+            console.error('Drag Window Clicked!  Have you called endDrag?');
+            this.hideWindow();
         });
     }
 

@@ -161,7 +161,7 @@ export class DesktopModel {
         // As a useful heuristic, if the center of the given rect is inside a monitor rect, that monitor will be the most overlapped.
         const monitorWithCenter = this._monitors.find(mon => RectUtils.isPointInRect(mon.center, mon.halfSize, rect.center));
         if (monitorWithCenter) {
-            return monitorWithCenter;
+            return RectUtils.clone(monitorWithCenter);
         }
         // Finds the monitor which has the largest overlapping area with the given rect
         const mostOverlappedMonitor =

@@ -2,7 +2,7 @@ import {Identity} from 'hadouken-js-adapter';
 import {Action, ProviderIdentity} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/channel';
 import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
 
-import {DropPosition, RegisterAPI, SERVICE_CHANNEL, SnapAndDockAPI, TabAPI, WorkspaceAPI} from '../client/internal';
+import {RegisterAPI, SERVICE_CHANNEL, SnapAndDockAPI, TabAPI, WorkspaceAPI} from '../client/internal';
 import {ApplicationUIConfig, TabProperties} from '../client/types';
 
 import {LegacyAPI, WindowMessages} from './APIMessages';
@@ -275,15 +275,15 @@ export class APIHandler {
             throw new Error('No tab group found for window');
         }
 
-        if (await group.window.currentState.state === 'minimized') {
-            return group.window.applyProperties({state: 'normal'});
-        } else {
-            return group.restore();
-        }
+        return group.restore();
     }
 
-    private reorderTabs(newOrdering: WindowIdentity[], tabId: ProviderIdentity): void {
-        const tab: DesktopWindow|null = this._model.getWindow(tabId as WindowIdentity);
+    private reorderTabs(newOrdering: WindowIdentity[], tabstrip: ProviderIdentity): void {
+        if (!Array.isArray(newOrdering) || newOrdering.length === 0) {
+            throw new Error('Invalid new Order array');
+        }
+
+        const tab: DesktopWindow|null = this._model.getWindow(tabstrip as WindowIdentity);
         const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
         if (!group) {
@@ -291,7 +291,7 @@ export class APIHandler {
             throw new Error('No tab group found for window');
         }
 
-        return group.reOrderTabArray(newOrdering);
+        return group.reorderTabArray(newOrdering);
     }
 
     private updateTabProperties(payload: {properties: Partial<TabProperties>, window: WindowIdentity}): void {
@@ -305,17 +305,18 @@ export class APIHandler {
         }
     }
 
-    private startDrag(payload: {window: WindowIdentity}, source: ProviderIdentity): void {
+    private startDrag(identity: WindowIdentity, source: ProviderIdentity): void {
         let tab: DesktopWindow|null;
         let group: DesktopTabGroup|null;
 
+
         // Previous client version had no payload. To avoid breaking changes, we
         // default to the active tab if no window is specified.
-        if (!payload.window) {
+        if (!identity) {
             group = this._model.getTabGroup(this._model.getId(source as WindowIdentity));
             tab = group && group.activeTab;
         } else {
-            tab = this._model.getWindow(payload.window);
+            tab = this._model.getWindow(identity);
             group = tab && tab.tabGroup;
         }
 
@@ -327,20 +328,7 @@ export class APIHandler {
         this._tabService.dragWindowManager.showWindow(tab);
     }
 
-    private async endDrag(payload: {event: DropPosition, window: WindowIdentity}): Promise<void> {
-        const tab: DesktopWindow|null = this._model.getWindow(payload.window);
-        const group: DesktopTabGroup|null = tab && tab.tabGroup;
-
-        if (!group || !tab) {
-            console.error('Window is not registered for tabbing');
-            throw new Error('Window is not registered for tabbing');
-        }
-
-        const target = this._tabService.getTarget(tab);
+    private async endDrag(): Promise<void> {
         this._tabService.dragWindowManager.hideWindow();
-
-        if (target) {
-            await this._tabService.applyTabTarget(target);
-        }
     }
 }

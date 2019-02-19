@@ -86,12 +86,17 @@ export class WindowHandler {
 
     private onTabDrag(window: DesktopWindow, mousePosition: Point) {
         const target = tabService.getTarget(window);
-
         this.view.update(target);
     }
 
-    private onTabDrop() {
+    private onTabDrop(window: DesktopWindow) {
         this.view.update(null);
+
+        const target = tabService.getTarget(window);
+
+        if (target && target.valid) {
+            tabService.applyTabTarget(target);
+        }
     }
 
     /**

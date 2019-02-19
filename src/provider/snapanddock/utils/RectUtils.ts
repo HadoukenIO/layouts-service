@@ -109,7 +109,7 @@ export class RectUtils {
      */
     public static convertToCenterHalfSize(rect: Rect): Rectangle {
         return {
-            center: {x: rect.left + (rect.right - rect.left) / 2, y: rect.top + (rect.bottom - rect.top) / 2},
+            center: {x: (rect.right + rect.left) / 2, y: (rect.bottom + rect.top) / 2},
             halfSize: {x: (rect.right - rect.left) / 2, y: (rect.bottom - rect.top) / 2}
         };
     }

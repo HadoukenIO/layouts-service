@@ -126,7 +126,7 @@ export class TabbingUI {
         tabbing.addEventListener('tab-removed', this.onTabEvent);
     }
 
-    private async onTabEvent(event: CustomEvent<TabAddedEvent|TabRemovedEvent>): Promise<void> {
+    private async onTabEvent(event: TabAddedEvent|TabRemovedEvent): Promise<void> {
         const isTabbed: boolean = (event.type === 'tab-added');
         const message: string = isTabbed ? Messages.STATUS_TABBED : Messages.STATUS_UNTABBED;
 

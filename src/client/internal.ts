@@ -10,7 +10,7 @@
  */
 import {Identity} from 'hadouken-js-adapter';
 import {WindowIdentity} from './main';
-import { ApplicationUIConfig, TabProperties } from './tabbing';
+import {ApplicationUIConfig, TabProperties} from './tabbing';
 
 
 /**

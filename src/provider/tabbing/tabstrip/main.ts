@@ -13,28 +13,25 @@ tabManager = new TabManager();
  * Creates event listeners for events fired from the openfin layouts service.
  */
 const createLayoutsEventListeners = () => {
-    layouts.tabbing.addEventListener('tab-added', (event: CustomEvent<TabAddedEvent>) => {
-        const tabInfo: TabAddedEvent = event.detail;
-        tabManager.addTab(tabInfo.identity, tabInfo.properties, tabInfo.index);
+    layouts.tabbing.addEventListener('tab-added', (event: TabAddedEvent) => {
+        tabManager.addTab(event.identity, event.properties, event.index);
 
         document.title = tabManager.getTabs.map(tab => tab.ID.name).join(', ');
     });
 
-    layouts.tabbing.addEventListener('tab-removed', (event: CustomEvent<TabRemovedEvent>) => {
-        const tabInfo: TabRemovedEvent = event.detail;
-        tabManager.removeTab(tabInfo.identity);
+    layouts.tabbing.addEventListener('tab-removed', (event: TabRemovedEvent) => {
+        tabManager.removeTab(event.identity);
 
         document.title = tabManager.getTabs.map(tab => tab.ID.name).join(', ');
     });
 
-    layouts.tabbing.addEventListener('tab-activated', (event: CustomEvent<TabActivatedEvent>) => {
-        const tabInfo: WindowIdentity = event.detail.identity;
-        tabManager.setActiveTab(tabInfo);
+    layouts.tabbing.addEventListener('tab-activated', (event: TabActivatedEvent) => {
+        tabManager.setActiveTab(event.identity);
     });
 
-    layouts.tabbing.addEventListener('tab-properties-updated', (event: CustomEvent<TabPropertiesUpdatedEvent>) => {
-        const tab = tabManager.getTab(event.detail.identity);
-        const props = event.detail.properties;
+    layouts.tabbing.addEventListener('tab-properties-updated', (event: TabPropertiesUpdatedEvent) => {
+        const tab = tabManager.getTab(event.identity);
+        const props = event.properties;
 
         if (tab) {
             if (props.icon) tab.updateIcon(props.icon);
@@ -44,12 +41,12 @@ const createLayoutsEventListeners = () => {
 
     const maximizeElem: HTMLElement = document.getElementById('window-button-maximize')!;
 
-    layouts.tabstrip.addEventListener('tab-group-maximized', (event: CustomEvent<TabGroupMaximizedEvent>) => {
+    layouts.tabstrip.addEventListener('tab-group-maximized', (event: TabGroupMaximizedEvent) => {
         tabManager.isMaximized = true;
         maximizeElem.classList.add('restore');
     });
 
-    layouts.tabstrip.addEventListener('tab-group-restored', (event: CustomEvent<TabGroupRestoredEvent>) => {
+    layouts.tabstrip.addEventListener('tab-group-restored', (event: TabGroupRestoredEvent) => {
         tabManager.isMaximized = false;
         if (maximizeElem.classList.contains('restore')) {
             maximizeElem.classList.remove('restore');

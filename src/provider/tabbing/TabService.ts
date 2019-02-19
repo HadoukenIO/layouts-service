@@ -227,11 +227,11 @@ export class TabService {
         Object.assign(tabProps, properties);
         localStorage.setItem(tab.id, JSON.stringify(tabProps));
 
-        const payload: TabPropertiesUpdatedEvent = {identity: tab.identity, properties: tabProps};
-        tab.sendMessage('tab-properties-updated', payload);
+        const event: TabPropertiesUpdatedEvent = {identity: tab.identity, properties: tabProps, type: 'tab-properties-updated'};
+        tab.sendEvent(event);
 
         if (tab.tabGroup) {
-            tab.tabGroup.window.sendMessage('tab-properties-updated', payload);
+            tab.tabGroup.window.sendEvent(event);
         }
     }
 

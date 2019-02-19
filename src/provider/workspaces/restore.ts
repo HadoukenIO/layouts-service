@@ -3,8 +3,8 @@ import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {WorkspaceAPI} from '../../client/internal';
-import {TabGroup, Workspace, WorkspaceApp} from '../../client/workspaces';
-import {LegacyAPI} from '../APIMessages';
+import {TabGroup, Workspace, WorkspaceApp, WorkspaceRestoredEvent} from '../../client/workspaces';
+import {EVENT_CHANNEL_TOPIC} from '../APIMessages';
 import {apiHandler, model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {promiseMap} from '../snapanddock/utils/async';
@@ -88,7 +88,8 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
         group.validate();
     }
 
-    apiHandler.sendToAll('workspace-restored', workspace);
+    const event: WorkspaceRestoredEvent = {type: 'workspace-restored', workspace};
+    apiHandler.sendToAll(EVENT_CHANNEL_TOPIC, event);
 
     restoreExclusivityToken = null;
 
@@ -103,7 +104,7 @@ const requestClientRestoreApp = async(workspaceApp: WorkspaceApp, resolve: Funct
     const appConnection = apiHandler.isClientConnection({uuid, name: uuid});
     if (appConnection) {
         // Instruct app to restore its child windows
-        const appworkspaceAppResult = await clientRestoreAppWithTimeout(workspaceApp, false);
+        const appworkspaceAppResult = await clientRestoreAppWithTimeout(workspaceApp);
 
         resolve(appworkspaceAppResult);
     }
@@ -241,7 +242,7 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
                 await positionWindow(app.mainWindow, false);
                 console.log('App is running:', app);
                 // Send WorkspaceApp to connected application so it can handle child windows
-                return await clientRestoreAppWithTimeout(app, true);
+                return await clientRestoreAppWithTimeout(app);
             } else {
                 // Not connected to service
                 console.log('App is open, but not connected to the service:', app);
@@ -288,17 +289,14 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
     }
 };
 
-const clientRestoreAppWithTimeout = async(app: WorkspaceApp, mayBeLegacyApp: boolean): Promise<WorkspaceApp> => {
+const clientRestoreAppWithTimeout = async(app: WorkspaceApp): Promise<WorkspaceApp> => {
     const identity = {uuid: app.uuid, name: app.uuid};
 
     const defaultResponse = {...app, childWindows: []};
 
-    const sendToClientPromises = [apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>(identity, WorkspaceAPI.RESTORE_HANDLER, app)];
-    if (mayBeLegacyApp) {
-        sendToClientPromises.push(apiHandler.sendToClient<WorkspaceApp, WorkspaceApp|false>(identity, LegacyAPI.RESTORE_HANDLER, app));
-    }
+    const sendToClientPromises = apiHandler.sendToClient<WorkspaceAPI.RESTORE_HANDLER, WorkspaceApp|false>(identity, WorkspaceAPI.RESTORE_HANDLER, app);
 
-    const responsePromise = Promise.race(sendToClientPromises).then((response: WorkspaceApp|false|undefined) => response ? response : defaultResponse);
+    const responsePromise = sendToClientPromises.then((response: WorkspaceApp|false|undefined) => response ? response : defaultResponse);
 
     const timeoutPromise = new Promise<WorkspaceApp>((response) => setTimeout(() => response(defaultResponse), CLIENT_RESTORE_TIMEOUT));
 

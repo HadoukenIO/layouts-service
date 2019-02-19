@@ -288,9 +288,9 @@ export function addEventListener<K extends EventMap>(eventType: K['type'], liste
     eventEmitter.addListener(eventType, listener);
 }
 
-export function removeEventListener(eventType: 'workspace-restored', listener: () => void): void;
-export function removeEventListener(eventType: 'workspace-generated', listener: () => void): void;
-export function removeEventListener<K extends EventMap>(eventType: K['type'], listener: () => void): void {
+export function removeEventListener(eventType: 'workspace-restored', listener: (event: WorkspaceRestoredEvent) => void): void;
+export function removeEventListener(eventType: 'workspace-generated', listener: (event: WorkspaceGeneratedEvent) => void): void;
+export function removeEventListener<K extends EventMap>(eventType: K['type'], listener: (event: K) => void): void {
     if (typeof fin === 'undefined') {
         throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
     }

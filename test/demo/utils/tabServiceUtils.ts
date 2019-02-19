@@ -3,9 +3,9 @@ import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {SERVICE_IDENTITY, TabAPI, UpdateTabPropertiesPayload} from '../../../src/client/internal';
 import {WindowIdentity} from '../../../src/client/main';
 import {TabProperties} from '../../../src/client/tabbing';
-import {WindowState} from '../../../src/client/workspaces;
+import {WindowState} from '../../../src/client/workspaces';
 
-    import {DesktopTabGroup} from '../../../src/provider/model/DesktopTabGroup';
+import {DesktopTabGroup} from '../../../src/provider/model/DesktopTabGroup';
 import {DesktopWindow} from '../../../src/provider/model/DesktopWindow';
 import {getConnection} from '../../provider/utils/connect';
 

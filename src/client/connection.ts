@@ -11,13 +11,10 @@
  * These types are a part of the client, but are not required by applications wishing to interact with the service.
  * This file is excluded from the public-facing TypeScript documentation.
  */
+import {EventEmitter} from 'events';
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
-
+import {EventMap} from '../provider/APIMessages';
 import {APITopic, SERVICE_CHANNEL} from './internal';
-import {TabActivatedEvent, TabAddedEvent, TabPropertiesUpdatedEvent, TabRemovedEvent} from './tabbing';
-import {TabGroupMaximizedEvent, TabGroupMinimizedEvent, TabGroupRestoredEvent} from './tabstrip';
-import {Workspace, WorkspaceGeneratedEvent, WorkspaceRestoredEvent} from './workspaces';
-
 
 /**
  * The version of the NPM package.
@@ -27,6 +24,11 @@ import {Workspace, WorkspaceGeneratedEvent, WorkspaceRestoredEvent} from './work
 declare const PACKAGE_VERSION: string;
 
 /**
+ * The event emitter to emit events received from the service.  All addEventListeners will tap into this.
+ */
+export const eventEmitter = new EventEmitter();
+
+/**
  * Promise to the channel object that allows us to connect to the client
  */
 export const channelPromise: Promise<ChannelClient> = typeof fin === 'undefined' ?
@@ -34,40 +36,8 @@ export const channelPromise: Promise<ChannelClient> = typeof fin === 'undefined'
     fin.InterApplicationBus.Channel.connect(SERVICE_CHANNEL, {payload: {version: PACKAGE_VERSION}}).then((channel: ChannelClient) => {
         // Register service listeners
         channel.register('WARN', (payload: any) => console.warn(payload));  // tslint:disable-line:no-any
-        channel.register('window-docked', () => {
-            window.dispatchEvent(new Event('window-docked'));
-        });
-        channel.register('window-undocked', () => {
-            window.dispatchEvent(new Event('window-undocked'));
-        });
-        channel.register('tab-added', (payload: TabAddedEvent) => {
-            window.dispatchEvent(new CustomEvent<TabAddedEvent>('tab-added', {detail: payload}));
-        });
-        channel.register('tab-removed', (payload: TabRemovedEvent) => {
-            window.dispatchEvent(new CustomEvent<TabRemovedEvent>('tab-removed', {detail: payload}));
-        });
-        channel.register('tab-activated', (payload: TabActivatedEvent) => {
-            window.dispatchEvent(new CustomEvent<TabActivatedEvent>('tab-activated', {detail: payload}));
-        });
-        channel.register('tab-properties-updated', (payload: TabPropertiesUpdatedEvent) => {
-            window.dispatchEvent(new CustomEvent<TabPropertiesUpdatedEvent>('tab-properties-updated', {detail: payload}));
-        });
-        channel.register('tab-group-restored', (payload: TabGroupRestoredEvent) => {
-            window.dispatchEvent(new CustomEvent<TabGroupRestoredEvent>('tab-group-restored', {detail: payload}));
-        });
-        channel.register('tab-group-minimized', (payload: TabGroupMinimizedEvent) => {
-            window.dispatchEvent(new CustomEvent<TabGroupMinimizedEvent>('tab-group-minimized', {detail: payload}));
-        });
-        channel.register('tab-group-maximized', (payload: TabGroupMaximizedEvent) => {
-            window.dispatchEvent(new CustomEvent<TabGroupMaximizedEvent>('tab-group-maximized', {detail: payload}));
-        });
-
-        channel.register('workspace-generated', (payload: Workspace) => {
-            window.dispatchEvent(new CustomEvent<WorkspaceGeneratedEvent>('workspace-generated', {detail: {workspace: payload}}));
-        });
-
-        channel.register('workspace-restored', (payload: Workspace) => {
-            window.dispatchEvent(new CustomEvent<WorkspaceRestoredEvent>('workspace-restored', {detail: {workspace: payload}}));
+        channel.register('event', (event: EventMap) => {
+            eventEmitter.emit(event.type, event);
         });
         // Any unregistered action will simply return false
         channel.setDefaultAction(() => false);

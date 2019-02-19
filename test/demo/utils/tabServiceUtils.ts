@@ -5,7 +5,7 @@ import {WindowIdentity} from '../../../src/client/main';
 import {TabProperties} from '../../../src/client/tabbing';
 import {WindowState} from '../../../src/client/workspaces;
 
-import {DesktopTabGroup} from '../../../src/provider/model/DesktopTabGroup';
+    import {DesktopTabGroup} from '../../../src/provider/model/DesktopTabGroup';
 import {DesktopWindow} from '../../../src/provider/model/DesktopWindow';
 import {getConnection} from '../../provider/utils/connect';
 

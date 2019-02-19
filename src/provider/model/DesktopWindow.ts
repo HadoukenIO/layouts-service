@@ -804,6 +804,7 @@ export class DesktopWindow implements DesktopEntity {
         }
         // Keep a copy of the previous state around temporarily to compare and avoid event loops.
         const prevState = this._currentState.state;
+        const prevConstraints = this._currentState.resizeConstraints;
         Object.assign(this._currentState, delta);
 
         // Apply changes to the window (unless we're reacting to an external change that has already happened)
@@ -850,6 +851,15 @@ export class DesktopWindow implements DesktopEntity {
             }
 
             if (resizeConstraints) {
+                // Work-around for RUN-5010. Cannot use -1 to reset maxWidth/Height as window becomes non-maximizable. Can use undefined to avoid maximizable
+                // issue, but undefined won't reset constraints. Need to use -1 if clearing an actual constraint, undefined otherwise.
+                const maxWidth = resizeConstraints.x.maxSize === Number.MAX_SAFE_INTEGER ?
+                    (prevConstraints.x.maxSize === Number.MAX_SAFE_INTEGER ? undefined : -1) :
+                    resizeConstraints.x.maxSize;
+                const maxHeight = resizeConstraints.y.maxSize === Number.MAX_SAFE_INTEGER ?
+                    (prevConstraints.y.maxSize === Number.MAX_SAFE_INTEGER ? undefined : -1) :
+                    resizeConstraints.y.maxSize;
+
                 actions.push(window.updateOptions({
                     resizable: resizeConstraints.x.resizableMin || resizeConstraints.x.resizableMax || resizeConstraints.y.resizableMin ||
                         resizeConstraints.y.resizableMax,
@@ -862,9 +872,9 @@ export class DesktopWindow implements DesktopEntity {
                         }
                     },
                     minWidth: resizeConstraints.x.minSize,
-                    maxWidth: resizeConstraints.x.maxSize === Number.MAX_SAFE_INTEGER ? -1 : resizeConstraints.x.maxSize,
                     minHeight: resizeConstraints.y.minSize,
-                    maxHeight: resizeConstraints.y.maxSize === Number.MAX_SAFE_INTEGER ? -1 : resizeConstraints.y.maxSize,
+                    maxWidth,
+                    maxHeight
                 }));
             }
 

@@ -1,4 +1,14 @@
-import {QueryParams} from '.';
+import {QueryParams} from './App';
+
+/**
+ * Dictionary of user-facing strings
+ */
+export enum Messages {
+    STATUS_DOCKED = 'Docked to one or more windows',
+    STATUS_UNDOCKED = 'Window currently undocked',
+    STATUS_TABBED = 'Tabbed to one or more other windows',
+    STATUS_UNTABBED = 'Not tabbed'
+}
 
 export interface Elements {
     // API buttons
@@ -69,31 +79,19 @@ export interface Elements {
 }
 
 export class View {
-    private _elements: Elements|null;
-
-    private _ready: Promise<Elements>;
-    private _onReady!: (elements: Elements) => void;
-
-    private _args: QueryParams;
+    private _elements: Elements;
 
     constructor(args: QueryParams) {
-        this._elements = null;
-        this._ready = new Promise(resolve => this._onReady = resolve);
-        this._args = args;
-
-        document.addEventListener('DOMContentLoaded', this.init.bind(this));
-    }
-
-    public get ready(): Promise<Elements> {
-        return this._ready;
+        this._elements = this.getElements();
+        this.init(args);
     }
 
     public get elements(): Elements {
         return this._elements!;
     }
 
-    private async init(): Promise<void> {
-        this._elements = {
+    private getElements(): Elements {
+        return {
             undockGroup: document.getElementById('undockGroup') as HTMLButtonElement,
             undockWindow: document.getElementById('undockWindow') as HTMLButtonElement,
             addTab: document.getElementById('addTab') as HTMLButtonElement,
@@ -147,35 +145,14 @@ export class View {
             modal: document.getElementById('modalCreate') as HTMLDivElement,
             eventList: document.getElementById('eventList') as HTMLUListElement
         };
+    }
 
+    private init(args: QueryParams): void {
         // Set window title
         const identity = fin.Window.me;
         document.getElementById('title')!.innerText = document.title = `${identity.uuid} / ${identity.name}`;
 
-        // Start app initialisation
-        this._onReady(this._elements);
-
-        // Override background colors on Layout-Manager windows
-        const match = /Window(\d+)/.exec(fin.Window.getCurrentSync().identity.name!);
-        if (match) {
-            const colors = ['#7B7BFF', '#A7A7A7', '#3D4059', '#D8D8D8', '#1A194D', '#B6B6B6'];
-            const index = Number.parseInt(match[1].toString(), 10);
-            const color = colors[(index - 1) % colors.length];
-
-            this._args.theme = color;
-        }
-
-        // Fetch framed status of window
-        if (this._args.framed === undefined) {
-            this._args.framed = (await fin.Window.getCurrentSync().getOptions()).frame;
-        }
-
-        // If border property isn't specified, default to the framed status of the window
-        if (this._args.border === undefined) {
-            this._args.border = !this._args.framed;
-        }
-
-        const {section, locked, theme, framed, border} = this._args;
+        const {section, locked, theme, framed, border} = args;
         if (section) {
             // Allow customisation of default section
             // This is the part of the UI that is kept, when window is only small enough to show one card

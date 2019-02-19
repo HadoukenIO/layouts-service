@@ -4,9 +4,8 @@ import {tabbing} from '../../client/main';
 import {TabAddedEvent, TabRemovedEvent} from '../../client/tabbing';
 import {WindowIdentity} from '../../client/types';
 
-import {Messages} from '.';
 import {EventsUI} from './EventsUI';
-import {Elements} from './View';
+import {Elements, Messages} from './View';
 
 class Dropdown {
     private _button: HTMLButtonElement;

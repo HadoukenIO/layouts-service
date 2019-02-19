@@ -107,7 +107,7 @@ export class TabService {
         await tabGroup.addTabs(tabs, activeTab);
 
         if (tabs[0].currentState.state === 'maximized') {
-            tabGroup.maximize();
+            tabGroup.maximize().catch(console.warn);
         }
     }
 
@@ -196,7 +196,7 @@ export class TabService {
                 await tabGroup.window.sync();
 
                 if (groupDef.groupInfo.state === 'maximized') {
-                    await tabGroup.maximize();
+                    await tabGroup.maximize().catch(console.warn);
                 } else if (groupDef.groupInfo.state === 'minimized') {
                     await tabGroup.minimize();
                 }

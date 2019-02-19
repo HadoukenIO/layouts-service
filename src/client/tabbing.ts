@@ -23,14 +23,12 @@ import {WindowIdentity} from './main';
  */
 export interface TabActivatedEvent {
     /**
-     * String that uniquely identifies the current tabset.  See {@link addEventListener}.
+     * String that uniquely identifies the current tabset.
      */
     tabstripIdentity: WindowIdentity;
 
     /**
      * Identifies the window that is the source of the current event.
-     *
-     * See the documentation for individual events for more details.
      */
     identity: WindowIdentity;
 
@@ -62,8 +60,6 @@ export interface TabRemovedEvent {
 
     /**
      * Identifies the window that is the source of the current event.
-     *
-     * See the documentation for individual events for more details.
      */
     identity: WindowIdentity;
 
@@ -97,14 +93,12 @@ export interface TabAddedEvent {
 
     /**
      * Identifies the window that is the source of the current event.
-     *
-     * See the documentation for individual events for more details.
      */
     identity: WindowIdentity;
     /**
      * The properties of the newly-added tab.
      *
-     * These will be generated from the `tabID` window, or will be whatever properties were previously set for the `tabID` window using
+     * These will be generated from the `identity` window, or will be whatever properties were previously set for the `identity` window using
      * {@link updateTabProperties}.
      */
     properties: TabProperties;
@@ -139,8 +133,6 @@ export interface TabAddedEvent {
 export interface TabPropertiesUpdatedEvent {
     /**
      * Identifies the window that is the source of the current event.
-     *
-     * See the documentation for individual events for more details.
      */
     identity: WindowIdentity;
 

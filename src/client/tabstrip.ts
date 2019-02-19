@@ -26,8 +26,6 @@ import {WindowIdentity} from './main';
 export interface TabGroupRestoredEvent {
     /**
      * Identifies the window that is the source of the current event.
-     *
-     * See the documentation for individual events for more details.
      */
     identity: WindowIdentity;
 
@@ -51,8 +49,6 @@ export interface TabGroupRestoredEvent {
 export interface TabGroupMinimizedEvent {
     /**
      * Identifies the window that is the source of the current event.
-     *
-     * See the documentation for individual events for more details.
      */
     identity: WindowIdentity;
 
@@ -76,8 +72,6 @@ export interface TabGroupMinimizedEvent {
 export interface TabGroupMaximizedEvent {
     /**
      * Identifies the window that is the source of the current event.
-     *
-     * See the documentation for individual events for more details.
      */
     identity: WindowIdentity;
 

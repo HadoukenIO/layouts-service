@@ -8,6 +8,7 @@ import {TabAPI, UpdateTabPropertiesPayload} from '../../src/client/internal';
 import {tabbing, tabstrip, WindowIdentity} from '../../src/client/main';
 import {TabProperties} from "../../src/client/tabbing";
 
+
 stub();
 
 let channel: ChannelClient;

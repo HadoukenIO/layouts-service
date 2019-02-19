@@ -204,6 +204,24 @@ export class DesktopTabGroup implements DesktopEntity {
      * Maximizes the tab set window.  This will resize the tab window to as large as possible with the tab set window on top.
      */
     public async maximize(): Promise<void> {
+        if (!this.currentState.maximizable) {
+            const nonMaximizableWindows: string[] = this._tabs.filter(tab => !tab.applicationState.maximizable).map(tab => tab.id);
+            const sizeConstrainedWindows: string[] =
+                this._tabs
+                    .filter(tab => {
+                        const constraints: Point<ResizeConstraint> = tab.applicationState.resizeConstraints;
+                        return constraints.x.maxSize < Number.MAX_SAFE_INTEGER || constraints.y.maxSize < Number.MAX_SAFE_INTEGER;
+                    })
+                    .map(tab => tab.id);
+
+            if (nonMaximizableWindows.length > 0) {
+                throw new Error(`Unable to maximize tabGroup: The following tabs are not resizable: [${nonMaximizableWindows.join(', ')}]`);
+            } else if (sizeConstrainedWindows.length > 0) {
+                throw new Error(`Unable to maximize tabGroup: The following tabs have maximum size constraints: [${sizeConstrainedWindows.join(', ')}]`);
+            } else {
+                throw new Error('Unable to maximize tabGroup: Group is not maximizable');
+            }
+        }
         if (!this._isMaximized) {
             // Before doing anything else we will undock the tabGroup (mitigation for SERVICE-314)
             if (this.snapGroup.entities.length > 1) {
@@ -214,11 +232,13 @@ export class DesktopTabGroup implements DesktopEntity {
 
             this._beforeMaximizeBounds = {center: {...center}, halfSize: {...halfSize}};
 
+            const currentMonitor = this._model.getMonitorByRect(this._groupState) || this._model.monitors[0];
+
             await this._window.applyProperties(
-                {center: {x: screen.availWidth / 2, y: this._config.height / 2}, halfSize: {x: screen.availWidth / 2, y: this._config.height / 2}});
+                {center: {x: currentMonitor.center.x, y: this._config.height / 2}, halfSize: {x: currentMonitor.halfSize.x, y: this._config.height / 2}});
             await this.activeTab.applyProperties({
-                center: {x: screen.availWidth / 2, y: (screen.availHeight + this._config.height) / 2},
-                halfSize: {x: screen.availWidth / 2, y: (screen.availHeight - this._config.height) / 2}
+                center: {x: currentMonitor.center.x, y: currentMonitor.center.y + this._config.height / 2},
+                halfSize: {x: currentMonitor.halfSize.x, y: currentMonitor.halfSize.y - this._config.height / 2}
             });
 
             this._isMaximized = true;
@@ -700,6 +720,10 @@ export class DesktopTabGroup implements DesktopEntity {
         result.y.resizableMin = false;  // Cannot resize on the edge between tab and tabstrip (SERVICE-287)
         // Apply the new constraints to all windows
         await Promise.all(this.tabs.map((tab: DesktopWindow) => tab.applyProperties({resizeConstraints: result})));
+
+        // Changes to constraints also affect the maximizability of the tabgroup, so we update that here too
+        this._groupState.maximizable = this._tabs.every(tab => tab.applicationState.maximizable) &&        // All tabs must be maximizable
+            result.x.maxSize === Number.MAX_SAFE_INTEGER && result.y.maxSize === Number.MAX_SAFE_INTEGER;  // No tabs have maxSize constraints
     }
 
     // Will check that all of the tabs and the tabstrip are still in the correct relative positions, and if not

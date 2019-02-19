@@ -1,3 +1,11 @@
+/**
+ * @hidden
+ */
+
+/**
+ *
+ *
+ */
 import {WorkspaceAPI} from '../client/internal';
 import {EventMap as SnapAndDockEventMap} from '../client/snapanddock';
 import {EventMap as TabbingEventMap} from '../client/tabbing';

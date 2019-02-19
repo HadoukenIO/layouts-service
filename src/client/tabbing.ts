@@ -8,9 +8,7 @@ import {AddTabPayload, getId, parseIdentity, SetTabstripPayload, TabAPI, UpdateT
 import {WindowIdentity} from './main';
 
 /**
- * Details of the {@link addEventListener|'tab-activated'} event.
- *
- * Event fired whenever the active tab within a tab group is changed.
+ * Event fired whenever the active tab within a tab group is changed.  See {@link addEventListener}.
  *
  * ```ts
  * import {tabbing} from 'openfin-layouts';
@@ -25,7 +23,7 @@ import {WindowIdentity} from './main';
  */
 export interface TabActivatedEvent {
     /**
-     * String that uniquely identifies the current tabset.
+     * String that uniquely identifies the current tabset.  See {@link addEventListener}.
      */
     tabstripIdentity: WindowIdentity;
 
@@ -40,9 +38,7 @@ export interface TabActivatedEvent {
 }
 
 /**
- * Details of the {@link addEventListener|'tab-removed'} event.
- *
- * Event fired whenever the current window is removed from it's previous tabset.
+ * Event fired whenever the current window is removed from it's previous tabset.  See {@link addEventListener}.
  *
  * To find out which other windows are in the tabset, use the `getTabs()` method.
  *
@@ -75,10 +71,8 @@ export interface TabRemovedEvent {
 }
 
 /**
- * Details of the {@link addEventListener|'tab-added'} event.
- *
  * Event fired whenever the current window is tabbed. This event is used when adding windows to both new and existing
- * tabsets.
+ * tabsets.  See {@link addEventListener}.
  *
  * To find out which other windows are in the tabset, use the `getTabs()` method.
  *
@@ -126,9 +120,7 @@ export interface TabAddedEvent {
 }
 
 /**
- * Details of the {@link addEventListener|'tab-properties-updated'} event.
- *
- * Event fired whenever a windows tab properties are {@link updateTabProperties|updated}.
+ * Event fired whenever a windows tab properties are {@link updateTabProperties|updated}.  See {@link addEventListener}.
  *
  * The event will always contain the full properties of the tab, even if only a subset of them were updated.
  *

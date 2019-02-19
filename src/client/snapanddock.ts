@@ -8,9 +8,7 @@ import {getId, SnapAndDockAPI} from './internal';
 
 
 /**
- * Details of the {@link addEventListener|'window-docked'} event.
- *
- * Event fired when one window is docked to another.
+ * Event fired when one window is docked to another.  See {@link addEventListener}.
  *
  * It is not possible to receive events for another window. When adding a listener, the listener will only ever fire for the "`fin.desktop.Window.getCurrent()`"
  * window.
@@ -41,9 +39,7 @@ export interface WindowDockedEvent {
 }
 
 /**
- * Details of the {@link addEventListener|'window-undocked'} event.
- *
- * Event fired when one window is undocked from it's neighbor(s).
+ * Event fired when one window is undocked from it's neighbor(s).  See {@link addEventListener}.
  *
  * It is not possible to receive events for another window. When adding a listener, the listener will only ever fire for the "`fin.desktop.Window.getCurrent()`"
  * window.

@@ -12,8 +12,6 @@ import {WindowIdentity} from './main';
 
 
 /**
- * Details of the {@link addEventListener|'tab-group-restored'} event.
- *
  * Fired when a tab group is restored from being maximized or minimized..  See {@link addEventListener}.
  *
  * ```ts
@@ -37,8 +35,6 @@ export interface TabGroupRestoredEvent {
 }
 
 /**
- * Details of the {@link addEventListener|'tab-group-minimized'} event.
- *
  * Event fired whenever the current tab group is minimized.  See {@link addEventListener}.
  *
  * ```ts
@@ -64,8 +60,6 @@ export interface TabGroupMinimizedEvent {
 }
 
 /**
- * Details of the {@link addEventListener|'tab-group-maximized'} event.
- *
  * Fired when the current tab group is maximized.  See {@link addEventListener}.
  *
  * ```ts

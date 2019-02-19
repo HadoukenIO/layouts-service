@@ -239,11 +239,7 @@ export interface TabGroupDimensions {
 }
 
 /**
- * Details of the {@link addEventListener|'workspace-restored'} event
- *
- * Event fired when a workspace is {@link restore|restored}.
- *
- * The event will contain the full detail of the {@link Workspace}.
+ * Event fired when a workspace is {@link restore|restored}.  See {@link addEventListener}.
  *
  * ```ts
  * import {workspaces} from 'openfin-layouts';
@@ -260,11 +256,7 @@ export interface WorkspaceRestoredEvent {
 }
 
 /**
- * Details of the {@link addEventListener|'workspace-generated'} event.
- *
- * Event fired whenever a workspace is {@link generate|generated}.
- *
- * The event will contain the full detail of the {@link Workspace}.
+ * Event fired whenever a workspace is {@link generate|generated}.  See {@link addEventListener}.
  *
  * ```ts
  * import {workspaces} from 'openfin-layouts';

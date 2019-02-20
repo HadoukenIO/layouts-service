@@ -63,7 +63,7 @@ export class SnapService {
         const window: DesktopWindow|null = this._model.getWindow(target);
 
         // Do nothing for tabbed windows until tab/snap is properly integrated
-        if (window && window.snapGroup.isNonTrivialGroup()) {
+        if (window && window.snapGroup.isNonTrivial()) {
             const entity: DesktopEntity = window.tabGroup || window;
 
             try {
@@ -143,7 +143,7 @@ export class SnapService {
         if (snapTarget.valid) {  // SNAP WINDOWS
             const activeGroup = snapTarget.activeWindow.snapGroup;
 
-            if (activeGroup.isNonTrivialGroup()) {
+            if (activeGroup.isNonTrivial()) {
                 throw new Error('Cannot snap two groups together');
             }
 

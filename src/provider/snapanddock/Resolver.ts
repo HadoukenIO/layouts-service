@@ -91,7 +91,7 @@ export class Resolver {
         const targets: SnapTarget[] = [];
 
         // Group-to-Group snapping not yet supported
-        if (activeGroup.isNonTrivialGroup()) {
+        if (activeGroup.isNonTrivial()) {
             return null;
         }
 

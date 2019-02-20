@@ -105,7 +105,7 @@ export class TabService {
         const previousState = tabs[0].currentState.state;
 
         const config: Tabstrip = this.getTabstripConfig(tabIdentities[0]);
-        const snapGroup: DesktopSnapGroup = tabs[0].snapGroup.isNonTrivialGroup() ? tabs[0].snapGroup : new DesktopSnapGroup();
+        const snapGroup: DesktopSnapGroup = tabs[0].snapGroup.isNonTrivial() ? tabs[0].snapGroup : new DesktopSnapGroup();
         const tabGroup: DesktopTabGroup = new DesktopTabGroup(this._model, snapGroup, config);
         await tabGroup.addTabs(tabs, activeTab);
 
@@ -392,7 +392,7 @@ export class TabService {
         /**
          * Prevent snapped windows from tabbing to other windows/groups
          */
-        const targetAlreadySnapped: boolean = activeGroup.isNonTrivialGroup();
+        const targetAlreadySnapped: boolean = activeGroup.isNonTrivial();
 
         /**
          * Prevent windows that are snapped together from tabbing - only tab windows that are in different snap groups

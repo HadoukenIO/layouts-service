@@ -131,7 +131,7 @@ export class DesktopSnapGroup {
 
     public addWindow(window: DesktopWindow): void {
         if (!this._windows.includes(window)) {
-            const nonTrivialGroupBefore = this.isNonTrivialGroup();
+            const nonTrivialBefore = this.isNonTrivial();
 
             // Remove window from it's previous group
             const prevGroup = (window.snapGroup === this) ? window.prevGroup : window.snapGroup;
@@ -156,13 +156,13 @@ export class DesktopSnapGroup {
             // Will need to re-calculate cached properties
             this._localBounds.markStale();
 
-            const nonTrivialGroupAfter = this.isNonTrivialGroup();
+            const nonTrivialAfter = this.isNonTrivial();
 
-            if (nonTrivialGroupBefore && nonTrivialGroupAfter) {
+            if (nonTrivialBefore && nonTrivialAfter) {
                 window.sendEvent<WindowDockedEvent>({type: 'window-docked'});
-            } else if (!nonTrivialGroupBefore && nonTrivialGroupAfter) {
+            } else if (!nonTrivialBefore && nonTrivialAfter) {
                 this._windows.forEach(groupWindow => groupWindow.sendEvent<WindowDockedEvent>({type: 'window-docked'}));
-            } else if (nonTrivialGroupBefore && !nonTrivialGroupAfter) {
+            } else if (nonTrivialBefore && !nonTrivialAfter) {
                 // This case can occur if the tabstrip window gets added to the snap group after the individual tab windows
                 this._windows.forEach(groupWindow => groupWindow.sendEvent<WindowUndockedEvent>({type: 'window-undocked'}));
             }
@@ -176,7 +176,7 @@ export class DesktopSnapGroup {
         this._validateGroup.call();
     }
 
-    public isNonTrivialGroup(): boolean {
+    public isNonTrivial(): boolean {
         return this._entities.length >= 2;
     }
 
@@ -252,7 +252,7 @@ export class DesktopSnapGroup {
         const index: number = this._windows.indexOf(window);
 
         if (index >= 0) {
-            const nonTrivialGroupBefore = this.isNonTrivialGroup();
+            const nonTrivialBefore = this.isNonTrivial();
 
             this._windows.splice(index, 1);
             this.buildEntities();
@@ -267,15 +267,15 @@ export class DesktopSnapGroup {
             // Will need to re-calculate cached properties
             this._localBounds.markStale();
 
-            const nonTrivialGroupAfter = this.isNonTrivialGroup();
+            const nonTrivialAfter = this.isNonTrivial();
 
             // Inform window of removal
             // Note that client API only considers windows to belong to a group if it contains two or more windows
-            if (nonTrivialGroupBefore && nonTrivialGroupAfter) {
+            if (nonTrivialBefore && nonTrivialAfter) {
                 if (window.isReady) {
                     window.sendEvent<WindowUndockedEvent>({type: 'window-undocked'});
                 }
-            } else if (nonTrivialGroupBefore && !nonTrivialGroupAfter) {
+            } else if (nonTrivialBefore && !nonTrivialAfter) {
                 if (window.isReady) {
                     window.sendEvent<WindowUndockedEvent>({type: 'window-undocked'});
                 }
@@ -285,7 +285,7 @@ export class DesktopSnapGroup {
                         groupWindow.sendEvent<WindowUndockedEvent>({type: 'window-undocked'});
                     }
                 });
-            } else if (!nonTrivialGroupBefore && nonTrivialGroupAfter) {
+            } else if (!nonTrivialBefore && nonTrivialAfter) {
                 // This case can occur if the tabstrip window gets removed from the snap group before the individual tab windows
                 this._windows.forEach(groupWindow => {
                     if (groupWindow.isReady) {
@@ -378,14 +378,14 @@ export class DesktopSnapGroup {
     }
 
     private onWindowTabGroupChanged(window: DesktopWindow) {
-        const nonTrivialGroupBefore = this.isNonTrivialGroup();
+        const nonTrivialBefore = this.isNonTrivial();
         this.buildEntities();
         this.checkRoot();
-        const nonTrivialGroupAfter = this.isNonTrivialGroup();
+        const nonTrivialAfter = this.isNonTrivial();
 
-        if (!nonTrivialGroupBefore && nonTrivialGroupAfter) {
+        if (!nonTrivialBefore && nonTrivialAfter) {
             this._windows.forEach(groupWindow => groupWindow.sendEvent<WindowDockedEvent>({type: 'window-docked'}));
-        } else if (nonTrivialGroupBefore && !nonTrivialGroupAfter) {
+        } else if (nonTrivialBefore && !nonTrivialAfter) {
             this._windows.forEach(groupWindow => groupWindow.sendEvent<WindowUndockedEvent>({type: 'window-undocked'}));
         }
     }

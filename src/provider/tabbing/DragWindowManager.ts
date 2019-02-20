@@ -25,7 +25,6 @@ export class DragWindowManager {
      */
     public static readonly onDragDrop: Signal1<DesktopWindow> = new Signal1();
 
-
     /**
      * The drag overlay window
      */

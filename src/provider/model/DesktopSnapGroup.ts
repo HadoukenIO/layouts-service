@@ -1,3 +1,4 @@
+import {WindowDockedEvent, WindowUndockedEvent} from '../../client/snapanddock';
 import {Signal1, Signal2} from '../Signal';
 import {MIN_OVERLAP} from '../snapanddock/Constants';
 import {CalculatedProperty} from '../snapanddock/utils/CalculatedProperty';
@@ -156,7 +157,8 @@ export class DesktopSnapGroup {
             // Inform window of addition
             // Note that client API only considers windows to belong to a group if it contains two or more windows
             if (this._windows.length >= 2) {
-                window.sendMessage('window-docked', {});
+                const event: WindowDockedEvent = {type: 'window-docked'};
+                window.sendEvent(event);
             }
 
             // Inform service of addition
@@ -256,7 +258,8 @@ export class DesktopSnapGroup {
             // Inform window of removal
             // Note that client API only considers windows to belong to a group if it contains two or more windows
             if (this._windows.length > 0 && window.isReady) {
-                window.sendMessage('window-undocked', {});
+                const event: WindowUndockedEvent = {type: 'window-undocked'};
+                window.sendEvent(event);
             }
 
             // Inform the service that the group has been modified

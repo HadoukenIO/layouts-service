@@ -1,12 +1,10 @@
-import {ApplicationEvent, WindowEvent} from 'hadouken-js-adapter/out/types/src/api/events/base';
+import {WindowEvent} from 'hadouken-js-adapter/out/types/src/api/events/base';
 import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/system/application';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import {WindowIdentity} from '../../client/types';
-
 import {DesktopModel} from './DesktopModel';
 import {DesktopSnapGroup} from './DesktopSnapGroup';
-import {DesktopWindow} from './DesktopWindow';
+import {DesktopWindow, WindowIdentity} from './DesktopWindow';
 
 export interface ZIndex {
     timestamp: number;

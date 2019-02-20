@@ -3,8 +3,9 @@ import {Identity, Window} from 'hadouken-js-adapter';
 
 import {WindowScope} from '../../../gen/provider/config/layouts-config';
 import {SERVICE_IDENTITY} from '../../client/internal';
-import {WindowState} from '../../client/types';
-import {WindowMessages} from '../APIMessages';
+import {WindowState} from '../../client/workspaces';
+import {APIHandler} from '../APIHandler';
+import {EVENT_CHANNEL_TOPIC, EventMap} from '../APIMessages';
 import {apiHandler} from '../main';
 import {Aggregators, Signal1, Signal2} from '../Signal';
 import {promiseMap} from '../snapanddock/utils/async';
@@ -619,11 +620,9 @@ export class DesktopWindow implements DesktopEntity {
             return this.updateState({[property]: value}, ActionOrigin.SERVICE);  // TODO: Is this the right origin type?
         }
     }
-
-    // tslint:disable-next-line:no-any
-    public async sendMessage(action: WindowMessages, payload: any): Promise<void> {
+    public async sendEvent<T extends EventMap>(event: T): Promise<void> {
         if (this._ready && apiHandler.isClientConnection(this.identity)) {
-            return apiHandler.sendToClient(this._identity, action, payload);
+            return apiHandler.sendToClient(this._identity, EVENT_CHANNEL_TOPIC, event);
         }
     }
 

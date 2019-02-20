@@ -310,15 +310,10 @@ export class DesktopSnapGroup {
 
         entities.length = 0;
         this._windows.forEach((window: DesktopWindow) => {
-            let entity: DesktopEntity;
+
             const tabGroup: DesktopTabGroup|null = window.tabGroup;
-
-            if (tabGroup && tabGroup.tabs.length > 1) {
-                entity = tabGroup;
-            } else {
-                entity = window;
-            }
-
+            const entity = tabGroup ? tabGroup : window;
+            
             if (!entities.includes(entity)) {
                 entities.push(entity);
             }

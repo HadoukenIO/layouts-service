@@ -437,19 +437,28 @@ export class TabService {
         const targetConstraints = target.currentState.resizeConstraints;
         const activeConstraints = active.currentState.resizeConstraints;
 
+        // Adjust target height for windows not currently in a tabGroup
+        if (!target.tabGroup) {
+            targetSize.y -= this._config.query(target.scope).tabstrip.height;
+        }
+
         let result = true;
         // Active is able to be resized in direction where resize would be needed.
         result = result &&
             ((targetSize.x === activeSize.x || activeConstraints.x.resizableMin || activeConstraints.x.resizableMax) &&
              (targetSize.y === activeSize.y || activeConstraints.y.resizableMin || activeConstraints.y.resizableMax));
+        // Target is able to be resized in direction where resize would be needed.
+        result = result && (targetConstraints.y.resizableMin || targetConstraints.y.resizableMax);
         // Projected size after tabbing is within active's size constraints
         result = result &&
-            (targetSize.x > activeConstraints.x.minSize && targetSize.x < activeConstraints.x.maxSize && targetSize.y > activeConstraints.y.minSize &&
-             targetSize.y < activeConstraints.y.maxSize);
+            (targetSize.x >= activeConstraints.x.minSize && targetSize.x <= activeConstraints.x.maxSize && targetSize.y >= activeConstraints.y.minSize &&
+             targetSize.y <= activeConstraints.y.maxSize);
+        // Projected size after tabbing is within targets's size constraints
+        result = result && targetSize.y >= targetConstraints.y.minSize;
         // Union of both constraints would form a valid constraint
         result = result &&
-            (targetConstraints.x.maxSize > activeConstraints.x.minSize && targetConstraints.x.minSize < activeConstraints.x.maxSize &&
-             targetConstraints.y.maxSize > activeConstraints.y.minSize && targetConstraints.y.minSize < activeConstraints.y.maxSize);
+            (targetConstraints.x.maxSize >= activeConstraints.x.minSize && targetConstraints.x.minSize <= activeConstraints.x.maxSize &&
+             targetConstraints.y.maxSize >= activeConstraints.y.minSize && targetConstraints.y.minSize <= activeConstraints.y.maxSize);
 
         return result;
     }

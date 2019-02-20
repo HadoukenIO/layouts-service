@@ -16,7 +16,7 @@ import {WindowIdentity} from './main';
  *
  * ```ts
  * tabstrip.addEventListener('tab-group-restored', (event: TabGroupRestoredEvent) => {
- *     const tabGroupID = event.detail.identity;
+ *     const tabGroupID = event.identity;
  *     console.log(`Tab group restored: ${tabGroupID.uuid}/${tabGroupID.name}`);
  * });
  * ```
@@ -39,7 +39,7 @@ export interface TabGroupRestoredEvent {
  * import {tabstrip} from 'openfin-layouts';
  *
  * tabstrip.addEventListener('tab-group-minimized', (event: TabGroupMinimizedEvent) => {
- *     const tabGroupID = event.detail.identity;
+ *     const tabGroupID = event.identity;
  *     console.log(`Tab group minimized: ${tabGroupID.uuid}/${tabGroupID.name}`);
  * });
  * ```
@@ -62,7 +62,7 @@ export interface TabGroupMinimizedEvent {
  * import {tabstrip} from 'openfin-layouts';
  *
  * tabstrip.addEventListener('tab-group-maximized', (event: TabGroupMaximizedEvent) => {
- *     const tabGroupID = event.detail.identity;
+ *     const tabGroupID = event.identity;
  *     console.log(`Tab group maximized: ${tabGroupID.uuid}/${tabGroupID.name}`);
  * });
  * ```

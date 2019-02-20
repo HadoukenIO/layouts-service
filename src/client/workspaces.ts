@@ -245,7 +245,7 @@ export interface TabGroupDimensions {
  * import {workspaces} from 'openfin-layouts';
  *
  * workspaces.addEventListener('workspace-restored', async (event: WorkspaceRestoredEvent) => {
- *      console.log(`Properties for the restored workspace: ${event.detail}`);
+ *      console.log(`Properties for the restored workspace: ${event}`);
  * });
  * ```
  * @event
@@ -262,7 +262,7 @@ export interface WorkspaceRestoredEvent {
  * import {workspaces} from 'openfin-layouts';
  *
  * workspaces.addEventListener('workspace-generated', async (event: WorkspaceGeneratedEvent) => {
- *     console.log(`Properties for the generated workspace: ${event.detail}`);
+ *     console.log(`Properties for the generated workspace: ${event}`);
  * });
  * ```
  *

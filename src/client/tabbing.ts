@@ -14,7 +14,7 @@ import {WindowIdentity} from './main';
  * import {tabbing} from 'openfin-layouts';
  *
  * tabbing.addEventListener('tab-activated', (event: TabGroupEvent) => {
- *     const activeTab = event.detail.identity;
+ *     const activeTab = event.identity;
  *     console.log("Active tab:", activeTab.uuid, activeTab.name);
  * });
  * ```
@@ -76,7 +76,7 @@ export interface TabRemovedEvent {
  * import {tabbing} from 'openfin-layouts';
  *
  * tabbing.addEventListener('tab-added', async (event: TabAddedEvent) => {
- *     console.log("Window added to tab group: ", event.detail.identity);
+ *     console.log("Window added to tab group: ", event.identity);
  *     console.log("Windows in current group: ", await tabbing.getTabs());
  * });
  * ```
@@ -122,9 +122,9 @@ export interface TabAddedEvent {
  * import {tabbing} from 'openfin-layouts';
  *
  * tabbing.addEventListener('tab-properties-updated', (event: TabPropertiesUpdatedEvent) => {
- *     const tabID = event.detail.identity;
- *     const properties = event.detail.properties;
- *     console.log(`Properties for ${tabID.uuid}/${tabID.name} are:`, properties);
+ *     const tabIdentity = event.identity;
+ *     const properties = event.properties;
+ *     console.log(`Properties for ${tabIdentity.uuid}/${tabIdentity.name} are:`, properties);
  * });
  * ```
  *

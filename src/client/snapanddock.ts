@@ -59,7 +59,7 @@ export interface WindowDockedEvent {
  *     console.log("Windows in current group: ", await fin.Window.getCurrentSync().getGroup());
  * });
  * ```
- * 
+ *
  * @event
  */
 export interface WindowUndockedEvent {

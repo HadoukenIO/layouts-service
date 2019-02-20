@@ -119,7 +119,7 @@ export function removeEventListener<K extends EventMap>(eventType: K['type'], li
  * ```
  *
  * @param identity: The identity of the tab which is being dragged.
- * @throws `Promise.reject`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
+ * @throws `Error`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
  */
 export async function startDrag(identity: Identity): Promise<void> {
     return tryServiceDispatch<Identity, void>(TabAPI.STARTDRAG, parseIdentity(identity));
@@ -158,11 +158,11 @@ export async function endDrag(): Promise<void> {
  * ```
  *
  * @param newOrder The new order of the tabs.  First index in the array will match the first tab in the strip.
- * @throws `Promise.reject`: If the provided value is not an array.
- * @throws `Promise.reject`: If array item type `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity |
+ * @throws `Error`: If the provided value is not an array.
+ * @throws `Error`: If array item type `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity |
  * Identity}.
- * @throws `Promise.reject`: If not all tabs present in the tabstrip are in the provided array.
- * @throws `Promise.reject`: If array item is not in the calling tab group.
+ * @throws `Error`: If not all tabs present in the tabstrip are in the provided array.
+ * @throws `Error`: If array item is not in the calling tab group.
  */
 export async function reorderTabs(newOrder: Identity[]): Promise<void> {
     return tryServiceDispatch<Identity[], void>(TabAPI.REORDERTABS, newOrder.map(identity => parseIdentity(identity)));

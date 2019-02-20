@@ -160,10 +160,10 @@ export class DesktopSnapGroup {
             if (nonTrivialGroupBefore && nonTrivialGroupAfter) {
                 window.sendMessage('window-docked', {});
             } else if (!nonTrivialGroupBefore && nonTrivialGroupAfter) {
-                this._windows.forEach(window => window.sendMessage('window-docked', {}));
+                this._windows.forEach(groupWindow => groupWindow.sendMessage('window-docked', {}));
             } else if (nonTrivialGroupBefore && !nonTrivialGroupAfter) {
                 // This case can occur if the tabstrip window gets added to the snap group after the individual tab windows
-                this._windows.forEach(window => window.sendMessage('window-undocked', {}));
+                this._windows.forEach(groupWindow => groupWindow.sendMessage('window-undocked', {}));
             }
 
             // Inform service of addition
@@ -275,16 +275,16 @@ export class DesktopSnapGroup {
                     window.sendMessage('window-undocked', {});
                 }
 
-                this._windows.forEach(window => {
-                    if (window.isReady) {
-                        window.sendMessage('window-undocked', {});
+                this._windows.forEach(groupWindow => {
+                    if (groupWindow.isReady) {
+                        groupWindow.sendMessage('window-undocked', {});
                     }
                 });
             } else if (!nonTrivialGroupBefore && nonTrivialGroupAfter) {
                 // This case can occur if the tabstrip window gets removed from the snap group before the individual tab windows
-                this._windows.forEach(window => {
-                    if (window.isReady) {
-                        window.sendMessage('window-docked', {});
+                this._windows.forEach(groupWindow => {
+                    if (groupWindow.isReady) {
+                        groupWindow.sendMessage('window-docked', {});
                     }
                 });
             }

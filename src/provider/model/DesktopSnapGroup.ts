@@ -175,6 +175,10 @@ export class DesktopSnapGroup {
         this._validateGroup.call();
     }
 
+    public isNonTrivialGroup(): boolean {
+        return this._entities.length >= 2;
+    }
+
     private validateGroupInternal(): void {
         // Ensure 'group' is still a valid, contiguous group.
         const contiguousWindowSets = this.getContiguousEntities(this.entities);
@@ -421,9 +425,5 @@ export class DesktopSnapGroup {
                 halfSize: {x: (max.x - min.x) / 2, y: (max.y - min.y) / 2}
             };
         }
-    }
-
-    private isNonTrivialGroup(): boolean {
-        return this._entities.length >= 2;
     }
 }

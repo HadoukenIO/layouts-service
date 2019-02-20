@@ -392,7 +392,7 @@ export class TabService {
         /**
          * Prevent snapped windows from tabbing to other windows/groups
          */
-        const targetAlreadySnapped: boolean = activeGroup.entities.length > 1;
+        const targetAlreadySnapped: boolean = activeGroup.isNonTrivialGroup();
 
         /**
          * Prevent windows that are snapped together from tabbing - only tab windows that are in different snap groups

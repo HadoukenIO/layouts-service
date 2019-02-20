@@ -225,7 +225,7 @@ export class DesktopTabGroup implements DesktopEntity {
         }
         if (!this._isMaximized) {
             // Before doing anything else we will undock the tabGroup (mitigation for SERVICE-314)
-            if (this.snapGroup.entities.length > 1) {
+            if (this.snapGroup.isNonTrivialGroup()) {
                 await this.setSnapGroup(new DesktopSnapGroup());
             }
 

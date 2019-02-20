@@ -244,9 +244,9 @@ export class DesktopWindow implements DesktopEntity {
     public readonly onCommit: Signal2<DesktopWindow, Mask<eTransformType>> = new Signal2();
 
     /**
-     * The tabGroup of the window has changed.
+     * The tabGroup of the window has changed (including being set to null).
      *
-     * Argumnets: (window: DesktopWindow)
+     * Arguments: (window: DesktopWindow)
      */
     public readonly onTabGroupChanged: Signal1<DesktopWindow> = new Signal1();
 

@@ -40,7 +40,7 @@ export async function main() {
         const errorMessage = 'LAYOUTS_DISPLAY_SCALING_ERROR_MESSAGE';
         const title = 'LAYOUTS_DISPLAY_SCALING_ERROR_TITLE';
         await createErrorBox(title, errorMessage);
-        fin.Application.getCurrentSync().close(true);
+        return;
     }
 
     config = window.config = new Store(require('../../gen/provider/config/defaults.json'));

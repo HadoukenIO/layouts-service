@@ -155,13 +155,13 @@ export class DesktopSnapGroup {
             // Will need to re-calculate cached properties
             this._localBounds.markStale();
 
-            const isNonTrivialGroupAfter = this.isNonTrivialGroup();
+            const nonTrivialGroupAfter = this.isNonTrivialGroup();
 
-            if (nonTrivialGroupBefore && isNonTrivialGroupAfter) {
+            if (nonTrivialGroupBefore && nonTrivialGroupAfter) {
                 window.sendMessage('window-docked', {});
-            } else if (!nonTrivialGroupBefore && isNonTrivialGroupAfter) {
+            } else if (!nonTrivialGroupBefore && nonTrivialGroupAfter) {
                 this._windows.forEach(window => window.sendMessage('window-docked', {}));
-            } else if (nonTrivialGroupBefore && !isNonTrivialGroupAfter) {
+            } else if (nonTrivialGroupBefore && !nonTrivialGroupAfter) {
                 // This case can occur if the tabstrip window gets added to the snap group after the individual tab windows
                 this._windows.forEach(window => window.sendMessage('window-undocked', {}));
             }

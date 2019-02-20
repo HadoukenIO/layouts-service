@@ -9,6 +9,7 @@ import {SnapService} from './snapanddock/SnapService';
 import {win10Check} from './snapanddock/utils/platform';
 import {TabService} from './tabbing/TabService';
 import {WindowHandler} from './WindowHandler';
+import {createErrorBox} from './utils/error';
 
 export type ConfigStore = Store<ConfigurationObject>;
 
@@ -32,6 +33,16 @@ declare const window: Window&{
 fin.desktop.main(main);
 
 export async function main() {
+
+    const monitorInfo = await fin.System.getMonitorInfo();
+    
+    if (monitorInfo.deviceScaleFactor !== 1){
+        const errorMessage = 'LAYOUTS_DISPLAY_SCALING_ERROR_MESSAGE';
+        const title = 'LAYOUTS_DISPLAY_SCALING_ERROR_TITLE';
+        await createErrorBox(title, errorMessage);
+        fin.Application.getCurrentSync().close(true);
+    }
+
     config = window.config = new Store(require('../../gen/provider/config/defaults.json'));
     loader = window.loader = new Loader(config, 'layouts');
     model = window.model = new DesktopModel(config);
@@ -47,3 +58,4 @@ export async function main() {
     await win10Check;
     await apiHandler.registerListeners();
 }
+

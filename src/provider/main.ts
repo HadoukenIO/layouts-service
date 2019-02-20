@@ -37,6 +37,8 @@ export async function main() {
     const monitorInfo = await fin.System.getMonitorInfo();
     
     if (monitorInfo.deviceScaleFactor !== 1){
+        console.error('Desktop has non-standard display scaling. Notifying user and disabling all layouts functionality.');
+
         const errorMessage = 'LAYOUTS_DISPLAY_SCALING_ERROR_MESSAGE';
         const title = 'LAYOUTS_DISPLAY_SCALING_ERROR_TITLE';
         await createErrorBox(title, errorMessage);

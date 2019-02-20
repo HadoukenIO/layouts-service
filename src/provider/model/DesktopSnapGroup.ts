@@ -143,6 +143,7 @@ export class DesktopSnapGroup {
             window.onModified.add(this.onWindowModified, this);
             window.onTransform.add(this.onWindowTransform, this);
             window.onCommit.add(this.onWindowCommit, this);
+            window.onTabGroupChanged.add(this.onWindowTabGroupChanged, this);
             window.onTeardown.add(this.onWindowTeardown, this);
 
             // Setup hierarchy
@@ -260,6 +261,8 @@ export class DesktopSnapGroup {
             window.onModified.remove(this.onWindowModified, this);
             window.onTransform.remove(this.onWindowTransform, this);
             window.onCommit.remove(this.onWindowCommit, this);
+            window.onTabGroupChanged.remove(this.onWindowTabGroupChanged, this);
+            window.onTeardown.remove(this.onWindowTeardown, this);
 
             // Root may now have changed
             this.checkRoot();

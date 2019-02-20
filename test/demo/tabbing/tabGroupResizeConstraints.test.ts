@@ -80,10 +80,13 @@ testParameterized(
 testParameterized(
     'Cannot tab windows with incompatible constraints',
     [
-        {frame: true, windowCount: 2, windowConstraints: [{resizable: false}, {}]},
-        {frame: true, windowCount: 2, windowConstraints: [{maxHeight: 200, minWidth: 250}, {}]},
+        {frame: true, windowCount: 2, windowConstraints: [{resizable: false}, {}], shouldTab: false},
+        {frame: true, windowCount: 2, windowConstraints: [{maxHeight: 300, minWidth: 250}, {}], shouldTab: false},
+        {frame: true, windowCount: 2, windowConstraints: [{maxHeight: 300, minWidth: 200}, {}], shouldTab: true},
+        // Checks edge case where the target is large enough when untabbed but would not be once resized for tabbing
+        {frame: true, windowCount: 2, windowConstraints: [{}, {minHeight: 200}], shouldTab: false},
     ],
-    createWindowTest(async (t, options: TabConstraintsOptions) => {
+    createWindowTest(async (t, options: TabConstraintsOptions & {shouldTab: boolean}) => {
         const windows = t.context.windows;
 
         await Promise.all(windows.map((win, index) => win.updateOptions(options.windowConstraints[index])));
@@ -94,8 +97,12 @@ testParameterized(
         await tabWindowsTogether(windows[1], windows[0]);
         await delay(1000);
 
-        await assertNotTabbed(windows[0], t);
-        await assertNotTabbed(windows[1], t);
+        if (options.shouldTab) {
+            await assertTabbed(windows[0], windows[1], t);
+        } else {
+            await assertNotTabbed(windows[0], t);
+            await assertNotTabbed(windows[1], t);
+        }
     }));
 
 const defaultConstraints: Required<Constraints> = {

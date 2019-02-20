@@ -242,6 +242,13 @@ export class DesktopWindow implements DesktopEntity {
     public readonly onCommit: Signal2<DesktopWindow, Mask<eTransformType>> = new Signal2();
 
     /**
+     * The tabGroup of the window has changed.
+     * 
+     * Argumnets: (window: DesktopWindow)
+     */
+    public readonly onTabGroupChanged: Signal1<DesktopWindow> = new Signal1();
+
+    /**
      * Window is being removed from the service. Use this signal for any clean-up that is required, such as removing
      * the window from any groups, and the service as a whole.
      *
@@ -519,6 +526,8 @@ export class DesktopWindow implements DesktopEntity {
         }
 
         this._tabGroup = group;
+        
+        this.onTabGroupChanged.emit(this);
 
         // Modify state for tabbed windows (except for tabstrip windows)
         if (this._identity.uuid !== SERVICE_IDENTITY.uuid && this._ready) {

@@ -382,6 +382,19 @@ export class DesktopSnapGroup {
         this.onCommit.emit(this, type);
     }
 
+    private onWindowTabGroupChanged(window: DesktopWindow) {
+        const nonTrivialGroupBefore = this.isNonTrivialGroup();
+        this.buildEntities();
+        this.checkRoot();
+        const nonTrivialGroupAfter = this.isNonTrivialGroup();
+
+        if (!nonTrivialGroupBefore && nonTrivialGroupAfter) {
+            this._windows.forEach(groupWindow => groupWindow.sendMessage('window-docked', {}));
+        } else if (nonTrivialGroupBefore && !nonTrivialGroupAfter) {
+            this._windows.forEach(groupWindow => groupWindow.sendMessage('window-undocked', {}));
+        }
+    }
+
     private async onWindowTeardown(window: DesktopWindow): Promise<void> {
         const group: DesktopSnapGroup = window.snapGroup;
 

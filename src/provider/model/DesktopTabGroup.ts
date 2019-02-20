@@ -326,7 +326,7 @@ export class DesktopTabGroup implements DesktopEntity {
             }
         });
 
-        if (!activeTabId) {
+        if (activeTabId) {
             // Set the desired tab as active
             await this.switchTab(activeTab);
         } else {

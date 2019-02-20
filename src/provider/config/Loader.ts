@@ -96,43 +96,76 @@ export class Loader<T> {
     private onApplicationCreated(identity: Identity): void {
         const app: Application = fin.Application.wrapSync(identity);
 
+        if (identity.uuid === fin.Application.me.uuid) {
+            // Do not parse the manifest of the service itself
+            return;
+        }
+
         app.getInfo().then((info: ApplicationInfo) => {
             const manifest: AppManifest<T> = info.manifest as AppManifest<T>;
             const parentUuid: string|undefined = info.parentUuid;
+            const isManifest: boolean = !!manifest && manifest.startup_app.uuid === identity.uuid;
+            let isServiceAware = false;
+            let appConfig: ConfigWithRules<T>|null = null;
 
-            if (manifest && manifest.startup_app.uuid === identity.uuid && manifest.services && manifest.services.length) {
+            if (isManifest && manifest.services && manifest.services.length) {
                 manifest.services.forEach((service: ServiceDeclaration<T>) => {
-                    if (service.config && this._serviceNames.includes(service.name)) {
-                        console.log(`Loading config from ${identity.uuid}/${service.name}`);
+                    if (this._serviceNames.includes(service.name)) {
+                        // App explicitly requests service, avoid adding any default config
+                        isServiceAware = true;
 
-                        // Will need to unload this config when the application exits, ensure we track it
-                        this.getOrCreateAppState(app, true);
+                        if (service.config) {
+                            console.log(`Using config from ${identity.uuid}/${service.name}`);
 
-                        // Load the config from the application's manifest
-                        this._store.add({level: 'application', uuid: identity.uuid}, service.config);
-                    } else if (this._defaultConfig) {
-                        const parentState: AppState|null = this.getAppState(parentUuid || '');
-
-                        if (!parentState || !parentState.isServiceAware) {
-                            console.log(`Using default config for ${identity.uuid}`);
-
-                            // Application doesn't reference this service, use whatever fall-back configuration was specified for this scenario
-                            this._store.add({level: 'application', uuid: identity.uuid}, this._defaultConfig);
+                            // Load the config from the application's manifest
+                            appConfig = service.config;
                         } else {
-                            console.log(`Not applying default state to ${identity.uuid}, due to service-aware parent app`);
+                            console.log(`App ${identity.uuid}/${service.name} declares service, but doesn't contain config`);
                         }
                     }
                 });
+            } else if (!isManifest && parentUuid && this._appState.hasOwnProperty(parentUuid)) {
+                // Don't use the default config if this is a programmatic child of a service-aware app
+                const parentState: AppState = this.getAppState(parentUuid)!;
+                isServiceAware = parentState.isServiceAware;
             }
 
-            if (parentUuid && this._appState.hasOwnProperty(parentUuid)) {
-                const parentState = this.getAppState(parentUuid)!;
+            // Build app metadata hierarchy
+            if (parentUuid && (this._appState.hasOwnProperty(parentUuid) || !isManifest)) {
+                // Fetch parent state
+                let parentState: AppState|null = this.getAppState(parentUuid);
+                if (!parentState) {
+                    // Parent must have been a manifest-app that declared the service, but no custom config
+                    console.log(`Late-registering ${parentUuid} as service-aware (manifest-launched) app`);
+                    parentState = this.getOrCreateAppState(fin.Application.wrapSync({uuid: parentUuid}), true);
+                }
 
                 // App *may* be service-aware on it's own, but if it's state hasn't already been created by this point, then inerhit awareness from parent app
                 const state = this.getOrCreateAppState(app, parentState.isServiceAware);
 
+                console.log(`Registering ${identity.uuid} as a child of ${parentState.scope.uuid}`);
                 state.parent = parentState;
                 parentState.children.push(state);
+            }
+
+            // Use default config for any apps that don't reference the service in any way
+            if (!isServiceAware && this._defaultConfig && identity.uuid !== fin.Application.me.uuid) {
+                const parentState: AppState|null = this.getAppState(parentUuid || '');
+
+                if (!parentState || !parentState.isServiceAware) {
+                    console.log(`Using default config for ${identity.uuid}`);
+
+                    // Application doesn't reference this service, use whatever fall-back configuration was specified for this scenario
+                    appConfig = this._defaultConfig;
+                } else {
+                    console.log(`Not applying default state to ${identity.uuid}, due to service-aware parent app`);
+                }
+            }
+
+            // If there's config for this app (whether app-defined or default), add it to the store
+            if (appConfig) {
+                const state = this.getOrCreateAppState(app, isServiceAware);
+                this._store.add(state.scope, appConfig);
             }
         });
     }

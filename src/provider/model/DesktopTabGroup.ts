@@ -1,8 +1,10 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {Scope} from '../../../gen/provider/config/layouts-config';
-import {ApplicationUIConfig, TabAddedPayload, TabGroupDimensions, TabGroupEventPayload, WindowIdentity, WindowState} from '../../client/types';
-import {WindowMessages} from '../APIMessages';
+import {ApplicationUIConfig, TabActivatedEvent, TabAddedEvent, TabRemovedEvent} from '../../client/tabbing';
+import {TabGroupMaximizedEvent, TabGroupMinimizedEvent, TabGroupRestoredEvent} from '../../client/tabstrip';
+import {TabGroupDimensions, WindowState} from '../../client/workspaces';
+import {EventMap} from '../APIMessages';
 import {tabService} from '../main';
 import {Signal1} from '../Signal';
 import {Debounced} from '../snapanddock/utils/Debounced';
@@ -13,7 +15,7 @@ import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
 import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {DesktopTabstripFactory} from './DesktopTabstripFactory';
-import {DesktopWindow, EntityState, eTransformType, Mask, ResizeConstraint} from './DesktopWindow';
+import {DesktopWindow, EntityState, eTransformType, Mask, ResizeConstraint, WindowIdentity} from './DesktopWindow';
 
 /**
  * Handles functionality for the TabSet
@@ -244,7 +246,8 @@ export class DesktopTabGroup implements DesktopEntity {
 
             this._isMaximized = true;
 
-            this.window.sendMessage('tab-group-maximized', {identity: this.window.identity});
+            const event: TabGroupMaximizedEvent = {identity: this.window.identity, type: 'tab-group-maximized'};
+            this.window.sendEvent(event);
         }
     }
 
@@ -254,7 +257,9 @@ export class DesktopTabGroup implements DesktopEntity {
     public async restore(): Promise<void> {
         if (this.state === 'minimized') {
             const result = this.window.applyProperties({state: 'normal'});
-            this.window.sendMessage('tab-group-restored', {identity: this.window.identity});
+
+            const event: TabGroupRestoredEvent = {identity: this.window.identity, type: 'tab-group-restored'};
+            this.window.sendEvent(event);
 
             return result;
         } else {
@@ -275,7 +280,8 @@ export class DesktopTabGroup implements DesktopEntity {
                 await Promise.all(this._tabs.map(tab => tab.applyProperties({state: 'normal'})));
             }
 
-            this.window.sendMessage('tab-group-restored', {identity: this.window.identity});
+            const event: TabGroupRestoredEvent = {identity: this.window.identity, type: 'tab-group-restored'};
+            this.window.sendEvent(event);
         }
     }
 
@@ -287,7 +293,8 @@ export class DesktopTabGroup implements DesktopEntity {
         // This may cause problems if switching tabs while minimized, but that would require a questionable custom tabstrip.
         await Promise.all([this._window.applyProperties({state: 'minimized'}), this.activeTab.applyProperties({state: 'minimized'})]);
 
-        this.window.sendMessage('tab-group-minimized', {identity: this.window.identity});
+        const event: TabGroupMinimizedEvent = {identity: this.window.identity, type: 'tab-group-minimized'};
+        this.window.sendEvent(event);
     }
 
     /**
@@ -325,8 +332,8 @@ export class DesktopTabGroup implements DesktopEntity {
         } else {
             // Need to re-send tab-activated event to ensure tab is active within tabstrip
             // TODO: See if this can be avoided
-            const payload: TabGroupEventPayload = {tabstripIdentity: this.identity, identity: activeTab.identity};
-            this._window.sendMessage('tab-activated', payload);
+            const event: TabActivatedEvent = {tabstripIdentity: this.identity, identity: activeTab.identity, type: 'tab-activated'};
+            this._window.sendEvent(event);
         }
     }
 
@@ -472,9 +479,9 @@ export class DesktopTabGroup implements DesktopEntity {
                 await prevTab.applyProperties({hidden: true, state: 'normal'});
             }
 
-            await Promise.all([this._window.sync(), tab.sync()]).catch(e => console.error(e));
-            const payload: TabGroupEventPayload = {tabstripIdentity: this.identity, identity: tab.identity};
-            this._window.sendMessage('tab-activated', payload);
+            await Promise.all([this._window!.sync(), tab.sync()]).catch(e => console.error(e));
+            const event: TabActivatedEvent = {tabstripIdentity: this.identity, identity: tab.identity, type: 'tab-activated'};
+            this._window.sendEvent(event);
         }
     }
 
@@ -599,9 +606,9 @@ export class DesktopTabGroup implements DesktopEntity {
         await tab.setTabGroup(this);
         tab.setSnapGroup(this._window.snapGroup);
 
-
-        const payload: TabAddedPayload = {tabstripIdentity: this.identity, identity: tab.identity, properties: tabProps, index: this._tabs.indexOf(tab)};
-        this.sendTabEvent(tab, 'tab-added', payload);
+        const event:
+            TabAddedEvent = {tabstripIdentity: this.identity, identity: tab.identity, properties: tabProps, index: this._tabs.indexOf(tab), type: 'tab-added'};
+        this.sendTabEvent(tab, event);
 
         if (!setActive) {
             await tab.applyProperties({hidden: true});
@@ -632,8 +639,8 @@ export class DesktopTabGroup implements DesktopEntity {
 
         await this.updateGroupConstraints();
 
-        const payload: TabGroupEventPayload = {tabstripIdentity: this.identity, identity: tab.identity};
-        await this.sendTabEvent(tab, 'tab-removed', payload);
+        const payload: TabRemovedEvent = {tabstripIdentity: this.identity, identity: tab.identity, type: 'tab-removed'};
+        await this.sendTabEvent(tab, payload);
 
         if (this._tabs.length < 2) {
             if (this._window.isReady) {
@@ -665,13 +672,13 @@ export class DesktopTabGroup implements DesktopEntity {
         }
     }
 
-    private async sendTabEvent<T extends TabGroupEventPayload>(tab: DesktopWindow, event: WindowMessages, payload: T): Promise<void> {
+    private async sendTabEvent(tab: DesktopWindow, event: EventMap): Promise<void> {
         await Promise.all([
             // Send event to application
-            tab.sendMessage(event, payload),
+            tab.sendEvent(event),
 
             // Send event to tabstrip
-            this._window.sendMessage(event, payload)
+            this._window.sendEvent(event)
         ]);
     }
 

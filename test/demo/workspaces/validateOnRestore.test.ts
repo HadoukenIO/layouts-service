@@ -1,6 +1,6 @@
 import {test} from 'ava';
 
-import {Workspace} from '../../../src/client/types';
+import {Workspace} from '../../../src/client/workspaces';
 import {assertAllContiguous, assertGrouped, assertNotGrouped} from '../../provider/utils/assertions';
 import {createChildWindow} from '../../provider/utils/createChildWindow';
 import {delay} from '../../provider/utils/delay';

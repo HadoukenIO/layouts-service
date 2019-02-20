@@ -1,3 +1,4 @@
+import {WindowDockedEvent, WindowUndockedEvent} from '../../client/snapanddock';
 import {Signal1, Signal2} from '../Signal';
 import {MIN_OVERLAP} from '../snapanddock/Constants';
 import {CalculatedProperty} from '../snapanddock/utils/CalculatedProperty';
@@ -158,12 +159,12 @@ export class DesktopSnapGroup {
             const nonTrivialGroupAfter = this.isNonTrivialGroup();
 
             if (nonTrivialGroupBefore && nonTrivialGroupAfter) {
-                window.sendMessage('window-docked', {});
+                window.sendEvent<WindowDockedEvent>({type: 'window-docked'});
             } else if (!nonTrivialGroupBefore && nonTrivialGroupAfter) {
-                this._windows.forEach(groupWindow => groupWindow.sendMessage('window-docked', {}));
+                this._windows.forEach(groupWindow => groupWindow.sendEvent<WindowDockedEvent>({type: 'window-docked'}));
             } else if (nonTrivialGroupBefore && !nonTrivialGroupAfter) {
                 // This case can occur if the tabstrip window gets added to the snap group after the individual tab windows
-                this._windows.forEach(groupWindow => groupWindow.sendMessage('window-undocked', {}));
+                this._windows.forEach(groupWindow => groupWindow.sendEvent<WindowUndockedEvent>({type: 'window-undocked'}));
             }
 
             // Inform service of addition
@@ -272,23 +273,23 @@ export class DesktopSnapGroup {
             // Note that client API only considers windows to belong to a group if it contains two or more windows
             if (nonTrivialGroupBefore && nonTrivialGroupAfter) {
                 if (window.isReady) {
-                    window.sendMessage('window-undocked', {});
+                    window.sendEvent<WindowUndockedEvent>({type: 'window-undocked'});
                 }
             } else if (nonTrivialGroupBefore && !nonTrivialGroupAfter) {
                 if (window.isReady) {
-                    window.sendMessage('window-undocked', {});
+                    window.sendEvent<WindowUndockedEvent>({type: 'window-undocked'});
                 }
 
                 this._windows.forEach(groupWindow => {
                     if (groupWindow.isReady) {
-                        groupWindow.sendMessage('window-undocked', {});
+                        groupWindow.sendEvent<WindowUndockedEvent>({type: 'window-undocked'});
                     }
                 });
             } else if (!nonTrivialGroupBefore && nonTrivialGroupAfter) {
                 // This case can occur if the tabstrip window gets removed from the snap group before the individual tab windows
                 this._windows.forEach(groupWindow => {
                     if (groupWindow.isReady) {
-                        groupWindow.sendMessage('window-docked', {});
+                        groupWindow.sendEvent<WindowDockedEvent>({type: 'window-docked'});
                     }
                 });
             }
@@ -310,10 +311,9 @@ export class DesktopSnapGroup {
 
         entities.length = 0;
         this._windows.forEach((window: DesktopWindow) => {
-
             const tabGroup: DesktopTabGroup|null = window.tabGroup;
             const entity = tabGroup ? tabGroup : window;
-            
+
             if (!entities.includes(entity)) {
                 entities.push(entity);
             }
@@ -384,9 +384,9 @@ export class DesktopSnapGroup {
         const nonTrivialGroupAfter = this.isNonTrivialGroup();
 
         if (!nonTrivialGroupBefore && nonTrivialGroupAfter) {
-            this._windows.forEach(groupWindow => groupWindow.sendMessage('window-docked', {}));
+            this._windows.forEach(groupWindow => groupWindow.sendEvent<WindowDockedEvent>({type: 'window-docked'}));
         } else if (nonTrivialGroupBefore && !nonTrivialGroupAfter) {
-            this._windows.forEach(groupWindow => groupWindow.sendMessage('window-undocked', {}));
+            this._windows.forEach(groupWindow => groupWindow.sendEvent<WindowUndockedEvent>({type: 'window-undocked'}));
         }
     }
 

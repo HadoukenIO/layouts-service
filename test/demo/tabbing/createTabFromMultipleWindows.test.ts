@@ -1,7 +1,8 @@
 import {test} from 'ava';
 import {Application, Fin, Window} from 'hadouken-js-adapter';
 
-import {ApplicationUIConfig, TabGroup} from '../../../src/client/types';
+import {ApplicationUIConfig} from '../../../src/client/tabbing';
+import {TabGroup} from '../../../src/client/workspaces';
 import {DesktopTabGroup} from '../../../src/provider/model/DesktopTabGroup';
 import {getConnection} from '../../provider/utils/connect';
 import {getBounds, NormalizedBounds} from '../../provider/utils/getBounds';

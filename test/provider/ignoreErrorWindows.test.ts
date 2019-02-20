@@ -3,7 +3,7 @@ import {Application, Fin} from 'hadouken-js-adapter';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {WorkspaceAPI} from '../../src/client/internal';
-import {Workspace} from '../../src/client/types';
+import {Workspace} from '../../src/client/workspaces';
 import {sendServiceMessage} from '../demo/utils/serviceUtils';
 import {isWindowRegistered} from '../demo/utils/snapServiceUtils';
 import {teardown} from '../teardown';

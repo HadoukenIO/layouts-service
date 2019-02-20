@@ -1,8 +1,7 @@
 import {WindowInfo} from 'hadouken-js-adapter/out/types/src/api/system/window';
 
-import {tabbing} from '../../client/main';
+import {tabbing, WindowIdentity} from '../../client/main';
 import {TabAddedEvent, TabRemovedEvent} from '../../client/tabbing';
-import {WindowIdentity} from '../../client/types';
 
 import {Messages} from '.';
 import {EventsUI} from './EventsUI';

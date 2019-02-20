@@ -5,8 +5,9 @@ import {ErrorMsgs} from './utils/ErrorMsgs';
 
 import {channelPromise} from '../../src/client/connection';
 import {TabAPI, UpdateTabPropertiesPayload} from '../../src/client/internal';
-import {tabbing, tabstrip} from '../../src/client/main';
-import {TabProperties, WindowIdentity} from '../../src/client/types';
+import {tabbing, tabstrip, WindowIdentity} from '../../src/client/main';
+import {TabProperties} from "../../src/client/tabbing";
+
 
 stub();
 

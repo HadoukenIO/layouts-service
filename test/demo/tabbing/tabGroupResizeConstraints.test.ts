@@ -86,7 +86,7 @@ testParameterized(
         // Checks edge case where the target is large enough when untabbed but would not be once resized for tabbing
         {frame: true, windowCount: 2, windowConstraints: [{}, {minHeight: 200}], shouldTab: false},
     ],
-    createWindowTest(async (t, options: TabConstraintsOptions & {shouldTab: boolean}) => {
+    createWindowTest(async (t, options: TabConstraintsOptions&{shouldTab: boolean}) => {
         const windows = t.context.windows;
 
         await Promise.all(windows.map((win, index) => win.updateOptions(options.windowConstraints[index])));

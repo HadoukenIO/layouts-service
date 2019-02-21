@@ -437,9 +437,12 @@ export class TabService {
         const targetConstraints = target.currentState.resizeConstraints;
         const activeConstraints = active.currentState.resizeConstraints;
 
-        // Adjust target height for windows not currently in a tabGroup
+        // Adjust heights for windows not currently in a tabGroup
         if (!target.tabGroup) {
             targetSize.y -= this._config.query(target.scope).tabstrip.height;
+        }
+        if (!active.tabGroup) {
+            activeSize.y -= this._config.query(active.scope).tabstrip.height;
         }
 
         let result = true;

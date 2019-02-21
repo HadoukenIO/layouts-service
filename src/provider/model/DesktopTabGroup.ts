@@ -613,7 +613,6 @@ export class DesktopTabGroup implements DesktopEntity {
             const {center, halfSize} = existingTabState;
 
             // Align tab with existing tab
-            console.log('d');
             await tab.applyProperties({center, halfSize, frame: false});
         }
 

@@ -5,6 +5,7 @@ export interface Elements {
     undockGroup: HTMLButtonElement;
     undockWindow: HTMLButtonElement;
     addTab: HTMLButtonElement;
+    tabSelfTo: HTMLButtonElement;
     createTabGroup: HTMLButtonElement;
     removeTab: HTMLButtonElement;
     closeTab: HTMLButtonElement;
@@ -17,6 +18,7 @@ export interface Elements {
 
     // Dropdown content
     addTabDropdown: HTMLDivElement;
+    tabSelfToDropdown: HTMLDivElement;
     createTabGroupDropdown: HTMLDivElement;
 
     // Form triggers
@@ -97,6 +99,7 @@ export class View {
             undockGroup: document.getElementById('undockGroup') as HTMLButtonElement,
             undockWindow: document.getElementById('undockWindow') as HTMLButtonElement,
             addTab: document.getElementById('addTab') as HTMLButtonElement,
+            tabSelfTo: document.getElementById('tabSelfTo') as HTMLButtonElement,
             createTabGroup: document.getElementById('createTabGroup') as HTMLButtonElement,
             removeTab: document.getElementById('removeTab') as HTMLButtonElement,
             closeTab: document.getElementById('closeTab') as HTMLButtonElement,
@@ -107,6 +110,7 @@ export class View {
             deregister: document.getElementById('deregister') as HTMLButtonElement,
             reregister: document.getElementById('reregister') as HTMLButtonElement,
             addTabDropdown: document.getElementById('addTabDropdown') as HTMLDivElement,
+            tabSelfToDropdown: document.getElementById("tabSelfToDropdown") as HTMLDivElement,
             createTabGroupDropdown: document.getElementById('createTabGroupDropdown') as HTMLDivElement,
             createApplication: document.getElementById('createApplication') as HTMLButtonElement,
             createWindow: document.getElementById('createWindow') as HTMLButtonElement,

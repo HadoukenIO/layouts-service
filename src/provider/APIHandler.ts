@@ -175,6 +175,10 @@ export class APIHandler {
             throw new Error('Could not find \'windowToAdd\'.');
         }
 
+        if(tabToAdd === targetTab) {
+            throw new Error('You cannot tab a window to itself.');
+        }
+
         if (this._tabService.canTabTogether(targetTab, tabToAdd)) {
             const targetGroup: DesktopTabGroup|null = targetTab.tabGroup;
             if(targetGroup) {

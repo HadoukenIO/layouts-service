@@ -69,6 +69,7 @@ class Dropdown {
 
 export class TabbingUI {
     private _addToGroup!: Dropdown;
+    private _tabSelfTo!: Dropdown;
     private _createGroup!: Dropdown;
 
     private _log: EventsUI;
@@ -99,10 +100,20 @@ export class TabbingUI {
             log.addApiCall(promise, tabbing.closeTabGroup);
         });
 
+        this._tabSelfTo = new Dropdown(elements.tabSelfTo, elements.tabSelfToDropdown);
+        this._tabSelfTo.header = 'All Windows';
+        this._tabSelfTo.placeholder = 'No Windows';
+        this._tabSelfTo.dataProvider = this.getAllWindows.bind(this);
+        this._tabSelfTo.onSelect = (identity: WindowIdentity) => {
+            const promise: Promise<void> = tabbing.tabSelfTo(identity);
+
+            this._log.addApiCall(promise, tabbing.tabSelfTo, identity);
+        };
+
         this._addToGroup = new Dropdown(elements.addTab, elements.addTabDropdown);
-        this._addToGroup.header = 'Tabbed Windows';
-        this._addToGroup.placeholder = 'No tabbed windows<br />(Use \'Create Tab Group\')';
-        this._addToGroup.dataProvider = this.getTabbedWindows.bind(this);
+        this._addToGroup.header = 'All Windows';
+        this._addToGroup.placeholder = 'No Windows';
+        this._addToGroup.dataProvider = this.getAllWindows.bind(this);
         this._addToGroup.onSelect = (identity: WindowIdentity) => {
             const promise: Promise<void> = tabbing.tabToSelf(identity);
 
@@ -176,5 +187,9 @@ export class TabbingUI {
             const tabs: WindowIdentity[]|null = await tabbing.getTabs(identity);
             return tabs === null;
         });
+    }
+
+    private async getAllWindows(): Promise<WindowIdentity[]> {
+        return this.getWindowsMatching(async () => true);
     }
 }

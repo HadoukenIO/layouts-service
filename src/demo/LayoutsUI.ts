@@ -1,12 +1,12 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {register, deregister, snapAndDock, tabbing, tabstrip, workspaces} from '../client/main';
-import {Workspace} from '../client/types';
 
 import * as Storage from './storage';
 import {addSpawnListeners, AppData, createApp, WindowData, createWindow} from './spawn';
+import {Workspace} from '../client/workspaces';
 
-export interface Workspace {
+export interface SavedWorkspace {
     id: string;
     layout: Workspace;
 }
@@ -56,10 +56,11 @@ export async function createTemplateWindow(templateName: keyof typeof windowTemp
 
 export function createSnapWindows(): void {
     // Create snap windows
+    const colors = ['#7B7BFF', '#A7A7A7', '#3D4059', '#D8D8D8', '#1A194D', '#B6B6B6'];
     for (let i = 0; i < 6; i++) {
         fin.Window
             .create({
-                url: `${launchDir}/testbed/index.html`,
+                url: `${launchDir}/testbed/index.html?theme=${colors[i % colors.length]}`,
                 autoShow: true,
                 defaultHeight: i > 2 ? 275 : 200,
                 defaultWidth: i > 4 ? 400 : 300,

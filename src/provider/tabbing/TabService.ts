@@ -1,13 +1,13 @@
 import {Scope, Tabstrip} from '../../../gen/provider/config/layouts-config';
-import {TabPropertiesUpdatedPayload, WindowState} from '../../client/types';
-import {TabGroup, TabGroupDimensions, TabProperties, WindowIdentity} from '../../client/types';
+import {TabProperties, TabPropertiesUpdatedEvent} from '../../client/tabbing';
+import {TabGroup, TabGroupDimensions} from '../../client/workspaces';
 import {ConfigStore} from '../main';
 import {DesktopEntity} from '../model/DesktopEntity';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {DesktopTabstripFactory} from '../model/DesktopTabstripFactory';
-import {DesktopWindow, EntityState} from '../model/DesktopWindow';
+import {DesktopWindow, EntityState, WindowIdentity} from '../model/DesktopWindow';
 import {Point, PointUtils} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 import {eTargetType, TargetBase} from '../WindowHandler';
@@ -101,12 +101,15 @@ export class TabService {
             }
         }
 
+        // Used after formation to determine if group should be maximized
+        const previousState = tabs[0].currentState.state;
+
         const config: Tabstrip = this.getTabstripConfig(tabIdentities[0]);
-        const snapGroup: DesktopSnapGroup = tabs[0].snapGroup;
+        const snapGroup: DesktopSnapGroup = tabs[0].snapGroup.isNonTrivial() ? tabs[0].snapGroup : new DesktopSnapGroup();
         const tabGroup: DesktopTabGroup = new DesktopTabGroup(this._model, snapGroup, config);
         await tabGroup.addTabs(tabs, activeTab);
 
-        if (tabs[0].currentState.state === 'maximized') {
+        if (previousState === 'maximized') {
             tabGroup.maximize().catch(console.warn);
         }
     }
@@ -227,11 +230,11 @@ export class TabService {
         Object.assign(tabProps, properties);
         localStorage.setItem(tab.id, JSON.stringify(tabProps));
 
-        const payload: TabPropertiesUpdatedPayload = {identity: tab.identity, properties: tabProps};
-        tab.sendMessage('tab-properties-updated', payload);
+        const event: TabPropertiesUpdatedEvent = {identity: tab.identity, properties: tabProps, type: 'tab-properties-updated'};
+        tab.sendEvent(event);
 
         if (tab.tabGroup) {
-            tab.tabGroup.window.sendMessage('tab-properties-updated', payload);
+            tab.tabGroup.window.sendEvent(event);
         }
     }
 
@@ -389,7 +392,7 @@ export class TabService {
         /**
          * Prevent snapped windows from tabbing to other windows/groups
          */
-        const targetAlreadySnapped: boolean = activeGroup.entities.length > 1;
+        const targetAlreadySnapped: boolean = activeGroup.isNonTrivial();
 
         /**
          * Prevent windows that are snapped together from tabbing - only tab windows that are in different snap groups

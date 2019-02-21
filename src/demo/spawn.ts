@@ -43,6 +43,11 @@ export interface WindowData {
     frame?: boolean;
 
     /**
+     * Window position, defaults to center of screen
+     */
+    position?: Point;
+
+    /**
      * Window size, defaults to 1024x800.
      */
     size?: Point;
@@ -151,20 +156,31 @@ export async function createWindow(options: WindowData): Promise<_Window> {
 async function createApplication(options: Omit<AppData, 'parent'>): Promise<Application> {
     const uuid: string = options.id || `App-${Math.random().toString().substr(2, 4)}`;
     const url = getUrl(options);
+    const position = getWindowPosition(options);
     const size = getWindowSize(options);
 
     if (options.type === 'programmatic') {
         const data: fin.ApplicationOptions = {
             uuid,
             name: uuid,
-            mainWindowOptions:
-                {url, frame: options.frame, autoShow: true, saveWindowState: false, defaultCentered: true, defaultWidth: size.x, defaultHeight: size.y}
+            mainWindowOptions: {
+                url,
+                frame: options.frame,
+                autoShow: true,
+                saveWindowState: false,
+                defaultCentered: true,
+                defaultLeft: position && position.x,
+                defaultTop: position && position.y,
+                defaultWidth: size.x,
+                defaultHeight: size.y
+            }
         };
         return await startApp(fin.Application.create(data));
     } else {
         const queryOptions: Dictionary<string|number|boolean> = {
             uuid,
             url,
+            defaultCentered: true,
             defaultWidth: size.x,
             defaultHeight: size.y,
             frame: options.frame || false,
@@ -175,6 +191,12 @@ async function createApplication(options: Omit<AppData, 'parent'>): Promise<Appl
             provider: options.provider || 'local',
             config: options.config ? JSON.stringify(options.config) : ''
         };
+        if (position && position.x) {
+            queryOptions.defaultLeft = position.x;
+        }
+        if (position && position.y) {
+            queryOptions.defaultTop = position.y;
+        }
 
         const manifest = `http://localhost:1337/manifest?${
             Object.keys(queryOptions)
@@ -190,10 +212,21 @@ async function createApplication(options: Omit<AppData, 'parent'>): Promise<Appl
 async function createChildWindow(data: Omit<WindowData, 'parent'>): Promise<_Window> {
     const name: string = data.id || `Win-${Math.random().toString().substr(2, 4)}`;
     const url = getUrl(data);
+    const position = getWindowPosition(data);
     const size = getWindowSize(data);
 
-    const options: fin.WindowOptions =
-        {name, url, frame: data.frame, autoShow: true, saveWindowState: false, defaultCentered: true, defaultWidth: size.x, defaultHeight: size.y};
+    const options: fin.WindowOptions = {
+        name,
+        url,
+        frame: data.frame,
+        autoShow: true,
+        saveWindowState: false,
+        defaultCentered: true,
+        defaultLeft: position && position.x,
+        defaultTop: position && position.y,
+        defaultWidth: size.x,
+        defaultHeight: size.y
+    };
     return await fin.Window.create(options);
 }
 
@@ -221,6 +254,14 @@ function getUrl(options: WindowData): string {
     }
 
     return url;
+}
+
+function getWindowPosition(options: WindowData): Point<number|undefined>|undefined {
+    if (options.position && (options.position.x !== undefined || options.position.y !== undefined)) {
+        return {x: options.position.x, y: options.position.y};
+    } else {
+        return undefined;
+    }
 }
 
 function getWindowSize(options: WindowData): Point {

@@ -1,3 +1,4 @@
+import {WindowDockedEvent, WindowUndockedEvent} from '../../client/snapanddock';
 import {Signal1, Signal2} from '../Signal';
 import {MIN_OVERLAP} from '../snapanddock/Constants';
 import {CalculatedProperty} from '../snapanddock/utils/CalculatedProperty';
@@ -130,6 +131,8 @@ export class DesktopSnapGroup {
 
     public addWindow(window: DesktopWindow): void {
         if (!this._windows.includes(window)) {
+            const nonTrivialBefore = this.isNonTrivial();
+
             // Remove window from it's previous group
             const prevGroup = (window.snapGroup === this) ? window.prevGroup : window.snapGroup;
             if (prevGroup) {
@@ -140,6 +143,7 @@ export class DesktopSnapGroup {
             window.onModified.add(this.onWindowModified, this);
             window.onTransform.add(this.onWindowTransform, this);
             window.onCommit.add(this.onWindowCommit, this);
+            window.onTabGroupChanged.add(this.onWindowTabGroupChanged, this);
             window.onTeardown.add(this.onWindowTeardown, this);
 
             // Setup hierarchy
@@ -153,10 +157,15 @@ export class DesktopSnapGroup {
             // Will need to re-calculate cached properties
             this._localBounds.markStale();
 
-            // Inform window of addition
-            // Note that client API only considers windows to belong to a group if it contains two or more windows
-            if (this._windows.length >= 2) {
-                window.sendMessage('window-docked', {});
+            const nonTrivialAfter = this.isNonTrivial();
+
+            if (nonTrivialBefore && nonTrivialAfter) {
+                window.sendEvent<WindowDockedEvent>({type: 'window-docked'});
+            } else if (!nonTrivialBefore && nonTrivialAfter) {
+                this._windows.forEach(groupWindow => groupWindow.sendEvent<WindowDockedEvent>({type: 'window-docked'}));
+            } else if (nonTrivialBefore && !nonTrivialAfter) {
+                // This case can occur if the tabstrip window gets added to the snap group after the individual tab windows
+                this._windows.forEach(groupWindow => groupWindow.sendEvent<WindowUndockedEvent>({type: 'window-undocked'}));
             }
 
             // Inform service of addition
@@ -166,6 +175,10 @@ export class DesktopSnapGroup {
 
     public validate(): void {
         this._validateGroup.call();
+    }
+
+    public isNonTrivial(): boolean {
+        return this._entities.length >= 2;
     }
 
     private validateGroupInternal(): void {
@@ -240,12 +253,16 @@ export class DesktopSnapGroup {
         const index: number = this._windows.indexOf(window);
 
         if (index >= 0) {
+            const nonTrivialBefore = this.isNonTrivial();
+
             this._windows.splice(index, 1);
             this.buildEntities();
 
             window.onModified.remove(this.onWindowModified, this);
             window.onTransform.remove(this.onWindowTransform, this);
             window.onCommit.remove(this.onWindowCommit, this);
+            window.onTabGroupChanged.remove(this.onWindowTabGroupChanged, this);
+            window.onTeardown.remove(this.onWindowTeardown, this);
 
             // Root may now have changed
             this.checkRoot();
@@ -253,10 +270,31 @@ export class DesktopSnapGroup {
             // Will need to re-calculate cached properties
             this._localBounds.markStale();
 
+            const nonTrivialAfter = this.isNonTrivial();
+
             // Inform window of removal
             // Note that client API only considers windows to belong to a group if it contains two or more windows
-            if (this._windows.length > 0 && window.isReady) {
-                window.sendMessage('window-undocked', {});
+            if (nonTrivialBefore && nonTrivialAfter) {
+                if (window.isReady) {
+                    window.sendEvent<WindowUndockedEvent>({type: 'window-undocked'});
+                }
+            } else if (nonTrivialBefore && !nonTrivialAfter) {
+                if (window.isReady) {
+                    window.sendEvent<WindowUndockedEvent>({type: 'window-undocked'});
+                }
+
+                this._windows.forEach(groupWindow => {
+                    if (groupWindow.isReady) {
+                        groupWindow.sendEvent<WindowUndockedEvent>({type: 'window-undocked'});
+                    }
+                });
+            } else if (!nonTrivialBefore && nonTrivialAfter) {
+                // This case can occur if the tabstrip window gets removed from the snap group before the individual tab windows
+                this._windows.forEach(groupWindow => {
+                    if (groupWindow.isReady) {
+                        groupWindow.sendEvent<WindowDockedEvent>({type: 'window-docked'});
+                    }
+                });
             }
 
             // Inform the service that the group has been modified
@@ -276,14 +314,8 @@ export class DesktopSnapGroup {
 
         entities.length = 0;
         this._windows.forEach((window: DesktopWindow) => {
-            let entity: DesktopEntity;
             const tabGroup: DesktopTabGroup|null = window.tabGroup;
-
-            if (tabGroup && tabGroup.tabs.length > 1) {
-                entity = tabGroup;
-            } else {
-                entity = window;
-            }
+            const entity = tabGroup ? tabGroup : window;
 
             if (!entities.includes(entity)) {
                 entities.push(entity);
@@ -346,6 +378,19 @@ export class DesktopSnapGroup {
 
     private onWindowCommit(window: DesktopWindow, type: Mask<eTransformType>): void {
         this.onCommit.emit(this, type);
+    }
+
+    private onWindowTabGroupChanged(window: DesktopWindow) {
+        const nonTrivialBefore = this.isNonTrivial();
+        this.buildEntities();
+        this.checkRoot();
+        const nonTrivialAfter = this.isNonTrivial();
+
+        if (!nonTrivialBefore && nonTrivialAfter) {
+            this._windows.forEach(groupWindow => groupWindow.sendEvent<WindowDockedEvent>({type: 'window-docked'}));
+        } else if (nonTrivialBefore && !nonTrivialAfter) {
+            this._windows.forEach(groupWindow => groupWindow.sendEvent<WindowUndockedEvent>({type: 'window-undocked'}));
+        }
     }
 
     private async onWindowTeardown(window: DesktopWindow): Promise<void> {

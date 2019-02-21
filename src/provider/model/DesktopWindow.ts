@@ -3,15 +3,17 @@ import {Identity, Window} from 'hadouken-js-adapter';
 
 import {WindowScope} from '../../../gen/provider/config/layouts-config';
 import {SERVICE_IDENTITY} from '../../client/internal';
-import {WindowState} from '../../client/types';
-import {WindowMessages} from '../APIMessages';
+
+import {WindowState} from '../../client/workspaces';
+import {APIHandler} from '../APIHandler';
+import {EVENT_CHANNEL_TOPIC, EventMap} from '../APIMessages';
 import {apiHandler} from '../main';
 import {Aggregators, Signal1, Signal2} from '../Signal';
 import {promiseMap} from '../snapanddock/utils/async';
 import {Debounced} from '../snapanddock/utils/Debounced';
 import {isWin10} from '../snapanddock/utils/platform';
 import {Point} from '../snapanddock/utils/PointUtils';
-import {Rectangle} from '../snapanddock/utils/RectUtils';
+import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
@@ -242,6 +244,13 @@ export class DesktopWindow implements DesktopEntity {
     public readonly onCommit: Signal2<DesktopWindow, Mask<eTransformType>> = new Signal2();
 
     /**
+     * The tabGroup of the window has changed (including being set to null).
+     *
+     * Arguments: (window: DesktopWindow)
+     */
+    public readonly onTabGroupChanged: Signal1<DesktopWindow> = new Signal1();
+
+    /**
      * Window is being removed from the service. Use this signal for any clean-up that is required, such as removing
      * the window from any groups, and the service as a whole.
      *
@@ -298,7 +307,7 @@ export class DesktopWindow implements DesktopEntity {
 
     private _userInitiatedBoundsChange = false;
 
-    constructor(model: DesktopModel, group: DesktopSnapGroup, window: fin.WindowOptions|Window, initialState?: EntityState) {
+    constructor(model: DesktopModel, window: fin.WindowOptions|Window, initialState?: EntityState) {
         const identity = DesktopWindow.getIdentity(window);
 
         this._model = model;
@@ -341,10 +350,10 @@ export class DesktopWindow implements DesktopEntity {
         this._applicationState = this.cloneState(initialState);
         this._modifiedState = {};
         this._temporaryState = {};
-        this._snapGroup = group;
+        this._snapGroup = new DesktopSnapGroup();
         this._tabGroup = null;
         this._prevGroup = null;
-        group.addWindow(this);
+        this._snapGroup.addWindow(this);
 
         if (this._ready) {
             this.addListeners();
@@ -447,6 +456,11 @@ export class DesktopWindow implements DesktopEntity {
     }
 
     public get currentState(): EntityState {
+        // Special handling to return apparent bounds for maximized windows
+        if (this._currentState.state === 'maximized') {
+            const currentMonitor = this._model.getMonitorByRect(this._currentState);
+            return {...this._currentState, ...currentMonitor};
+        }
         return this._currentState;
     }
 
@@ -514,6 +528,8 @@ export class DesktopWindow implements DesktopEntity {
         }
 
         this._tabGroup = group;
+
+        this.onTabGroupChanged.emit(this);
 
         // Modify state for tabbed windows (except for tabstrip windows)
         if (this._identity.uuid !== SERVICE_IDENTITY.uuid && this._ready) {
@@ -614,11 +630,9 @@ export class DesktopWindow implements DesktopEntity {
             return this.updateState({[property]: value}, ActionOrigin.SERVICE);  // TODO: Is this the right origin type?
         }
     }
-
-    // tslint:disable-next-line:no-any
-    public async sendMessage(action: WindowMessages, payload: any): Promise<void> {
+    public async sendEvent<T extends EventMap>(event: T): Promise<void> {
         if (this._ready && apiHandler.isClientConnection(this.identity)) {
-            return apiHandler.sendToClient(this._identity, action, payload);
+            return apiHandler.sendToClient(this._identity, EVENT_CHANNEL_TOPIC, event);
         }
     }
 

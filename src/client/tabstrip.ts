@@ -3,97 +3,107 @@
  */
 import {Identity} from 'hadouken-js-adapter';
 
-import {tryServiceDispatch} from './connection';
+import {eventEmitter, tryServiceDispatch} from './connection';
 import {parseIdentity, TabAPI} from './internal';
-import {TabGroupMaximizedPayload, TabGroupMinimizedPayload, TabGroupRestoredPayload} from './types';
+import {WindowIdentity} from './main';
 /**
  * Functions required to implement a tabstrip
  */
 
+
 /**
- * Fired when a tab group is restored.  See {@link addEventListener}.
+ * Fired when a tab group is restored from being maximized or minimized..  See {@link addEventListener}.
+ *
+ * ```ts
+ * tabstrip.addEventListener('tab-group-restored', (event: TabGroupRestoredEvent) => {
+ *     const tabGroupID = event.identity;
+ *     console.log(`Tab group restored: ${tabGroupID.uuid}/${tabGroupID.name}`);
+ * });
+ * ```
+ *
+ * @event
  */
-export interface TabGroupRestoredEvent extends CustomEvent<TabGroupRestoredPayload> {
+export interface TabGroupRestoredEvent {
+    /**
+     * Identifies the window that is the source of the current event.
+     */
+    identity: WindowIdentity;
+
     type: 'tab-group-restored';
 }
 
 /**
- * Fired when a tab group is minimized.  See {@link addEventListener}.
+ * Event fired whenever the current tab group is minimized.  See {@link addEventListener}.
+ *
+ * ```ts
+ * import {tabstrip} from 'openfin-layouts';
+ *
+ * tabstrip.addEventListener('tab-group-minimized', (event: TabGroupMinimizedEvent) => {
+ *     const tabGroupID = event.identity;
+ *     console.log(`Tab group minimized: ${tabGroupID.uuid}/${tabGroupID.name}`);
+ * });
+ * ```
+ *
+ * @event
  */
-export interface TabGroupMinimizedEvent extends CustomEvent<TabGroupMinimizedPayload> {
+export interface TabGroupMinimizedEvent {
+    /**
+     * Identifies the window that is the source of the current event.
+     */
+    identity: WindowIdentity;
+
     type: 'tab-group-minimized';
 }
 
 /**
- * Fired when a tab group is maximized.  See {@link addEventListener}.
+ * Fired when the current tab group is maximized.  See {@link addEventListener}.
+ *
+ * ```ts
+ * import {tabstrip} from 'openfin-layouts';
+ *
+ * tabstrip.addEventListener('tab-group-maximized', (event: TabGroupMaximizedEvent) => {
+ *     const tabGroupID = event.identity;
+ *     console.log(`Tab group maximized: ${tabGroupID.uuid}/${tabGroupID.name}`);
+ * });
+ * ```
+ *
+ * @event
  */
-export interface TabGroupMaximizedEvent extends CustomEvent<TabGroupMaximizedPayload> {
+export interface TabGroupMaximizedEvent {
+    /**
+     * Identifies the window that is the source of the current event.
+     */
+    identity: WindowIdentity;
+
     type: 'tab-group-maximized';
 }
 
 /**
  * @hidden
  */
-export interface EventMap {
-    'tab-group-restored': TabGroupRestoredEvent;
-    'tab-group-minimized': TabGroupMinimizedEvent;
-    'tab-group-maximized': TabGroupMaximizedEvent;
-}
+export type EventMap = TabGroupRestoredEvent|TabGroupMinimizedEvent|TabGroupMaximizedEvent;
 
-/**
- * Event fired whenever the current tab group is restored from being maximized or minimized.
- * tabstrip.addEventListener('tab-group-restored', (event: TabGroupRestoredEvent) => {
- *     const tabGroupID = event.detail.identity;
- *     console.log(`Tab group restored: ${tabGroupID.uuid}/${tabGroupID.name}`);
- * });
- * ```
- *
- * @type tab-group-restored
- * @event
- */
-export async function addEventListener(eventType: 'tab-group-restored', listener: (event: TabGroupRestoredEvent) => void): Promise<void>;
 
-/**
- * Event fired whenever the current tab group is minimized.
- *
- * ```ts
- * import {tabstrip} from 'openfin-layouts';
- *
- * tabstrip.addEventListener('tab-group-minimized', (event: TabGroupMinimizedEvent) => {
- *     const tabGroupID = event.detail.identity;
- *     console.log(`Tab group minimized: ${tabGroupID.uuid}/${tabGroupID.name}`);
- * });
- * ```
- *
- * @type tab-group-minimized
- * @event
- */
-export async function addEventListener(eventType: 'tab-group-minimized', listener: (event: TabGroupMinimizedEvent) => void): Promise<void>;
-
-/**
- * Event fired whenever the current tab group is maximized.
- *
- * ```ts
- * import {tabstrip} from 'openfin-layouts';
- *
- * tabstrip.addEventListener('tab-group-maximized', (event: TabGroupMaximizedEvent) => {
- *     const tabGroupID = event.detail.identity;
- *     console.log(`Tab group maximized: ${tabGroupID.uuid}/${tabGroupID.name}`);
- * });
- * ```
- *
- * @type tab-group-minimized
- * @event
- */
-export async function addEventListener(eventType: 'tab-group-maximized', listener: (event: TabGroupMaximizedEvent) => void): Promise<void>;
-
-export async function addEventListener<K extends keyof EventMap>(eventType: K, listener: (event: EventMap[K]) => void): Promise<void> {
+export function addEventListener(eventType: 'tab-group-restored', listener: (event: TabGroupRestoredEvent) => void): void;
+export function addEventListener(eventType: 'tab-group-minimized', listener: (event: TabGroupMinimizedEvent) => void): void;
+export function addEventListener(eventType: 'tab-group-maximized', listener: (event: TabGroupMaximizedEvent) => void): void;
+export function addEventListener<K extends EventMap>(eventType: K['type'], listener: (event: K) => void): void {
     if (typeof fin === 'undefined') {
         throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
     }
-    // Use native js event system to pass internal events around.
-    // Without this we would need to handle multiple registration ourselves.
-    window.addEventListener(eventType, listener as EventListener);
+
+    eventEmitter.addListener(eventType, listener);
+}
+
+export function removeEventListener(eventType: 'tab-group-restored', listener: (event: TabGroupRestoredEvent) => void): void;
+export function removeEventListener(eventType: 'tab-group-minimized', listener: (event: TabGroupMinimizedEvent) => void): void;
+export function removeEventListener(eventType: 'tab-group-maximized', listener: (event: TabGroupMaximizedEvent) => void): void;
+export function removeEventListener<K extends EventMap>(eventType: K['type'], listener: (event: K) => void): void {
+    if (typeof fin === 'undefined') {
+        throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
+    }
+
+    eventEmitter.removeListener(eventType, listener);
 }
 
 /**
@@ -109,7 +119,7 @@ export async function addEventListener<K extends keyof EventMap>(eventType: K, l
  * ```
  *
  * @param identity: The identity of the tab which is being dragged.
- * @throws `Promise.reject`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
+ * @throws `Error`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
  */
 export async function startDrag(identity: Identity): Promise<void> {
     return tryServiceDispatch<Identity, void>(TabAPI.STARTDRAG, parseIdentity(identity));
@@ -148,11 +158,11 @@ export async function endDrag(): Promise<void> {
  * ```
  *
  * @param newOrder The new order of the tabs.  First index in the array will match the first tab in the strip.
- * @throws `Promise.reject`: If the provided value is not an array.
- * @throws `Promise.reject`: If array item type `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity |
+ * @throws `Error`: If the provided value is not an array.
+ * @throws `Error`: If array item type `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity |
  * Identity}.
- * @throws `Promise.reject`: If not all tabs present in the tabstrip are in the provided array.
- * @throws `Promise.reject`: If array item is not in the calling tab group.
+ * @throws `Error`: If not all tabs present in the tabstrip are in the provided array.
+ * @throws `Error`: If array item is not in the calling tab group.
  */
 export async function reorderTabs(newOrder: Identity[]): Promise<void> {
     return tryServiceDispatch<Identity[], void>(TabAPI.REORDERTABS, newOrder.map(identity => parseIdentity(identity)));

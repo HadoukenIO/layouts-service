@@ -2,7 +2,8 @@ import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/application
 import {WindowDetail} from 'hadouken-js-adapter/out/types/src/api/system/window';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
-import {WorkspaceApp, WorkspaceWindow} from '../../client/types';
+
+import {WorkspaceApp, WorkspaceWindow} from '../../client/workspaces';
 import {model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {WindowIdentity} from '../model/DesktopWindow';
@@ -136,10 +137,21 @@ export const createTabPlaceholder = async (win: WorkspaceWindow) => {
     return placeholderWindow;
 };
 
-// Check to see if an application was created programmatically.
-export const wasCreatedProgrammatically = (app: ApplicationInfo|WorkspaceApp) => {
-    const initialOptions = app.initialOptions as {uuid: string, url: string};
-    return app && app.initialOptions && initialOptions.uuid && initialOptions.url;
+// Check to see if we have sufficient information to restore an app programmatically.
+export const canRestoreProgrammatically = (app: ApplicationInfo|WorkspaceApp) => {
+    const initialOptions = app.initialOptions as fin.ApplicationOptions;
+
+    if (app && initialOptions && initialOptions.uuid) {
+        if (initialOptions.url) {
+            return true;
+        }
+
+        if (initialOptions.mainWindowOptions && initialOptions.mainWindowOptions.url) {
+            return true;
+        }
+    }
+
+    return false;
 };
 
 // Type here should be ApplicationInfo from the js-adapter (needs to be updated)

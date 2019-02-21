@@ -1,7 +1,8 @@
 import Sortable from 'sortablejs';
 
 import * as layouts from '../../../client/main';
-import {TabProperties, WindowIdentity} from '../../../client/types';
+import {WindowIdentity} from '../../../client/main';
+import {TabProperties} from '../../../client/tabbing';
 
 import {Tab} from './TabItem';
 

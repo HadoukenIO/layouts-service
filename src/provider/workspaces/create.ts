@@ -5,14 +5,14 @@ import {WindowInfo as WindowInfo_Window} from 'hadouken-js-adapter/out/types/src
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {WorkspaceAPI} from '../../client/internal';
-import {CustomData, TabGroup, WindowState, Workspace, WorkspaceApp, WorkspaceWindow} from '../../client/types';
-import {LegacyAPI} from '../APIMessages';
+import {CustomData, TabGroup, WindowState, Workspace, WorkspaceApp, WorkspaceGeneratedEvent, WorkspaceWindow} from '../../client/workspaces';
+import {EVENT_CHANNEL_TOPIC} from '../APIMessages';
 import {apiHandler, model, tabService} from '../main';
 import {WindowIdentity} from '../model/DesktopWindow';
 import {promiseMap} from '../snapanddock/utils/async';
 
 import {getGroup} from './group';
-import {addToWindowObject, adjustSizeOfFormerlyTabbedWindows, inWindowObject, parseVersionString, wasCreatedFromManifest, wasCreatedProgrammatically, WindowObject} from './utils';
+import {addToWindowObject, adjustSizeOfFormerlyTabbedWindows, canRestoreProgrammatically, inWindowObject, parseVersionString, wasCreatedFromManifest, WindowObject} from './utils';
 
 // This value should be updated any time changes are made to the Workspace schema.
 // Major version indicates breaking changes.
@@ -130,7 +130,7 @@ export const getCurrentWorkspace = async(): Promise<Workspace> => {
             if (wasCreatedFromManifest(appInfo, uuid)) {
                 delete appInfo.manifest;
                 return {mainWindow, childWindows, ...appInfo, uuid, confirmed: false} as WorkspaceApp;
-            } else if (wasCreatedProgrammatically(appInfo)) {
+            } else if (canRestoreProgrammatically(appInfo)) {
                 delete appInfo.manifest;
                 delete appInfo.manifestUrl;
                 return {mainWindow, childWindows, ...appInfo, uuid, confirmed: false} as WorkspaceApp;
@@ -149,7 +149,8 @@ export const getCurrentWorkspace = async(): Promise<Workspace> => {
 
     const layoutObject: Workspace = {type: 'layout', schemaVersion: LAYOUTS_SCHEMA_VERSION, apps: validApps, monitorInfo, tabGroups: filteredTabGroups};
 
-    apiHandler.sendToAll('workspace-generated', layoutObject);
+    const event: WorkspaceGeneratedEvent = {type: 'workspace-generated', workspace: layoutObject};
+    apiHandler.sendToAll(EVENT_CHANNEL_TOPIC, event);
 
     return layoutObject;
 };
@@ -166,11 +167,8 @@ export const generateWorkspace = async(payload: null, identity: Identity): Promi
             // HOW TO DEAL WITH HUNG REQUEST HERE? RESHAPE IF GET NOTHING BACK?
             let customData: CustomData = undefined;
 
-            // Race between legacyAPI and current API as we don't know which verion the client is running.
-            customData = await Promise.race([
-                apiHandler.sendToClient<WorkspaceApp, CustomData>({uuid: app.uuid, name: app.uuid}, WorkspaceAPI.GENERATE_HANDLER, app),
-                apiHandler.sendToClient<WorkspaceApp, CustomData>({uuid: app.uuid, name: app.uuid}, LegacyAPI.GENERATE_HANDLER, app)
-            ]);
+            customData =
+                await apiHandler.sendToClient<WorkspaceAPI.GENERATE_HANDLER, CustomData>({uuid: app.uuid, name: app.uuid}, WorkspaceAPI.GENERATE_HANDLER, app);
 
             if (!customData) {
                 customData = null;

@@ -2,7 +2,7 @@ import {Identity} from 'hadouken-js-adapter';
 import {Action, ProviderIdentity} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/channel';
 import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
 
-import {RegisterAPI, SERVICE_CHANNEL, SnapAndDockAPI, TabAPI, WorkspaceAPI, CreateTabGroupPayload, SetTabstripPayload, AddTabPayload, UpdateTabPropertiesPayload} from '../client/internal';
+import {AddTabPayload, CreateTabGroupPayload, RegisterAPI, SERVICE_CHANNEL, SetTabstripPayload, SnapAndDockAPI, TabAPI, UpdateTabPropertiesPayload, WorkspaceAPI} from '../client/internal';
 import {ApplicationUIConfig, TabProperties} from '../client/tabbing';
 
 import {MessageMap} from './APIMessages';
@@ -166,7 +166,7 @@ export class APIHandler {
     private async addTab(payload: AddTabPayload): Promise<void> {
         const tabToAdd: DesktopWindow|null = this._model.getWindow(payload.windowToAdd);
         const targetTab: DesktopWindow|null = this._model.getWindow(payload.targetWindow);
-        
+
         if (!tabToAdd) {
             throw new Error('Could not find \'windowToAdd\'.  It may be deregistered.');
         }
@@ -175,13 +175,13 @@ export class APIHandler {
             throw new Error('Could not find \'windowToAdd\'.  It may be deregistered.');
         }
 
-        if(tabToAdd === targetTab) {
+        if (tabToAdd === targetTab) {
             throw new Error('You cannot tab a window to itself.');
         }
 
         if (this._tabService.canTabTogether(targetTab, tabToAdd)) {
             const targetGroup: DesktopTabGroup|null = targetTab.tabGroup;
-            if(targetGroup) {
+            if (targetGroup) {
                 return targetGroup.addTab(tabToAdd);
             } else {
                 return tabService.createTabGroupWithTabs([payload.targetWindow, payload.windowToAdd], payload.windowToAdd);

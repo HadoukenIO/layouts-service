@@ -110,7 +110,7 @@ export class View {
             deregister: document.getElementById('deregister') as HTMLButtonElement,
             reregister: document.getElementById('reregister') as HTMLButtonElement,
             addTabDropdown: document.getElementById('addTabDropdown') as HTMLDivElement,
-            tabSelfToDropdown: document.getElementById("tabSelfToDropdown") as HTMLDivElement,
+            tabSelfToDropdown: document.getElementById('tabSelfToDropdown') as HTMLDivElement,
             createTabGroupDropdown: document.getElementById('createTabGroupDropdown') as HTMLDivElement,
             createApplication: document.getElementById('createApplication') as HTMLButtonElement,
             createWindow: document.getElementById('createWindow') as HTMLButtonElement,

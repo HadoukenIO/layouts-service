@@ -110,3 +110,8 @@ export interface UpdateTabPropertiesPayload {
     window: Identity;
     properties: Partial<TabProperties>;
 }
+
+export interface CreateTabGroupPayload {
+    windows: Identity[];
+    activeTab?: Identity;
+}

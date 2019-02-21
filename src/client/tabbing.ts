@@ -4,7 +4,7 @@
 import {Identity} from 'hadouken-js-adapter';
 
 import {eventEmitter, tryServiceDispatch} from './connection';
-import {AddTabPayload, getId, parseIdentity, SetTabstripPayload, TabAPI, UpdateTabPropertiesPayload} from './internal';
+import {AddTabPayload, getId, parseIdentity, SetTabstripPayload, TabAPI, UpdateTabPropertiesPayload, CreateTabGroupPayload} from './internal';
 import {WindowIdentity} from './main';
 
 /**
@@ -275,22 +275,25 @@ export async function setTabstrip(config: ApplicationUIConfig): Promise<void> {
  * tabbing.createTabGroup([{uuid: "App1", name: "App1"}, {uuid: "App2", name: "App2"}, {uuid: "App3", name: "App3"}]);
  * ```
  *
- * @param windows Array of windows which will be added to the new tab group.
- * @throws `Error`: If no windows is not an array or less than 2 windows were provided.
+ * @param identities Array of window {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Indentities} which will be added to the new tab group.
+ * @param activeTab The {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity} of the window to set as the active tab in the group.  If not provided, the first tab in the tab group will be set as the active tab.
+ * @throws `Error`: If one of the provided {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Indentities} is not valid.
+ * @throws `Error`: If no windows is not an array or less than 2 windows identities were provided.
  */
-export async function createTabGroup(windows: Identity[]): Promise<void> {
-    return tryServiceDispatch<Identity[], void>(TabAPI.CREATETABGROUP, windows);
+export async function createTabGroup(identities: Identity[], activeTab?: Identity): Promise<void> {
+    const onlyIdentities = identities.map(id => parseIdentity(id));
+    return tryServiceDispatch<CreateTabGroupPayload, void>(TabAPI.CREATETABGROUP, {windows: onlyIdentities, activeTab});
 }
 
 /**
- * Adds current window context (or window specified in second arg)  to the tab group of the target window (first arg).
+ * Tabs two windows together.  If the targetWindow is already in a group, the tab will be added to that group.
  *
  * The added tab will be brought into focus.
  *
  * ```ts
  * import {tabbing} from 'openfin-layouts';
  *
- * // Tab App2 to App1.
+ * // Tab App1 to App2
  * tabbing.tabWindowToWindow({uuid: 'App1', name: 'App1'}, {uuid: 'App2', name: 'App2'});
  * ```
  *
@@ -300,7 +303,7 @@ export async function createTabGroup(windows: Identity[]): Promise<void> {
  * @throws `Error`: If the `targetWindow` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
  * @throws `Error`: If the `windowToAdd` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
  */
-export async function tabWindowToWindow(targetWindow: Identity, windowToAdd: Identity): Promise<void> {
+export async function tabWindowToWindow(windowToAdd: Identity, targetWindow: Identity): Promise<void> {
     return tryServiceDispatch<AddTabPayload, void>(TabAPI.ADDTAB, {targetWindow: parseIdentity(targetWindow), windowToAdd: parseIdentity(windowToAdd)});
 }
 

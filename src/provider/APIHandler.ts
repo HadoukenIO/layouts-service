@@ -2,7 +2,7 @@ import {Identity} from 'hadouken-js-adapter';
 import {Action, ProviderIdentity} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/channel';
 import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
 
-import {RegisterAPI, SERVICE_CHANNEL, SnapAndDockAPI, TabAPI, WorkspaceAPI} from '../client/internal';
+import {RegisterAPI, SERVICE_CHANNEL, SnapAndDockAPI, TabAPI, WorkspaceAPI, CreateTabGroupPayload} from '../client/internal';
 import {ApplicationUIConfig, TabProperties} from '../client/tabbing';
 
 import {MessageMap} from './APIMessages';
@@ -159,8 +159,8 @@ export class APIHandler {
         return group.tabs.map(tab => tab.identity);
     }
 
-    private async createTabGroup(tabs: WindowIdentity[]): Promise<void> {
-        return this._tabService.createTabGroupWithTabs(tabs);
+    private async createTabGroup(payload: CreateTabGroupPayload): Promise<void> {
+        return this._tabService.createTabGroupWithTabs(payload.windows as WindowIdentity[], payload.activeTab as WindowIdentity);
     }
 
     private async addTab(payload: {targetWindow: WindowIdentity, windowToAdd: WindowIdentity}): Promise<void> {

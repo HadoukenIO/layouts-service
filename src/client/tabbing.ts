@@ -278,6 +278,7 @@ export async function setTabstrip(config: ApplicationUIConfig): Promise<void> {
  * @param identities Array of window {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Indentities} which will be added to the new tab group.
  * @param activeTab The {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity} of the window to set as the active tab in the group.  If not provided, the first tab in the tab group will be set as the active tab.
  * @throws `Error`: If one of the provided {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Indentities} is not valid.
+ * @throws `Error`: If duplicate {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Indentities} are provided.
  * @throws `Error`: If no windows is not an array or less than 2 windows identities were provided.
  */
 export async function createTabGroup(identities: Identity[], activeTab?: Identity): Promise<void> {
@@ -500,6 +501,7 @@ export async function updateTabProperties(properties: Partial<TabProperties>, id
  * @param Identity The identity of the window to add as a tab.
  * @throws `Error`: If the {@link ApplicationUIConfig| App Config} does not match between the window to add and the current window context.
  * @throws `Error`: If the `Identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
+ * @throws `Error`: If the `Identity` matches the calling windows `Identity`.
  */
 export async function tabToSelf(identity: Identity) {
     return tryServiceDispatch<AddTabPayload, void>(TabAPI.ADDTAB, {targetWindow: getId(), windowToAdd: parseIdentity(identity)});
@@ -520,6 +522,7 @@ export async function tabToSelf(identity: Identity) {
  * @param Identity The identity of the window to add the current window context as a tab to.
  * @throws `Error`: If the {@link ApplicationUIConfig| App Config} does not match between the window to add and the current window context.
  * @throws `Error`: If the `Identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
+ * @throws `Error`: If the `Identity` matches the calling windows `Identity`.
  */
 export async function tabSelfTo(identity: Identity) {
         return tryServiceDispatch<AddTabPayload, void>(TabAPI.ADDTAB, {targetWindow: parseIdentity(identity), windowToAdd: getId()});

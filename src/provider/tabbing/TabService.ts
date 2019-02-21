@@ -81,6 +81,13 @@ export class TabService {
             throw new Error('Must provide at least 2 Tab Identifiers');
         }
 
+        // Checks duplicate entries in the provided array.  
+        tabIdentities.forEach(id => {
+            if(tabIdentities.filter(filterId => filterId.name === id.name && filterId.uuid === filterId.uuid).length > 1){
+                throw new Error("Duplicate identity found.  Provided identites must be unique.");
+            }
+        });
+
         const tabs: DesktopWindow[] = tabIdentities
                                           .map((identity: WindowIdentity) => {
                                               return this._model.getWindow(identity);

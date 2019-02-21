@@ -168,11 +168,11 @@ export class APIHandler {
         const targetTab: DesktopWindow|null = this._model.getWindow(payload.targetWindow);
         
         if (!tabToAdd) {
-            throw new Error('Could not find \'windowToAdd\'.');
+            throw new Error('Could not find \'windowToAdd\'.  It may be deregistered.');
         }
 
         if (!targetTab) {
-            throw new Error('Could not find \'windowToAdd\'.');
+            throw new Error('Could not find \'windowToAdd\'.  It may be deregistered.');
         }
 
         if(tabToAdd === targetTab) {

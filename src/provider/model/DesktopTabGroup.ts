@@ -580,7 +580,7 @@ export class DesktopTabGroup implements DesktopEntity {
             await Promise.all([this._window.sync(), tab.sync()]);
         }
 
-        // Remove from snap group before we position tab, so as to not indrectly move anything else
+        // Remove tab from snap group before we position it, so as to not indirectly move anything else
         if (tab.snapGroup.isNonTrivial()) {
             await tab.setSnapGroup(new DesktopSnapGroup());
         }

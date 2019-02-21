@@ -593,11 +593,29 @@ export class DesktopTabGroup implements DesktopEntity {
             const halfSize: Point = {x: tabState.halfSize.x, y: tabState.halfSize.y - (this._config.height / 2)};
             await tab.applyProperties({center, halfSize, frame: false});
         } else {
+            // Delay to allow other async operations to jump ahead in the queue. Specifically, any pending boundsChanging events
+            // should be processed before continuing.
+            await new Promise(res => setTimeout(res, 10));
+            // If the target window/group is in the process of being moved, we delay the rest of the operation until we receive
+            // a bounds changed and update the currentState. This should serve as a fix/mitigation for SERVICE-360.
+            if (this._window.moveInProgress) {
+                console.log('a');
+                await new Promise(async res => {
+                    const slot = this._window.onCommit.add(async (win, type) => {
+                        console.log('b');
+                        slot.remove();
+                        res();
+                    });
+                    console.log('c');
+                });
+            }
             const existingTabState: EntityState = this._activeTab && this._activeTab.currentState || this._tabs[0].currentState;
             const {center, halfSize} = existingTabState;
-
+            
             // Align tab with existing tab
+            console.log('d');
             await tab.applyProperties({center, halfSize, frame: false});
+            
         }
 
         await tab.setTabGroup(this);

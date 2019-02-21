@@ -2,7 +2,7 @@ import {Identity} from 'hadouken-js-adapter';
 import {Action, ProviderIdentity} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/channel';
 import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
 
-import {RegisterAPI, SERVICE_CHANNEL, SnapAndDockAPI, TabAPI, WorkspaceAPI, CreateTabGroupPayload} from '../client/internal';
+import {RegisterAPI, SERVICE_CHANNEL, SnapAndDockAPI, TabAPI, WorkspaceAPI, CreateTabGroupPayload, SetTabstripPayload, AddTabPayload, UpdateTabPropertiesPayload} from '../client/internal';
 import {ApplicationUIConfig, TabProperties} from '../client/tabbing';
 
 import {MessageMap} from './APIMessages';
@@ -144,7 +144,7 @@ export class APIHandler {
         appReadyForRestore(identity.uuid);
     }
 
-    private setTabstrip(payload: {config: ApplicationUIConfig, id: Identity}) {
+    private setTabstrip(payload: SetTabstripPayload) {
         this._config.add({level: 'application', uuid: payload.id.uuid}, {tabstrip: payload.config});
     }
 
@@ -160,12 +160,12 @@ export class APIHandler {
     }
 
     private async createTabGroup(payload: CreateTabGroupPayload): Promise<void> {
-        return this._tabService.createTabGroupWithTabs(payload.windows as WindowIdentity[], payload.activeTab as WindowIdentity);
+        return this._tabService.createTabGroupWithTabs(payload.windows as WindowIdentity[], payload.activeTab);
     }
 
-    private async addTab(payload: {targetWindow: WindowIdentity, windowToAdd: WindowIdentity}): Promise<void> {
-        const tabToAdd: DesktopWindow|null = this._model.getWindow(payload.windowToAdd);
-        const targetTab: DesktopWindow|null = this._model.getWindow(payload.targetWindow);
+    private async addTab(payload: AddTabPayload): Promise<void> {
+        const tabToAdd: DesktopWindow|null = this._model.getWindow(payload.windowToAdd as WindowIdentity);
+        const targetTab: DesktopWindow|null = this._model.getWindow(payload.targetWindow as WindowIdentity);
         const targetGroup: DesktopTabGroup|null = targetTab && targetTab.tabGroup;
 
         if (!targetGroup) {
@@ -285,7 +285,7 @@ export class APIHandler {
         return group.reorderTabArray(newOrdering);
     }
 
-    private updateTabProperties(payload: {properties: Partial<TabProperties>, window: WindowIdentity}): void {
+    private updateTabProperties(payload: UpdateTabPropertiesPayload): void {
         const tab: DesktopWindow|null = this._model.getWindow(payload.window);
 
         if (!tab) {

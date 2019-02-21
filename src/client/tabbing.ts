@@ -282,7 +282,8 @@ export async function setTabstrip(config: ApplicationUIConfig): Promise<void> {
  */
 export async function createTabGroup(identities: Identity[], activeTab?: Identity): Promise<void> {
     const onlyIdentities = identities.map(id => parseIdentity(id));
-    return tryServiceDispatch<CreateTabGroupPayload, void>(TabAPI.CREATETABGROUP, {windows: onlyIdentities, activeTab});
+    const active = activeTab && parseIdentity(activeTab) || undefined;
+    return tryServiceDispatch<CreateTabGroupPayload, void>(TabAPI.CREATETABGROUP, {windows: onlyIdentities, activeTab: active});
 }
 
 /**

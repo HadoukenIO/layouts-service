@@ -580,6 +580,11 @@ export class DesktopTabGroup implements DesktopEntity {
             await Promise.all([this._window.sync(), tab.sync()]);
         }
 
+        // Remove from snap group before we position tab, so as to not indrectly move anything else
+        if (tab.snapGroup.isNonTrivial()) {
+            await tab.setSnapGroup(new DesktopSnapGroup());
+        }
+
         // Position window
         if (this._tabs.length === 1) {
             const tabState: EntityState = tab.currentState;
@@ -604,7 +609,7 @@ export class DesktopTabGroup implements DesktopEntity {
         }
 
         await tab.setTabGroup(this);
-        tab.setSnapGroup(this._window.snapGroup);
+        await tab.setSnapGroup(this._window.snapGroup);
 
         const event:
             TabAddedEvent = {tabstripIdentity: this.identity, identity: tab.identity, properties: tabProps, index: this._tabs.indexOf(tab), type: 'tab-added'};

@@ -104,9 +104,9 @@ export class TabbingUI {
         this._addToGroup.placeholder = 'No tabbed windows<br />(Use \'Create Tab Group\')';
         this._addToGroup.dataProvider = this.getTabbedWindows.bind(this);
         this._addToGroup.onSelect = (identity: WindowIdentity) => {
-            const promise: Promise<void> = tabbing.addTab(identity);
+            const promise: Promise<void> = tabbing.tabToSelf(identity);
 
-            this._log.addApiCall(promise, tabbing.addTab, identity);
+            this._log.addApiCall(promise, tabbing.tabToSelf, identity);
         };
 
         this._createGroup = new Dropdown(elements.createTabGroup, elements.createTabGroupDropdown);

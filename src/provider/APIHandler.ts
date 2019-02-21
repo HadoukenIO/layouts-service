@@ -6,7 +6,7 @@ import {RegisterAPI, SERVICE_CHANNEL, SnapAndDockAPI, TabAPI, WorkspaceAPI, Crea
 import {ApplicationUIConfig, TabProperties} from '../client/tabbing';
 
 import {MessageMap} from './APIMessages';
-import {ConfigStore} from './main';
+import {ConfigStore, tabService} from './main';
 import {DesktopModel} from './model/DesktopModel';
 import {DesktopTabGroup} from './model/DesktopTabGroup';
 import {DesktopWindow, WindowIdentity} from './model/DesktopWindow';
@@ -160,25 +160,28 @@ export class APIHandler {
     }
 
     private async createTabGroup(payload: CreateTabGroupPayload): Promise<void> {
-        return this._tabService.createTabGroupWithTabs(payload.windows as WindowIdentity[], payload.activeTab);
+        return this._tabService.createTabGroupWithTabs(payload.windows, payload.activeTab);
     }
 
     private async addTab(payload: AddTabPayload): Promise<void> {
-        const tabToAdd: DesktopWindow|null = this._model.getWindow(payload.windowToAdd as WindowIdentity);
-        const targetTab: DesktopWindow|null = this._model.getWindow(payload.targetWindow as WindowIdentity);
-        const targetGroup: DesktopTabGroup|null = targetTab && targetTab.tabGroup;
-
-        if (!targetGroup) {
-            console.error('Target Window not in a group. Try createTabGroup instead.');
-            throw new Error('Target Window not in a group. Try createTabGroup instead.');
-        }
+        const tabToAdd: DesktopWindow|null = this._model.getWindow(payload.windowToAdd);
+        const targetTab: DesktopWindow|null = this._model.getWindow(payload.targetWindow);
+        
         if (!tabToAdd) {
-            console.error('Could not find \'windowToAdd\'.');
             throw new Error('Could not find \'windowToAdd\'.');
         }
 
-        if (this._tabService.canTabTogether(targetTab!, tabToAdd)) {
-            return targetGroup.addTab(tabToAdd);
+        if (!targetTab) {
+            throw new Error('Could not find \'windowToAdd\'.');
+        }
+
+        if (this._tabService.canTabTogether(targetTab, tabToAdd)) {
+            const targetGroup: DesktopTabGroup|null = targetTab.tabGroup;
+            if(targetGroup) {
+                return targetGroup.addTab(tabToAdd);
+            } else {
+                return tabService.createTabGroupWithTabs([payload.targetWindow, payload.windowToAdd], payload.windowToAdd);
+            }
         } else {
             console.error('The tabs provided have incompatible tabstrip URLs');
             throw new Error('The tabs provided have incompatible tabstrip URLs');

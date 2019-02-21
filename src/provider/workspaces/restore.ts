@@ -11,7 +11,7 @@ import {promiseMap} from '../snapanddock/utils/async';
 
 import {SCHEMA_MAJOR_VERSION} from './create';
 import {regroupWorkspace} from './group';
-import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, parseVersionString, positionWindow, SemVer, TabbedPlaceholders, waitUntilAllPlaceholdersClosed, canRestoreProgrammatically, WindowObject} from './utils';
+import {addToWindowObject, canRestoreProgrammatically, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, parseVersionString, positionWindow, SemVer, TabbedPlaceholders, waitUntilAllPlaceholdersClosed, WindowObject} from './utils';
 
 // Duration in milliseconds that the entire Workspace restore may take, before we allow another restore to start
 const GLOBAL_EXCLUSIVITY_TIMEOUT = 120000;

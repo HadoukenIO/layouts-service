@@ -121,10 +121,7 @@ export class TabbingUI {
             this._log.addApiCall(promise, tabbing.createTabGroup, [fin.Window.me, identity]);
         };
 
-        this._buttons = [
-            elements.removeTab,
-            elements.closeTab
-        ];
+        this._buttons = [elements.removeTab, elements.closeTab];
         this._log = log;
         this._elements = elements;
 

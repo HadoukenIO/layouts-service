@@ -4,7 +4,7 @@ import {register, deregister, snapAndDock, tabbing, tabstrip, workspaces} from '
 
 import * as Storage from './storage';
 import {addSpawnListeners, AppData, createApp, WindowData, createWindow} from './spawn';
-import { Workspace } from '../client/workspaces';
+import {Workspace} from '../client/workspaces';
 
 export interface SavedWorkspace {
     id: string;
@@ -74,7 +74,7 @@ export function createSnapWindows(): void {
     }
 }
 
-export async function setLayout(layoutParam?: SavedWorkspace) {
+export async function setLayout(layoutParam?: Workspace) {
     const id = (document.getElementById('layoutName') as HTMLTextAreaElement).value;
     const layoutSelect = document.getElementById('layoutSelect') as HTMLSelectElement;
     const layout = layoutParam || await workspaces.generate();

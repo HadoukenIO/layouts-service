@@ -12,7 +12,7 @@ import {WindowIdentity} from '../model/DesktopWindow';
 import {promiseMap} from '../snapanddock/utils/async';
 
 import {getGroup} from './group';
-import {addToWindowObject, adjustSizeOfFormerlyTabbedWindows, inWindowObject, parseVersionString, wasCreatedFromManifest, canRestoreProgrammatically, WindowObject} from './utils';
+import {addToWindowObject, adjustSizeOfFormerlyTabbedWindows, canRestoreProgrammatically, inWindowObject, parseVersionString, wasCreatedFromManifest, WindowObject} from './utils';
 
 // This value should be updated any time changes are made to the Workspace schema.
 // Major version indicates breaking changes.

@@ -51,4 +51,3 @@ export async function main() {
 
 // Register the offline-mode service worker.
 navigator.serviceWorker.register('./sw.js', {scope: './'});
-

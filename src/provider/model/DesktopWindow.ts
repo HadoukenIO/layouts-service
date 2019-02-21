@@ -261,30 +261,30 @@ export class DesktopWindow implements DesktopEntity {
      */
     public readonly onTeardown: Signal1<DesktopWindow, Promise<void>, Promise<void>> = new Signal1(Aggregators.AWAIT_VOID);
 
-    
+
     private _model: DesktopModel;
     private _identity: WindowIdentity;
     private _scope: WindowScope;
     private _id: string;  // Created from window uuid and name
-    
+
     private _window: Window;
-    
+
     /**
      * Cached state. Reflects the current state of the *actual* window object - basically, what you would get if you called any of the OpenFin API functions on
      * the window object.
      */
     private _currentState: EntityState;
-    
+
     /**
      * What the application "thinks" the state of this window is. This is the state of the window, excluding any changes made to the window by the service.
      */
     private _applicationState: EntityState;
-    
+
     /**
      * Lists all the modifications made to the window by the service. This is effectively a 'diff' between currentState and applicationState.
      */
     private _modifiedState: Partial<EntityState>;
-    
+
     /**
      * A subset of modifiedState - changes made to the window on a very short-term basis, which will soon be reverted.
      *
@@ -294,18 +294,18 @@ export class DesktopWindow implements DesktopEntity {
      * The temporary value can be found by looking up the keys of this object within 'currentState'.
      */
     private _temporaryState: Partial<EntityState>;
-    
+
     private _snapGroup: DesktopSnapGroup;
     private _tabGroup: DesktopTabGroup|null;
     private _prevGroup: DesktopSnapGroup|null;
     private _ready: boolean;
-    
+
     private _pendingActions: Promise<void>[];
     private _actionTags: WeakMap<Promise<void>, string>;
-    
+
     // Tracks event listeners registered on the fin window for easier clean-up.
     private _registeredListeners: Map<OpenFinWindowEvent, (event: fin.OpenFinWindowEventMap[OpenFinWindowEvent]) => void> = new Map();
-    
+
     private _moveInProgress = false;
     private _userInitiatedBoundsChange = false;
 
@@ -969,7 +969,6 @@ export class DesktopWindow implements DesktopEntity {
     }
 
     private handleBoundsChanged(event: fin.WindowBoundsEvent): void {
-        console.log('Resetting move in progress');
         this._moveInProgress = false;
 
         const bounds: fin.WindowBounds = this.checkBounds(event);
@@ -989,8 +988,7 @@ export class DesktopWindow implements DesktopEntity {
     }
 
     private handleBoundsChanging(event: fin.WindowBoundsEvent): void {
-        if(!this._moveInProgress) {
-            console.log('Setting move in progress');
+        if (!this._moveInProgress) {
             this._moveInProgress = true;
         }
 

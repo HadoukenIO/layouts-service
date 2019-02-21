@@ -2,7 +2,8 @@ import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/application
 import {WindowDetail} from 'hadouken-js-adapter/out/types/src/api/system/window';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
-import {WorkspaceApp, WorkspaceWindow} from '../../client/types';
+
+import {WorkspaceApp, WorkspaceWindow} from '../../client/workspaces';
 import {model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {WindowIdentity} from '../model/DesktopWindow';

@@ -1,7 +1,7 @@
 import {Identity} from 'hadouken-js-adapter';
 
 import {SnapAndDockAPI} from '../../../src/client/internal';
-import {WindowIdentity} from '../../../src/client/types';
+import {WindowIdentity} from '../../../src/client/main';
 import {DesktopEntity} from '../../../src/provider/model/DesktopEntity';
 import {DesktopWindow} from '../../../src/provider/model/DesktopWindow';
 

@@ -1,3 +1,5 @@
+import {EventMap} from '../../provider/APIMessages';
+
 import {Elements} from './View';
 
 enum eLogStatus {
@@ -54,7 +56,7 @@ export class EventsUI {
             promise);
     }
 
-    public addEvent(event: Event): void {
+    public addEvent(event: EventMap): void {
         this.addItem(`Recieved Event: ${event.type}`, eLogStatus.INFO, 'bolt');
     }
 

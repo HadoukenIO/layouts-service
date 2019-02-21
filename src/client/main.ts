@@ -1,15 +1,74 @@
 /**
- * @module Home
+ * @module Index
  */
 import {tryServiceDispatch} from './connection';
 import {getId, RegisterAPI} from './internal';
 import * as snapAndDock from './snapanddock';
 import * as tabbing from './tabbing';
 import * as tabstrip from './tabstrip';
-import {IdentityRule} from './types';
 import * as workspaces from './workspaces';
 
 export {snapAndDock, tabbing, tabstrip, workspaces};
+
+/**
+ * Interface used to identify window instances. Unlike `hadouken-js-adapter` types, the layouts service expects the
+ * `name` field to be present on every identity object.
+ *
+ * For convenience, client functions are typed to take the `Identity` type rather than `WindowIdentity` in order to
+ * prevent excessive casting.  The client will fill in the name field with the uuid value if not set.  Any window identities returned by the service will always
+ * be of type `WindowIdentity`.
+ */
+export interface WindowIdentity {
+    /**
+     * Application identifier
+     */
+    uuid: string;
+
+    /**
+     * Window identifier
+     */
+    name: string;
+}
+
+/**
+ * As `Identity`, but allows for multiple window identities to be specified, through the use of regular expressions.
+ *
+ * If using a regex, it must be specified in JSON-like format, using the {@link RegEx} type - JS regex literals are not supported.
+ */
+export interface IdentityRule {
+    uuid: string|RegEx;
+    name: string|RegEx;
+}
+
+/**
+ * Format that must be used when passing regular expressions to the service.
+ *
+ * Note: Only a fairly small subset of API calls allow the use of regex patterns, most API calls require a single explicit window identity.
+ */
+export interface RegEx {
+    /**
+     * Defines the regex pattern.
+     *
+     * Do not wrap the expression in `/` characters - specify the pattern string as you would when passing to the RegExp constructor.
+     */
+    expression: string;
+
+    /**
+     * Any additional flags that form part of this expression. Supported same [values
+     * ](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp#Parameters)as the native JS `RegExp` class.
+     */
+    flags?: string;
+
+    /**
+     * In addition, an `invert` parameter can also be used, to flip the filter that is defined by this expression.
+     */
+    invert?: boolean;
+}
+
+/**
+ * Window state, corresponds to `WindowOptions.state`
+ */
+export type WindowState = 'normal'|'minimized'|'maximized';
 
 /**
  * Allows a window to opt-out of this service.

@@ -1,7 +1,7 @@
 import * as layouts from '../../../client/main';
+import {WindowIdentity} from '../../../client/main';
 import {TabActivatedEvent, TabAddedEvent, TabPropertiesUpdatedEvent, TabRemovedEvent} from '../../../client/tabbing';
 import {TabGroupMaximizedEvent, TabGroupRestoredEvent} from '../../../client/tabstrip';
-import {TabAddedPayload, TabGroupEventPayload, WindowIdentity} from '../../../client/types';
 
 import {TabManager} from './TabManager';
 
@@ -9,33 +9,29 @@ let tabManager: TabManager;
 
 tabManager = new TabManager();
 
-
 /**
  * Creates event listeners for events fired from the openfin layouts service.
  */
 const createLayoutsEventListeners = () => {
     layouts.tabbing.addEventListener('tab-added', (event: TabAddedEvent) => {
-        const tabInfo: TabAddedPayload = event.detail;
-        tabManager.addTab(tabInfo.identity, tabInfo.properties, tabInfo.index);
+        tabManager.addTab(event.identity, event.properties, event.index);
 
         document.title = tabManager.getTabs.map(tab => tab.ID.name).join(', ');
     });
 
     layouts.tabbing.addEventListener('tab-removed', (event: TabRemovedEvent) => {
-        const tabInfo: TabGroupEventPayload = event.detail;
-        tabManager.removeTab(tabInfo.identity);
+        tabManager.removeTab(event.identity);
 
         document.title = tabManager.getTabs.map(tab => tab.ID.name).join(', ');
     });
 
     layouts.tabbing.addEventListener('tab-activated', (event: TabActivatedEvent) => {
-        const tabInfo: WindowIdentity = event.detail.identity;
-        tabManager.setActiveTab(tabInfo);
+        tabManager.setActiveTab(event.identity);
     });
 
     layouts.tabbing.addEventListener('tab-properties-updated', (event: TabPropertiesUpdatedEvent) => {
-        const tab = tabManager.getTab(event.detail.identity);
-        const props = event.detail.properties;
+        const tab = tabManager.getTab(event.identity);
+        const props = event.properties;
 
         if (tab) {
             if (props.icon) tab.updateIcon(props.icon);

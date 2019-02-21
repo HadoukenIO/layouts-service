@@ -1,9 +1,8 @@
 import {Context, GenericTestContext, Test, TestContext} from 'ava';
 
 import {SERVICE_IDENTITY, WorkspaceAPI} from '../../../src/client/internal';
-import {Workspace} from '../../../src/client/types';
+import {Workspace} from '../../../src/client/workspaces';
 import {getConnection} from '../../provider/utils/connect';
-import {delay} from '../../provider/utils/delay';
 import {BasicSaveRestoreTestOptions} from '../workspaces/basicSaveAndRestore.test';
 import {SnapSaveRestoreTestOptions} from '../workspaces/snapSaveAndRestore.test';
 import {TabSaveRestoreTestOptions} from '../workspaces/tabSaveAndRestore.test';

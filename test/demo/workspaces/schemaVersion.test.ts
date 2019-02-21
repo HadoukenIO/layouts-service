@@ -2,7 +2,7 @@ import {test} from 'ava';
 import {MonitorInfo} from 'hadouken-js-adapter/out/types/src/api/system/monitor';
 
 import {WorkspaceAPI} from '../../../src/client/internal';
-import {Workspace} from '../../../src/client/types';
+import {Workspace} from '../../../src/client/workspaces';
 import {teardown} from '../../teardown';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {sendServiceMessage} from '../utils/serviceUtils';

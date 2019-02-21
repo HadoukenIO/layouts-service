@@ -3,15 +3,16 @@ import {Identity, Window} from 'hadouken-js-adapter';
 
 import {WindowScope} from '../../../gen/provider/config/layouts-config';
 import {SERVICE_IDENTITY} from '../../client/internal';
-import {WindowState} from '../../client/types';
-import {WindowMessages} from '../APIMessages';
+import {WindowState} from '../../client/workspaces';
+import {APIHandler} from '../APIHandler';
+import {EVENT_CHANNEL_TOPIC, EventMap} from '../APIMessages';
 import {apiHandler} from '../main';
 import {Aggregators, Signal1, Signal2} from '../Signal';
 import {promiseMap} from '../snapanddock/utils/async';
 import {Debounced} from '../snapanddock/utils/Debounced';
 import {isWin10} from '../snapanddock/utils/platform';
 import {Point} from '../snapanddock/utils/PointUtils';
-import {Rectangle} from '../snapanddock/utils/RectUtils';
+import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
@@ -447,6 +448,11 @@ export class DesktopWindow implements DesktopEntity {
     }
 
     public get currentState(): EntityState {
+        // Special handling to return apparent bounds for maximized windows
+        if (this._currentState.state === 'maximized') {
+            const currentMonitor = this._model.getMonitorByRect(this._currentState);
+            return {...this._currentState, ...currentMonitor};
+        }
         return this._currentState;
     }
 
@@ -614,11 +620,9 @@ export class DesktopWindow implements DesktopEntity {
             return this.updateState({[property]: value}, ActionOrigin.SERVICE);  // TODO: Is this the right origin type?
         }
     }
-
-    // tslint:disable-next-line:no-any
-    public async sendMessage(action: WindowMessages, payload: any): Promise<void> {
+    public async sendEvent<T extends EventMap>(event: T): Promise<void> {
         if (this._ready && apiHandler.isClientConnection(this.identity)) {
-            return apiHandler.sendToClient(this._identity, action, payload);
+            return apiHandler.sendToClient(this._identity, EVENT_CHANNEL_TOPIC, event);
         }
     }
 
@@ -804,6 +808,7 @@ export class DesktopWindow implements DesktopEntity {
         }
         // Keep a copy of the previous state around temporarily to compare and avoid event loops.
         const prevState = this._currentState.state;
+        const prevConstraints = this._currentState.resizeConstraints;
         Object.assign(this._currentState, delta);
 
         // Apply changes to the window (unless we're reacting to an external change that has already happened)
@@ -850,6 +855,15 @@ export class DesktopWindow implements DesktopEntity {
             }
 
             if (resizeConstraints) {
+                // Work-around for RUN-5010. Cannot use -1 to reset maxWidth/Height as window becomes non-maximizable. Can use undefined to avoid maximizable
+                // issue, but undefined won't reset constraints. Need to use -1 if clearing an actual constraint, undefined otherwise.
+                const maxWidth = resizeConstraints.x.maxSize === Number.MAX_SAFE_INTEGER ?
+                    (prevConstraints.x.maxSize === Number.MAX_SAFE_INTEGER ? undefined : -1) :
+                    resizeConstraints.x.maxSize;
+                const maxHeight = resizeConstraints.y.maxSize === Number.MAX_SAFE_INTEGER ?
+                    (prevConstraints.y.maxSize === Number.MAX_SAFE_INTEGER ? undefined : -1) :
+                    resizeConstraints.y.maxSize;
+
                 actions.push(window.updateOptions({
                     resizable: resizeConstraints.x.resizableMin || resizeConstraints.x.resizableMax || resizeConstraints.y.resizableMin ||
                         resizeConstraints.y.resizableMax,
@@ -862,9 +876,9 @@ export class DesktopWindow implements DesktopEntity {
                         }
                     },
                     minWidth: resizeConstraints.x.minSize,
-                    maxWidth: resizeConstraints.x.maxSize === Number.MAX_SAFE_INTEGER ? -1 : resizeConstraints.x.maxSize,
                     minHeight: resizeConstraints.y.minSize,
-                    maxHeight: resizeConstraints.y.maxSize === Number.MAX_SAFE_INTEGER ? -1 : resizeConstraints.y.maxSize,
+                    maxWidth,
+                    maxHeight
                 }));
             }
 

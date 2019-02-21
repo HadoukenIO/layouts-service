@@ -68,6 +68,8 @@ export class DesktopTabGroup implements DesktopEntity {
 
     private _validateGroup: Debounced<() => void, DesktopTabGroup, []>;
 
+    private _closingOnTabRemoval: boolean;
+
     /**
      * Constructor for the TabGroup Class.
      * @param {ApplicationUIConfig} windowOptions
@@ -83,6 +85,7 @@ export class DesktopTabGroup implements DesktopEntity {
         this._window.onModified.add((window: DesktopWindow) => this.updateBounds());
         this._window.onTransform.add((window: DesktopWindow, type: Mask<eTransformType>) => this.updateBounds());
         this._window.onCommit.add((window: DesktopWindow, type: Mask<eTransformType>) => this.updateBounds());
+        this._window.onTeardown.add((window: DesktopWindow) => this.onTabGroupTeardown());
         this._groupState = {...this._window.currentState};
 
         this._tabs = [];
@@ -94,6 +97,7 @@ export class DesktopTabGroup implements DesktopEntity {
         this._isMaximized = false;
 
         this._validateGroup = new Debounced(this.validateGroupInternal, this);
+        this._closingOnTabRemoval = false;
 
         DesktopTabGroup.onCreated.emit(this);
     }
@@ -645,6 +649,7 @@ export class DesktopTabGroup implements DesktopEntity {
         if (this._tabs.length < 2) {
             if (this._window.isReady) {
                 // Note: Sensitive order of operations, change with caution.
+                this._closingOnTabRemoval = true;
                 const closePromise = this._window.close();
                 const removeTabPromises = this._tabs.map(async (tab) => {
                     // We don't receive bounds updates when windows are hidden, so cached position of inactive tabs are likely to be incorrect.
@@ -657,6 +662,14 @@ export class DesktopTabGroup implements DesktopEntity {
 
             this._window.setTabGroup(null);
             DesktopTabGroup.onDestroyed.emit(this);
+        }
+    }
+
+    private async onTabGroupTeardown(): Promise<void> {
+        if (!this._closingOnTabRemoval) {
+            return this.removeAllTabs(true);
+        } else {
+            return Promise.resolve();
         }
     }
 

@@ -220,8 +220,6 @@ export function removeEventListener<K extends EventMap>(eventType: K['type'], li
 /**
  * Returns array of window identity references for tabs belonging to the tab group of the provided window context.
  *
- * If no `Identity` is provided as an argument, the current window context will be used.
- *
  * If there is no tab group associated with the window context, will resolve to null.
  * ```ts
  * import {tabbing} from 'openfin-layouts';
@@ -269,9 +267,7 @@ export async function setTabstrip(config: ApplicationUIConfig): Promise<void> {
 }
 
 /**
- * Given a set of windows, will create a tab group construct and UI around them.  The bounds and positioning of the first (applicable) window in the set will be
- *
- * used as the seed for the tab UI properties.
+ * Creates a tabgroup with the provided windows.  The bounds and positioning of the first (applicable) window in the set will be used as the seed for the tab UI properties.
  *
  * ```ts
  * import {tabbing} from 'openfin-layouts';
@@ -294,21 +290,17 @@ export async function createTabGroup(windows: Identity[]): Promise<void> {
  * ```ts
  * import {tabbing} from 'openfin-layouts';
  *
- * // Tab self to App1.
- * tabbing.addTab({uuid: 'App1', name: 'App1'});
- *
  * // Tab App2 to App1.
- * tabbing.addTab({uuid: 'App1', name: 'App1'}. {uuid: 'App2', name: 'App2'});
+ * tabbing.tabWindowToWindow({uuid: 'App1', name: 'App1'}, {uuid: 'App2', name: 'App2'});
  * ```
  *
  * @param targetWindow The identity of the window to create a tab group on.
- * @param windowToAdd The identity of the window to add to the tab group.  If no `Identity` is provided as an argument the current window context will be used.
+ * @param windowToAdd The identity of the window to add to the tab group.
  * @throws `Error`: If the {@link ApplicationUIConfig| App Config} does not match between the target and window to add.
  * @throws `Error`: If the `targetWindow` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
  * @throws `Error`: If the `windowToAdd` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
- * @throws `Error`: If `identity` is not an existing tab in a tabstrip.
  */
-export async function addTab(targetWindow: Identity, windowToAdd: Identity = getId()): Promise<void> {
+export async function tabWindowToWindow(targetWindow: Identity, windowToAdd: Identity): Promise<void> {
     return tryServiceDispatch<AddTabPayload, void>(TabAPI.ADDTAB, {targetWindow: parseIdentity(targetWindow), windowToAdd: parseIdentity(windowToAdd)});
 }
 
@@ -318,7 +310,7 @@ export async function addTab(targetWindow: Identity, windowToAdd: Identity = get
  * ```ts
  * import {tabbing} from 'openfin-layouts';
  *
- * // Remove the current context from its tab group.
+ * // Remove the window from its tab group.  This does not close the window.
  * tabbing.removeTab();
  *
  * // Remove another window from its tab group.
@@ -464,7 +456,7 @@ export async function restoreTabGroup(identity: Identity = getId()): Promise<voi
 }
 
 /**
- * Updates a tab's Properties on the Tab strip.  This includes the tabs title and icon.
+ * Updates a tabs properties. Properties for a tab include its title and icon when in a tab group.
  *
  * ```ts
  * import {tabbing} from 'openfin-layouts';
@@ -487,4 +479,44 @@ export async function updateTabProperties(properties: Partial<TabProperties>, id
         throw new Error('Properties are required');
     }
     return tryServiceDispatch<UpdateTabPropertiesPayload, void>(TabAPI.UPDATETABPROPERTIES, {window: parseIdentity(identity), properties});
+}
+
+/**
+ * Adds the provided window context as a tab to the current window context.
+ *
+ * The added tab will be brought into focus.
+ *
+ * ```ts
+ * import {tabbing} from 'openfin-layouts';
+ *
+ * // Tab App2 to App1.
+ * tabbing.tabToSelf({uuid: 'App2', name: 'App2'});
+ * ```
+ *
+ * @param Identity The identity of the window to add as a tab.
+ * @throws `Error`: If the {@link ApplicationUIConfig| App Config} does not match between the window to add and the current window context.
+ * @throws `Error`: If the `Identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
+ */
+export async function tabToSelf(identity: Identity) {
+    return tryServiceDispatch<AddTabPayload, void>(TabAPI.ADDTAB, {targetWindow: getId(), windowToAdd: parseIdentity(identity)});
+}
+
+/**
+ * Adds the current window context as a tab to the provided window context.
+ *
+ * The added tab will be brought into focus.
+ *
+ * ```ts
+ * import {tabbing} from 'openfin-layouts';
+ *
+ * // Tab App2 to App1.
+ * tabbing.tabSelfTo({uuid: 'App1', name: 'App1'});
+ * ```
+ *
+ * @param Identity The identity of the window to add the current window context as a tab to.
+ * @throws `Error`: If the {@link ApplicationUIConfig| App Config} does not match between the window to add and the current window context.
+ * @throws `Error`: If the `Identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
+ */
+export async function tabSelfTo(identity: Identity) {
+        return tryServiceDispatch<AddTabPayload, void>(TabAPI.ADDTAB, {targetWindow: parseIdentity(identity), windowToAdd: getId()});
 }

@@ -118,7 +118,7 @@ export function removeEventListener<K extends EventMap>(eventType: K['type'], li
  * });
  * ```
  *
- * @param identity: The identity of the tab which is being dragged.
+ * @param identity The identity of the tab which is being dragged.
  * @throws `Error`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
  */
 export async function startDrag(identity: Identity): Promise<void> {

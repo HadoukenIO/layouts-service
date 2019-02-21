@@ -1,64 +1,14 @@
-import {addSpawnListeners} from '../spawn';
+import * as Layouts from '../../client/main';
 
-import {EventsUI} from './EventsUI';
-import {RegistrationUI} from './RegistrationUI';
-import {SnapAndDockUI} from './SnapAndDockUI';
-import {TabbingUI} from './TabbingUI';
-import {Elements, View} from './View';
-import {WindowsUI} from './WindowsUI';
+import {App} from './App';
 
-/**
- * Dictionary of user-facing strings
- */
-export enum Messages {
-    STATUS_DOCKED = 'Docked to one or more windows',
-    STATUS_UNDOCKED = 'Window currently undocked',
-    STATUS_TABBED = 'Tabbed to one or more other windows',
-    STATUS_UNTABBED = 'Not tabbed'
-}
-
-/**
- * Key-value map of any query-string parameters.
- *
- * Assumes that all parameters are JSON.stringify'd.
- *
- * e.g: "?a=1&b='2'&c=3%204" => {a: 1, b: '2', c: '3 4'}
- */
-export type QueryParams = {
-    [key: string]: string|number|boolean|{}
+declare var window: Window&{
+    app: App;
+    Layouts: typeof Layouts;
 };
 
-const args: QueryParams = getQueryParams();
-const view: View = new View(args);
+// Initialise application
+window.app = new App();
 
-view.ready.then((elements: Elements) => {
-    const eventsUI: EventsUI = new EventsUI(elements);
-    const snapAndDockUI: SnapAndDockUI = new SnapAndDockUI(elements, eventsUI);
-    const tabbingUI: TabbingUI = new TabbingUI(elements, eventsUI);
-    const registrationUI: RegistrationUI = new RegistrationUI(elements, eventsUI);
-    const windowUI: WindowsUI = new WindowsUI(elements);
-
-    // Make objects accessible from the debugger
-    Object.assign(window, {view, eventsUI, snapAndDockUI, tabbingUI, registrationUI, windowUI});
-
-    // Listen for requests to spawn child windows/applications
-    addSpawnListeners();
-});
-
-function getQueryParams(): QueryParams {
-    const params = location.search.replace(/^\?/, '').split('&');
-    const args = params.reduce((args: QueryParams, queryParam: string) => {
-        const [key, value] = queryParam.split('=');
-        if (key !== undefined && value !== undefined) {
-            try {
-                args[key] = JSON.parse(decodeURIComponent(value));
-            } catch (e) {
-                console.warn(`Query param '${key}' couldn't be parsed. Value:`, value);
-                args[key] = decodeURIComponent(value);
-            }
-        }
-        return args;
-    }, {});
-
-    return args;
-}
+// Add client API to window object for debugging
+window.Layouts = Layouts;

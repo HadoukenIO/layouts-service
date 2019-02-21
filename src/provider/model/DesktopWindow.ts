@@ -3,6 +3,7 @@ import {Identity, Window} from 'hadouken-js-adapter';
 
 import {WindowScope} from '../../../gen/provider/config/layouts-config';
 import {SERVICE_IDENTITY} from '../../client/internal';
+
 import {WindowState} from '../../client/workspaces';
 import {APIHandler} from '../APIHandler';
 import {EVENT_CHANNEL_TOPIC, EventMap} from '../APIMessages';
@@ -243,6 +244,13 @@ export class DesktopWindow implements DesktopEntity {
     public readonly onCommit: Signal2<DesktopWindow, Mask<eTransformType>> = new Signal2();
 
     /**
+     * The tabGroup of the window has changed (including being set to null).
+     *
+     * Arguments: (window: DesktopWindow)
+     */
+    public readonly onTabGroupChanged: Signal1<DesktopWindow> = new Signal1();
+
+    /**
      * Window is being removed from the service. Use this signal for any clean-up that is required, such as removing
      * the window from any groups, and the service as a whole.
      *
@@ -300,8 +308,8 @@ export class DesktopWindow implements DesktopEntity {
     
     private _moveInProgress = false;
     private _userInitiatedBoundsChange = false;
-    
-    constructor(model: DesktopModel, group: DesktopSnapGroup, window: fin.WindowOptions|Window, initialState?: EntityState) {
+
+    constructor(model: DesktopModel, window: fin.WindowOptions|Window, initialState?: EntityState) {
         const identity = DesktopWindow.getIdentity(window);
 
         this._model = model;
@@ -344,10 +352,10 @@ export class DesktopWindow implements DesktopEntity {
         this._applicationState = this.cloneState(initialState);
         this._modifiedState = {};
         this._temporaryState = {};
-        this._snapGroup = group;
+        this._snapGroup = new DesktopSnapGroup();
         this._tabGroup = null;
         this._prevGroup = null;
-        group.addWindow(this);
+        this._snapGroup.addWindow(this);
 
         if (this._ready) {
             this.addListeners();
@@ -526,6 +534,8 @@ export class DesktopWindow implements DesktopEntity {
         }
 
         this._tabGroup = group;
+
+        this.onTabGroupChanged.emit(this);
 
         // Modify state for tabbed windows (except for tabstrip windows)
         if (this._identity.uuid !== SERVICE_IDENTITY.uuid && this._ready) {

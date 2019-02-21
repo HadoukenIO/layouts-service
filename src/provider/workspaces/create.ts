@@ -12,7 +12,7 @@ import {WindowIdentity} from '../model/DesktopWindow';
 import {promiseMap} from '../snapanddock/utils/async';
 
 import {getGroup} from './group';
-import {addToWindowObject, adjustSizeOfFormerlyTabbedWindows, inWindowObject, parseVersionString, wasCreatedFromManifest, wasCreatedProgrammatically, WindowObject} from './utils';
+import {addToWindowObject, adjustSizeOfFormerlyTabbedWindows, canRestoreProgrammatically, inWindowObject, parseVersionString, wasCreatedFromManifest, WindowObject} from './utils';
 
 // This value should be updated any time changes are made to the Workspace schema.
 // Major version indicates breaking changes.
@@ -130,7 +130,7 @@ export const getCurrentWorkspace = async(): Promise<Workspace> => {
             if (wasCreatedFromManifest(appInfo, uuid)) {
                 delete appInfo.manifest;
                 return {mainWindow, childWindows, ...appInfo, uuid, confirmed: false} as WorkspaceApp;
-            } else if (wasCreatedProgrammatically(appInfo)) {
+            } else if (canRestoreProgrammatically(appInfo)) {
                 delete appInfo.manifest;
                 delete appInfo.manifestUrl;
                 return {mainWindow, childWindows, ...appInfo, uuid, confirmed: false} as WorkspaceApp;

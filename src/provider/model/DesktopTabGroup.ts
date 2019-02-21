@@ -79,14 +79,17 @@ export class DesktopTabGroup implements DesktopEntity {
 
         this._model = model;
         this._activeTab = null;
-        this._window = new DesktopWindow(model, group, windowSpec);
+        this._window = new DesktopWindow(model, windowSpec);
         this._window.onModified.add((window: DesktopWindow) => this.updateBounds());
         this._window.onTransform.add((window: DesktopWindow, type: Mask<eTransformType>) => this.updateBounds());
         this._window.onCommit.add((window: DesktopWindow, type: Mask<eTransformType>) => this.updateBounds());
         this._groupState = {...this._window.currentState};
-        this._window.setTabGroup(this);
+
         this._tabs = [];
         this._config = config;
+
+        this._window.setTabGroup(this);
+        this._window.setSnapGroup(group);
 
         this._isMaximized = false;
 
@@ -224,7 +227,7 @@ export class DesktopTabGroup implements DesktopEntity {
         }
         if (!this._isMaximized) {
             // Before doing anything else we will undock the tabGroup (mitigation for SERVICE-314)
-            if (this.snapGroup.entities.length > 1) {
+            if (this.snapGroup.isNonTrivial()) {
                 await this.setSnapGroup(new DesktopSnapGroup());
             }
 

@@ -44,10 +44,21 @@ export class Loader<T> {
     private _defaultConfig: T|null;
 
     private _appState: {[uuid: string]: AppState};
-
-    // List of stringified window scopes that have added rules to the store.
-    private _windowsWithConfig: string[];
     private _watch: SourceWatch<T>;
+
+    /**
+     * Maps an application UUID to the UUID of it's "parent" application.
+     *
+     * This will typically be fetched from the `getInfo` API, but in the case of restoring programmatically-created
+     * apps, we want the loader to behave as if the application was started by the parent UUID stored within the
+     * workspace data, rather than as being started by the service.
+     */
+    private _appParentMap: {[uuid: string]: string};
+
+    /**
+     * List of stringified window scopes that have added rules to the store.
+     */
+    private _windowsWithConfig: string[];
 
     /**
      * Creates a config loader.
@@ -61,14 +72,15 @@ export class Loader<T> {
      * programmatically-launched application, that was launched by a "service-aware" application.
      *
      * @param store Store to which application-defined config will be placed
-     * @param serviceName The name of the service, plus aliases if appropriate
+     * @param serviceNames The name of the service, plus aliases if appropriate
      * @param defaultConfig Optionally, config to add to the store for any application that isn't service-aware
      */
-    constructor(store: Store<T>, serviceName: string|string[], defaultConfig?: T) {
+    constructor(store: Store<T>, serviceNames: string|string[], defaultConfig?: T) {
         this._store = store;
-        this._serviceNames = Array.isArray(serviceName) ? serviceName.slice() : [serviceName];
+        this._serviceNames = Array.isArray(serviceNames) ? serviceNames.slice() : [serviceNames];
         this._defaultConfig = defaultConfig || null;
         this._appState = {};
+        this._appParentMap = {};
 
         this._windowsWithConfig = [];
         this._watch = new SourceWatch(this._store, {level: 'window', uuid: {expression: '.*'}, name: {expression: '.*'}});
@@ -93,6 +105,37 @@ export class Loader<T> {
         });
     }
 
+    /**
+     * Instructs the Loader to override the parent UUID of an application that is about to start.
+     *
+     * @param appUuid The UUID of an application that is about to be created
+     * @param parentUuid The UUID of the application that should be considered appUuid's parent
+     */
+    public overrideAppParent(appUuid: string, parentUuid: string): void {
+        if (this._appParentMap[appUuid] !== undefined) {
+            console.warn('Application already existed within expectedAppState map:', appUuid);
+        }
+
+        this._appParentMap[appUuid] = parentUuid;
+    }
+
+    /**
+     * Allows access to parentUuid data within the loader's app cache.
+     *
+     * Due to overrides applied via `overrideAppParent`, the data in this cache can occasionally differ from that
+     * which is returned from `getInfo`. In these cases, we often wish to use this 'intended' parentUuid, rather
+     * than the actual underlying parent UUID.
+     *
+     * Returns undefined if requested app doesn't exist within the cache, or if the parent/parentUUID of the app is
+     * not known.
+     *
+     * @param appUuid Application to query for cached parent UUID
+     */
+    public getAppParent(appUuid: string): string|undefined {
+        const state = this.getAppState(appUuid);
+        return (state && state.parent && state.parent.scope.uuid) || undefined;
+    }
+
     private onApplicationCreated(identity: Identity): void {
         const app: Application = fin.Application.wrapSync(identity);
 
@@ -103,12 +146,22 @@ export class Loader<T> {
 
         app.getInfo().then((info: ApplicationInfo) => {
             const manifest: AppManifest<T> = info.manifest as AppManifest<T>;
-            const parentUuid: string|undefined = info.parentUuid;
             const isManifest: boolean = !!manifest && manifest.startup_app.uuid === identity.uuid;
-            let isServiceAware = false;
+            let parentUuid: string|undefined = info.parentUuid;
             let appConfig: ConfigWithRules<T>|null = null;
+            let isServiceAware = false;
+
+            // Override parent UUID if it's an app we have been expecting to start-up
+            const overrideParentUuid: string|undefined = this._appParentMap[identity.uuid];
+            if (overrideParentUuid) {
+                console.log(`Tracking ${identity.uuid} as having parent ${overrideParentUuid} over ${parentUuid}`);
+
+                parentUuid = overrideParentUuid;
+                delete this._appParentMap[identity.uuid];
+            }
 
             if (isManifest && manifest.services && manifest.services.length) {
+                // Check for service declaration within app manifest
                 manifest.services.forEach((service: ServiceDeclaration<T>) => {
                     if (this._serviceNames.includes(service.name)) {
                         // App explicitly requests service, avoid adding any default config
@@ -149,7 +202,7 @@ export class Loader<T> {
             }
 
             // Use default config for any apps that don't reference the service in any way
-            if (!isServiceAware && this._defaultConfig && identity.uuid !== fin.Application.me.uuid) {
+            if (!isServiceAware && this._defaultConfig) {
                 const parentState: AppState|null = this.getAppState(parentUuid || '');
 
                 if (!parentState || !parentState.isServiceAware) {
@@ -188,7 +241,7 @@ export class Loader<T> {
             let parent = state;
             while (parent.parent && !parent.parent.isRunning) {
                 parent = parent.parent;
-                console.log('Clean up parent', parent.scope.uuid);
+                console.log('Checking parent', parent.scope.uuid);
                 this.cleanUpApplicationConfig(parent);
             }
         }

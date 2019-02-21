@@ -11,11 +11,12 @@ import {executeJavascriptOnService, sendServiceMessage} from './serviceUtils';
  * Check if a given window is registered with the layouts-service.
  */
 export async function isWindowRegistered(identity: Identity): Promise<boolean> {
-    function remoteFunc(this: ProviderWindow, identity: WindowIdentity): boolean {
-        return !!this.model.getWindow(identity);
+    function remoteFunc(this: ProviderWindow, identity: Identity): boolean {
+        const windowIdentity: WindowIdentity = {uuid: identity.uuid, name: identity.name || identity.uuid};
+        return !!this.model.getWindow(windowIdentity);
     }
 
-    return executeJavascriptOnService<WindowIdentity, boolean>(remoteFunc, identity as WindowIdentity);
+    return executeJavascriptOnService<Identity, boolean>(remoteFunc, identity);
 }
 
 /**

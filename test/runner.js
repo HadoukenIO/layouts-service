@@ -17,6 +17,8 @@ const path = require('path');
 
 const {launch} = require('hadouken-js-adapter');
 
+const {createCustomManifestMiddleware} = require('../scripts/server/spawn');
+
 let port;
 
 /**
@@ -136,6 +138,7 @@ async function serve() {
         app.use(express.static('res'));
 
         // Add route to dynamically generate app manifests
+        app.use('/manifest', createCustomManifestMiddleware());
         app.use('/create-manifest', (req, res) => {
             const {uuid, url, defaultTop, config, autoShow} = req.query;
             const additionalServiceProperties = config ? {config: JSON.parse(config)} : {};

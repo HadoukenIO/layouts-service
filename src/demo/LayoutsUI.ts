@@ -14,21 +14,29 @@ export interface SavedWorkspace {
 const launchDir = location.href.slice(0, location.href.lastIndexOf('/'));
 
 const appTemplates: {[key: string]: AppData} = {
-    'manifest': {type: 'manifest', id: 'App-1'},
-    'programmatic': {type: 'programmatic', id: 'App-2'},
-    'script': {type: 'programmatic', id: 'App-3', url: 'http://localhost:1337/demo/libScriptIncluded.html'},
-    'random-manifest': {type: 'manifest'},
-    'random-programmatic': {type: 'programmatic'},
-    'deregistered': {config: {enabled: false}},
-    'tab-default': {size: {x: 400, y: 300}, queryArgs: {section: 'tabbing'}},
-    'tab-custom1':
-        {size: {x: 400, y: 300}, queryArgs: {section: 'tabbing'}, config: {tabstrip: {url: 'http://localhost:1337/demo/tabstrips/custom1.html', height: 60}}},
-    'tab-custom2':
-        {size: {x: 400, y: 300}, queryArgs: {section: 'tabbing'}, config: {tabstrip: {url: 'http://localhost:1337/demo/tabstrips/custom2.html', height: 60}}}
+    'manifest': {type: 'manifest', id: 'App-1', position: 'center', size: {x: 1024, y: 800}},
+    'programmatic': {type: 'programmatic', id: 'App-2', position: 'center', size: {x: 1024, y: 800}},
+    'script': {type: 'programmatic', id: 'App-3', position: 'center', url: 'http://localhost:1337/demo/libScriptIncluded.html'},
+    'random-manifest': {type: 'manifest', position: 'center', size: {x: 1024, y: 800}},
+    'random-programmatic': {type: 'programmatic', position: 'center', size: {x: 1024, y: 800}},
+    'deregistered': {position: 'center', config: {enabled: false}},
+    'tab-default': {position: 'center', size: {x: 400, y: 300}, queryArgs: {section: 'tabbing'}},
+    'tab-custom1': {
+        position: 'center',
+        size: {x: 400, y: 300},
+        queryArgs: {section: 'tabbing'},
+        config: {tabstrip: {url: 'http://localhost:1337/demo/tabstrips/custom1.html', height: 60}}
+    },
+    'tab-custom2': {
+        position: 'center',
+        size: {x: 400, y: 300},
+        queryArgs: {section: 'tabbing'},
+        config: {tabstrip: {url: 'http://localhost:1337/demo/tabstrips/custom2.html', height: 60}}
+    }
 };
 const windowTemplates: {[key: string]: WindowData} = {
-    'default': {},
-    'small': {size: {x: 400, y: 300}}
+    'large': {position: 'center', size: {x: 1024, y: 800}},
+    'medium': {position: 'center', size: {x: 600, y: 400}}
 };
 
 export async function deregisterManager(): Promise<void> {
@@ -171,13 +179,5 @@ fin.desktop.main(() => {
     addLayoutNamesToDropdown();
 });
 
-// Expose layouts API on window for debugging/demoing
-const api = {
-    register,
-    deregister,
-    snapAndDock,
-    tabbing,
-    tabstrip,
-    workspaces
-};
-(window as Window & {layouts: typeof api}).layouts = api;
+// Expose layouts API and createApp/Window utils on window for debugging/demoing
+Object.assign(window, {layouts: {register, deregister, snapAndDock, tabbing, tabstrip, workspaces}, createApp, createWindow});

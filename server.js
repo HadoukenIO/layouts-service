@@ -2,13 +2,12 @@ const {launch, connect} = require('hadouken-js-adapter');
 const express = require('express');
 const webpack = require('webpack');
 const webpackDevMiddleware = require('webpack-dev-middleware');
-const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const PORT = process.env.PORT || 1337;
-const SERVICE_NAME = 'layouts';
-const CDN_LOCATION = `https://cdn.openfin.co/services/openfin/${SERVICE_NAME}`;
+const {PORT, SERVICE_NAME, CDN_LOCATION} = require('./scripts/server/config');
+const {createCustomManifestMiddleware, getProviderUrl, readJsonFile} = require('./scripts/server/spawn');
+
 
 /**
  * Chooses which version of the provider to run against. Will default to building and running a local version of the provider.
@@ -71,7 +70,6 @@ const writeToDisk = getArg('--write', false);
 
             console.log('Launching application');
             connect({uuid: 'wrapper', manifestUrl: `http://localhost:${PORT}/${manifestPath}`}).then(async fin => {
-                const config = await readJsonFile(manifestPath);
                 const service = fin.Application.wrapSync({uuid: 'layouts-service', name: 'layouts-service'});
 
                 // Terminate local server when the demo app closes
@@ -119,33 +117,6 @@ async function createServer() {
     return app;
 }
 
-/**
- * Returns the URL of the manifest file for the requested version of the service.
- * 
- * @param {string} version Version number of the service, or a channel
- * @param {string} manifestUrl The URL that was set in the application manifest (if any). Any querystring arguments will be persisted, but the rest of the URL will be ignored.
- */
-function getProviderUrl(version, manifestUrl) {
-    const index = manifestUrl && manifestUrl.indexOf("?");
-    const query = index >= 0 ? manifestUrl.substr(index) : "";
-
-    if (version === 'local') {
-        // Provider is running locally
-        return `http://localhost:${PORT}/provider/app.json${query}`;
-    } else if (version === 'stable') {
-        // Use the latest stable version
-        return `${CDN_LOCATION}/app.json${query}`;
-    } else if (version === 'staging') {
-        // Use the latest staging build
-        return `${CDN_LOCATION}/app.staging.json${query}`;
-    } else if (/\d+\.\d+\.\d+/.test(version)) {
-        // Use a specific public release of the service
-        return `${CDN_LOCATION}/${version}/app.json${query}`;
-    } else {
-        throw new Error(`Not a valid version number or channel: ${version}`);
-    }
-}
-
 
 /**
  * Simple command-line parser. Returns the named argument from the list of process arguments.
@@ -180,28 +151,6 @@ function getArg(name, hasValue, defaultValue = hasValue ? null : false) {
     return value;
 }
 
-function readJsonFile(filePath) {
-    return new Promise((resolve, reject) => {
-        fs.readFile(path.resolve('res', filePath), 'utf8', (error, data) => {
-            if (error) {
-                reject(error);
-            } else {
-                try {
-                    const config = JSON.parse(data);
-
-                    if (config) {
-                        resolve(config);
-                    } else {
-                        throw new Error(`No data found in ${filePath}`);
-                    }
-                } catch(e) {
-                    reject(e);
-                }
-            }
-        });
-    });
-}
-
 /**
  * Creates express-compatible middleware function that will add/replace any URL's found within app.json files according
  * to the command-line options of this utility.
@@ -229,63 +178,6 @@ function createAppJsonMiddleware() {
         // Return modified JSON to client
         res.header('Content-Type', 'application/json; charset=utf-8');
         res.send(JSON.stringify(config, null, 4));
-    };
-}
-
-/**
- * Creates express-compatible middleware function to generate custom application manifests.
- * 
- * Differs from createAppJsonMiddleware, as this spawns custom demo windows, rather than re-writing existing 
- * demo/provider manifests.
- */
-function createCustomManifestMiddleware() {
-    return async (req, res, next) => {
-        const defaultConfig = await readJsonFile(path.resolve('res/demo/app.json')).catch(next);
-        const {uuid, url, frame, defaultWidth, defaultHeight, realmName, enableMesh, runtime, useService, provider, config} = {
-            uuid: `demo-app-${Math.random().toString(36).substr(2, 4)}`,
-            runtime: defaultConfig.runtime.version,
-            provider: 'local',
-            url: `http://localhost:${PORT}/demo/testbed/index.html`,
-            config: null,
-            ...req.query,
-            defaultWidth: parseInt(req.query.defaultWidth) || 860,
-            defaultHeight: parseInt(req.query.defaultHeight) || 605,
-            frame: req.query.frame !== 'false',
-            enableMesh: req.query.enableMesh !== 'false',
-            useService: req.query.useService !== 'false'
-        };
-
-        const manifest = {
-            startup_app: {
-                uuid,
-                name: uuid,
-                url,
-                frame,
-                autoShow: true,
-                saveWindowState: false,
-                defaultCentered: true,
-                defaultWidth,
-                defaultHeight
-            },
-            runtime: {
-                arguments: "--v=1" + (realmName ? ` --security-realm=${realmName}${enableMesh ? ' --enable-mesh' : ''}` : ''),
-                version: runtime
-            }
-        };
-        if (useService) {
-            const service = {name: 'layouts'};
-            if (provider !== 'default') {
-                service.manifestUrl = getProviderUrl(provider);
-            }
-            if (config) {
-                service.config = JSON.parse(config);
-            }
-            manifest.services = [service];
-        }
-
-        // Return modified JSON to client
-        res.header('Content-Type', 'application/json; charset=utf-8');
-        res.send(JSON.stringify(manifest, null, 4));
     };
 }
 

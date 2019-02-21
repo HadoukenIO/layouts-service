@@ -140,7 +140,7 @@ export class Loader<T> {
                     parentState = this.getOrCreateAppState(fin.Application.wrapSync({uuid: parentUuid}), true);
                 }
 
-                // App *may* be service-aware on it's own, but if it's state hasn't already been created by this point, then inerhit awareness from parent app
+                // App *may* be service-aware on it's own, but if it's state hasn't already been created by this point, then inherit awareness from parent app
                 const state = this.getOrCreateAppState(app, parentState.isServiceAware);
 
                 console.log(`Registering ${identity.uuid} as a child of ${parentState.scope.uuid}`);

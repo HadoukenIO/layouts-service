@@ -497,7 +497,7 @@ export async function updateTabProperties(properties: Partial<TabProperties>, id
  * ```ts
  * import {tabbing} from 'openfin-layouts';
  *
- * // Tab App2 to App1.
+ * // Tab App2 to current window.
  * tabbing.tabToSelf({uuid: 'App2', name: 'App2'});
  * ```
  *
@@ -518,7 +518,7 @@ export async function tabToSelf(identity: Identity) {
  * ```ts
  * import {tabbing} from 'openfin-layouts';
  *
- * // Tab App2 to App1.
+ * // Tab current window to App1.
  * tabbing.tabSelfTo({uuid: 'App1', name: 'App1'});
  * ```
  *

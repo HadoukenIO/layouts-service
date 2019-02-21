@@ -24,3 +24,9 @@ export type MessageMap = {
 };
 
 export type EventMap = TabstripEventMap|TabbingEventMap|WorkspacesEventMap|SnapAndDockEventMap;
+
+
+export enum ErrorMessage {
+    NOWINDOW = 'Cannot find Window.  It may be deregistered.',
+    NOTABGROUP = 'No tab group found for the window.'
+}

@@ -1,12 +1,12 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
-import {Workspace} from '../client/workspaces';
-import {register, deregister, snapAndDock, tabbing, tabstrip, workspaces} from '../client/main';
 
+import {register, deregister, snapAndDock, tabbing, tabstrip, workspaces} from '../client/main';
 
 import * as Storage from './storage';
 import {addSpawnListeners, AppData, createApp, WindowData, createWindow} from './spawn';
+import {Workspace} from '../client/workspaces';
 
-export interface Workspace {
+export interface SavedWorkspace {
     id: string;
     layout: Workspace;
 }
@@ -14,21 +14,29 @@ export interface Workspace {
 const launchDir = location.href.slice(0, location.href.lastIndexOf('/'));
 
 const appTemplates: {[key: string]: AppData} = {
-    'manifest': {type: 'manifest', id: 'App-1'},
-    'programmatic': {type: 'programmatic', id: 'App-2'},
-    'script': {type: 'programmatic', id: 'App-3', url: 'http://localhost:1337/demo/libScriptIncluded.html'},
-    'random-manifest': {type: 'manifest'},
-    'random-programmatic': {type: 'programmatic'},
-    'deregistered': {config: {enabled: false}},
-    'tab-default': {size: {x: 400, y: 300}, queryArgs: {section: 'tabbing'}},
-    'tab-custom1':
-        {size: {x: 400, y: 300}, queryArgs: {section: 'tabbing'}, config: {tabstrip: {url: 'http://localhost:1337/demo/tabstrips/custom1.html', height: 60}}},
-    'tab-custom2':
-        {size: {x: 400, y: 300}, queryArgs: {section: 'tabbing'}, config: {tabstrip: {url: 'http://localhost:1337/demo/tabstrips/custom2.html', height: 60}}}
+    'manifest': {type: 'manifest', id: 'App-1', position: 'center', size: {x: 1024, y: 800}},
+    'programmatic': {type: 'programmatic', id: 'App-2', position: 'center', size: {x: 1024, y: 800}},
+    'script': {type: 'programmatic', id: 'App-3', position: 'center', url: 'http://localhost:1337/demo/libScriptIncluded.html'},
+    'random-manifest': {type: 'manifest', position: 'center', size: {x: 1024, y: 800}},
+    'random-programmatic': {type: 'programmatic', position: 'center', size: {x: 1024, y: 800}},
+    'deregistered': {position: 'center', config: {enabled: false}},
+    'tab-default': {position: 'center', size: {x: 400, y: 300}, queryArgs: {section: 'tabbing'}},
+    'tab-custom1': {
+        position: 'center',
+        size: {x: 400, y: 300},
+        queryArgs: {section: 'tabbing'},
+        config: {tabstrip: {url: 'http://localhost:1337/demo/tabstrips/custom1.html', height: 60}}
+    },
+    'tab-custom2': {
+        position: 'center',
+        size: {x: 400, y: 300},
+        queryArgs: {section: 'tabbing'},
+        config: {tabstrip: {url: 'http://localhost:1337/demo/tabstrips/custom2.html', height: 60}}
+    }
 };
 const windowTemplates: {[key: string]: WindowData} = {
-    'default': {},
-    'small': {size: {x: 400, y: 300}}
+    'large': {position: 'center', size: {x: 1024, y: 800}},
+    'medium': {position: 'center', size: {x: 600, y: 400}}
 };
 
 export async function deregisterManager(): Promise<void> {
@@ -56,10 +64,11 @@ export async function createTemplateWindow(templateName: keyof typeof windowTemp
 
 export function createSnapWindows(): void {
     // Create snap windows
+    const colors = ['#7B7BFF', '#A7A7A7', '#3D4059', '#D8D8D8', '#1A194D', '#B6B6B6'];
     for (let i = 0; i < 6; i++) {
         fin.Window
             .create({
-                url: `${launchDir}/testbed/index.html`,
+                url: `${launchDir}/testbed/index.html?theme=${colors[i % colors.length]}`,
                 autoShow: true,
                 defaultHeight: i > 2 ? 275 : 200,
                 defaultWidth: i > 4 ? 400 : 300,
@@ -170,13 +179,5 @@ fin.desktop.main(() => {
     addLayoutNamesToDropdown();
 });
 
-// Expose layouts API on window for debugging/demoing
-const api = {
-    register,
-    deregister,
-    snapAndDock,
-    tabbing,
-    tabstrip,
-    workspaces
-};
-(window as Window & {layouts: typeof api}).layouts = api;
+// Expose layouts API and createApp/Window utils on window for debugging/demoing
+Object.assign(window, {layouts: {register, deregister, snapAndDock, tabbing, tabstrip, workspaces}, createApp, createWindow});

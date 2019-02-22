@@ -3,6 +3,7 @@ import {Identity, Window} from 'hadouken-js-adapter';
 
 import {WindowScope} from '../../../gen/provider/config/layouts-config';
 import {SERVICE_IDENTITY} from '../../client/internal';
+
 import {WindowState} from '../../client/workspaces';
 import {APIHandler} from '../APIHandler';
 import {EVENT_CHANNEL_TOPIC, EventMap} from '../APIMessages';
@@ -243,6 +244,13 @@ export class DesktopWindow implements DesktopEntity {
     public readonly onCommit: Signal2<DesktopWindow, Mask<eTransformType>> = new Signal2();
 
     /**
+     * The tabGroup of the window has changed (including being set to null).
+     *
+     * Arguments: (window: DesktopWindow)
+     */
+    public readonly onTabGroupChanged: Signal1<DesktopWindow> = new Signal1();
+
+    /**
      * Window is being removed from the service. Use this signal for any clean-up that is required, such as removing
      * the window from any groups, and the service as a whole.
      *
@@ -252,6 +260,7 @@ export class DesktopWindow implements DesktopEntity {
      * Arguments: (window: DesktopWindow)
      */
     public readonly onTeardown: Signal1<DesktopWindow, Promise<void>, Promise<void>> = new Signal1(Aggregators.AWAIT_VOID);
+
 
     private _model: DesktopModel;
     private _identity: WindowIdentity;
@@ -297,9 +306,10 @@ export class DesktopWindow implements DesktopEntity {
     // Tracks event listeners registered on the fin window for easier clean-up.
     private _registeredListeners: Map<OpenFinWindowEvent, (event: fin.OpenFinWindowEventMap[OpenFinWindowEvent]) => void> = new Map();
 
+    private _moveInProgress = false;
     private _userInitiatedBoundsChange = false;
 
-    constructor(model: DesktopModel, group: DesktopSnapGroup, window: fin.WindowOptions|Window, initialState?: EntityState) {
+    constructor(model: DesktopModel, window: fin.WindowOptions|Window, initialState?: EntityState) {
         const identity = DesktopWindow.getIdentity(window);
 
         this._model = model;
@@ -342,10 +352,10 @@ export class DesktopWindow implements DesktopEntity {
         this._applicationState = this.cloneState(initialState);
         this._modifiedState = {};
         this._temporaryState = {};
-        this._snapGroup = group;
+        this._snapGroup = new DesktopSnapGroup();
         this._tabGroup = null;
         this._prevGroup = null;
-        group.addWindow(this);
+        this._snapGroup.addWindow(this);
 
         if (this._ready) {
             this.addListeners();
@@ -460,6 +470,10 @@ export class DesktopWindow implements DesktopEntity {
         return this._applicationState;
     }
 
+    public get moveInProgress(): boolean {
+        return this._moveInProgress;
+    }
+
     /**
      * Moves this window into a different group. Has no effect if function is called with the group that this window
      * currently belongs to. This also handles removing the window from it's previous group.
@@ -520,6 +534,8 @@ export class DesktopWindow implements DesktopEntity {
         }
 
         this._tabGroup = group;
+
+        this.onTabGroupChanged.emit(this);
 
         // Modify state for tabbed windows (except for tabstrip windows)
         if (this._identity.uuid !== SERVICE_IDENTITY.uuid && this._ready) {
@@ -953,6 +969,8 @@ export class DesktopWindow implements DesktopEntity {
     }
 
     private handleBoundsChanged(event: fin.WindowBoundsEvent): void {
+        this._moveInProgress = false;
+
         const bounds: fin.WindowBounds = this.checkBounds(event);
         const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
         const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
@@ -970,6 +988,10 @@ export class DesktopWindow implements DesktopEntity {
     }
 
     private handleBoundsChanging(event: fin.WindowBoundsEvent): void {
+        if (!this._moveInProgress) {
+            this._moveInProgress = true;
+        }
+
         const bounds: fin.WindowBounds = this.checkBounds(event);
         const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
         const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};

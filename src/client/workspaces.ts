@@ -100,6 +100,11 @@ export interface WorkspaceApp {
     childWindows: WorkspaceWindow[];
 
     /**
+     * The UUID of the application that initially launched this app.
+     */
+    parentUuid?: string;
+
+    /**
      * Flag used within the service to confirm an application has correctly implemented the callbacks it has
      * registered.
      *

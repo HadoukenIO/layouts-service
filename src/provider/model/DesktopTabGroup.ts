@@ -68,6 +68,8 @@ export class DesktopTabGroup implements DesktopEntity {
 
     private _validateGroup: Debounced<() => void, DesktopTabGroup, []>;
 
+    private _closingOnTabRemoval: boolean;
+
     /**
      * Constructor for the TabGroup Class.
      * @param {ApplicationUIConfig} windowOptions
@@ -79,18 +81,23 @@ export class DesktopTabGroup implements DesktopEntity {
 
         this._model = model;
         this._activeTab = null;
-        this._window = new DesktopWindow(model, group, windowSpec);
+        this._window = new DesktopWindow(model, windowSpec);
         this._window.onModified.add((window: DesktopWindow) => this.updateBounds());
         this._window.onTransform.add((window: DesktopWindow, type: Mask<eTransformType>) => this.updateBounds());
         this._window.onCommit.add((window: DesktopWindow, type: Mask<eTransformType>) => this.updateBounds());
+        this._window.onTeardown.add((window: DesktopWindow) => this.onTabGroupTeardown());
         this._groupState = {...this._window.currentState};
-        this._window.setTabGroup(this);
+
         this._tabs = [];
         this._config = config;
+
+        this._window.setTabGroup(this);
+        this._window.setSnapGroup(group);
 
         this._isMaximized = false;
 
         this._validateGroup = new Debounced(this.validateGroupInternal, this);
+        this._closingOnTabRemoval = false;
 
         DesktopTabGroup.onCreated.emit(this);
     }
@@ -224,7 +231,7 @@ export class DesktopTabGroup implements DesktopEntity {
         }
         if (!this._isMaximized) {
             // Before doing anything else we will undock the tabGroup (mitigation for SERVICE-314)
-            if (this.snapGroup.entities.length > 1) {
+            if (this.snapGroup.isNonTrivial()) {
                 await this.setSnapGroup(new DesktopSnapGroup());
             }
 
@@ -323,15 +330,7 @@ export class DesktopTabGroup implements DesktopEntity {
             }
         });
 
-        if (!activeTabId) {
-            // Set the desired tab as active
-            await this.switchTab(activeTab);
-        } else {
-            // Need to re-send tab-activated event to ensure tab is active within tabstrip
-            // TODO: See if this can be avoided
-            const event: TabActivatedEvent = {tabstripIdentity: this.identity, identity: activeTab.identity, type: 'tab-activated'};
-            this._window.sendEvent(event);
-        }
+        await this.switchTab(activeTab);
     }
 
     public async swapTab(tabToRemove: DesktopWindow, tabToAdd: DesktopWindow): Promise<void> {
@@ -580,6 +579,11 @@ export class DesktopTabGroup implements DesktopEntity {
             await Promise.all([this._window.sync(), tab.sync()]);
         }
 
+        // Remove tab from snap group before we position it, so as to not indirectly move anything else
+        if (tab.snapGroup.isNonTrivial()) {
+            await tab.setSnapGroup(new DesktopSnapGroup());
+        }
+
         // Position window
         if (this._tabs.length === 1) {
             const tabState: EntityState = tab.currentState;
@@ -596,6 +600,19 @@ export class DesktopTabGroup implements DesktopEntity {
             const halfSize: Point = {x: tabState.halfSize.x, y: tabState.halfSize.y - (this._config.height / 2)};
             await tab.applyProperties({center, halfSize, frame: false});
         } else {
+            // Delay to allow other async operations to jump ahead in the queue. Specifically, any pending boundsChanging events
+            // should be processed before continuing.
+            await new Promise(res => setTimeout(res, 10));
+            // If the target window/group is in the process of being moved, we delay the rest of the operation until we receive
+            // a bounds changed and update the currentState. This should serve as a fix/mitigation for SERVICE-360.
+            if (this._window.moveInProgress) {
+                await new Promise(async res => {
+                    const slot = this._window.onCommit.add(async (win, type) => {
+                        slot.remove();
+                        res();
+                    });
+                });
+            }
             const existingTabState: EntityState = this._activeTab && this._activeTab.currentState || this._tabs[0].currentState;
             const {center, halfSize} = existingTabState;
 
@@ -604,7 +621,7 @@ export class DesktopTabGroup implements DesktopEntity {
         }
 
         await tab.setTabGroup(this);
-        tab.setSnapGroup(this._window.snapGroup);
+        await tab.setSnapGroup(this._window.snapGroup);
 
         const event:
             TabAddedEvent = {tabstripIdentity: this.identity, identity: tab.identity, properties: tabProps, index: this._tabs.indexOf(tab), type: 'tab-added'};
@@ -645,6 +662,7 @@ export class DesktopTabGroup implements DesktopEntity {
         if (this._tabs.length < 2) {
             if (this._window.isReady) {
                 // Note: Sensitive order of operations, change with caution.
+                this._closingOnTabRemoval = true;
                 const closePromise = this._window.close();
                 const removeTabPromises = this._tabs.map(async (tab) => {
                     // We don't receive bounds updates when windows are hidden, so cached position of inactive tabs are likely to be incorrect.
@@ -657,6 +675,12 @@ export class DesktopTabGroup implements DesktopEntity {
 
             this._window.setTabGroup(null);
             DesktopTabGroup.onDestroyed.emit(this);
+        }
+    }
+
+    private async onTabGroupTeardown(): Promise<void> {
+        if (!this._closingOnTabRemoval) {
+            return this.removeAllTabs(true);
         }
     }
 

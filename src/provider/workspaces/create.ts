@@ -7,12 +7,12 @@ import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 import {WorkspaceAPI} from '../../client/internal';
 import {CustomData, TabGroup, WindowState, Workspace, WorkspaceApp, WorkspaceGeneratedEvent, WorkspaceWindow} from '../../client/workspaces';
 import {EVENT_CHANNEL_TOPIC} from '../APIMessages';
-import {apiHandler, model, tabService} from '../main';
+import {apiHandler, loader, model, tabService} from '../main';
 import {WindowIdentity} from '../model/DesktopWindow';
 import {promiseMap} from '../snapanddock/utils/async';
 
 import {getGroup} from './group';
-import {addToWindowObject, adjustSizeOfFormerlyTabbedWindows, inWindowObject, parseVersionString, wasCreatedFromManifest, wasCreatedProgrammatically, WindowObject} from './utils';
+import {addToWindowObject, adjustSizeOfFormerlyTabbedWindows, canRestoreProgrammatically, inWindowObject, parseVersionString, wasCreatedFromManifest, WindowObject} from './utils';
 
 // This value should be updated any time changes are made to the Workspace schema.
 // Major version indicates breaking changes.
@@ -105,6 +105,11 @@ export const getCurrentWorkspace = async(): Promise<Workspace> => {
                 return {} as ApplicationInfo;
             });
 
+            // Override parentUuid with any data in config loader, in case this is a programmatic app created from a previous restore
+            if (appInfo.hasOwnProperty('parentUuid')) {
+                appInfo.parentUuid = loader.getAppParent(uuid) || appInfo.parentUuid;
+            }
+
             // Grab the layout information for the main app window
             const mainOfWin: Window = await ofApp.getWindow();
             const mainWindowLayoutData = await getWorkspaceWindowData(mainOfWin, tabbedWindows);
@@ -130,7 +135,7 @@ export const getCurrentWorkspace = async(): Promise<Workspace> => {
             if (wasCreatedFromManifest(appInfo, uuid)) {
                 delete appInfo.manifest;
                 return {mainWindow, childWindows, ...appInfo, uuid, confirmed: false} as WorkspaceApp;
-            } else if (wasCreatedProgrammatically(appInfo)) {
+            } else if (canRestoreProgrammatically(appInfo)) {
                 delete appInfo.manifest;
                 delete appInfo.manifestUrl;
                 return {mainWindow, childWindows, ...appInfo, uuid, confirmed: false} as WorkspaceApp;

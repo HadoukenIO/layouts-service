@@ -61,7 +61,7 @@ export class EventsUI {
     }
 
     private addItem<T>(caption: string, status: eLogStatus, icon: string, promise?: Promise<T>): void {
-        const atEnd: boolean = this._list.scrollTop === this._list.scrollHeight - this._list.clientHeight;
+        const atEnd: boolean = this.isAtEnd();
 
         const iconElement = document.createElement('i');
         iconElement.classList.add('fa', 'fa-fw', `fa-${icon}`);
@@ -82,16 +82,29 @@ export class EventsUI {
                     this.updateStatus(item, eLogStatus.SUCCESS);
                 },
                 (reason?: Error|string) => {
+                    const atEnd = this.isAtEnd();
                     if (reason) {
                         item.caption += `\n${reason.toString()}`;
                     }
                     this.updateStatus(item, eLogStatus.FAIL);
+                    if (atEnd) {
+                        this.scrollToEnd();
+                    }
                 });
         }
 
         if (atEnd) {
-            this._list.scrollTop = this._list.scrollHeight - this._list.clientHeight;
+            this.scrollToEnd();
         }
+    }
+
+    private isAtEnd(): boolean {
+        // If the last element in the events list is currently (or almost) visible
+        return Math.abs(this._list.scrollTop - (this._list.scrollHeight - this._list.clientHeight)) < 100;
+    }
+
+    private scrollToEnd(): void {
+        this._list.scrollTop = this._list.scrollHeight - this._list.clientHeight;
     }
 
     private updateStatus(item: LogItem, status: eLogStatus): void {

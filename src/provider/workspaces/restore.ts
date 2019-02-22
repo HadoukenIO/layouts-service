@@ -5,13 +5,13 @@ import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 import {WorkspaceAPI} from '../../client/internal';
 import {TabGroup, Workspace, WorkspaceApp, WorkspaceRestoredEvent} from '../../client/workspaces';
 import {EVENT_CHANNEL_TOPIC} from '../APIMessages';
-import {apiHandler, model, tabService} from '../main';
+import {apiHandler, loader, model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {promiseMap} from '../snapanddock/utils/async';
 
 import {SCHEMA_MAJOR_VERSION} from './create';
 import {regroupWorkspace} from './group';
-import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, parseVersionString, positionWindow, SemVer, TabbedPlaceholders, waitUntilAllPlaceholdersClosed, wasCreatedProgrammatically, WindowObject} from './utils';
+import {addToWindowObject, canRestoreProgrammatically, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, parseVersionString, positionWindow, SemVer, TabbedPlaceholders, waitUntilAllPlaceholdersClosed, WindowObject} from './utils';
 
 // Duration in milliseconds that the entire Workspace restore may take, before we allow another restore to start
 const GLOBAL_EXCLUSIVITY_TIMEOUT = 120000;
@@ -48,6 +48,14 @@ export const appReadyForRestore = async(uuid: string): Promise<void> => {
 
 export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> => {
     console.log('Restoring workspace:', payload);
+
+    // Ensure the loader links any apps being programmatically restored with their parentUuid at time of workspace
+    // generation, rather than their parentUuid now (which will be layouts-service)
+    payload.apps.forEach((app: WorkspaceApp) => {
+        if (app.parentUuid) {
+            loader.overrideAppParent(app.uuid, app.parentUuid);
+        }
+    });
 
     if (restoreExclusivityToken !== null) {
         throw new Error('Attempting to restore while restore in progress');
@@ -189,12 +197,16 @@ const createWorkspacePlaceholders = async(workspace: Workspace): Promise<void> =
             // Should de-tab here.
             const mainWindowModel = model.getWindow(app.mainWindow);
             await tabService.removeTab(app.mainWindow);
+
+            // Need to check its child windows here, if confirmed.
+            // Also calls removeTab and setSnapGroup on open child windows.
+            // These functions need to be in this order, otherwise child windows may re-attach (if removeTab is called on an application that it's tabbed to,
+            // leaving the child window as a remainingTab).
+            await childWindowPlaceholderCheckRunningApp(app, tabbedWindows, tabbedPlaceholdersToWindows, openWindows);
+
             if (mainWindowModel && mainWindowModel.snapGroup.length > 1) {
                 await mainWindowModel.setSnapGroup(new DesktopSnapGroup());
             }
-
-            // Need to check its child windows here, if confirmed.
-            await childWindowPlaceholderCheckRunningApp(app, tabbedWindows, tabbedPlaceholdersToWindows, openWindows);
         } else {
             if (inWindowObject(app.mainWindow, tabbedWindows)) {
                 await createTabbedPlaceholderAndRecord(app.mainWindow, tabbedPlaceholdersToWindows);
@@ -267,7 +279,7 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
                 ofAppNotRunning = await fin.Application.createFromManifest(manifestUrl);
             } else {
                 // If application created programmatically
-                if (wasCreatedProgrammatically(app)) {
+                if (canRestoreProgrammatically(app)) {
                     console.warn('App created programmatically, app may not restart again:', app);
                     ofAppNotRunning = await fin.Application.create(app.initialOptions);
                 } else {

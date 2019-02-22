@@ -43,7 +43,14 @@ export interface WindowData {
     frame?: boolean;
 
     /**
-     * Window size, defaults to 1024x800.
+     * Window position, defaults to top-left of screen.
+     *
+     * Can use the string `'center'` to use `defaultCenter: true` to position the window.
+     */
+    position?: Point|'center';
+
+    /**
+     * Window size, defaults to 400x300.
      */
     size?: Point;
 
@@ -116,8 +123,8 @@ export interface AppData extends WindowData {
  */
 export async function addSpawnListeners(): Promise<void> {
     const channel = await fin.InterApplicationBus.Channel.create(`spawn-${fin.Application.me.uuid}`);
-    channel.register('createApplication', async (options: AppData) => await createApplication(options));
-    channel.register('createWindow', async (options: WindowData) => await createChildWindow(options));
+    channel.register('createApplication', async (options: AppData) => (await createApplication(options)).identity);
+    channel.register('createWindow', async (options: WindowData) => (await createChildWindow(options)).identity);
 }
 
 export async function createApp(options: AppData): Promise<Application> {
@@ -151,18 +158,19 @@ export async function createWindow(options: WindowData): Promise<_Window> {
 async function createApplication(options: Omit<AppData, 'parent'>): Promise<Application> {
     const uuid: string = options.id || `App-${Math.random().toString().substr(2, 4)}`;
     const url = getUrl(options);
+    const position = getWindowPosition(options);
     const size = getWindowSize(options);
 
     if (options.type === 'programmatic') {
         const data: fin.ApplicationOptions = {
             uuid,
             name: uuid,
-            mainWindowOptions:
-                {url, frame: options.frame, autoShow: true, saveWindowState: false, defaultCentered: true, defaultWidth: size.x, defaultHeight: size.y}
+            mainWindowOptions: {...position, url, frame: options.frame, autoShow: true, saveWindowState: false, defaultWidth: size.x, defaultHeight: size.y}
         };
         return await startApp(fin.Application.create(data));
     } else {
         const queryOptions: Dictionary<string|number|boolean> = {
+            ...position as Required<typeof position>,
             uuid,
             url,
             defaultWidth: size.x,
@@ -190,10 +198,11 @@ async function createApplication(options: Omit<AppData, 'parent'>): Promise<Appl
 async function createChildWindow(data: Omit<WindowData, 'parent'>): Promise<_Window> {
     const name: string = data.id || `Win-${Math.random().toString().substr(2, 4)}`;
     const url = getUrl(data);
+    const position = getWindowPosition(data);
     const size = getWindowSize(data);
 
-    const options: fin.WindowOptions =
-        {name, url, frame: data.frame, autoShow: true, saveWindowState: false, defaultCentered: true, defaultWidth: size.x, defaultHeight: size.y};
+    const options:
+        fin.WindowOptions = {...position, name, url, frame: data.frame, autoShow: true, saveWindowState: false, defaultWidth: size.x, defaultHeight: size.y};
     return await fin.Window.create(options);
 }
 
@@ -209,6 +218,13 @@ function getUrl(options: WindowData): string {
     const urlQueryParams = options.queryArgs || {};
     const urlQueryKeys = Object.keys(urlQueryParams);
 
+    // Resolve relative URL's
+    if (url.indexOf('://') === -1) {
+        // No protocol, assume relative URL and resolve against location.href
+        url = new URL(url, location.href).href;
+    }
+
+    // Add-on querystring arguments
     const queryParams: string[] = [];
     Object.keys(urlQueryParams).forEach(param => {
         const value = urlQueryParams[param];
@@ -223,9 +239,31 @@ function getUrl(options: WindowData): string {
     return url;
 }
 
+function getWindowPosition(options: WindowData): {defaultCentered?: boolean; defaultLeft?: number; defaultTop?: number} {
+    const {position} = options;
+
+    if (position === 'center') {
+        // Position in center of screen
+        return {defaultCentered: true};
+    } else if (position) {
+        // Position in fixed x/y position
+        const out: {defaultLeft?: number; defaultTop?: number} = {};
+        if (position.x !== undefined) {
+            out.defaultLeft = position.x;
+        }
+        if (position.y !== undefined) {
+            out.defaultTop = position.y;
+        }
+        return out;
+    } else {
+        // Use system-default positioning
+        return {};
+    }
+}
+
 function getWindowSize(options: WindowData): Point {
     return {
-        x: (options.size && options.size.x || 1024) * (1 + (Math.random() * (options.sizeOffset || 0))),
-        y: (options.size && options.size.y || 800) * (1 + (Math.random() * (options.sizeOffset || 0)))
+        x: (options.size && options.size.x || 400) * (1 + (Math.random() * (options.sizeOffset || 0))),
+        y: (options.size && options.size.y || 300) * (1 + (Math.random() * (options.sizeOffset || 0)))
     };
 }

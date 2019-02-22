@@ -681,8 +681,6 @@ export class DesktopTabGroup implements DesktopEntity {
     private async onTabGroupTeardown(): Promise<void> {
         if (!this._closingOnTabRemoval) {
             return this.removeAllTabs(true);
-        } else {
-            return Promise.resolve();
         }
     }
 

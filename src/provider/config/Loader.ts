@@ -126,7 +126,7 @@ export class Loader<T> {
      * which is returned from `getInfo`. In these cases, we often wish to use this 'intended' parentUuid, rather
      * than the actual underlying parent UUID.
      *
-     * Returns undefined if requested app doesn't exist within the cache, or if the parent/parentUUID of the app is
+     * Returns undefined if requested app doesn't exist within the cache, or if the parent/parentUuid of the app is
      * not known.
      *
      * @param appUuid Application to query for cached parent UUID

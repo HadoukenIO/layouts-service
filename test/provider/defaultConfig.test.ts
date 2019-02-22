@@ -103,7 +103,7 @@ test('Creating a child app from manifest has no effect on parent config lifespan
     await Promise.all(childApps.map(app => app.close()));
 });
 
-test('Loader will override parentUuid\'s with data in workspace when building app hierarchy', async (t: TestContext) => {
+test('Loader will override parentUuids with data in workspace when building app hierarchy', async (t: TestContext) => {
     const {parent, childApps, childWindows} = await createAppWithChildren('programmatic');
 
     await createCloseAndRestoreLayout(t);
@@ -124,7 +124,7 @@ test('Loader will override parentUuid\'s with data in workspace when building ap
     await Promise.all(childApps.map(app => app.close()));
 });
 
-test('When saving a previously-restored workspace, the generated workspace will import parentUuid\'s from Loader', async (t: TestContext) => {
+test('When saving a previously-restored workspace, the generated workspace will import parentUuids from Loader', async (t: TestContext) => {
     const {parent, childApps} = await createAppWithChildren('programmatic');
 
     const workspace1 = await createCloseAndRestoreLayout(t);

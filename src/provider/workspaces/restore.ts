@@ -49,8 +49,8 @@ export const appReadyForRestore = async(uuid: string): Promise<void> => {
 export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> => {
     console.log('Restoring workspace:', payload);
 
-    // Ensure the loader links any apps being programmatically restored with their parentUUID at time of workspace
-    // generation, rather than their parentUUID now (which will be layouts-service)
+    // Ensure the loader links any apps being programmatically restored with their parentUuid at time of workspace
+    // generation, rather than their parentUuid now (which will be layouts-service)
     payload.apps.forEach((app: WorkspaceApp) => {
         if (app.parentUuid) {
             loader.overrideAppParent(app.uuid, app.parentUuid);

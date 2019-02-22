@@ -326,15 +326,7 @@ export class DesktopTabGroup implements DesktopEntity {
             }
         });
 
-        if (!activeTabId) {
-            // Set the desired tab as active
-            await this.switchTab(activeTab);
-        } else {
-            // Need to re-send tab-activated event to ensure tab is active within tabstrip
-            // TODO: See if this can be avoided
-            const event: TabActivatedEvent = {tabstripIdentity: this.identity, identity: activeTab.identity, type: 'tab-activated'};
-            this._window.sendEvent(event);
-        }
+        await this.switchTab(activeTab);
     }
 
     public async swapTab(tabToRemove: DesktopWindow, tabToAdd: DesktopWindow): Promise<void> {

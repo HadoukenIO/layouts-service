@@ -197,12 +197,16 @@ const createWorkspacePlaceholders = async(workspace: Workspace): Promise<void> =
             // Should de-tab here.
             const mainWindowModel = model.getWindow(app.mainWindow);
             await tabService.removeTab(app.mainWindow);
+
+            // Need to check its child windows here, if confirmed.
+            // Also calls removeTab and setSnapGroup on open child windows.
+            // These functions need to be in this order, otherwise child windows may re-attach (if removeTab is called on an application that it's tabbed to,
+            // leaving the child window as a remainingTab).
+            await childWindowPlaceholderCheckRunningApp(app, tabbedWindows, tabbedPlaceholdersToWindows, openWindows);
+
             if (mainWindowModel && mainWindowModel.snapGroup.length > 1) {
                 await mainWindowModel.setSnapGroup(new DesktopSnapGroup());
             }
-
-            // Need to check its child windows here, if confirmed.
-            await childWindowPlaceholderCheckRunningApp(app, tabbedWindows, tabbedPlaceholdersToWindows, openWindows);
         } else {
             if (inWindowObject(app.mainWindow, tabbedWindows)) {
                 await createTabbedPlaceholderAndRecord(app.mainWindow, tabbedPlaceholdersToWindows);

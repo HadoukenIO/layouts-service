@@ -14,7 +14,7 @@
         "enableAppLogging": true
     },
     "runtime": {
-        "arguments": "--enable-aggressive-domstorage-flushing --high-dpi-support=1 --force-device-scale-factor=1",
+        "arguments": "--enable-aggressive-domstorage-flushing",
         "version": "9.61.38.40"
     }
 }

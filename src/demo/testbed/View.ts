@@ -19,7 +19,6 @@ export interface Elements {
     createTabGroup: HTMLButtonElement;
     removeTab: HTMLButtonElement;
     closeTab: HTMLButtonElement;
-    filterTabs: HTMLInputElement;
     maximizeTabGroup: HTMLButtonElement;
     minimizeTabGroup: HTMLButtonElement;
     restoreTabGroup: HTMLButtonElement;
@@ -102,7 +101,6 @@ export class View {
             createTabGroup: document.getElementById('createTabGroup') as HTMLButtonElement,
             removeTab: document.getElementById('removeTab') as HTMLButtonElement,
             closeTab: document.getElementById('closeTab') as HTMLButtonElement,
-            filterTabs: document.getElementById('filterTabs') as HTMLInputElement,
             maximizeTabGroup: document.getElementById('maximizeTabGroup') as HTMLButtonElement,
             minimizeTabGroup: document.getElementById('minimizeTabGroup') as HTMLButtonElement,
             restoreTabGroup: document.getElementById('restoreTabGroup') as HTMLButtonElement,

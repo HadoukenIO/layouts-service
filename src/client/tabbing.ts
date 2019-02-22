@@ -300,7 +300,7 @@ export async function createTabGroup(identities: Identity[], activeTab?: Identit
  * // Tab App1 to App2
  * tabbing.tabWindowToWindow({uuid: 'App1', name: 'App1'}, {uuid: 'App2', name: 'App2'});
  * ```
- * 
+ *
  * @param windowToAdd The identity of the window to add to the tab group.
  * @param targetWindow The identity of the window to create a tab group on.
  * @throws `Error`: If the {@link ApplicationUIConfig| App Config} does not match between the target and window to add.

@@ -4,7 +4,7 @@ import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus
 
 import {AddTabPayload, CreateTabGroupPayload, RegisterAPI, SERVICE_CHANNEL, SetTabstripPayload, SnapAndDockAPI, TabAPI, UpdateTabPropertiesPayload, WorkspaceAPI} from '../client/internal';
 
-import {MessageMap, ErrorType, createError} from './APIMessages';
+import {createError, ErrorType, MessageMap} from './APIMessages';
 import {ConfigStore} from './main';
 import {DesktopModel} from './model/DesktopModel';
 import {DesktopTabGroup} from './model/DesktopTabGroup';
@@ -118,7 +118,7 @@ export class APIHandler {
             this._model.register(identity, {level: 'window', uuid: id.uuid, name: id.name || id.uuid});
         } catch (error) {
             console.error(error);
-            throw new Error(createError(ErrorType.UNEXPECTED, {action: "registering", error}));
+            throw new Error(createError(ErrorType.UNEXPECTED, {action: 'registering', error}));
         }
     }
 
@@ -127,7 +127,7 @@ export class APIHandler {
             this._model.deregister(identity, {level: 'window', uuid: id.uuid, name: id.name || id.uuid});
         } catch (error) {
             console.error(error);
-            throw new Error(createError(ErrorType.UNEXPECTED, {action: "deregistering", error}));
+            throw new Error(createError(ErrorType.UNEXPECTED, {action: 'deregistering', error}));
         }
     }
 
@@ -316,7 +316,7 @@ export class APIHandler {
     private startDrag(identity: WindowIdentity, source: ProviderIdentity): void {
         const tab: DesktopWindow|null = this._model.getWindow(identity);
         const group: DesktopTabGroup|null = tab && tab.tabGroup;
-        
+
         if (!tab) {
             throw new Error(createError(ErrorType.NO_WINDOW, identity));
         }

@@ -7,11 +7,11 @@
  *
  */
 import {WorkspaceAPI} from '../client/internal';
+import {WindowIdentity} from '../client/main';
 import {EventMap as SnapAndDockEventMap} from '../client/snapanddock';
 import {EventMap as TabbingEventMap} from '../client/tabbing';
 import {EventMap as TabstripEventMap} from '../client/tabstrip';
 import {EventMap as WorkspacesEventMap, WorkspaceApp} from '../client/workspaces';
-import { WindowIdentity } from '../client/main';
 
 /**
  * Sets the channel topic used to send events to the windows.  All windows which include the client will be listening to this topic name.
@@ -42,9 +42,7 @@ export enum ErrorType {
 }
 
 type ErrorMessageArgs = {
-    [ErrorType.NO_WINDOW]: WindowIdentity;
-    [ErrorType.NO_TAB_GROUP]: WindowIdentity;
-    [ErrorType.UNEXPECTED]: {action: string, error: string}
+    [ErrorType.NO_WINDOW]: WindowIdentity;[ErrorType.NO_TAB_GROUP]: WindowIdentity;[ErrorType.UNEXPECTED]: {action: string, error: string}
 };
 
 /**
@@ -59,9 +57,10 @@ export function createError<T extends keyof ErrorMessageArgs>(msg: T, args: Erro
         return `Unexpected error when ${args.action}: ${args.error}`;
     }
 
-    return "Unknown Error";
+    return 'Unknown Error';
 }
 
-function isMsg<T extends keyof ErrorMessageArgs>(expectedType: T, msgType: ErrorType, args: ErrorMessageArgs[keyof ErrorMessageArgs]): args is ErrorMessageArgs[T] {
+function isMsg<T extends keyof ErrorMessageArgs>(
+    expectedType: T, msgType: ErrorType, args: ErrorMessageArgs[keyof ErrorMessageArgs]): args is ErrorMessageArgs[T] {
     return msgType === expectedType;
 }

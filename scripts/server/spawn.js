@@ -12,21 +12,26 @@ const {PORT, CDN_LOCATION} = require('./config');
 function createCustomManifestMiddleware() {
     return async (req, res, next) => {
         const defaultConfig = await readJsonFile(path.resolve('res/demo/app.json')).catch(next);
-        const {uuid, url, frame, defaultWidth, defaultHeight, realmName, enableMesh, runtime, useService, defaultCentered, defaultLeft, defaultTop, provider, config} = {
+        const {uuid, url, frame, defaultCentered, defaultLeft, defaultTop, defaultWidth, defaultHeight, realmName, enableMesh, runtime, useService, provider, config} = {
+            // Set default values
             uuid: `demo-app-${Math.random().toString(36).substr(2, 4)}`,
+            url: `http://localhost:${PORT}/demo/testbed/index.html`,
             runtime: defaultConfig.runtime.version,
             provider: 'local',
-            url: `http://localhost:${PORT}/demo/testbed/index.html`,
             config: null,
+
+            // Override with query args
             ...req.query,
+
+            // Special handling for any non-string args (both parses query string args, and defines default values)
+            frame: req.query.frame !== 'false',
+            enableMesh: req.query.enableMesh !== 'false',
+            useService: req.query.useService !== 'false',
             defaultCentered: req.query.defaultCentered === 'true',
             defaultLeft: parseInt(req.query.defaultLeft) || 860,
             defaultTop: parseInt(req.query.defaultTop) || 605,
             defaultWidth: parseInt(req.query.defaultWidth) || 860,
-            defaultHeight: parseInt(req.query.defaultHeight) || 605,
-            frame: req.query.frame !== 'false',
-            enableMesh: req.query.enableMesh !== 'false',
-            useService: req.query.useService !== 'false'
+            defaultHeight: parseInt(req.query.defaultHeight) || 605
         };
 
         const manifest = {

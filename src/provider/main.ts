@@ -8,8 +8,8 @@ import {DesktopTabGroup} from './model/DesktopTabGroup';
 import {SnapService} from './snapanddock/SnapService';
 import {win10Check} from './snapanddock/utils/platform';
 import {TabService} from './tabbing/TabService';
-import {WindowHandler} from './WindowHandler';
 import {createErrorBox} from './utils/error';
+import {WindowHandler} from './WindowHandler';
 
 export type ConfigStore = Store<ConfigurationObject>;
 
@@ -33,16 +33,17 @@ declare const window: Window&{
 fin.desktop.main(main);
 
 export async function main() {
-
     const monitorInfo = await fin.System.getMonitorInfo();
-    
-    if (monitorInfo.deviceScaleFactor !== 1){
+
+    // Disable the service if display scaling is not 100%
+    if (monitorInfo.deviceScaleFactor !== 1) {
         console.error('Desktop has non-standard display scaling. Notifying user and disabling all layouts functionality.');
 
-        const errorMessage = 'LAYOUTS_DISPLAY_SCALING_ERROR_MESSAGE';
-        const title = 'LAYOUTS_DISPLAY_SCALING_ERROR_TITLE';
+        const errorMessage =
+            'OpenFin Layouts will not work with monitor which are not set to 100% a scaling ratio. This can be changed in monitor or display settings. \n\nPlease contact <a href="mailto:support@openfin.co">support@openfin.co</a> with any further questions.';
+        const title = 'OpenFin Layouts Notice';
         await createErrorBox(title, errorMessage);
-        return;
+        return;  // NOTE: Service will still be running, but will not function.
     }
 
     config = window.config = new Store(require('../../gen/provider/config/defaults.json'));
@@ -60,4 +61,3 @@ export async function main() {
     await win10Check;
     await apiHandler.registerListeners();
 }
-

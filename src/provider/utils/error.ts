@@ -6,25 +6,20 @@ export async function createErrorBox(title: string, message: string) {
         name: uuid,
         mainWindowOptions: {
             icon: window.location.origin + '/provider/errors/error-icon.png',
-            defaultHeight: 150, // size increased later to fully fit error message
+            defaultHeight: 150,  // size increased later to fully fit error message
             defaultWidth: 570,
             defaultCentered: true,
             saveWindowState: false,
             showTaskbarIcon: false,
-            autoShow: false, // shown later after resizing is done
+            autoShow: false,  // shown later after resizing is done
             alwaysOnTop: true,
             resizable: false,
             contextMenu: false,
             minimizable: false,
             maximizable: false,
             nonPersistent: true,
-            experimental: {
-                v2Api: true
-            },
-            customData: {
-                error: message,
-                title
-            }
+            experimental: {v2Api: true},
+            customData: {error: message, title}
         }
     });
     await errorApp.run();

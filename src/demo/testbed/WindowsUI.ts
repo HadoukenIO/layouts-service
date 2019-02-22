@@ -66,13 +66,6 @@ export class WindowsUI {
 
         // Initialise plugins
         $('[data-toggle="tooltip"]').tooltip();
-        $('#inputURL').editableSelect({filter: false}).on('select.editable-select', () => {
-            const isTestbed = ($('#inputURL').val().endsWith('/demo/testbed/index.html'));
-            elements.inputSection.disabled = !isTestbed;
-        });
-
-        // The editableSelect plugin will replace this element within the DOM.
-        elements.inputURL = $('#inputURL');
 
         this._configInputs = {
             enabled: elements.configEnabled,
@@ -126,6 +119,10 @@ export class WindowsUI {
             this.updateConfig();
             $('#modalCreate').modal('show');
         });
+        elements.inputURL.onchange = () => {
+            const isTestbed = elements.inputURL.value.endsWith('/demo/testbed/index.html');
+            elements.inputSection.disabled = !isTestbed;
+        };
         elements.inputManifestTab.onclick = () => {
             elements.inputManifestTab.classList.add('active');
             elements.inputProgrammaticTab.classList.remove('active');

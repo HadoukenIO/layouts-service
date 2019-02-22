@@ -148,9 +148,9 @@ async function resetProviderState(t: TestContext): Promise<void> {
         if (watches.length !== expectedWatcherCount) {
             msgs.push(`Had ${watches.length} config watchers registered, expected ${expectedWatcherCount}`);
         }
-        if (Object.keys(loaderApps).length > 0) {
+        if (Object.keys(loaderApps).filter(uuid => uuid !== 'TEST').length > 0) {
             const loaderInfo = JSON.stringify(loaderApps, null, 4).replace(/\n/g, SEPARATOR_LINE);
-            msgs.push(`Expected loader's appState cache to be empty, contains:${SEPARATOR_LINE}${loaderInfo}`);
+            msgs.push(`Expected loader's appState cache to be empty (except for TEST), contains:${SEPARATOR_LINE}${loaderInfo}`);
         }
         if (loaderWindows.length !== 1 || loaderWindows[0] !== 'window:testApp/testApp') {
             const loaderInfo = loaderWindows.join(SEPARATOR_LIST);

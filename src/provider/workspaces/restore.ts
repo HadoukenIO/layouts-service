@@ -5,7 +5,7 @@ import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 import {WorkspaceAPI} from '../../client/internal';
 import {TabGroup, Workspace, WorkspaceApp, WorkspaceRestoredEvent} from '../../client/workspaces';
 import {EVENT_CHANNEL_TOPIC} from '../APIMessages';
-import {apiHandler, model, tabService} from '../main';
+import {apiHandler, loader, model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {promiseMap} from '../snapanddock/utils/async';
 
@@ -48,6 +48,14 @@ export const appReadyForRestore = async(uuid: string): Promise<void> => {
 
 export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> => {
     console.log('Restoring workspace:', payload);
+
+    // Ensure the loader links any apps being programmatically restored with their parentUuid at time of workspace
+    // generation, rather than their parentUuid now (which will be layouts-service)
+    payload.apps.forEach((app: WorkspaceApp) => {
+        if (app.parentUuid) {
+            loader.overrideAppParent(app.uuid, app.parentUuid);
+        }
+    });
 
     if (restoreExclusivityToken !== null) {
         throw new Error('Attempting to restore while restore in progress');

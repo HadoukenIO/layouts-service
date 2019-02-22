@@ -7,7 +7,7 @@ import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 import {WorkspaceAPI} from '../../client/internal';
 import {CustomData, TabGroup, WindowState, Workspace, WorkspaceApp, WorkspaceGeneratedEvent, WorkspaceWindow} from '../../client/workspaces';
 import {EVENT_CHANNEL_TOPIC} from '../APIMessages';
-import {apiHandler, model, tabService} from '../main';
+import {apiHandler, loader, model, tabService} from '../main';
 import {WindowIdentity} from '../model/DesktopWindow';
 import {promiseMap} from '../snapanddock/utils/async';
 
@@ -104,6 +104,11 @@ export const getCurrentWorkspace = async(): Promise<Workspace> => {
                 console.log('Appinfo Error', e);
                 return {} as ApplicationInfo;
             });
+
+            // Override parentUuid with any data in config loader, in case this is a programmatic app created from a previous restore
+            if (appInfo.hasOwnProperty('parentUuid')) {
+                appInfo.parentUuid = loader.getAppParent(uuid) || appInfo.parentUuid;
+            }
 
             // Grab the layout information for the main app window
             const mainOfWin: Window = await ofApp.getWindow();

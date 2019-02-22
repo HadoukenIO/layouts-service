@@ -64,6 +64,9 @@ export class WindowsUI {
         this._selectedRule = null;
         this._rules = [];
 
+        // Initialise plugins
+        $('[data-toggle="tooltip"]').tooltip();
+
         this._configInputs = {
             enabled: elements.configEnabled,
             snap: elements.configSnap,
@@ -116,6 +119,10 @@ export class WindowsUI {
             this.updateConfig();
             $('#modalCreate').modal('show');
         });
+        elements.inputURL.onchange = () => {
+            const isTestbed = elements.inputURL.value.endsWith('/demo/testbed/index.html');
+            elements.inputSection.disabled = !isTestbed;
+        };
         elements.inputManifestTab.onclick = () => {
             elements.inputManifestTab.classList.add('active');
             elements.inputProgrammaticTab.classList.remove('active');
@@ -187,12 +194,6 @@ export class WindowsUI {
             const uuids = info.filter(i => i.isRunning).map(i => i.uuid).sort();
             uuids.forEach(addToDropdown);
         });
-
-        $('#inputURL').editableSelect({filter: false}).on('select.editable-select', () => {
-            const isTestbed = ($('#inputURL').val().endsWith('/demo/testbed/index.html'));
-            elements.inputSection.disabled = !isTestbed;
-        });
-        $('[data-toggle="tooltip"]').tooltip();
     }
 
     private get isManifest(): boolean {
@@ -211,10 +212,10 @@ export class WindowsUI {
             // Create new application
             const isManifest: boolean = this.isManifest;
             const data: AppData = this.getInputs<AppData>(isManifest ? this._manifestInputs : this._programmaticInputs);
-            await createApp({type: isManifest ? 'manifest' : 'programmatic', ...data});
+            await createApp({position: 'center', type: isManifest ? 'manifest' : 'programmatic', ...data});
         } else {
             const data: WindowData = this.getInputs<WindowData>(this._programmaticInputs);
-            await createWindow(data);
+            await createWindow({position: 'center', ...data});
         }
 
         this.updateID();

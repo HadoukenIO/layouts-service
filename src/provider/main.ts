@@ -33,7 +33,7 @@ fin.desktop.main(main);
 
 export async function main() {
     config = window.config = new Store(require('../../gen/provider/config/defaults.json'));
-    loader = window.loader = new Loader(config, 'layouts');
+    loader = window.loader = new Loader(config, 'layouts', {enabled: false});
     model = window.model = new DesktopModel(config);
     windowHandler = new WindowHandler(model);
     snapService = window.snapService = new SnapService(model, config);

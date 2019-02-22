@@ -110,7 +110,7 @@ export class TabbingUI {
             this._log.addApiCall(promise, tabbing.tabSelfTo, identity);
         };
 
-        this._tabToSelf = new Dropdown(elements.tabSelfTo, elements.tabSelfToDropdown);
+        this._tabToSelf = new Dropdown(elements.tabToSelf, elements.tabToSelfDropdown);
         this._tabToSelf.header = 'All Windows';
         this._tabToSelf.placeholder = 'No Windows';
         this._tabToSelf.dataProvider = this.getAllWindows.bind(this);

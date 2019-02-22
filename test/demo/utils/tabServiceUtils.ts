@@ -121,7 +121,7 @@ export async function getActiveTab(identity: Identity): Promise<Identity> {
  * Send a message to the service requesting a provided tabs properties be updated, aka updateTabProperties API call.
  */
 export async function updateTabProperties(identity: Identity, properties: Partial<TabProperties>) {
-    await sendServiceMessage<UpdateTabPropertiesPayload, void>(TabAPI.UPDATETABPROPERTIES, {window: identity, properties});
+    await sendServiceMessage<UpdateTabPropertiesPayload, void>(TabAPI.UPDATETABPROPERTIES, {window: identity as WindowIdentity, properties});
 }
 
 export async function getTabGroupState(identity: Identity): Promise<WindowState> {

@@ -14,11 +14,11 @@ export interface Elements {
     // API buttons
     undockGroup: HTMLButtonElement;
     undockWindow: HTMLButtonElement;
-    addTab: HTMLButtonElement;
+    tabToSelf: HTMLButtonElement;
+    tabSelfTo: HTMLButtonElement;
     createTabGroup: HTMLButtonElement;
     removeTab: HTMLButtonElement;
     closeTab: HTMLButtonElement;
-    filterTabs: HTMLInputElement;
     maximizeTabGroup: HTMLButtonElement;
     minimizeTabGroup: HTMLButtonElement;
     restoreTabGroup: HTMLButtonElement;
@@ -27,7 +27,8 @@ export interface Elements {
     reregister: HTMLButtonElement;
 
     // Dropdown content
-    addTabDropdown: HTMLDivElement;
+    tabToSelfDropdown: HTMLDivElement;
+    tabSelfToDropdown: HTMLDivElement;
     createTabGroupDropdown: HTMLDivElement;
 
     // Form triggers
@@ -95,18 +96,19 @@ export class View {
         return {
             undockGroup: document.getElementById('undockGroup') as HTMLButtonElement,
             undockWindow: document.getElementById('undockWindow') as HTMLButtonElement,
-            addTab: document.getElementById('addTab') as HTMLButtonElement,
+            tabToSelf: document.getElementById('tabToSelf') as HTMLButtonElement,
+            tabSelfTo: document.getElementById('tabSelfTo') as HTMLButtonElement,
             createTabGroup: document.getElementById('createTabGroup') as HTMLButtonElement,
             removeTab: document.getElementById('removeTab') as HTMLButtonElement,
             closeTab: document.getElementById('closeTab') as HTMLButtonElement,
-            filterTabs: document.getElementById('filterTabs') as HTMLInputElement,
             maximizeTabGroup: document.getElementById('maximizeTabGroup') as HTMLButtonElement,
             minimizeTabGroup: document.getElementById('minimizeTabGroup') as HTMLButtonElement,
             restoreTabGroup: document.getElementById('restoreTabGroup') as HTMLButtonElement,
             closeTabGroup: document.getElementById('closeTabGroup') as HTMLButtonElement,
             deregister: document.getElementById('deregister') as HTMLButtonElement,
             reregister: document.getElementById('reregister') as HTMLButtonElement,
-            addTabDropdown: document.getElementById('addTabDropdown') as HTMLDivElement,
+            tabToSelfDropdown: document.getElementById('tabToSelfDropdown') as HTMLDivElement,
+            tabSelfToDropdown: document.getElementById('tabSelfToDropdown') as HTMLDivElement,
             createTabGroupDropdown: document.getElementById('createTabGroupDropdown') as HTMLDivElement,
             createApplication: document.getElementById('createApplication') as HTMLButtonElement,
             createWindow: document.getElementById('createWindow') as HTMLButtonElement,

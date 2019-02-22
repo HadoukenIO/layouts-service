@@ -2,10 +2,9 @@ import {Identity} from 'hadouken-js-adapter';
 import {Action, ProviderIdentity} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/channel';
 import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
 
-import {RegisterAPI, SERVICE_CHANNEL, SnapAndDockAPI, TabAPI, WorkspaceAPI} from '../client/internal';
-import {ApplicationUIConfig, TabProperties} from '../client/tabbing';
+import {AddTabPayload, CreateTabGroupPayload, RegisterAPI, SERVICE_CHANNEL, SetTabstripPayload, SnapAndDockAPI, TabAPI, UpdateTabPropertiesPayload, WorkspaceAPI} from '../client/internal';
 
-import {MessageMap} from './APIMessages';
+import {ErrorType, getErrorMessage, MessageMap} from './APIMessages';
 import {ConfigStore} from './main';
 import {DesktopModel} from './model/DesktopModel';
 import {DesktopTabGroup} from './model/DesktopTabGroup';
@@ -94,7 +93,7 @@ export class APIHandler {
         this.registerListener(TabAPI.SETACTIVETAB, this.setActiveTab);
         this.registerListener(TabAPI.SETTABSTRIP, this.setTabstrip);
         this.registerListener(TabAPI.UPDATETABPROPERTIES, this.updateTabProperties);
-        this.registerListener(TabAPI.ADDTAB, this.addTab);
+        this.registerListener(TabAPI.TAB_WINDOW_TO_WINDOW, this.addTab);
     }
 
     private registerListener(topic: string, handler: Action) {
@@ -119,7 +118,7 @@ export class APIHandler {
             this._model.register(identity, {level: 'window', uuid: id.uuid, name: id.name || id.uuid});
         } catch (error) {
             console.error(error);
-            throw new Error(`Unexpected error when registering: ${error}`);
+            throw new Error(getErrorMessage(ErrorType.UNEXPECTED, {action: 'registering', error}));
         }
     }
 
@@ -128,7 +127,7 @@ export class APIHandler {
             this._model.deregister(identity, {level: 'window', uuid: id.uuid, name: id.name || id.uuid});
         } catch (error) {
             console.error(error);
-            throw new Error(`Unexpected error when deregistering: ${error}`);
+            throw new Error(getErrorMessage(ErrorType.UNEXPECTED, {action: 'deregistering', error}));
         }
     }
 
@@ -144,7 +143,7 @@ export class APIHandler {
         appReadyForRestore(identity.uuid);
     }
 
-    private setTabstrip(payload: {config: ApplicationUIConfig, id: Identity}) {
+    private setTabstrip(payload: SetTabstripPayload) {
         this._config.add({level: 'application', uuid: payload.id.uuid}, {tabstrip: payload.config});
     }
 
@@ -159,42 +158,47 @@ export class APIHandler {
         return group.tabs.map(tab => tab.identity);
     }
 
-    private async createTabGroup(tabs: WindowIdentity[]): Promise<void> {
-        return this._tabService.createTabGroupWithTabs(tabs);
+    private async createTabGroup(payload: CreateTabGroupPayload): Promise<void> {
+        return this._tabService.createTabGroupWithTabs(payload.windows, payload.activeTab);
     }
 
-    private async addTab(payload: {targetWindow: WindowIdentity, windowToAdd: WindowIdentity}): Promise<void> {
+    private async addTab(payload: AddTabPayload): Promise<void> {
         const tabToAdd: DesktopWindow|null = this._model.getWindow(payload.windowToAdd);
         const targetTab: DesktopWindow|null = this._model.getWindow(payload.targetWindow);
-        const targetGroup: DesktopTabGroup|null = targetTab && targetTab.tabGroup;
 
-        if (!targetGroup) {
-            console.error('Target Window not in a group. Try createTabGroup instead.');
-            throw new Error('Target Window not in a group. Try createTabGroup instead.');
-        }
         if (!tabToAdd) {
-            console.error('Could not find \'windowToAdd\'.');
-            throw new Error('Could not find \'windowToAdd\'.');
+            throw new Error(getErrorMessage(ErrorType.NO_WINDOW, payload.windowToAdd));
         }
 
-        if (this._tabService.canTabTogether(targetTab!, tabToAdd)) {
-            return targetGroup.addTab(tabToAdd);
+        if (!targetTab) {
+            throw new Error(getErrorMessage(ErrorType.NO_WINDOW, payload.targetWindow));
+        }
+
+        if (tabToAdd === targetTab) {
+            throw new Error('You cannot tab a window to itself.');
+        }
+
+        if (this._tabService.canTabTogether(targetTab, tabToAdd)) {
+            const targetGroup: DesktopTabGroup|null = targetTab.tabGroup;
+            if (targetGroup) {
+                return targetGroup.addTab(tabToAdd);
+            } else {
+                return this._tabService.createTabGroupWithTabs([payload.targetWindow, payload.windowToAdd], payload.windowToAdd);
+            }
         } else {
             console.error('The tabs provided have incompatible tabstrip URLs');
             throw new Error('The tabs provided have incompatible tabstrip URLs');
         }
     }
 
-    private removeTab(tab: WindowIdentity): Promise<void> {
+    private async removeTab(tab: WindowIdentity) {
         const ejectedTab: DesktopWindow|null = this._model.getWindow(tab);
         const tabGroup: DesktopTabGroup|null = ejectedTab && ejectedTab.tabGroup;
 
         if (tabGroup) {
             return tabGroup.removeTab(ejectedTab!);
         } else if (!ejectedTab) {
-            throw new Error(`No tab with ID ${tab ? `${tab.uuid}/${tab.name}` : tab}`);
-        } else {
-            throw new Error(`Tab with ID ${ejectedTab.id} doesn't belong to a tab group`);
+            throw new Error(getErrorMessage(ErrorType.NO_WINDOW, tab));
         }
     }
 
@@ -202,9 +206,12 @@ export class APIHandler {
         const tab: DesktopWindow|null = this._model.getWindow(tabId);
         const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
+        if (!tab) {
+            throw new Error(getErrorMessage(ErrorType.NO_WINDOW, tabId));
+        }
+
         if (!group) {
-            console.error('No tab group found for window');
-            throw new Error('No tab group found for window');
+            throw new Error(getErrorMessage(ErrorType.NO_TAB_GROUP, tabId));
         }
 
         return group.switchTab(tab!);
@@ -213,20 +220,23 @@ export class APIHandler {
     private async closeTab(tabId: WindowIdentity): Promise<void> {
         const tab: DesktopWindow|null = this._model.getWindow(tabId);
 
-        if (tab) {
-            return tab.close();
-        } else {
-            return Promise.reject(`No such tab: ${tabId}`);
+        if (!tab) {
+            throw new Error(getErrorMessage(ErrorType.NO_WINDOW, tabId));
         }
+
+        return tab.close();
     }
 
     private async minimizeTabGroup(tabId: WindowIdentity): Promise<void> {
         const tab: DesktopWindow|null = this._model.getWindow(tabId);
         const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
+        if (!tab) {
+            throw new Error(getErrorMessage(ErrorType.NO_WINDOW, tabId));
+        }
+
         if (!group) {
-            console.error('No tab group found for window');
-            throw new Error('No tab group found for window');
+            throw new Error(getErrorMessage(ErrorType.NO_TAB_GROUP, tabId));
         }
 
         return group.minimize();
@@ -236,9 +246,12 @@ export class APIHandler {
         const tab: DesktopWindow|null = this._model.getWindow(tabId);
         const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
+        if (!tab) {
+            throw new Error(getErrorMessage(ErrorType.NO_WINDOW, tabId));
+        }
+
         if (!group) {
-            console.error('No tab group found for window');
-            throw new Error('No tab group found for window');
+            throw new Error(getErrorMessage(ErrorType.NO_TAB_GROUP, tabId));
         }
 
         return group.maximize();
@@ -248,9 +261,12 @@ export class APIHandler {
         const tab: DesktopWindow|null = this._model.getWindow(tabId);
         const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
+        if (!tab) {
+            throw new Error(getErrorMessage(ErrorType.NO_WINDOW, tabId));
+        }
+
         if (!group) {
-            console.error('No tab group found for window');
-            throw new Error('No tab group found for window');
+            throw new Error(getErrorMessage(ErrorType.NO_TAB_GROUP, tabId));
         }
 
         // Group will be destroyed automatically once all tabs have finished closing
@@ -261,9 +277,12 @@ export class APIHandler {
         const tab: DesktopWindow|null = this._model.getWindow(tabId);
         const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
+        if (!tab) {
+            throw new Error(getErrorMessage(ErrorType.NO_WINDOW, tabId));
+        }
+
         if (!group) {
-            console.error('No tab group found for window');
-            throw new Error('No tab group found for window');
+            throw new Error(getErrorMessage(ErrorType.NO_TAB_GROUP, tabId));
         }
 
         return group.restore();
@@ -278,42 +297,32 @@ export class APIHandler {
         const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
         if (!group) {
-            console.error('No tab group found for window');
-            throw new Error('No tab group found for window');
+            throw new Error(getErrorMessage(ErrorType.NO_TAB_GROUP, tabstrip as WindowIdentity));
         }
 
         return group.reorderTabArray(newOrdering);
     }
 
-    private updateTabProperties(payload: {properties: Partial<TabProperties>, window: WindowIdentity}): void {
+    private updateTabProperties(payload: UpdateTabPropertiesPayload): void {
         const tab: DesktopWindow|null = this._model.getWindow(payload.window);
 
         if (!tab) {
-            console.error('No tab found for window');
-            throw new Error('No tab found for window');
-        } else {
-            return this._tabService.updateTabProperties(tab, payload.properties);
+            throw new Error(getErrorMessage(ErrorType.NO_WINDOW, payload.window));
         }
+
+        return this._tabService.updateTabProperties(tab, payload.properties);
     }
 
     private startDrag(identity: WindowIdentity, source: ProviderIdentity): void {
-        let tab: DesktopWindow|null;
-        let group: DesktopTabGroup|null;
+        const tab: DesktopWindow|null = this._model.getWindow(identity);
+        const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
-
-        // Previous client version had no payload. To avoid breaking changes, we
-        // default to the active tab if no window is specified.
-        if (!identity) {
-            group = this._model.getTabGroup(this._model.getId(source as WindowIdentity));
-            tab = group && group.activeTab;
-        } else {
-            tab = this._model.getWindow(identity);
-            group = tab && tab.tabGroup;
+        if (!tab) {
+            throw new Error(getErrorMessage(ErrorType.NO_WINDOW, identity));
         }
 
-        if (!group || !tab) {
-            console.error('Window is not registered for tabbing');
-            throw new Error('Window is not registered for tabbing');
+        if (!group) {
+            throw new Error(getErrorMessage(ErrorType.NO_TAB_GROUP, identity));
         }
 
         this._tabService.dragWindowManager.showWindow(tab);

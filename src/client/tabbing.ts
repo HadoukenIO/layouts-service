@@ -4,7 +4,7 @@
 import {Identity} from 'hadouken-js-adapter';
 
 import {eventEmitter, tryServiceDispatch} from './connection';
-import {AddTabPayload, getId, parseIdentity, SetTabstripPayload, TabAPI, UpdateTabPropertiesPayload} from './internal';
+import {AddTabPayload, CreateTabGroupPayload, getId, parseIdentity, SetTabstripPayload, TabAPI, UpdateTabPropertiesPayload} from './internal';
 import {WindowIdentity} from './main';
 
 /**
@@ -220,8 +220,6 @@ export function removeEventListener<K extends EventMap>(eventType: K['type'], li
 /**
  * Returns array of window identity references for tabs belonging to the tab group of the provided window context.
  *
- * If no `Identity` is provided as an argument, the current window context will be used.
- *
  * If there is no tab group associated with the window context, will resolve to null.
  * ```ts
  * import {tabbing} from 'openfin-layouts';
@@ -269,9 +267,7 @@ export async function setTabstrip(config: ApplicationUIConfig): Promise<void> {
 }
 
 /**
- * Given a set of windows, will create a tab group construct and UI around them.  The bounds and positioning of the first (applicable) window in the set will be
- *
- * used as the seed for the tab UI properties.
+ * Creates a tabgroup with the provided windows.  The first window in the set will be used to define the tab strips properties.  See {@link setTabstrip}.
  *
  * ```ts
  * import {tabbing} from 'openfin-layouts';
@@ -279,46 +275,49 @@ export async function setTabstrip(config: ApplicationUIConfig): Promise<void> {
  * tabbing.createTabGroup([{uuid: "App1", name: "App1"}, {uuid: "App2", name: "App2"}, {uuid: "App3", name: "App3"}]);
  * ```
  *
- * @param windows Array of windows which will be added to the new tab group.
- * @throws `Error`: If no windows is not an array or less than 2 windows were provided.
+ * @param identities Array of window {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identities} which will be added to the
+ * new tab group.
+ * @param activeTab The {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity} of the window to set as the active tab in
+ * the group.  If not provided, the first tab in the tab group will be set as the active tab.
+ * @throws `Error`: If one of the provided {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identities} is not valid.
+ * @throws `Error`: If duplicate {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identities} are provided.
+ * @throws `Error`: If the provided value is not an array or less than 2 windows identities were provided.
  */
-export async function createTabGroup(windows: Identity[]): Promise<void> {
-    return tryServiceDispatch<Identity[], void>(TabAPI.CREATETABGROUP, windows);
+export async function createTabGroup(identities: Identity[], activeTab?: Identity): Promise<void> {
+    const onlyIdentities = identities.map(id => parseIdentity(id));
+    const active = activeTab && parseIdentity(activeTab) || undefined;
+    return tryServiceDispatch<CreateTabGroupPayload, void>(TabAPI.CREATETABGROUP, {windows: onlyIdentities, activeTab: active});
 }
 
 /**
- * Adds current window context (or window specified in second arg)  to the tab group of the target window (first arg).
+ * Tabs two windows together.  If the targetWindow is already in a group, the tab will be added to that group.
  *
  * The added tab will be brought into focus.
  *
  * ```ts
  * import {tabbing} from 'openfin-layouts';
  *
- * // Tab self to App1.
- * tabbing.addTab({uuid: 'App1', name: 'App1'});
- *
- * // Tab App2 to App1.
- * tabbing.addTab({uuid: 'App1', name: 'App1'}. {uuid: 'App2', name: 'App2'});
+ * // Tab App1 to App2
+ * tabbing.tabWindowToWindow({uuid: 'App1', name: 'App1'}, {uuid: 'App2', name: 'App2'});
  * ```
  *
+ * @param windowToAdd The identity of the window to add to the tab group.
  * @param targetWindow The identity of the window to create a tab group on.
- * @param windowToAdd The identity of the window to add to the tab group.  If no `Identity` is provided as an argument the current window context will be used.
  * @throws `Error`: If the {@link ApplicationUIConfig| App Config} does not match between the target and window to add.
  * @throws `Error`: If the `targetWindow` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
  * @throws `Error`: If the `windowToAdd` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
- * @throws `Error`: If `identity` is not an existing tab in a tabstrip.
  */
-export async function addTab(targetWindow: Identity, windowToAdd: Identity = getId()): Promise<void> {
-    return tryServiceDispatch<AddTabPayload, void>(TabAPI.ADDTAB, {targetWindow: parseIdentity(targetWindow), windowToAdd: parseIdentity(windowToAdd)});
+export async function tabWindowToWindow(windowToAdd: Identity, targetWindow: Identity): Promise<void> {
+    return tryServiceDispatch<AddTabPayload, void>(TabAPI.TAB_WINDOW_TO_WINDOW, {targetWindow: parseIdentity(targetWindow), windowToAdd: parseIdentity(windowToAdd)});
 }
 
 /**
- * Removes the specified window context from its tab group.
+ * Removes the specified window context from its tab group.  This does not close the window.
  *
  * ```ts
  * import {tabbing} from 'openfin-layouts';
  *
- * // Remove the current context from its tab group.
+ * // Remove the window from its tab group.
  * tabbing.removeTab();
  *
  * // Remove another window from its tab group.
@@ -464,7 +463,7 @@ export async function restoreTabGroup(identity: Identity = getId()): Promise<voi
 }
 
 /**
- * Updates a tab's Properties on the Tab strip.  This includes the tabs title and icon.
+ * Updates a tab's properties. Properties for a tab include its title and icon when in a tab group.
  *
  * ```ts
  * import {tabbing} from 'openfin-layouts';
@@ -487,4 +486,46 @@ export async function updateTabProperties(properties: Partial<TabProperties>, id
         throw new Error('Properties are required');
     }
     return tryServiceDispatch<UpdateTabPropertiesPayload, void>(TabAPI.UPDATETABPROPERTIES, {window: parseIdentity(identity), properties});
+}
+
+/**
+ * Adds the provided window context as a tab to the current window context.
+ *
+ * The added tab will be brought into focus.
+ *
+ * ```ts
+ * import {tabbing} from 'openfin-layouts';
+ *
+ * // Tab App2 to current window.
+ * tabbing.tabToSelf({uuid: 'App2', name: 'App2'});
+ * ```
+ *
+ * @param Identity The identity of the window to add as a tab.
+ * @throws `Error`: If the {@link ApplicationUIConfig| App Config} does not match between the window to add and the current window context.
+ * @throws `Error`: If the `Identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
+ * @throws `Error`: If the `Identity` matches the calling windows `Identity`.
+ */
+export async function tabToSelf(identity: Identity) {
+    return tryServiceDispatch<AddTabPayload, void>(TabAPI.TAB_WINDOW_TO_WINDOW, {targetWindow: getId(), windowToAdd: parseIdentity(identity)});
+}
+
+/**
+ * Adds the current window context as a tab to the provided window context.
+ *
+ * The added tab will be brought into focus.
+ *
+ * ```ts
+ * import {tabbing} from 'openfin-layouts';
+ *
+ * // Tab current window to App1.
+ * tabbing.tabSelfTo({uuid: 'App1', name: 'App1'});
+ * ```
+ *
+ * @param Identity The identity of the window to add the current window context as a tab to.
+ * @throws `Error`: If the {@link ApplicationUIConfig| App Config} does not match between the window to add and the current window context.
+ * @throws `Error`: If the `Identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
+ * @throws `Error`: If the `Identity` matches the calling windows `Identity`.
+ */
+export async function tabSelfTo(identity: Identity) {
+    return tryServiceDispatch<AddTabPayload, void>(TabAPI.TAB_WINDOW_TO_WINDOW, {targetWindow: parseIdentity(identity), windowToAdd: getId()});
 }

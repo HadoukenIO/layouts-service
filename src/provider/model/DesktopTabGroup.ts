@@ -467,6 +467,9 @@ export class DesktopTabGroup implements DesktopEntity {
 
             await tab.applyProperties({hidden: false, state: tabState});
 
+            // Fixes flicker on tab switch caused by next window and previous window not showing or hiding before resolving its promise.
+            await new Promise(res => setTimeout(res, 75));
+
             if (focus) {
                 await tab.setAsForeground();
             }

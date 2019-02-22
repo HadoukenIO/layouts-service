@@ -16,7 +16,7 @@ import {ApplicationUIConfig, TabProperties} from './tabbing';
 /**
  * Cached window identity (@see getId)
  */
-let id: Identity;
+let id: WindowIdentity;
 
 /**
  * The identity of the main application window of the service provider
@@ -35,7 +35,7 @@ export const SERVICE_CHANNEL = 'of-layouts-service-v1';
 /**
  * Returns the identity of the window that is calling these functions
  */
-export function getId(): Identity {
+export function getId(): WindowIdentity {
     if (!id) {
         id = parseIdentity(fin.Window.me);
     }
@@ -48,7 +48,7 @@ export function getId(): Identity {
  *
  * Assumed that the supplied object has uuid & name.
  */
-export function parseIdentity(identity: WindowIdentity|Identity) {
+export function parseIdentity(identity: WindowIdentity|Identity): WindowIdentity {
     if (!identity || !identity.uuid) {
         throw new Error('Invalid Identity provided.  A valid Identity contains both a uuid and name');
     }
@@ -61,7 +61,7 @@ export enum TabAPI {
     CREATETABGROUP = 'CREATETABGROUP',
     SETTABSTRIP = 'SETTABSTRIP',
     GETTABS = 'GETTABS',
-    ADDTAB = 'ADDTAB',
+    TAB_WINDOW_TO_WINDOW = 'TAB_WINDOW_TO_WINDOW',
     REMOVETAB = 'REMOVETAB',
     SETACTIVETAB = 'SETACTIVETAB',
     MINIMIZETABGROUP = 'MINIMIZETABGROUP',
@@ -97,16 +97,21 @@ export type APITopic = TabAPI|WorkspaceAPI|SnapAndDockAPI|RegisterAPI;
 
 
 export interface SetTabstripPayload {
-    config: Partial<ApplicationUIConfig>;
-    id: Identity;
+    config: ApplicationUIConfig;
+    id: WindowIdentity;
 }
 
 export interface AddTabPayload {
-    targetWindow: Identity;
-    windowToAdd: Identity;
+    targetWindow: WindowIdentity;
+    windowToAdd: WindowIdentity;
 }
 
 export interface UpdateTabPropertiesPayload {
-    window: Identity;
+    window: WindowIdentity;
     properties: Partial<TabProperties>;
+}
+
+export interface CreateTabGroupPayload {
+    windows: WindowIdentity[];
+    activeTab?: WindowIdentity;
 }

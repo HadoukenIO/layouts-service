@@ -35,13 +35,13 @@ describe('Tabbing API Actions', () => {
             await expect(promise).rejects.toThrowError(ErrorMsgs.INVALID_IDENTITY);
         });
 
-        it('Calling with valid arguments sends a ADDTAB message', async () => {
+        it('Calling with valid arguments sends a TAB_WINDOW_TO_WINDOW message', async () => {
             const targetWindow: WindowIdentity = {uuid: 'some uuid', name: 'some name'};
             const currentWindow: WindowIdentity = {uuid: 'test', name: 'test'};
             const expectedPayload = {targetWindow, windowToAdd: currentWindow};
 
             await tabbing.tabSelfTo(targetWindow);
-            await expect(channelDispatch).toBeCalledWith(TabAPI.ADDTAB, expectedPayload);
+            await expect(channelDispatch).toBeCalledWith(TabAPI.TAB_WINDOW_TO_WINDOW, expectedPayload);
         });
     });
 

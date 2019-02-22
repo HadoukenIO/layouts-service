@@ -308,7 +308,7 @@ export async function createTabGroup(identities: Identity[], activeTab?: Identit
  * @throws `Error`: If the `windowToAdd` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
  */
 export async function tabWindowToWindow(windowToAdd: Identity, targetWindow: Identity): Promise<void> {
-    return tryServiceDispatch<AddTabPayload, void>(TabAPI.ADDTAB, {targetWindow: parseIdentity(targetWindow), windowToAdd: parseIdentity(windowToAdd)});
+    return tryServiceDispatch<AddTabPayload, void>(TabAPI.TAB_WINDOW_TO_WINDOW, {targetWindow: parseIdentity(targetWindow), windowToAdd: parseIdentity(windowToAdd)});
 }
 
 /**
@@ -506,7 +506,7 @@ export async function updateTabProperties(properties: Partial<TabProperties>, id
  * @throws `Error`: If the `Identity` matches the calling windows `Identity`.
  */
 export async function tabToSelf(identity: Identity) {
-    return tryServiceDispatch<AddTabPayload, void>(TabAPI.ADDTAB, {targetWindow: getId(), windowToAdd: parseIdentity(identity)});
+    return tryServiceDispatch<AddTabPayload, void>(TabAPI.TAB_WINDOW_TO_WINDOW, {targetWindow: getId(), windowToAdd: parseIdentity(identity)});
 }
 
 /**
@@ -527,5 +527,5 @@ export async function tabToSelf(identity: Identity) {
  * @throws `Error`: If the `Identity` matches the calling windows `Identity`.
  */
 export async function tabSelfTo(identity: Identity) {
-    return tryServiceDispatch<AddTabPayload, void>(TabAPI.ADDTAB, {targetWindow: parseIdentity(identity), windowToAdd: getId()});
+    return tryServiceDispatch<AddTabPayload, void>(TabAPI.TAB_WINDOW_TO_WINDOW, {targetWindow: parseIdentity(identity), windowToAdd: getId()});
 }

@@ -4,7 +4,7 @@ import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus
 
 import {AddTabPayload, CreateTabGroupPayload, RegisterAPI, SERVICE_CHANNEL, SetTabstripPayload, SnapAndDockAPI, TabAPI, UpdateTabPropertiesPayload, WorkspaceAPI} from '../client/internal';
 
-import {createError, ErrorType, MessageMap} from './APIMessages';
+import {ErrorType, getErrorMessage, MessageMap} from './APIMessages';
 import {ConfigStore} from './main';
 import {DesktopModel} from './model/DesktopModel';
 import {DesktopTabGroup} from './model/DesktopTabGroup';
@@ -93,7 +93,7 @@ export class APIHandler {
         this.registerListener(TabAPI.SETACTIVETAB, this.setActiveTab);
         this.registerListener(TabAPI.SETTABSTRIP, this.setTabstrip);
         this.registerListener(TabAPI.UPDATETABPROPERTIES, this.updateTabProperties);
-        this.registerListener(TabAPI.ADDTAB, this.addTab);
+        this.registerListener(TabAPI.TAB_WINDOW_TO_WINDOW, this.addTab);
     }
 
     private registerListener(topic: string, handler: Action) {
@@ -118,7 +118,7 @@ export class APIHandler {
             this._model.register(identity, {level: 'window', uuid: id.uuid, name: id.name || id.uuid});
         } catch (error) {
             console.error(error);
-            throw new Error(createError(ErrorType.UNEXPECTED, {action: 'registering', error}));
+            throw new Error(getErrorMessage(ErrorType.UNEXPECTED, {action: 'registering', error}));
         }
     }
 
@@ -127,7 +127,7 @@ export class APIHandler {
             this._model.deregister(identity, {level: 'window', uuid: id.uuid, name: id.name || id.uuid});
         } catch (error) {
             console.error(error);
-            throw new Error(createError(ErrorType.UNEXPECTED, {action: 'deregistering', error}));
+            throw new Error(getErrorMessage(ErrorType.UNEXPECTED, {action: 'deregistering', error}));
         }
     }
 
@@ -167,11 +167,11 @@ export class APIHandler {
         const targetTab: DesktopWindow|null = this._model.getWindow(payload.targetWindow);
 
         if (!tabToAdd) {
-            throw new Error(createError(ErrorType.NO_WINDOW, payload.windowToAdd));
+            throw new Error(getErrorMessage(ErrorType.NO_WINDOW, payload.windowToAdd));
         }
 
         if (!targetTab) {
-            throw new Error(createError(ErrorType.NO_WINDOW, payload.targetWindow));
+            throw new Error(getErrorMessage(ErrorType.NO_WINDOW, payload.targetWindow));
         }
 
         if (tabToAdd === targetTab) {
@@ -198,7 +198,7 @@ export class APIHandler {
         if (tabGroup) {
             return tabGroup.removeTab(ejectedTab!);
         } else if (!ejectedTab) {
-            throw new Error(createError(ErrorType.NO_WINDOW, tab));
+            throw new Error(getErrorMessage(ErrorType.NO_WINDOW, tab));
         }
     }
 
@@ -207,11 +207,11 @@ export class APIHandler {
         const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
         if (!tab) {
-            throw new Error(createError(ErrorType.NO_WINDOW, tabId));
+            throw new Error(getErrorMessage(ErrorType.NO_WINDOW, tabId));
         }
 
         if (!group) {
-            throw new Error(createError(ErrorType.NO_TAB_GROUP, tabId));
+            throw new Error(getErrorMessage(ErrorType.NO_TAB_GROUP, tabId));
         }
 
         return group.switchTab(tab!);
@@ -221,7 +221,7 @@ export class APIHandler {
         const tab: DesktopWindow|null = this._model.getWindow(tabId);
 
         if (!tab) {
-            throw new Error(createError(ErrorType.NO_WINDOW, tabId));
+            throw new Error(getErrorMessage(ErrorType.NO_WINDOW, tabId));
         }
 
         return tab.close();
@@ -232,11 +232,11 @@ export class APIHandler {
         const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
         if (!tab) {
-            throw new Error(createError(ErrorType.NO_WINDOW, tabId));
+            throw new Error(getErrorMessage(ErrorType.NO_WINDOW, tabId));
         }
 
         if (!group) {
-            throw new Error(createError(ErrorType.NO_TAB_GROUP, tabId));
+            throw new Error(getErrorMessage(ErrorType.NO_TAB_GROUP, tabId));
         }
 
         return group.minimize();
@@ -247,11 +247,11 @@ export class APIHandler {
         const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
         if (!tab) {
-            throw new Error(createError(ErrorType.NO_WINDOW, tabId));
+            throw new Error(getErrorMessage(ErrorType.NO_WINDOW, tabId));
         }
 
         if (!group) {
-            throw new Error(createError(ErrorType.NO_TAB_GROUP, tabId));
+            throw new Error(getErrorMessage(ErrorType.NO_TAB_GROUP, tabId));
         }
 
         return group.maximize();
@@ -262,11 +262,11 @@ export class APIHandler {
         const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
         if (!tab) {
-            throw new Error(createError(ErrorType.NO_WINDOW, tabId));
+            throw new Error(getErrorMessage(ErrorType.NO_WINDOW, tabId));
         }
 
         if (!group) {
-            throw new Error(createError(ErrorType.NO_TAB_GROUP, tabId));
+            throw new Error(getErrorMessage(ErrorType.NO_TAB_GROUP, tabId));
         }
 
         // Group will be destroyed automatically once all tabs have finished closing
@@ -278,11 +278,11 @@ export class APIHandler {
         const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
         if (!tab) {
-            throw new Error(createError(ErrorType.NO_WINDOW, tabId));
+            throw new Error(getErrorMessage(ErrorType.NO_WINDOW, tabId));
         }
 
         if (!group) {
-            throw new Error(createError(ErrorType.NO_TAB_GROUP, tabId));
+            throw new Error(getErrorMessage(ErrorType.NO_TAB_GROUP, tabId));
         }
 
         return group.restore();
@@ -297,7 +297,7 @@ export class APIHandler {
         const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
         if (!group) {
-            throw new Error(createError(ErrorType.NO_TAB_GROUP, tabstrip as WindowIdentity));
+            throw new Error(getErrorMessage(ErrorType.NO_TAB_GROUP, tabstrip as WindowIdentity));
         }
 
         return group.reorderTabArray(newOrdering);
@@ -307,7 +307,7 @@ export class APIHandler {
         const tab: DesktopWindow|null = this._model.getWindow(payload.window);
 
         if (!tab) {
-            throw new Error(createError(ErrorType.NO_WINDOW, payload.window));
+            throw new Error(getErrorMessage(ErrorType.NO_WINDOW, payload.window));
         }
 
         return this._tabService.updateTabProperties(tab, payload.properties);
@@ -318,11 +318,11 @@ export class APIHandler {
         const group: DesktopTabGroup|null = tab && tab.tabGroup;
 
         if (!tab) {
-            throw new Error(createError(ErrorType.NO_WINDOW, identity));
+            throw new Error(getErrorMessage(ErrorType.NO_WINDOW, identity));
         }
 
         if (!group) {
-            throw new Error(createError(ErrorType.NO_TAB_GROUP, identity));
+            throw new Error(getErrorMessage(ErrorType.NO_TAB_GROUP, identity));
         }
 
         this._tabService.dragWindowManager.showWindow(tab);

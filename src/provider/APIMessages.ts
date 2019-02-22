@@ -48,7 +48,7 @@ type ErrorMessageArgs = {
 /**
  * Generates a templated error message.  Does not throw an error.
  */
-export function createError<T extends keyof ErrorMessageArgs>(msg: T, args: ErrorMessageArgs[T]): string {
+export function getErrorMessage<T extends keyof ErrorMessageArgs>(msg: T, args: ErrorMessageArgs[T]): string {
     if (isMsg(ErrorType.NO_WINDOW, msg, args)) {
         return `Cannot find window ${args.uuid}/${args.name}.  It may be deregistered.`;
     } else if (isMsg(ErrorType.NO_TAB_GROUP, msg, args)) {

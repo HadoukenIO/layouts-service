@@ -275,12 +275,12 @@ export async function setTabstrip(config: ApplicationUIConfig): Promise<void> {
  * tabbing.createTabGroup([{uuid: "App1", name: "App1"}, {uuid: "App2", name: "App2"}, {uuid: "App3", name: "App3"}]);
  * ```
  *
- * @param identities Array of window {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Indentities} which will be added to the
+ * @param identities Array of window {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identities} which will be added to the
  * new tab group.
  * @param activeTab The {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity} of the window to set as the active tab in
  * the group.  If not provided, the first tab in the tab group will be set as the active tab.
- * @throws `Error`: If one of the provided {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Indentities} is not valid.
- * @throws `Error`: If duplicate {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Indentities} are provided.
+ * @throws `Error`: If one of the provided {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identities} is not valid.
+ * @throws `Error`: If duplicate {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identities} are provided.
  * @throws `Error`: If the provided value is not an array or less than 2 windows identities were provided.
  */
 export async function createTabGroup(identities: Identity[], activeTab?: Identity): Promise<void> {

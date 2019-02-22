@@ -21,17 +21,17 @@ beforeEach(async () => {
 describe('Tabbing API Actions', () => {
     describe('When calling addTab', () => {
         it('Calling with invalid identity rejects with error message', async () => {
-            const promise = tabbing.addTab(null!, null!);
+            const promise = tabbing.tabWindowToWindow(null!, null!);
             await expect(promise).rejects.toThrowError(ErrorMsgs.INVALID_IDENTITY);
         });
 
         it('Calling with invalid uuid rejects with error message', async () => {
-            const promise = tabbing.addTab({uuid: null!, name: 'somename'}, null!);
+            const promise = tabbing.tabWindowToWindow({uuid: null!, name: 'somename'}, null!);
             await expect(promise).rejects.toThrowError(ErrorMsgs.INVALID_IDENTITY);
         });
 
         it('Calling with invalid name rejects with error message', async () => {
-            const promise = tabbing.addTab({uuid: 'someuuid', name: null!}, null!);
+            const promise = tabbing.tabWindowToWindow({uuid: 'someuuid', name: null!}, null!);
             await expect(promise).rejects.toThrowError(ErrorMsgs.INVALID_IDENTITY);
         });
 
@@ -40,7 +40,7 @@ describe('Tabbing API Actions', () => {
             const currentWindow: WindowIdentity = {uuid: 'test', name: 'test'};
             const expectedPayload = {targetWindow, windowToAdd: currentWindow};
 
-            await tabbing.addTab(targetWindow);
+            await tabbing.tabSelfTo(targetWindow);
             await expect(channelDispatch).toBeCalledWith(TabAPI.ADDTAB, expectedPayload);
         });
     });

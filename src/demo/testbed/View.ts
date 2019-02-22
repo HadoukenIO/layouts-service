@@ -4,7 +4,7 @@ export interface Elements {
     // API buttons
     undockGroup: HTMLButtonElement;
     undockWindow: HTMLButtonElement;
-    addTab: HTMLButtonElement;
+    tabToSelf: HTMLButtonElement;
     tabSelfTo: HTMLButtonElement;
     createTabGroup: HTMLButtonElement;
     removeTab: HTMLButtonElement;
@@ -17,7 +17,7 @@ export interface Elements {
     reregister: HTMLButtonElement;
 
     // Dropdown content
-    addTabDropdown: HTMLDivElement;
+    tabToSelfDropdown: HTMLDivElement;
     tabSelfToDropdown: HTMLDivElement;
     createTabGroupDropdown: HTMLDivElement;
 
@@ -98,7 +98,7 @@ export class View {
         this._elements = {
             undockGroup: document.getElementById('undockGroup') as HTMLButtonElement,
             undockWindow: document.getElementById('undockWindow') as HTMLButtonElement,
-            addTab: document.getElementById('addTab') as HTMLButtonElement,
+            tabToSelf: document.getElementById('tabToSelf') as HTMLButtonElement,
             tabSelfTo: document.getElementById('tabSelfTo') as HTMLButtonElement,
             createTabGroup: document.getElementById('createTabGroup') as HTMLButtonElement,
             removeTab: document.getElementById('removeTab') as HTMLButtonElement,
@@ -109,7 +109,7 @@ export class View {
             closeTabGroup: document.getElementById('closeTabGroup') as HTMLButtonElement,
             deregister: document.getElementById('deregister') as HTMLButtonElement,
             reregister: document.getElementById('reregister') as HTMLButtonElement,
-            addTabDropdown: document.getElementById('addTabDropdown') as HTMLDivElement,
+            tabToSelfDropdown: document.getElementById('addTabDropdown') as HTMLDivElement,
             tabSelfToDropdown: document.getElementById('tabSelfToDropdown') as HTMLDivElement,
             createTabGroupDropdown: document.getElementById('createTabGroupDropdown') as HTMLDivElement,
             createApplication: document.getElementById('createApplication') as HTMLButtonElement,

@@ -84,7 +84,7 @@ export class TabService {
         // Checks duplicate entries in the provided array.
         tabIdentities.forEach(id => {
             if (tabIdentities.filter(filterId => filterId.name === id.name && filterId.uuid === filterId.uuid).length > 1) {
-                throw new Error('Duplicate identity found.  Provided identites must be unique.');
+                throw new Error(`Duplicate identity found: ${id.uuid}/${id.name} - Provided identites must be unique.`);
             }
         });
 

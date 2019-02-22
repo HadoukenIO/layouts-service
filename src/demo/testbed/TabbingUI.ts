@@ -68,7 +68,7 @@ class Dropdown {
 }
 
 export class TabbingUI {
-    private _addToGroup!: Dropdown;
+    private _tabToSelf!: Dropdown;
     private _tabSelfTo!: Dropdown;
     private _createGroup!: Dropdown;
 
@@ -110,11 +110,11 @@ export class TabbingUI {
             this._log.addApiCall(promise, tabbing.tabSelfTo, identity);
         };
 
-        this._addToGroup = new Dropdown(elements.addTab, elements.addTabDropdown);
-        this._addToGroup.header = 'All Windows';
-        this._addToGroup.placeholder = 'No Windows';
-        this._addToGroup.dataProvider = this.getAllWindows.bind(this);
-        this._addToGroup.onSelect = (identity: WindowIdentity) => {
+        this._tabToSelf = new Dropdown(elements.tabSelfTo, elements.tabSelfToDropdown);
+        this._tabToSelf.header = 'All Windows';
+        this._tabToSelf.placeholder = 'No Windows';
+        this._tabToSelf.dataProvider = this.getAllWindows.bind(this);
+        this._tabToSelf.onSelect = (identity: WindowIdentity) => {
             const promise: Promise<void> = tabbing.tabToSelf(identity);
 
             this._log.addApiCall(promise, tabbing.tabToSelf, identity);

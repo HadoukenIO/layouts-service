@@ -267,8 +267,7 @@ export async function setTabstrip(config: ApplicationUIConfig): Promise<void> {
 }
 
 /**
- * Creates a tabgroup with the provided windows.  The bounds and positioning of the first (applicable) window in the set will be used as the seed for the tab UI
- * properties.
+ * Creates a tabgroup with the provided windows.  The first window in the set will be used to define the tab strips properties.  See {@link setTabstrip}.
  *
  * ```ts
  * import {tabbing} from 'openfin-layouts';
@@ -282,7 +281,7 @@ export async function setTabstrip(config: ApplicationUIConfig): Promise<void> {
  * the group.  If not provided, the first tab in the tab group will be set as the active tab.
  * @throws `Error`: If one of the provided {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Indentities} is not valid.
  * @throws `Error`: If duplicate {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Indentities} are provided.
- * @throws `Error`: If no windows is not an array or less than 2 windows identities were provided.
+ * @throws `Error`: If the provided value is not an array or less than 2 windows identities were provided.
  */
 export async function createTabGroup(identities: Identity[], activeTab?: Identity): Promise<void> {
     const onlyIdentities = identities.map(id => parseIdentity(id));
@@ -301,9 +300,9 @@ export async function createTabGroup(identities: Identity[], activeTab?: Identit
  * // Tab App1 to App2
  * tabbing.tabWindowToWindow({uuid: 'App1', name: 'App1'}, {uuid: 'App2', name: 'App2'});
  * ```
- *
- * @param targetWindow The identity of the window to create a tab group on.
+ * 
  * @param windowToAdd The identity of the window to add to the tab group.
+ * @param targetWindow The identity of the window to create a tab group on.
  * @throws `Error`: If the {@link ApplicationUIConfig| App Config} does not match between the target and window to add.
  * @throws `Error`: If the `targetWindow` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
  * @throws `Error`: If the `windowToAdd` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
@@ -313,12 +312,12 @@ export async function tabWindowToWindow(windowToAdd: Identity, targetWindow: Ide
 }
 
 /**
- * Removes the specified window context from its tab group.
+ * Removes the specified window context from its tab group.  This does not close the window.
  *
  * ```ts
  * import {tabbing} from 'openfin-layouts';
  *
- * // Remove the window from its tab group.  This does not close the window.
+ * // Remove the window from its tab group.
  * tabbing.removeTab();
  *
  * // Remove another window from its tab group.
@@ -464,7 +463,7 @@ export async function restoreTabGroup(identity: Identity = getId()): Promise<voi
 }
 
 /**
- * Updates a tabs properties. Properties for a tab include its title and icon when in a tab group.
+ * Updates a tab's properties. Properties for a tab include its title and icon when in a tab group.
  *
  * ```ts
  * import {tabbing} from 'openfin-layouts';

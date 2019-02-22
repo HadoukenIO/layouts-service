@@ -1,6 +1,7 @@
 {
     "licenseKey": "64605fac-add3-48a0-8710-64b38e96a2dd",
     "devtools_port": 9091,
+    "offlineAccess": true,
     "startup_app": {
         "name": "layouts-service",
         "description": "OpenFin Layouts Managing Service",

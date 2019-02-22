@@ -281,7 +281,7 @@ export class DesktopModel {
             } else {
                 // Create new window object. Will get registered implicitly, due to signal within DesktopWindow constructor.
                 console.log('Registered window: ' + this.getId(identity));
-                return new DesktopWindow(this, new DesktopSnapGroup(), window, state);
+                return new DesktopWindow(this, window, state);
             }
         });
     }

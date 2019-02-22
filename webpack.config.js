@@ -128,6 +128,7 @@ module.exports = [
         main: './src/provider/main.ts',
         tabStrip: './src/provider/tabbing/tabstrip/main.ts'
     }, undefined, manifestPlugin, versionPlugin, schemaDefaultsPlugin, schemaTypesPlugin),
+    createConfig(`${outputDir}/provider`, './src/provider/ServiceWorker.js', {minify: true, outputFilename: "sw"}, versionPlugin),
     createConfig(`${outputDir}/demo`, {
         LayoutsUI: './src/demo/LayoutsUI.ts',
         testbed: './src/demo/testbed/index.ts',

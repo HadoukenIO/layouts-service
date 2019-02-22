@@ -2,8 +2,7 @@ import {snapAndDock} from '../../client/main';
 import {WindowDockedEvent, WindowUndockedEvent} from '../../client/snapanddock';
 
 import {EventsUI} from './EventsUI';
-import {Messages} from './index';
-import {Elements} from './View';
+import {Elements, Messages} from './View';
 
 export class SnapAndDockUI {
     private _buttons: HTMLButtonElement[];

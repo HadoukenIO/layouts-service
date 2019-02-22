@@ -1,7 +1,7 @@
 import {test, TestContext} from 'ava';
 import {Fin, Window} from 'hadouken-js-adapter';
 
-import {WindowIdentity} from '../../src/client/types';
+import {WindowIdentity} from '../../src/client/main';
 import {undockWindow} from '../demo/utils/snapServiceUtils';
 import {teardown} from '../teardown';
 

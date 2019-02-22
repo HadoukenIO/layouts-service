@@ -61,3 +61,7 @@ export async function main() {
     await win10Check;
     await apiHandler.registerListeners();
 }
+
+
+// Register the offline-mode service worker.
+navigator.serviceWorker.register('./sw.js', {scope: './'});

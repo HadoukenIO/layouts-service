@@ -1,12 +1,10 @@
 import {WindowInfo} from 'hadouken-js-adapter/out/types/src/api/system/window';
 
-import {tabbing} from '../../client/main';
+import {tabbing, WindowIdentity} from '../../client/main';
 import {TabAddedEvent, TabRemovedEvent} from '../../client/tabbing';
-import {WindowIdentity} from '../../client/types';
 
-import {Messages} from '.';
 import {EventsUI} from './EventsUI';
-import {Elements} from './View';
+import {Elements, Messages} from './View';
 
 class Dropdown {
     private _button: HTMLButtonElement;
@@ -32,6 +30,8 @@ class Dropdown {
 
     private async openDropdown(): Promise<void> {
         if (this.dataProvider) {
+            const data = await this.dataProvider();
+
             // Clear dropdown
             if (this.header) {
                 this._list.innerHTML = `<h6 class="dropdown-header border-bottom">${this.header}</h6>`;
@@ -40,7 +40,6 @@ class Dropdown {
             }
 
             // Populate dropdown
-            const data = await this.dataProvider();
             data.forEach((identity: WindowIdentity) => {
                 const element = document.createElement('a');
                 element.classList.add('dropdown-item');
@@ -71,8 +70,10 @@ class Dropdown {
 export class TabbingUI {
     private _addToGroup!: Dropdown;
     private _createGroup!: Dropdown;
+    private _buttons: HTMLButtonElement[];
 
     private _log: EventsUI;
+    private _elements: Elements;
 
     constructor(elements: Elements, log: EventsUI) {
         elements.removeTab.addEventListener('click', () => {
@@ -112,7 +113,7 @@ export class TabbingUI {
 
         this._createGroup = new Dropdown(elements.createTabGroup, elements.createTabGroupDropdown);
         this._createGroup.header = 'Untabbed Windows';
-        this._createGroup.placeholder = 'No Untabbed Windows<br />(Use \'Add to Tab Group\' or create another window)';
+        this._createGroup.placeholder = 'No untabbed Windows<br />(Use \'Add to Tab Group\' or create another window)';
         this._createGroup.dataProvider = this.getUntabbedWindows.bind(this);
         this._createGroup.onSelect = (identity: WindowIdentity) => {
             const promise: Promise<void> = tabbing.createTabGroup([fin.Window.me, identity]);
@@ -120,11 +121,15 @@ export class TabbingUI {
             this._log.addApiCall(promise, tabbing.createTabGroup, [fin.Window.me, identity]);
         };
 
+        this._buttons = [elements.removeTab, elements.closeTab];
         this._log = log;
+        this._elements = elements;
 
         this.onTabEvent = this.onTabEvent.bind(this);
         tabbing.addEventListener('tab-added', this.onTabEvent);
         tabbing.addEventListener('tab-removed', this.onTabEvent);
+        tabbing.addEventListener('tab-activated', event => this._log.addEvent(event));
+        tabbing.addEventListener('tab-properties-updated', event => this._log.addEvent(event));
     }
 
     private async onTabEvent(event: TabAddedEvent|TabRemovedEvent): Promise<void> {
@@ -133,6 +138,12 @@ export class TabbingUI {
 
         document.body.classList.toggle('tabbed', isTabbed);
         document.getElementById('tab-status')!.innerText = message;
+
+        // Show which buttons are useful in this state
+        this._buttons.forEach(button => {
+            button.classList.toggle('btn-primary', isTabbed);
+            button.classList.toggle('btn-secondary', !isTabbed);
+        });
 
         this._log.addEvent(event);
     }
@@ -166,16 +177,30 @@ export class TabbingUI {
     }
 
     private async getTabbedWindows(): Promise<WindowIdentity[]> {
+        const shouldFilter = this._elements.filterTabs.checked;
+        this._addToGroup.header = shouldFilter ? 'Tabbed Windows' : 'All Windows';
+
         return this.getWindowsMatching(async (identity: WindowIdentity) => {
-            const tabs: WindowIdentity[]|null = await tabbing.getTabs(identity);
-            return tabs !== null;
+            if (shouldFilter) {
+                const tabs: WindowIdentity[]|null = await tabbing.getTabs(identity);
+                return tabs !== null;
+            } else {
+                return true;
+            }
         });
     }
 
     private async getUntabbedWindows(): Promise<WindowIdentity[]> {
+        const shouldFilter = this._elements.filterTabs.checked;
+        this._addToGroup.header = shouldFilter ? 'Untabbed Windows' : 'All Windows';
+
         return this.getWindowsMatching(async (identity: WindowIdentity) => {
-            const tabs: WindowIdentity[]|null = await tabbing.getTabs(identity);
-            return tabs === null;
+            if (shouldFilter) {
+                const tabs: WindowIdentity[]|null = await tabbing.getTabs(identity);
+                return tabs === null;
+            } else {
+                return true;
+            }
         });
     }
 }

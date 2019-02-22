@@ -4,9 +4,8 @@ import {stub} from './utils/FinMock';
 import {ErrorMsgs} from './utils/ErrorMsgs';
 
 import {channelPromise} from '../../src/client/connection';
-import {TabAPI, AddTabPayload} from '../../src/client/internal';
-import {tabbing} from '../../src/client/main';
-import {WindowIdentity} from '../../src/client/types';
+import {TabAPI} from '../../src/client/internal';
+import {tabbing, WindowIdentity} from '../../src/client/main';
 
 stub();
 
@@ -39,7 +38,7 @@ describe('Tabbing API Actions', () => {
         it('Calling with valid arguments sends a ADDTAB message', async () => {
             const targetWindow: WindowIdentity = {uuid: 'some uuid', name: 'some name'};
             const currentWindow: WindowIdentity = {uuid: 'test', name: 'test'};
-            const expectedPayload: AddTabPayload = {targetWindow, windowToAdd: currentWindow};
+            const expectedPayload = {targetWindow, windowToAdd: currentWindow};
 
             await tabbing.addTab(targetWindow);
             await expect(channelDispatch).toBeCalledWith(TabAPI.ADDTAB, expectedPayload);

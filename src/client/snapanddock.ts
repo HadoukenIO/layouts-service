@@ -1,35 +1,14 @@
 /**
- * @module Snap-and-Dock
+ * @module SnapAndDock
  */
 import {Identity} from 'hadouken-js-adapter';
 
-import {tryServiceDispatch} from './connection';
+import {eventEmitter, tryServiceDispatch} from './connection';
 import {getId, SnapAndDockAPI} from './internal';
 
-/**
- * Fired when a window has become docked with another window.  See {@link addEventListener}.
- */
-export interface WindowDockedEvent extends Event {
-    type: 'window-docked';
-}
 
 /**
- * Fired when a window has become undocked from another window.  See {@link addEventListener}.
- */
-export interface WindowUndockedEvent extends Event {
-    type: 'window-undocked';
-}
-
-/**
- * @hidden
- */
-export interface EventMap {
-    'window-docked': WindowDockedEvent;
-    'window-undocked': WindowUndockedEvent;
-}
-
-/**
- * Event fired when one window is docked to another.
+ * Event fired when one window is docked to another.  See {@link addEventListener}.
  *
  * It is not possible to receive events for another window. When adding a listener, the listener will only ever fire for the "`fin.desktop.Window.getCurrent()`"
  * window.
@@ -53,13 +32,14 @@ export interface EventMap {
  * The service considers any windows that are tabbed together to also be in the same snap group, so this event will also fire when a window is added to a tab
  * group. This may change in future versions of the service.
  *
- * @type window-docked
  * @event
  */
-export async function addEventListener(eventType: 'window-docked', listener: (event: WindowDockedEvent) => void): Promise<void>;
+export interface WindowDockedEvent {
+    type: 'window-docked';
+}
 
 /**
- * Event fired when one window is undocked from it's neighbor(s).
+ * Event fired when one window is undocked from it's neighbor(s).  See {@link addEventListener}.
  *
  * It is not possible to receive events for another window. When adding a listener, the listener will only ever fire for the "`fin.desktop.Window.getCurrent()`"
  * window.
@@ -80,21 +60,37 @@ export async function addEventListener(eventType: 'window-docked', listener: (ev
  * });
  * ```
  *
- * The service considers any windows that are tabbed together to also be in the same snap group, so this event will also fire when a window is removed from a
- * tab group. This may change in future versions of the service.
- *
- * @type window-undocked
  * @event
  */
-export async function addEventListener(eventType: 'window-undocked', listener: (event: WindowUndockedEvent) => void): Promise<void>;
+export interface WindowUndockedEvent {
+    type: 'window-undocked';
+}
 
-export async function addEventListener<K extends keyof EventMap>(eventType: K, listener: (event: EventMap[K]) => void): Promise<void> {
+/**
+ * @hidden
+ */
+export type EventMap = WindowDockedEvent|WindowUndockedEvent;
+
+
+export function addEventListener(eventType: 'window-docked', listener: (event: WindowDockedEvent) => void): void;
+export function addEventListener(eventType: 'window-undocked', listener: (event: WindowUndockedEvent) => void): void;
+
+export function addEventListener<K extends EventMap>(eventType: K['type'], listener: (event: K) => void): void {
     if (typeof fin === 'undefined') {
         throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
     }
-    // Use native js event system to pass internal events around.
-    // Without this we would need to handle multiple registration ourselves.
-    window.addEventListener(eventType, listener as EventListener);
+
+    eventEmitter.addListener(eventType, listener);
+}
+
+export function removeEventListener(eventType: 'window-docked', listener: (event: WindowDockedEvent) => void): void;
+export function removeEventListener(eventType: 'window-undocked', listener: (event: WindowUndockedEvent) => void): void;
+export function removeEventListener<K extends EventMap>(eventType: K['type'], listener: (event: K) => void): void {
+    if (typeof fin === 'undefined') {
+        throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
+    }
+
+    eventEmitter.removeListener(eventType, listener);
 }
 
 /**
@@ -115,7 +111,7 @@ export async function addEventListener<K extends keyof EventMap>(eventType: K, l
  * ```
  *
  * @param identity The window to undock, defaults to the current window
- * @throws `Error`: If `identity` is not a valid {@link Identity}
+ * @throws `Error`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
  * @throws `Error`: If the window specified by `identity` does not exist
  * @throws `Error`: If the window specified by `identity` has been de-registered
  */
@@ -143,7 +139,7 @@ export async function undockWindow(identity: Identity = getId()): Promise<void> 
  * ```
  *
  * @param identity A window belonging to the group that should be disbanded, defaults to the current window/group
- * @throws `Error`: If `identity` is not a valid {@link Identity}
+ * @throws `Error`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
  * @throws `Error`: If the window specified by `identity` does not exist
  * @throws `Error`: If the window specified by `identity` has been de-registered
  */

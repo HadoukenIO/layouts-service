@@ -261,6 +261,7 @@ export class DesktopWindow implements DesktopEntity {
      */
     public readonly onTeardown: Signal1<DesktopWindow, Promise<void>, Promise<void>> = new Signal1(Aggregators.AWAIT_VOID);
 
+
     private _model: DesktopModel;
     private _identity: WindowIdentity;
     private _scope: WindowScope;
@@ -305,6 +306,7 @@ export class DesktopWindow implements DesktopEntity {
     // Tracks event listeners registered on the fin window for easier clean-up.
     private _registeredListeners: Map<OpenFinWindowEvent, (event: fin.OpenFinWindowEventMap[OpenFinWindowEvent]) => void> = new Map();
 
+    private _moveInProgress = false;
     private _userInitiatedBoundsChange = false;
 
     constructor(model: DesktopModel, window: fin.WindowOptions|Window, initialState?: EntityState) {
@@ -466,6 +468,10 @@ export class DesktopWindow implements DesktopEntity {
 
     public get applicationState(): EntityState {
         return this._applicationState;
+    }
+
+    public get moveInProgress(): boolean {
+        return this._moveInProgress;
     }
 
     /**
@@ -963,6 +969,8 @@ export class DesktopWindow implements DesktopEntity {
     }
 
     private handleBoundsChanged(event: fin.WindowBoundsEvent): void {
+        this._moveInProgress = false;
+
         const bounds: fin.WindowBounds = this.checkBounds(event);
         const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
         const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
@@ -980,6 +988,10 @@ export class DesktopWindow implements DesktopEntity {
     }
 
     private handleBoundsChanging(event: fin.WindowBoundsEvent): void {
+        if (!this._moveInProgress) {
+            this._moveInProgress = true;
+        }
+
         const bounds: fin.WindowBounds = this.checkBounds(event);
         const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
         const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};

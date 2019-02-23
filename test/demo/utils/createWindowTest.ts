@@ -2,7 +2,7 @@ import {Context, GenericTestContext} from 'ava';
 import {Window} from 'hadouken-js-adapter';
 
 import {delay} from '../../provider/utils/delay';
-import {ArrangementsType, WindowInitializer} from '../../provider/utils/WindowInitializer';
+import {ArrangementsType, WindowInitializer, WindowPosition} from '../../provider/utils/WindowInitializer';
 
 import {TestMacro} from './parameterizedTestUtils';
 
@@ -26,10 +26,12 @@ export interface WindowContext {
 }
 
 export function createWindowTest<T extends CreateWindowData, C extends WindowContext = WindowContext>(
-    testFunc: TestMacro<T, C>, windowOptions?: fin.WindowOptions, customArrangements?: ArrangementsType): TestMacro<T, C> {
+    testFunc: TestMacro<T, C>, windowOptions?: fin.WindowOptions, customArrangements?: ArrangementsType, customWindowPositions?: WindowPosition[]):
+    TestMacro<T, C> {
     const options: fin.WindowOptions = Object.assign({}, windowOptionsBase, windowOptions);
-    const framedInitializer: WindowInitializer = new WindowInitializer(customArrangements, undefined, Object.assign({}, options, {frame: true}));
-    const framelessInitializer: WindowInitializer = new WindowInitializer(customArrangements, undefined, Object.assign({}, options, {frame: false}));
+    const framedInitializer: WindowInitializer = new WindowInitializer(customArrangements, customWindowPositions, Object.assign({}, options, {frame: true}));
+    const framelessInitializer: WindowInitializer =
+        new WindowInitializer(customArrangements, customWindowPositions, Object.assign({}, options, {frame: false}));
 
     return async (t: GenericTestContext<Context<C>>, data: T) => {
         const {frame, windowCount} = data;

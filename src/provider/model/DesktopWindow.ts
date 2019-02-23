@@ -1,19 +1,17 @@
 import deepEqual from 'fast-deep-equal';
 import {Identity, Window} from 'hadouken-js-adapter';
+import {WindowInfo} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {WindowScope} from '../../../gen/provider/config/layouts-config';
 import {SERVICE_IDENTITY} from '../../client/internal';
-
 import {WindowState} from '../../client/workspaces';
-import {APIHandler} from '../APIHandler';
 import {EVENT_CHANNEL_TOPIC, EventMap} from '../APIMessages';
 import {apiHandler} from '../main';
 import {Aggregators, Signal1, Signal2} from '../Signal';
-import {promiseMap} from '../snapanddock/utils/async';
 import {Debounced} from '../snapanddock/utils/Debounced';
 import {isWin10} from '../snapanddock/utils/platform';
 import {Point} from '../snapanddock/utils/PointUtils';
-import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
+import {Rectangle} from '../snapanddock/utils/RectUtils';
 
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
@@ -117,10 +115,11 @@ export class DesktopWindow implements DesktopEntity {
     public static activeTransactions: Transaction[] = [];
 
     public static async getWindowState(window: Window): Promise<EntityState> {
-        return Promise.all([window.getOptions(), window.isShowing(), window.getBounds()])
-            .then((results: [fin.WindowOptions, boolean, fin.WindowBounds]): EntityState => {
+        return Promise.all([window.getOptions(), window.getInfo(), window.isShowing(), window.getBounds()])
+            .then((results: [fin.WindowOptions, WindowInfo, boolean, fin.WindowBounds]): EntityState => {
                 const options: fin.WindowOptions = results[0];
-                const bounds: fin.WindowBounds = results[2];
+                const info: WindowInfo = results[1];
+                const bounds: fin.WindowBounds = results[3];
                 const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
                 const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
 
@@ -155,10 +154,10 @@ export class DesktopWindow implements DesktopEntity {
                     halfSize,
                     resizeConstraints,
                     frame: options.frame!,
-                    hidden: !results[1],
+                    hidden: !results[2],
                     state: options.state!,
                     icon: options.icon || `https://www.google.com/s2/favicons?domain=${options.url}`,
-                    title: options.name!,
+                    title: info.title!,
                     showTaskbarIcon: options.showTaskbarIcon!,
                     opacity: options.opacity!,
                     alwaysOnTop: options.alwaysOnTop!,

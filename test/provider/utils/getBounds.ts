@@ -2,7 +2,7 @@ import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import * as os from 'os';
 
-import {getActiveTab, getTabstrip} from '../../demo/utils/tabServiceUtils';
+import {getActiveTab, getTabGroupID, getTabstrip} from '../../demo/utils/tabServiceUtils';
 
 import {getWindow, Win} from './getWindow';
 
@@ -30,8 +30,10 @@ export async function getBounds(identityOrWindow: Win): Promise<NormalizedBounds
 }
 
 export async function getTabsetBounds(tabOrTabstrip: _Window): Promise<NormalizedBounds> {
-    const tabstrip = await getTabstrip(tabOrTabstrip.identity);
-    if (tabstrip) {
+    const tabGroupID = await getTabGroupID(tabOrTabstrip.identity);
+    if (tabGroupID) {
+        const tabstrip = await getTabstrip(tabOrTabstrip.identity);
+
         let tab: _Window;
         if (tabOrTabstrip.identity.name === tabstrip.identity.name) {
             // Provided window is tabstrip. Need to get active tab.
@@ -56,8 +58,8 @@ export async function getTabsetBounds(tabOrTabstrip: _Window): Promise<Normalize
 }
 
 export async function getEntityBounds(window: _Window): Promise<NormalizedBounds> {
-    const tabstrip = await getTabstrip(window.identity);
-    if (tabstrip) {
+    const tabGroupID = await getTabGroupID(window.identity);
+    if (tabGroupID) {
         return getTabsetBounds(window);
     } else {
         return getBounds(window);

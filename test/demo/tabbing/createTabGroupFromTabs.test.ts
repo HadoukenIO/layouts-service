@@ -201,24 +201,26 @@ async function setupSnapAndTabGroups(t: GenericTestContext<Context<WindowContext
     const windows = t.context.windows;
 
     // Create each SnapGroup by dragging each window to the right of the last
-    await Promise.all(testOptions.snapGroups.map(async (snapGroup) => {
+    for (let i = 0; i < testOptions.snapGroups.length; i++) {
+        const snapGroup = testOptions.snapGroups[i];
         const snapGroupWindows = snapGroup.map(index => windows[index]);
-        for (let i = 0; i < snapGroup.length - 1; i++) {
-            await dragSideToSide(snapGroupWindows[i + 1], 'left', snapGroupWindows[i], 'right');
+        for (let j = 0; j < snapGroup.length - 1; j++) {
+            await dragSideToSide(snapGroupWindows[j + 1], 'left', snapGroupWindows[j], 'right');
         }
         await assertCompleteGroup(t, ...snapGroupWindows);
         await assertAllContiguous(t, snapGroupWindows);
         await assertNoOverlap(t, snapGroupWindows);
-    }));
+    }
 
     // Create each TabGroup by dragging each window onto the first
-    await Promise.all(testOptions.tabGroups.map(async (tabGroup) => {
+    for (let i = 0; i < testOptions.tabGroups.length; i++) {
+        const tabGroup = testOptions.tabGroups[i];
         const tabGroupWindows = tabGroup.map(index => windows[index]);
-        for (let i = 1; i < tabGroup.length; i++) {
-            await tabWindowsTogether(tabGroupWindows[0], tabGroupWindows[i]);
+        for (let j = 1; j < tabGroup.length; j++) {
+            await tabWindowsTogether(tabGroupWindows[0], tabGroupWindows[j]);
         }
         await assertCompleteTabGroup(t, ...tabGroupWindows);
-    }));
+    }
 }
 
 async function getBoundsMap(windows: _Window[]): Promise<Map<_Window, NormalizedBounds>> {

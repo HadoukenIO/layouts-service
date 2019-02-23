@@ -1,4 +1,4 @@
-import {assertGrouped, assertNotGrouped, assertNotGroupedTogether, assertNotMoved, assertTabbed} from '../../provider/utils/assertions';
+import {assertGrouped, assertNotGrouped, assertNotGroupedTogether, assertNotMoved, assertTabbedTogether} from '../../provider/utils/assertions';
 import {dragSideToSide} from '../../provider/utils/dragWindowTo';
 import {getBounds} from '../../provider/utils/getBounds';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
@@ -21,12 +21,12 @@ testParameterized(
         const layoutsClient = await layoutsClientPromise;
 
         await layoutsClient.tabbing.createTabGroup([windows[0].identity, windows[1].identity]);
-        await assertTabbed(windows[0], windows[1], t);
+        await assertTabbedTogether(windows[0], windows[1], t);
 
         // If 4 windows, the other two will be tabbed before snapping
         if (options.windowCount > 3) {
             await layoutsClient.tabbing.createTabGroup([windows[2].identity, windows[3].identity]);
-            await assertTabbed(windows[2], windows[3], t);
+            await assertTabbedTogether(windows[2], windows[3], t);
         }
 
         await dragSideToSide(windows[2], 'left', windows[0], 'right');
@@ -35,14 +35,14 @@ testParameterized(
         const boundsBefore = await getBounds(windows[2]);
         await layoutsClient.tabbing.maximizeTabGroup(windows[0].identity);
 
-        await assertTabbed(windows[0], windows[1], t);
+        await assertTabbedTogether(windows[0], windows[1], t);
 
         // Snapped window has not moved/resized when tabgroup maximized.
         const boundsAfter = await getBounds(windows[2]);
         await assertNotMoved(boundsBefore, boundsAfter, t);
 
         if (options.windowCount > 3) {
-            await assertTabbed(windows[2], windows[3], t);
+            await assertTabbedTogether(windows[2], windows[3], t);
             await assertNotGroupedTogether(t, windows[0], windows[2]);
         } else {
             await assertNotGrouped(windows[2], t);

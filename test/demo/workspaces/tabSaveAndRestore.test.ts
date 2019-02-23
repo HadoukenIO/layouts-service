@@ -1,6 +1,6 @@
 import {test} from 'ava';
 
-import {assertGrouped, assertTabbed} from '../../provider/utils/assertions';
+import {assertGrouped, assertTabbedTogether} from '../../provider/utils/assertions';
 import {teardown} from '../../teardown';
 import {WindowGrouping} from '../utils/AppInitializer';
 import {AppContext, CreateAppData, createAppTest} from '../utils/createAppTest';
@@ -51,7 +51,7 @@ testParameterized<CreateAppData, AppContext>(
             const win1 = t.context.windows[group[0]];
             const win2 = t.context.windows[group[1]];
 
-            await assertTabbed(win1, win2, t);
+            await assertTabbedTogether(win1, win2, t);
             await assertGrouped(t, win1, win2);
         }
     }));

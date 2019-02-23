@@ -1,7 +1,7 @@
 import {test} from 'ava';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import {assertAllMinimizedOrHidden, assertAllNormalState, assertGrouped, assertTabbed} from '../../provider/utils/assertions';
+import {assertAllMinimizedOrHidden, assertAllNormalState, assertGrouped, assertTabbedTogether} from '../../provider/utils/assertions';
 import {delay} from '../../provider/utils/delay';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 import {teardown} from '../../teardown';
@@ -57,7 +57,7 @@ testParameterized(
 
             await delay(100);
 
-            await assertTabbed(windows[i], windows[i + 1], t);
+            await assertTabbedTogether(windows[i], windows[i + 1], t);
 
             tabStrips.push(await getTabstrip(windows[i].identity));
         }
@@ -75,7 +75,7 @@ testParameterized(
 
         await assertAllNormalState(t, [...windows, ...tabStrips]);
         for (let i = 0; i < windowCount; i += 2) {
-            await assertTabbed(windows[i], windows[i + 1], t);
+            await assertTabbedTogether(windows[i], windows[i + 1], t);
         }
         await assertGrouped(t, ...windows, ...tabStrips);
     }));

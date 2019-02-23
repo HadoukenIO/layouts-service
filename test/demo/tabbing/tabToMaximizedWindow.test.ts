@@ -1,6 +1,6 @@
 import {Rect} from 'hadouken-js-adapter/out/types/src/api/system/monitor';
 
-import {assertNotTabbed, assertTabbed} from '../../provider/utils/assertions';
+import {assertNotTabbed, assertTabbedTogether} from '../../provider/utils/assertions';
 import {getConnection} from '../../provider/utils/connect';
 import {dragWindowTo} from '../../provider/utils/dragWindowTo';
 import {getBounds, getTabsetBounds, NormalizedBounds} from '../../provider/utils/getBounds';
@@ -32,7 +32,7 @@ testParameterized(
             const maximizedBounds: Rect = (await fin.System.getMonitorInfo()).primaryMonitor.availableRect;
             await dragWindowTo(windows[0], maximizedBounds.left + 50, maximizedBounds.top + 30);
             // Windows should have tabbed
-            await assertTabbed(windows[0], windows[1], t);
+            await assertTabbedTogether(windows[0], windows[1], t);
             // Make sure that the internal state of the tabGroup is correct
             t.is(await getTabGroupState(windows[0].identity), 'maximized');
             // TabGroup fills the whole screen

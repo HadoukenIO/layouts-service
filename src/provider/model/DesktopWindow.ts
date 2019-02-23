@@ -149,6 +149,15 @@ export class DesktopWindow implements DesktopEntity {
                     }
                 };
 
+                // Get window title
+                const {title, url} = info;
+                let windowTitle = title;
+                if (title && (title === url || title === url.substr(url.indexOf('://') + 3))) {
+                    // If there is no <title> tag on document, getInfo will return the URL (minus protocol) as the title.
+                    // In these cases, the actual title will be the window name - not it's URL
+                    windowTitle = window.identity.name || '';
+                }
+
                 return {
                     center,
                     halfSize,
@@ -157,7 +166,7 @@ export class DesktopWindow implements DesktopEntity {
                     hidden: !results[2],
                     state: options.state!,
                     icon: options.icon || `https://www.google.com/s2/favicons?domain=${options.url}`,
-                    title: info.title!,
+                    title: windowTitle,
                     showTaskbarIcon: options.showTaskbarIcon!,
                     opacity: options.opacity!,
                     alwaysOnTop: options.alwaysOnTop!,

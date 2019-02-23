@@ -8,7 +8,7 @@ import {assertAllMaximized, assertAllNormalState, assertNotTabbed, assertTabbed}
 import {getConnection} from './utils/connect';
 import {createChildWindow} from './utils/createChildWindow';
 import {delay} from './utils/delay';
-import {dragWindowToOtherWindow} from './utils/dragWindowTo';
+import {dragWindowTo, dragWindowToOtherWindow} from './utils/dragWindowTo';
 import {getBounds} from './utils/getBounds';
 import {tabWindowsTogether} from './utils/tabWindowsTogether';
 
@@ -267,8 +267,8 @@ test('Tearout tab dragged into tab group, invalid region - should not add tab to
     const win3 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
-        defaultTop: 500,
-        defaultLeft: 500,
+        defaultTop: 80,
+        defaultLeft: 200,
         defaultHeight: 200,
         defaultWidth: 200,
         url: 'http://localhost:1337/demo/tabbing/default.html',
@@ -510,4 +510,42 @@ test('Drag window into tabgroup then tearout - window should be maximizable if-a
     wins[1].maximize();
 
     assertAllMaximized(t, wins);
+});
+
+test('Cannot tab to an obscured window', async t => {
+    const win3 = await createChildWindow({
+        autoShow: true,
+        saveWindowState: false,
+        defaultTop: 20,
+        defaultLeft: 200,
+        defaultHeight: 200,
+        defaultWidth: 200,
+        url: 'http://localhost:1337/demo/tabbing/default.html',
+        frame: true
+    });
+    wins.push(win3);
+
+    await delay(500);
+    await dragWindowTo(wins[1], 250, 120);
+    await delay(500);
+    await Promise.all(wins.map(win => assertNotTabbed(win, t)));
+});
+
+test('Cannot tab to an obscures window that is not registered to the service', async t => {
+    const win3 = await createChildWindow({
+        autoShow: true,
+        saveWindowState: false,
+        defaultTop: 20,
+        defaultLeft: 200,
+        defaultHeight: 200,
+        defaultWidth: 200,
+        url: 'http://localhost:1337/test/popup-deregistered.html',
+        frame: true
+    });
+    wins.push(win3);
+
+    await delay(500);
+    await dragWindowTo(wins[1], 250, 120);
+    await delay(500);
+    await Promise.all(wins.map(win => assertNotTabbed(win, t)));
 });

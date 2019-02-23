@@ -5,7 +5,7 @@ import {Window} from 'hadouken-js-adapter';
 import {promiseMap} from '../../../src/provider/snapanddock/utils/async';
 import {getTopmostWindow} from '../../demo/utils/modelUtils';
 import {getGroupedWindows, getSnapGroupID} from '../../demo/utils/snapServiceUtils';
-import {getActiveTab, getId, getTabbedWindows, getTabGroupID, getTabGroupIdentity} from '../../demo/utils/tabServiceUtils';
+import {getActiveTab, getId, getTabbedWindows, getTabGroupID, getTabGroupIdentity, getTabstrip} from '../../demo/utils/tabServiceUtils';
 
 import {getBounds, NormalizedBounds} from './getBounds';
 import {Win} from './getWindow';
@@ -42,6 +42,32 @@ export async function assertGrouped(t: TestContext, ...windows: Window[]) {
     const snapGroupIDs = await promiseMap(windows, async win => getSnapGroupID(win.identity));
     for (let i = 0; i < snapGroupIDs.length - 1; i++) {
         t.is(snapGroupIDs[i], snapGroupIDs[0], `Window ${i} has a different snapGroup to window 0`);
+    }
+}
+
+/**
+ * Assert that the given windows form a complete (one with no other members) SnapGroup. SnapGroup may be trivial
+ */
+export async function assertCompleteGroup(t: TestContext, ...windows: Window[]): Promise<void> {
+    if (windows.length === 1) {
+        await assertNotGrouped(windows[0], t);
+    } else if (windows.length > 1) {
+        await assertGrouped(t, ...windows);
+
+        const group = await (await windows[0].getGroup()).filter(async (window) => {
+            const tabGroupID = await getTabGroupID(window.identity);
+
+            if (tabGroupID) {
+                const tabstrip = await getTabstrip(window.identity);
+                return !deepEqual(tabstrip.identity, window.identity);
+            } else {
+                return true;
+            }
+        });
+
+        t.true(windows.length === group.length);
+    } else {
+        t.pass();
     }
 }
 
@@ -149,11 +175,16 @@ export async function assertTabbedTogether(win1: Window, win2: Window, t: TestCo
  */
 export async function assertCompleteTabGroup(t: TestContext, ...windows: Window[]): Promise<void> {
     if (windows.length === 1) {
-        assertNotTabbed(windows[0], t);
+        await assertNotTabbed(windows[0], t);
     } else if (windows.length > 1) {
         for (let i = 1; i < windows.length; i++) {
-            assertTabbedTogether(windows[0], windows[i], t);
+            await assertTabbedTogether(windows[0], windows[i], t);
         }
+
+        const numTabs = (await getTabbedWindows(windows[0].identity)).length;
+        t.is(numTabs, windows.length, `TabGroup expected to contain ${windows.length} windows, but contains ${numTabs} windows.`);
+    } else {
+        t.pass();
     }
 }
 

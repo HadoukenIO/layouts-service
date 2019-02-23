@@ -11,7 +11,6 @@ import {teardown} from '../../teardown';
 import {CreateWindowData, createWindowTest, WindowContext} from '../utils/createWindowTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {executeJavascriptOnService} from '../utils/serviceUtils';
-import { delay } from '../../provider/utils/delay';
 
 interface CreateTabGroupFromTabsOptions extends CreateWindowData {
     snapGroups: number[][];

@@ -13,7 +13,7 @@ export interface NormalizedBounds extends Bounds {
     right: number;
 }
 
-export const getBounds = async(identityOrWindow: Win): Promise<NormalizedBounds> => {
+export async function getBounds(identityOrWindow: Win): Promise<NormalizedBounds> {
     const win = await getWindow(identityOrWindow);
     const bounds = await win.getBounds();
     bounds.right = bounds.right || bounds.left + bounds.width;
@@ -27,7 +27,7 @@ export const getBounds = async(identityOrWindow: Win): Promise<NormalizedBounds>
     }
     return Object.assign(
         bounds, {left: bounds.left + 7, right: bounds.right - 7, bottom: bounds.bottom - 7, height: bounds.height - 7, width: bounds.width - 14});
-};
+}
 
 export async function getTabsetBounds(tabOrTabstrip: _Window): Promise<NormalizedBounds> {
     const tabstrip = await getTabstrip(tabOrTabstrip.identity);
@@ -52,5 +52,14 @@ export async function getTabsetBounds(tabOrTabstrip: _Window): Promise<Normalize
 
     } else {
         throw new Error('Attempted to get tabstrip bounds of untabbed window.');
+    }
+}
+
+export async function getEntityBounds(window: _Window): Promise<NormalizedBounds> {
+    const tabstrip = await getTabstrip(window.identity);
+    if (tabstrip) {
+        return getTabsetBounds(window);
+    } else {
+        return getBounds(window);
     }
 }

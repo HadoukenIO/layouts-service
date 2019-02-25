@@ -21,3 +21,9 @@ export async function promiseFilter<T>(arr: T[], asyncF: (x: T) => Promise<boole
 
     return result;
 }
+
+export async function promiseForEach<T>(arr: T[], asyncF: (x: T) => Promise<void>): Promise<void> {
+    for (let i = 0; i < arr.length; i++) {
+        await asyncF(arr[i]);
+    }
+}

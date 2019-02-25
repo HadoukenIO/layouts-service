@@ -10,7 +10,7 @@ import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 import {teardown} from '../../teardown';
 import {CreateWindowData, createWindowTest, WindowContext} from '../utils/createWindowTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
-import {executeJavascriptOnService} from '../utils/serviceUtils';
+import {executeJavascriptOnService, layoutsClientPromise} from '../utils/serviceUtils';
 
 interface CreateTabGroupFromTabsOptions extends CreateWindowData {
     snapGroups: number[][];
@@ -146,10 +146,8 @@ testParameterized<CreateTabGroupFromTabsOptions, WindowContext>(
 
         const oldBounds = await getBoundsMap(windows);
 
-        function remoteCreateTabGroupWithTabs(this: ProviderWindow, identities: WindowIdentity[]) {
-            return this.tabService.createTabGroupWithTabs(identities);
-        }
-        await executeJavascriptOnService(remoteCreateTabGroupWithTabs, newTabs.map(window => window.identity as WindowIdentity));
+        const layoutsClient = await layoutsClientPromise;
+        await layoutsClient.tabbing.createTabGroup(newTabs.map(window => window.identity));
 
         const newBounds = await getBoundsMap(windows);
 

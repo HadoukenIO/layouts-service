@@ -212,7 +212,7 @@ function createCreateTabGroupFromTabsOption(config: CreateTabGroupFromTabsOption
     const tabGroups = [targetTabGroup, sourceTabGroup];
 
     // Compute a window index array of the expected ejected TabGroup
-    const ejectedTabGroup = targetSnapGroup.filter(tab => !newTabGroup.includes(tab));
+    const ejectedTabGroup = targetTabGroup.filter(tab => !newTabGroup.includes(tab));
 
     const description = `entitiesInTargetSnapGroup: ${config.entitiesInTargetSnapGroup}, entitiesInSourceSnapGroup: ${
         config.entitiesInSourceSnapGroup}, tabsInTargetTabGroup: ${config.tabsInTargetTabGroup}, tabsInSourceTabGroup: ${

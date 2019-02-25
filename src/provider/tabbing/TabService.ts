@@ -1,3 +1,4 @@
+import deepEqual from 'fast-deep-equal';
 import {Scope, Tabstrip} from '../../../gen/provider/config/layouts-config';
 import {TabProperties, TabPropertiesUpdatedEvent} from '../../client/tabbing';
 import {TabGroup, TabGroupDimensions} from '../../client/workspaces';
@@ -252,7 +253,7 @@ export class TabService {
         const tabProps: TabProperties = this.getTabProperties(tab);
         const newProps: TabProperties = {...tabProps, ...properties};
 
-        if (newProps.icon !== tabProps.icon || newProps.title !== tabProps.title) {
+        if (!deepEqual(newProps, tabProps)) {
             // Save properties
             Object.assign(tabProps, properties);
             localStorage.setItem(tab.id, JSON.stringify(tabProps));

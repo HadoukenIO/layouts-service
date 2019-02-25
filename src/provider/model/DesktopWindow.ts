@@ -119,6 +119,7 @@ export class DesktopWindow implements DesktopEntity {
             .then((results: [fin.WindowOptions, WindowInfo, boolean, fin.WindowBounds]): EntityState => {
                 const options: fin.WindowOptions = results[0];
                 const info: WindowInfo = results[1];
+                const isShowing: boolean = results[2];
                 const bounds: fin.WindowBounds = results[3];
                 const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
                 const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
@@ -152,10 +153,22 @@ export class DesktopWindow implements DesktopEntity {
                 // Get window title
                 const {title, url} = info;
                 let windowTitle = title;
-                if (title && (title === url || title === url.substr(url.indexOf('://') + 3))) {
-                    // If there is no <title> tag on document, getInfo will return the URL (minus protocol) as the title.
-                    // In these cases, the actual title will be the window name - not it's URL
-                    windowTitle = window.identity.name || '';
+                if (title && url && url.indexOf(title) >= 0) {
+                    // The runtime will return (a subset of) the page URL as the title field if the document doesn't
+                    // define a title. We would like to instead use the window name, to align with what is seen in the
+                    // untabbed window frame.
+
+                    // Current stable (9.61.38.40) behaviour is to return 'host+pathname+search+hash'. There is also a
+                    // story (RUN-3457) to change this to 'host+pathname'. We will check for both of these strings, and
+                    // revert to the window name if the title matches either
+                    const parsedUrl = new URL(url);
+                    const defaultTitles: string[] =
+                        [[parsedUrl.host, parsedUrl.pathname, parsedUrl.search, parsedUrl.hash].join(''), [parsedUrl.host, parsedUrl.pathname].join('')];
+
+                    if (defaultTitles.indexOf(title) >= 0) {
+                        // Fall-back to window name
+                        windowTitle = window.identity.name || '';
+                    }
                 }
 
                 return {
@@ -163,7 +176,7 @@ export class DesktopWindow implements DesktopEntity {
                     halfSize,
                     resizeConstraints,
                     frame: options.frame!,
-                    hidden: !results[2],
+                    hidden: !isShowing,
                     state: options.state!,
                     icon: options.icon || `https://www.google.com/s2/favicons?domain=${options.url}`,
                     title: windowTitle,

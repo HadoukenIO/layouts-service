@@ -9,3 +9,15 @@ export async function promiseMap<T, U>(
     // clang-format on
     return Promise.all<U>(arr.map(asyncF));
 }
+
+export async function promiseFilter<T>(arr: T[], asyncF: (x: T) => Promise<boolean>): Promise<T[]> {
+    const result: T[] = [];
+
+    for (let i = 0; i < arr.length; i++) {
+        if (await asyncF(arr[i])) {
+            result.push(arr[i]);
+        }
+    }
+
+    return result;
+}

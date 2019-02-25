@@ -18,6 +18,7 @@ const deregisteredManifestParentandChild =
     createAppsArray(1, 2, {manifest: true, url: 'http://localhost:1337/test/saveRestoreTestingApp.html?deregistered=true'});
 const combinedManifestApps = registeredManifestApp.concat(deregisteredManifestParentandChild);
 
+// First grouping includes a deregistered window. It exists to move the deregistered window out the way of the registered window underneath.
 const windowGrouping = [[3, 1], [0, 2]];
 
 test.afterEach.always(async (t) => {

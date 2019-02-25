@@ -142,18 +142,19 @@ export class DesktopModel {
     public getWindowAt(x: number, y: number, exclude?: WindowIdentity): DesktopWindow|null {
         const point: Point = {x, y};
         const excludeId: string|undefined = exclude && this.getId(exclude);
-        const windowsAtPoint: DesktopWindow[] = this._windows.filter((window: DesktopWindow) => {
+        const modelWindowsAtPoint: DesktopWindow[] = this._windows.filter((window: DesktopWindow) => {
             const state: EntityState = window.currentState;
             return window.isActive && RectUtils.isPointInRect(state.center, state.halfSize, point) && window.id !== excludeId;
         });
 
-        const topMostWindow: DesktopWindow|null = this._zIndexer.getTopMost(windowsAtPoint);
-        const nonModelWindow: WindowIdentity|null = this._zIndexer.getWindowAt(x, y, exclude);
+        const topMostModelWindow: DesktopWindow|null = this._zIndexer.getTopMost(modelWindowsAtPoint);
+        const topMostWindow: WindowIdentity|null = this._zIndexer.getWindowAt(x, y, exclude);
 
-        if (!topMostWindow || !nonModelWindow || topMostWindow.id === this.getId(nonModelWindow!)) {
-            return topMostWindow;
+        if (!topMostModelWindow || !topMostWindow || topMostModelWindow.id === this.getId(topMostWindow!)) {
+            // There is no deregistered window over the top-most model window, safe to return
+            return topMostModelWindow;
         } else {
-            // Model found a window at this point, but it is obscured by a de-registered window
+            // Model found a window at this point, but it is obscured by a deregistered window
             return null;
         }
     }

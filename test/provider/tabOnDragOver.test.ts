@@ -531,7 +531,7 @@ test('Cannot tab to an obscured window', async t => {
     await Promise.all(wins.map(win => assertNotTabbed(win, t)));
 });
 
-test('Cannot tab to an obscures window that is not registered to the service', async t => {
+test('Cannot tab to a window that is obscured by a window not registered to the service', async t => {
     const win3 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,

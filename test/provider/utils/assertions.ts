@@ -2,7 +2,7 @@ import {TestContext} from 'ava';
 import deepEqual from 'fast-deep-equal';
 import {Window} from 'hadouken-js-adapter';
 
-import {promiseMap} from '../../../src/provider/snapanddock/utils/async';
+import {promiseFilter, promiseMap} from '../../../src/provider/snapanddock/utils/async';
 import {getTopmostWindow} from '../../demo/utils/modelUtils';
 import {getGroupedWindows, getSnapGroupID} from '../../demo/utils/snapServiceUtils';
 import {getActiveTab, getId, getTabbedWindows, getTabGroupID, getTabGroupIdentity, getTabstrip} from '../../demo/utils/tabServiceUtils';
@@ -54,7 +54,7 @@ export async function assertCompleteGroup(t: TestContext, ...windows: Window[]):
     } else if (windows.length > 1) {
         await assertGrouped(t, ...windows);
 
-        const group = await (await windows[0].getGroup()).filter(async (window) => {
+        const group = await promiseFilter(await windows[0].getGroup(), async (window) => {
             const tabGroupID = await getTabGroupID(window.identity);
 
             if (tabGroupID) {
@@ -64,8 +64,7 @@ export async function assertCompleteGroup(t: TestContext, ...windows: Window[]):
                 return true;
             }
         });
-
-        t.true(windows.length === group.length);
+        t.is(windows.length, group.length, `Unexpected number of windows in group`);
     } else {
         t.pass();
     }

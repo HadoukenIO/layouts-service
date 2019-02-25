@@ -2,7 +2,7 @@ import {Context, GenericTestContext, test, TestContext} from 'ava';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {WindowIdentity} from '../../../src/provider/model/DesktopWindow';
-import {promiseMap} from '../../../src/provider/snapanddock/utils/async';
+import {promiseForEach, promiseMap} from '../../../src/provider/snapanddock/utils/async';
 import {assertAllContiguous, assertCompleteGroup, assertCompleteTabGroup, assertNoOverlap, assertNotMoved} from '../../provider/utils/assertions';
 import {dragSideToSide} from '../../provider/utils/dragWindowTo';
 import {getEntityBounds, NormalizedBounds} from '../../provider/utils/getBounds';
@@ -20,6 +20,7 @@ interface CreateTabGroupFromTabsOptions extends CreateWindowData {
     description: string;
 }
 
+// High-level representation of test parameters that we will use to construct each CreateTabGroupFromTabsOptions
 interface CreateTabGroupFromTabsOptionsConfig {
     entitiesInTargetSnapGroup: 1|2;
     entitiesInSourceSnapGroup: 1|2;
@@ -225,26 +226,24 @@ async function setupSnapAndTabGroups(t: GenericTestContext<Context<WindowContext
     const windows = t.context.windows;
 
     // Create each SnapGroup by dragging each window to the right of the last
-    for (let i = 0; i < testOptions.snapGroups.length; i++) {
-        const snapGroup = testOptions.snapGroups[i];
+    await promiseForEach(testOptions.snapGroups, async (snapGroup) => {
         const snapGroupWindows = snapGroup.map(index => windows[index]);
-        for (let j = 0; j < snapGroup.length - 1; j++) {
-            await dragSideToSide(snapGroupWindows[j + 1], 'left', snapGroupWindows[j], 'right');
+        for (let i = 0; i < snapGroup.length - 1; i++) {
+            await dragSideToSide(snapGroupWindows[i + 1], 'left', snapGroupWindows[i], 'right');
         }
         await assertCompleteGroup(t, ...snapGroupWindows);
         await assertAllContiguous(t, snapGroupWindows);
         await assertNoOverlap(t, snapGroupWindows);
-    }
+    });
 
     // Create each TabGroup by dragging each window onto the first
-    for (let i = 0; i < testOptions.tabGroups.length; i++) {
-        const tabGroup = testOptions.tabGroups[i];
+    await promiseForEach(testOptions.tabGroups, async (tabGroup) => {
         const tabGroupWindows = tabGroup.map(index => windows[index]);
-        for (let j = 1; j < tabGroup.length; j++) {
-            await tabWindowsTogether(tabGroupWindows[0], tabGroupWindows[j]);
+        for (let i = 1; i < tabGroup.length; i++) {
+            await tabWindowsTogether(tabGroupWindows[0], tabGroupWindows[i]);
         }
         await assertCompleteTabGroup(t, ...tabGroupWindows);
-    }
+    });
 }
 
 async function getBoundsMap(windows: _Window[]): Promise<Map<_Window, NormalizedBounds>> {

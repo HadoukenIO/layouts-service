@@ -159,8 +159,7 @@ testParameterized<CreateTabGroupFromTabsOptions, WindowContext>(
         await assertCompleteTabGroup(t, ...ejectedTabs);
 
         // Assert ejected tabs form a SnapGroup
-        // Todo: enable this check when createTabGroupWithTabs properly puts ejected tabs in a new SnapGroup
-        // await assertCompleteGroup(t, ...ejectedTabs);
+        await assertCompleteGroup(t, ...ejectedTabs);
 
         // Assert new TabGroup is positioned on first window passed to createTabGroupWithTabs
         await assertNotMoved(oldBounds.get(newTabs[0])!, newBounds.get(newTabs[0])!, t);

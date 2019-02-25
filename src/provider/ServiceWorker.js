@@ -13,7 +13,7 @@ const cacheFiles = [
     './tabbing/tabstrip/css/image/minimize.png',
     './tabbing/tabstrip/css/image/restore.png',
     './errors/error.html',
-    './errors/error-icon.html',
+    './errors/error-icon.png',
 ];
 
 self.addEventListener('install', (e) => {

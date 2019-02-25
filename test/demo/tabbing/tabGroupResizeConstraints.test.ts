@@ -1,7 +1,7 @@
 import {test, TestContext} from 'ava';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import {assertCompleteTabGroup, assertNotTabbed, assertTabbedTogether} from '../../provider/utils/assertions';
+import {assertCompleteTabGroup, assertNotTabbed, assertPairTabbed} from '../../provider/utils/assertions';
 import {delay} from '../../provider/utils/delay';
 import {Side, sideArray} from '../../provider/utils/SideUtils';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
@@ -98,7 +98,7 @@ testParameterized(
         await delay(1000);
 
         if (options.shouldTab) {
-            await assertTabbedTogether(windows[0], windows[1], t);
+            await assertPairTabbed(windows[0], windows[1], t);
         } else {
             await assertNotTabbed(windows[0], t);
             await assertNotTabbed(windows[1], t);
@@ -136,7 +136,7 @@ testParameterized(
         await Promise.all(windows.map((win) => refreshWindowState(win.identity)));
 
         await tabWindowsTogether(windows[0], windows[1]);
-        await assertTabbedTogether(windows[0], windows[1], t);
+        await assertPairTabbed(windows[0], windows[1], t);
 
         if (options.windowConstraints[1].maxHeight || options.windowConstraints[1].maxWidth) {
             await t.throws(tabbing.maximizeTabGroup(windows[0].identity));

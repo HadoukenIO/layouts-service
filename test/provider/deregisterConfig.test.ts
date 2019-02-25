@@ -6,7 +6,7 @@ import {executeJavascriptOnService} from '../demo/utils/serviceUtils';
 import {isWindowRegistered} from '../demo/utils/snapServiceUtils';
 import {teardown} from '../teardown';
 
-import {assertGrouped, assertTabbedTogether} from './utils/assertions';
+import {assertGrouped, assertPairTabbed} from './utils/assertions';
 import {createChildWindow} from './utils/createChildWindow';
 import {delay} from './utils/delay';
 import {dragSideToSide, dragWindowTo} from './utils/dragWindowTo';
@@ -84,7 +84,7 @@ test('When a tabbed window is de-registered, it is removed from its tab group', 
 
     await delay(1000);
 
-    await assertTabbedTogether(windows[0], windows[1], t);
+    await assertPairTabbed(windows[0], windows[1], t);
     await addRuleToProvider({level: 'window', uuid: 'testApp', name: 'testWindow1'}, {enabled: false});
 
     t.false(await isWindowRegistered(windows[0].identity));
@@ -111,8 +111,8 @@ test('When a tabbed window is de-registered, it is removed from its snapped tab 
     await dragWindowTo(windows[0], bounds.left + 100, bounds.top + 100);
 
     // Ensure windows are in position
-    await assertTabbedTogether(windows[0], windows[1], t);
-    await assertTabbedTogether(windows[2], windows[3], t);
+    await assertPairTabbed(windows[0], windows[1], t);
+    await assertPairTabbed(windows[2], windows[3], t);
     await assertGrouped(t, ...windows);
 
     // De-register first window

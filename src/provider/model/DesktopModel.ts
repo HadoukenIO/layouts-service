@@ -140,8 +140,22 @@ export class DesktopModel {
     }
 
     public getWindowAt(x: number, y: number, exclude?: WindowIdentity): DesktopWindow|null {
-        const identityAtPoint: WindowIdentity|null = this._zIndexer.getWindowAt(x, y, exclude);
-        return identityAtPoint && this.getWindow(identityAtPoint);
+        const point: Point = {x, y};
+        const excludeId: string|undefined = exclude && this.getId(exclude);
+        const windowsAtPoint: DesktopWindow[] = this._windows.filter((window: DesktopWindow) => {
+            const state: EntityState = window.currentState;
+            return window.isActive && RectUtils.isPointInRect(state.center, state.halfSize, point) && window.id !== excludeId;
+        });
+
+        const topMostWindow: DesktopWindow|null = this._zIndexer.getTopMost(windowsAtPoint);
+        const nonModelWindow: WindowIdentity|null = this._zIndexer.getWindowAt(x, y, exclude);
+
+        if (!topMostWindow || !nonModelWindow || topMostWindow.id === this.getId(nonModelWindow!)) {
+            return topMostWindow;
+        } else {
+            // Model found a window at this point, but it is obscured by a de-registered window
+            return null;
+        }
     }
 
     public getTabGroup(id: string): DesktopTabGroup|null {

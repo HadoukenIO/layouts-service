@@ -140,25 +140,33 @@ export class ZIndexer {
      */
     private update(identity: WindowIdentity, bounds?: Rect) {
         const id: string = this._model.getId(identity);
-        const entry: ZIndex|undefined = this._stack.find(i => i.id === id);
         const timestamp = Date.now();
+        let entry: ZIndex|undefined = this._stack.find(i => i.id === id);
 
         if (entry) {
+            // Update existing entry
             entry.timestamp = timestamp;
             if (bounds) {
                 // Update bounds
                 Object.assign(entry.bounds, bounds);
             }
+        } else if (bounds) {
+            // Can create & add a new entry synchronously
+            this.addToStack({id, identity, timestamp, bounds});
         } else {
-            const entry: ZIndex = {id, identity, timestamp, bounds: bounds!};
-            if (entry.bounds) {
-                this.addToStack(entry);
-            } else {
-                fin.Window.wrapSync(identity).getBounds().then(bounds => {
-                    entry.bounds = this.sanitizeBounds(bounds);
-                    this.addToStack(entry);
-                });
-            }
+            // Must request bounds before being able to add
+            fin.Window.wrapSync(identity).getBounds().then(bounds => {
+                // Since this required an async operation, entry may now exist within stack
+                entry = this._stack.find(i => i.id === id);
+
+                if (entry) {
+                    // Update bounds on existing entry
+                    Object.assign(entry.bounds, bounds);
+                } else {
+                    // Continue with creating new entry
+                    this.addToStack({id, identity, timestamp, bounds: this.sanitizeBounds(bounds)});
+                }
+            });
         }
 
         this._stack.sort((a, b) => {

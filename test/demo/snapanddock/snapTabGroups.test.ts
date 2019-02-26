@@ -2,7 +2,7 @@ import {test} from 'ava';
 import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import {assertActiveTab, assertGrouped, assertNotTabbed, assertTabbed} from '../../provider/utils/assertions';
+import {assertActiveTab, assertGrouped, assertNotTabbed, assertPairTabbed} from '../../provider/utils/assertions';
 import {delay} from '../../provider/utils/delay';
 import {dragSideToSide, dragWindowTo} from '../../provider/utils/dragWindowTo';
 import {opposite, Side, Sides} from '../../provider/utils/SideUtils';
@@ -56,8 +56,8 @@ testParameterized<SnapTabInstanceData&CreateWindowData, WindowContext>(
         await tabSnapAndMove(instance.side, windows);
 
         // Assert tabbed
-        await assertTabbed(windows[0], windows[1], t);
-        await assertTabbed(windows[2], windows[3], t);
+        await assertPairTabbed(windows[0], windows[1], t);
+        await assertPairTabbed(windows[2], windows[3], t);
         await assertGrouped(t, ...windows);
     }));
 
@@ -81,8 +81,8 @@ testParameterized<SnapTabInstanceData&CreateWindowData, WindowContext>(
         await switchTab(tabstrips[1], 0);
         await assertActiveTab(t, windows[2]);
 
-        await assertTabbed(windows[0], windows[1], t);
-        await assertTabbed(windows[2], windows[3], t);
+        await assertPairTabbed(windows[0], windows[1], t);
+        await assertPairTabbed(windows[2], windows[3], t);
         await assertGrouped(t, ...windows);
     }));
 
@@ -99,7 +99,7 @@ testParameterized<SnapTabInstanceData&CreateWindowData, WindowContext>(
         await assertNotTabbed(windows[0], t);
         await assertNotTabbed(windows[1], t);
 
-        await assertTabbed(windows[2], windows[3], t);
+        await assertPairTabbed(windows[2], windows[3], t);
         await assertGrouped(t, ...windows.slice(1));
     }));
 
@@ -120,8 +120,8 @@ testParameterized<SnapTabInstanceData&CreateWindowData, WindowContext>(
         // Tab remaining window to snapped window
         await tabWindowsTogether(windows[2], windows[3]);
 
-        await assertTabbed(windows[0], windows[1], t);
-        await assertTabbed(windows[2], windows[3], t);
+        await assertPairTabbed(windows[0], windows[1], t);
+        await assertPairTabbed(windows[2], windows[3], t);
         await assertGrouped(t, ...windows);
     }));
 
@@ -147,8 +147,8 @@ testParameterized<SnapTabInstanceData&CreateWindowData, WindowContext>(
         const bounds: Bounds = await tabstrip.getBounds();
         await dragWindowTo(tabstrip, bounds.left + -300, bounds.top + -200);
 
-        await assertTabbed(windows[0], windows[1], t);
-        await assertTabbed(windows[2], windows[3], t);
+        await assertPairTabbed(windows[0], windows[1], t);
+        await assertPairTabbed(windows[2], windows[3], t);
         await assertGrouped(t, ...windows);
     }));
 
@@ -170,7 +170,7 @@ testParameterized<SnapTabInstanceData&CreateWindowData, WindowContext>(
         // Tab remaining window to snapped window
         await tearoutToOtherTabstrip(tabstrip, 2, windows[3]);
 
-        await assertTabbed(windows[0], windows[1], t);
-        await assertTabbed(windows[2], windows[3], t);
+        await assertPairTabbed(windows[0], windows[1], t);
+        await assertPairTabbed(windows[2], windows[3], t);
         await assertGrouped(t, ...windows.slice(2));
     }));

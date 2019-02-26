@@ -10,6 +10,7 @@ import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {DesktopTabstripFactory} from '../model/DesktopTabstripFactory';
 import {DesktopWindow, EntityState, WindowIdentity} from '../model/DesktopWindow';
+import {promiseForEach} from '../snapanddock/utils/async';
 import {Point, PointUtils} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 import {eTargetType, TargetBase} from '../WindowHandler';
@@ -107,6 +108,23 @@ export class TabService {
             } else {
                 console.warn(
                     'Tab list contained ' + (tabIdentities.length - tabs.length) + ' invalid identities', tabIdentities, tabs.map(tab => tab.identity));
+            }
+        }
+
+        // Compute the tabs to be ejected and manually create a new TabGroup for them
+        const previousTabGroup = tabs[0].tabGroup;
+        if (previousTabGroup) {
+            const ejectedTabs = previousTabGroup.tabs.filter(candidateEjectedTab => !tabs.includes(candidateEjectedTab));
+            await promiseForEach(ejectedTabs, async (ejectedTab) => {
+                await previousTabGroup.removeTab(ejectedTab);
+            });
+
+            if (ejectedTabs.length > 1) {
+                const ejectedTabstripConfig: Tabstrip = this.getTabstripConfig(ejectedTabs[0].identity);
+                const ejectedTabGroup: DesktopTabGroup = new DesktopTabGroup(this._model, new DesktopSnapGroup(), ejectedTabstripConfig);
+                await ejectedTabGroup.addTabs(ejectedTabs);
+            } else if (ejectedTabs.length === 1) {
+                ejectedTabs[0].setSnapGroup(new DesktopSnapGroup());
             }
         }
 

@@ -2,7 +2,7 @@ import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import * as os from 'os';
 
-import {getActiveTab, getTabstrip} from '../../demo/utils/tabServiceUtils';
+import {getActiveTab, getTabGroupID, getTabstrip} from '../../demo/utils/tabServiceUtils';
 
 import {getWindow, Win} from './getWindow';
 
@@ -13,7 +13,7 @@ export interface NormalizedBounds extends Bounds {
     right: number;
 }
 
-export const getBounds = async(identityOrWindow: Win): Promise<NormalizedBounds> => {
+export async function getBounds(identityOrWindow: Win): Promise<NormalizedBounds> {
     const win = await getWindow(identityOrWindow);
     const bounds = await win.getBounds();
     bounds.right = bounds.right || bounds.left + bounds.width;
@@ -27,11 +27,13 @@ export const getBounds = async(identityOrWindow: Win): Promise<NormalizedBounds>
     }
     return Object.assign(
         bounds, {left: bounds.left + 7, right: bounds.right - 7, bottom: bounds.bottom - 7, height: bounds.height - 7, width: bounds.width - 14});
-};
+}
 
 export async function getTabsetBounds(tabOrTabstrip: _Window): Promise<NormalizedBounds> {
-    const tabstrip = await getTabstrip(tabOrTabstrip.identity);
-    if (tabstrip) {
+    const tabGroupID = await getTabGroupID(tabOrTabstrip.identity);
+    if (tabGroupID) {
+        const tabstrip = await getTabstrip(tabOrTabstrip.identity);
+
         let tab: _Window;
         if (tabOrTabstrip.identity.name === tabstrip.identity.name) {
             // Provided window is tabstrip. Need to get active tab.
@@ -52,5 +54,14 @@ export async function getTabsetBounds(tabOrTabstrip: _Window): Promise<Normalize
 
     } else {
         throw new Error('Attempted to get tabstrip bounds of untabbed window.');
+    }
+}
+
+export async function getEntityBounds(window: _Window): Promise<NormalizedBounds> {
+    const tabGroupID = await getTabGroupID(window.identity);
+    if (tabGroupID) {
+        return getTabsetBounds(window);
+    } else {
+        return getBounds(window);
     }
 }

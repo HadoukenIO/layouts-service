@@ -6,7 +6,7 @@ import {WindowIdentity} from '../../src/provider/model/DesktopWindow';
 import {executeJavascriptOnService} from '../demo/utils/serviceUtils';
 import {teardown} from '../teardown';
 
-import {assertAllMaximized, assertAllNormalState, assertNotTabbed, assertTabbed} from './utils/assertions';
+import {assertAllMaximized, assertAllNormalState, assertNotTabbed, assertPairTabbed} from './utils/assertions';
 import {createChildWindow} from './utils/createChildWindow';
 import {delay} from './utils/delay';
 import {dragWindowTo, dragWindowToOtherWindow} from './utils/dragWindowTo';
@@ -84,12 +84,12 @@ test('Drag window over window - should create tabgroup', async t => {
     await tabWindowsTogether(wins[0], wins[1]);
 
     // Test that the windows are tabbed
-    await assertTabbed(wins[0], wins[1], t);
+    await assertPairTabbed(wins[0], wins[1], t);
 });
 
 test('Drag window over window - window title is displayed in tabstrip', async t => {
     await tabWindowsTogether(wins[0], wins[1]);
-    await assertTabbed(wins[0], wins[1], t);
+    await assertPairTabbed(wins[0], wins[1], t);
 
     const tabTitles = await Promise.all(wins.map(w => getTabTitle(w.identity)));
 
@@ -128,7 +128,7 @@ test('Drag window into tabgroup - should create 3 tab tabgroup', async t => {
     await tabWindowsTogether(wins[0], win3);
 
     // Assert tab group formed
-    await assertTabbed(wins[0], win3, t);
+    await assertPairTabbed(wins[0], win3, t);
 });
 
 test('Drag window into tabgroup, invalid region - should not create 3 tab tabgroup', async t => {
@@ -161,7 +161,7 @@ test('Tearout tab - should create 2 singleton windows', async t => {
     await tabWindowsTogether(wins[0], wins[1]);
 
     // Test that the windows are tabbed
-    await assertTabbed(wins[0], wins[1], t);
+    await assertPairTabbed(wins[0], wins[1], t);
 
     // Tearout the previously dropped window
     const bounds1 = await getBounds(wins[0]);
@@ -208,7 +208,7 @@ test('Tearout tab dragged into singleton window - should create new tab group', 
     await delay(1000);
 
     // Assert win1 not tabbed, win2&3 are tabbed
-    await Promise.all([assertNotTabbed(wins[0], t), assertTabbed(wins[1], win3, t)]);
+    await Promise.all([assertNotTabbed(wins[0], t), assertPairTabbed(wins[1], win3, t)]);
 
     await delay(1000);
 });
@@ -289,7 +289,7 @@ test('test Tearout tab dragged into tab group - should add tab to tabgroup', asy
     await delay(500);
 
     // Assert win1 not tabbed, win2&3 are tabbed
-    await Promise.all([assertNotTabbed(wins[0], t), assertTabbed(wins[1], win3, t)]);
+    await Promise.all([assertNotTabbed(wins[0], t), assertPairTabbed(wins[1], win3, t)]);
 });
 
 
@@ -342,7 +342,7 @@ test('Tearout tab dragged into tab group, invalid region - should not add tab to
 test('2 tab tabgroup, Tab closed - should destroy tabgroup', async t => {
     // Create tab group
     await tabWindowsTogether(wins[1], wins[0]);
-    await assertTabbed(wins[0], wins[1], t);
+    await assertPairTabbed(wins[0], wins[1], t);
 
     // Close a window
     await wins[0].close();
@@ -355,7 +355,7 @@ test('2 tab tabgroup, Tab closed - should destroy tabgroup', async t => {
 test('2 tab tabgroup, Tab tearout - should destroy tabgroup', async t => {
     // Create tab group
     await tabWindowsTogether(wins[1], wins[0]);
-    await assertTabbed(wins[0], wins[1], t);
+    await assertPairTabbed(wins[0], wins[1], t);
 
     const bounds1 = await getBounds(wins[0]);
     robot.mouseToggle('up');
@@ -385,14 +385,14 @@ test('3 tab tabgroup, Tab closed - should retain tabgroup', async t => {
     await tabWindowsTogether(wins[1], wins[0]);
     await tabWindowsTogether(wins[1], win3);
 
-    await Promise.all([assertTabbed(wins[0], wins[1], t), assertTabbed(wins[0], win3, t)]);
+    await Promise.all([assertPairTabbed(wins[0], wins[1], t), assertPairTabbed(wins[0], win3, t)]);
 
     // Close 3rd window
     await win3.close();
     await delay(500);
 
     // Assert group remains
-    await assertTabbed(wins[0], wins[1], t);
+    await assertPairTabbed(wins[0], wins[1], t);
 });
 
 test('3 tab tabgroup, Tab tearout - should retain tabgroup', async t => {
@@ -413,7 +413,7 @@ test('3 tab tabgroup, Tab tearout - should retain tabgroup', async t => {
     await tabWindowsTogether(wins[1], wins[0]);
     await tabWindowsTogether(wins[1], win3);
 
-    await Promise.all([assertTabbed(wins[0], wins[1], t), assertTabbed(wins[0], win3, t)]);
+    await Promise.all([assertPairTabbed(wins[0], wins[1], t), assertPairTabbed(wins[0], win3, t)]);
 
     // Tearout tab
     const bounds1 = await getBounds(wins[0]);
@@ -424,7 +424,7 @@ test('3 tab tabgroup, Tab tearout - should retain tabgroup', async t => {
     robot.mouseToggle('up');
 
     // Assert group remains
-    await Promise.all([assertTabbed(win3, wins[0], t), assertNotTabbed(wins[1], t)]);
+    await Promise.all([assertPairTabbed(win3, wins[0], t), assertNotTabbed(wins[1], t)]);
 });
 
 test('Tearout tab then retab - should create tabgroup', async t => {
@@ -432,7 +432,7 @@ test('Tearout tab then retab - should create tabgroup', async t => {
     await tabWindowsTogether(wins[0], wins[1]);
 
     // Test that the windows are tabbed
-    await assertTabbed(wins[0], wins[1], t);
+    await assertPairTabbed(wins[0], wins[1], t);
 
     // Tearout the previously dropped window
     const bounds1 = await getBounds(wins[0]);
@@ -453,7 +453,7 @@ test('Tearout tab then retab - should create tabgroup', async t => {
     await tabWindowsTogether(wins[0], wins[1]);
 
     // Assert group is formed again
-    await assertTabbed(wins[1], wins[0], t);
+    await assertPairTabbed(wins[1], wins[0], t);
 });
 
 
@@ -486,7 +486,7 @@ test('Close tab then retab - should create tabgroup', async t => {
     await delay(500);
 
     // Assert group is formed again
-    await assertTabbed(wins[1], wins[0], t);
+    await assertPairTabbed(wins[1], wins[0], t);
 
     await delay(1000);
 });
@@ -495,7 +495,7 @@ test('Close tab then retab - should create tabgroup', async t => {
 test('Tearout tab onto itself - should remain in tabgroup', async t => {
     // Create tab group
     await tabWindowsTogether(wins[1], wins[0]);
-    await assertTabbed(wins[0], wins[1], t);
+    await assertPairTabbed(wins[0], wins[1], t);
 
     const bounds1 = await getBounds(wins[0]);
     robot.mouseToggle('up');
@@ -507,7 +507,7 @@ test('Tearout tab onto itself - should remain in tabgroup', async t => {
     await delay(500);
 
     // Assert group remains
-    await assertTabbed(wins[0], wins[1], t);
+    await assertPairTabbed(wins[0], wins[1], t);
 
     await delay(1000);
 });

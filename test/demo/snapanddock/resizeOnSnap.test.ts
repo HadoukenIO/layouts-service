@@ -1,7 +1,7 @@
 import {test} from 'ava';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import {assertAdjacent, assertAllContiguous, assertGrouped, assertTabbed} from '../../provider/utils/assertions';
+import {assertAdjacent, assertAllContiguous, assertGrouped, assertPairTabbed} from '../../provider/utils/assertions';
 import {delay} from '../../provider/utils/delay';
 import {dragSideToSide} from '../../provider/utils/dragWindowTo';
 import {getBounds, getTabsetBounds} from '../../provider/utils/getBounds';
@@ -234,8 +234,8 @@ testParameterized(
 
         await delay(500);
 
-        await assertTabbed(windows[0], windows[1], t);
-        await assertTabbed(windows[2], windows[3], t);
+        await assertPairTabbed(windows[0], windows[1], t);
+        await assertPairTabbed(windows[2], windows[3], t);
 
         const tabstrips = [await getTabstrip(windows[0].identity), await getTabstrip(windows[2].identity)];
         const activeTabs = await Promise.all([windows[0], windows[2]].map(async win => fin.Window.wrap(await getActiveTab(win.identity))));

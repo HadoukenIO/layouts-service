@@ -108,55 +108,57 @@ export class ZIndexer {
     /**
      * Updates the windows index in the stack and sorts array.
      * @param identity ID of the window to update (uuid, name)
-     * @param bounds Physical bounds of the window to update, if known
+     * @param bounds Physical bounds of the window to update, if known. Will perform an async querey if needed and not specified
+     * @param active The active state of the window to update, if know. Will guess as true if needed and not specified
+     * @param timestamp The new timestamp for the stack entry. Will use the current time if not specified
      */
-    private update(identity: WindowIdentity, bounds?: Rect) {
+    private update(identity: WindowIdentity, active?: boolean, bounds?: Rect, timestamp?: number) {
+        timestamp = timestamp ? timestamp : Date.now();
+
         const id: string = this._model.getId(identity);
-        const timestamp = Date.now();
-        let entry: ZIndex|undefined = this._stack.find(i => i.id === id);
+        const entry: ZIndex|undefined = this._stack.find(i => i.id === id);
 
         if (entry) {
             // Update existing entry
             entry.timestamp = timestamp;
+
+            if (active !== undefined) {
+                entry.active = active;
+            }
             if (bounds) {
-                // Update bounds
                 Object.assign(entry.bounds, bounds);
             }
-        } else if (bounds) {
-            // Can create & add a new entry synchronously
-            this.addToStack({id, identity, timestamp, bounds});
-        } else {
+        } else if (!bounds) {
             // Must request bounds before being able to add
             fin.Window.wrapSync(identity).getBounds().then(bounds => {
-                // Since this required an async operation, entry may now exist within stack
-                entry = this._stack.find(i => i.id === id);
-
-                if (entry) {
-                    // Update bounds on existing entry
-                    Object.assign(entry.bounds, bounds);
-                } else {
-                    // Continue with creating new entry
-                    this.addToStack({id, identity, timestamp, bounds: this.sanitizeBounds(bounds)});
-                }
+                // Since this required an async operation, entry may now exist within stack, so recursively call update
+                this.update(identity, active, this.sanitizeBounds(bounds), timestamp);
             });
+        } else {
+            // Can create & add a new entry synchronously
+            this.addToStack({id, identity, timestamp, bounds, active: active !== undefined ? active : true});
         }
 
-        this._stack.sort((a, b) => {
-            return b.timestamp - a.timestamp;
-        });
+        this.sortStack();
     }
 
-    private onWindowModified(identity: WindowIdentity, bounds?: Rect): void {
+    private onWindowModified(identity: WindowIdentity, active?: boolean, bounds?: Rect): void {
         const modelWindow: DesktopWindow|null = this._model.getWindow(identity);
         const modelGroup: DesktopSnapGroup|null = modelWindow && modelWindow.snapGroup;
 
         if (modelGroup && modelGroup.length > 1) {
-            // Also bring-to-front any windows within the group
+            // Also modify any windows within the group
             const id: string = this._model.getId(identity);
-            modelGroup.windows.forEach(window => this.update(window.identity, window.id === id ? bounds : undefined));
+
+            modelGroup.windows.forEach(window => {
+                const windowBounds = window.id === id ? bounds : undefined;
+                const windowActive = window.id === id ? active : undefined;
+
+                this.update(window.identity, windowActive, windowBounds);
+            });
         } else {
-            // Just bring modified window to front
-            this.update(identity, bounds);
+            // Just modify single window
+            this.update(identity, active, bounds);
         }
     }
 
@@ -168,16 +170,21 @@ export class ZIndexer {
         const identity = win.identity as WindowIdentity;  // A window identity will always have a name, so it is safe to cast
 
         const bringToFront = () => {
-            this.onWindowModified(identity);
+            this.onWindowModified(identity, true);
         };
         const boundsChanged = (evt: WindowBoundsChange<'window', 'bounds-changed'>) => {
-            this.onWindowModified(identity, this.sanitizeBounds(evt));
+            this.onWindowModified(identity, undefined, this.sanitizeBounds(evt));
+        };
+        const markInactive = () => {
+            this.onWindowModified(identity, false, undefined);
         };
         const onClose = () => {
             win.removeListener('focused', bringToFront);
             win.removeListener('shown', bringToFront);
             win.removeListener('bounds-changed', boundsChanged);
             win.removeListener('closed', onClose);
+            win.removeListener('hidden', markInactive);
+            win.removeListener('minimized', markInactive);
 
             const id = `${identity.uuid}/${identity.name}`;
             const index = this._stack.findIndex(e => e.id === id);
@@ -191,12 +198,28 @@ export class ZIndexer {
         win.addListener('shown', bringToFront);
         win.addListener('bounds-changed', boundsChanged);
 
+        // When a window is hidden or minimized, mark it as inactive
+        win.addListener('hidden', markInactive);
+        win.addListener('minimized', markInactive);
+
         // Remove listeners when the window is destroyed
         win.addListener('closed', onClose);
     }
 
     private addToStack(entry: ZIndex): void {
         this._stack.push(entry);
+    }
+
+    private sortStack(): void {
+        this._stack.sort((a, b) => {
+            if (a && !b) {
+                return -1;
+            } else if (!a && b) {
+                return 1;
+            } else {
+                return b.timestamp - a.timestamp;
+            }
+        });
     }
 
     private sanitizeBounds(input: Bounds): Rect {

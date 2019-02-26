@@ -15,6 +15,7 @@ import {getId, SnapAndDockAPI} from './internal';
  *
  * ```ts
  * import {addEventListener} from 'openfin-layouts';
+ * import {WindowDockedEvent} from 'openfin-layouts/dist/client/snapanddock';
  *
  * addEventListener('window-docked', async (event: WindowDockedEvent) => {
  *     console.log("Docked to another window");
@@ -28,9 +29,9 @@ import {getId, SnapAndDockAPI} from './internal';
  *     console.log("Windows in current group: ", await fin.Window.getCurrentSync().getGroup());
  * });
  * ```
- *
- * The service considers any windows that are tabbed together to also be in the same snap group, so this event will also fire when a window is added to a tab
- * group. This may change in future versions of the service.
+ * 
+ * This event is fired when the window first becomes docked. The window will not receive an event if an additional 
+ * window is added to the group later.
  *
  * @event
  */
@@ -46,6 +47,7 @@ export interface WindowDockedEvent {
  *
  * ```ts
  * import {addEventListener} from 'openfin-layouts';
+ * import {WindowUndockedEvent} from 'openfin-layouts/dist/client/snapanddock';
  *
  * addEventListener('window-undocked', async (event: WindowUndockedEvent) => {
  *     console.log("Undocked from another window");
@@ -59,6 +61,9 @@ export interface WindowDockedEvent {
  *     console.log("Windows in current group: ", await fin.Window.getCurrentSync().getGroup());
  * });
  * ```
+ * 
+ * This event is fired when the current window becomes undocked from a group. A window will not receive this event if 
+ * another window within the same group is undocked.
  *
  * @event
  */
@@ -74,7 +79,6 @@ export type EventMap = WindowDockedEvent|WindowUndockedEvent;
 
 export function addEventListener(eventType: 'window-docked', listener: (event: WindowDockedEvent) => void): void;
 export function addEventListener(eventType: 'window-undocked', listener: (event: WindowUndockedEvent) => void): void;
-
 export function addEventListener<K extends EventMap>(eventType: K['type'], listener: (event: K) => void): void {
     if (typeof fin === 'undefined') {
         throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');

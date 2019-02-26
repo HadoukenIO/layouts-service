@@ -1,27 +1,47 @@
 import {test} from 'ava';
-import {Fin, Window} from 'hadouken-js-adapter';
+import {Identity, Window} from 'hadouken-js-adapter';
 import * as robot from 'robotjs';
 
+import {WindowIdentity} from '../../src/provider/model/DesktopWindow';
+import {executeJavascriptOnService} from '../demo/utils/serviceUtils';
 import {teardown} from '../teardown';
 
 import {assertAllMaximized, assertAllNormalState, assertNotTabbed, assertTabbed} from './utils/assertions';
-import {getConnection} from './utils/connect';
 import {createChildWindow} from './utils/createChildWindow';
 import {delay} from './utils/delay';
 import {dragWindowTo, dragWindowToOtherWindow} from './utils/dragWindowTo';
 import {getBounds} from './utils/getBounds';
 import {tabWindowsTogether} from './utils/tabWindowsTogether';
 
-let fin: Fin;
+/**
+ * Fetches the tab title of a window. Will fetch the text from the DOM element within the tabstrip window.
+ *
+ * Assumes that `identity` is a tabbed window.
+ *
+ * @param identity Tabbed window
+ */
+async function getTabTitle(identity: Identity) {
+    return executeJavascriptOnService(function(this: ProviderWindow, tabIdentity: WindowIdentity) {
+        return new Promise((resolve, reject) => {
+            const tab = this.model.getWindow(tabIdentity)!;
+            const tabGroup = tab.tabGroup!;
+            const tabIndex = tabGroup.tabs.findIndex(t => t.id === tab.id);
+            const tabstripIdentity = tabGroup.identity;
+
+            const tabstrip = fin.desktop.Window.wrap(tabstripIdentity.uuid, tabstripIdentity.name!);
+            tabstrip.executeJavaScript(
+                `document.getElementsByClassName("tab")[${tabIndex}].getElementsByClassName("tab-content")[0].innerText`, resolve, reject);
+        });
+    }, identity as WindowIdentity);
+}
+
 
 let wins: Window[] = [];
 
-test.before(async () => {
-    fin = await getConnection();
-});
 test.beforeEach(async () => {
     // Spawn two windows - wins[0] unframed, wins[1] framed.  Any additional windows needed should be created in the test.
     wins[0] = await createChildWindow({
+        name: 'tab-window-1',
         autoShow: true,
         saveWindowState: false,
         defaultTop: 100,
@@ -32,6 +52,7 @@ test.beforeEach(async () => {
         frame: false
     });
     wins[1] = await createChildWindow({
+        name: 'tab-window-2',
         autoShow: true,
         saveWindowState: false,
         defaultTop: 300,
@@ -64,6 +85,19 @@ test('Drag window over window - should create tabgroup', async t => {
 
     // Test that the windows are tabbed
     await assertTabbed(wins[0], wins[1], t);
+});
+
+test('Drag window over window - window title is displayed in tabstrip', async t => {
+    await tabWindowsTogether(wins[0], wins[1]);
+    await assertTabbed(wins[0], wins[1], t);
+
+    const tabTitles = await Promise.all(wins.map(w => getTabTitle(w.identity)));
+
+    // First window programmatically sets document.title
+    t.is(tabTitles[0], 'Window 1');
+
+    // Second window doesn't set a title, tab title should default to window name
+    t.is(tabTitles[1], 'tab-window-2');
 });
 
 test('Drag window over window, invalid region - should not create tabgroup', async t => {

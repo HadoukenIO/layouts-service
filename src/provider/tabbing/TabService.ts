@@ -1,6 +1,8 @@
+import deepEqual from 'fast-deep-equal';
 import {Scope, Tabstrip} from '../../../gen/provider/config/layouts-config';
 import {TabProperties, TabPropertiesUpdatedEvent} from '../../client/tabbing';
 import {TabGroup, TabGroupDimensions} from '../../client/workspaces';
+import {EventMap} from '../APIMessages';
 import {ConfigStore} from '../main';
 import {DesktopEntity} from '../model/DesktopEntity';
 import {DesktopModel} from '../model/DesktopModel';
@@ -227,21 +229,38 @@ export class TabService {
         }
 
         const {icon, title} = tab.currentState;
+
+        // Title isn't always available when window is created
+        // If title is empty, re-request from window then send update to tabstrip
+        if (title === '') {
+            tab.refresh().then(() => {
+                const {icon: newIcon, title: newTitle} = tab.currentState;
+
+                if (newTitle !== '') {
+                    const properties: TabProperties = {icon: newIcon, title: newTitle};
+                    const event: TabPropertiesUpdatedEvent = {identity: tab.identity, properties, type: 'tab-properties-updated'};
+                    this.sendTabEvent(tab, event);
+                }
+            }, console.warn);
+        }
+
         // Special handling for workspace placeholder windows
         const modifiedTitle = tab.identity.uuid === fin.Window.me.uuid && title.startsWith('Placeholder-') ? 'Loading...' : title;
-        return {icon, title: modifiedTitle};
+        return {icon, title: modifiedTitle || tab.identity.name};
     }
 
     public updateTabProperties(tab: DesktopWindow, properties: Partial<TabProperties>): void {
         const tabProps: TabProperties = this.getTabProperties(tab);
-        Object.assign(tabProps, properties);
-        localStorage.setItem(tab.id, JSON.stringify(tabProps));
+        const newProps: TabProperties = {...tabProps, ...properties};
 
-        const event: TabPropertiesUpdatedEvent = {identity: tab.identity, properties: tabProps, type: 'tab-properties-updated'};
-        tab.sendEvent(event);
+        if (!deepEqual(newProps, tabProps)) {
+            // Save properties
+            Object.assign(tabProps, properties);
+            localStorage.setItem(tab.id, JSON.stringify(tabProps));
 
-        if (tab.tabGroup) {
-            tab.tabGroup.window.sendEvent(event);
+            // Send events
+            const event: TabPropertiesUpdatedEvent = {identity: tab.identity, properties: tabProps, type: 'tab-properties-updated'};
+            this.sendTabEvent(tab, event);
         }
     }
 
@@ -319,6 +338,19 @@ export class TabService {
 
     private getScope(x: WindowIdentity|DesktopEntity): Scope {
         return (x as DesktopEntity).scope || {level: 'window', ...x as WindowIdentity};
+    }
+
+    /**
+     * Sends an event to both a tab window, and the tabstrip of the tab's tabgroup - if the window is tabbed.
+     *
+     * @param tab Modified window
+     * @param event Event to send
+     */
+    private sendTabEvent(tab: DesktopWindow, event: EventMap): void {
+        tab.sendEvent(event);
+        if (tab.tabGroup) {
+            tab.tabGroup.window.sendEvent(event);
+        }
     }
 
 

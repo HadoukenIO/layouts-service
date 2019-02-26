@@ -106,10 +106,10 @@ export class ZIndexer {
     }
 
     /**
-     * Updates the windows index in the stack and sorts array.
+     * Updates the state of the window tracked in the stack, and resorts windows
      * @param identity ID of the window to update (uuid, name)
-     * @param bounds Physical bounds of the window to update, if known. Will perform an async query if needed and not specified
      * @param active The active state of the window to update, if know. Will guess as true if needed and not specified
+     * @param bounds Physical bounds of the window to update, if known. Will perform an async query if needed and not specified
      * @param timestamp The new timestamp for the stack entry. Will use the current time if not specified
      */
     private update(identity: WindowIdentity, active?: boolean, bounds?: Rect, timestamp?: number) {

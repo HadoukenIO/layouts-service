@@ -51,8 +51,8 @@ pipeline {
                     MANIFEST_NAME = "app.staging.json"
 
                     S3_LOC = env.DSERVICE_S3_ROOT + "layouts/" + BUILD_VERSION
-                    DOCS_CHANNEL_LOC = env.DSERVICE_S3_ROOT + "layouts/docs/" + CHANNEL
-                    DOCS_VERSIONED_LOC = env.DSERVICE_S3_ROOT + "layouts/docs/" + BUILD_VERSION
+                    DOCS_CHANNEL_LOC = env.DSERVICE_S3_ROOT_DOCS + "layouts/" + CHANNEL
+                    DOCS_VERSIONED_LOC = env.DSERVICE_S3_ROOT_DOCS + "layouts/" + BUILD_VERSION
                     MANIFEST_LOC = env.DSERVICE_S3_ROOT + "layouts/" + MANIFEST_NAME
                 }
                 sh "npm i --ignore-scripts"
@@ -92,8 +92,8 @@ pipeline {
                     MANIFEST_NAME = "app.json"
 
                     S3_LOC = env.DSERVICE_S3_ROOT + "layouts/" + BUILD_VERSION
-                    DOCS_CHANNEL_LOC = env.DSERVICE_S3_ROOT + "layouts/docs/" + CHANNEL
-                    DOCS_VERSIONED_LOC = env.DSERVICE_S3_ROOT + "layouts/docs/" + BUILD_VERSION
+                    DOCS_CHANNEL_LOC = env.DSERVICE_S3_ROOT_DOCS + "layouts/" + CHANNEL
+                    DOCS_VERSIONED_LOC = env.DSERVICE_S3_ROOT_DOCS + "layouts/" + BUILD_VERSION
                     MANIFEST_LOC = env.DSERVICE_S3_ROOT + "layouts/" + MANIFEST_NAME
                 }
                 sh "npm i --ignore-scripts"

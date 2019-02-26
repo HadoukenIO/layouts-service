@@ -567,7 +567,6 @@ export class DesktopTabGroup implements DesktopEntity {
         }
 
         // Add tab
-        const tabProps = tabService.getTabProperties(tab);
         this._tabs.splice(index, 0, tab);
         tab.onTeardown.add(this.onWindowTeardown, this);
         tab.onTransform.add(this.onTabTransform, this);
@@ -623,6 +622,7 @@ export class DesktopTabGroup implements DesktopEntity {
         await tab.setTabGroup(this);
         await tab.setSnapGroup(this._window.snapGroup);
 
+        const tabProps = tabService.getTabProperties(tab);
         const event:
             TabAddedEvent = {tabstripIdentity: this.identity, identity: tab.identity, properties: tabProps, index: this._tabs.indexOf(tab), type: 'tab-added'};
         this.sendTabEvent(tab, event);

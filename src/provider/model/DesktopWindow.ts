@@ -1,19 +1,17 @@
 import deepEqual from 'fast-deep-equal';
 import {Identity, Window} from 'hadouken-js-adapter';
+import {WindowInfo} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {WindowScope} from '../../../gen/provider/config/layouts-config';
 import {SERVICE_IDENTITY} from '../../client/internal';
-
 import {WindowState} from '../../client/workspaces';
-import {APIHandler} from '../APIHandler';
 import {EVENT_CHANNEL_TOPIC, EventMap} from '../APIMessages';
 import {apiHandler} from '../main';
 import {Aggregators, Signal1, Signal2} from '../Signal';
-import {promiseMap} from '../snapanddock/utils/async';
 import {Debounced} from '../snapanddock/utils/Debounced';
 import {isWin10} from '../snapanddock/utils/platform';
 import {Point} from '../snapanddock/utils/PointUtils';
-import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
+import {Rectangle} from '../snapanddock/utils/RectUtils';
 
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
@@ -117,10 +115,12 @@ export class DesktopWindow implements DesktopEntity {
     public static activeTransactions: Transaction[] = [];
 
     public static async getWindowState(window: Window): Promise<EntityState> {
-        return Promise.all([window.getOptions(), window.isShowing(), window.getBounds()])
-            .then((results: [fin.WindowOptions, boolean, fin.WindowBounds]): EntityState => {
+        return Promise.all([window.getOptions(), window.getInfo(), window.isShowing(), window.getBounds()])
+            .then((results: [fin.WindowOptions, WindowInfo, boolean, fin.WindowBounds]): EntityState => {
                 const options: fin.WindowOptions = results[0];
-                const bounds: fin.WindowBounds = results[2];
+                const info: WindowInfo = results[1];
+                const isShowing: boolean = results[2];
+                const bounds: fin.WindowBounds = results[3];
                 const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
                 const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
 
@@ -150,15 +150,36 @@ export class DesktopWindow implements DesktopEntity {
                     }
                 };
 
+                // Get window title
+                const {title, url} = info;
+                let windowTitle = title;
+                if (title && url && url.indexOf(title) >= 0) {
+                    // The runtime will return (a subset of) the page URL as the title field if the document doesn't
+                    // define a title. We would like to instead use the window name, to align with what is seen in the
+                    // untabbed window frame.
+
+                    // Current stable (9.61.38.40) behaviour is to return 'host+pathname+search+hash'. There is also a
+                    // story (RUN-3457) to change this to 'host+pathname'. We will check for both of these strings, and
+                    // revert to the window name if the title matches either
+                    const parsedUrl = new URL(url);
+                    const defaultTitles: string[] =
+                        [[parsedUrl.host, parsedUrl.pathname, parsedUrl.search, parsedUrl.hash].join(''), [parsedUrl.host, parsedUrl.pathname].join('')];
+
+                    if (defaultTitles.indexOf(title) >= 0) {
+                        // Fall-back to window name
+                        windowTitle = window.identity.name || '';
+                    }
+                }
+
                 return {
                     center,
                     halfSize,
                     resizeConstraints,
                     frame: options.frame!,
-                    hidden: !results[1],
+                    hidden: !isShowing,
                     state: options.state!,
                     icon: options.icon || `https://www.google.com/s2/favicons?domain=${options.url}`,
-                    title: options.name!,
+                    title: windowTitle,
                     showTaskbarIcon: options.showTaskbarIcon!,
                     opacity: options.opacity!,
                     alwaysOnTop: options.alwaysOnTop!,

@@ -188,8 +188,8 @@ export class ZIndexer {
             win.removeListener('shown', bringToFront);
             win.removeListener('bounds-changed', boundsChanged);
             win.removeListener('hidden', markInactive);
-            win.removeListener('minimized', markInactive);
-            win.removeListener('closed', onClose);
+            // win.removeListener('minimized', markInactive);
+            // win.removeListener('closed', onClose);
 
             const id = `${identity.uuid}/${identity.name}`;
             const index = this._stack.findIndex(e => e.id === id);
@@ -204,8 +204,8 @@ export class ZIndexer {
         win.addListener('bounds-changed', boundsChanged);
 
         // When a window is hidden or minimized, mark it as inactive
-        win.addListener('hidden', markInactive);
-        win.addListener('minimized', markInactive);
+        // win.addListener('hidden', markInactive);
+        // win.addListener('minimized', markInactive);
 
         // Remove listeners when the window is destroyed
         win.addListener('closed', onClose);

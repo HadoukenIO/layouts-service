@@ -70,7 +70,14 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
 
     await createWorkspacePlaceholders(workspace);
 
-    const apps: WorkspaceApp[] = await promiseMap(workspace.apps, app => restoreApp(app, startupApps));
+    // Have to restore the applications one-by-one in order to prevent createFromManifest calls to the RVM from hanging
+    // Should be resolved by RUN-5040 and RVM-814
+    const restoreAppResponses: WorkspaceApp[] = [];
+    for (let index = 0; index < workspace.apps.length; index++) {
+        const workspaceApp = workspace.apps[index];
+        const restoredWorkspaceApp = await restoreApp(workspaceApp, startupApps);
+        restoreAppResponses.push(restoredWorkspaceApp);
+    }
 
     // Wait for all apps to startup
     const startupResponses: WorkspaceApp[] = await Promise.all(startupApps);
@@ -83,7 +90,7 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
     }
 
     // Consolidate application responses
-    const allAppResponses: WorkspaceApp[] = apps.map(app => {
+    const allAppResponses: WorkspaceApp[] = restoreAppResponses.map(app => {
         const appResponse = startupResponses.find(appRes => appRes.uuid === app.uuid);
         return appResponse ? appResponse : app;
     });
@@ -276,7 +283,10 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
                 // If app created by manifest
                 const {manifestUrl} = app;
                 console.log('App has manifestUrl:', app);
+                console.log("BEFORE CREATEFROMMANIFEST");
                 ofAppNotRunning = await fin.Application.createFromManifest(manifestUrl);
+                console.log("ofAppNotRunning", ofAppNotRunning);
+                console.log("AFTER CREATEFROMMANIFEST");
             } else {
                 // If application created programmatically
                 if (canRestoreProgrammatically(app)) {
@@ -288,7 +298,9 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
             }
 
             if (ofAppNotRunning) {
+                console.log("BEFORE RUN");
                 await ofAppNotRunning.run().catch(console.log);
+                console.log("AFTER RUN");
                 await model.expect({uuid, name: uuid});
                 await positionWindow(app.mainWindow, true);
             }

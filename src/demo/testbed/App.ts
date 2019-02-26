@@ -54,8 +54,7 @@ export class App {
 
             await Promise.all(workspace.childWindows.map(async (win: WorkspaceWindow, index: number) => {
                 if (!openWindows.some((w: _Window) => w.identity.name === win.name)) {
-                    const bounds = win.bounds;
-                    await createWindow({id: win.name, frame: win.frame, size: {x: bounds.width, y: bounds.height}, position: {x: bounds.left, y: bounds.top}});
+                    await createWindow({id: win.name, frame: win.frame, size: {x: win.width, y: win.height}, position: {x: win.left, y: win.top}});
                 } else {
                     await this.positionWindow(win);
                 }
@@ -134,7 +133,7 @@ export class App {
             const {isShowing, isTabbed} = win;
 
             const ofWin = await fin.Window.wrap(win);
-            await ofWin.setBounds(win.bounds);
+            await ofWin.setBounds(win);
 
             if (isTabbed) {
                 await ofWin.show();

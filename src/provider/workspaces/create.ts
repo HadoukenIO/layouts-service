@@ -1,7 +1,6 @@
 import {Window} from 'hadouken-js-adapter';
 import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/application/application';
 import {WindowDetail, WindowInfo as WindowInfo_System} from 'hadouken-js-adapter/out/types/src/api/system/window';
-import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
 import {WindowInfo as WindowInfo_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
@@ -33,7 +32,7 @@ interface WorkspaceWindowData {
     isTabbed: boolean;
 }
 
-export async function getCurrentWorkspace(): Promise<Workspace> {
+export const getCurrentWorkspace = async(): Promise<Workspace> => {
     // Not yet using monitor info
     const monitorInfo = await fin.System.getMonitorInfo() || {};
     let tabGroups = await tabService.getTabSaveInfo();
@@ -113,8 +112,10 @@ export async function getCurrentWorkspace(): Promise<Workspace> {
 
             // Grab the layout information for the main app window
             const mainOfWin: Window = await ofApp.getWindow();
-            const mainWindow: WorkspaceWindow = await getWorkspaceWindow(mainOfWin, windowInfo.mainWindow, tabbedWindows);
-            adjustSizeOfFormerlyTabbedWindows(mainWindow, formerlyTabbedWindows);
+            const mainWindowLayoutData = await getWorkspaceWindowData(mainOfWin, tabbedWindows);
+            const mainWindow: WorkspaceWindow = {...windowInfo.mainWindow, ...mainWindowLayoutData};
+            const mainWinIdentity = {uuid, name: mainWindow.name};
+            adjustSizeOfFormerlyTabbedWindows(mainWinIdentity, formerlyTabbedWindows, mainWindow);
 
             // Filter for deregistered child windows
             windowInfo.childWindows = windowInfo.childWindows.filter((win: WindowDetail) => {
@@ -122,18 +123,22 @@ export async function getCurrentWorkspace(): Promise<Workspace> {
             });
 
             // Grab the layout information for the child windows
-            const childWindows: WorkspaceWindow[] = await promiseMap(windowInfo.childWindows, async (childWinDetail: WindowDetail) => {
-                const childWinIdentity = {uuid, name: childWinDetail.name || uuid};
+            const childWindows: WorkspaceWindow[] = await promiseMap(windowInfo.childWindows, async (childWin: WindowDetail) => {
+                const {name} = childWin;
+                const childWinIdentity = {uuid, name};
                 const ofWin = fin.Window.wrapSync(childWinIdentity);
-                const childWindow = await getWorkspaceWindow(ofWin, childWinDetail, tabbedWindows);
-                adjustSizeOfFormerlyTabbedWindows(childWindow, formerlyTabbedWindows);
+                const windowLayoutData = await getWorkspaceWindowData(ofWin, tabbedWindows);
+                adjustSizeOfFormerlyTabbedWindows(childWinIdentity, formerlyTabbedWindows, childWin);
 
-                return childWindow;
+                return {...childWin, ...windowLayoutData};
             });
             if (wasCreatedFromManifest(appInfo, uuid)) {
-                return {uuid, mainWindow, childWindows, confirmed: false, manifestUrl: appInfo.manifestUrl};
+                delete appInfo.manifest;
+                return {mainWindow, childWindows, ...appInfo, uuid, confirmed: false} as WorkspaceApp;
             } else if (canRestoreProgrammatically(appInfo)) {
-                return {uuid, mainWindow, childWindows, confirmed: false, initialOptions: appInfo.initialOptions, parentUuid: appInfo.parentUuid || undefined};
+                delete appInfo.manifest;
+                delete appInfo.manifestUrl;
+                return {mainWindow, childWindows, ...appInfo, uuid, confirmed: false} as WorkspaceApp;
             } else {
                 console.error('Not saving app, cannot restore:', windowInfo);
                 return null;
@@ -147,16 +152,16 @@ export async function getCurrentWorkspace(): Promise<Workspace> {
     console.log('Pre-Layout Save Apps:', apps);
     console.log('Post-Layout Valid Apps:', validApps);
 
-    const layoutObject: Workspace = {type: 'workspace', schemaVersion: LAYOUTS_SCHEMA_VERSION, apps: validApps, monitorInfo, tabGroups: filteredTabGroups};
+    const layoutObject: Workspace = {type: 'layout', schemaVersion: LAYOUTS_SCHEMA_VERSION, apps: validApps, monitorInfo, tabGroups: filteredTabGroups};
 
     const event: WorkspaceGeneratedEvent = {type: 'workspace-generated', workspace: layoutObject};
     apiHandler.sendToAll(EVENT_CHANNEL_TOPIC, event);
 
     return layoutObject;
-}
+};
 
 // No payload. Just returns the current layout with child windows.
-export async function generateWorkspace(payload: null, identity: Identity): Promise<Workspace> {
+export const generateWorkspace = async(payload: null, identity: Identity): Promise<Workspace> => {
     const preLayout = await getCurrentWorkspace();
 
     const apps = await promiseMap(preLayout.apps, async (app: WorkspaceApp) => {
@@ -183,12 +188,12 @@ export async function generateWorkspace(payload: null, identity: Identity): Prom
 
     const confirmedLayout = {...preLayout, apps};
     return confirmedLayout;
-}
+};
 
 // Grabs all of the necessary layout information for a window. Filters by multiple criteria.
-async function getWorkspaceWindow(ofWin: Window, windowDetail: WindowDetail, tabbedWindows: WindowObject): Promise<WorkspaceWindow> {
-    const {uuid, name} = ofWin.identity;
-    const identity: WindowIdentity = {uuid, name: name || uuid};
+const getWorkspaceWindowData = async(ofWin: Window, tabbedWindows: WindowObject): Promise<WorkspaceWindowData> => {
+    const {uuid} = ofWin.identity;
+    const identity: WindowIdentity = ofWin.identity as WindowIdentity;
     const info = await ofWin.getInfo();
 
     const windowGroup = await getGroup(ofWin.identity);
@@ -212,25 +217,6 @@ async function getWorkspaceWindow(ofWin: Window, windowDetail: WindowDetail, tab
     const isTabbed = inWindowObject(ofWin.identity, tabbedWindows) ? true : false;
 
     const state = desktopWindow.currentState.state;
-    const partialBounds: Bounds = pick(windowDetail, 'left', 'top', 'width', 'height');
-    const bounds: Required<Bounds> = {...partialBounds, right: partialBounds.left + partialBounds.width, bottom: partialBounds.top + partialBounds.height};
 
-    return {
-        ...identity,
-        url: info.url,
-        bounds,
-        windowGroup: filteredWindowGroup,
-        frame: applicationState.frame,
-        state,
-        isTabbed,
-        isShowing: !applicationState.hidden
-    };
-}
-
-function pick<T, K extends keyof T>(obj: T, ...keys: K[]): Pick<T, K> {
-    const ret = {} as Pick<T, K>;
-    keys.forEach(key => {
-        ret[key] = obj[key];
-    });
-    return ret;
-}
+    return {info, uuid, windowGroup: filteredWindowGroup, frame: applicationState.frame, state, isTabbed, isShowing: !applicationState.hidden};
+};

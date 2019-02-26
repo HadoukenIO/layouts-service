@@ -41,7 +41,7 @@ export async function assertWindowNotRestored(t: TestContext, uuid: string, name
 }
 
 function assertIsLayoutObject(t: TestContext, layout: Workspace) {
-    layout.type === 'workspace' ? t.pass() : t.fail('Layout object has an incorrect type!');
+    layout.type === 'layout' ? t.pass() : t.fail('Layout object has an incorrect type!');
 }
 
 async function assertAllAppsClosed(t: SaveRestoreTestContext) {

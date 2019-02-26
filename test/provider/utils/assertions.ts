@@ -2,10 +2,10 @@ import {TestContext} from 'ava';
 import deepEqual from 'fast-deep-equal';
 import {Window} from 'hadouken-js-adapter';
 
-import {promiseMap} from '../../../src/provider/snapanddock/utils/async';
+import {promiseFilter, promiseMap} from '../../../src/provider/snapanddock/utils/async';
 import {getTopmostWindow} from '../../demo/utils/modelUtils';
 import {getGroupedWindows, getSnapGroupID} from '../../demo/utils/snapServiceUtils';
-import {getActiveTab, getId, getTabbedWindows, getTabGroupID, getTabGroupIdentity} from '../../demo/utils/tabServiceUtils';
+import {getActiveTab, getId, getTabbedWindows, getTabGroupID, getTabGroupIdentity, getTabstrip} from '../../demo/utils/tabServiceUtils';
 
 import {getBounds, NormalizedBounds} from './getBounds';
 import {Win} from './getWindow';
@@ -42,6 +42,31 @@ export async function assertGrouped(t: TestContext, ...windows: Window[]) {
     const snapGroupIDs = await promiseMap(windows, async win => getSnapGroupID(win.identity));
     for (let i = 0; i < snapGroupIDs.length - 1; i++) {
         t.is(snapGroupIDs[i], snapGroupIDs[0], `Window ${i} has a different snapGroup to window 0`);
+    }
+}
+
+/**
+ * Assert that the given windows form a complete (one with no other members) SnapGroup. SnapGroup may be trivial
+ */
+export async function assertCompleteGroup(t: TestContext, ...windows: Window[]): Promise<void> {
+    if (windows.length === 1) {
+        await assertNotGrouped(windows[0], t);
+    } else if (windows.length > 1) {
+        await assertGrouped(t, ...windows);
+
+        const group = await promiseFilter(await windows[0].getGroup(), async (window) => {
+            const tabGroupID = await getTabGroupID(window.identity);
+
+            if (tabGroupID) {
+                const tabstrip = await getTabstrip(window.identity);
+                return !deepEqual(tabstrip.identity, window.identity);
+            } else {
+                return true;
+            }
+        });
+        t.is(windows.length, group.length, `Unexpected number of windows in group`);
+    } else {
+        t.pass();
     }
 }
 
@@ -105,7 +130,7 @@ export function assertNotMoved(bounds1: NormalizedBounds, bounds2: NormalizedBou
 /**
  * Assert that the given windows are part of the same TabGroup.
  */
-export async function assertTabbed(win1: Window, win2: Window, t: TestContext): Promise<void> {
+export async function assertPairTabbed(win1: Window, win2: Window, t: TestContext): Promise<void> {
     // Get the tabGroup UUID for each window
     const [tabGroupID1, tabGroupID2] = [await getTabGroupID(win1.identity), await getTabGroupID(win2.identity)];
 
@@ -145,15 +170,54 @@ export async function assertTabbed(win1: Window, win2: Window, t: TestContext): 
 }
 
 /**
- * Assert that the given windows are **all** part of the same tab group.
+ * Assert that the given windows form a complete TabGroup (or no TabGroup if less than two windows)
  */
-export async function assertAllTabbed(t: TestContext, ...windows: Window[]): Promise<void> {
-    const tabGroupIDs = await promiseMap(windows, async (win: Window) => {
-        return getTabGroupID(win.identity);
-    });
-    for (let i = 0; i < tabGroupIDs.length; i++) {
-        t.is(tabGroupIDs[i], tabGroupIDs[0], `Window ${i} is in a different tabGroup to window 0: expected ${tabGroupIDs[0]}, got ${tabGroupIDs[i]}`);
+export async function assertCompleteTabGroup(t: TestContext, ...windows: Window[]): Promise<void> {
+    if (windows.length === 1) {
+        await assertNotTabbed(windows[0], t);
+    } else if (windows.length > 1) {
+        for (let i = 1; i < windows.length; i++) {
+            await assertPairTabbed(windows[0], windows[i], t);
+        }
+
+        const numTabs = (await getTabbedWindows(windows[0].identity)).length;
+        t.is(numTabs, windows.length, `TabGroup expected to contain ${windows.length} windows, but contains ${numTabs} windows.`);
+    } else {
+        t.pass();
     }
+}
+
+/**
+ * Assert that the given window is both tabbed and the active tab in its tabset.
+ */
+export async function assertActiveTab(t: TestContext, window: Window) {
+    // For a tab to be active it must be a tab.
+    await assertTabbed(window, t);
+
+    t.deepEqual(await getActiveTab(window.identity), window.identity);
+
+    // Active tab is not hidden
+    t.true(await window.isShowing());
+    // Active tab is on top
+    const bounds = await getBounds(window);
+    t.deepEqual(await getTopmostWindow({x: bounds.left + bounds.width / 2, y: bounds.top + bounds.height / 2}), window.identity, `Active tab not on top.`);
+    // All other tabs are hidden
+    const tabbedWindows = await getTabbedWindows(window.identity);
+    for (const tab of tabbedWindows) {
+        if (!deepEqual(tab, window.identity)) {
+            t.false(await fin.Window.wrapSync(tab).isShowing());
+        }
+    }
+}
+
+/**
+ * Assert that a given window is part of a TabGroup.
+ */
+export async function assertTabbed(win: Window, t: TestContext): Promise<void> {
+    // Get the tabGroup ID for the window
+    const tabGroupID = await getTabGroupIdentity(win.identity);
+    // Untabbed windows will return null
+    t.not(tabGroupID, null);
 }
 
 /**
@@ -203,29 +267,6 @@ export async function assertAllContiguous(t: TestContext, windows: Window[]) {
         t.fail(`Windows do not form a contiguous group. \nExpected: ${expectedGroupsString} \nActual: ${actualGroupsString}`);
     } else {
         t.pass();
-    }
-}
-
-/**
- * Assert that the given window is both tabbed and the active tab in its tabset.
- */
-export async function assertActiveTab(t: TestContext, window: Window) {
-    // For a tab to be active it must be a tab.
-    await assertAllTabbed(t, window);
-
-    t.deepEqual(await getActiveTab(window.identity), window.identity);
-
-    // Active tab is not hidden
-    t.true(await window.isShowing());
-    // Active tab is on top
-    const bounds = await getBounds(window);
-    t.deepEqual(await getTopmostWindow({x: bounds.left + bounds.width / 2, y: bounds.top + bounds.height / 2}), window.identity, `Active tab not on top.`);
-    // All other tabs are hidden
-    const tabbedWindows = await getTabbedWindows(window.identity);
-    for (const tab of tabbedWindows) {
-        if (!deepEqual(tab, window.identity)) {
-            t.false(await fin.Window.wrapSync(tab).isShowing());
-        }
     }
 }
 

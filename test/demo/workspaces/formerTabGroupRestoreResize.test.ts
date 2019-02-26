@@ -1,6 +1,5 @@
 import test from 'ava';
-
-import {assertGrouped, assertTabbed} from '../../provider/utils/assertions';
+import {assertGrouped, assertPairTabbed} from '../../provider/utils/assertions';
 import {delay} from '../../provider/utils/delay';
 import {teardown} from '../../teardown';
 import {createAppsArray} from '../utils/AppInitializer';
@@ -36,7 +35,7 @@ testParameterized<CreateAppData, AppContext>(
             const win1 = t.context.windows[group[0]];
             const win2 = t.context.windows[group[1]];
 
-            await assertTabbed(win1, win2, t);
+            await assertPairTabbed(win1, win2, t);
             await assertGrouped(t, win1, win2);
             const tabbedBounds = await win1.getBounds();
 

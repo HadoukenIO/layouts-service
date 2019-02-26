@@ -24,7 +24,7 @@ export interface ArrangementsType {
     [numWindows: number]: {[arrangementName: string]: Arrangement};
 }
 
-type WindowPosition = {
+export type WindowPosition = {
     defaultTop: number,
     defaultLeft: number
 };

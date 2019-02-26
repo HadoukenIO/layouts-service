@@ -12,6 +12,7 @@ test.afterEach.always(async (t) => {
     await teardown(t);
 });
 
+// This test should be solved by RUN-5040 and RVM-814. Current workaround is sequential launching in restore
 testParameterized<CreateAppData, AppContext>(
     (testOptions: CreateAppData): string =>
         `CreateFromManifest SaveAndRestore - Restoring 10 applications created from a manifest`,

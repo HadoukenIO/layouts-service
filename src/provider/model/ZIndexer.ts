@@ -16,6 +16,7 @@ export interface ZIndex {
     id: string;
     identity: WindowIdentity;
     bounds: Rect;
+    active: boolean;
 }
 
 interface ObjectWithIdentity {
@@ -74,7 +75,7 @@ export class ZIndexer {
     public getTopMost<T extends Identifiable>(items: T[]): T|null {
         const ids: string[] = this.getIds(items);
 
-        for (const item of this._stack) {
+        for (const item of this._stack.filter(entry => entry.active)) {
             const index: number = ids.indexOf(item.id);
             if (index >= 0) {
                 return items[index];
@@ -85,7 +86,7 @@ export class ZIndexer {
     }
 
     public getWindowAt(x: number, y: number, exclude?: WindowIdentity): WindowIdentity|null {
-        const entry: ZIndex|undefined = this._stack.find((item: ZIndex) => {
+        const entry: ZIndex|undefined = this._stack.filter(entry => entry.active).find((item: ZIndex) => {
             const identity = item.identity;
 
             if (identity.uuid === SERVICE_IDENTITY.uuid && !identity.name.startsWith('TABSET-')) {

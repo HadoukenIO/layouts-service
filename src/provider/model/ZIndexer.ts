@@ -217,9 +217,9 @@ export class ZIndexer {
 
     private sortStack(): void {
         this._stack.sort((a, b) => {
-            if (a && !b) {
+            if (a.active && !b.active) {
                 return -1;
-            } else if (!a && b) {
+            } else if (!a.active && b.active) {
                 return 1;
             } else {
                 return b.timestamp - a.timestamp;

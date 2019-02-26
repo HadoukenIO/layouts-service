@@ -64,14 +64,6 @@ export class ZIndexer {
     }
 
     /**
-     * Returns the array of indexes.
-     * @returns {ZIndex[]} ZIndex[]
-     */
-    public get indexes(): ReadonlyArray<ZIndex> {
-        return this._stack;
-    }
-
-    /**
      * Takes a list of window-like items and returns the top-most item from the list.
      *
      * NOTE: Implementation will not return any item within the input that does not exist within the ZIndexer util.
@@ -110,27 +102,6 @@ export class ZIndexer {
         });
 
         return entry ? entry.identity : null;
-    }
-
-    /**
-     * Takes a list of window-like items, and sorts them by the z-index of their respective windows.
-     *
-     * NOTE: Implementation will filter-out any windows within the input that do not exist within the ZIndexer util.
-     *
-     * @param items
-     */
-    public sort<T extends Identifiable>(items: T[]): T[] {
-        const ids: string[] = this.getIds(items);
-        const result: T[] = [];
-
-        for (const item of this._stack) {
-            const index: number = ids.indexOf(item.id);
-            if (index >= 0) {
-                result.push(items[index]);
-            }
-        }
-
-        return result;
     }
 
     /**

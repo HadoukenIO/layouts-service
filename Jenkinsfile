@@ -44,29 +44,38 @@ pipeline {
             steps {
                 script {
                     GIT_SHORT_SHA = sh ( script: "git rev-parse --short HEAD", returnStdout: true ).trim()
-                    VERSION = sh ( script: "node -pe \"require('./package.json').version\"", returnStdout: true ).trim()
-                    PREREL_VERSION = VERSION + "-alpha." + env.BUILD_NUMBER
-                    S3_LOC = env.DSERVICE_S3_ROOT + "layouts/" + PREREL_VERSION
-                    STAGING_JSON = env.DSERVICE_S3_ROOT + "layouts/app.staging.json"
+                    PKG_VERSION = sh ( script: "node -pe \"require('./package.json').version\"", returnStdout: true ).trim()
+
+                    BUILD_VERSION = PKG_VERSION + "-alpha." + env.BUILD_NUMBER
+                    CHANNEL = "staging"
+                    MANIFEST_NAME = "app.staging.json"
+
+                    S3_LOC = env.DSERVICE_S3_ROOT + "layouts/" + BUILD_VERSION
+                    DOCS_CHANNEL_LOC = env.DSERVICE_S3_ROOT + "layouts/docs/" + CHANNEL
+                    DOCS_VERSIONED_LOC = env.DSERVICE_S3_ROOT + "layouts/docs/" + BUILD_VERSION
+                    MANIFEST_LOC = env.DSERVICE_S3_ROOT + "layouts/" + MANIFEST_NAME
                 }
                 sh "npm i --ignore-scripts"
-                sh "SERVICE_VERSION=${PREREL_VERSION} npm run build"
+                sh "SERVICE_VERSION=${BUILD_VERSION} npm run build"
                 sh "echo ${GIT_SHORT_SHA} > ./dist/SHA.txt"
                 sh "npm run zip"
                 sh "npm install bootprint@2.0.1 bootprint-json-schema@2.0.0-rc.3 --no-save"
                 sh "npm run docs"
                 sh "aws s3 cp ./res/provider ${S3_LOC}/ --recursive"
                 sh "aws s3 cp ./dist/provider ${S3_LOC}/ --recursive"
-                sh "aws s3 cp ./dist/docs ${S3_LOC}/docs/ --recursive"
                 sh "aws s3 cp ./dist/client/openfin-layouts.js ${S3_LOC}/"
-                sh "aws s3 cp ./dist/provider/app.json ${STAGING_JSON}"
+
+                sh "aws s3 rm ${DOCS_CHANNEL_LOC} --recursive"
+                sh "aws s3 cp ./dist/docs ${DOCS_CHANNEL_LOC} --recursive"
+                sh "aws s3 cp ./dist/docs ${DOCS_VERSIONED_LOC} --recursive"
+                sh "aws s3 cp ./dist/provider/app.json ${MANIFEST_LOC}"
                 withCredentials([string(credentialsId: "NPM_TOKEN_WRITE", variable: 'NPM_TOKEN')]) {
                     sh "echo //registry.npmjs.org/:_authToken=$NPM_TOKEN > $WORKSPACE/.npmrc"
                 }
-                echo "publishing pre-release version to npm: " + PREREL_VERSION
-                sh "npm version --no-git-tag-version " + PREREL_VERSION
+                echo "publishing pre-release version to npm: " + BUILD_VERSION
+                sh "npm version --no-git-tag-version " + BUILD_VERSION
                 sh "npm publish --tag alpha"
-                sh "npm version --no-git-tag-version " + VERSION
+                sh "npm version --no-git-tag-version " + PKG_VERSION
             }
         }
 
@@ -74,28 +83,37 @@ pipeline {
             agent { label 'linux-slave' }
             when { branch "master" }
             steps {
-                sh "npm i --ignore-scripts"
                 script {
                     GIT_SHORT_SHA = sh ( script: "git rev-parse --short HEAD", returnStdout: true ).trim()
-                    VERSION = sh ( script: "node -pe \"require('./package.json').version\"", returnStdout: true ).trim()
-                    S3_LOC = env.DSERVICE_S3_ROOT + "layouts/" + VERSION
-                    PROD_JSON = env.DSERVICE_S3_ROOT + "layouts/app.json"
+                    PKG_VERSION = sh ( script: "node -pe \"require('./package.json').version\"", returnStdout: true ).trim()
+
+                    BUILD_VERSION = PKG_VERSION
+                    CHANNEL = "stable"
+                    MANIFEST_NAME = "app.json"
+
+                    S3_LOC = env.DSERVICE_S3_ROOT + "layouts/" + BUILD_VERSION
+                    DOCS_CHANNEL_LOC = env.DSERVICE_S3_ROOT + "layouts/docs/" + CHANNEL
+                    DOCS_VERSIONED_LOC = env.DSERVICE_S3_ROOT + "layouts/docs/" + BUILD_VERSION
+                    MANIFEST_LOC = env.DSERVICE_S3_ROOT + "layouts/" + MANIFEST_NAME
                 }
-                sh "SERVICE_VERSION=${VERSION} npm run build"
+                sh "npm i --ignore-scripts"
+                sh "SERVICE_VERSION=${BUILD_VERSION} npm run build"
                 sh "echo ${GIT_SHORT_SHA} > ./dist/SHA.txt"
                 sh "npm run zip"
-                sh "npm install bootprint@2.0.1"
-                sh "npm install bootprint-json-schema@2.0.0-rc.3"
+                sh "npm install bootprint@2.0.1 bootprint-json-schema@2.0.0-rc.3 --no-save"
                 sh "npm run docs"
                 sh "aws s3 cp ./res/provider ${S3_LOC}/ --recursive"
                 sh "aws s3 cp ./dist/provider ${S3_LOC}/ --recursive"
-                sh "aws s3 cp ./dist/docs ${S3_LOC}/docs/ --recursive"
                 sh "aws s3 cp ./dist/client/openfin-layouts.js ${S3_LOC}/"
-                sh "aws s3 cp ./dist/provider/app.json ${PROD_JSON}"
+
+                sh "aws s3 rm ${DOCS_CHANNEL_LOC} --recursive"
+                sh "aws s3 cp ./dist/docs ${DOCS_CHANNEL_LOC} --recursive"
+                sh "aws s3 cp ./dist/docs ${DOCS_VERSIONED_LOC} --recursive"
+                sh "aws s3 cp ./dist/provider/app.json ${MANIFEST_LOC}"
                 withCredentials([string(credentialsId: "NPM_TOKEN_WRITE", variable: 'NPM_TOKEN')]) {
                     sh "echo //registry.npmjs.org/:_authToken=$NPM_TOKEN > $WORKSPACE/.npmrc"
                 }
-                echo "publishing to npm, version: " + VERSION
+                echo "publishing to npm, version: " + BUILD_VERSION
                 sh "npm publish"
             }
         }

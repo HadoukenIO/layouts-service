@@ -142,13 +142,25 @@ export class DesktopModel {
     public getWindowAt(x: number, y: number, exclude?: WindowIdentity): DesktopWindow|null {
         const point: Point = {x, y};
         const excludeId: string|undefined = exclude && this.getId(exclude);
+
         const modelWindowsAtPoint: DesktopWindow[] = this._windows.filter((window: DesktopWindow) => {
             const state: EntityState = window.currentState;
-            return window.isActive && RectUtils.isPointInRect(state.center, state.halfSize, point) && window.id !== excludeId;
+            return RectUtils.isPointInRect(state.center, state.halfSize, point);
         });
 
-        const topMostModelWindow: DesktopWindow|null = this._zIndexer.getTopMost(modelWindowsAtPoint);
-        const topMostWindow: WindowIdentity|null = this._zIndexer.getWindowAt(x, y, exclude);
+        const modelWindowsAtPointToInclude: DesktopWindow[] = [];
+        const modelWindowsAtPointToExclude: WindowIdentity[] = [];
+
+        for (const modelWindow of modelWindowsAtPoint) {
+            if (modelWindow.isActive && modelWindow.id !== excludeId) {
+                modelWindowsAtPointToInclude.push(modelWindow);
+            } else {
+                modelWindowsAtPointToExclude.push(modelWindow.identity);
+            }
+        }
+
+        const topMostModelWindow: DesktopWindow|null = this._zIndexer.getTopMost(modelWindowsAtPointToInclude);
+        const topMostWindow: WindowIdentity|null = this._zIndexer.getWindowAt(x, y, modelWindowsAtPointToExclude);
 
         if (!topMostModelWindow || !topMostWindow || topMostModelWindow.id === this.getId(topMostWindow!)) {
             // There is no deregistered window over the top-most model window, safe to return

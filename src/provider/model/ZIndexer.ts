@@ -87,7 +87,7 @@ export class ZIndexer {
         return null;
     }
 
-    public getWindowAt(x: number, y: number, exclude?: WindowIdentity): WindowIdentity|null {
+    public getWindowAt(x: number, y: number, exclusions: WindowIdentity[]): WindowIdentity|null {
         const entry: ZIndex|undefined = this._stack.find((item: ZIndex) => {
             const identity = item.identity;
 
@@ -97,7 +97,7 @@ export class ZIndexer {
             } else if (identity.uuid === SERVICE_IDENTITY.uuid && !identity.name.startsWith('TABSET-')) {
                 // Exclude service-owned windows
                 return false;
-            } else if (exclude && exclude.uuid === identity.uuid && exclude.name === identity.name) {
+            } else if (exclusions.find(exclusion => exclusion.uuid === identity.uuid && exclusion.name === identity.name)) {
                 // Item is excluded
                 return false;
             } else {
@@ -187,8 +187,8 @@ export class ZIndexer {
             win.removeListener('focused', bringToFront);
             win.removeListener('shown', bringToFront);
             win.removeListener('bounds-changed', boundsChanged);
-            win.removeListener('hidden', markInactive);
-            win.removeListener('minimized', markInactive);
+            // win.removeListener('hidden', markInactive);
+            // win.removeListener('minimized', markInactive);
             win.removeListener('closed', onClose);
 
             const id = `${identity.uuid}/${identity.name}`;
@@ -204,8 +204,10 @@ export class ZIndexer {
         win.addListener('bounds-changed', boundsChanged);
 
         // When a window is hidden or minimized, mark it as inactive
-        win.addListener('hidden', markInactive);
-        win.addListener('minimized', markInactive);
+        // Todo: Renable these to allow tracking of hidden non-Model windows.
+        // Blocked on figuring out why events are not properly cleaned up on Jenkins.
+        // win.addListener('hidden', markInactive);
+        // win.addListener('minimized', markInactive);
 
         // Remove listeners when the window is destroyed
         win.addListener('closed', onClose);

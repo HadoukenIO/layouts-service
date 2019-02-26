@@ -65,10 +65,10 @@ pipeline {
                 sh "aws s3 cp ./dist/provider ${S3_LOC}/ --recursive"
                 sh "aws s3 cp ./dist/client/openfin-layouts.js ${S3_LOC}/"
 
-                sh "aws s3 rm ${DOCS_CHANNEL_LOC} --recursive"
                 sh "aws s3 cp ./dist/docs ${DOCS_CHANNEL_LOC} --recursive"
                 sh "aws s3 cp ./dist/docs ${DOCS_VERSIONED_LOC} --recursive"
                 sh "aws s3 cp ./dist/provider/app.json ${MANIFEST_LOC}"
+
                 withCredentials([string(credentialsId: "NPM_TOKEN_WRITE", variable: 'NPM_TOKEN')]) {
                     sh "echo //registry.npmjs.org/:_authToken=$NPM_TOKEN > $WORKSPACE/.npmrc"
                 }
@@ -79,7 +79,7 @@ pipeline {
             }
         }
 
-        stage ('Build & Deploy (Production)') {
+        stage('Build & Deploy (Production)') {
             agent { label 'linux-slave' }
             when { branch "master" }
             steps {
@@ -106,10 +106,10 @@ pipeline {
                 sh "aws s3 cp ./dist/provider ${S3_LOC}/ --recursive"
                 sh "aws s3 cp ./dist/client/openfin-layouts.js ${S3_LOC}/"
 
-                sh "aws s3 rm ${DOCS_CHANNEL_LOC} --recursive"
                 sh "aws s3 cp ./dist/docs ${DOCS_CHANNEL_LOC} --recursive"
                 sh "aws s3 cp ./dist/docs ${DOCS_VERSIONED_LOC} --recursive"
                 sh "aws s3 cp ./dist/provider/app.json ${MANIFEST_LOC}"
+
                 withCredentials([string(credentialsId: "NPM_TOKEN_WRITE", variable: 'NPM_TOKEN')]) {
                     sh "echo //registry.npmjs.org/:_authToken=$NPM_TOKEN > $WORKSPACE/.npmrc"
                 }

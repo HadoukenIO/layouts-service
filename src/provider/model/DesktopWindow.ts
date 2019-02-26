@@ -933,6 +933,9 @@ export class DesktopWindow implements DesktopEntity {
         this.registerListener('hidden', () => this.updateState({hidden: true}, ActionOrigin.APPLICATION));
         this.registerListener('maximized', () => {
             this.updateState({state: 'maximized'}, ActionOrigin.APPLICATION);
+            // Validate the group on maximize. This will ungroup the maximized window and
+            // split the group as appropriate. Mitigation for SERVICE-375.
+            this.snapGroup.validate();
         });
         this.registerListener('minimized', () => {
             this.updateState({state: 'minimized'}, ActionOrigin.APPLICATION);

@@ -187,9 +187,9 @@ export class ZIndexer {
             win.removeListener('focused', bringToFront);
             win.removeListener('shown', bringToFront);
             win.removeListener('bounds-changed', boundsChanged);
-            win.removeListener('closed', onClose);
             win.removeListener('hidden', markInactive);
             win.removeListener('minimized', markInactive);
+            win.removeListener('closed', onClose);
 
             const id = `${identity.uuid}/${identity.name}`;
             const index = this._stack.findIndex(e => e.id === id);

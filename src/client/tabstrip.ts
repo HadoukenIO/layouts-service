@@ -6,15 +6,19 @@ import {Identity} from 'hadouken-js-adapter';
 import {eventEmitter, tryServiceDispatch} from './connection';
 import {parseIdentity, TabAPI} from './internal';
 import {WindowIdentity} from './main';
+
 /**
  * Functions required to implement a tabstrip
  */
 
 
 /**
- * Fired when a tab group is restored from being maximized or minimized..  See {@link addEventListener}.
+ * Fired when a tab group is restored back to normal state from being maximized or minimized.  See {@link addEventListener}.
  *
  * ```ts
+ * import {tabstrip} from 'openfin-layouts';
+ * import {TabGroupRestoredEvent} from 'openfin-layouts/dist/client/tabstrip';
+ *
  * tabstrip.addEventListener('tab-group-restored', (event: TabGroupRestoredEvent) => {
  *     const tabGroupID = event.identity;
  *     console.log(`Tab group restored: ${tabGroupID.uuid}/${tabGroupID.name}`);
@@ -24,12 +28,12 @@ import {WindowIdentity} from './main';
  * @event
  */
 export interface TabGroupRestoredEvent {
+    type: 'tab-group-restored';
+
     /**
      * Identifies the window that is the source of the current event.
      */
     identity: WindowIdentity;
-
-    type: 'tab-group-restored';
 }
 
 /**
@@ -37,6 +41,8 @@ export interface TabGroupRestoredEvent {
  *
  * ```ts
  * import {tabstrip} from 'openfin-layouts';
+ * import {TabGroupMinimizedEvent} from 'openfin-layouts/dist/client/tabstrip';
+ *
  *
  * tabstrip.addEventListener('tab-group-minimized', (event: TabGroupMinimizedEvent) => {
  *     const tabGroupID = event.identity;
@@ -47,12 +53,12 @@ export interface TabGroupRestoredEvent {
  * @event
  */
 export interface TabGroupMinimizedEvent {
+    type: 'tab-group-minimized';
+
     /**
      * Identifies the window that is the source of the current event.
      */
     identity: WindowIdentity;
-
-    type: 'tab-group-minimized';
 }
 
 /**
@@ -60,6 +66,8 @@ export interface TabGroupMinimizedEvent {
  *
  * ```ts
  * import {tabstrip} from 'openfin-layouts';
+ * import {TabGroupMaximizedEvent} from 'openfin-layouts/dist/client/tabstrip';
+ *
  *
  * tabstrip.addEventListener('tab-group-maximized', (event: TabGroupMaximizedEvent) => {
  *     const tabGroupID = event.identity;
@@ -70,12 +78,12 @@ export interface TabGroupMinimizedEvent {
  * @event
  */
 export interface TabGroupMaximizedEvent {
+    type: 'tab-group-maximized';
+
     /**
      * Identifies the window that is the source of the current event.
      */
     identity: WindowIdentity;
-
-    type: 'tab-group-maximized';
 }
 
 /**

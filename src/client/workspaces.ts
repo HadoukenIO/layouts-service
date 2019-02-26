@@ -5,7 +5,6 @@ import {Identity} from 'hadouken-js-adapter';
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 import {MonitorInfo} from 'hadouken-js-adapter/out/types/src/api/system/monitor';
 import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
-import {WindowInfo} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {channelPromise, eventEmitter, tryServiceDispatch} from './connection';
 import {WorkspaceAPI} from './internal';
@@ -24,7 +23,7 @@ export interface Workspace {
     /**
      * Identifies this object as being a workspace.
      */
-    type: 'layout';
+    type: 'workspace';
 
     /**
      * Used to determine compatibility of generated workspaces when restoring on different versions of the service.
@@ -65,6 +64,11 @@ export interface Workspace {
  */
 export interface WorkspaceApp {
     /**
+     * Application identifier
+     */
+    uuid: string;
+
+    /**
      * The URL of the manifest from which this application was started.
      *
      * This is only present if the application was started from a manifest. For applications started programatically
@@ -82,9 +86,11 @@ export interface WorkspaceApp {
     initialOptions?: fin.ApplicationOptions;
 
     /**
-     * Application identifier
+     * The UUID of the application that initially launched this app.
+     *
+     * This is only present if the application was started programatically.
      */
-    uuid: string;
+    parentUuid?: string;
 
     /**
      * State of the main window of the application.
@@ -100,11 +106,6 @@ export interface WorkspaceApp {
     childWindows: WorkspaceWindow[];
 
     /**
-     * The UUID of the application that initially launched this app.
-     */
-    parentUuid?: string;
-
-    /**
      * Flag used within the service to confirm an application has correctly implemented the callbacks it has
      * registered.
      *
@@ -116,9 +117,9 @@ export interface WorkspaceApp {
      * Applications can add their own custom data to a workspace, to assist with correctly restoring the application when
      * a saved workspace is loaded.
      *
-     * To set customData, register a 'save' callback using {@link onApplicationSave}. The provided function will be
+     * To set customData, register a 'save' callback using {@link setGenerateHandler}. The provided function will be
      * called whenever a workspace is generated, and any value returned by that function will be added to the workspace here.
-     * This data will then be available within the restore callback registered via {@link onAppRestore}.
+     * This data will then be available within the restore callback registered via {@link setRestoreHandler}.
      */
     customData?: CustomData;
 }
@@ -126,9 +127,14 @@ export interface WorkspaceApp {
 /**
  * Stores the state of a single window within a saved workspace.
  */
-export interface WorkspaceWindow extends Bounds, WindowIdentity {
+export interface WorkspaceWindow extends WindowIdentity {
     /**
-     * If the window is currently visible, corresponds to `Window.isShowing()`.
+     * The full URL of the window, corresponds to the `url` property of `Window.getInfo()`
+     */
+    url: string;
+
+    /**
+     * If the window is currently visible, corresponds to `Window.isShowing()`
      */
     isShowing: boolean;
 
@@ -143,9 +149,11 @@ export interface WorkspaceWindow extends Bounds, WindowIdentity {
     frame: boolean;
 
     /**
-     * Additional window metadata, corresponds to `Window.getInfo()`
+     * Physical position of the window, corresponds to `Window.getBounds()`.
+     *
+     * This object will always contain all fields, even those marked as optional in the `getBounds()` response.
      */
-    info: WindowInfo;
+    bounds: Required<Bounds>;
 
     /**
      * A list of windows currently docked to this one.
@@ -155,7 +163,10 @@ export interface WorkspaceWindow extends Bounds, WindowIdentity {
     windowGroup: Identity[];
 
     /**
-     * Window state, corresponds to `WindowOptions.state`
+     * Indicates if the window is part of a tab group.
+     *
+     * Tab group information is stored seprately in `Workspace.tabGroups`. This flag indicates that the current window
+     * will be a part of that data.
      */
     isTabbed: boolean;
 }
@@ -184,7 +195,7 @@ export interface TabGroup {
     /**
      * Defines which application windows exist within this tab group.
      *
-     * The saved state of these windows exists within the {@link Layout.apps} hierarchy.
+     * The saved state of these windows exists within the {@link Workspace.apps | list of applications}.
      */
     tabs: WindowIdentity[];
 }
@@ -204,12 +215,12 @@ export interface TabGroupInfo {
     dimensions: TabGroupDimensions;
 
     /**
-     * Object containing the tabstrip configuration
+     * Object containing the tabstrip configuration, or a string indicating that this group uses the default tabstrip
      */
     config: ApplicationUIConfig|'default';
 
     /**
-     * The state the TabGroup and contained windows are mimicing
+     * The window state of the TabGroup as a whole, including both the tabstrip and its tabs
      */
     state: WindowState;
 }
@@ -248,16 +259,22 @@ export interface TabGroupDimensions {
  *
  * ```ts
  * import {workspaces} from 'openfin-layouts';
+ * import {Workspace} from 'openfin-layouts/dist/client/workspaces';
  *
  * workspaces.addEventListener('workspace-restored', async (event: WorkspaceRestoredEvent) => {
- *      console.log(`Properties for the restored workspace: ${event}`);
+ *      const workspace: Workspace = event.workspace;
+ *      console.log('Workspace restored:', workspace);
  * });
  * ```
  * @event
  */
 export interface WorkspaceRestoredEvent {
-    workspace: Workspace;
     type: 'workspace-restored';
+
+    /**
+     * Workspace that has just been restored by the service.
+     */
+    workspace: Workspace;
 }
 
 /**
@@ -265,17 +282,23 @@ export interface WorkspaceRestoredEvent {
  *
  * ```ts
  * import {workspaces} from 'openfin-layouts';
+ * import {Workspace} from 'openfin-layouts/dist/client/workspaces';
  *
  * workspaces.addEventListener('workspace-generated', async (event: WorkspaceGeneratedEvent) => {
- *     console.log(`Properties for the generated workspace: ${event}`);
+ *      const workspace: Workspace = event.workspace;
+ *      console.log('Workspace generated:', workspace);
  * });
  * ```
  *
  * @event
  */
 export interface WorkspaceGeneratedEvent {
-    workspace: Workspace;
     type: 'workspace-generated';
+
+    /**
+     * Workspace that has just been generated by the service.
+     */
+    workspace: Workspace;
 }
 
 /**
@@ -330,9 +353,9 @@ export async function setRestoreHandler(listener: (layoutApp: WorkspaceApp) => W
  * Generates a JSON object that contains the state of the current desktop.
  *
  * The returned JSON will contain the main application window of every application that is currently open and hasn't
- * explicitly de-registered itself using the layouts service API. Child windows will not be included by default - the
+ * explicitly de-registered itself from the service. Child windows will not be included by default - the
  * returned workspace object will only contain child window data for applications that integrate with the layouts service
- * by registering {@link setGenerateHandler|save} and {@link setRestoreHandler|restore} callbacks.
+ * by registering {@link setGenerateHandler|generate} and {@link setRestoreHandler|restore} callbacks.
  *
  * TODO: Document workspace generation process
  */
@@ -346,7 +369,7 @@ export async function generate(): Promise<Workspace> {
  * The returned JSON will contain the main application window of every application that is currently open and hasn't
  * explicitly de-registered itself using the layouts service API. Child windows will not be included by default - the
  * returned workspace object will only contain child window data for applications that integrate with the layouts service
- * by registering {@link setGenerateHandler|save} and {@link setRestoreHandler|restore} callbacks.
+ * by registering {@link setGenerateHandler|generate} and {@link setRestoreHandler|restore} callbacks.
  *
  * TODO: Document workspace restoration process
  */

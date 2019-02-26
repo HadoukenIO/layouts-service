@@ -118,7 +118,7 @@ export class ZIndexer {
      * @param timestamp The new timestamp for the stack entry. Will use the current time if not specified
      */
     private update(identity: WindowIdentity, active?: boolean, bounds?: Rect, timestamp?: number) {
-        timestamp = timestamp ? timestamp : Date.now();
+        timestamp = timestamp !== undefined ? timestamp : Date.now();
 
         const id: string = this._model.getId(identity);
         const entry: ZIndex|undefined = this._stack.find(i => i.id === id);

@@ -53,7 +53,7 @@ export function parseIdentity(identity: WindowIdentity|Identity): WindowIdentity
         throw new Error('Invalid Identity provided: A valid Identity contains both a uuid and name');
     }
     const uuidCheck = typeof identity.uuid === 'string';
-    const nameCheck = identity.uuid === undefined || typeof identity.name === 'string';
+    const nameCheck = identity.name === undefined || typeof identity.name === 'string';
     if (!uuidCheck && !nameCheck) {
         throw new Error ('Invalid Identity provided: uuid and name must be strings');
     } else if (!uuidCheck) {
@@ -73,7 +73,7 @@ export function parseIdentityRule(identity: IdentityRule): IdentityRule {
         throw new Error('Invalid Identity provided: A valid Identity contains both a uuid and name');
     }
     const uuidCheck = typeof identity.uuid === 'string' || isRegex(identity.uuid);
-    const nameCheck = identity.uuid === undefined || typeof identity.name === 'string' || isRegex(identity.name);
+    const nameCheck = identity.name === undefined || typeof identity.name === 'string' || isRegex(identity.name);
     if (!uuidCheck && !nameCheck) {
         throw new Error ('Invalid Identity provided: uuid and name must be strings or RegEx objects');
     } else if (!uuidCheck) {

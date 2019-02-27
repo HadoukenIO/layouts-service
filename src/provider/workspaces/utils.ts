@@ -304,6 +304,18 @@ async function delay(milliseconds: number) {
     return new Promise<void>(r => setTimeout(r, milliseconds));
 }
 
+const DEFAULT_PLACEHOLDER_URL = (() => {
+    let providerLocation = window.location.href;
+
+    if (providerLocation.indexOf('http://localhost') === 0) {
+        // Work-around for fake provider used within test runner
+        providerLocation = providerLocation.replace('/test', '/provider');
+    }
+
+    // Locate the default tabstrip HTML page, relative to the location of the provider
+    return providerLocation.replace('provider.html', 'workspaces/placeholder/placeholder.html');
+})();
+
 // TODO: Make placeholder windows close-able
 const createPlaceholderWindow = async (win: WorkspaceWindow) => {
     const {height, width, left, top} = win.bounds;
@@ -311,7 +323,7 @@ const createPlaceholderWindow = async (win: WorkspaceWindow) => {
     const placeholderName = 'Placeholder-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
     const placeholderWindow = await fin.Window.create({
-        url: `${launchDir}/placeholder.html`,
+        url: DEFAULT_PLACEHOLDER_URL,
         name: placeholderName,
         autoShow: true,
         defaultHeight: height,

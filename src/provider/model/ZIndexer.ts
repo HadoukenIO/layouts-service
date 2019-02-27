@@ -187,6 +187,7 @@ export class ZIndexer {
             win.removeListener('focused', bringToFront);
             win.removeListener('shown', bringToFront);
             win.removeListener('bounds-changed', boundsChanged);
+            // TODO (SERVICE-376): Uncomment these when below commented-out addListener calls are uncommented
             // win.removeListener('hidden', markInactive);
             // win.removeListener('minimized', markInactive);
             win.removeListener('closed', onClose);
@@ -204,8 +205,8 @@ export class ZIndexer {
         win.addListener('bounds-changed', boundsChanged);
 
         // When a window is hidden or minimized, mark it as inactive
-        // Todo: Renable these to allow tracking of hidden non-Model windows.
-        // Blocked on figuring out why events are not properly cleaned up on Jenkins.
+        // TODO (SERVICE-376): Uncomment these and above removeListener calls to allow tracking of hidden non-Model
+        // windows. Blocked on figuring out why events are not properly cleaned up on Jenkins
         // win.addListener('hidden', markInactive);
         // win.addListener('minimized', markInactive);
 

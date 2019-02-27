@@ -2,7 +2,7 @@
  * @module Index
  */
 import {tryServiceDispatch} from './connection';
-import {getId, RegisterAPI} from './internal';
+import {getId, RegisterAPI, parseIdentityRule} from './internal';
 import * as snapAndDock from './snapanddock';
 import * as tabbing from './tabbing';
 import * as tabstrip from './tabstrip';
@@ -101,7 +101,7 @@ export async function deregister(identity: IdentityRule = getId() as IdentityRul
     if (!identity.uuid || !identity.name) {
         throw new Error('Invalid window identity provided');
     }
-    return tryServiceDispatch<IdentityRule, void>(RegisterAPI.DEREGISTER, identity);
+    return tryServiceDispatch<IdentityRule, void>(RegisterAPI.DEREGISTER, parseIdentityRule(identity));
 }
 
 /**
@@ -133,5 +133,5 @@ export async function register(identity: IdentityRule = getId() as IdentityRule)
     if (!identity.uuid || !identity.name) {
         throw new Error('Invalid window identity provided');
     }
-    return tryServiceDispatch<IdentityRule, void>(RegisterAPI.REGISTER, identity);
+    return tryServiceDispatch<IdentityRule, void>(RegisterAPI.REGISTER, parseIdentityRule(identity));
 }

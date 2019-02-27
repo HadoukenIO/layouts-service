@@ -4,7 +4,7 @@
 import {Identity} from 'hadouken-js-adapter';
 
 import {eventEmitter, tryServiceDispatch} from './connection';
-import {getId, SnapAndDockAPI} from './internal';
+import {getId, SnapAndDockAPI, parseIdentity} from './internal';
 
 
 /**
@@ -116,7 +116,7 @@ export function removeEventListener<K extends EventMap>(eventType: K['type'], li
  * @throws `Error`: If the window specified by `identity` has been de-registered
  */
 export async function undockWindow(identity: Identity = getId()): Promise<void> {
-    return tryServiceDispatch<Identity, void>(SnapAndDockAPI.UNDOCK_WINDOW, identity);
+    return tryServiceDispatch<Identity, void>(SnapAndDockAPI.UNDOCK_WINDOW, parseIdentity(identity));
 }
 
 /**
@@ -144,5 +144,5 @@ export async function undockWindow(identity: Identity = getId()): Promise<void> 
  * @throws `Error`: If the window specified by `identity` has been de-registered
  */
 export async function undockGroup(identity: Identity = getId()): Promise<void> {
-    return tryServiceDispatch<Identity, void>(SnapAndDockAPI.UNDOCK_GROUP, identity);
+    return tryServiceDispatch<Identity, void>(SnapAndDockAPI.UNDOCK_GROUP, parseIdentity(identity));
 }

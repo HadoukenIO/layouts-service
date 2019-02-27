@@ -1,11 +1,12 @@
 export async function createErrorBox(title: string, message: string) {
     const uuid = 'layouts-error-' + fin.desktop.getUuid();
+    const launchDir = location.href.slice(0, location.href.lastIndexOf('/'));
     const errorApp = await fin.Application.create({
-        url: window.location.origin + '/provider/errors/error.html',
+        url: launchDir + '/errors/error.html',
         uuid,
         name: uuid,
         mainWindowOptions: {
-            icon: window.location.origin + '/provider/errors/error-icon.png',
+            icon: launchDir + '/errors/error-icon.png',
             defaultHeight: 150,  // size increased later to fully fit error message
             defaultWidth: 570,
             defaultCentered: true,

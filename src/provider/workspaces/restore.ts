@@ -280,7 +280,7 @@ const restoreApp = async(app: WorkspaceApp, delayIdx: number, startupApps: Promi
                 console.log('App has manifestUrl:', app);
                 // Delay the `createFromManifest` call so that we don't lock up/time out.
                 // Should be resolved by RUN-5040 and RVM-814
-                await delay(1000 * delayIdx);
+                await delay(1500 * delayIdx);
                 ofAppNotRunning = await fin.Application.createFromManifest(manifestUrl);
             } else {
                 // If application created programmatically

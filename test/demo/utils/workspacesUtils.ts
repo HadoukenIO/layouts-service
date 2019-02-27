@@ -98,6 +98,7 @@ export interface TestCreationOptions {
     url?: string;
     manifest?: boolean;
     autoShow?: boolean;
+    defaultTop?: number;
 }
 
 export function createBasicSaveAndRestoreTest(

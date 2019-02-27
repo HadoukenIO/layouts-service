@@ -4,7 +4,7 @@
 import {Identity} from 'hadouken-js-adapter';
 
 import {eventEmitter, tryServiceDispatch} from './connection';
-import {getId, SnapAndDockAPI, parseIdentity} from './internal';
+import {getId, parseIdentity, SnapAndDockAPI} from './internal';
 
 
 /**

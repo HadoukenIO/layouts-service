@@ -9,7 +9,8 @@
  * This file is excluded from the public-facing TypeScript documentation.
  */
 import {Identity} from 'hadouken-js-adapter';
-import {WindowIdentity, IdentityRule, RegEx} from './main';
+
+import {IdentityRule, RegEx, WindowIdentity} from './main';
 import {ApplicationUIConfig, TabProperties} from './tabbing';
 
 
@@ -55,11 +56,11 @@ export function parseIdentity(identity: WindowIdentity|Identity): WindowIdentity
     const uuidCheck = typeof identity.uuid === 'string';
     const nameCheck = identity.name === undefined || typeof identity.name === 'string';
     if (!uuidCheck && !nameCheck) {
-        throw new Error ('Invalid Identity provided: uuid and name must be strings');
+        throw new Error('Invalid Identity provided: uuid and name must be strings');
     } else if (!uuidCheck) {
-        throw new Error ('Invalid Identity provided: uuid must be a string');
+        throw new Error('Invalid Identity provided: uuid must be a string');
     } else if (!nameCheck) {
-        throw new Error ('Invalid Identity provided: name must be a string');
+        throw new Error('Invalid Identity provided: name must be a string');
     }
 
     return {uuid: identity.uuid, name: identity.name || identity.uuid};
@@ -75,21 +76,19 @@ export function parseIdentityRule(identity: IdentityRule): IdentityRule {
     const uuidCheck = typeof identity.uuid === 'string' || isRegex(identity.uuid);
     const nameCheck = identity.name === undefined || typeof identity.name === 'string' || isRegex(identity.name);
     if (!uuidCheck && !nameCheck) {
-        throw new Error ('Invalid Identity provided: uuid and name must be strings or RegEx objects');
+        throw new Error('Invalid Identity provided: uuid and name must be strings or RegEx objects');
     } else if (!uuidCheck) {
-        throw new Error ('Invalid Identity provided: uuid must be a string or RegEx object');
+        throw new Error('Invalid Identity provided: uuid must be a string or RegEx object');
     } else if (!nameCheck) {
-        throw new Error ('Invalid Identity provided: name must be a string or RegEx object');
+        throw new Error('Invalid Identity provided: name must be a string or RegEx object');
     }
-    
-    return {uuid: identity.uuid, name: identity.name || identity.uuid};
 
+    return {uuid: identity.uuid, name: identity.name || identity.uuid};
 }
 
 // tslint:disable-next-line:no-any This is a type guard, and so can take any object.
 function isRegex(a: any): a is RegEx {
-    return !!a.expression && typeof a.expression === 'string' &&
-        (a.flags === undefined || typeof a.flags === 'string') &&
+    return !!a.expression && typeof a.expression === 'string' && (a.flags === undefined || typeof a.flags === 'string') &&
         (a.invert === undefined || typeof a.invert === 'boolean');
 }
 

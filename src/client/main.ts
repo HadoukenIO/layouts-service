@@ -2,7 +2,7 @@
  * @module Index
  */
 import {tryServiceDispatch} from './connection';
-import {getId, RegisterAPI, parseIdentityRule} from './internal';
+import {getId, parseIdentityRule, RegisterAPI} from './internal';
 import * as snapAndDock from './snapanddock';
 import * as tabbing from './tabbing';
 import * as tabstrip from './tabstrip';

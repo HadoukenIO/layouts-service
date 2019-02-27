@@ -12,6 +12,7 @@ import {WindowIdentity} from '../model/DesktopWindow';
 import {promiseMap} from '../snapanddock/utils/async';
 
 import {getGroup} from './group';
+import {appCanRestore} from './restore';
 import {addToWindowObject, adjustSizeOfFormerlyTabbedWindows, canRestoreProgrammatically, inWindowObject, parseVersionString, wasCreatedFromManifest, WindowObject} from './utils';
 
 // This value should be updated any time changes are made to the Workspace schema.
@@ -166,7 +167,7 @@ export const generateWorkspace = async(payload: null, identity: Identity): Promi
 
     const apps = await promiseMap(preLayout.apps, async (app: WorkspaceApp) => {
         const defaultResponse = {...app};
-        if (apiHandler.isClientConnection({uuid: app.uuid, name: app.mainWindow.name})) {
+        if (apiHandler.isClientConnection({uuid: app.uuid, name: app.mainWindow.name}) && appCanRestore(app.uuid)) {
             console.log('Connected application', app.uuid);
 
             // HOW TO DEAL WITH HUNG REQUEST HERE? RESHAPE IF GET NOTHING BACK?

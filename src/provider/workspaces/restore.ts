@@ -22,6 +22,9 @@ const CLIENT_STARTUP_TIMEOUT = 60000;
 // Duration in milliseconds that we give a client app to restore itself when restoring a Workspace
 const CLIENT_RESTORE_TIMEOUT = 60000;
 
+// All apps that we've ever received a appReadyForRestore call from. Used as a heuristic to determine which apps properly implement S&R features
+const allAppsEverReady = new Map<string, boolean>();
+
 const appsToRestoreWhenReady = new Map<string, AppToRestore>();
 
 // A token unique to the current run of restoreWorkspace, needed so that we can correctly release the exclusivity token after a timeout if needed
@@ -33,6 +36,8 @@ interface AppToRestore {
 }
 
 export const appReadyForRestore = async(uuid: string): Promise<void> => {
+    allAppsEverReady.set(uuid, true);
+
     const appToRestore = appsToRestoreWhenReady.get(uuid)!;
 
     if (appToRestore) {
@@ -105,6 +110,10 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
 
     // Send the workspace back to the requester of the restore
     return workspace;
+};
+
+export const appCanRestore = (uuid: string): boolean => {
+    return allAppsEverReady.has(uuid);
 };
 
 const requestClientRestoreApp = async(workspaceApp: WorkspaceApp, resolve: Function): Promise<void> => {

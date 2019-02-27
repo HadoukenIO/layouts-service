@@ -2,7 +2,6 @@ import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/application
 import {WindowDetail} from 'hadouken-js-adapter/out/types/src/api/system/window';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
-
 import {WorkspaceApp, WorkspaceWindow} from '../../client/workspaces';
 import {model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
@@ -23,6 +22,8 @@ export interface SemVer {
 interface AppInfo extends ApplicationInfo {
     manifest: {startup_app: {uuid: string;};};
 }
+
+const launchDir = location.href.slice(0, location.href.lastIndexOf('/'));
 
 // TODO: Create Placeholder and PlaceholderStore classes?
 // This keeps track of how many placeholders we have open, so we know when we can start regrouping a layout.
@@ -310,6 +311,7 @@ const createPlaceholderWindow = async (win: WorkspaceWindow) => {
     const placeholderName = 'Placeholder-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
     const placeholderWindow = await fin.Window.create({
+        url: `${launchDir}/placeholder.html`,
         name: placeholderName,
         autoShow: true,
         defaultHeight: height,

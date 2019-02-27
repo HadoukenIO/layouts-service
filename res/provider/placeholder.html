@@ -1,0 +1,31 @@
+﻿<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <style>
+        #window-button-exit {
+            background-image: url("./tabbing/tabstrip/css/image/close.png");
+            position: fixed;
+            right: 2px;
+            top: 2px;
+            display: flex;
+            align-items: center;
+            z-index: 15;
+            -webkit-app-region: no-drag;
+            width: 45px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-repeat: no-repeat;
+            background-size: 25% 45%;
+            background-position: center;
+        }
+    </style>
+</head>
+<body>
+    <div onclick="window.close()" id="window-button-exit">
+    </div>
+</body>
+</html>

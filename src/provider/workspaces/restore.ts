@@ -70,14 +70,7 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
 
     await createWorkspacePlaceholders(workspace);
 
-    // Have to restore the applications one-by-one in order to prevent createFromManifest calls to the RVM from hanging
-    // Should be resolved by RUN-5040 and RVM-814
-    const restoreAppResponses: WorkspaceApp[] = [];
-    for (let index = 0; index < workspace.apps.length; index++) {
-        const workspaceApp = workspace.apps[index];
-        const restoredWorkspaceApp = await restoreApp(workspaceApp, startupApps);
-        restoreAppResponses.push(restoredWorkspaceApp);
-    }
+    const restoreAppResponses: WorkspaceApp[] = await promiseMap(workspace.apps, (app, idx) => restoreApp(app, idx, startupApps));
 
     // Wait for all apps to startup
     const startupResponses: WorkspaceApp[] = await Promise.all(startupApps);
@@ -247,7 +240,9 @@ const createWorkspacePlaceholders = async(workspace: Workspace): Promise<void> =
     await tabService.createTabGroupsFromWorkspace(workspace.tabGroups);
 };
 
-const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]): Promise<WorkspaceApp> => {
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const restoreApp = async(app: WorkspaceApp, delayIdx: number, startupApps: Promise<WorkspaceApp>[]): Promise<WorkspaceApp> => {
     // Get rid of childWindows for default response (anything else?)
     const defaultResponse = {...app, childWindows: []};
     try {
@@ -283,10 +278,10 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
                 // If app created by manifest
                 const {manifestUrl} = app;
                 console.log('App has manifestUrl:', app);
-                console.log("BEFORE CREATEFROMMANIFEST");
+                // Delay the `createFromManifest` call so that we don't lock up/time out.
+                // Should be resolved by RUN-5040 and RVM-814
+                await delay(1000 * delayIdx);
                 ofAppNotRunning = await fin.Application.createFromManifest(manifestUrl);
-                console.log("ofAppNotRunning", ofAppNotRunning);
-                console.log("AFTER CREATEFROMMANIFEST");
             } else {
                 // If application created programmatically
                 if (canRestoreProgrammatically(app)) {
@@ -298,9 +293,7 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
             }
 
             if (ofAppNotRunning) {
-                console.log("BEFORE RUN");
                 await ofAppNotRunning.run().catch(console.log);
-                console.log("AFTER RUN");
                 await model.expect({uuid, name: uuid});
                 await positionWindow(app.mainWindow, true);
             }

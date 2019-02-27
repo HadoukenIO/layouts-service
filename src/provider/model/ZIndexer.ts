@@ -97,7 +97,7 @@ export class ZIndexer {
             } else if (identity.uuid === SERVICE_IDENTITY.uuid && !identity.name.startsWith('TABSET-')) {
                 // Exclude service-owned windows
                 return false;
-            } else if (exclusions.find(exclusion => exclusion.uuid === identity.uuid && exclusion.name === identity.name)) {
+            } else if (exclusions.some(exclusion => exclusion.uuid === identity.uuid && exclusion.name === identity.name)) {
                 // Item is excluded
                 return false;
             } else {

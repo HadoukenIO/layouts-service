@@ -343,12 +343,11 @@ export async function setGenerateHandler(customDataDecorator: () => CustomData):
 /**
  * Registers a callback that will restore the application to a previous state.
  *
- * If an application has set a {@link setRestoreHandler} callback, and called the {@link ready} function, the layouts service 
- * will send it its Workspace data when the {@link restore} function is called, and wait for this function to return. If 
- * an application has saved its child windows, it *MUST* create those child windows with the same names defined in its 
- * Workspace. If this function does not return, or this function does not create the app's child windows appropriately, 
+ * If an application has set a {@link setRestoreHandler} callback, and called the {@link ready} function, the layouts service
+ * will send it its Workspace data when the {@link restore} function is called, and wait for this function to return. If
+ * an application has saved its child windows, it *MUST* create those child windows with the same names defined in its
+ * Workspace. If this function does not return, or this function does not create the app's child windows appropriately,
  * {@link restore} will hang indefinitely.
- * 
  */
 export async function setRestoreHandler(listener: (layoutApp: WorkspaceApp) => WorkspaceApp | false | Promise<WorkspaceApp|false>): Promise<boolean> {
     const channel: ChannelClient = await channelPromise;
@@ -363,11 +362,10 @@ export async function setRestoreHandler(listener: (layoutApp: WorkspaceApp) => W
  * explicitly de-registered itself from the service. It will also contain positioning, tabbing and grouping information
  * for each application. This data will be passed to {@link restore}, which will create the applications and
  * position them appropriately.
- * 
- * If an application wishes to restore its child windows and store custom data, it must properly integrate with the
- * layouts service by both registering {@link setGenerateHandler|generate} and {@link setRestoreHandler|restore} callbacks, and 
- * calling the {@link ready} function. If this is not done properly, workspace restoration may be disrupted.
  *
+ * If an application wishes to restore its child windows and store custom data, it must properly integrate with the
+ * layouts service by both registering {@link setGenerateHandler|generate} and {@link setRestoreHandler|restore} callbacks, and
+ * calling the {@link ready} function. If this is not done properly, workspace restoration may be disrupted.
  */
 export async function generate(): Promise<Workspace> {
     return tryServiceDispatch<undefined, Workspace>(WorkspaceAPI.GENERATE_LAYOUT);
@@ -377,33 +375,32 @@ export async function generate(): Promise<Workspace> {
  * Takes a Workspace object created by the {@link generate} function and restores the state of the desktop at the time it was generated
  *
  * Restoration begins by reading the Workspace object, and determining what applications and windows are running or not.
- * 
+ *
  * If an application or child window is not up and running, the layouts service will create a transparent placeholder window for it, as an
- * indication to the user that a window is in the process of loading. The placeholder window will listen for its corresponding window to 
+ * indication to the user that a window is in the process of loading. The placeholder window will listen for its corresponding window to
  * come up, and subsequently close itself.
- * 
+ *
  * Once all placeholder windows are up, the layouts service will ungroup and untab any windows participating in restoration. This is done to
- * prevent a window from dragging its group around the desktop, into a location that wasn't originally intended. Restore does not touch 
+ * prevent a window from dragging its group around the desktop, into a location that wasn't originally intended. Restore does not touch
  * any windows that were not declared in the Workspace object.
- * 
- * Once all windows are ungrouped, the layouts service will then tab together all windows involved in a tabgroup. Placeholder windows are 
+ *
+ * Once all windows are ungrouped, the layouts service will then tab together all windows involved in a tabgroup. Placeholder windows are
  * included in this tabbing step. Once a placeholder window's corresponding restored window comes up, that restored window takes
- * the place of the placeholder window in the tabset. 
- * 
+ * the place of the placeholder window in the tabset.
+ *
  * Once all groups have been set up, the layouts service will then begin opening and positioning the applications and windows.
- * 
+ *
  * If an application is up and running, the layouts service will position it in its proper place. If the application isn't running,
  * the layouts service will attempt to launch it after it has been launched. It is then positioned.
- * 
- * If the application has registered {@link setGenerateHandler|generate} and {@link setRestoreHandler|restore} callbacks, and called 
- * the {@link ready} function, the layouts service will send it its Workspace data. If an application has saved its child windows, 
+ *
+ * If the application has registered {@link setGenerateHandler|generate} and {@link setRestoreHandler|restore} callbacks, and called
+ * the {@link ready} function, the layouts service will send it its Workspace data. If an application has saved its child windows,
  * it *MUST* create those child windows with the same names defined in its Workspace. If it does not do so, {@link restore} will fail.
  *
  * Once all applications and child windows have been spun up and positioned, and all placeholder windows have been closed, the layouts
- * service will then group all windows that were formerly snapped together. 
- * 
+ * service will then group all windows that were formerly snapped together.
+ *
  * Finally, the layouts service will send a 'workspace-restored' event to all windows, and complete restoration.
- * 
  */
 export async function restore(payload: Workspace): Promise<Workspace> {
     return tryServiceDispatch<Workspace, Workspace>(WorkspaceAPI.RESTORE_LAYOUT, payload);
@@ -417,7 +414,6 @@ export async function restore(payload: Workspace): Promise<Workspace> {
  *
  * Note that by not calling this function, and workspace {@link restore} operation will hang
  * indefinitely.
- * 
  */
 export async function ready(): Promise<Workspace> {
     return tryServiceDispatch<undefined, Workspace>(WorkspaceAPI.APPLICATION_READY);

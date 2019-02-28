@@ -346,10 +346,19 @@ export async function setGenerateHandler(customDataDecorator: () => CustomData):
  * If an application has set a {@link setRestoreHandler} callback, and called the {@link ready} function, the layouts service
  * will send it its Workspace data when the {@link restore} function is called, and wait for this function to return. If
  * an application has saved its child windows, it *MUST* create those child windows with the same names defined in its
- * Workspace. If this function does not return, or this function does not create the app's child windows appropriately,
+ * Workspace. If those child windowws are already up, position them in their proper location using the bounds given.
+ * 
+ * If this function does not return, or this function does not create the app's child windows appropriately,
  * {@link restore} will hang indefinitely.
+ * 
+ * If the callback does not return a WorkspaceApp object, window grouping will be affected. The {@link restore} function reads 
+ * the return value and uses it to continue restoration.
+ * 
+ * It is recommended that you restore/position the child windows defined in workspaceApp, and after those windows have been created, return
+ * that same workspaceApp object.
+ * 
  */
-export async function setRestoreHandler(listener: (layoutApp: WorkspaceApp) => WorkspaceApp | false | Promise<WorkspaceApp|false>): Promise<boolean> {
+export async function setRestoreHandler(listener: (workspaceApp: WorkspaceApp) => WorkspaceApp | false | Promise<WorkspaceApp|false>): Promise<boolean> {
     const channel: ChannelClient = await channelPromise;
     return channel.register(WorkspaceAPI.RESTORE_HANDLER, listener);
 }

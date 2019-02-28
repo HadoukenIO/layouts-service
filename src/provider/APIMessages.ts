@@ -6,7 +6,7 @@
  *
  *
  */
-import {Events} from '../client/connection';
+import {LayoutsEvent} from '../client/connection';
 import {WorkspaceAPI} from '../client/internal';
 import {WindowIdentity} from '../client/main';
 import {WorkspaceApp} from '../client/workspaces';
@@ -19,7 +19,7 @@ export const EVENT_CHANNEL_TOPIC = 'event';
 export type MessageMap = {
     [WorkspaceAPI.RESTORE_HANDLER]: WorkspaceApp,
     [WorkspaceAPI.GENERATE_HANDLER]: WorkspaceApp,
-    [EVENT_CHANNEL_TOPIC]: Events
+    [EVENT_CHANNEL_TOPIC]: LayoutsEvent
 };
 
 export enum ErrorType {

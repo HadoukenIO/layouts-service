@@ -1,7 +1,7 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {Scope} from '../../../gen/provider/config/layouts-config';
-import {Events} from '../../client/connection';
+import {LayoutsEvent} from '../../client/connection';
 import {ApplicationUIConfig, TabActivatedEvent, TabAddedEvent, TabRemovedEvent} from '../../client/tabbing';
 import {TabGroupMaximizedEvent, TabGroupMinimizedEvent, TabGroupRestoredEvent} from '../../client/tabstrip';
 import {TabGroupDimensions, WindowState} from '../../client/workspaces';
@@ -696,7 +696,7 @@ export class DesktopTabGroup implements DesktopEntity {
         }
     }
 
-    private async sendTabEvent(tab: DesktopWindow, event: Events): Promise<void> {
+    private async sendTabEvent(tab: DesktopWindow, event: LayoutsEvent): Promise<void> {
         await Promise.all([
             // Send event to application
             tab.sendEvent(event),

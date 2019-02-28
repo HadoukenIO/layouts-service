@@ -14,10 +14,10 @@
 import {EventEmitter} from 'events';
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
-import {Events as SnapAndDockEvents} from '../client/snapanddock';
-import {Events as TabbingEvents} from '../client/tabbing';
-import {Events as TabstripEvents} from '../client/tabstrip';
-import {Events as WorkspacesEvents} from '../client/workspaces';
+import {SnapAndDockEvent} from '../client/snapanddock';
+import {TabbingEvent} from '../client/tabbing';
+import {TabstripEvent} from '../client/tabstrip';
+import {WorkspacesEvent} from '../client/workspaces';
 
 import {APITopic, SERVICE_CHANNEL} from './internal';
 
@@ -31,7 +31,7 @@ declare const PACKAGE_VERSION: string;
 /**
  * Defines all events that are fired by the service
  */
-export type Events = TabstripEvents|TabbingEvents|WorkspacesEvents|SnapAndDockEvents;
+export type LayoutsEvent = TabstripEvent|TabbingEvent|WorkspacesEvent|SnapAndDockEvent;
 
 /**
  * The event emitter to emit events received from the service.  All addEventListeners will tap into this.
@@ -46,7 +46,7 @@ export const channelPromise: Promise<ChannelClient> = typeof fin === 'undefined'
     fin.InterApplicationBus.Channel.connect(SERVICE_CHANNEL, {payload: {version: PACKAGE_VERSION}}).then((channel: ChannelClient) => {
         // Register service listeners
         channel.register('WARN', (payload: any) => console.warn(payload));  // tslint:disable-line:no-any
-        channel.register('event', (event: Events) => {
+        channel.register('event', (event: LayoutsEvent) => {
             eventEmitter.emit(event.type, event);
         });
         // Any unregistered action will simply return false

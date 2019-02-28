@@ -3,7 +3,7 @@ import {Identity, Window} from 'hadouken-js-adapter';
 import {WindowInfo} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {WindowScope} from '../../../gen/provider/config/layouts-config';
-import {Events} from '../../client/connection';
+import {LayoutsEvent} from '../../client/connection';
 import {SERVICE_IDENTITY} from '../../client/internal';
 import {WindowState} from '../../client/workspaces';
 import {EVENT_CHANNEL_TOPIC} from '../APIMessages';
@@ -658,7 +658,7 @@ export class DesktopWindow implements DesktopEntity {
             return this.updateState({[property]: value}, ActionOrigin.SERVICE);  // TODO: Is this the right origin type?
         }
     }
-    public async sendEvent<T extends Events>(event: T): Promise<void> {
+    public async sendEvent<T extends LayoutsEvent>(event: T): Promise<void> {
         if (this._ready && apiHandler.isClientConnection(this.identity)) {
             return apiHandler.sendToClient(this._identity, EVENT_CHANNEL_TOPIC, event);
         }

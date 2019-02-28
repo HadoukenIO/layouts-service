@@ -131,12 +131,12 @@ export class APIHandler {
         }
     }
 
-    private undockWindow(identity: WindowIdentity): void {
-        this._snapService.undock(identity);
+    private async undockWindow(identity: WindowIdentity): Promise<void> {
+        return this._snapService.undock(identity);
     }
 
-    private undockGroup(identity: WindowIdentity): void {
-        this._snapService.explodeGroup(identity);
+    private async undockGroup(identity: WindowIdentity): Promise<void> {
+        return this._snapService.explodeGroup(identity);
     }
 
     private appReady(payload: void, identity: Identity): void {

@@ -2,7 +2,7 @@
  * @module Index
  */
 import {tryServiceDispatch} from './connection';
-import {getId, RegisterAPI} from './internal';
+import {getId, parseIdentityRule, RegisterAPI} from './internal';
 import * as snapAndDock from './snapanddock';
 import * as tabbing from './tabbing';
 import * as tabstrip from './tabstrip';
@@ -98,10 +98,7 @@ export type WindowState = 'normal'|'minimized'|'maximized';
  * @param identity The window (or pattern of windows) to deregister, defaults to the current window
  */
 export async function deregister(identity: IdentityRule = getId() as IdentityRule): Promise<void> {
-    if (!identity.uuid || !identity.name) {
-        throw new Error('Invalid window identity provided');
-    }
-    return tryServiceDispatch<IdentityRule, void>(RegisterAPI.DEREGISTER, identity);
+    return tryServiceDispatch<IdentityRule, void>(RegisterAPI.DEREGISTER, parseIdentityRule(identity));
 }
 
 /**
@@ -130,8 +127,5 @@ export async function deregister(identity: IdentityRule = getId() as IdentityRul
  * @param identity The window (or pattern of windows) to register, defaults to the current window
  */
 export async function register(identity: IdentityRule = getId() as IdentityRule): Promise<void> {
-    if (!identity.uuid || !identity.name) {
-        throw new Error('Invalid window identity provided');
-    }
-    return tryServiceDispatch<IdentityRule, void>(RegisterAPI.REGISTER, identity);
+    return tryServiceDispatch<IdentityRule, void>(RegisterAPI.REGISTER, parseIdentityRule(identity));
 }

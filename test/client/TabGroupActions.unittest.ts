@@ -12,7 +12,7 @@ import {WindowIdentity} from '../../src/client/main';
 stub();
 
 let channel: ChannelClient;
-let channelDispatch: jest.SpyInstance<typeof channel.dispatch>
+let channelDispatch: jest.SpyInstance<typeof channel.dispatch>;
 
 beforeEach(async () => {
     jest.restoreAllMocks();

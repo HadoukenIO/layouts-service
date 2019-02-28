@@ -4,7 +4,7 @@
 import {Identity} from 'hadouken-js-adapter';
 
 import {eventEmitter, tryServiceDispatch} from './connection';
-import {AddTabPayload, CreateTabGroupPayload, getId, parseIdentity, SetTabstripPayload, TabAPI, UpdateTabPropertiesPayload} from './internal';
+import {AddTabPayload, CreateTabGroupPayload, ErrorMsgs, getId, parseIdentity, SetTabstripPayload, TabAPI, UpdateTabPropertiesPayload} from './internal';
 import {WindowIdentity} from './main';
 
 /**
@@ -484,7 +484,7 @@ export async function restoreTabGroup(identity: Identity = getId()): Promise<voi
  */
 export async function updateTabProperties(properties: Partial<TabProperties>, identity: Identity = getId()): Promise<void> {
     if (!properties) {
-        throw new Error('Properties are required');
+        throw new Error(ErrorMsgs.PROPERTIES_REQUIRED);
     }
     return tryServiceDispatch<UpdateTabPropertiesPayload, void>(TabAPI.UPDATETABPROPERTIES, {window: parseIdentity(identity), properties});
 }

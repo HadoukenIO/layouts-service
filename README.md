@@ -41,7 +41,7 @@ This project consist of 3 parts:
 
 ## Getting Started
 
-Integrating the Layouts Service within an application is done in two steps.  Add the service to the application manifest, and import the API:
+Integrating the Layouts Service within an application is done in two steps. Add the service to the application manifest, and import the API:
 
 ### Manifest declaration
 

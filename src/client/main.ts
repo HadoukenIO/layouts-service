@@ -37,12 +37,12 @@ export interface WindowIdentity {
  */
 export interface IdentityRule {
     /**
-     * Application identifier
+     * Application identifier or pattern
      */
     uuid: string|RegEx;
 
     /**
-     * Window identifier
+     * Window identifier or pattern
      */
     name: string|RegEx;
 }
@@ -113,7 +113,9 @@ export async function deregister(identity: IdentityRule = getId() as IdentityRul
  *
  * This API can be used to programmatically override configuration set at an app-wide level, such as in the application manifest.
  *
- * Note that applications that intend to use the service should always do this by adding the service declaration to their application manifest.
+ * This API is provided to complement {@link deregister}, to allow programmatic override of default service behavior or configuration
+ * specified in an application manifest. This API is not required or intended for initial opt-in of your application to the service,
+ * which is achieved through the `"services"` attribute within an application manifest.
  *
  * ```ts
  * import {register} from 'openfin-layouts';

@@ -255,7 +255,7 @@ export function parseVersionString(versionString: string): SemVer {
     return {major: Number.parseInt(match[1], 10), minor: Number.parseInt(match[2], 10), patch: Number.parseInt(match[3], 10)};
 }
 
-export function adjustSizeOfFormerlyTabbedWindows(layoutWindow: WorkspaceWindow, formerlyTabbedWindows: WindowObject) {
+export function adjustSizeOfFormerlyTabbedWindows(layoutWindow: WorkspaceWindow, formerlyTabbedWindows: WindowObject): void {
     if (inWindowObject(layoutWindow, formerlyTabbedWindows)) {
         const tabWindow = model.getWindow(layoutWindow);
         if (tabWindow) {
@@ -265,8 +265,8 @@ export function adjustSizeOfFormerlyTabbedWindows(layoutWindow: WorkspaceWindow,
                 const tabStripHeight = tabGroup.config.height;
                 const bounds = layoutWindow.bounds;
 
-                bounds.top = bounds.top - tabStripHeight;
-                bounds.height = bounds.height + tabStripHeight;
+                bounds.top -= tabStripHeight;
+                bounds.height += tabStripHeight;
 
                 if (isWin10() && applicationState.frame === true) {
                     bounds.left -= 7;

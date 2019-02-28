@@ -25,23 +25,23 @@ This project consist of 3 parts:
 - Tabbing
    - Dropping a window on-top of another window will tab the windows together
    - Dropping a window on-top of an existing tab group will add it to that group
-   - Tabs can be reorder and renamed
-   - Minimize / maximize / restore / close on the tabstrip affects the whole tab group (tabstrip and tabbed windows)
+   - Tabs can be reordered and renamed
+   - Minimize/maximize/restore/close on the tabstrip affects the whole tab group (tabstrip and tabbed windows)
    - Application developers can provide their own tabstrip - simply by hosting a templated html, initiated on application startup
-   - The service comes with a Chrome like default tabstrip that will used if no custom tabstrip is defined
+   - The service comes with a Chrome-like default tabstrip that will be used if no custom tabstrip is defined
 - Save & Restore
    - The service has APIs for generating and restoring workspaces
    - The provided demo showcases how a layout manager application could use the APIs to manage layouts
 - APIs
-   - APIs available to undock, ungroup, tab / un-tab, save / restore a layout or opt-out of service functionality.
+   - APIs available to undock, ungroup, tab/un-tab, save/restore workspaces, and opt-out of service functionality
 - Hosting
    - The latest production version OpenFin Layouts will by default be served from OpenFin's CDN
-   - For testing / dev purposes, customers can specify an absolute version/location of the service by providing the full URL in the services section of the app manifest (see 'Manifest declaration' below)
+   - For testing/dev purposes, customers can specify an absolute version/location of the service by providing the full URL in the services section of the app manifest (see 'Manifest declaration' below)
    - To self-host versions of the service, each release is also deployed to the CDN as a zip file, available at `https://cdn.openfin.co/services/openfin/layouts/<version>/layouts-service.zip`
 
 ## Getting Started
 
-Integrating the Layouts Service within an application is done in two steps.  Add the service to the application manifest and import the API:
+Integrating the Layouts Service within an application is done in two steps.  Add the service to the application manifest, and import the API:
 
 ### Manifest declaration
 

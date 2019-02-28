@@ -11,7 +11,7 @@ import {promiseMap} from '../snapanddock/utils/async';
 
 import {SCHEMA_MAJOR_VERSION} from './create';
 import {regroupWorkspace} from './group';
-import {addToWindowObject, canRestoreProgrammatically, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, parseVersionString, positionWindow, SemVer, TabbedPlaceholders, waitUntilAllPlaceholdersClosed, WindowObject, closeCorrespondingPlaceholder, clearPlaceholderMap} from './utils';
+import {addToWindowObject, canRestoreProgrammatically, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, clearPlaceholderMap, closeCorrespondingPlaceholder, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, parseVersionString, positionWindow, SemVer, TabbedPlaceholders, waitUntilAllPlaceholdersClosed, WindowObject} from './utils';
 
 // Duration in milliseconds that the entire Workspace restore may take, before we allow another restore to start
 const GLOBAL_EXCLUSIVITY_TIMEOUT = 120000;
@@ -135,18 +135,22 @@ export const appCanRestore = (uuid: string): boolean => {
 
 // Check app response against appsToDeleteFromWorkspace to remove it from the Workspace and close its placeholders
 // Check the app responses's child windows against the original child windows in WorkspaceApp, and close any hanging placeholders.
-const parseAppResponse = async (appResponse: WorkspaceApp, parsedAppResponses: WorkspaceApp[], workspace: Workspace): Promise<void> => {
+const parseAppResponse = async(appResponse: WorkspaceApp, parsedAppResponses: WorkspaceApp[], workspace: Workspace): Promise<void> => {
     if (appsToDeleteFromWorkspace.has(appResponse.uuid)) {
         console.error(`App launch for ${appResponse.uuid} failed. Application will be removed from workspace: `, appResponse);
         await closeCorrespondingPlaceholder({uuid: appResponse.uuid, name: appResponse.uuid});
-        appResponse.childWindows.forEach(async(childWindow) => await closeCorrespondingPlaceholder(childWindow));
+        appResponse.childWindows.forEach(async (childWindow) => await closeCorrespondingPlaceholder(childWindow));
     } else {
         const originalWorkspaceApp: WorkspaceApp|undefined = workspace.apps.find((potentialMatch) => potentialMatch.uuid === appResponse.uuid);
         if (originalWorkspaceApp) {
-            originalWorkspaceApp.childWindows.forEach(async(childWindow) => {
+            originalWorkspaceApp.childWindows.forEach(async (childWindow) => {
                 const childWindowInAppResponse = appResponse.childWindows.some((appResponseChildWin) => appResponseChildWin.name === childWindow.name);
                 if (!childWindowInAppResponse) {
-                    console.error(`Application ${appResponse.uuid} did not restore its child window ${childWindow.name} (or the App's setGenerateHandler didn't return that child window). Placeholder will be closed: `, appResponse);
+                    console.error(
+                        `Application ${appResponse.uuid} did not restore its child window ${childWindow.name} 
+                            (or the App's setGenerateHandler didn't return that child window). Placeholder will be closed: 
+                        `,
+                        appResponse);
                     await closeCorrespondingPlaceholder(childWindow);
                 }
             });
@@ -339,20 +343,18 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
                 let timeout;
                 // Application.run() can hang with createFromManifest calls, so we set a timeout to continue restoration
                 // Even if run() hangs.
-                const timeoutPromise = new Promise<string>((resolve, reject) =>
-                    timeout = window.setTimeout(() => {
-                        reject(`Run was called on Application ${app.uuid}, but it seems to be hanging. Continuing restoration.`);
-                    }, CLIENT_RUN_TIMEOUT));
+                const timeoutPromise = new Promise<string>((resolve, reject) => timeout = window.setTimeout(() => {
+                    reject(`Run was called on Application ${app.uuid}, but it seems to be hanging. Continuing restoration.`);
+                }, CLIENT_RUN_TIMEOUT));
                 const runCall = ofAppNotRunning.run();
 
                 await Promise.race([timeoutPromise, runCall]);
 
                 clearTimeout(timeout);
-                await model.expect({ uuid, name: uuid });
+                await model.expect({uuid, name: uuid});
                 await positionWindow(app.mainWindow, true);
             }
             // SHOULD WE RETURN DEFAULT RESPONSE HERE?!?
-            console.log("before returning defaultResponse", app.uuid);
             return defaultResponse;
         }
     } catch (e) {
@@ -364,8 +366,8 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
     }
 };
 
-// If an app fails to create during the beginning of the restore process, resolve its pending setAppToClientRestoreWithTimeout promise and remove it from appsToRestoreWhenReady
-// Finally, add to appsToDeleteFromWorkspace so it can get cleaned up in the parseAppResponse function.
+// If an app fails to create during the beginning of the restore process, resolve its pending setAppToClientRestoreWithTimeout promise and remove it from
+// appsToRestoreWhenReady Finally, add to appsToDeleteFromWorkspace so it can get cleaned up in the parseAppResponse function.
 const deleteAppFromRestoreWhenReadyMap = (app: WorkspaceApp) => {
     const appThatFailedToRestore = appsToRestoreWhenReady.get(app.uuid);
     if (appThatFailedToRestore) {
@@ -384,7 +386,8 @@ const clientRestoreAppWithTimeout = async(workspaceApp: WorkspaceApp): Promise<W
     const failedResponse = {...workspaceApp, childWindows: [], confirmed: false};
     let timeout: number;
 
-    const sendToClientPromises = apiHandler.sendToClient<WorkspaceAPI.RESTORE_HANDLER, WorkspaceApp|false>(identity, WorkspaceAPI.RESTORE_HANDLER, workspaceApp);
+    const sendToClientPromises =
+        apiHandler.sendToClient<WorkspaceAPI.RESTORE_HANDLER, WorkspaceApp|false>(identity, WorkspaceAPI.RESTORE_HANDLER, workspaceApp);
 
     // Need to clear timeout once this responsePromise resolves.
     const responsePromise = sendToClientPromises.then((response: WorkspaceApp|false|undefined) => {
@@ -394,20 +397,23 @@ const clientRestoreAppWithTimeout = async(workspaceApp: WorkspaceApp): Promise<W
         return response ? response : defaultResponse;
     });
 
-    const timeoutPromise = new Promise<WorkspaceApp>((resolve) => 
-        timeout = window.setTimeout(() => {
-            console.error(`Sent WorkspaceApp object to ${workspaceApp.uuid}'s restore handler, but it timed out. Child window restoration may have failed. Application's child windows and confirmed status will be removed: `, workspaceApp);
-            workspaceApp.childWindows.forEach(async(childWindow) => await closeCorrespondingPlaceholder(childWindow));
-            resolve(failedResponse);
-        }, 
-        CLIENT_RESTORE_TIMEOUT));
+    const timeoutPromise = new Promise<WorkspaceApp>((resolve) => timeout = window.setTimeout(() => {
+        console.error(
+            `Sent WorkspaceApp object to ${workspaceApp.uuid}'s restore handler, but it timed out. 
+                Child window restoration may have failed. 
+                Application's child windows and confirmed status will be removed: 
+            `,
+            workspaceApp);
+        workspaceApp.childWindows.forEach(async (childWindow) => await closeCorrespondingPlaceholder(childWindow));
+        resolve(failedResponse);
+    }, CLIENT_RESTORE_TIMEOUT));
 
     return Promise.race([responsePromise, timeoutPromise]);
 };
 
 // If an application isn't up at the time of restoration, we need to give it its WorkspaceApp object once it comes up.
 // SetAppToClientRestoreWithTimeout sets that information on the appsToRestoreWhenReady object, which the application pulls
-// from once it is open. 
+// from once it is open.
 // Afterwards, it sets a timeout and waits for the application to come up.
 // If the application never comes up and/or calls its ready function to grab the WorkspaceApp object, we resolve this hanging promise
 // with a modified WorkspaceApp object.
@@ -421,8 +427,13 @@ const setAppToClientRestoreWithTimeout = (workspaceApp: WorkspaceApp, resolve: F
 
     setTimeout(() => {
         if (appsToRestoreWhenReady.delete(uuid)) {
-            console.error(`App ${uuid} failed to call its ready function. App is either not launching, or didn't call ready. Application's child windows and confirmed status will be removed: `, workspaceApp);
-            workspaceApp.childWindows.forEach(async(childWindow) => await closeCorrespondingPlaceholder(childWindow));
+            console.error(
+                `App ${uuid} failed to call its ready function. 
+                    App is either not launching, or didn't call ready. 
+                    Application's child windows and confirmed status will be removed: 
+                `,
+                workspaceApp);
+            workspaceApp.childWindows.forEach(async (childWindow) => await closeCorrespondingPlaceholder(childWindow));
             resolve(failedResponse);
         }
     }, CLIENT_STARTUP_TIMEOUT);

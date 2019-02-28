@@ -23,8 +23,6 @@ interface AppInfo extends ApplicationInfo {
     manifest: {startup_app: {uuid: string;};};
 }
 
-const launchDir = location.href.slice(0, location.href.lastIndexOf('/'));
-
 // TODO: Create Placeholder and PlaceholderStore classes?
 // This keeps track of how many placeholders we have open, so we know when we can start regrouping a layout.
 let numOfPlaceholders = 0;
@@ -307,7 +305,8 @@ export async function closeCorrespondingPlaceholder(windowIdentity: Identity): P
                 await placeholderWindow.close();
             }
         } catch (error) {
-            console.log(`Placeholder window ${placeholderWindow.identity.name} for Window ${windowIdentity.uuid} ${windowIdentity.name} has already been closed`);
+            console.log(
+                `Placeholder window ${placeholderWindow.identity.name} for Window ${windowIdentity.uuid} ${windowIdentity.name} has already been closed`);
         }
         deletePlaceholderFromMap(windowIdentity);
     }

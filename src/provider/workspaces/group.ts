@@ -39,8 +39,8 @@ export const groupWindow = async (win: WorkspaceWindow) => {
             return;
         }
 
-        // We cannot guarantee that all of our windows are up, because some groupings may have been broken in restoration, and some groupings are supplied by the user.
-        // Therefore, we must check each of these conditions.
+        // We cannot guarantee that all of our windows are up, because some groupings may have been broken in restoration, and some groupings are supplied by
+        // the user. Therefore, we must check each of these conditions.
         try {
             const curEntityWindow = await model.expect(w as WindowIdentity);
             try {
@@ -49,7 +49,7 @@ export const groupWindow = async (win: WorkspaceWindow) => {
                     // If window has a tabGroup, we should group it instead of the window itself.
                     const targetEntity = targetEntityWindow.tabGroup || targetEntityWindow;
                     const curEntity = curEntityWindow.tabGroup || curEntityWindow;
-            
+
                     if (curEntity.snapGroup.id !== targetEntity.snapGroup.id) {
                         await curEntity.setSnapGroup(targetEntity.snapGroup);
                     }

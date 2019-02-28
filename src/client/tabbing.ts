@@ -4,7 +4,7 @@
 import {Identity} from 'hadouken-js-adapter';
 
 import {eventEmitter, tryServiceDispatch} from './connection';
-import {AddTabPayload, CreateTabGroupPayload, getId, parseIdentity, SetTabstripPayload, TabAPI, UpdateTabPropertiesPayload, ErrorMsgs} from './internal';
+import {AddTabPayload, CreateTabGroupPayload, ErrorMsgs, getId, parseIdentity, SetTabstripPayload, TabAPI, UpdateTabPropertiesPayload} from './internal';
 import {WindowIdentity} from './main';
 
 /**

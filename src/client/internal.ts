@@ -155,10 +155,10 @@ export interface CreateTabGroupPayload {
 export const enum ErrorMsgs {
     IDENTITY_REQUIRED = 'Invalid arguments. Must pass an identity object',
     INVALID_IDENTITY_UUID = 'Invalid Identity provided: uuid must be a string',
-    INVALID_IDENTITY_NAME = "Invalid Identity provided: name must be a string or undefined",
-    INVALID_IDENTITY_BOTH = "Invalid Identity provided: uuid and name must be strings",
-    INVALID_IDENTITYRULE_UUID = "Invalid Identity provided: uuid must be a string or RegEx object",
-    INVALID_IDENTITYRULE_NAME = "Invalid Identity provided: name must be a string, RegEx object, or undefined",
-    INVALID_IDENTITYRULE_BOTH = "Invalid Identity provided: uuid and name must be strings or RegEx objects",
+    INVALID_IDENTITY_NAME = 'Invalid Identity provided: name must be a string or undefined',
+    INVALID_IDENTITY_BOTH = 'Invalid Identity provided: uuid and name must be strings',
+    INVALID_IDENTITYRULE_UUID = 'Invalid Identity provided: uuid must be a string or RegEx object',
+    INVALID_IDENTITYRULE_NAME = 'Invalid Identity provided: name must be a string, RegEx object, or undefined',
+    INVALID_IDENTITYRULE_BOTH = 'Invalid Identity provided: uuid and name must be strings or RegEx objects',
     PROPERTIES_REQUIRED = 'Properties are required'
 }

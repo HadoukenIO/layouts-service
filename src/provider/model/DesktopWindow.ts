@@ -173,7 +173,7 @@ export class DesktopWindow implements DesktopEntity {
                 }
 
                 // Special handling for workspace placeholder windows
-                if (window.identity.uuid === 'layouts-service' && window.identity.name && window.identity.name.startsWith('Placeholder-')) {
+                if (window.identity.uuid === SERVICE_IDENTITY.uuid && window.identity.name && window.identity.name.startsWith('Placeholder-')) {
                     windowTitle = 'Loading...';
                 }
 

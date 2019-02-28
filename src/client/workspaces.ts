@@ -307,11 +307,11 @@ export interface WorkspaceGeneratedEvent {
 /**
  * @hidden
  */
-export type Events = WorkspaceRestoredEvent|WorkspaceGeneratedEvent;
+export type WorkspacesEvent = WorkspaceRestoredEvent|WorkspaceGeneratedEvent;
 
 export function addEventListener(eventType: 'workspace-restored', listener: (event: WorkspaceRestoredEvent) => void): void;
 export function addEventListener(eventType: 'workspace-generated', listener: (event: WorkspaceGeneratedEvent) => void): void;
-export function addEventListener<K extends Events>(eventType: K['type'], listener: (event: K) => void): void {
+export function addEventListener<K extends WorkspacesEvent>(eventType: K['type'], listener: (event: K) => void): void {
     if (typeof fin === 'undefined') {
         throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
     }
@@ -321,7 +321,7 @@ export function addEventListener<K extends Events>(eventType: K['type'], listene
 
 export function removeEventListener(eventType: 'workspace-restored', listener: (event: WorkspaceRestoredEvent) => void): void;
 export function removeEventListener(eventType: 'workspace-generated', listener: (event: WorkspaceGeneratedEvent) => void): void;
-export function removeEventListener<K extends Events>(eventType: K['type'], listener: (event: K) => void): void {
+export function removeEventListener<K extends WorkspacesEvent>(eventType: K['type'], listener: (event: K) => void): void {
     if (typeof fin === 'undefined') {
         throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
     }

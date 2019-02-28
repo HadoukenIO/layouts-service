@@ -89,13 +89,13 @@ export interface TabGroupMaximizedEvent {
 /**
  * @hidden
  */
-export type Events = TabGroupRestoredEvent|TabGroupMinimizedEvent|TabGroupMaximizedEvent;
+export type TabstripEvent = TabGroupRestoredEvent|TabGroupMinimizedEvent|TabGroupMaximizedEvent;
 
 
 export function addEventListener(eventType: 'tab-group-restored', listener: (event: TabGroupRestoredEvent) => void): void;
 export function addEventListener(eventType: 'tab-group-minimized', listener: (event: TabGroupMinimizedEvent) => void): void;
 export function addEventListener(eventType: 'tab-group-maximized', listener: (event: TabGroupMaximizedEvent) => void): void;
-export function addEventListener<K extends Events>(eventType: K['type'], listener: (event: K) => void): void {
+export function addEventListener<K extends TabstripEvent>(eventType: K['type'], listener: (event: K) => void): void {
     if (typeof fin === 'undefined') {
         throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
     }
@@ -106,7 +106,7 @@ export function addEventListener<K extends Events>(eventType: K['type'], listene
 export function removeEventListener(eventType: 'tab-group-restored', listener: (event: TabGroupRestoredEvent) => void): void;
 export function removeEventListener(eventType: 'tab-group-minimized', listener: (event: TabGroupMinimizedEvent) => void): void;
 export function removeEventListener(eventType: 'tab-group-maximized', listener: (event: TabGroupMaximizedEvent) => void): void;
-export function removeEventListener<K extends Events>(eventType: K['type'], listener: (event: K) => void): void {
+export function removeEventListener<K extends TabstripEvent>(eventType: K['type'], listener: (event: K) => void): void {
     if (typeof fin === 'undefined') {
         throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
     }

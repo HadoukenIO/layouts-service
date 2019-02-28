@@ -28,6 +28,7 @@ const launchDir = location.href.slice(0, location.href.lastIndexOf('/'));
 // TODO: Create Placeholder and PlaceholderStore classes?
 // This keeps track of how many placeholders we have open, so we know when we can start regrouping a layout.
 let numOfPlaceholders = 0;
+const placeholderMap = new Map<string, _Window>();
 let functionToContinueRestorationWhenPlaceholdersClosed: (() => void)|undefined;
 let rejectTimeout: number|undefined;
 
@@ -282,7 +283,42 @@ export function adjustSizeOfFormerlyTabbedWindows(layoutWindow: WorkspaceWindow,
     }
 }
 
-function placeholderCreated(): void {
+function addPlaceholderToMap(windowIdentity: Identity, placeholderWindow: _Window): void {
+    placeholderMap.set(`${windowIdentity.uuid}-/-${windowIdentity.name}`, placeholderWindow);
+}
+
+function getPlaceholderFromMap(windowIdentity: Identity): _Window|undefined {
+    return placeholderMap.get(`${windowIdentity.uuid}-/-${windowIdentity.name || windowIdentity.uuid}`);
+}
+
+function deletePlaceholderFromMap(windowIdentity: Identity): void {
+    placeholderMap.delete(`${windowIdentity.uuid}-/-${windowIdentity.name || windowIdentity.uuid}`);
+}
+
+export async function closeCorrespondingPlaceholder(windowIdentity: Identity): Promise<void> {
+    const placeholderWindow = getPlaceholderFromMap(windowIdentity);
+    if (placeholderWindow) {
+        try {
+            await tabService.removeTab(placeholderWindow.identity as WindowIdentity);
+            const placeholderWindowModel = await model.expect(placeholderWindow.identity as WindowIdentity);
+            if (placeholderWindowModel) {
+                await placeholderWindowModel.close();
+            } else {
+                await placeholderWindow.close();
+            }
+        } catch (error) {
+            console.log(`Placeholder window ${placeholderWindow.identity.name} for Window ${windowIdentity.uuid} ${windowIdentity.name} has already been closed`);
+        }
+        deletePlaceholderFromMap(windowIdentity);
+    }
+}
+
+export function clearPlaceholderMap(): void {
+    placeholderMap.clear();
+}
+
+function placeholderCreated(windowIdentity: Identity, placeholderWindow: _Window): void {
+    addPlaceholderToMap(windowIdentity, placeholderWindow);
     numOfPlaceholders++;
 }
 
@@ -337,7 +373,7 @@ const createPlaceholderWindow = async (win: WorkspaceWindow) => {
     });
 
     if (placeholderWindow) {
-        placeholderCreated();
+        placeholderCreated(win, placeholderWindow);
     }
 
     return placeholderWindow;

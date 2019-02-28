@@ -167,8 +167,7 @@ export const generateWorkspace = async(payload: null, identity: Identity): Promi
 
     const apps = await promiseMap(preLayout.apps, async (app: WorkspaceApp) => {
         const defaultResponse = {...app};
-        if (!apiHandler.isClientConnection({uuid: app.uuid, name: app.mainWindow.name}))
-        {
+        if (!apiHandler.isClientConnection({uuid: app.uuid, name: app.mainWindow.name})) {
             console.log('Unconnected application', app.uuid);
             return defaultResponse;
         } else if (!appCanRestore(app.uuid)) {

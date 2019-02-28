@@ -136,6 +136,8 @@ module.exports = [
         popup: './src/demo/popup.ts',
         deregisteredApp: './src/demo/deregisteredApp.ts',
         normalApp: './src/demo/normalApp.ts',
+        normalAppHangingRestoreBadChildRestoration: './src/demo/normalAppHangingRestoreBadChildRestoration.ts',
+        normalAppHangingRestoreNoReady: './src/demo/normalAppHangingRestoreNoReady.ts',
         saveRestoreTestingApp: './src/demo/saveRestoreTestingApp.ts',
         tabapp1: './src/demo/tabapp1.ts',
         tabapp2: './src/demo/tabapp2.ts'

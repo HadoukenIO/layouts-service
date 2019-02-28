@@ -77,10 +77,10 @@ The client library is also available as a resource which can be included via `<s
 ```
 This will expose the global variable `OpenFinLayouts` with the API methods documented in the link below.  Example:
 ```
-   OpenFinLayouts.undockWindow();
+   OpenFinLayouts.snapanddock.undockWindow();
 ```
 
-The client module exports a set of functions - [API docs available here](https://urls.openfin.co/layouts/docs).
+The client module exports a set of functions - [API docs available here](https://cdn.openfin.co/docs/services/layouts/stable/api/).
 
 
 ### Usage
@@ -131,7 +131,7 @@ The service provider is a standard OpenFin application, only its lifecycle is co
 - If using Parallels Desktop, you have to be in a mode where Parallels can control the mouse. Set `Settings>Hardware>Mouse&Keyboard>Mouse` to `Optimize for Games`
 
 ## Known Issues
-A list of known issues can be found on our [Versions page.] https://developer.openfin.co/versions/?product=Services
+A list of known issues can be found on our [Versions page.]https://developer.openfin.co/versions/?product=Services
 
 ## License
 This project uses the [Apache2 license.](https://www.apache.org/licenses/LICENSE-2.0)

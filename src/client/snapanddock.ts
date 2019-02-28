@@ -29,8 +29,8 @@ import {getId, SnapAndDockAPI} from './internal';
  *     console.log("Windows in current group: ", await fin.Window.getCurrentSync().getGroup());
  * });
  * ```
- * 
- * This event is fired when the window first becomes docked. The window will not receive an event if an additional 
+ *
+ * This event is fired when the window first becomes docked. The window will not receive an event if an additional
  * window is added to the group later.
  *
  * @event
@@ -61,8 +61,8 @@ export interface WindowDockedEvent {
  *     console.log("Windows in current group: ", await fin.Window.getCurrentSync().getGroup());
  * });
  * ```
- * 
- * This event is fired when the current window becomes undocked from a group. A window will not receive this event if 
+ *
+ * This event is fired when the current window becomes undocked from a group. A window will not receive this event if
  * another window within the same group is undocked.
  *
  * @event
@@ -74,12 +74,12 @@ export interface WindowUndockedEvent {
 /**
  * @hidden
  */
-export type EventMap = WindowDockedEvent|WindowUndockedEvent;
+export type Events = WindowDockedEvent|WindowUndockedEvent;
 
 
 export function addEventListener(eventType: 'window-docked', listener: (event: WindowDockedEvent) => void): void;
 export function addEventListener(eventType: 'window-undocked', listener: (event: WindowUndockedEvent) => void): void;
-export function addEventListener<K extends EventMap>(eventType: K['type'], listener: (event: K) => void): void {
+export function addEventListener<K extends Events>(eventType: K['type'], listener: (event: K) => void): void {
     if (typeof fin === 'undefined') {
         throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
     }
@@ -89,7 +89,7 @@ export function addEventListener<K extends EventMap>(eventType: K['type'], liste
 
 export function removeEventListener(eventType: 'window-docked', listener: (event: WindowDockedEvent) => void): void;
 export function removeEventListener(eventType: 'window-undocked', listener: (event: WindowUndockedEvent) => void): void;
-export function removeEventListener<K extends EventMap>(eventType: K['type'], listener: (event: K) => void): void {
+export function removeEventListener<K extends Events>(eventType: K['type'], listener: (event: K) => void): void {
     if (typeof fin === 'undefined') {
         throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
     }

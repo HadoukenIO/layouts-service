@@ -1,8 +1,9 @@
 import deepEqual from 'fast-deep-equal';
+
 import {Scope, Tabstrip} from '../../../gen/provider/config/layouts-config';
+import {Events} from '../../client/connection';
 import {TabProperties, TabPropertiesUpdatedEvent} from '../../client/tabbing';
 import {TabGroup, TabGroupDimensions} from '../../client/workspaces';
-import {EventMap} from '../APIMessages';
 import {ConfigStore} from '../main';
 import {DesktopEntity} from '../model/DesktopEntity';
 import {DesktopModel} from '../model/DesktopModel';
@@ -364,7 +365,7 @@ export class TabService {
      * @param tab Modified window
      * @param event Event to send
      */
-    private sendTabEvent(tab: DesktopWindow, event: EventMap): void {
+    private sendTabEvent(tab: DesktopWindow, event: Events): void {
         tab.sendEvent(event);
         if (tab.tabGroup) {
             tab.tabGroup.window.sendEvent(event);

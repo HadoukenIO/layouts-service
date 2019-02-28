@@ -155,7 +155,7 @@ export interface TabPropertiesUpdatedEvent {
 /**
  * @hidden
  */
-export type EventMap = TabAddedEvent|TabRemovedEvent|TabActivatedEvent|TabPropertiesUpdatedEvent;
+export type Events = TabAddedEvent|TabRemovedEvent|TabActivatedEvent|TabPropertiesUpdatedEvent;
 
 /**
  * Represents the state of a tab within a tabstrip.
@@ -201,7 +201,7 @@ export function addEventListener(eventType: 'tab-added', listener: (event: TabAd
 export function addEventListener(eventType: 'tab-removed', listener: (event: TabRemovedEvent) => void): void;
 export function addEventListener(eventType: 'tab-activated', listener: (event: TabActivatedEvent) => void): void;
 export function addEventListener(eventType: 'tab-properties-updated', listener: (event: TabPropertiesUpdatedEvent) => void): void;
-export function addEventListener<K extends EventMap>(eventType: K['type'], listener: (event: K) => void): void {
+export function addEventListener<K extends Events>(eventType: K['type'], listener: (event: K) => void): void {
     if (typeof fin === 'undefined') {
         throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
     }
@@ -213,7 +213,7 @@ export function removeEventListener(eventType: 'tab-added', listener: (event: Ta
 export function removeEventListener(eventType: 'tab-removed', listener: (event: TabRemovedEvent) => void): void;
 export function removeEventListener(eventType: 'tab-activated', listener: (event: TabActivatedEvent) => void): void;
 export function removeEventListener(eventType: 'tab-properties-updated', listener: (event: TabPropertiesUpdatedEvent) => void): void;
-export function removeEventListener<K extends EventMap>(eventType: K['type'], listener: (event: K) => void): void {
+export function removeEventListener<K extends Events>(eventType: K['type'], listener: (event: K) => void): void {
     if (typeof fin === 'undefined') {
         throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
     }
@@ -370,7 +370,7 @@ export async function setActiveTab(identity: Identity = getId()): Promise<void> 
  * // Closes another windows context tab.
  * tabbing.closeTab({uuid: 'App1', name: 'App1'});
  * ```
- * 
+ *
  * Note that the `identity` doesn't need to be tabbed for this call to take effect - so long as the window is known with the service.
  *
  * @param identity Identity of the window context to close.  If no `Identity` is provided as an argument the current window context will be used.

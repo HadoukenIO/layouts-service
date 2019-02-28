@@ -82,8 +82,11 @@ export interface WorkspaceApp {
      *
      * This is only present if the application was started programatically. For applications started from a manifest,
      * `manifestUrl` will be present instead.
+     *
+     * The [type](http://cdn.openfin.co/jsdocs/stable/fin.desktop.Application.html#~options) of this matches the
+     * options passed to `fin.Application.create` and those returned by `Applicaiton.getOptions()`.
      */
-    initialOptions?: fin.ApplicationOptions;
+    initialOptions?: object;
 
     /**
      * The UUID of the application that initially launched this app.

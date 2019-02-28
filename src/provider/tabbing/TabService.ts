@@ -263,9 +263,7 @@ export class TabService {
             }, console.warn);
         }
 
-        // Special handling for workspace placeholder windows
-        const modifiedTitle = tab.identity.uuid === fin.Window.me.uuid && title.startsWith('Placeholder-') ? 'Loading...' : title;
-        return {icon, title: modifiedTitle || tab.identity.name};
+        return {icon, title: title || tab.identity.name};
     }
 
     public updateTabProperties(tab: DesktopWindow, properties: Partial<TabProperties>): void {

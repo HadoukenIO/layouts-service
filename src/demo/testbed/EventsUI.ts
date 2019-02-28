@@ -1,4 +1,5 @@
-import {EventMap} from '../../provider/APIMessages';
+
+import {LayoutsEvent} from '../../client/connection';
 
 import {Elements} from './View';
 
@@ -56,7 +57,7 @@ export class EventsUI {
             promise);
     }
 
-    public addEvent(event: EventMap): void {
+    public addEvent(event: LayoutsEvent): void {
         this.addItem(`Recieved Event: ${event.type}`, eLogStatus.INFO, 'bolt');
     }
 

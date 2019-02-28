@@ -7,11 +7,21 @@ import {WorkspaceApp, WorkspaceWindow} from '../../client/workspaces';
 import {model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {WindowIdentity} from '../model/DesktopWindow';
+import {isWin10} from '../snapanddock/utils/platform';
 
 export interface SemVer {
     major: number;
     minor: number;
     patch: number;
+}
+
+/**
+ * Partial re-declaration of 'ApplicationInfo'.
+ *
+ * `manifest` lacks type information, so defining the subset of manifest fields that are used by the service here.
+ */
+interface AppInfo extends ApplicationInfo {
+    manifest: {startup_app: {uuid: string;};};
 }
 
 // TODO: Create Placeholder and PlaceholderStore classes?
@@ -53,7 +63,7 @@ export const positionWindow = async (win: WorkspaceWindow, replacingPlaceholder:
         const {isShowing, isTabbed} = win;
 
         const ofWin = await fin.Window.wrap(win);
-        await ofWin.setBounds(win);
+        await ofWin.setBounds(win.bounds);
 
         if (isTabbed) {
             if (replacingPlaceholder) {
@@ -156,9 +166,9 @@ export const canRestoreProgrammatically = (app: ApplicationInfo|WorkspaceApp) =>
 
 // Type here should be ApplicationInfo from the js-adapter (needs to be updated)
 export const wasCreatedFromManifest = (app: ApplicationInfo, uuid?: string) => {
-    const {manifest} = {...app, uuid} as AppInfo;
+    const {manifest} = app as AppInfo;
     const appUuid = uuid || undefined;
-    return typeof manifest === 'object' && manifest.startup_app && manifest.startup_app.uuid === appUuid;
+    return typeof manifest === 'object' && app.manifestUrl && manifest.startup_app && manifest.startup_app.uuid === appUuid;
 };
 
 export interface WindowObject {
@@ -245,24 +255,27 @@ export function parseVersionString(versionString: string): SemVer {
     return {major: Number.parseInt(match[1], 10), minor: Number.parseInt(match[2], 10), patch: Number.parseInt(match[3], 10)};
 }
 
-export function adjustSizeOfFormerlyTabbedWindows(
-    winIdentity: WindowIdentity, formerlyTabbedWindows: WindowObject, layoutWindow: WorkspaceWindow|WindowDetail) {
-    if (inWindowObject(winIdentity, formerlyTabbedWindows)) {
-        const tabWindow = model.getWindow(winIdentity);
+export function adjustSizeOfFormerlyTabbedWindows(layoutWindow: WorkspaceWindow, formerlyTabbedWindows: WindowObject): void {
+    if (inWindowObject(layoutWindow, formerlyTabbedWindows)) {
+        const tabWindow = model.getWindow(layoutWindow);
         if (tabWindow) {
             const applicationState = tabWindow.applicationState;
             const tabGroup = tabWindow.tabGroup;
             if (tabGroup) {
                 const tabStripHeight = tabGroup.config.height;
+                const bounds = layoutWindow.bounds;
 
-                layoutWindow.top = layoutWindow.top - tabStripHeight;
-                layoutWindow.height = layoutWindow.height + tabStripHeight;
+                bounds.top -= tabStripHeight;
+                bounds.height += tabStripHeight;
 
-                if (applicationState.frame === true) {
-                    layoutWindow.height = layoutWindow.height + 7;
-                    layoutWindow.left = layoutWindow.left - 7;
-                    layoutWindow.width = layoutWindow.width + 14;
+                if (isWin10() && applicationState.frame === true) {
+                    bounds.left -= 7;
+                    bounds.width += 14;
+                    bounds.height += 7;
                 }
+
+                bounds.right = bounds.left + bounds.width;
+                bounds.bottom = bounds.top + bounds.height;
             }
         }
     }
@@ -292,7 +305,7 @@ async function delay(milliseconds: number) {
 
 // TODO: Make placeholder windows close-able
 const createPlaceholderWindow = async (win: WorkspaceWindow) => {
-    const {height, width, left, top} = win;
+    const {height, width, left, top} = win.bounds;
 
     const placeholderName = 'Placeholder-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
@@ -315,9 +328,3 @@ const createPlaceholderWindow = async (win: WorkspaceWindow) => {
 
     return placeholderWindow;
 };
-
-interface AppInfo {
-    manifest: {startup_app: {uuid: string;};};
-    manifestUrl: string;
-    uuid: string;
-}

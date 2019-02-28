@@ -36,7 +36,14 @@ export interface WindowIdentity {
  * If using a regex, it must be specified in JSON-like format, using the {@link RegEx} type - JS regex literals are not supported.
  */
 export interface IdentityRule {
+    /**
+     * Application identifier or pattern
+     */
     uuid: string|RegEx;
+
+    /**
+     * Window identifier or pattern
+     */
     name: string|RegEx;
 }
 
@@ -49,13 +56,13 @@ export interface RegEx {
     /**
      * Defines the regex pattern.
      *
-     * Do not wrap the expression in `/` characters - specify the pattern string as you would when passing to the RegExp constructor.
+     * Do not wrap the expression in `/` characters - specify the pattern string as you would when passing to the `RegExp` constructor.
      */
     expression: string;
 
     /**
-     * Any additional flags that form part of this expression. Supported same [values
-     * ](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp#Parameters)as the native JS `RegExp` class.
+     * Any additional flags that form part of this expression. Supports same
+     * [values](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp#Parameters) as the native JS `RegExp` class.
      */
     flags?: string;
 
@@ -66,18 +73,13 @@ export interface RegEx {
 }
 
 /**
- * Window state, corresponds to `WindowOptions.state`
- */
-export type WindowState = 'normal'|'minimized'|'maximized';
-
-/**
  * Allows a window to opt-out of this service.
  *
  * This will disable *all* layouts-related functionality for the given window.
  *
  * Multiple windows can be deregistered at once by using regex patterns on `identity.uuid`/`identity.name`.
  *
- * This API can be used to selectively programmatically override configuration set at an app-wide level, such as in the application manifest.
+ * This API can be used to programmatically override configuration set at an app-wide level, such as in the application manifest.
  *
  * ```ts
  * import {deregister} from 'openfin-layouts';
@@ -106,7 +108,11 @@ export async function deregister(identity: IdentityRule = getId() as IdentityRul
  *
  * This will enable *all* layouts-related functionality for the given window unless alternative behaviors are set in the layout configuration.
  *
- * This API can be used to selectively programmatically override configuration set at an app-wide level, such as in the application manifest.
+ * This API can be used to programmatically override configuration set at an app-wide level, such as in the application manifest.
+ *
+ * This API is provided to complement {@link deregister}, to allow programmatic override of default service behavior or configuration
+ * specified in an application manifest. This API is not required or intended for initial opt-in of your application to the service,
+ * which is achieved through the `"services"` attribute within an application manifest.
  *
  * ```ts
  * import {register} from 'openfin-layouts';

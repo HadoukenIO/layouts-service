@@ -50,17 +50,17 @@ export function getId(): WindowIdentity {
  * Assumed that the supplied object has uuid & name.
  */
 export function parseIdentity(identity: WindowIdentity|Identity): WindowIdentity {
-    if (!identity || !identity.uuid) {
-        throw new Error('Invalid Identity provided: A valid Identity contains both a uuid and name');
+    if (identity === null || typeof identity !== 'object') {
+        throw new Error(ErrorMsgs.IDENTITY_REQUIRED);
     }
     const uuidCheck = typeof identity.uuid === 'string';
     const nameCheck = !identity.name || typeof identity.name === 'string';
     if (!uuidCheck && !nameCheck) {
-        throw new Error('Invalid Identity provided: uuid and name must be strings');
+        throw new Error(ErrorMsgs.INVALID_IDENTITY_BOTH);
     } else if (!uuidCheck) {
-        throw new Error('Invalid Identity provided: uuid must be a string');
+        throw new Error(ErrorMsgs.INVALID_IDENTITY_UUID);
     } else if (!nameCheck) {
-        throw new Error('Invalid Identity provided: name must be a string');
+        throw new Error(ErrorMsgs.INVALID_IDENTITY_NAME);
     }
 
     return {uuid: identity.uuid, name: identity.name || identity.uuid};
@@ -70,17 +70,17 @@ export function parseIdentity(identity: WindowIdentity|Identity): WindowIdentity
  * Like parseIdentity above, but also allows properties to be regex objects.
  */
 export function parseIdentityRule(identity: IdentityRule): IdentityRule {
-    if (!identity || !identity.uuid) {
-        throw new Error('Invalid Identity provided: A valid Identity contains both a uuid and name');
+    if (identity === null || typeof identity !== 'object') {
+        throw new Error(ErrorMsgs.IDENTITY_REQUIRED);
     }
     const uuidCheck = typeof identity.uuid === 'string' || isRegex(identity.uuid);
     const nameCheck = !identity.name || typeof identity.name === 'string' || isRegex(identity.name);
     if (!uuidCheck && !nameCheck) {
-        throw new Error('Invalid Identity provided: uuid and name must be strings or RegEx objects');
+        throw new Error(ErrorMsgs.INVALID_IDENTITYRULE_BOTH);
     } else if (!uuidCheck) {
-        throw new Error('Invalid Identity provided: uuid must be a string or RegEx object');
+        throw new Error(ErrorMsgs.INVALID_IDENTITYRULE_UUID);
     } else if (!nameCheck) {
-        throw new Error('Invalid Identity provided: name must be a string or RegEx object');
+        throw new Error(ErrorMsgs.INVALID_IDENTITYRULE_NAME);
     }
 
     return {uuid: identity.uuid, name: identity.name || identity.uuid};
@@ -150,4 +150,15 @@ export interface UpdateTabPropertiesPayload {
 export interface CreateTabGroupPayload {
     windows: WindowIdentity[];
     activeTab?: WindowIdentity;
+}
+
+export const enum ErrorMsgs {
+    IDENTITY_REQUIRED = 'Invalid arguments. Must pass an identity object',
+    INVALID_IDENTITY_UUID = 'Invalid Identity provided: uuid must be a string',
+    INVALID_IDENTITY_NAME = "Invalid Identity provided: name must be a string or undefined",
+    INVALID_IDENTITY_BOTH = "Invalid Identity provided: uuid and name must be strings",
+    INVALID_IDENTITYRULE_UUID = "Invalid Identity provided: uuid must be a string or RegEx object",
+    INVALID_IDENTITYRULE_NAME = "Invalid Identity provided: name must be a string, RegEx object, or undefined",
+    INVALID_IDENTITYRULE_BOTH = "Invalid Identity provided: uuid and name must be strings or RegEx objects",
+    PROPERTIES_REQUIRED = 'Properties are required'
 }

@@ -1,7 +1,7 @@
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
 import {stub} from './utils/FinMock';
-import {ErrorMsgs} from './utils/ErrorMsgs';
+import {ErrorMsgs} from '../../src/client/internal';
 
 import {channelPromise} from '../../src/client/connection';
 import {TabAPI, UpdateTabPropertiesPayload} from '../../src/client/internal';
@@ -12,7 +12,7 @@ import {TabProperties} from "../../src/client/tabbing";
 stub();
 
 let channel: ChannelClient;
-let channelDispatch: jest.SpyInstance<typeof channel.dispatch>
+let channelDispatch: jest.SpyInstance<typeof channel.dispatch>;
 
 beforeEach(async () => {
     jest.restoreAllMocks();
@@ -28,7 +28,7 @@ describe('Tabstrip API Actions', () => {
             const tabProperties: TabProperties = {title: 'sometitle', icon: 'someicon'};
 
             const promise = tabbing.updateTabProperties(tabProperties, {uuid, name});
-            await expect(promise).rejects.toThrowError(ErrorMsgs.INVALID_IDENTITY);
+            await expect(promise).rejects.toThrowError(ErrorMsgs.INVALID_IDENTITY_UUID);
         });
 
         it('Calling with invalid name assumes main application window', async () => {

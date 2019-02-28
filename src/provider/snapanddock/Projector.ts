@@ -281,7 +281,7 @@ class BorderProjection implements Range {
             if (other.limit < mid) {
                 this.min = Math.max(this.min, other.limit);
             } else {
-                this.max = Math.min(this.min, other.limit);
+                this.max = Math.min(this.max, other.limit);
             }
         }
     }

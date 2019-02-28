@@ -118,7 +118,6 @@ const schemaTypesPlugin = new SchemaToTypeScriptPlugin({
     outputPath: schemaOutput,
     input: [
         `${schemaRoot}/layouts-config.schema.json`,
-        `${schemaRoot}/scope.schema.json`
     ]
 });
 
@@ -129,8 +128,10 @@ module.exports = [
         main: './src/provider/main.ts',
         tabStrip: './src/provider/tabbing/tabstrip/main.ts'
     }, undefined, manifestPlugin, versionPlugin, schemaDefaultsPlugin, schemaTypesPlugin),
+    createConfig(`${outputDir}/provider`, './src/provider/ServiceWorker.js', {minify: true, outputFilename: "sw"}, versionPlugin),
     createConfig(`${outputDir}/demo`, {
         LayoutsUI: './src/demo/LayoutsUI.ts',
+        testbed: './src/demo/testbed/index.ts',
         popup: './src/demo/popup.ts',
         deregisteredApp: './src/demo/deregisteredApp.ts',
         normalApp: './src/demo/normalApp.ts',

@@ -17,6 +17,8 @@ const path = require('path');
 
 const {launch} = require('hadouken-js-adapter');
 
+const {createCustomManifestMiddleware} = require('../scripts/server/spawn');
+
 let port;
 
 /**
@@ -136,8 +138,9 @@ async function serve() {
         app.use(express.static('res'));
 
         // Add route to dynamically generate app manifests
+        app.use('/manifest', createCustomManifestMiddleware());
         app.use('/create-manifest', (req, res) => {
-            const {uuid, url, defaultTop, config} = req.query;
+            const {uuid, url, defaultTop, config, autoShow} = req.query;
             const additionalServiceProperties = config ? {config: JSON.parse(config)} : {};
 
             // Create manifest (based upon demo app manifest)
@@ -147,7 +150,7 @@ async function serve() {
                 startup_app: {
                     uuid: uuid || 'save-restore-test-app-' + Math.random().toString(36).substring(2),
                     url: url || 'http://localhost:1337/test/saveRestoreTestingApp.html?deregistered=false',
-                    autoShow: true,
+                    autoShow: autoShow || true,
                     saveWindowState: false,
                     defaultTop: defaultTop ? JSON.parse(defaultTop): 100,
                     defaultLeft: 100,

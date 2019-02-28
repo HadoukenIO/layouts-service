@@ -1,6 +1,6 @@
 {
   "name": "openfin-layouts",
-  "version": "0.9.6",
+  "version": "1.0.0",
   "description": "Client library for the OpenFin Layouts service",
   "types": "dist/client/main.d.ts",
   "main": "dist/client/main-bundle.js",
@@ -8,12 +8,14 @@
     "dist/client"
   ],
   "scripts": {
-    "test:unit": "jest --color",
+    "test:unit": "jest --color --no-cache",
     "test:int": "node test/runner.js",
     "test": "npm run test:unit && npm run test:int",
     "check": "gts check && cd test && gts check",
     "clean": "gts clean && rimraf gen",
-    "docs": "typedoc --name \"OpenFin Layouts\" --out ./dist/docs --excludeNotExported --excludePrivate --excludeProtected --hideGenerator --readme DOCS.md --tsconfig src/client/tsconfig.json --readme none",
+    "docs:api": "typedoc --name \"OpenFin Layouts\" --theme ./typedoc-template --out ./dist/docs/api --excludeNotExported --excludePrivate --excludeProtected --hideGenerator --readme DOCS.md --tsconfig src/client/tsconfig.json --readme none",
+    "docs:config": "bootprint json-schema ./res/provider/config/layouts-config.schema.json ./dist/docs/config",
+    "docs": "npm run docs:api && npm run docs:config",
     "fix": "gts fix && cd test && gts fix",
     "prepare": "npm run generate",
     "posttest": "npm run check",

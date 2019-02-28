@@ -1,7 +1,7 @@
 import {test, TestContext} from 'ava';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import {assertAllTabbed, assertNotTabbed} from '../../provider/utils/assertions';
+import {assertCompleteTabGroup, assertNotTabbed, assertPairTabbed} from '../../provider/utils/assertions';
 import {delay} from '../../provider/utils/delay';
 import {Side, sideArray} from '../../provider/utils/SideUtils';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
@@ -10,6 +10,7 @@ import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
 import {refreshWindowState} from '../utils/modelUtils';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {layoutsClientPromise} from '../utils/serviceUtils';
+import {getTabGroupState} from '../utils/tabServiceUtils';
 
 interface TabConstraintsOptions extends CreateWindowData {
     windowConstraints: Constraints[];
@@ -51,7 +52,7 @@ testParameterized(
 
         await delay(1000);
 
-        await assertAllTabbed(t, ...windows);
+        await assertCompleteTabGroup(t, ...windows);
 
         const resultingConstraints = constraintsUnion(...options.windowConstraints);
 
@@ -79,10 +80,13 @@ testParameterized(
 testParameterized(
     'Cannot tab windows with incompatible constraints',
     [
-        {frame: true, windowCount: 2, windowConstraints: [{resizable: false}, {}]},
-        {frame: true, windowCount: 2, windowConstraints: [{maxHeight: 200, minWidth: 250}, {}]},
+        {frame: true, windowCount: 2, windowConstraints: [{resizable: false}, {}], shouldTab: false},
+        {frame: true, windowCount: 2, windowConstraints: [{maxHeight: 300, minWidth: 250}, {}], shouldTab: false},
+        {frame: true, windowCount: 2, windowConstraints: [{maxHeight: 300, minWidth: 200}, {}], shouldTab: true},
+        // Checks edge case where the target is large enough when untabbed but would not be once resized for tabbing
+        {frame: true, windowCount: 2, windowConstraints: [{}, {minHeight: 200}], shouldTab: false},
     ],
-    createWindowTest(async (t, options: TabConstraintsOptions) => {
+    createWindowTest(async (t, options: TabConstraintsOptions&{shouldTab: boolean}) => {
         const windows = t.context.windows;
 
         await Promise.all(windows.map((win, index) => win.updateOptions(options.windowConstraints[index])));
@@ -93,8 +97,12 @@ testParameterized(
         await tabWindowsTogether(windows[1], windows[0]);
         await delay(1000);
 
-        await assertNotTabbed(windows[0], t);
-        await assertNotTabbed(windows[1], t);
+        if (options.shouldTab) {
+            await assertPairTabbed(windows[0], windows[1], t);
+        } else {
+            await assertNotTabbed(windows[0], t);
+            await assertNotTabbed(windows[1], t);
+        }
     }));
 
 const defaultConstraints: Required<Constraints> = {
@@ -112,6 +120,31 @@ const defaultConstraints: Required<Constraints> = {
         }
     }
 };
+
+testParameterized(
+    `Cannot maximize tabset when tab has maxWidth/Height`,
+    [
+        {frame: true, windowCount: 2, windowConstraints: [{}, {}]},
+        {frame: true, windowCount: 2, windowConstraints: [{}, {maxHeight: 500}]},
+        {frame: true, windowCount: 2, windowConstraints: [{}, {maxWidth: 500}]},
+    ],
+    createWindowTest(async (t, options: TabConstraintsOptions) => {
+        const {tabbing} = await layoutsClientPromise;
+        const windows = t.context.windows;
+
+        await Promise.all(windows.map((win, index) => win.updateOptions(options.windowConstraints[index])));
+        await Promise.all(windows.map((win) => refreshWindowState(win.identity)));
+
+        await tabWindowsTogether(windows[0], windows[1]);
+        await assertPairTabbed(windows[0], windows[1], t);
+
+        if (options.windowConstraints[1].maxHeight || options.windowConstraints[1].maxWidth) {
+            await t.throws(tabbing.maximizeTabGroup(windows[0].identity));
+        } else {
+            await t.notThrows(tabbing.maximizeTabGroup(windows[0].identity));
+            t.is(await getTabGroupState(windows[0].identity), 'maximized');
+        }
+    }));
 
 function assertConstraintsMatch(expected: Constraints, actual: Constraints, t: TestContext): void {
     for (const key of Object.keys(defaultConstraints) as (keyof Constraints)[]) {
@@ -154,7 +187,7 @@ function constraintsUnion(...windowConstraints: Constraints[]): Required<Constra
 
     // Check if the union of side constraints made the window non-resizable
     if (result.resizable) {
-        result.resizable = (Object.keys(result.resizeRegion.sides) as Side[]).every(key => result.resizeRegion.sides[key] !== false);
+        result.resizable = (Object.keys(result.resizeRegion.sides) as Side[]).some(key => result.resizeRegion.sides[key] !== false);
     }
 
     return result;

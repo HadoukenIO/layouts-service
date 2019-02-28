@@ -1,18 +1,20 @@
 import {Window} from 'hadouken-js-adapter';
 import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/application/application';
 import {WindowDetail, WindowInfo as WindowInfo_System} from 'hadouken-js-adapter/out/types/src/api/system/window';
+import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
 import {WindowInfo as WindowInfo_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {WorkspaceAPI} from '../../client/internal';
-import {CustomData, TabGroup, WindowState, Workspace, WorkspaceApp, WorkspaceWindow} from '../../client/types';
-import {LegacyAPI} from '../APIMessages';
-import {apiHandler, model, tabService} from '../main';
+import {CustomData, TabGroup, WindowState, Workspace, WorkspaceApp, WorkspaceGeneratedEvent, WorkspaceWindow} from '../../client/workspaces';
+import {EVENT_CHANNEL_TOPIC} from '../APIMessages';
+import {apiHandler, loader, model, tabService} from '../main';
 import {WindowIdentity} from '../model/DesktopWindow';
 import {promiseMap} from '../snapanddock/utils/async';
 
 import {getGroup} from './group';
-import {addToWindowObject, adjustSizeOfFormerlyTabbedWindows, inWindowObject, parseVersionString, wasCreatedFromManifest, wasCreatedProgrammatically, WindowObject} from './utils';
+import {appCanRestore} from './restore';
+import {addToWindowObject, adjustSizeOfFormerlyTabbedWindows, canRestoreProgrammatically, inWindowObject, parseVersionString, wasCreatedFromManifest, WindowObject} from './utils';
 
 // This value should be updated any time changes are made to the Workspace schema.
 // Major version indicates breaking changes.
@@ -32,7 +34,7 @@ interface WorkspaceWindowData {
     isTabbed: boolean;
 }
 
-export const getCurrentWorkspace = async(): Promise<Workspace> => {
+export async function getCurrentWorkspace(): Promise<Workspace> {
     // Not yet using monitor info
     const monitorInfo = await fin.System.getMonitorInfo() || {};
     let tabGroups = await tabService.getTabSaveInfo();
@@ -105,12 +107,15 @@ export const getCurrentWorkspace = async(): Promise<Workspace> => {
                 return {} as ApplicationInfo;
             });
 
+            // Override parentUuid with any data in config loader, in case this is a programmatic app created from a previous restore
+            if (appInfo.hasOwnProperty('parentUuid')) {
+                appInfo.parentUuid = loader.getAppParent(uuid) || appInfo.parentUuid;
+            }
+
             // Grab the layout information for the main app window
             const mainOfWin: Window = await ofApp.getWindow();
-            const mainWindowLayoutData = await getWorkspaceWindowData(mainOfWin, tabbedWindows);
-            const mainWindow: WorkspaceWindow = {...windowInfo.mainWindow, ...mainWindowLayoutData};
-            const mainWinIdentity = {uuid, name: mainWindow.name};
-            adjustSizeOfFormerlyTabbedWindows(mainWinIdentity, formerlyTabbedWindows, mainWindow);
+            const mainWindow: WorkspaceWindow = await getWorkspaceWindow(mainOfWin, windowInfo.mainWindow, tabbedWindows);
+            adjustSizeOfFormerlyTabbedWindows(mainWindow, formerlyTabbedWindows);
 
             // Filter for deregistered child windows
             windowInfo.childWindows = windowInfo.childWindows.filter((win: WindowDetail) => {
@@ -118,22 +123,18 @@ export const getCurrentWorkspace = async(): Promise<Workspace> => {
             });
 
             // Grab the layout information for the child windows
-            const childWindows: WorkspaceWindow[] = await promiseMap(windowInfo.childWindows, async (childWin: WindowDetail) => {
-                const {name} = childWin;
-                const childWinIdentity = {uuid, name};
+            const childWindows: WorkspaceWindow[] = await promiseMap(windowInfo.childWindows, async (childWinDetail: WindowDetail) => {
+                const childWinIdentity = {uuid, name: childWinDetail.name || uuid};
                 const ofWin = fin.Window.wrapSync(childWinIdentity);
-                const windowLayoutData = await getWorkspaceWindowData(ofWin, tabbedWindows);
-                adjustSizeOfFormerlyTabbedWindows(childWinIdentity, formerlyTabbedWindows, childWin);
+                const childWindow = await getWorkspaceWindow(ofWin, childWinDetail, tabbedWindows);
+                adjustSizeOfFormerlyTabbedWindows(childWindow, formerlyTabbedWindows);
 
-                return {...childWin, ...windowLayoutData};
+                return childWindow;
             });
             if (wasCreatedFromManifest(appInfo, uuid)) {
-                delete appInfo.manifest;
-                return {mainWindow, childWindows, ...appInfo, uuid, confirmed: false} as WorkspaceApp;
-            } else if (wasCreatedProgrammatically(appInfo)) {
-                delete appInfo.manifest;
-                delete appInfo.manifestUrl;
-                return {mainWindow, childWindows, ...appInfo, uuid, confirmed: false} as WorkspaceApp;
+                return {uuid, mainWindow, childWindows, confirmed: false, manifestUrl: appInfo.manifestUrl};
+            } else if (canRestoreProgrammatically(appInfo)) {
+                return {uuid, mainWindow, childWindows, confirmed: false, initialOptions: appInfo.initialOptions, parentUuid: appInfo.parentUuid || undefined};
             } else {
                 console.error('Not saving app, cannot restore:', windowInfo);
                 return null;
@@ -147,30 +148,34 @@ export const getCurrentWorkspace = async(): Promise<Workspace> => {
     console.log('Pre-Layout Save Apps:', apps);
     console.log('Post-Layout Valid Apps:', validApps);
 
-    const layoutObject: Workspace = {type: 'layout', schemaVersion: LAYOUTS_SCHEMA_VERSION, apps: validApps, monitorInfo, tabGroups: filteredTabGroups};
+    const layoutObject: Workspace = {type: 'workspace', schemaVersion: LAYOUTS_SCHEMA_VERSION, apps: validApps, monitorInfo, tabGroups: filteredTabGroups};
 
-    apiHandler.sendToAll('workspace-generated', layoutObject);
+    const event: WorkspaceGeneratedEvent = {type: 'workspace-generated', workspace: layoutObject};
+    apiHandler.sendToAll(EVENT_CHANNEL_TOPIC, event);
 
     return layoutObject;
-};
+}
 
 // No payload. Just returns the current layout with child windows.
-export const generateWorkspace = async(payload: null, identity: Identity): Promise<Workspace> => {
+export async function generateWorkspace(payload: null, identity: Identity): Promise<Workspace> {
     const preLayout = await getCurrentWorkspace();
 
     const apps = await promiseMap(preLayout.apps, async (app: WorkspaceApp) => {
         const defaultResponse = {...app};
-        if (apiHandler.isClientConnection({uuid: app.uuid, name: app.mainWindow.name})) {
+        if (!apiHandler.isClientConnection({uuid: app.uuid, name: app.mainWindow.name})) {
+            console.log('Unconnected application', app.uuid);
+            return defaultResponse;
+        } else if (!appCanRestore(app.uuid)) {
+            console.log('Connected application, but did not signal ability to restore', app.uuid);
+            return defaultResponse;
+        } else {
             console.log('Connected application', app.uuid);
 
             // HOW TO DEAL WITH HUNG REQUEST HERE? RESHAPE IF GET NOTHING BACK?
             let customData: CustomData = undefined;
 
-            // Race between legacyAPI and current API as we don't know which verion the client is running.
-            customData = await Promise.race([
-                apiHandler.sendToClient<WorkspaceApp, CustomData>({uuid: app.uuid, name: app.uuid}, WorkspaceAPI.GENERATE_HANDLER, app),
-                apiHandler.sendToClient<WorkspaceApp, CustomData>({uuid: app.uuid, name: app.uuid}, LegacyAPI.GENERATE_HANDLER, app)
-            ]);
+            customData =
+                await apiHandler.sendToClient<WorkspaceAPI.GENERATE_HANDLER, CustomData>({uuid: app.uuid, name: app.uuid}, WorkspaceAPI.GENERATE_HANDLER, app);
 
             if (!customData) {
                 customData = null;
@@ -178,19 +183,17 @@ export const generateWorkspace = async(payload: null, identity: Identity): Promi
             defaultResponse.customData = customData;
             defaultResponse.confirmed = true;
             return defaultResponse;
-        } else {
-            return defaultResponse;
         }
     });
 
     const confirmedLayout = {...preLayout, apps};
     return confirmedLayout;
-};
+}
 
 // Grabs all of the necessary layout information for a window. Filters by multiple criteria.
-const getWorkspaceWindowData = async(ofWin: Window, tabbedWindows: WindowObject): Promise<WorkspaceWindowData> => {
-    const {uuid} = ofWin.identity;
-    const identity: WindowIdentity = ofWin.identity as WindowIdentity;
+async function getWorkspaceWindow(ofWin: Window, windowDetail: WindowDetail, tabbedWindows: WindowObject): Promise<WorkspaceWindow> {
+    const {uuid, name} = ofWin.identity;
+    const identity: WindowIdentity = {uuid, name: name || uuid};
     const info = await ofWin.getInfo();
 
     const windowGroup = await getGroup(ofWin.identity);
@@ -214,6 +217,25 @@ const getWorkspaceWindowData = async(ofWin: Window, tabbedWindows: WindowObject)
     const isTabbed = inWindowObject(ofWin.identity, tabbedWindows) ? true : false;
 
     const state = desktopWindow.currentState.state;
+    const partialBounds: Bounds = pick(windowDetail, 'left', 'top', 'width', 'height');
+    const bounds: Required<Bounds> = {...partialBounds, right: partialBounds.left + partialBounds.width, bottom: partialBounds.top + partialBounds.height};
 
-    return {info, uuid, windowGroup: filteredWindowGroup, frame: applicationState.frame, state, isTabbed, isShowing: !applicationState.hidden};
-};
+    return {
+        ...identity,
+        url: info.url,
+        bounds,
+        windowGroup: filteredWindowGroup,
+        frame: applicationState.frame,
+        state,
+        isTabbed,
+        isShowing: !applicationState.hidden
+    };
+}
+
+function pick<T, K extends keyof T>(obj: T, ...keys: K[]): Pick<T, K> {
+    const ret = {} as Pick<T, K>;
+    keys.forEach(key => {
+        ret[key] = obj[key];
+    });
+    return ret;
+}

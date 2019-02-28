@@ -1,10 +1,10 @@
 import {Window} from 'hadouken-js-adapter';
 import {WindowEvent} from 'hadouken-js-adapter/out/types/src/api/events/base';
+import {MonitorEvent} from 'hadouken-js-adapter/out/types/src/api/events/system';
+import {MonitorInfo} from 'hadouken-js-adapter/out/types/src/api/system/monitor';
 import {WindowDetail, WindowInfo} from 'hadouken-js-adapter/out/types/src/api/system/window';
 
-import {ConfigurationObject, RegEx, Rule} from '../../../gen/provider/config/layouts-config';
-import {Scope, WindowScope} from '../../../gen/provider/config/scope';
-
+import {ConfigurationObject, RegEx, Rule, Scope, WindowScope} from '../../../gen/provider/config/layouts-config';
 import {ConfigUtil, Masked} from '../config/ConfigUtil';
 import {ScopedConfig} from '../config/Store';
 import {MaskWatch} from '../config/Watch';
@@ -12,7 +12,7 @@ import {ConfigStore} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {SignalSlot} from '../Signal';
 import {Point} from '../snapanddock/utils/PointUtils';
-import {RectUtils} from '../snapanddock/utils/RectUtils';
+import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 
 import {DesktopTabGroup} from './DesktopTabGroup';
 import {DesktopWindow, EntityState, WindowIdentity} from './DesktopWindow';
@@ -36,6 +36,7 @@ export class DesktopModel {
     private _windowLookup: {[key: string]: DesktopWindow};
     private _zIndexer: ZIndexer;
     private _mouseTracker: MouseTracker;
+    private _monitors: Rectangle[];
 
     constructor(config: ConfigStore) {
         this._windows = [];
@@ -44,6 +45,7 @@ export class DesktopModel {
         this._windowLookup = {};
         this._zIndexer = new ZIndexer(this);
         this._mouseTracker = new MouseTracker();
+        this._monitors = [];
 
         DesktopWindow.onCreated.add(this.onWindowCreated, this);
         DesktopWindow.onDestroyed.add(this.onWindowDestroyed, this);
@@ -85,12 +87,19 @@ export class DesktopModel {
         });
 
         // Validate everything on monitor change, as groups may become disjointed
-        fin.System.addListener('monitor-info-changed', async () => {
+        fin.System.addListener('monitor-info-changed', async (evt: MonitorEvent<'system', 'monitor-info-changed'>) => {
+            this._monitors = [evt.primaryMonitor, ...evt.nonPrimaryMonitors].map(mon => RectUtils.convertToCenterHalfSize(mon.monitorRect));
+
             // Validate all tabgroups
             this.tabGroups.map(g => g.validate());
 
             // Validate all snap groups
             this.snapGroups.map(g => g.validate());
+        });
+
+        // Get and store the current monitors
+        fin.System.getMonitorInfo().then((monitorInfo: MonitorInfo) => {
+            this._monitors = [monitorInfo.primaryMonitor, ...monitorInfo.nonPrimaryMonitors].map(mon => RectUtils.convertToCenterHalfSize(mon.availableRect));
         });
     }
 
@@ -114,6 +123,10 @@ export class DesktopModel {
         return `${identity.uuid}/${identity.name}`;
     }
 
+    public get monitors(): ReadonlyArray<Rectangle> {
+        return this._monitors;
+    }
+
     /**
      * Fetches the model object for the given window, or null if no window currently exists within the service.
      *
@@ -129,16 +142,52 @@ export class DesktopModel {
     public getWindowAt(x: number, y: number, exclude?: WindowIdentity): DesktopWindow|null {
         const point: Point = {x, y};
         const excludeId: string|undefined = exclude && this.getId(exclude);
-        const windowsAtPoint: DesktopWindow[] = this._windows.filter((window: DesktopWindow) => {
+
+        const modelWindowsAtPoint: DesktopWindow[] = this._windows.filter((window: DesktopWindow) => {
             const state: EntityState = window.currentState;
-            return window.isActive && RectUtils.isPointInRect(state.center, state.halfSize, point) && window.id !== excludeId;
+            return RectUtils.isPointInRect(state.center, state.halfSize, point);
         });
 
-        return this._zIndexer.getTopMost(windowsAtPoint);
+        const modelWindowsAtPointToInclude: DesktopWindow[] = [];
+        const modelWindowsAtPointToExclude: WindowIdentity[] = [];
+
+        for (const modelWindow of modelWindowsAtPoint) {
+            if (modelWindow.isActive && modelWindow.id !== excludeId) {
+                modelWindowsAtPointToInclude.push(modelWindow);
+            } else {
+                modelWindowsAtPointToExclude.push(modelWindow.identity);
+            }
+        }
+
+        const topMostModelWindow: DesktopWindow|null = this._zIndexer.getTopMost(modelWindowsAtPointToInclude);
+        const topMostWindow: WindowIdentity|null = this._zIndexer.getWindowAt(x, y, modelWindowsAtPointToExclude);
+
+        if (!topMostModelWindow || !topMostWindow || topMostModelWindow.id === this.getId(topMostWindow!)) {
+            // There is no deregistered window over the top-most model window, safe to return
+            return topMostModelWindow;
+        } else {
+            // Model found a window at this point, but it is obscured by a deregistered window
+            return null;
+        }
     }
 
     public getTabGroup(id: string): DesktopTabGroup|null {
         return this._tabGroups.find(group => group.id === id) || null;
+    }
+
+    /**
+     * Returns the monitor rectangle which overlaps the most with the given rectangle
+     */
+    public getMonitorByRect(rect: Rectangle): Rectangle {
+        // As a useful heuristic, if the center of the given rect is inside a monitor rect, that monitor will be the most overlapped.
+        const monitorWithCenter = this._monitors.find(mon => RectUtils.isPointInRect(mon.center, mon.halfSize, rect.center));
+        if (monitorWithCenter) {
+            return RectUtils.clone(monitorWithCenter);
+        }
+        // Finds the monitor which has the largest overlapping area with the given rect
+        const mostOverlappedMonitor =
+            this._monitors.reduce((prev, current) => RectUtils.overlappingArea(prev, rect) > RectUtils.overlappingArea(current, rect) ? prev : current);
+        return RectUtils.clone(mostOverlappedMonitor);
     }
 
     /**
@@ -253,7 +302,7 @@ export class DesktopModel {
             } else {
                 // Create new window object. Will get registered implicitly, due to signal within DesktopWindow constructor.
                 console.log('Registered window: ' + this.getId(identity));
-                return new DesktopWindow(this, new DesktopSnapGroup(), window, state);
+                return new DesktopWindow(this, window, state);
             }
         });
     }

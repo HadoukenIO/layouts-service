@@ -1,14 +1,17 @@
-import {Tabstrip} from '../../../gen/provider/config/layouts-config';
-import {Scope} from '../../../gen/provider/config/scope';
-import {TabPropertiesUpdatedPayload, WindowState} from '../../client/types';
-import {TabGroup, TabGroupDimensions, TabProperties, WindowIdentity} from '../../client/types';
+import deepEqual from 'fast-deep-equal';
+
+import {Scope, Tabstrip} from '../../../gen/provider/config/layouts-config';
+import {LayoutsEvent} from '../../client/connection';
+import {TabProperties, TabPropertiesUpdatedEvent} from '../../client/tabbing';
+import {TabGroup, TabGroupDimensions} from '../../client/workspaces';
 import {ConfigStore} from '../main';
 import {DesktopEntity} from '../model/DesktopEntity';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {DesktopTabstripFactory} from '../model/DesktopTabstripFactory';
-import {DesktopWindow, EntityState} from '../model/DesktopWindow';
+import {DesktopWindow, EntityState, WindowIdentity} from '../model/DesktopWindow';
+import {promiseForEach} from '../snapanddock/utils/async';
 import {Point, PointUtils} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 import {eTargetType, TargetBase} from '../WindowHandler';
@@ -82,6 +85,13 @@ export class TabService {
             throw new Error('Must provide at least 2 Tab Identifiers');
         }
 
+        // Checks duplicate entries in the provided array.
+        tabIdentities.forEach(id => {
+            if (tabIdentities.filter(filterId => filterId.name === id.name && filterId.uuid === filterId.uuid).length > 1) {
+                throw new Error(`Duplicate identity found: ${id.uuid}/${id.name} - Provided identites must be unique.`);
+            }
+        });
+
         const tabs: DesktopWindow[] = tabIdentities
                                           .map((identity: WindowIdentity) => {
                                               return this._model.getWindow(identity);
@@ -102,13 +112,33 @@ export class TabService {
             }
         }
 
+        // Compute the tabs to be ejected and manually create a new TabGroup for them
+        const previousTabGroup = tabs[0].tabGroup;
+        if (previousTabGroup) {
+            const ejectedTabs = previousTabGroup.tabs.filter(candidateEjectedTab => !tabs.includes(candidateEjectedTab));
+            await promiseForEach(ejectedTabs, async (ejectedTab) => {
+                await previousTabGroup.removeTab(ejectedTab);
+            });
+
+            if (ejectedTabs.length > 1) {
+                const ejectedTabstripConfig: Tabstrip = this.getTabstripConfig(ejectedTabs[0].identity);
+                const ejectedTabGroup: DesktopTabGroup = new DesktopTabGroup(this._model, new DesktopSnapGroup(), ejectedTabstripConfig);
+                await ejectedTabGroup.addTabs(ejectedTabs);
+            } else if (ejectedTabs.length === 1) {
+                ejectedTabs[0].setSnapGroup(new DesktopSnapGroup());
+            }
+        }
+
+        // Used after formation to determine if group should be maximized
+        const previousState = tabs[0].currentState.state;
+
         const config: Tabstrip = this.getTabstripConfig(tabIdentities[0]);
-        const snapGroup: DesktopSnapGroup = tabs[0].snapGroup;
+        const snapGroup: DesktopSnapGroup = tabs[0].snapGroup.isNonTrivial() ? tabs[0].snapGroup : new DesktopSnapGroup();
         const tabGroup: DesktopTabGroup = new DesktopTabGroup(this._model, snapGroup, config);
         await tabGroup.addTabs(tabs, activeTab);
 
-        if (tabs[0].currentState.state === 'maximized') {
-            tabGroup.maximize();
+        if (previousState === 'maximized') {
+            tabGroup.maximize().catch(console.warn);
         }
     }
 
@@ -153,21 +183,9 @@ export class TabService {
                 return tab.identity;
             });
 
-            const appRect: Rectangle = group.activeTab.currentState;
-            const groupRect: Rectangle = group.window.currentState;
             const config: Tabstrip|'default' = (group.config === DesktopTabstripFactory.DEFAULT_CONFIG) ? 'default' : group.config;
 
-            const groupInfo = {
-                active: group.activeTab.identity,
-                dimensions: {
-                    x: groupRect.center.x - groupRect.halfSize.x,
-                    y: groupRect.center.y - groupRect.halfSize.y,
-                    width: groupRect.halfSize.x * 2,
-                    appHeight: appRect.halfSize.y * 2
-                },
-                config,
-                state: group.state
-            };
+            const groupInfo = {active: group.activeTab.identity, dimensions: group.getSaveDimensions(), config, state: group.state};
 
             return {tabs, groupInfo};
         }));
@@ -208,9 +226,9 @@ export class TabService {
                 await tabGroup.addTabs(tabs, groupDef.groupInfo.active);
                 await tabGroup.window.sync();
 
-                if (tabGroup.state === 'maximized') {
-                    await tabGroup.maximize();
-                } else if (tabGroup.state === 'minimized') {
+                if (groupDef.groupInfo.state === 'maximized') {
+                    await tabGroup.maximize().catch(console.warn);
+                } else if (groupDef.groupInfo.state === 'minimized') {
                     await tabGroup.minimize();
                 }
 
@@ -230,21 +248,36 @@ export class TabService {
         }
 
         const {icon, title} = tab.currentState;
-        // Special handling for workspace placeholder windows
-        const modifiedTitle = tab.identity.uuid === fin.Window.me.uuid && title.startsWith('Placeholder-') ? 'Loading...' : title;
-        return {icon, title: modifiedTitle};
+
+        // Title isn't always available when window is created
+        // If title is empty, re-request from window then send update to tabstrip
+        if (title === '') {
+            tab.refresh().then(() => {
+                const {icon: newIcon, title: newTitle} = tab.currentState;
+
+                if (newTitle !== '') {
+                    const properties: TabProperties = {icon: newIcon, title: newTitle};
+                    const event: TabPropertiesUpdatedEvent = {identity: tab.identity, properties, type: 'tab-properties-updated'};
+                    this.sendTabEvent(tab, event);
+                }
+            }, console.warn);
+        }
+
+        return {icon, title: title || tab.identity.name};
     }
 
     public updateTabProperties(tab: DesktopWindow, properties: Partial<TabProperties>): void {
         const tabProps: TabProperties = this.getTabProperties(tab);
-        Object.assign(tabProps, properties);
-        localStorage.setItem(tab.id, JSON.stringify(tabProps));
+        const newProps: TabProperties = {...tabProps, ...properties};
 
-        const payload: TabPropertiesUpdatedPayload = {identity: tab.identity, properties: tabProps};
-        tab.sendMessage('tab-properties-updated', payload);
+        if (!deepEqual(newProps, tabProps)) {
+            // Save properties
+            Object.assign(tabProps, properties);
+            localStorage.setItem(tab.id, JSON.stringify(tabProps));
 
-        if (tab.tabGroup) {
-            tab.tabGroup.window.sendMessage('tab-properties-updated', payload);
+            // Send events
+            const event: TabPropertiesUpdatedEvent = {identity: tab.identity, properties: tabProps, type: 'tab-properties-updated'};
+            this.sendTabEvent(tab, event);
         }
     }
 
@@ -282,6 +315,7 @@ export class TabService {
             // If there is a window under our Point, and its not part of a tab group, and we are over a valid drop area
             if (existingTabGroup) {
                 await existingTabGroup.removeTab(activeDesktopWindow);
+                await activeDesktopWindow.setAsForeground();
             }
 
             // Create new tab group
@@ -294,9 +328,8 @@ export class TabService {
             const halfSize = {x: prevHalfSize.x, y: prevHalfSize.y + existingTabGroup.config.height / 2};
             const center = {x: target.position.x + halfSize.x, y: target.position.y + halfSize.y};
             await existingTabGroup.removeTab(activeDesktopWindow, {center, halfSize});
+            await activeDesktopWindow.setAsForeground();
         }
-
-        await activeDesktopWindow.bringToFront();
     }
 
     /**
@@ -322,6 +355,19 @@ export class TabService {
 
     private getScope(x: WindowIdentity|DesktopEntity): Scope {
         return (x as DesktopEntity).scope || {level: 'window', ...x as WindowIdentity};
+    }
+
+    /**
+     * Sends an event to both a tab window, and the tabstrip of the tab's tabgroup - if the window is tabbed.
+     *
+     * @param tab Modified window
+     * @param event Event to send
+     */
+    private sendTabEvent(tab: DesktopWindow, event: LayoutsEvent): void {
+        tab.sendEvent(event);
+        if (tab.tabGroup) {
+            tab.tabGroup.window.sendEvent(event);
+        }
     }
 
 
@@ -402,7 +448,7 @@ export class TabService {
         /**
          * Prevent snapped windows from tabbing to other windows/groups
          */
-        const targetAlreadySnapped: boolean = activeGroup.entities.length > 1;
+        const targetAlreadySnapped: boolean = activeGroup.isNonTrivial();
 
         /**
          * Prevent windows that are snapped together from tabbing - only tab windows that are in different snap groups
@@ -447,19 +493,31 @@ export class TabService {
         const targetConstraints = target.currentState.resizeConstraints;
         const activeConstraints = active.currentState.resizeConstraints;
 
+        // Adjust heights for windows not currently in a tabGroup
+        if (!target.tabGroup) {
+            targetSize.y -= this._config.query(target.scope).tabstrip.height;
+        }
+        if (!active.tabGroup) {
+            activeSize.y -= this._config.query(active.scope).tabstrip.height;
+        }
+
         let result = true;
         // Active is able to be resized in direction where resize would be needed.
         result = result &&
             ((targetSize.x === activeSize.x || activeConstraints.x.resizableMin || activeConstraints.x.resizableMax) &&
              (targetSize.y === activeSize.y || activeConstraints.y.resizableMin || activeConstraints.y.resizableMax));
+        // Target is able to be resized in direction where resize would be needed.
+        result = result && (targetConstraints.y.resizableMin || targetConstraints.y.resizableMax);
         // Projected size after tabbing is within active's size constraints
         result = result &&
-            (targetSize.x > activeConstraints.x.minSize && targetSize.x < activeConstraints.x.maxSize && targetSize.y > activeConstraints.y.minSize &&
-             targetSize.y < activeConstraints.y.maxSize);
+            (targetSize.x >= activeConstraints.x.minSize && targetSize.x <= activeConstraints.x.maxSize && targetSize.y >= activeConstraints.y.minSize &&
+             targetSize.y <= activeConstraints.y.maxSize);
+        // Projected size after tabbing is within targets's size constraints
+        result = result && targetSize.y >= targetConstraints.y.minSize;
         // Union of both constraints would form a valid constraint
         result = result &&
-            (targetConstraints.x.maxSize > activeConstraints.x.minSize && targetConstraints.x.minSize < activeConstraints.x.maxSize &&
-             targetConstraints.y.maxSize > activeConstraints.y.minSize && targetConstraints.y.minSize < activeConstraints.y.maxSize);
+            (targetConstraints.x.maxSize >= activeConstraints.x.minSize && targetConstraints.x.minSize <= activeConstraints.x.maxSize &&
+             targetConstraints.y.maxSize >= activeConstraints.y.minSize && targetConstraints.y.minSize <= activeConstraints.y.maxSize);
 
         return result;
     }

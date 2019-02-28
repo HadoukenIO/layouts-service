@@ -2,13 +2,12 @@ const {launch, connect} = require('hadouken-js-adapter');
 const express = require('express');
 const webpack = require('webpack');
 const webpackDevMiddleware = require('webpack-dev-middleware');
-const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const PORT = process.env.PORT || 1337;
-const SERVICE_NAME = 'layouts';
-const CDN_LOCATION = `https://cdn.openfin.co/services/openfin/${SERVICE_NAME}`;
+const {PORT, SERVICE_NAME, CDN_LOCATION} = require('./scripts/server/config');
+const {createCustomManifestMiddleware, getProviderUrl, readJsonFile} = require('./scripts/server/spawn');
+
 
 /**
  * Chooses which version of the provider to run against. Will default to building and running a local version of the provider.
@@ -71,7 +70,6 @@ const writeToDisk = getArg('--write', false);
 
             console.log('Launching application');
             connect({uuid: 'wrapper', manifestUrl: `http://localhost:${PORT}/${manifestPath}`}).then(async fin => {
-                const config = await readJsonFile(manifestPath);
                 const service = fin.Application.wrapSync({uuid: 'layouts-service', name: 'layouts-service'});
 
                 // Terminate local server when the demo app closes
@@ -101,6 +99,9 @@ async function createServer() {
     // Add special route for any 'app.json' files - will re-write the contents according to the command-line arguments of this server
     app.use(/\/?(.*app\.json)/, createAppJsonMiddleware());
 
+    // Add endpoint for creating new application manifests from scratch - used within demo app for lauching 'custom' applications
+    app.use('/manifest', createCustomManifestMiddleware());
+
     // Add route for serving static resources
     app.use(express.static('res'));
 
@@ -114,33 +115,6 @@ async function createServer() {
     }
 
     return app;
-}
-
-/**
- * Returns the URL of the manifest file for the requested version of the service.
- * 
- * @param {string} version Version number of the service, or a channel
- * @param {string} manifestUrl The URL that was set in the application manifest (if any). Any querystring arguments will be persisted, but the rest of the URL will be ignored.
- */
-function getProviderUrl(version, manifestUrl) {
-    const index = manifestUrl && manifestUrl.indexOf("?");
-    const query = index >= 0 ? manifestUrl.substr(index) : "";
-
-    if (version === 'local') {
-        // Provider is running locally
-        return `http://localhost:${PORT}/provider/app.json${query}`;
-    } else if (version === 'stable') {
-        // Use the latest stable version
-        return `${CDN_LOCATION}/app.json${query}`;
-    } else if (version === 'staging') {
-        // Use the latest staging build
-        return `${CDN_LOCATION}/app.staging.json${query}`;
-    } else if (/\d+\.\d+\.\d+/.test(version)) {
-        // Use a specific public release of the service
-        return `${CDN_LOCATION}/${version}/app.json${query}`;
-    } else {
-        throw new Error(`Not a valid version number or channel: ${version}`);
-    }
 }
 
 
@@ -175,28 +149,6 @@ function getArg(name, hasValue, defaultValue = hasValue ? null : false) {
     }
 
     return value;
-}
-
-function readJsonFile(filePath) {
-    return new Promise((resolve, reject) => {
-        fs.readFile(path.resolve('res', filePath), 'utf8', (error, data) => {
-            if (error) {
-                reject(error);
-            } else {
-                try {
-                    const config = JSON.parse(data);
-
-                    if (config) {
-                        resolve(config);
-                    } else {
-                        throw new Error(`No data found in ${filePath}`);
-                    }
-                } catch(e) {
-                    reject(e);
-                }
-            }
-        });
-    });
 }
 
 /**

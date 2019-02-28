@@ -7,12 +7,12 @@ import {stub} from './utils/FinMock';
 import {channelPromise} from '../../src/client/connection';
 import {TabAPI} from '../../src/client/internal';
 import {tabbing} from '../../src/client/main';
-import {WindowIdentity} from '../../src/client/types';
+import {WindowIdentity} from '../../src/client/main';
 
 stub();
 
 let channel: ChannelClient;
-let channelDispatch: jest.SpyInstance<typeof channel.dispatch>
+let channelDispatch: jest.SpyInstance<typeof channel.dispatch>;
 
 beforeEach(async () => {
     jest.restoreAllMocks();

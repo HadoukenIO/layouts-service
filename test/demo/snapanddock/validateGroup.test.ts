@@ -13,7 +13,7 @@ interface ValidateGroupOptions extends CreateWindowData {
     arrangement: string;
     undockIndex: number;  // Zero-indexed
     remainingGroups: number[][];
-    undockBy: 'service'|'runtime';
+    undockBy: 'service'|'runtime'|'maximize';
 }
 
 const undockFunctions = {
@@ -22,6 +22,9 @@ const undockFunctions = {
     },
     'runtime': async (win: _Window) => {
         return win.leaveGroup();
+    },
+    'maximize': async (win: _Window) => {
+        return win.maximize();
     }
 };
 
@@ -99,6 +102,8 @@ testParameterized<ValidateGroupOptions, WindowContext>(
         {frame: false, undockBy: 'runtime', windowCount: 5, arrangement: 'hourglass', undockIndex: 2, remainingGroups: [[0, 1], [2], [3, 4]]},
         {frame: false, undockBy: 'runtime', windowCount: 9, arrangement: 'dumbell', undockIndex: 4, remainingGroups: [[0, 1, 2, 3], [4], [5, 6, 7, 8]]},
         {frame: false, undockBy: 'runtime', windowCount: 9, arrangement: 'x', undockIndex: 2, remainingGroups: [[0, 1], [3, 4], [5, 6], [7, 8], [2]]},
+        {frame: true, undockBy: 'maximize', windowCount: 3, arrangement: 'line', undockIndex: 1, remainingGroups: [[0], [1], [2]]},
+        {frame: true, undockBy: 'maximize', windowCount: 3, arrangement: 'line', undockIndex: 2, remainingGroups: [[0, 1], [2]]},
     ],
     createWindowTest(async (t, testOptions: ValidateGroupOptions) => {
         const windows = t.context.windows;

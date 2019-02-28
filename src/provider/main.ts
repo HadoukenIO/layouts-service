@@ -8,6 +8,7 @@ import {DesktopTabGroup} from './model/DesktopTabGroup';
 import {SnapService} from './snapanddock/SnapService';
 import {win10Check} from './snapanddock/utils/platform';
 import {TabService} from './tabbing/TabService';
+import {createErrorBox} from './utils/error';
 import {WindowHandler} from './WindowHandler';
 
 export type ConfigStore = Store<ConfigurationObject>;
@@ -32,8 +33,21 @@ declare const window: Window&{
 fin.desktop.main(main);
 
 export async function main() {
+    const monitorInfo = await fin.System.getMonitorInfo();
+
+    // Disable the service if display scaling is not 100%
+    if (monitorInfo.deviceScaleFactor !== 1) {
+        console.error('Desktop has non-standard display scaling. Notifying user and disabling all layouts functionality.');
+
+        const errorMessage =
+            'OpenFin Layouts will only work with monitors that are set to a scaling ratio of 100%. This can be changed in monitor or display settings. \n\nPlease contact <a href="mailto:support@openfin.co">support@openfin.co</a> with any further questions.';
+        const title = 'OpenFin Layouts Notice';
+        await createErrorBox(title, errorMessage);
+        return;  // NOTE: Service will still be running, but will not function.
+    }
+
     config = window.config = new Store(require('../../gen/provider/config/defaults.json'));
-    loader = window.loader = new Loader(config, 'layouts');
+    loader = window.loader = new Loader(config, 'layouts', {enabled: false});
     model = window.model = new DesktopModel(config);
     windowHandler = new WindowHandler(model);
     snapService = window.snapService = new SnapService(model, config);
@@ -47,3 +61,7 @@ export async function main() {
     await win10Check;
     await apiHandler.registerListeners();
 }
+
+
+// Register the offline-mode service worker.
+navigator.serviceWorker.register('./sw.js', {scope: './'});

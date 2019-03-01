@@ -94,7 +94,7 @@ testParameterized(
 
         await windows[1].resizeBy(-20, -20, 'top-left');
 
-        await tabWindowsTogether(windows[1], windows[0]);
+        await tabWindowsTogether(windows[1], windows[0], options.shouldTab);
         await delay(1000);
 
         if (options.shouldTab) {

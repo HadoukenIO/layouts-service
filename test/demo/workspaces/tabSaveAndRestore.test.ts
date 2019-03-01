@@ -48,8 +48,8 @@ testParameterized<CreateAppData, AppContext>(
         await createCloseAndRestoreLayout(t);
 
         for (const group of applicationData.tabWindowGrouping!) {
-            const win1 = t.context.windows[group[0]];
-            const win2 = t.context.windows[group[1]];
+            const win1 = t.context.windows[group.group[0]];
+            const win2 = t.context.windows[group.group[1]];
 
             await assertPairTabbed(win1, win2, t);
             await assertGrouped(t, win1, win2);

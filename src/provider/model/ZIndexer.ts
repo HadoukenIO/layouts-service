@@ -212,6 +212,8 @@ export class ZIndexer {
 
         // Remove listeners when the window is destroyed
         win.addListener('closed', onClose);
+
+        this.update(identity);
     }
 
     private addToStack(entry: ZIndex): void {

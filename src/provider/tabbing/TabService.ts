@@ -1,8 +1,9 @@
 import deepEqual from 'fast-deep-equal';
+
 import {Scope, Tabstrip} from '../../../gen/provider/config/layouts-config';
+import {LayoutsEvent} from '../../client/connection';
 import {TabProperties, TabPropertiesUpdatedEvent} from '../../client/tabbing';
 import {TabGroup, TabGroupDimensions} from '../../client/workspaces';
-import {EventMap} from '../APIMessages';
 import {ConfigStore} from '../main';
 import {DesktopEntity} from '../model/DesktopEntity';
 import {DesktopModel} from '../model/DesktopModel';
@@ -262,9 +263,7 @@ export class TabService {
             }, console.warn);
         }
 
-        // Special handling for workspace placeholder windows
-        const modifiedTitle = tab.identity.uuid === fin.Window.me.uuid && title.startsWith('Placeholder-') ? 'Loading...' : title;
-        return {icon, title: modifiedTitle || tab.identity.name};
+        return {icon, title: title || tab.identity.name};
     }
 
     public updateTabProperties(tab: DesktopWindow, properties: Partial<TabProperties>): void {
@@ -364,7 +363,7 @@ export class TabService {
      * @param tab Modified window
      * @param event Event to send
      */
-    private sendTabEvent(tab: DesktopWindow, event: EventMap): void {
+    private sendTabEvent(tab: DesktopWindow, event: LayoutsEvent): void {
         tab.sendEvent(event);
         if (tab.tabGroup) {
             tab.tabGroup.window.sendEvent(event);

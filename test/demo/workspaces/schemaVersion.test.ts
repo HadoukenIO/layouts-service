@@ -42,5 +42,5 @@ const layoutBase: Workspace = {
     'monitorInfo': {} as MonitorInfo,
     'schemaVersion': '',
     'tabGroups': [],
-    'type': 'layout'
+    'type': 'workspace'
 };

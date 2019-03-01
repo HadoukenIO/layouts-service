@@ -12,8 +12,9 @@ import {WindowIdentity} from './main';
  *
  * ```ts
  * import {tabbing} from 'openfin-layouts';
+ * import {TabActivatedEvent} from 'openfin-layouts/dist/client/tabbing';
  *
- * tabbing.addEventListener('tab-activated', (event: TabGroupEvent) => {
+ * tabbing.addEventListener('tab-activated', (event: TabActivatedEvent) => {
  *     const activeTab = event.identity;
  *     console.log("Active tab:", activeTab.uuid, activeTab.name);
  * });
@@ -22,8 +23,10 @@ import {WindowIdentity} from './main';
  * @event
  */
 export interface TabActivatedEvent {
+    type: 'tab-activated';
+
     /**
-     * String that uniquely identifies the current tabset.
+     * Identity object that uniquely identifies the current tabset.
      */
     tabstripIdentity: WindowIdentity;
 
@@ -31,8 +34,6 @@ export interface TabActivatedEvent {
      * Identifies the window that is the source of the current event.
      */
     identity: WindowIdentity;
-
-    type: 'tab-activated';
 }
 
 /**
@@ -42,8 +43,9 @@ export interface TabActivatedEvent {
  *
  * ```ts
  * import {tabbing} from 'openfin-layouts';
+ * import {TabRemovedEvent} from 'openfin-layouts/dist/client/tabbing';
  *
- * tabbing.addEventListener('tab-removed', async (event: TabGroupEvent) => {
+ * tabbing.addEventListener('tab-removed', async (event: TabRemovedEvent) => {
  *     console.log("Window removed from tab group");
  * });
  * ```
@@ -53,8 +55,10 @@ export interface TabActivatedEvent {
  * @event
  */
 export interface TabRemovedEvent {
+    type: 'tab-removed';
+
     /**
-     * String that uniquely identifies the current tabset.
+     * Identity object that uniquely identifies the current tabset.
      */
     tabstripIdentity: WindowIdentity;
 
@@ -62,8 +66,6 @@ export interface TabRemovedEvent {
      * Identifies the window that is the source of the current event.
      */
     identity: WindowIdentity;
-
-    type: 'tab-removed';
 }
 
 /**
@@ -74,6 +76,7 @@ export interface TabRemovedEvent {
  *
  * ```ts
  * import {tabbing} from 'openfin-layouts';
+ * import {TabAddedEvent} from 'openfin-layouts/dist/client/tabbing';
  *
  * tabbing.addEventListener('tab-added', async (event: TabAddedEvent) => {
  *     console.log("Window added to tab group: ", event.identity);
@@ -86,8 +89,10 @@ export interface TabRemovedEvent {
  * @event
  */
 export interface TabAddedEvent {
+    type: 'tab-added';
+
     /**
-     * String that uniquely identifies the current tabset.
+     * Identity object that uniquely identifies the current tabset.
      */
     tabstripIdentity: WindowIdentity;
 
@@ -95,6 +100,7 @@ export interface TabAddedEvent {
      * Identifies the window that is the source of the current event.
      */
     identity: WindowIdentity;
+
     /**
      * The properties of the newly-added tab.
      *
@@ -109,8 +115,6 @@ export interface TabAddedEvent {
      * An integer in the range `[0, <tab count>-1]`.
      */
     index: number;
-
-    type: 'tab-added';
 }
 
 /**
@@ -120,6 +124,7 @@ export interface TabAddedEvent {
  *
  * ```ts
  * import {tabbing} from 'openfin-layouts';
+ * import {TabPropertiesUpdatedEvent} from 'openfin-layouts/dist/client/tabbing';
  *
  * tabbing.addEventListener('tab-properties-updated', (event: TabPropertiesUpdatedEvent) => {
  *     const tabIdentity = event.identity;
@@ -131,6 +136,8 @@ export interface TabAddedEvent {
  * @event
  */
 export interface TabPropertiesUpdatedEvent {
+    type: 'tab-properties-updated';
+
     /**
      * Identifies the window that is the source of the current event.
      */
@@ -143,14 +150,12 @@ export interface TabPropertiesUpdatedEvent {
      * updated in the {@link updateTabProperties} call.
      */
     properties: TabProperties;
-
-    type: 'tab-properties-updated';
 }
 
 /**
  * @hidden
  */
-export type EventMap = TabAddedEvent|TabRemovedEvent|TabActivatedEvent|TabPropertiesUpdatedEvent;
+export type TabbingEvent = TabAddedEvent|TabRemovedEvent|TabActivatedEvent|TabPropertiesUpdatedEvent;
 
 /**
  * Represents the state of a tab within a tabstrip.
@@ -162,7 +167,7 @@ export interface TabProperties {
     /**
      * Tab title - the text that is shown on the tab widget so that a user can identify the contents of that tab.
      *
-     * This will be initialised to the 'name' of the associated window object.
+     * This will be initialised to the title of the page, or the 'name' of the associated window object if no title is defined.
      */
     title: string;
 
@@ -196,8 +201,7 @@ export function addEventListener(eventType: 'tab-added', listener: (event: TabAd
 export function addEventListener(eventType: 'tab-removed', listener: (event: TabRemovedEvent) => void): void;
 export function addEventListener(eventType: 'tab-activated', listener: (event: TabActivatedEvent) => void): void;
 export function addEventListener(eventType: 'tab-properties-updated', listener: (event: TabPropertiesUpdatedEvent) => void): void;
-
-export function addEventListener<K extends EventMap>(eventType: K['type'], listener: (event: K) => void): void {
+export function addEventListener<K extends TabbingEvent>(eventType: K['type'], listener: (event: K) => void): void {
     if (typeof fin === 'undefined') {
         throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
     }
@@ -209,7 +213,7 @@ export function removeEventListener(eventType: 'tab-added', listener: (event: Ta
 export function removeEventListener(eventType: 'tab-removed', listener: (event: TabRemovedEvent) => void): void;
 export function removeEventListener(eventType: 'tab-activated', listener: (event: TabActivatedEvent) => void): void;
 export function removeEventListener(eventType: 'tab-properties-updated', listener: (event: TabPropertiesUpdatedEvent) => void): void;
-export function removeEventListener<K extends EventMap>(eventType: K['type'], listener: (event: K) => void): void {
+export function removeEventListener<K extends TabbingEvent>(eventType: K['type'], listener: (event: K) => void): void {
     if (typeof fin === 'undefined') {
         throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
     }
@@ -327,7 +331,7 @@ export async function tabWindowToWindow(windowToAdd: Identity, targetWindow: Ide
  *
  * @param identity Identity of the window context to remove.  If no `Identity` is provided as an argument, the current window context will be used.
  * @throws `Error`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
- * @throws `Error`: If `identity` is not an existing tab in a tabstrip.
+ * @throws `Error`: If `identity` refers to a window that doesn't exist, or is deregistered from the service.
  */
 export async function removeTab(identity: Identity = getId()): Promise<void> {
     return tryServiceDispatch<Identity, void>(TabAPI.REMOVETAB, parseIdentity(identity));
@@ -367,9 +371,11 @@ export async function setActiveTab(identity: Identity = getId()): Promise<void> 
  * tabbing.closeTab({uuid: 'App1', name: 'App1'});
  * ```
  *
+ * Note that the `identity` doesn't need to be tabbed for this call to take effect - so long as the window is known with the service.
+ *
  * @param identity Identity of the window context to close.  If no `Identity` is provided as an argument the current window context will be used.
  * @throws `Error`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
- * @throws `Error`: If `identity` is not an existing tab in a tabstrip.
+ * @throws `Error`: If `identity` refers to a window that doesn't exist, or is deregistered from the service.
  */
 export async function closeTab(identity: Identity = getId()): Promise<void> {
     return tryServiceDispatch<Identity, void>(TabAPI.CLOSETAB, parseIdentity(identity));
@@ -403,10 +409,10 @@ export async function minimizeTabGroup(identity: Identity = getId()): Promise<vo
  * ```ts
  * import {tabbing} from 'openfin-layouts';
  *
- * // Minimizes the tab group for the current window context.
+ * // Maximizes the tab group for the current window context.
  * tabbing.maxmimizeTabGroup();
  *
- * // Minimizes the tab group for another windows context.
+ * // Maximizes the tab group for another windows context.
  * tabbing.maximizeTabGroup({uuid: 'App1', name: 'App1'});
  * ```
  *
@@ -417,28 +423,6 @@ export async function minimizeTabGroup(identity: Identity = getId()): Promise<vo
  */
 export async function maximizeTabGroup(identity: Identity = getId()): Promise<void> {
     return tryServiceDispatch<Identity, void>(TabAPI.MAXIMIZETABGROUP, parseIdentity(identity));
-}
-
-/**
- * Closes the tab group for the window context.
- *
- * ```ts
- * import {tabbing} from 'openfin-layouts';
- *
- * // Closes the tab group for the current window context.
- * tabbing.closeTabGroup();
- *
- * // Closes the tab group for another windows context.
- * tabbing.closeTabGroup({uuid: 'App1', name: 'App1'});
- * ```
- *
- * @param identity Identity of the window context to close the tab group for.  If no `Identity` is provided as an argument the current window context will be
- * used.
- * @throws `Error`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
- * @throws `Error`: If `identity` is not an existing tab in a tabstrip.
- */
-export async function closeTabGroup(identity: Identity = getId()): Promise<void> {
-    return tryServiceDispatch<Identity, void>(TabAPI.CLOSETABGROUP, parseIdentity(identity));
 }
 
 /**
@@ -461,6 +445,28 @@ export async function closeTabGroup(identity: Identity = getId()): Promise<void>
  */
 export async function restoreTabGroup(identity: Identity = getId()): Promise<void> {
     return tryServiceDispatch<Identity, void>(TabAPI.RESTORETABGROUP, parseIdentity(identity));
+}
+
+/**
+ * Closes the tab group for the window context.
+ *
+ * ```ts
+ * import {tabbing} from 'openfin-layouts';
+ *
+ * // Closes the tab group for the current window context.
+ * tabbing.closeTabGroup();
+ *
+ * // Closes the tab group for another windows context.
+ * tabbing.closeTabGroup({uuid: 'App1', name: 'App1'});
+ * ```
+ *
+ * @param identity Identity of the window context to close the tab group for.  If no `Identity` is provided as an argument the current window context will be
+ * used.
+ * @throws `Error`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
+ * @throws `Error`: If `identity` is not an existing tab in a tabstrip.
+ */
+export async function closeTabGroup(identity: Identity = getId()): Promise<void> {
+    return tryServiceDispatch<Identity, void>(TabAPI.CLOSETABGROUP, parseIdentity(identity));
 }
 
 /**

@@ -5,7 +5,6 @@ import {Identity} from 'hadouken-js-adapter';
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 import {MonitorInfo} from 'hadouken-js-adapter/out/types/src/api/system/monitor';
 import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
-import {WindowInfo} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {channelPromise, eventEmitter, tryServiceDispatch} from './connection';
 import {WorkspaceAPI} from './internal';
@@ -24,7 +23,7 @@ export interface Workspace {
     /**
      * Identifies this object as being a workspace.
      */
-    type: 'layout';
+    type: 'workspace';
 
     /**
      * Used to determine compatibility of generated workspaces when restoring on different versions of the service.
@@ -65,6 +64,11 @@ export interface Workspace {
  */
 export interface WorkspaceApp {
     /**
+     * Application identifier
+     */
+    uuid: string;
+
+    /**
      * The URL of the manifest from which this application was started.
      *
      * This is only present if the application was started from a manifest. For applications started programatically
@@ -78,13 +82,18 @@ export interface WorkspaceApp {
      *
      * This is only present if the application was started programatically. For applications started from a manifest,
      * `manifestUrl` will be present instead.
+     *
+     * The [type](http://cdn.openfin.co/jsdocs/stable/fin.desktop.Application.html#~options) of this matches the
+     * options passed to `fin.Application.create` and those returned by `Applicaiton.getOptions()`.
      */
-    initialOptions?: fin.ApplicationOptions;
+    initialOptions?: object;
 
     /**
-     * Application identifier
+     * The UUID of the application that initially launched this app.
+     *
+     * This is only present if the application was started programatically.
      */
-    uuid: string;
+    parentUuid?: string;
 
     /**
      * State of the main window of the application.
@@ -100,11 +109,6 @@ export interface WorkspaceApp {
     childWindows: WorkspaceWindow[];
 
     /**
-     * The UUID of the application that initially launched this app.
-     */
-    parentUuid?: string;
-
-    /**
      * Flag used within the service to confirm an application has correctly implemented the callbacks it has
      * registered.
      *
@@ -116,9 +120,9 @@ export interface WorkspaceApp {
      * Applications can add their own custom data to a workspace, to assist with correctly restoring the application when
      * a saved workspace is loaded.
      *
-     * To set customData, register a 'save' callback using {@link onApplicationSave}. The provided function will be
+     * To set customData, register a 'save' callback using {@link setGenerateHandler}. The provided function will be
      * called whenever a workspace is generated, and any value returned by that function will be added to the workspace here.
-     * This data will then be available within the restore callback registered via {@link onAppRestore}.
+     * This data will then be available within the restore callback registered via {@link setRestoreHandler}.
      */
     customData?: CustomData;
 }
@@ -126,9 +130,14 @@ export interface WorkspaceApp {
 /**
  * Stores the state of a single window within a saved workspace.
  */
-export interface WorkspaceWindow extends Bounds, WindowIdentity {
+export interface WorkspaceWindow extends WindowIdentity {
     /**
-     * If the window is currently visible, corresponds to `Window.isShowing()`.
+     * The full URL of the window, corresponds to the `url` property of `Window.getInfo()`
+     */
+    url: string;
+
+    /**
+     * If the window is currently visible, corresponds to `Window.isShowing()`
      */
     isShowing: boolean;
 
@@ -143,9 +152,11 @@ export interface WorkspaceWindow extends Bounds, WindowIdentity {
     frame: boolean;
 
     /**
-     * Additional window metadata, corresponds to `Window.getInfo()`
+     * Physical position of the window, corresponds to `Window.getBounds()`.
+     *
+     * This object will always contain all fields, even those marked as optional in the `getBounds()` response.
      */
-    info: WindowInfo;
+    bounds: Required<Bounds>;
 
     /**
      * A list of windows currently docked to this one.
@@ -155,7 +166,10 @@ export interface WorkspaceWindow extends Bounds, WindowIdentity {
     windowGroup: Identity[];
 
     /**
-     * Window state, corresponds to `WindowOptions.state`
+     * Indicates if the window is part of a tab group.
+     *
+     * Tab group information is stored seprately in `Workspace.tabGroups`. This flag indicates that the current window
+     * will be a part of that data.
      */
     isTabbed: boolean;
 }
@@ -184,7 +198,7 @@ export interface TabGroup {
     /**
      * Defines which application windows exist within this tab group.
      *
-     * The saved state of these windows exists within the {@link Layout.apps} hierarchy.
+     * The saved state of these windows exists within the {@link Workspace.apps | list of applications}.
      */
     tabs: WindowIdentity[];
 }
@@ -204,12 +218,12 @@ export interface TabGroupInfo {
     dimensions: TabGroupDimensions;
 
     /**
-     * Object containing the tabstrip configuration
+     * Object containing the tabstrip configuration, or a string indicating that this group uses the default tabstrip
      */
     config: ApplicationUIConfig|'default';
 
     /**
-     * The state the TabGroup and contained windows are mimicing
+     * The window state of the TabGroup as a whole, including both the tabstrip and its tabs
      */
     state: WindowState;
 }
@@ -248,16 +262,22 @@ export interface TabGroupDimensions {
  *
  * ```ts
  * import {workspaces} from 'openfin-layouts';
+ * import {Workspace} from 'openfin-layouts/dist/client/workspaces';
  *
  * workspaces.addEventListener('workspace-restored', async (event: WorkspaceRestoredEvent) => {
- *      console.log(`Properties for the restored workspace: ${event}`);
+ *      const workspace: Workspace = event.workspace;
+ *      console.log('Workspace restored:', workspace);
  * });
  * ```
  * @event
  */
 export interface WorkspaceRestoredEvent {
-    workspace: Workspace;
     type: 'workspace-restored';
+
+    /**
+     * Workspace that has just been restored by the service.
+     */
+    workspace: Workspace;
 }
 
 /**
@@ -265,27 +285,33 @@ export interface WorkspaceRestoredEvent {
  *
  * ```ts
  * import {workspaces} from 'openfin-layouts';
+ * import {Workspace} from 'openfin-layouts/dist/client/workspaces';
  *
  * workspaces.addEventListener('workspace-generated', async (event: WorkspaceGeneratedEvent) => {
- *     console.log(`Properties for the generated workspace: ${event}`);
+ *      const workspace: Workspace = event.workspace;
+ *      console.log('Workspace generated:', workspace);
  * });
  * ```
  *
  * @event
  */
 export interface WorkspaceGeneratedEvent {
-    workspace: Workspace;
     type: 'workspace-generated';
+
+    /**
+     * Workspace that has just been generated by the service.
+     */
+    workspace: Workspace;
 }
 
 /**
  * @hidden
  */
-export type EventMap = WorkspaceRestoredEvent|WorkspaceGeneratedEvent;
+export type WorkspacesEvent = WorkspaceRestoredEvent|WorkspaceGeneratedEvent;
 
 export function addEventListener(eventType: 'workspace-restored', listener: (event: WorkspaceRestoredEvent) => void): void;
 export function addEventListener(eventType: 'workspace-generated', listener: (event: WorkspaceGeneratedEvent) => void): void;
-export function addEventListener<K extends EventMap>(eventType: K['type'], listener: (event: K) => void): void {
+export function addEventListener<K extends WorkspacesEvent>(eventType: K['type'], listener: (event: K) => void): void {
     if (typeof fin === 'undefined') {
         throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
     }
@@ -295,7 +321,7 @@ export function addEventListener<K extends EventMap>(eventType: K['type'], liste
 
 export function removeEventListener(eventType: 'workspace-restored', listener: (event: WorkspaceRestoredEvent) => void): void;
 export function removeEventListener(eventType: 'workspace-generated', listener: (event: WorkspaceGeneratedEvent) => void): void;
-export function removeEventListener<K extends EventMap>(eventType: K['type'], listener: (event: K) => void): void {
+export function removeEventListener<K extends WorkspacesEvent>(eventType: K['type'], listener: (event: K) => void): void {
     if (typeof fin === 'undefined') {
         throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
     }
@@ -317,38 +343,73 @@ export async function setGenerateHandler(customDataDecorator: () => CustomData):
 /**
  * Registers a callback that will restore the application to a previous state.
  *
- * It is up to applications whether this action should "append" or "replace" the current workspace. The service will not
- * close any applications that are currently open and not in the workspace; though applications may do this if they wish.
+ * If an application has set a {@link setRestoreHandler} callback, and called the {@link ready} function, the layouts service
+ * will send it its Workspace data when the {@link restore} function is called, and wait for this function to return. If
+ * an application has saved its child windows, it *MUST* create those child windows with the same names defined in its
+ * Workspace. If those child windowws are already up, position them in their proper location using the bounds given.
+ *
+ * If this function does not return, or this function does not create the app's child windows appropriately,
+ * {@link restore} will hang indefinitely.
+ *
+ * If the callback does not return a WorkspaceApp object, window grouping will be affected. The {@link restore} function reads
+ * the return value and uses it to continue restoration.
+ *
+ * It is recommended that you restore/position the child windows defined in workspaceApp, and after those windows have been created, return
+ * that same workspaceApp object.
+ *
  */
-export async function setRestoreHandler(listener: (layoutApp: WorkspaceApp) => WorkspaceApp | false | Promise<WorkspaceApp|false>): Promise<boolean> {
+export async function setRestoreHandler(listener: (workspaceApp: WorkspaceApp) => WorkspaceApp | false | Promise<WorkspaceApp|false>): Promise<boolean> {
     const channel: ChannelClient = await channelPromise;
     return channel.register(WorkspaceAPI.RESTORE_HANDLER, listener);
 }
 
 
 /**
- * Generates a JSON object that contains the state of the current desktop.
+ * Generates a JSON Workspace object that contains the state of the current desktop.
  *
- * The returned JSON will contain the main application window of every application that is currently open and hasn't
- * explicitly de-registered itself using the layouts service API. Child windows will not be included by default - the
- * returned workspace object will only contain child window data for applications that integrate with the layouts service
- * by registering {@link setGenerateHandler|save} and {@link setRestoreHandler|restore} callbacks.
+ * The returned JSON will contain information for the main window of every application that is currently open and hasn't
+ * explicitly de-registered itself from the service. It will also contain positioning, tabbing and grouping information
+ * for each application. This data will be passed to {@link restore}, which will create the applications and
+ * position them appropriately.
  *
- * TODO: Document workspace generation process
+ * If an application wishes to restore its child windows and store custom data, it must properly integrate with the
+ * layouts service by both registering {@link setGenerateHandler|generate} and {@link setRestoreHandler|restore} callbacks, and
+ * calling the {@link ready} function. If this is not done properly, workspace restoration may be disrupted.
  */
 export async function generate(): Promise<Workspace> {
     return tryServiceDispatch<undefined, Workspace>(WorkspaceAPI.GENERATE_LAYOUT);
 }
 
 /**
- * Takes a workspace created by {@link generate} and restores the applications within it.
+ * Takes a Workspace object created by the {@link generate} function and restores the state of the desktop at the time it was generated
  *
- * The returned JSON will contain the main application window of every application that is currently open and hasn't
- * explicitly de-registered itself using the layouts service API. Child windows will not be included by default - the
- * returned workspace object will only contain child window data for applications that integrate with the layouts service
- * by registering {@link setGenerateHandler|save} and {@link setRestoreHandler|restore} callbacks.
+ * Restoration begins by reading the Workspace object, and determining what applications and windows are running or not.
  *
- * TODO: Document workspace restoration process
+ * If an application or child window is not up and running, the layouts service will create a transparent placeholder window for it, as an
+ * indication to the user that a window is in the process of loading. The placeholder window will listen for its corresponding window to
+ * come up, and subsequently close itself.
+ *
+ * Once all placeholder windows are up, the layouts service will ungroup and untab any windows participating in restoration. This is done to
+ * prevent a window from dragging its group around the desktop, into a location that wasn't originally intended. Restore does not touch
+ * any windows that were not declared in the Workspace object.
+ *
+ * Once all windows are ungrouped, the layouts service will then tab together all windows involved in a tabgroup. Placeholder windows are
+ * included in this tabbing step. Once a placeholder window's corresponding restored window comes up, that restored window takes
+ * the place of the placeholder window in the tabset.
+ *
+ * Once all groups have been set up, the layouts service will then begin opening and positioning the applications and windows.
+ *
+ * If an application is up and running, the layouts service will position it in its proper place. If the application isn't running,
+ * the layouts service will attempt to launch it after it has been launched. It is then positioned.
+ *
+ * If the application has registered {@link setGenerateHandler|generate} and {@link setRestoreHandler|restore} callbacks, and called
+ * the {@link ready} function, the layouts service will send it its Workspace data. If an application has saved its child windows,
+ * it *MUST* create those child windows with the same names defined in its Workspace. If it does not do so, {@link restore} will fail.
+ *
+ * Once all applications and child windows have been spun up and positioned, and all placeholder windows have been closed, the layouts
+ * service will then group all windows that were formerly snapped together.
+ *
+ * Finally, the layouts service will send a 'workspace-restored' event to all windows, and complete restoration.
  */
 export async function restore(payload: Workspace): Promise<Workspace> {
     return tryServiceDispatch<Workspace, Workspace>(WorkspaceAPI.RESTORE_LAYOUT, payload);

@@ -3,9 +3,10 @@ import {Identity, Window} from 'hadouken-js-adapter';
 import {WindowInfo} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {WindowScope} from '../../../gen/provider/config/layouts-config';
+import {LayoutsEvent} from '../../client/connection';
 import {SERVICE_IDENTITY} from '../../client/internal';
 import {WindowState} from '../../client/workspaces';
-import {EVENT_CHANNEL_TOPIC, EventMap} from '../APIMessages';
+import {EVENT_CHANNEL_TOPIC} from '../APIMessages';
 import {apiHandler} from '../main';
 import {Aggregators, Signal1, Signal2} from '../Signal';
 import {Debounced} from '../snapanddock/utils/Debounced';
@@ -169,6 +170,11 @@ export class DesktopWindow implements DesktopEntity {
                         // Fall-back to window name
                         windowTitle = window.identity.name || '';
                     }
+                }
+
+                // Special handling for workspace placeholder windows
+                if (window.identity.uuid === SERVICE_IDENTITY.uuid && window.identity.name && window.identity.name.startsWith('Placeholder-')) {
+                    windowTitle = 'Loading...';
                 }
 
                 return {
@@ -657,7 +663,7 @@ export class DesktopWindow implements DesktopEntity {
             return this.updateState({[property]: value}, ActionOrigin.SERVICE);  // TODO: Is this the right origin type?
         }
     }
-    public async sendEvent<T extends EventMap>(event: T): Promise<void> {
+    public async sendEvent<T extends LayoutsEvent>(event: T): Promise<void> {
         if (this._ready && apiHandler.isClientConnection(this.identity)) {
             return apiHandler.sendToClient(this._identity, EVENT_CHANNEL_TOPIC, event);
         }

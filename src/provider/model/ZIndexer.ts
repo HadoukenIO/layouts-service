@@ -213,6 +213,8 @@ export class ZIndexer {
         // Remove listeners when the window is destroyed
         win.addListener('closed', onClose);
 
+        // Add the window to the stack immediately, as there are rare cases where neither 'shown' nor 'focused' will be called
+        // following the 'window-created' event. See SERVICE-380
         this.update(identity);
     }
 

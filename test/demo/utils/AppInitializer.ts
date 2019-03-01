@@ -115,7 +115,10 @@ export function createAppsArray(numAppsToCreate: number, numberOfChildren: numbe
 
 // A WindowGrouping is an array of array of numbers that corresponds to two windows grouped.
 // e.g. [[0, 1], [2, 3]] would mean that out of an array of 4 windows, win0 and win1 should be grouped, and win2 and win3 should be grouped.
-export type WindowGrouping = {group: number[], expectSuccess?: boolean}[];
+export type WindowGrouping = {
+    group: number[],
+    expectSuccess?: boolean
+}[];
 
 type WindowGroupingInternal = number[][];
 

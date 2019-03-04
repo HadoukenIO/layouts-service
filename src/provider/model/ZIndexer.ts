@@ -171,7 +171,7 @@ export class ZIndexer {
      * Creates window event listeners on a specified window.
      * @param win Window to add the event listeners to.
      */
-    private _addEventListeners(win: _Window) {
+    private async _addEventListeners(win: _Window) {
         const identity = win.identity as WindowIdentity;  // A window identity will always have a name, so it is safe to cast
 
         const bringToFront = () => {
@@ -213,13 +213,11 @@ export class ZIndexer {
         // Remove listeners when the window is destroyed
         win.addListener('closed', onClose);
 
-        // If the window is showing, add the window to the stack immediately, as there are rare cases where neither
+        // If the window is showing, add the window to the stack ASAP, as there are rare cases where neither
         // 'shown' nor 'focused' will be called following the 'window-created' event. See SERVICE-380
-        win.isShowing().then(showing => {
-            if (showing) {
-                this.update(identity); 
-            }
-        });
+        if  (await win.isShowing()) {
+            this.update(identity); 
+        }
     }
 
     private addToStack(entry: ZIndex): void {

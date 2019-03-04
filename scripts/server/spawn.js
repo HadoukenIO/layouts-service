@@ -12,7 +12,7 @@ const {PORT, CDN_LOCATION} = require('./config');
 function createCustomManifestMiddleware() {
     return async (req, res, next) => {
         const defaultConfig = await readJsonFile(path.resolve('res/demo/app.json')).catch(next);
-        const {uuid, url, frame, defaultCentered, defaultLeft, defaultTop, defaultWidth, defaultHeight, realmName, enableMesh, runtime, useService, provider, config} = {
+        const {uuid, url, frame, defaultCentered, defaultLeft, defaultTop, defaultWidth, defaultHeight, realmName, enableMesh, runtime, useService, provider, state, config} = {
             // Set default values
             uuid: `demo-app-${Math.random().toString(36).substr(2, 4)}`,
             url: `http://localhost:${PORT}/demo/testbed/index.html`,
@@ -40,6 +40,7 @@ function createCustomManifestMiddleware() {
                 name: uuid,
                 url,
                 frame,
+                state,
                 autoShow: true,
                 saveWindowState: false,
                 defaultCentered,

@@ -69,6 +69,11 @@ export interface WindowData {
      * If not specified, the calling window will create the app/window directly.
      */
     parent?: Identity;
+
+    /**
+     * State of the window. Defaults to normal.
+     */
+    state?: 'normal'|'minimized'|'maximized';
 }
 
 /**
@@ -160,12 +165,13 @@ async function createApplication(options: Omit<AppData, 'parent'>): Promise<Appl
     const url = getUrl(options);
     const position = getWindowPosition(options);
     const size = getWindowSize(options);
+    const state = options.state || 'normal';
 
     if (options.type === 'programmatic') {
         const data: fin.ApplicationOptions = {
             uuid,
             name: uuid,
-            mainWindowOptions: {...position, url, frame: options.frame, autoShow: true, saveWindowState: false, defaultWidth: size.x, defaultHeight: size.y}
+            mainWindowOptions: {...position, url, frame: options.frame, state, autoShow: true, saveWindowState: false, defaultWidth: size.x, defaultHeight: size.y, }
         };
         return await startApp(fin.Application.create(data));
     } else {
@@ -173,6 +179,7 @@ async function createApplication(options: Omit<AppData, 'parent'>): Promise<Appl
             ...position as Required<typeof position>,
             uuid,
             url,
+            state,
             defaultWidth: size.x,
             defaultHeight: size.y,
             frame: options.frame || false,

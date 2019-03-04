@@ -53,7 +53,7 @@ export async function onAppRes(layoutApp: WorkspaceApp): Promise<WorkspaceApp> {
     const openWindows = await ofApp.getChildWindows();
     const openAndPosition = layoutApp.childWindows.map(async (win: WorkspaceWindow, index: number) => {
         if (!openWindows.some((w: _Window) => w.identity.name === win.name)) {
-            await openChild(win.name, index, win.frame, win.state, win.info.url, win);
+            await openChild(win.name, index, win.frame, win.state, win.url, win.bounds);
         } else {
             await positionWindow(win);
         }
@@ -69,7 +69,7 @@ const positionWindow = async (win: WorkspaceWindow) => {
         const {isShowing, isTabbed} = win;
 
         const ofWin = await fin.Window.wrap(win);
-        await ofWin.setBounds(win);
+        await ofWin.setBounds(win.bounds);
 
         if (isTabbed) {
             await ofWin.show();

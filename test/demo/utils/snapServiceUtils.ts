@@ -1,6 +1,7 @@
 import {Identity} from 'hadouken-js-adapter';
 
-import {WindowIdentity} from '../../../src/client/types';
+import {SnapAndDockAPI} from '../../../src/client/internal';
+import {WindowIdentity} from '../../../src/client/main';
 import {DesktopEntity} from '../../../src/provider/model/DesktopEntity';
 import {DesktopWindow} from '../../../src/provider/model/DesktopWindow';
 
@@ -10,11 +11,12 @@ import {executeJavascriptOnService, sendServiceMessage} from './serviceUtils';
  * Check if a given window is registered with the layouts-service.
  */
 export async function isWindowRegistered(identity: Identity): Promise<boolean> {
-    function remoteFunc(this: ProviderWindow, identity: WindowIdentity): boolean {
-        return !!this.model.getWindow(identity);
+    function remoteFunc(this: ProviderWindow, identity: Identity): boolean {
+        const windowIdentity: WindowIdentity = {uuid: identity.uuid, name: identity.name || identity.uuid};
+        return !!this.model.getWindow(windowIdentity);
     }
 
-    return executeJavascriptOnService<WindowIdentity, boolean>(remoteFunc, identity as WindowIdentity);
+    return executeJavascriptOnService<Identity, boolean>(remoteFunc, identity);
 }
 
 /**
@@ -56,12 +58,12 @@ export async function getSnapGroupID(identity: Identity) {
  * Send a message to the service requesting that the window be undocked.
  */
 export async function undockWindow(identity: Identity) {
-    await sendServiceMessage<WindowIdentity, void>('undockWindow', identity as WindowIdentity);
+    await sendServiceMessage<WindowIdentity, void>(SnapAndDockAPI.UNDOCK_WINDOW, identity as WindowIdentity);
 }
 
 /**
  * Send a message to the service requesting that the group be exploded.
  */
 export async function explodeGroup(identity: Identity) {
-    await sendServiceMessage<WindowIdentity, void>('undockGroup', identity as WindowIdentity);
+    await sendServiceMessage<WindowIdentity, void>(SnapAndDockAPI.UNDOCK_GROUP, identity as WindowIdentity);
 }

@@ -16,12 +16,19 @@ body {
     margin-top: 16px;
 }
 
-h3 {
+h3, h4 {
     margin-bottom: 0px;
+}
+h4 {
+    display: inline-block;
+    width: 144px;
+    margin-top: 12px;
+    vertical-align: middle;
+    padding-left: 12px;
 }
 
 button {
-    width: 150px;
+    width: 182px;
     font-size: x-small;
     height: 30px;
     box-sizing: border-box;
@@ -34,7 +41,33 @@ button {
     text-align: center;
 }
 
+button:hover {
+    cursor: pointer;
+}
+
+.button-row {
+    display: inline-flex;
+}
+
+.windows-generator {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+}
+
+.windows-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.windows-group-title {
+    width: 250px;
+    text-align: center;
+}
+
 #layoutName {
+    width: 182px;
     height: 30px;
     padding-left: 10px;
     margin: 3px;
@@ -42,13 +75,27 @@ button {
 }
 
 #layoutSelect {
+    width: 182px;
     height: 30px;
     border-radius: 0px;
     margin-left: 3px;
+    margin-right: 3px;
 }
 
 #showLayout {
-    margin: 0px;
-    width: 100%;
-    height: 40%;
+    display: inline-block;
+    margin-right: 5px;
+    width: 539px;
+    height: 155px;
+}
+
+.text-box {
+    margin-top: 10px;
+    display: flex;
+}
+
+.text-box-buttons {
+    display: inline-block;
+    padding-left: 1px;
+    width: 190px;
 }

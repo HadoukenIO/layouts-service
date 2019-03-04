@@ -1,10 +1,101 @@
 /**
- * @module Snap-and-Dock
+ * @module SnapAndDock
  */
 import {Identity} from 'hadouken-js-adapter';
 
-import {tryServiceDispatch} from './connection';
-import {getId} from './internal';
+import {eventEmitter, tryServiceDispatch} from './connection';
+import {getId, parseIdentity, SnapAndDockAPI} from './internal';
+
+
+/**
+ * Event fired when one window is docked to another.  See {@link addEventListener}.
+ *
+ * It is not possible to receive events for another window. When adding a listener, the listener will only ever fire for the "`fin.desktop.Window.getCurrent()`"
+ * window.
+ *
+ * ```ts
+ * import {addEventListener} from 'openfin-layouts';
+ * import {WindowDockedEvent} from 'openfin-layouts/dist/client/snapanddock';
+ *
+ * addEventListener('window-docked', async (event: WindowDockedEvent) => {
+ *     console.log("Docked to another window");
+ *
+ *     // Using 'v1' API
+ *     fin.desktop.Window.getCurrent().getGroup((windows) => {
+ *         console.log("Windows in current group: ", windows);
+ *     });
+ *
+ *     // Using 'v2' API
+ *     console.log("Windows in current group: ", await fin.Window.getCurrentSync().getGroup());
+ * });
+ * ```
+ *
+ * This event is fired when the window first becomes docked. The window will not receive an event if an additional
+ * window is added to the group later.
+ *
+ * @event
+ */
+export interface WindowDockedEvent {
+    type: 'window-docked';
+}
+
+/**
+ * Event fired when one window is undocked from it's neighbor(s).  See {@link addEventListener}.
+ *
+ * It is not possible to receive events for another window. When adding a listener, the listener will only ever fire for the "`fin.desktop.Window.getCurrent()`"
+ * window.
+ *
+ * ```ts
+ * import {addEventListener} from 'openfin-layouts';
+ * import {WindowUndockedEvent} from 'openfin-layouts/dist/client/snapanddock';
+ *
+ * addEventListener('window-undocked', async (event: WindowUndockedEvent) => {
+ *     console.log("Undocked from another window");
+ *
+ *     // Using 'v1' API
+ *     fin.desktop.Window.getCurrent().getGroup((windows) => {
+ *         console.log("Windows in current group: ", windows);
+ *     });
+ *
+ *     // Using 'v2' API
+ *     console.log("Windows in current group: ", await fin.Window.getCurrentSync().getGroup());
+ * });
+ * ```
+ *
+ * This event is fired when the current window becomes undocked from a group. A window will not receive this event if
+ * another window within the same group is undocked.
+ *
+ * @event
+ */
+export interface WindowUndockedEvent {
+    type: 'window-undocked';
+}
+
+/**
+ * @hidden
+ */
+export type SnapAndDockEvent = WindowDockedEvent|WindowUndockedEvent;
+
+
+export function addEventListener(eventType: 'window-docked', listener: (event: WindowDockedEvent) => void): void;
+export function addEventListener(eventType: 'window-undocked', listener: (event: WindowUndockedEvent) => void): void;
+export function addEventListener<K extends SnapAndDockEvent>(eventType: K['type'], listener: (event: K) => void): void {
+    if (typeof fin === 'undefined') {
+        throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
+    }
+
+    eventEmitter.addListener(eventType, listener);
+}
+
+export function removeEventListener(eventType: 'window-docked', listener: (event: WindowDockedEvent) => void): void;
+export function removeEventListener(eventType: 'window-undocked', listener: (event: WindowUndockedEvent) => void): void;
+export function removeEventListener<K extends SnapAndDockEvent>(eventType: K['type'], listener: (event: K) => void): void {
+    if (typeof fin === 'undefined') {
+        throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
+    }
+
+    eventEmitter.removeListener(eventType, listener);
+}
 
 /**
  * Undocks a window from any group it currently belongs to.
@@ -12,24 +103,24 @@ import {getId} from './internal';
  * Has no effect if the window is not currently docked.
  *
  * ```ts
- * import {undockWindow} from 'openfin-layouts';
+ * import {snapAndDock} from 'openfin-layouts';
  *
  * // Undock the current window (all are equivilant)
- * undockWindow();
- * undockWindow(fin.desktop.Window.getCurrent());   // Using 'v1' API
- * undockWindow(fin.Window.getCurrentSync());       // Using 'v2' API
+ * snapAndDock.undockWindow();
+ * snapAndDock.undockWindow(fin.desktop.Window.getCurrent());   // Using 'v1' API
+ * snapAndDock.undockWindow(fin.Window.getCurrentSync());       // Using 'v2' API
  *
  * // Undock a different window
- * undockWindow({uuid: 'my-app', name: 'other-window'});
+ * snapAndDock.undockWindow({uuid: 'my-app', name: 'other-window'});
  * ```
  *
  * @param identity The window to undock, defaults to the current window
- * @throws `Error`: If `identity` is not a valid {@link WindowIdentity}
+ * @throws `Error`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
  * @throws `Error`: If the window specified by `identity` does not exist
  * @throws `Error`: If the window specified by `identity` has been de-registered
  */
 export async function undockWindow(identity: Identity = getId()): Promise<void> {
-    return tryServiceDispatch<Identity, void>('undockWindow', identity);
+    return tryServiceDispatch<Identity, void>(SnapAndDockAPI.UNDOCK_WINDOW, parseIdentity(identity));
 }
 
 /**
@@ -40,22 +131,22 @@ export async function undockWindow(identity: Identity = getId()): Promise<void> 
  * Has no effect if `identity` isn't currently snapped to any other window.
  *
  * ```ts
- * import {undockGroup} from 'openfin-layouts';
+ * import {snapAndDock} from 'openfin-layouts';
  *
  * // Undock all windows attached to the current window (all are equivilant)
- * undockGroup();
- * undockGroup(fin.desktop.Window.getCurrent());   // Using 'v1' API
- * undockGroup(fin.Window.getCurrentSync());       // Using 'v2' API
+ * snapAndDock.undockGroup();
+ * snapAndDock.undockGroup(fin.desktop.Window.getCurrent());   // Using 'v1' API
+ * snapAndDock.undockGroup(fin.Window.getCurrentSync());       // Using 'v2' API
  *
  * // Undock all windows attached to a different window
- * undockGroup({uuid: 'my-app', name: 'other-window'});
+ * snapAndDock.undockGroup({uuid: 'my-app', name: 'other-window'});
  * ```
  *
  * @param identity A window belonging to the group that should be disbanded, defaults to the current window/group
- * @throws `Error`: If `identity` is not a valid {@link WindowIdentity}
+ * @throws `Error`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
  * @throws `Error`: If the window specified by `identity` does not exist
  * @throws `Error`: If the window specified by `identity` has been de-registered
  */
 export async function undockGroup(identity: Identity = getId()): Promise<void> {
-    return tryServiceDispatch<Identity, void>('undockGroup', identity);
+    return tryServiceDispatch<Identity, void>(SnapAndDockAPI.UNDOCK_GROUP, parseIdentity(identity));
 }

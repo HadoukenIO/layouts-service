@@ -1,5 +1,7 @@
 import {Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
 
+import {Scope} from '../../../gen/provider/config/layouts-config';
+
 import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {DesktopTabGroup} from './DesktopTabGroup';
 import {EntityState, WindowIdentity} from './DesktopWindow';
@@ -24,10 +26,15 @@ export interface DesktopEntity {
     identity: WindowIdentity;
 
     /**
+     * As identity, but with an extra identifier that allows the config of this identity to be queried more easily.
+     */
+    scope: Scope;
+
+    /**
      * The current cached state of this entity.
      *
      * This is updated by adding listeners to the underlying window object(s). Due to the asynchronous nature of window
-     * operations, there is no guarentee that this state isn't stale, but this state is always updated as soon as is
+     * operations, there is no guarantee that this state isn't stale, but this state is always updated as soon as is
      * possible.
      */
     currentState: EntityState;

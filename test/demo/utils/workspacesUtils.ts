@@ -1,13 +1,15 @@
 import {Context, GenericTestContext, Test, TestContext} from 'ava';
-import {SERVICE_IDENTITY} from '../../../src/client/internal';
-import {Layout} from '../../../src/client/types';
+import {Application} from 'hadouken-js-adapter';
+import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/system/application';
+
+import {SERVICE_IDENTITY, WorkspaceAPI} from '../../../src/client/internal';
+import {Workspace} from '../../../src/client/workspaces';
 import {getConnection} from '../../provider/utils/connect';
-import {delay} from '../../provider/utils/delay';
 import {BasicSaveRestoreTestOptions} from '../workspaces/basicSaveAndRestore.test';
 import {SnapSaveRestoreTestOptions} from '../workspaces/snapSaveAndRestore.test';
 import {TabSaveRestoreTestOptions} from '../workspaces/tabSaveAndRestore.test';
 
-import {AppInitializerParams, createAppsArray, createWindowGroupings, TestAppData, WindowGrouping} from './AppInitializer';
+import {createAppsArray, createWindowGroupings, TestAppData} from './AppInitializer';
 import {AppContext} from './createAppTest';
 import {sendServiceMessage} from './serviceUtils';
 
@@ -38,8 +40,8 @@ export async function assertWindowNotRestored(t: TestContext, uuid: string, name
     active ? t.fail(`Window ${uuid}:${name} was restored when it should not have been`) : t.pass();
 }
 
-function assertIsLayoutObject(t: SaveRestoreTestContext, layout: Layout) {
-    layout.type === 'layout' ? t.pass() : t.fail('Layout object has an incorrect type!');
+function assertIsLayoutObject(t: TestContext, layout: Workspace) {
+    layout.type === 'workspace' ? t.pass() : t.fail('Layout object has an incorrect type!');
 }
 
 async function assertAllAppsClosed(t: SaveRestoreTestContext) {
@@ -52,23 +54,50 @@ async function assertAllAppsClosed(t: SaveRestoreTestContext) {
     });
 }
 
-export async function createCloseAndRestoreLayout(t: SaveRestoreTestContext) {
-    const generatedLayout = await sendServiceMessage('generateLayout', undefined) as Layout;
-    assertIsLayoutObject(t, generatedLayout);
-    await Promise.all(t.context.testAppData.map(async (appData: TestAppData) => await appData.app.close(true)));
-    await assertAllAppsClosed(t);
-    await sendServiceMessage('restoreLayout', generatedLayout);
-    // To give placeholder windows time to disappear.
-    // The tests close out all testing windows upon completion.
-    // The placeholders listens to the show-requested event of its testing window, moves the window, shows it, and closes itself.
-    // If the tests run too quickly after restore, the placeholder windows may receive the child window show event too late,
-    // and the window may not exist, which makes the placeholder windows stay open.
-    await delay(500);
+function isSaveRestoreContext(t: TestContext|SaveRestoreTestContext): t is SaveRestoreTestContext {
+    const c: SaveRestoreTestContext = t as SaveRestoreTestContext;
+    return !!(c.context && c.context.testAppData);
+}
+
+async function getTestApps(): Promise<Application[]> {
+    return Promise.all((await fin.System.getAllApplications())
+                           .filter((app: ApplicationInfo) => {
+                               const uuid = app.uuid;
+                               return uuid !== 'layouts-service' && uuid !== 'testApp';
+                           })
+                           .map((app: ApplicationInfo) => {
+                               return fin.Application.wrapSync({uuid: app.uuid});
+                           }));
+}
+
+export async function createCloseAndRestoreLayout(t: TestContext|SaveRestoreTestContext): Promise<Workspace> {
+    const workspace = await sendServiceMessage(WorkspaceAPI.GENERATE_LAYOUT, undefined) as Workspace;
+
+    assertIsLayoutObject(t, workspace);
+    if (isSaveRestoreContext(t)) {
+        // Close all apps that were created as part of restore
+        await Promise.all(t.context.testAppData.map(async (appData: TestAppData) => await appData.app.close(true)));
+        await assertAllAppsClosed(t);
+    } else {
+        // Close all apps
+        await Promise.all((await getTestApps()).map(app => app.close()));
+        await getTestApps().then(async (apps: Application[]) => {
+            await Promise.all(apps.map(async (app) => {
+                if (await app.isRunning()) {
+                    t.fail(`Application ${app.identity.uuid} is running, but it should have been closed.`);
+                }
+            }));
+        });
+    }
+    await sendServiceMessage(WorkspaceAPI.RESTORE_LAYOUT, workspace);
+
+    return workspace;
 }
 
 export interface TestCreationOptions {
-    url: string;
-    manifest: boolean;
+    url?: string;
+    manifest?: boolean;
+    autoShow?: boolean;
 }
 
 export function createBasicSaveAndRestoreTest(

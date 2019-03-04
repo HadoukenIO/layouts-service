@@ -1,22 +1,91 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import * as Layouts from '../client/main';
-import {Layout} from '../client/types';
+import {register, deregister, snapAndDock, tabbing, tabstrip, workspaces} from '../client/main';
 
 import * as Storage from './storage';
+import {addSpawnListeners, AppData, createApp, WindowData, createWindow} from './spawn';
+import {Workspace} from '../client/workspaces';
 
-export interface Workspace {
+export interface SavedWorkspace {
     id: string;
-    layout: Layout;
+    layout: Workspace;
 }
 
-let numTabbedWindows = 0;
 const launchDir = location.href.slice(0, location.href.lastIndexOf('/'));
 
-export async function setLayout(layoutParam?: Layout) {
+const appTemplates: {[key: string]: AppData} = {
+    'manifest': {type: 'manifest', id: 'App-1', position: 'center', size: {x: 1024, y: 800}},
+    'programmatic': {type: 'programmatic', id: 'App-2', position: 'center', size: {x: 1024, y: 800}},
+    'script': {type: 'programmatic', id: 'App-3', position: 'center', url: 'http://localhost:1337/demo/libScriptIncluded.html'},
+    'random-manifest': {type: 'manifest', position: 'center', size: {x: 1024, y: 800}},
+    'random-programmatic': {type: 'programmatic', position: 'center', size: {x: 1024, y: 800}},
+    'deregistered': {position: 'center', config: {enabled: false}},
+    'tab-default': {position: 'center', size: {x: 400, y: 300}, queryArgs: {section: 'tabbing'}},
+    'tab-custom1': {
+        position: 'center',
+        size: {x: 400, y: 300},
+        queryArgs: {section: 'tabbing'},
+        config: {tabstrip: {url: 'http://localhost:1337/demo/tabstrips/custom1.html', height: 60}}
+    },
+    'tab-custom2': {
+        position: 'center',
+        size: {x: 400, y: 300},
+        queryArgs: {section: 'tabbing'},
+        config: {tabstrip: {url: 'http://localhost:1337/demo/tabstrips/custom2.html', height: 60}}
+    }
+};
+const windowTemplates: {[key: string]: WindowData} = {
+    'large': {position: 'center', size: {x: 1024, y: 800}},
+    'medium': {position: 'center', size: {x: 600, y: 400}}
+};
+
+export async function deregisterManager(): Promise<void> {
+    await deregister();
+}
+export async function reregisterManager(): Promise<void> {
+    await register();
+}
+
+export async function createTemplateApp(templateName: keyof typeof appTemplates): Promise<void> {
+    const template = appTemplates[templateName];
+
+    if (template) {
+        await createApp(template);
+    }
+}
+
+export async function createTemplateWindow(templateName: keyof typeof windowTemplates): Promise<void> {
+    const template = windowTemplates[templateName];
+
+    if (template) {
+        await createWindow(template);
+    }
+}
+
+export function createSnapWindows(): void {
+    // Create snap windows
+    const colors = ['#7B7BFF', '#A7A7A7', '#3D4059', '#D8D8D8', '#1A194D', '#B6B6B6'];
+    for (let i = 0; i < 6; i++) {
+        fin.Window
+            .create({
+                url: `${launchDir}/testbed/index.html?theme=${colors[i % colors.length]}`,
+                autoShow: true,
+                defaultHeight: i > 2 ? 275 : 200,
+                defaultWidth: i > 4 ? 400 : 300,
+                defaultLeft: 350 * (i % 3) + 25,
+                defaultTop: i > 2 ? 300 : 50,
+                saveWindowState: false,
+                frame: false,
+                name: 'Window' + (i + 1)
+            })
+            .then(console.log, console.error);
+    }
+}
+
+export async function setLayout(layoutParam?: Workspace) {
     const id = (document.getElementById('layoutName') as HTMLTextAreaElement).value;
     const layoutSelect = document.getElementById('layoutSelect') as HTMLSelectElement;
-    const layout = layoutParam || await Layouts.generateLayout();
+    const layout = layoutParam || await workspaces.generate();
     const workspace = {id, layout};
 
     if (layoutSelect) {
@@ -35,7 +104,7 @@ export async function setLayout(layoutParam?: Layout) {
     }
 
     Storage.saveLayout(workspace);
-    document.getElementById('showLayout')!.innerHTML = JSON.stringify(layout, null, 2);
+    updateTextArea(layout);
 }
 
 export async function killAllWindows() {
@@ -58,107 +127,25 @@ export async function killAllWindows() {
 export async function getLayout() {
     const id = (document.getElementById('layoutSelect') as HTMLSelectElement).value;
     const workspace = Storage.getLayout(id);
-    document.getElementById('showLayout')!.innerHTML = JSON.stringify(workspace, null, 2);
+    updateTextArea(workspace);
 }
 
 export async function getAllLayouts() {
     const layoutIDs = Storage.getAllLayoutIDs();
-    document.getElementById('showLayout')!.innerHTML = JSON.stringify(layoutIDs, null, 2);
+    updateTextArea(layoutIDs);
 }
 
 export async function restoreLayout() {
     const id = (document.getElementById('layoutSelect') as HTMLSelectElement).value;
     const workspace = Storage.getLayout(id);
     console.log('Restoring layout');
-    const afterLayout = await Layouts.restoreLayout(workspace.layout);
-    document.getElementById('showLayout')!.innerHTML = JSON.stringify(afterLayout, null, 2);
+    const afterLayout = await workspaces.restore(workspace.layout);
+    updateTextArea(afterLayout);
 }
 
-export async function createAppFromManifest2() {
-    const appUrl = `${launchDir}/app2.json`;
-    console.log('appurl', appUrl);
-    fin.desktop.Application.createFromManifest(appUrl, (a: fin.OpenFinApplication) => a.run(), (e: Error) => {
-        throw e;
-    });
-    // v2 api broken for createfromman / run
-    // const app = await fin.Application.createFromManifest(appUrl);
-    // app.run();
-}
-export async function createAppFromManifest3() {
-    const appUrl = `${launchDir}/app3.json`;
-    console.log('appurl', appUrl);
-    fin.desktop.Application.createFromManifest(appUrl, (a: fin.OpenFinApplication) => a.run(), (e: Error) => {
-        throw e;
-    });
-    // v2 api broken for createfromman / run
-    // const app = await fin.Application.createFromManifest(appUrl);
-    // app.run();
-}
-
-export async function createAppProgrammatically4() {
-    const app = new fin.desktop.Application(
-        {
-            url: `http://localhost:1337/demo/app4.html`,
-            uuid: 'App-4',
-            name: 'App-4',
-            mainWindowOptions: {defaultWidth: 400, defaultHeight: 300, saveWindowState: false, autoShow: true, defaultCentered: true}
-        },
-        () => {
-            app.run();
-        },
-        console.error);
-}
-
-export async function createAppProgrammatically5() {
-    const app = new fin.desktop.Application(
-        {
-            url: `http://localhost:1337/demo/app5.html`,
-            uuid: 'App-5',
-            name: 'App-5',
-            mainWindowOptions: {defaultWidth: 300, defaultHeight: 400, saveWindowState: false, autoShow: true, defaultCentered: true}
-        },
-        () => {
-            app.run();
-        },
-        console.error);
-}
-
-export function createSnapWindows(): void {
-    // Create snap windows
-    fin.desktop.main(() => {
-        for (let i = 0; i < 6; i++) {
-            fin.Window
-                .create({
-                    url: `${launchDir}/popup.html`,
-                    autoShow: true,
-                    defaultHeight: i > 2 ? 275 : 200,
-                    defaultWidth: i > 4 ? 400 : 300,
-                    defaultLeft: 350 * (i % 3) + 25,
-                    defaultTop: i > 2 ? 300 : 50,
-                    saveWindowState: false,
-                    frame: false,
-                    name: 'Window' + (i + 1)
-                })
-                .then(console.log)
-                .catch(console.log);
-        }
-    });
-}
-
-export function createSimpleWindow(page: string) {
-    const uuid = `App${numTabbedWindows}`;
-    const app = new fin.desktop.Application(
-        {
-            url: `http://localhost:1337/demo/${page}.html`,
-            uuid,
-            name: uuid,
-            mainWindowOptions: {defaultWidth: 400, defaultHeight: 300, saveWindowState: false, autoShow: true, defaultCentered: true}
-        },
-        () => {
-            app.run();
-            numTabbedWindows++;
-        },
-        console.error);
+function updateTextArea(content: {}): void {
+    const textArea = document.getElementById('showLayout') as HTMLTextAreaElement;
+    textArea.value = JSON.stringify(content, null, 2);
 }
 
 function addLayoutNamesToDropdown() {
@@ -180,19 +167,17 @@ function createOptionElement(id: string) {
 }
 
 export function importLayout() {
-    const textfield = document.getElementById('showLayout')! as HTMLTextAreaElement;
+    const textfield = document.getElementById('showLayout') as HTMLTextAreaElement;
     const layout = JSON.parse(textfield.value);
     setLayout(layout.layout || layout);
 }
 
-// Do not snap to other windows
-Layouts.deregister();
-
-Layouts.ready();
+workspaces.ready();
 
 fin.desktop.main(() => {
+    addSpawnListeners();
     addLayoutNamesToDropdown();
 });
 
-// Expose layouts API on window for debugging/demoing
-(window as Window & {layouts: typeof Layouts}).layouts = Layouts;
+// Expose layouts API and createApp/Window utils on window for debugging/demoing
+Object.assign(window, {layouts: {register, deregister, snapAndDock, tabbing, tabstrip, workspaces}, createApp, createWindow});

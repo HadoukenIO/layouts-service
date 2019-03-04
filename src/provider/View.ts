@@ -33,12 +33,12 @@ export class View {
                     break;
                 case eTargetType.TAB:
                     if (target.targetWindow.tabGroup && target.activeWindow.tabGroup && target.targetWindow.tabGroup === target.activeWindow.tabGroup) {
-                        targetItem = target.activeWindow;
+                        targetItem = target.activeWindow.tabGroup.window;
+                        activeItem = target.activeWindow.tabGroup.window;
                     } else {
                         targetItem = target.targetWindow;
+                        activeItem = target.activeWindow;
                     }
-
-                    activeItem = target.activeWindow;
                     break;
                 case eTargetType.EJECT:
                     activeItem = null;

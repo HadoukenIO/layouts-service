@@ -1,5 +1,6 @@
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
-import {LayoutApp, LayoutWindow} from '../../client/types';
+
+import {WorkspaceApp, WorkspaceWindow} from '../../client/workspaces';
 import {model} from '../main';
 import {WindowIdentity} from '../model/DesktopWindow';
 import {promiseMap} from '../snapanddock/utils/async';
@@ -23,16 +24,16 @@ export const getGroup = (identity: Identity): Promise<Identity[]> => {
     });
 };
 
-export const regroupLayout = async (apps: LayoutApp[]) => {
-    await promiseMap(apps, async(app: LayoutApp): Promise<void> => {
+export const regroupWorkspace = async (apps: WorkspaceApp[]) => {
+    await promiseMap(apps, async(app: WorkspaceApp): Promise<void> => {
         await groupWindow(app.mainWindow);
-        await promiseMap(app.childWindows, async (child: LayoutWindow) => {
+        await promiseMap(app.childWindows, async (child: WorkspaceWindow) => {
             await groupWindow(child);
         });
     });
 };
 
-export const groupWindow = async (win: LayoutWindow) => {
+export const groupWindow = async (win: WorkspaceWindow) => {
     await promiseMap(win.windowGroup, async (w: Identity) => {
         if (w.uuid === 'layouts-service') {
             return;

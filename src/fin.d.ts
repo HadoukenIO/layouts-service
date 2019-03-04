@@ -343,10 +343,10 @@ declare namespace fin {
         bottomRightCorner?: number;
         
         sides: {
-            top: boolean;
-            bottom: boolean;
-            left: boolean;
-            right: boolean;
+            top?: boolean;
+            bottom?: boolean;
+            left?: boolean;
+            right?: boolean;
         };
     }
 
@@ -1110,6 +1110,7 @@ declare namespace fin {
          * 'frame-enabled' is generated when a disabled frame has becomes enabled.
          */
         enableFrame(callback?: () => void, errorCallback?: (reason: string) => void): void;
+        executeJavaScript(code: string, callback?: (result: any) => void, errorCallback?: (reason: string) => void): void;
         /**
          * Flashes the window's frame and taskbar icon until the window is activated.
          */

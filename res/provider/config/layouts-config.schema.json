@@ -1,0 +1,307 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "layouts-config",
+    "type": "object",
+    "title": "Layouts Config",
+    "description": "Configuration for the OpenFin Layouts Service, allowing the service and/or specific features to be enabled/disabled.",
+    "definitions": {
+        "pattern": {
+            "title": "RegEx",
+            "description": "JSON representation of a regular expression.",
+            "type": "object",
+            "required": [
+                "expression"
+            ],
+            "properties": {
+                "expression": {
+                    "type": "string"
+                },
+                "flags": {
+                    "type": "string",
+                    "default": ""
+                },
+                "invert": {
+                    "type": "boolean",
+                    "default": false
+                }
+            },
+            "additionalProperties": false
+        },
+        "rule-app": {
+            "title": "ApplicationRule",
+            "description": "A rule targeting an application (or set of applications) by UUID.",
+            "properties": {
+                "level": {
+                    "type": "string",
+                    "enum": [
+                        "application"
+                    ]
+                },
+                "uuid": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "$ref": "#/definitions/pattern"
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "level",
+                "uuid"
+            ],
+            "additionalProperties": false
+        },
+        "rule-window": {
+            "title": "WindowRule",
+            "description": "A rule targeting a window (or set of windows) by UUID-Name pair.",
+            "properties": {
+                "level": {
+                    "type": "string",
+                    "enum": [
+                        "window"
+                    ]
+                },
+                "uuid": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "$ref": "#/definitions/pattern"
+                        }
+                    ]
+                },
+                "name": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "$ref": "#/definitions/pattern"
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "level",
+                "uuid",
+                "name"
+            ],
+            "additionalProperties": false
+        },
+        "rule-other": {
+            "title": "OtherRule",
+            "properties": {
+                "level": {
+                    "type": "string",
+                    "enum": [
+                        "service",
+                        "desktop"
+                    ]
+                }
+            },
+            "required": [
+                "level"
+            ],
+            "additionalProperties": false
+        },
+        "rule": {
+            "title": "Rule",
+            "oneOf": [
+                {
+                    "$ref": "#/definitions/rule-app"
+                },
+                {
+                    "$ref": "#/definitions/rule-window"
+                },
+                {
+                    "$ref": "#/definitions/rule-other"
+                },
+                {
+                    "$ref": "#/definitions/scope"
+                }
+            ]
+        },
+        "tabstrip": {
+            "type": "object",
+            "description": "Specifies a custom tabstrip to be used whenever two windows are tabbed together. Windows can only be tabbed if their configurations both allow it - they must use the same tabstrip URL, and both have the 'tab' feature enabled.",
+            "properties": {
+                "url": {
+                    "type": "string",
+                    "title": "Tabstrip URL",
+                    "description": "Sets a custom tabstrip URL",
+                    "default": ""
+                },
+                "height": {
+                    "type": "number",
+                    "title": "Tabstrip Height",
+                    "description": "Sets the height of the custom tabstrip, in pixels",
+                    "minimum": 0,
+                    "default": 60
+                }
+            },
+            "required": ["url", "height"],
+            "additionalProperties": false
+        },
+        "configuration-object": {
+            "title": "ConfigurationObject",
+            "description": "An instance of Layouts Service configuration.",
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enables/disables all Layouts Service behaviour for the given scope."
+                },
+                "features": {
+                    "description": "A set of specific features that can be toggled on/off as desired",
+                    "properties": {
+                        "snap": {
+                            "type": "boolean",
+                            "description": "Toggles the snap and dock functionality of the service. Windows will not snap or dock when dragged next to each other, but can still be moved and grouped using the base OpenFin APIs."
+                        },
+                        "dock": {
+                            "type": "boolean",
+                            "description": "Toggles the docking functionality of the service. Windows will still snap side-by-side, but will not be grouped as a result."
+                        },
+                        "tab": {
+                            "type": "boolean",
+                            "description": "Toggles the ability to tab windows by drag-and-drop. Windows can still be tabbed programmatically using the layouts client api."
+                        }
+                    },
+                    "default": {
+                        "snap": true,
+                        "dock": true,
+                        "tab": true
+                    },
+                    "additionalProperties": false
+                },
+                "tabstrip": {
+                    "$ref": "#/definitions/tabstrip"
+                }
+            },
+            "additionalProperties": false
+        },
+        "scoped-configuration-object": {
+            "title": "ScopedConfigurationObject",
+            "description": "A set of service options and a scope specifying where they should be applied.",
+            "type": "object",
+            "allOf": [
+                {
+                    "properties": {
+                        "scope": {
+                            "$ref": "#/definitions/rule"
+                        }
+                    },
+                    "required": [
+                        "scope"
+                    ],
+                    "additionalProperties": false
+                },
+                {
+                    "$ref": "#/definitions/configuration-object"
+                }
+            ],
+            "additionalProperties": false
+        },
+        "scope": {
+            "title": "Scope",
+            "type": "object",
+            "oneOf": [
+                {
+                    "$ref": "#/definitions/scope-app"
+                },
+                {
+                    "$ref": "#/definitions/scope-window"
+                },
+                {
+                    "$ref": "#/definitions/scope-other"
+                }
+            ]
+        },
+        "scope-app": {
+            "title": "ApplicationScope",
+            "description": "A scope targeting a specific OpenFin application and all of its windows",
+            "properties": {
+                "level": {
+                    "type": "string",
+                    "enum": [
+                        "application"
+                    ]
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "level",
+                "uuid"
+            ],
+            "additionalProperties": false
+        },
+        "scope-window": {
+            "title": "WindowScope",
+            "description": "A scope targeting a specific OpenFin window",
+            "properties": {
+                "level": {
+                    "type": "string",
+                    "enum": [
+                        "window"
+                    ]
+                },
+                "uuid": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "level",
+                "uuid",
+                "name"
+            ],
+            "additionalProperties": false
+        },
+        "scope-other": {
+            "title": "OtherScope",
+            "description": "A scope for all levels with no extra data required (e.g. desktop-level configuration)",
+            "properties": {
+                "level": {
+                    "type": "string",
+                    "enum": [
+                        "service",
+                        "desktop"
+                    ]
+                }
+            },
+            "required": [
+                "level"
+            ],
+            "additionalProperties": false
+        }
+    },
+    "allOf": [
+        {
+            "$ref": "#/definitions/configuration-object"
+        },
+        {
+            "type": "object",
+            "properties": {
+                "rules": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/scoped-configuration-object"
+                    },
+                    "minItems": 0,
+                    "default": []
+                }
+            },
+            "additionalProperties": false
+        }
+    ],
+    "additionalProperties": false
+}

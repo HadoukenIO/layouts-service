@@ -1,6 +1,6 @@
 import {test} from 'ava';
 
-import {Layout} from '../../../src/client/types';
+import {Workspace} from '../../../src/client/workspaces';
 import {assertAllContiguous, assertGrouped, assertNotGrouped} from '../../provider/utils/assertions';
 import {createChildWindow} from '../../provider/utils/createChildWindow';
 import {delay} from '../../provider/utils/delay';
@@ -72,14 +72,14 @@ testParameterized(
         await initializer.arrangeWindows(windows, arrangement);
         await assertGrouped(t, ...windows);
 
-        const layout: Layout = await layoutsClient.generateLayout();
+        const layout: Workspace = await layoutsClient.workspaces.generate();
 
         await Promise.all(windows.map(w => fin.Window.wrapSync(w.identity).close()));
         deregisteredApp.close(true);
         await delay(500);
 
-        await layoutsClient.restoreLayout(layout);
-        await delay(500);
+        await layoutsClient.workspaces.restore(layout);
+        await delay(1500);
 
         await Promise.all(registeredChildren.map(w => assertWindowRestored(t, w.identity.uuid, w.identity.name!)));
 

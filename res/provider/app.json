@@ -1,6 +1,7 @@
 {
     "licenseKey": "64605fac-add3-48a0-8710-64b38e96a2dd",
     "devtools_port": 9091,
+    "offlineAccess": true,
     "startup_app": {
         "name": "layouts-service",
         "description": "OpenFin Layouts Managing Service",
@@ -13,7 +14,7 @@
         "enableAppLogging": true
     },
     "runtime": {
-        "arguments": "--enable-aggressive-domstorage-flushing --high-dpi-support=1 --force-device-scale-factor=1",
+        "arguments": "--enable-aggressive-domstorage-flushing --message-timeout=60000",
         "version": "9.61.38.40"
     }
 }

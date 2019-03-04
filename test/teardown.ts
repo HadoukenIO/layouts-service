@@ -1,6 +1,9 @@
 import {TestContext} from 'ava';
 import {Window} from 'hadouken-js-adapter';
 
+import {Scopes} from '../src/provider/config/Store';
+import {ScopePrecedence} from '../src/provider/config/ConfigUtil';
+
 import {getConnection} from './provider/utils/connect';
 import {executeJavascriptOnService} from './demo/utils/serviceUtils';
 import {WindowInfo, WindowDetail} from 'hadouken-js-adapter/out/types/src/api/system/window';
@@ -65,8 +68,8 @@ async function closeAllWindows(t: TestContext): Promise<void> {
             // Main window persists, but close any child windows
             return name !== uuid;
         } else if(uuid === 'layouts-service') {
-            if (name === uuid || name === 'previewWindow') {
-                // Main window and preview window persist
+            if (name === uuid || name === 'successPreview' || name === 'failurePreview') {
+                // Main window and preview windows persist
                 return false;
             } else if (name!.startsWith('TABSET-')) {
                 // Allow pooled tabstrips to persist, but destroy any broken/left-over tabstrips
@@ -86,18 +89,21 @@ async function closeAllWindows(t: TestContext): Promise<void> {
         await Promise.all(invalidWindows.map((w: Window) => w.close(true).catch((e) => {
             console.warn(`Window close failed (ignoring) ${w.identity.uuid}/${w.identity.name}:`, e);
         })));
+
         console.warn(`${invalidWindows.length} window(s) left over after test: ${invalidWindows.map(w => `${w.identity.uuid}/${w.identity.name}`).join(", ")}`);
+
     }
 }
 
 async function resetProviderState(t: TestContext): Promise<void> {
-    const msg: string|null = await executeJavascriptOnService(function(this: ProviderWindow): string|null {
+    const msg: string|null = await executeJavascriptOnService<Scopes[], string|null>(function(this: ProviderWindow, allScopes: Scopes[]): string|null {
         const SEPARATOR_LIST = ', ';
         const SEPARATOR_LINE = '\n    ';
 
         const {windows, snapGroups, tabGroups} = this.model;
         const msgs: string[] = [];
 
+        // Check model state
         if (windows.length > 0) {
             msgs.push(`Provider still had ${windows.length} windows registered: ${windows.map(w => w.id).join(SEPARATOR_LIST)}`);
             this.model['_windows'].length = 0;
@@ -116,6 +122,41 @@ async function resetProviderState(t: TestContext): Promise<void> {
             this.model['_tabGroups'].length = 0;
         }
 
+        // Check config state
+        const rules = this.config["_items"];
+        const watches = this.config["_watches"];
+        const loaderApps = this.loader["_appState"];
+        const loaderWindows = this.loader["_windowsWithConfig"];
+        const expectedRuleCounts: Map<Scopes, number> = new Map<Scopes, number>([
+            ["service", 1],
+            ["application", 2],
+            ["window", 2]
+        ]);
+        const expectedWatcherCount = 3;
+        allScopes.forEach((scope: Scopes) => {
+            const rulesWithScope = rules.get(scope) || [];
+            const expectedCount = expectedRuleCounts.get(scope) || 0;
+
+            if (rulesWithScope.length !== expectedCount) {
+                const configInfo = rulesWithScope.map(rule => JSON.stringify(rule)).join(SEPARATOR_LINE);
+                msgs.push(`Expected ${expectedCount} rules with scope ${scope}, got:${configInfo ? SEPARATOR_LINE + configInfo: " NONE"}`);
+
+                // Can't do a full clean-up without duplicating provider state here, but removing anything that was defined outside of the service (test windows, etc)
+                rules.set(scope, rulesWithScope.filter(config => config.source.level === 'service'));
+            }
+        });
+        if (watches.length !== expectedWatcherCount) {
+            msgs.push(`Had ${watches.length} config watchers registered, expected ${expectedWatcherCount}`);
+        }
+        if (Object.keys(loaderApps).filter(uuid => uuid !== 'TEST').length > 0) {
+            const loaderInfo = JSON.stringify(loaderApps, null, 4).replace(/\n/g, SEPARATOR_LINE);
+            msgs.push(`Expected loader's appState cache to be empty (except for TEST), contains:${SEPARATOR_LINE}${loaderInfo}`);
+        }
+        if (loaderWindows.length !== 1 || loaderWindows[0] !== 'window:testApp/testApp') {
+            const loaderInfo = loaderWindows.join(SEPARATOR_LIST);
+            msgs.push(`Expected loader's windowsWithConfig cache to only contain testApp, contains:${SEPARATOR_LINE}${loaderInfo}`);
+        }
+
         if (msgs.length > 1) {
             return `${msgs.length} issues detected in provider state:${SEPARATOR_LINE}${msgs.map(msg => msg.replace(/\n/g, SEPARATOR_LINE)).join(SEPARATOR_LINE)}`;
         } else if (msgs.length === 1) {
@@ -123,13 +164,13 @@ async function resetProviderState(t: TestContext): Promise<void> {
         } else {
             return null;
         }
-    });
+    }, Object.keys(ScopePrecedence) as Scopes[]);
 
     if (msg) {
         // Pass-through debug info from provider
         console.warn(msg);
 
         // Wait for clean-up to complete
-        await delay(5000);
+        await delay(1000);
     }
 }

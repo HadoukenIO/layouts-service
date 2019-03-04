@@ -1,6 +1,6 @@
 
 import * as layouts from '../../../client/main';
-import {TabProperties, WindowIdentity} from '../../../client/types';
+import {TabProperties} from '../../../client/tabbing';
 
 import {TabManager} from './TabManager';
 
@@ -18,7 +18,7 @@ export class Tab {
     /**
      * ID of the Tab (uuid, name);
      */
-    private _ID: WindowIdentity;
+    private _ID: layouts.WindowIdentity;
 
     /**
      * Handle to the TabManager
@@ -30,7 +30,7 @@ export class Tab {
      * @param {WindowIdentity} tabID An object containing the uuid, name for the external application/window.
      * @param {TabManager} tabManager Reference to the tab manager handling this tab.
      */
-    constructor(tabID: WindowIdentity, tabProperties: TabProperties, tabManager: TabManager) {
+    constructor(tabID: layouts.WindowIdentity, tabProperties: TabProperties, tabManager: TabManager) {
         this._ID = tabID;
         this._properties = tabProperties;
         this._tabManager = tabManager;
@@ -91,7 +91,7 @@ export class Tab {
      */
     private _onDragStart(e: DragEvent): boolean {
         e.dataTransfer!.effectAllowed = 'move';
-        layouts.tabStrip.startDrag();
+        layouts.tabstrip.startDrag(this._ID);
         return true;
     }
 
@@ -100,7 +100,7 @@ export class Tab {
      * @param {DragEvent} e DragEvent
      */
     private _onDragEnd(e: DragEvent): void {
-        layouts.tabStrip.endDrag(e, this._ID);
+        layouts.tabstrip.endDrag();
     }
 
     /**
@@ -129,7 +129,7 @@ export class Tab {
         this.setActive();
 
         if ((e.target as Element).className !== 'tab-exit') {
-            layouts.setActiveTab(this._ID);
+            layouts.tabbing.setActiveTab(this._ID);
         }
     }
 
@@ -140,7 +140,7 @@ export class Tab {
      */
     private _onClickHandler(e: MouseEvent): void {
         if ((e.target as Element).className === 'tab-exit') {
-            layouts.closeTab(this._ID);
+            layouts.tabbing.closeTab(this._ID);
         }
     }
 
@@ -155,7 +155,7 @@ export class Tab {
                 this._handlePropertiesInput();
                 break;
             }
-            default: { layouts.setActiveTab(this._ID); }
+            default: { layouts.tabbing.setActiveTab(this._ID); }
         }
     }
 
@@ -199,7 +199,10 @@ export class Tab {
             try {
                 inputNode.remove();
                 that.updateText(inputNode.value);
-                layouts.tabStrip.updateTabProperties(that._ID, {title: inputNode.value});
+                layouts.tabbing.updateTabProperties(
+                    {title: inputNode.value},
+                    that._ID,
+                );
             } catch (e) {
             }
         }
@@ -221,7 +224,7 @@ export class Tab {
      * Returns tab identifier object consisting of UUID, Name
      * @returns {WindowIdentity} {uuid, name}
      */
-    public get ID(): WindowIdentity {
+    public get ID(): layouts.WindowIdentity {
         return this._ID;
     }
 

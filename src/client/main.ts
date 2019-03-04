@@ -1,196 +1,137 @@
 /**
- * @module Home
+ * @module Index
  */
-import {Identity} from 'hadouken-js-adapter';
-
 import {tryServiceDispatch} from './connection';
-import {getId} from './internal';
-import {undockGroup, undockWindow} from './snapanddock';
-import {addTab, closeTab, closeTabGroup, createTabGroup, getTabs, JoinTabGroupPayload, maximizeTabGroup, TabGroupEventPayload, TabPropertiesUpdatedPayload} from './tabbing';
-import {minimizeTabGroup, removeTab, restoreTabGroup, setActiveTab, setTabClient, tabStrip} from './tabbing';
-import {generateLayout, onApplicationSave, onAppRestore, onLayoutRestore, onLayoutSave, ready, restoreLayout} from './workspaces';
+import {getId, parseIdentityRule, RegisterAPI} from './internal';
+import * as snapAndDock from './snapanddock';
+import * as tabbing from './tabbing';
+import * as tabstrip from './tabstrip';
+import * as workspaces from './workspaces';
 
-export {undockGroup, undockWindow};
-export {addTab, closeTab, closeTabGroup, createTabGroup, getTabs, maximizeTabGroup};
-export {minimizeTabGroup, removeTab, restoreTabGroup, setActiveTab, setTabClient, tabStrip};
-export {generateLayout, onApplicationSave, onAppRestore, onLayoutRestore, onLayoutSave, ready, restoreLayout};
+export {snapAndDock, tabbing, tabstrip, workspaces};
+
+/**
+ * Interface used to identify window instances. Unlike `hadouken-js-adapter` types, the layouts service expects the
+ * `name` field to be present on every identity object.
+ *
+ * For convenience, client functions are typed to take the `Identity` type rather than `WindowIdentity` in order to
+ * prevent excessive casting.  The client will fill in the name field with the uuid value if not set.  Any window identities returned by the service will always
+ * be of type `WindowIdentity`.
+ */
+export interface WindowIdentity {
+    /**
+     * Application identifier
+     */
+    uuid: string;
+
+    /**
+     * Window identifier
+     */
+    name: string;
+}
+
+/**
+ * As `Identity`, but allows for multiple window identities to be specified, through the use of regular expressions.
+ *
+ * If using a regex, it must be specified in JSON-like format, using the {@link RegEx} type - JS regex literals are not supported.
+ */
+export interface IdentityRule {
+    /**
+     * Application identifier or pattern
+     */
+    uuid: string|RegEx;
+
+    /**
+     * Window identifier or pattern
+     */
+    name: string|RegEx;
+}
+
+/**
+ * Format that must be used when passing regular expressions to the service.
+ *
+ * Note: Only a fairly small subset of API calls allow the use of regex patterns, most API calls require a single explicit window identity.
+ */
+export interface RegEx {
+    /**
+     * Defines the regex pattern.
+     *
+     * Do not wrap the expression in `/` characters - specify the pattern string as you would when passing to the `RegExp` constructor.
+     */
+    expression: string;
+
+    /**
+     * Any additional flags that form part of this expression. Supports same
+     * [values](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp#Parameters) as the native JS `RegExp` class.
+     */
+    flags?: string;
+
+    /**
+     * In addition, an `invert` parameter can also be used, to flip the filter that is defined by this expression.
+     */
+    invert?: boolean;
+}
 
 /**
  * Allows a window to opt-out of this service.
  *
  * This will disable *all* layouts-related functionality for the given window.
  *
- * @param identity The window to deregister, defaults to the current window
+ * Multiple windows can be deregistered at once by using regex patterns on `identity.uuid`/`identity.name`.
+ *
+ * This API can be used to programmatically override configuration set at an app-wide level, such as in the application manifest.
+ *
+ * ```ts
+ * import {deregister} from 'openfin-layouts';
+ *
+ * // De-register the current window
+ * deregister();
+ *
+ * // De-register a single named window
+ * deregister({uuid: 'my-uuid', name: 'window'});
+ *
+ * // De-register multiple windows belonging to the same application
+ * deregister({uuid: 'my-uuid', name: {expression: 'popup-.*'}});
+ *
+ * // De-register all windows belonging to an application, not matching a pattern
+ * deregister({uuid: 'my-uuid', name: {expression: 'interactive-.*', invert: true}});
+ * ```
+ *
+ * @param identity The window (or pattern of windows) to deregister, defaults to the current window
  */
-export async function deregister(identity: Identity = getId()): Promise<void> {
-    return tryServiceDispatch<Identity, void>('deregister', identity);
+export async function deregister(identity: IdentityRule = getId() as IdentityRule): Promise<void> {
+    return tryServiceDispatch<IdentityRule, void>(RegisterAPI.DEREGISTER, parseIdentityRule(identity));
 }
 
 /**
- * Registers a listener for any events raised by the service.
+ * Allows a window to opt-in back to this service if previously deregistered.
  *
- * @param eventType Event to be subscribed to. Valid options are 'join-snap-group' and 'leave-snap-group'
- * @param callback Function to be executed on event firing. Takes no arguments and returns void.
- */
-export async function addEventListener<K extends keyof EventMap>(type: K, listener: (event: EventMap[K]) => void): Promise<void> {
-    if (typeof fin === 'undefined') {
-        throw new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.');
-    }
-    // Use native js event system to pass internal events around.
-    // Without this we would need to handle multiple registration ourselves.
-    window.addEventListener(type, listener as EventListener);
-}
-
-
-/**
- * Event fired when one window is docked to another.
+ * This will enable *all* layouts-related functionality for the given window unless alternative behaviors are set in the layout configuration.
  *
- * It is not possible to receive events for another window. When adding a listener, the listener will only ever fire for the "`fin.desktop.Window.getCurrent()`"
- * window.
+ * This API can be used to programmatically override configuration set at an app-wide level, such as in the application manifest.
+ *
+ * This API is provided to complement {@link deregister}, to allow programmatic override of default service behavior or configuration
+ * specified in an application manifest. This API is not required or intended for initial opt-in of your application to the service,
+ * which is achieved through the `"services"` attribute within an application manifest.
  *
  * ```ts
- * import {addEventListener} from 'openfin-layouts';
+ * import {register} from 'openfin-layouts';
  *
- * addEventListener('join-snap-group', async (event: Event) => {
- *     console.log("Docked to another window");
+ * // Register the current window
+ * register();
  *
- *     // Using 'v1' API
- *     fin.desktop.Window.getCurrent().getGroup((windows) => {
- *         console.log("Windows in current group: ", windows);
- *     });
+ * // Register a single named window
+ * register({uuid: 'my-uuid', name: 'window'});
  *
- *     // Using 'v2' API
- *     console.log("Windows in current group: ", await fin.Window.getCurrentSync().getGroup());
- * });
+ * // Register multiple windows belonging to the same application
+ * register({uuid: 'my-uuid', name: {expression: 'interactive-.*'}});
+ *
+ * // Register all windows belonging to an application, not matching a pattern
+ * register({uuid: 'my-uuid', name: {expression: 'popup-.*', invert: true}});
  * ```
  *
- * The service considers any windows that are tabbed together to also be in the same snap group, so this event will also fire when a window is added to a tab
- * group. This may change in future versions of the service.
- *
- * @type join-snap-group
- * @event
+ * @param identity The window (or pattern of windows) to register, defaults to the current window
  */
-export type JoinSnapGroupEvent = Event&{type: 'join-snap-group'};
-
-/**
- * Event fired when one window is undocked from it's neighbor(s).
- *
- * It is not possible to receive events for another window. When adding a listener, the listener will only ever fire for the "`fin.desktop.Window.getCurrent()`"
- * window.
- *
- * ```ts
- * import {addEventListener} from 'openfin-layouts';
- *
- * addEventListener('leave-snap-group', async (event: Event) => {
- *     console.log("Undocked from another window");
- *
- *     // Using 'v1' API
- *     fin.desktop.Window.getCurrent().getGroup((windows) => {
- *         console.log("Windows in current group: ", windows);
- *     });
- *
- *     // Using 'v2' API
- *     console.log("Windows in current group: ", await fin.Window.getCurrentSync().getGroup());
- * });
- * ```
- *
- * The service considers any windows that are tabbed together to also be in the same snap group, so this event will also fire when a window is removed from a
- * tab group. This may change in future versions of the service.
- *
- * @type leave-snap-group
- * @event
- */
-export type LeaveSnapGroupEvent = Event&{type: 'leave-snap-group'};
-
-/**
- * Event fired whenever the current window is tabbed. This event is used when adding windows to both new and existing
- * tabsets.
- *
- * To find out which other windows are in the tabset, use the `getTabs()` method.
- *
- * ```ts
- * import {addEventListener, getTabs} from 'openfin-layouts';
- *
- * addEventListener('join-tab-group', async (event: CustomEvent<JoinTabGroupPayload>) => {
- *     console.log("Window added to tab group");
- *     console.log("Windows in current group: ", await getTabs());
- * });
- * ```
- *
- * If a window is moved from one tab group to another, this will be messaged as a `leave-tab-group` event, followed by a `join-tab-group`.
- *
- * @type join-tab-group
- * @event
- */
-export type JoinTabGroupEvent = CustomEvent<JoinTabGroupPayload>&{type: 'join-tab-group'};
-
-/**
- * Event fired whenever the current window is removed from it's previous tabset.
- *
- * To find out which other windows are in the tabset, use the `getTabs()` method.
- *
- * ```ts
- * import {addEventListener} from 'openfin-layouts';
- *
- * addEventListener('leave-tab-group', async (event: Event) => {
- *     console.log("Window removed from tab group");
- * });
- * ```
- *
- * If a window is moved from one tab group to another, this will be messaged as a `leave-tab-group` event, followed by a `join-tab-group`.
- *
- * @type leave-tab-group
- * @event
- */
-export type LeaveTabGroupEvent = CustomEvent<TabGroupEventPayload>&{type: 'leave-tab-group'};
-
-/**
- * Event fired whenever the active tab within a tab group is changed.
- *
- * ```ts
- * import {addEventListener, getTabs} from 'openfin-layouts';
- *
- * addEventListener('tab-activated', async (event: Event) => {
- *     const activeTab = event.detail.tabID;
- *     console.log("Active tab:", activeTab.uuid, activeTab.name);
- * });
- * ```
- *
- * NOTE: This event is only passed to tabstrip windows, and not to the actual application windows within the tabset.
- *
- * @type tab-activated
- * @event
- */
-export type TabActivatedEvent = CustomEvent<TabGroupEventPayload>&{type: 'tab-activated'};
-
-/**
- * Event fired whenever a tabs properties are updated (via {@link updateTabProperties}).
- *
- * The event will always contain the full properties of the tab, even if only a subset of them were updated.
- *
- * ```ts
- * import {addEventListener, getTabs} from 'openfin-layouts';
- *
- * addEventListener('tab-properties-updated', async (event: CustomEvent<TabPropertiesUpdatedPayload>) => {
- *     const tabID = event.detail.tabID;
- *     const properties = event.detail.properties;
- *     console.log(`Properties for ${tabID.uuid}/${tabID.name} are:`, properties);
- * });
- * ```
- *
- * @type tab-properties-updated
- * @event
- */
-export type TabPropertiesUpdatedEvent = CustomEvent<TabPropertiesUpdatedPayload>&{type: 'tab-properties-updated'};
-
-/**
- * @hidden
- */
-export interface EventMap {
-    'join-snap-group': JoinSnapGroupEvent;
-    'leave-snap-group': LeaveSnapGroupEvent;
-    'join-tab-group': JoinTabGroupEvent;
-    'leave-tab-group': LeaveTabGroupEvent;
-    'tab-activated': TabActivatedEvent;
-    'tab-properties-updated': TabPropertiesUpdatedEvent;
+export async function register(identity: IdentityRule = getId() as IdentityRule): Promise<void> {
+    return tryServiceDispatch<IdentityRule, void>(RegisterAPI.REGISTER, parseIdentityRule(identity));
 }

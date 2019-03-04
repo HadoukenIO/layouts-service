@@ -1,10 +1,15 @@
 import deepEqual from 'fast-deep-equal';
 import {Identity, Window} from 'hadouken-js-adapter';
+import {WindowInfo} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
+import {WindowScope} from '../../../gen/provider/config/layouts-config';
+import {LayoutsEvent} from '../../client/connection';
 import {SERVICE_IDENTITY} from '../../client/internal';
+import {WindowState} from '../../client/workspaces';
+import {EVENT_CHANNEL_TOPIC} from '../APIMessages';
 import {apiHandler} from '../main';
-import {Signal1, Signal2} from '../Signal';
-import {promiseMap} from '../snapanddock/utils/async';
+import {Aggregators, Signal1, Signal2} from '../Signal';
+import {Debounced} from '../snapanddock/utils/Debounced';
 import {isWin10} from '../snapanddock/utils/platform';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle} from '../snapanddock/utils/RectUtils';
@@ -20,7 +25,7 @@ export interface EntityState extends Rectangle {
 
     frame: boolean;
     hidden: boolean;
-    state: 'normal'|'minimized'|'maximized';
+    state: WindowState;
 
     icon: string;
     title: string;
@@ -31,6 +36,7 @@ export interface EntityState extends Rectangle {
     opacity: number;
 
     alwaysOnTop: boolean;
+    maximizable: boolean;
 }
 
 export interface ResizeConstraint {
@@ -61,23 +67,6 @@ export enum eTransformType {
     RESIZE = 1 << 1
 }
 
-/**
- * List of the messages that can be passed to the client.
- */
-export const enum WindowMessages {
-    // Snap & Dock
-    JOIN_SNAP_GROUP = 'join-snap-group',
-    LEAVE_SNAP_GROUP = 'leave-snap-group',
-
-    // Tabbing (application messages)
-    JOIN_TAB_GROUP = 'join-tab-group',
-    LEAVE_TAB_GROUP = 'leave-tab-group',
-
-    // Tabbing (tabstrip messages)
-    TAB_ACTIVATED = 'tab-activated',
-    TAB_PROPERTIES_UPDATED = 'tab-properties-updated'
-}
-
 
 enum ActionOrigin {
     /**
@@ -90,7 +79,7 @@ enum ActionOrigin {
     APPLICATION,
 
     /**
-     * A change made by the service that is intended to be permenant or long-lived. These are changes that will either
+     * A change made by the service that is intended to be permanent or long-lived. These are changes that will either
      * never be reverted, or only reverted once the service is done with the window.
      *
      * e.g: Resizing a window when it is dropped into a tab set.
@@ -107,17 +96,32 @@ enum ActionOrigin {
     SERVICE_TEMPORARY
 }
 
-type OpenFinWindowEventHandler = <K extends keyof fin.OpenFinWindowEventMap>(event: fin.OpenFinWindowEventMap[K]) => void;
+type OpenFinWindowEvent = keyof fin.OpenFinWindowEventMap;
+
+interface Transaction {
+    windows: DesktopWindow[];
+    remove: Debounced<() => void, typeof DesktopWindow, []>;
+}
 
 export class DesktopWindow implements DesktopEntity {
     public static readonly onCreated: Signal1<DesktopWindow> = new Signal1();
     public static readonly onDestroyed: Signal1<DesktopWindow> = new Signal1();
 
+    /**
+     * Tracks which windows are currently being manipulated as part of a transaction.
+     *
+     * This is used to identify and ignore group-changed events triggered by intermediate steps
+     * of the transaction which may lead to out-of-sync state and general instability.
+     */
+    public static activeTransactions: Transaction[] = [];
+
     public static async getWindowState(window: Window): Promise<EntityState> {
-        return Promise.all([window.getOptions(), window.isShowing(), window.getBounds()])
-            .then((results: [fin.WindowOptions, boolean, fin.WindowBounds]): EntityState => {
+        return Promise.all([window.getOptions(), window.getInfo(), window.isShowing(), window.getBounds()])
+            .then((results: [fin.WindowOptions, WindowInfo, boolean, fin.WindowBounds]): EntityState => {
                 const options: fin.WindowOptions = results[0];
-                const bounds: fin.WindowBounds = results[2];
+                const info: WindowInfo = results[1];
+                const isShowing: boolean = results[2];
+                const bounds: fin.WindowBounds = results[3];
                 const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
                 const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
 
@@ -128,34 +132,64 @@ export class DesktopWindow implements DesktopEntity {
                     center.y -= 3.5;
                 }
 
+                // Deal with undefined resizeRegion
+                options.resizeRegion = options.resizeRegion || {sides: {}};
+
                 // Map resize constraints to a more useful format
                 const resizeConstraints: Point<ResizeConstraint> = {
                     x: {
-                        resizableMin: !!options.resizable && (options.resizeRegion ? options.resizeRegion.sides.left : true),
-                        resizableMax: !!options.resizable && (options.resizeRegion ? options.resizeRegion.sides.right : true),
+                        resizableMin: !!options.resizable && (options.resizeRegion.sides.left !== false),
+                        resizableMax: !!options.resizable && (options.resizeRegion.sides.right !== false),
                         minSize: options.minWidth || 0,
                         maxSize: options.maxWidth && options.maxWidth > 0 ? options.maxWidth : Number.MAX_SAFE_INTEGER,
                     },
                     y: {
-                        resizableMin: !!options.resizable && (options.resizeRegion ? options.resizeRegion.sides.top : true),
-                        resizableMax: !!options.resizable && (options.resizeRegion ? options.resizeRegion.sides.bottom : true),
+                        resizableMin: !!options.resizable && (options.resizeRegion.sides.top !== false),
+                        resizableMax: !!options.resizable && (options.resizeRegion.sides.bottom !== false),
                         minSize: options.minHeight || 0,
                         maxSize: options.maxHeight && options.maxHeight > 0 ? options.maxHeight : Number.MAX_SAFE_INTEGER,
                     }
                 };
+
+                // Get window title
+                const {title, url} = info;
+                let windowTitle = title;
+                if (title && url && url.indexOf(title) >= 0) {
+                    // The runtime will return (a subset of) the page URL as the title field if the document doesn't
+                    // define a title. We would like to instead use the window name, to align with what is seen in the
+                    // untabbed window frame.
+
+                    // Current stable (9.61.38.40) behaviour is to return 'host+pathname+search+hash'. There is also a
+                    // story (RUN-3457) to change this to 'host+pathname'. We will check for both of these strings, and
+                    // revert to the window name if the title matches either
+                    const parsedUrl = new URL(url);
+                    const defaultTitles: string[] =
+                        [[parsedUrl.host, parsedUrl.pathname, parsedUrl.search, parsedUrl.hash].join(''), [parsedUrl.host, parsedUrl.pathname].join('')];
+
+                    if (defaultTitles.indexOf(title) >= 0) {
+                        // Fall-back to window name
+                        windowTitle = window.identity.name || '';
+                    }
+                }
+
+                // Special handling for workspace placeholder windows
+                if (window.identity.uuid === SERVICE_IDENTITY.uuid && window.identity.name && window.identity.name.startsWith('Placeholder-')) {
+                    windowTitle = 'Loading...';
+                }
 
                 return {
                     center,
                     halfSize,
                     resizeConstraints,
                     frame: options.frame!,
-                    hidden: !results[1],
+                    hidden: !isShowing,
                     state: options.state!,
                     icon: options.icon || `https://www.google.com/s2/favicons?domain=${options.url}`,
-                    title: options.name!,
+                    title: windowTitle,
                     showTaskbarIcon: options.showTaskbarIcon!,
                     opacity: options.opacity!,
-                    alwaysOnTop: options.alwaysOnTop!
+                    alwaysOnTop: options.alwaysOnTop!,
+                    maximizable: options.maximizable!
                 };
             });
     }
@@ -170,12 +204,33 @@ export class DesktopWindow implements DesktopEntity {
      * @param transform Promisified transformation function. Will be applied after all the windows have been detached from their previous window groups.
      */
     public static async transaction(windows: DesktopWindow[], transform: (windows: DesktopWindow[]) => Promise<void>): Promise<void> {
-        await Promise.all(windows.map(w => w.sync()));
-        await Promise.all(windows.map(w => w.unsnap()));
-        // await Promise.all(windows.map(w => w.sync()));
-        await transform(windows);
-        await Promise.all(windows.map(w => w.snap()));
-        // await Promise.all(windows.map(w => w.sync()));
+        // Create a transaction object and add it to the active transactions list.
+        // The 'remove' property looks a bit strange but effectively lets the object remove itself
+        // from the list when prompted.
+        const transaction: Transaction = {
+            windows,
+            remove: new Debounced(
+                () => {
+                    const indexToRemove = this.activeTransactions.indexOf(transaction);
+                    if (indexToRemove >= 0) {
+                        this.activeTransactions.splice(indexToRemove, 1);
+                    }
+                },
+                this)
+        };
+        this.activeTransactions.push(transaction);
+        try {
+            await Promise.all(windows.map(w => w.sync()));
+            await Promise.all(windows.map(w => w.unsnap()));
+            // await Promise.all(windows.map(w => w.sync()));
+            await transform(windows);
+            await Promise.all(windows.map(w => w.snap()));
+            // await Promise.all(windows.map(w => w.sync()));
+        } finally {
+            // We use the debounced here rather than removing it directly to allow time for
+            // all related events to be handled.
+            transaction.remove.call();
+        }
     }
 
     private static isWindow(window: Window|fin.WindowOptions): window is Window {
@@ -216,17 +271,27 @@ export class DesktopWindow implements DesktopEntity {
     public readonly onCommit: Signal2<DesktopWindow, Mask<eTransformType>> = new Signal2();
 
     /**
-     * Window is being removed from the service. Need to remove this window from any groups, and the service as a whole.
-     *
-     * This may be because the window was closed (either by user-action, or programatically), or because the window has
-     * been deregistered.
+     * The tabGroup of the window has changed (including being set to null).
      *
      * Arguments: (window: DesktopWindow)
      */
-    public readonly onTeardown: Signal1<DesktopWindow> = new Signal1();
+    public readonly onTabGroupChanged: Signal1<DesktopWindow> = new Signal1();
+
+    /**
+     * Window is being removed from the service. Use this signal for any clean-up that is required, such as removing
+     * the window from any groups, and the service as a whole.
+     *
+     * This may be because the window was closed (either by user-action, or programmatically), or because the window
+     * has been deregistered.
+     *
+     * Arguments: (window: DesktopWindow)
+     */
+    public readonly onTeardown: Signal1<DesktopWindow, Promise<void>, Promise<void>> = new Signal1(Aggregators.AWAIT_VOID);
+
 
     private _model: DesktopModel;
     private _identity: WindowIdentity;
+    private _scope: WindowScope;
     private _id: string;  // Created from window uuid and name
 
     private _window: Window;
@@ -265,16 +330,18 @@ export class DesktopWindow implements DesktopEntity {
     private _pendingActions: Promise<void>[];
     private _actionTags: WeakMap<Promise<void>, string>;
 
-    // Tracks event listeners registered on the fin window for easier cleanup.
-    private _registeredListeners: Map<keyof fin.OpenFinWindowEventMap, OpenFinWindowEventHandler> = new Map();
+    // Tracks event listeners registered on the fin window for easier clean-up.
+    private _registeredListeners: Map<OpenFinWindowEvent, (event: fin.OpenFinWindowEventMap[OpenFinWindowEvent]) => void> = new Map();
 
+    private _moveInProgress = false;
     private _userInitiatedBoundsChange = false;
 
-    constructor(model: DesktopModel, group: DesktopSnapGroup, window: fin.WindowOptions|Window, initialState?: EntityState) {
+    constructor(model: DesktopModel, window: fin.WindowOptions|Window, initialState?: EntityState) {
         const identity = DesktopWindow.getIdentity(window);
 
         this._model = model;
         this._identity = identity;
+        this._scope = {level: 'window', ...identity};
         this._id = `${identity.uuid}/${identity.name!}`;
         this._pendingActions = [];
         this._actionTags = new WeakMap();
@@ -308,14 +375,14 @@ export class DesktopWindow implements DesktopEntity {
         if (!initialState) {
             initialState = this.createTemporaryState();
         }
-        this._currentState = {...initialState};
-        this._applicationState = {...initialState};
+        this._currentState = this.cloneState(initialState);
+        this._applicationState = this.cloneState(initialState);
         this._modifiedState = {};
         this._temporaryState = {};
-        this._snapGroup = group;
+        this._snapGroup = new DesktopSnapGroup();
         this._tabGroup = null;
         this._prevGroup = null;
-        group.addWindow(this);
+        this._snapGroup.addWindow(this);
 
         if (this._ready) {
             this.addListeners();
@@ -331,12 +398,25 @@ export class DesktopWindow implements DesktopEntity {
      * That means that the window wrapped by this object may or may not exist at the point this is called. We attempt to capture this by having DesktopWindow
      * manage it's own destruction in the former case, so that it can mark itself as not-ready before starting the clean-up of the model.
      */
-    public teardown(): void {
+    public async teardown(): Promise<void> {
+        this.cleanupListeners();
+
+        // Must first clean-up any usage of this window
+        if (this._tabGroup) {
+            await this._tabGroup.removeTab(this);
+        }
+
         if (this._ready) {
+            // Reset overrides
+            const overrides = Object.keys(this._temporaryState) as (keyof EntityState)[];
+            await Promise.all(overrides.map((property: keyof EntityState) => {
+                return this.resetOverride(property);
+            }));
+
+            // Undock the window
             this._window.leaveGroup();
         }
-        this.cleanupListeners();
-        this.onTeardown.emit(this);
+        await this.onTeardown.emit(this);
         DesktopWindow.onDestroyed.emit(this);
         this._ready = false;
     }
@@ -356,7 +436,8 @@ export class DesktopWindow implements DesktopEntity {
                 y: {minSize: 0, maxSize: Number.MAX_SAFE_INTEGER, resizableMin: true, resizableMax: true}
             },
             opacity: 1,
-            alwaysOnTop: false
+            alwaysOnTop: false,
+            maximizable: true
         };
     }
 
@@ -370,6 +451,10 @@ export class DesktopWindow implements DesktopEntity {
 
     public get identity(): WindowIdentity {
         return this._identity;
+    }
+
+    public get scope(): WindowScope {
+        return this._scope;
     }
 
     public get isReady(): boolean {
@@ -400,11 +485,20 @@ export class DesktopWindow implements DesktopEntity {
     }
 
     public get currentState(): EntityState {
+        // Special handling to return apparent bounds for maximized windows
+        if (this._currentState.state === 'maximized') {
+            const currentMonitor = this._model.getMonitorByRect(this._currentState);
+            return {...this._currentState, ...currentMonitor};
+        }
         return this._currentState;
     }
 
     public get applicationState(): EntityState {
         return this._applicationState;
+    }
+
+    public get moveInProgress(): boolean {
+        return this._moveInProgress;
     }
 
     /**
@@ -418,7 +512,7 @@ export class DesktopWindow implements DesktopEntity {
      * window from a group, you must add it to a different group.
      *
      * @param group The group that this window should be added to
-     * @param offset An offset to apply to this windows position (use this to enusre window is in correct position)
+     * @param offset An offset to apply to this windows position (use this to ensure window is in correct position)
      * @param newHalfSize Can also simultaneously change the size of the window
      */
     public async setSnapGroup(group: DesktopSnapGroup): Promise<void> {
@@ -468,14 +562,18 @@ export class DesktopWindow implements DesktopEntity {
 
         this._tabGroup = group;
 
-        // Hide tabbed windows in the task bar (except for tabstrip windows)
-        if (this._identity.uuid !== SERVICE_IDENTITY.uuid) {
+        this.onTabGroupChanged.emit(this);
+
+        // Modify state for tabbed windows (except for tabstrip windows)
+        if (this._identity.uuid !== SERVICE_IDENTITY.uuid && this._ready) {
             if (group) {
-                // Hide tabbed windows in taskbar
-                return this._ready ? this.updateState({showTaskbarIcon: false}, ActionOrigin.SERVICE) : Promise.resolve();
-            } else if (this._currentState.showTaskbarIcon !== this._applicationState.showTaskbarIcon) {
-                // Revert taskbar icon to application-specified state
-                return this._ready ? this.updateState({showTaskbarIcon: this._applicationState.showTaskbarIcon}, ActionOrigin.SERVICE) : Promise.resolve();
+                // Set tabbed windows to be non-maximizable
+                const delta: Partial<EntityState> = {maximizable: false};
+                return this.updateState(delta, ActionOrigin.SERVICE);
+            } else if (this._currentState.maximizable !== this._applicationState.maximizable) {
+                // Revert tabbed windows to be maximizable
+                const delta: Partial<EntityState> = {maximizable: true};
+                return this.updateState(delta, ActionOrigin.SERVICE);
             }
         }
 
@@ -536,6 +634,10 @@ export class DesktopWindow implements DesktopEntity {
         return this.addPendingActions('bringToFront ' + this._id, this._window.bringToFront());
     }
 
+    public async setAsForeground(): Promise<void> {
+        return this.addPendingActions('setAsForeground ' + this._id, this._window.setAsForeground());
+    }
+
     public async close(): Promise<void> {
         this._ready = false;
         return this.addPendingActions('close ' + this._id, this._window.close(true));
@@ -561,11 +663,9 @@ export class DesktopWindow implements DesktopEntity {
             return this.updateState({[property]: value}, ActionOrigin.SERVICE);  // TODO: Is this the right origin type?
         }
     }
-
-    // tslint:disable-next-line:no-any
-    public async sendMessage(action: WindowMessages, payload: any): Promise<void> {
+    public async sendEvent<T extends LayoutsEvent>(event: T): Promise<void> {
         if (this._ready && apiHandler.isClientConnection(this.identity)) {
-            return apiHandler.sendToClient(this._identity, action, payload);
+            return apiHandler.sendToClient(this._identity, EVENT_CHANNEL_TOPIC, event);
         }
     }
 
@@ -599,12 +699,29 @@ export class DesktopWindow implements DesktopEntity {
         }
     }
 
+    private cloneState(state: EntityState): EntityState {
+        return {
+            center: {...state.center},
+            halfSize: {...state.halfSize},
+            resizeConstraints: {x: {...state.resizeConstraints.x}, y: {...state.resizeConstraints.y}},
+            ...state
+        };
+    }
+
     private isModified(key: keyof EntityState, prevState: Partial<EntityState>, newState: EntityState): boolean {
         if (prevState[key] === undefined) {
             return true;
         } else if (key === 'center' || key === 'halfSize') {
-            const prevPoint: Point = prevState[key] as Point, newPoint: Point = newState[key] as Point;
+            const prevPoint: Point = prevState[key]!, newPoint: Point = newState[key];
             return prevPoint.x !== newPoint.x || prevPoint.y !== newPoint.y;
+        } else if (key === 'resizeConstraints') {
+            const prevConstraints: Point<ResizeConstraint> = prevState[key]!;
+            const newConstraints: Point<ResizeConstraint> = newState[key];
+
+            return (['x', 'y'] as (keyof Point)[]).some((dir: keyof Point) => {
+                const a = prevConstraints[dir], b = newConstraints[dir];
+                return a.minSize !== b.minSize || a.maxSize !== b.maxSize || a.resizableMin !== b.resizableMin || a.resizableMax !== b.resizableMax;
+            });
         } else {
             return prevState[key] !== newState[key];
         }
@@ -623,7 +740,23 @@ export class DesktopWindow implements DesktopEntity {
             return Promise.all([this.sync(), other.sync()]).then(() => {
                 const joinGroupPromise: Promise<void> = (async () => {
                     if (this._ready && group === this._snapGroup) {
-                        await this._window.mergeGroups(other._window).catch((error) => this.checkClose(error));
+                        // It's possible that "other" has closed in the inervening time between registration of this pending
+                        // action and its execution. If that is the case, we will roll over to the next window in the group
+                        // until we find one that is groupable. If there are no groupable windows left in the group we will
+                        // log a warning and not proceed with the snap.
+                        let target: DesktopWindow|undefined;
+                        if (other.isReady) {
+                            target = other;
+                        } else {
+                            target = group.windows.find((item) => item.isReady && item !== this);
+                        }
+
+                        if (!target) {
+                            console.warn('Found no ready windows when attempting to group window ', this.id);
+                            return;
+                        }
+
+                        await this._window.mergeGroups(target._window).catch((error) => this.checkClose(error));
 
                         // Re-fetch window list in case it has changed during sync
                         const windows: DesktopWindow[] = this._snapGroup.windows as DesktopWindow[];
@@ -681,7 +814,11 @@ export class DesktopWindow implements DesktopEntity {
             Object.keys(delta).forEach((key: string) => {
                 const property: keyof EntityState = key as keyof EntityState;
                 if (this.isModified(property, delta, this._currentState)) {
-                    this._applicationState[property] = delta[property]!;
+                    if (typeof delta[property] === 'object') {
+                        Object.assign(this._applicationState[property], delta[property]);
+                    } else {
+                        this._applicationState[property] = delta[property]!;
+                    }
                 }
             });
         }
@@ -714,12 +851,13 @@ export class DesktopWindow implements DesktopEntity {
         }
         // Keep a copy of the previous state around temporarily to compare and avoid event loops.
         const prevState = this._currentState.state;
+        const prevConstraints = this._currentState.resizeConstraints;
         Object.assign(this._currentState, delta);
 
         // Apply changes to the window (unless we're reacting to an external change that has already happened)
         if (origin !== ActionOrigin.APPLICATION) {
             const window = this._window;
-            const {center, halfSize, state, hidden, ...options} = delta;
+            const {center, halfSize, state, hidden, resizeConstraints, ...options} = delta;
             const optionsToChange: (keyof EntityState)[] = Object.keys(options) as (keyof EntityState)[];
 
             // Apply visibility
@@ -759,6 +897,34 @@ export class DesktopWindow implements DesktopEntity {
                 actions.push(window.setBounds(bounds));
             }
 
+            if (resizeConstraints) {
+                // Work-around for RUN-5010. Cannot use -1 to reset maxWidth/Height as window becomes non-maximizable. Can use undefined to avoid maximizable
+                // issue, but undefined won't reset constraints. Need to use -1 if clearing an actual constraint, undefined otherwise.
+                const maxWidth = resizeConstraints.x.maxSize === Number.MAX_SAFE_INTEGER ?
+                    (prevConstraints.x.maxSize === Number.MAX_SAFE_INTEGER ? undefined : -1) :
+                    resizeConstraints.x.maxSize;
+                const maxHeight = resizeConstraints.y.maxSize === Number.MAX_SAFE_INTEGER ?
+                    (prevConstraints.y.maxSize === Number.MAX_SAFE_INTEGER ? undefined : -1) :
+                    resizeConstraints.y.maxSize;
+
+                actions.push(window.updateOptions({
+                    resizable: resizeConstraints.x.resizableMin || resizeConstraints.x.resizableMax || resizeConstraints.y.resizableMin ||
+                        resizeConstraints.y.resizableMax,
+                    resizeRegion: {
+                        sides: {
+                            left: resizeConstraints.x.resizableMin,
+                            right: resizeConstraints.x.resizableMax,
+                            top: resizeConstraints.y.resizableMin,
+                            bottom: resizeConstraints.y.resizableMax,
+                        }
+                    },
+                    minWidth: resizeConstraints.x.minSize,
+                    minHeight: resizeConstraints.y.minSize,
+                    maxWidth,
+                    maxHeight
+                }));
+            }
+
             // Apply options
             if (optionsToChange.length > 0) {
                 actions.push(window.updateOptions(options));
@@ -794,6 +960,9 @@ export class DesktopWindow implements DesktopEntity {
         this.registerListener('hidden', () => this.updateState({hidden: true}, ActionOrigin.APPLICATION));
         this.registerListener('maximized', () => {
             this.updateState({state: 'maximized'}, ActionOrigin.APPLICATION);
+            // Validate the group on maximize. This will ungroup the maximized window and
+            // split the group as appropriate. Mitigation for SERVICE-375.
+            this.snapGroup.validate();
         });
         this.registerListener('minimized', () => {
             this.updateState({state: 'minimized'}, ActionOrigin.APPLICATION);
@@ -814,7 +983,7 @@ export class DesktopWindow implements DesktopEntity {
         this.registerListener('shown', () => this.updateState({hidden: false}, ActionOrigin.APPLICATION));
     }
 
-    private registerListener<K extends keyof fin.OpenFinWindowEventMap>(eventType: K, handler: (event: fin.OpenFinWindowEventMap[K]) => void) {
+    private registerListener<K extends OpenFinWindowEvent>(eventType: K, handler: (event: fin.OpenFinWindowEventMap[K]) => void) {
         this._window.addListener(eventType, handler);
         this._registeredListeners.set(eventType, handler);
     }
@@ -830,6 +999,8 @@ export class DesktopWindow implements DesktopEntity {
     }
 
     private handleBoundsChanged(event: fin.WindowBoundsEvent): void {
+        this._moveInProgress = false;
+
         const bounds: fin.WindowBounds = this.checkBounds(event);
         const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
         const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
@@ -847,6 +1018,10 @@ export class DesktopWindow implements DesktopEntity {
     }
 
     private handleBoundsChanging(event: fin.WindowBoundsEvent): void {
+        if (!this._moveInProgress) {
+            this._moveInProgress = true;
+        }
+
         const bounds: fin.WindowBounds = this.checkBounds(event);
         const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
         const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
@@ -877,24 +1052,12 @@ export class DesktopWindow implements DesktopEntity {
     }
 
     private async handleFocused(): Promise<void> {
-        // Loop through all windows in the same group as the focused window and bring them
-        // all to front
-        const window: fin.OpenFinWindow = fin.desktop.Window.wrap(this._identity.uuid, this._identity.name);
-        const group: fin.OpenFinWindow[] = await new Promise<fin.OpenFinWindow[]>((res, rej) => {
-            window.getGroup(res, rej);
-        });
-        await promiseMap(group, async (groupWindow: fin.OpenFinWindow) => {
-            return new Promise<void>((res, rej) => {
-                groupWindow.bringToFront(res, rej);
-            });
-        });
-
-
-
-        // V2 'getGroup' API has bug: https://appoji.jira.com/browse/RUN-4535
-        // await this.window.getGroup().then((group: Window[]) => {
-        //     return Promise.all(group.map((window: Window) => window.bringToFront()));
-        // });
+        // If we're not maximized ourself, bring all snapped, non-maximized windows to the front
+        if (!this.isMaximizedOrInMaximizedTab()) {
+            this._snapGroup.windows
+                .filter(snapGroupWindow => snapGroupWindow !== this && !snapGroupWindow.isMaximizedOrInMaximizedTab() && !snapGroupWindow.currentState.hidden)
+                .forEach(snapGroupWindow => snapGroupWindow.bringToFront());
+        }
     }
 
     private async handleGroupChanged(event: fin.WindowGroupChangedEvent): Promise<void> {
@@ -906,10 +1069,22 @@ export class DesktopWindow implements DesktopEntity {
 
         await this.sync();
 
-        console.log('Received window group changed event: ', event);
-
         const targetWindow: DesktopWindow|null = this._model.getWindow({uuid: event.targetWindowAppUuid, name: event.targetWindowName});
         const targetGroup: DesktopSnapGroup|null = targetWindow ? targetWindow.snapGroup : null;
+
+        // Ignore events for windows currently under a transaction, and if the transaction is over postpone
+        // it's removal in case there are more events yet to be handled.
+        const relevantTransactions =
+            DesktopWindow.activeTransactions.filter((transaction: Transaction) => transaction.windows.some(w => !!targetWindow && w._id === targetWindow._id));
+        if (relevantTransactions.length > 0) {
+            console.log('Window currently in a transaction. Ignoring window group changed event: ', event);
+            relevantTransactions.forEach(t => {
+                t.remove.postpone();
+            });
+            return;
+        }
+
+        console.log('Received window group changed event: ', event);
 
         switch (event.reason) {
             case 'leave':
@@ -947,6 +1122,16 @@ export class DesktopWindow implements DesktopEntity {
                 snapWindows.map(w => w.identity).sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid)),
                 eventWindows.map(w => ({uuid: w.appUuid, name: w.windowName}))
                     .sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid)));
+        }
+    }
+
+    private isMaximizedOrInMaximizedTab(): boolean {
+        if (this._currentState.state === 'maximized') {
+            return true;
+        } else if (this._tabGroup !== null && this._tabGroup.state === 'maximized') {
+            return true;
+        } else {
+            return false;
         }
     }
 }

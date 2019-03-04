@@ -11,11 +11,15 @@
  * These types are a part of the client, but are not required by applications wishing to interact with the service.
  * This file is excluded from the public-facing TypeScript documentation.
  */
+import {EventEmitter} from 'events';
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
-import {SERVICE_CHANNEL} from './internal';
-import {JoinTabGroupPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload} from './tabbing';
+import {SnapAndDockEvent} from '../client/snapanddock';
+import {TabbingEvent} from '../client/tabbing';
+import {TabstripEvent} from '../client/tabstrip';
+import {WorkspacesEvent} from '../client/workspaces';
 
+import {APITopic, SERVICE_CHANNEL} from './internal';
 
 /**
  * The version of the NPM package.
@@ -25,6 +29,16 @@ import {JoinTabGroupPayload, TabGroupEventPayload, TabPropertiesUpdatedPayload} 
 declare const PACKAGE_VERSION: string;
 
 /**
+ * Defines all events that are fired by the service
+ */
+export type LayoutsEvent = TabstripEvent|TabbingEvent|WorkspacesEvent|SnapAndDockEvent;
+
+/**
+ * The event emitter to emit events received from the service.  All addEventListeners will tap into this.
+ */
+export const eventEmitter = new EventEmitter();
+
+/**
  * Promise to the channel object that allows us to connect to the client
  */
 export const channelPromise: Promise<ChannelClient> = typeof fin === 'undefined' ?
@@ -32,25 +46,9 @@ export const channelPromise: Promise<ChannelClient> = typeof fin === 'undefined'
     fin.InterApplicationBus.Channel.connect(SERVICE_CHANNEL, {payload: {version: PACKAGE_VERSION}}).then((channel: ChannelClient) => {
         // Register service listeners
         channel.register('WARN', (payload: any) => console.warn(payload));  // tslint:disable-line:no-any
-        channel.register('join-snap-group', () => {
-            window.dispatchEvent(new Event('join-snap-group'));
+        channel.register('event', (event: LayoutsEvent) => {
+            eventEmitter.emit(event.type, event);
         });
-        channel.register('leave-snap-group', () => {
-            window.dispatchEvent(new Event('leave-snap-group'));
-        });
-        channel.register('join-tab-group', (payload: JoinTabGroupPayload) => {
-            window.dispatchEvent(new CustomEvent<JoinTabGroupPayload>('join-tab-group', {detail: payload}));
-        });
-        channel.register('leave-tab-group', (payload: TabGroupEventPayload) => {
-            window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('leave-tab-group', {detail: payload}));
-        });
-        channel.register('tab-activated', (payload: TabGroupEventPayload) => {
-            window.dispatchEvent(new CustomEvent<TabGroupEventPayload>('tab-activated', {detail: payload}));
-        });
-        channel.register('tab-properties-updated', (payload: TabPropertiesUpdatedPayload) => {
-            window.dispatchEvent(new CustomEvent<TabPropertiesUpdatedPayload>('tab-properties-updated', {detail: payload}));
-        });
-
         // Any unregistered action will simply return false
         channel.setDefaultAction(() => false);
 
@@ -60,7 +58,7 @@ export const channelPromise: Promise<ChannelClient> = typeof fin === 'undefined'
 /**
  * Wrapper around service.dispatch to help with type checking
  */
-export async function tryServiceDispatch<T, R>(action: string, payload?: T): Promise<R> {
+export async function tryServiceDispatch<T, R>(action: APITopic, payload?: T): Promise<R> {
     const channel: ChannelClient = await channelPromise;
     return channel.dispatch(action, payload) as Promise<R>;
 }

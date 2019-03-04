@@ -1,7 +1,8 @@
 import Sortable from 'sortablejs';
 
 import * as layouts from '../../../client/main';
-import {TabProperties, WindowIdentity} from '../../../client/types';
+import {WindowIdentity} from '../../../client/main';
+import {TabProperties} from '../../../client/tabbing';
 
 import {Tab} from './TabItem';
 
@@ -43,8 +44,8 @@ export class TabManager {
         fin.Window.getCurrentSync().getState().then(state => {
             if (state === 'maximized') {
                 this.maximized = true;
-                const maximizeElem: HTMLElement|null = document.getElementById('window-button-maximize');
-                maximizeElem!.classList.add('restored');
+                const maximizeElem: HTMLElement = document.getElementById('window-button-maximize')!;
+                maximizeElem.classList.add('restored');
             }
         });
 
@@ -60,7 +61,7 @@ export class TabManager {
                 });
 
                 // Sends the new order to the service to update the cache
-                layouts.tabStrip.reorderTabs(orderedTabList);
+                layouts.tabstrip.reorderTabs(orderedTabList);
             }
         });
     }

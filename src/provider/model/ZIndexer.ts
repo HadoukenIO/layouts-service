@@ -127,7 +127,7 @@ export class ZIndexer {
             // Update existing entry
             if (timestamp >= entry.timestamp) {
                 entry.timestamp = timestamp;
-            
+
                 if (active !== undefined) {
                     entry.active = active;
                 }

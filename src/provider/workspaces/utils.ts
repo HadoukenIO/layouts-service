@@ -81,7 +81,7 @@ export async function closeCorrespondingPlaceholder(windowIdentity: Identity): P
                 `Placeholder window ${placeholderWindow.identity.name} for Window ${windowIdentity.uuid} ${windowIdentity.name} has already been closed`);
         }
     } else {
-        console.warn('Invalid identity provided to closeCorrespondingPlaceholder. Placeholder will not close for: ', windowIdentity);
+        console.warn('No placeholder returned for given identity in closeCorrespondingPlaceholder. Either Placeholder is already closed, or identity given was invalid: ', windowIdentity);
     }
 }
 
@@ -316,6 +316,14 @@ export function adjustSizeOfFormerlyTabbedWindows(layoutWindow: WorkspaceWindow,
     }
 }
 
+/**
+ * Converts an identity into a string ID. Mirrors {@link DesktopModel.getId}.
+ *
+ * @param identity Any entity identity
+ */
+function getId(identity: WindowIdentity): string {
+    return `${identity.uuid}/${identity.name}`;
+}
 
 function placeholderCreated(windowIdentity: WindowIdentity, placeholderWindow: _Window): void {
     addPlaceholderToMaps(windowIdentity, placeholderWindow);
@@ -327,12 +335,13 @@ function placeholderClosed(placeholderWinEvent: WindowEvent<"system", "window-cl
 }
 
 function addPlaceholderToMaps(windowIdentity: WindowIdentity, placeholderWindow: _Window): void {
-    placeholderMap.set(`${windowIdentity.uuid}-/-${windowIdentity.name}`, placeholderWindow);
-    placeholderReverseMap.set(`${placeholderWindow.identity.name}`, `${windowIdentity.uuid}-/-${windowIdentity.name}`);
+    placeholderMap.set(getId(windowIdentity), placeholderWindow);
+    placeholderReverseMap.set(`${placeholderWindow.identity.name}`, getId(windowIdentity));
 }
 
 function getPlaceholderFromMap(windowIdentity: Identity): _Window|undefined {
-    return placeholderMap.get(`${windowIdentity.uuid}-/-${windowIdentity.name || windowIdentity.uuid}`);
+    const id = {uuid: windowIdentity.uuid, name: windowIdentity.name || windowIdentity.uuid};
+    return placeholderMap.get(getId(id));
 }
 
 function deletePlaceholderFromMapsGivenPlaceholder(placeholderWinEvent: WindowEvent<"system", "window-closed">) {

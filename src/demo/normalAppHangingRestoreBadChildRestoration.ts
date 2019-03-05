@@ -59,7 +59,7 @@ export async function onAppRes(layoutApp: WorkspaceApp): Promise<WorkspaceApp> {
     //     }
     // });
     // await Promise.all(openAndPosition);
-    layoutApp.childWindows = [];
+    // layoutApp.childWindows = [];
     return layoutApp;
 }
 
@@ -103,5 +103,5 @@ const positionWindow = async (win: WorkspaceWindow) => {
 Layouts.workspaces.setGenerateHandler(() => {
     return {test: true};
 });
-// Layouts.workspaces.setRestoreHandler(onAppRes);
+Layouts.workspaces.setRestoreHandler(onAppRes);
 Layouts.workspaces.ready();

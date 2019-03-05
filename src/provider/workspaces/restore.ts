@@ -11,7 +11,7 @@ import {promiseMap} from '../snapanddock/utils/async';
 
 import {SCHEMA_MAJOR_VERSION} from './create';
 import {regroupWorkspace} from './group';
-import {addToWindowObject, canRestoreProgrammatically, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, clearPlaceholderMap, closeCorrespondingPlaceholder, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, parseVersionString, positionWindow, SemVer, TabbedPlaceholders, waitUntilAllPlaceholdersClosed, WindowObject} from './utils';
+import {addToWindowObject, canRestoreProgrammatically, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, closeCorrespondingPlaceholder, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, parseVersionString, positionWindow, SemVer, TabbedPlaceholders, waitUntilAllPlaceholdersClosed, WindowObject, cleanupPlaceholderObjects} from './utils';
 
 // Duration in milliseconds that the entire Workspace restore may take, before we allow another restore to start
 const GLOBAL_EXCLUSIVITY_TIMEOUT = 120000;
@@ -129,7 +129,7 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
 
 const restorationCleanup = (): void => {
     restoreExclusivityToken = null;
-    clearPlaceholderMap();
+    cleanupPlaceholderObjects();
     appsToDeleteFromWorkspace.clear();
     appsToRestoreWhenReady.clear();
     timeoutsToClear.forEach((timeout) => clearTimeout(timeout));

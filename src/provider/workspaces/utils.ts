@@ -7,6 +7,7 @@ import {model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {WindowIdentity} from '../model/DesktopWindow';
 import {isWin10} from '../snapanddock/utils/platform';
+import {WindowEvent} from 'hadouken-js-adapter/out/types/src/api/events/base';
 
 export interface SemVer {
     major: number;
@@ -23,16 +24,28 @@ interface AppInfo extends ApplicationInfo {
     manifest: {startup_app: {uuid: string;};};
 }
 
+const DEFAULT_PLACEHOLDER_URL = (() => {
+    let providerLocation = window.location.href;
+
+    if (providerLocation.indexOf('http://localhost') === 0) {
+        // Work-around for fake provider used within test runner
+        providerLocation = providerLocation.replace('/test', '/provider');
+    }
+
+    // Locate the default tabstrip HTML page, relative to the location of the provider
+    return providerLocation.replace('provider.html', 'workspaces/placeholder/placeholder.html');
+})();
+
 // TODO: Create Placeholder and PlaceholderStore classes?
 // This keeps track of how many placeholders we have open, so we know when we can start regrouping a layout.
-let numOfPlaceholders = 0;
 const placeholderMap = new Map<string, _Window>();
+const placeholderReverseMap = new Map<string, string>();
 let functionToContinueRestorationWhenPlaceholdersClosed: (() => void)|undefined;
 let rejectTimeout: number|undefined;
 
 fin.System.addListener('window-closed', (win) => {
     if (win.name.startsWith('Placeholder-')) {
-        placeholderClosed();
+        placeholderClosed(win);
     }
 });
 
@@ -43,18 +56,40 @@ export async function waitUntilAllPlaceholdersClosed() {
     }
 
     // All placeholders are already closed, so no need to wait.
-    if (numOfPlaceholders === 0) {
+    if (placeholderMap.size === 0) {
         return;
     }
 
     return new Promise((res, rej) => {
+        // Set the restoration continuation function and wait. If placeholders are left open for 60 seconds, close them and attempt to group.
         functionToContinueRestorationWhenPlaceholdersClosed = res;
-        rejectTimeout = window.setTimeout(() => {
-            rej(`${numOfPlaceholders} Placeholder(s) Left Open after 60 seconds. ${numOfPlaceholders} Window(s) did not come up. Attempting to group anyway.`);
-            functionToContinueRestorationWhenPlaceholdersClosed = undefined;
-            rejectTimeout = undefined;
+        rejectTimeout = window.setTimeout(async () => {
+            rej(`${placeholderMap.size} Placeholder(s) Left Open after 60 seconds. ${placeholderMap.size} Window(s) did not come up. Attempting to group anyway.`);
+            await closeAllPlaceholders();
+            cleanupPlaceholderObjects();
         }, 60000);
     });
+}
+
+export async function closeCorrespondingPlaceholder(windowIdentity: Identity): Promise<void> {
+    const placeholderWindow = getPlaceholderFromMap(windowIdentity);
+    if (placeholderWindow) {
+        try {
+            await closePlaceholderWindow(placeholderWindow);
+        } catch (error) {
+            console.log(
+                `Placeholder window ${placeholderWindow.identity.name} for Window ${windowIdentity.uuid} ${windowIdentity.name} has already been closed`);
+        }
+    } else {
+        console.warn('Invalid identity provided to closeCorrespondingPlaceholder. Placeholder will not close for: ', windowIdentity);
+    }
+}
+
+export function cleanupPlaceholderObjects() {
+    functionToContinueRestorationWhenPlaceholdersClosed = undefined;
+    rejectTimeout = undefined;
+    placeholderMap.clear();
+    placeholderReverseMap.clear();
 }
 
 // Positions a window when it is restored.
@@ -281,75 +316,60 @@ export function adjustSizeOfFormerlyTabbedWindows(layoutWindow: WorkspaceWindow,
     }
 }
 
-function addPlaceholderToMap(windowIdentity: Identity, placeholderWindow: _Window): void {
+
+function placeholderCreated(windowIdentity: WindowIdentity, placeholderWindow: _Window): void {
+    addPlaceholderToMaps(windowIdentity, placeholderWindow);
+}
+
+function placeholderClosed(placeholderWinEvent: WindowEvent<"system", "window-closed">): void {
+    deletePlaceholderFromMapsGivenPlaceholder(placeholderWinEvent);
+    continueRestorationIfReady();
+}
+
+function addPlaceholderToMaps(windowIdentity: WindowIdentity, placeholderWindow: _Window): void {
     placeholderMap.set(`${windowIdentity.uuid}-/-${windowIdentity.name}`, placeholderWindow);
+    placeholderReverseMap.set(`${placeholderWindow.identity.name}`, `${windowIdentity.uuid}-/-${windowIdentity.name}`);
 }
 
 function getPlaceholderFromMap(windowIdentity: Identity): _Window|undefined {
     return placeholderMap.get(`${windowIdentity.uuid}-/-${windowIdentity.name || windowIdentity.uuid}`);
 }
 
-function deletePlaceholderFromMap(windowIdentity: Identity): void {
-    placeholderMap.delete(`${windowIdentity.uuid}-/-${windowIdentity.name || windowIdentity.uuid}`);
-}
-
-export async function closeCorrespondingPlaceholder(windowIdentity: Identity): Promise<void> {
-    const placeholderWindow = getPlaceholderFromMap(windowIdentity);
-    if (placeholderWindow) {
-        try {
-            await tabService.removeTab(placeholderWindow.identity as WindowIdentity);
-            const placeholderWindowModel = await model.expect(placeholderWindow.identity as WindowIdentity);
-            if (placeholderWindowModel) {
-                await placeholderWindowModel.close();
-            } else {
-                await placeholderWindow.close();
-            }
-        } catch (error) {
-            console.log(
-                `Placeholder window ${placeholderWindow.identity.name} for Window ${windowIdentity.uuid} ${windowIdentity.name} has already been closed`);
-        }
-        deletePlaceholderFromMap(windowIdentity);
+function deletePlaceholderFromMapsGivenPlaceholder(placeholderWinEvent: WindowEvent<"system", "window-closed">) {
+    const hashedIdentity = placeholderReverseMap.get(placeholderWinEvent.name);
+    if (hashedIdentity) {
+        placeholderMap.delete(hashedIdentity);
+        placeholderReverseMap.delete(placeholderWinEvent.name);
     }
 }
 
-export function clearPlaceholderMap(): void {
-    placeholderMap.clear();
+async function closeAllPlaceholders(): Promise<void> {
+    for (const placeholderWindow of placeholderMap.values()) {
+        await closePlaceholderWindow(placeholderWindow);
+    }
 }
 
-function placeholderCreated(windowIdentity: Identity, placeholderWindow: _Window): void {
-    addPlaceholderToMap(windowIdentity, placeholderWindow);
-    numOfPlaceholders++;
-}
-
-function placeholderClosed(): void {
-    numOfPlaceholders--;
-    continueRestorationIfReady();
+async function closePlaceholderWindow(placeholderWindow: _Window) {
+    await tabService.removeTab(placeholderWindow.identity as WindowIdentity);
+    const placeholderWindowModel = await model.expect(placeholderWindow.identity as WindowIdentity);
+    if (placeholderWindowModel) {
+        await placeholderWindowModel.close();
+    } else {
+        await placeholderWindow.close();
+    }
 }
 
 function continueRestorationIfReady() {
-    if (!!(numOfPlaceholders === 0 && functionToContinueRestorationWhenPlaceholdersClosed)) {
+    if (!!(placeholderMap.size === 0 && functionToContinueRestorationWhenPlaceholdersClosed)) {
         clearTimeout(rejectTimeout);
         functionToContinueRestorationWhenPlaceholdersClosed();
-        functionToContinueRestorationWhenPlaceholdersClosed = undefined;
-        rejectTimeout = undefined;
+        cleanupPlaceholderObjects();
     }
 }
 
 async function delay(milliseconds: number) {
     return new Promise<void>(r => setTimeout(r, milliseconds));
 }
-
-const DEFAULT_PLACEHOLDER_URL = (() => {
-    let providerLocation = window.location.href;
-
-    if (providerLocation.indexOf('http://localhost') === 0) {
-        // Work-around for fake provider used within test runner
-        providerLocation = providerLocation.replace('/test', '/provider');
-    }
-
-    // Locate the default tabstrip HTML page, relative to the location of the provider
-    return providerLocation.replace('provider.html', 'workspaces/placeholder/placeholder.html');
-})();
 
 // TODO: Make placeholder windows close-able
 const createPlaceholderWindow = async (win: WorkspaceWindow) => {

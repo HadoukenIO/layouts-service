@@ -125,7 +125,9 @@ export class ZIndexer {
 
         if (entry) {
             // Update existing entry
-            entry.timestamp = timestamp;
+            if (timestamp > entry.timestamp) {
+                entry.timestamp = timestamp;
+            }
 
             if (active !== undefined) {
                 entry.active = active;
@@ -215,8 +217,9 @@ export class ZIndexer {
 
         // If the window is showing, add the window to the stack ASAP, as there are rare cases where neither
         // 'shown' nor 'focused' will be called following the 'window-created' event. See SERVICE-380
+        const timestamp = Date.now();
         if (await win.isShowing()) {
-            this.update(identity);
+            this.update(identity, undefined, undefined, timestamp);
         }
     }
 

@@ -125,15 +125,15 @@ export class ZIndexer {
 
         if (entry) {
             // Update existing entry
-            if (timestamp > entry.timestamp) {
+            if (timestamp >= entry.timestamp) {
                 entry.timestamp = timestamp;
-            }
-
-            if (active !== undefined) {
-                entry.active = active;
-            }
-            if (bounds) {
-                Object.assign(entry.bounds, bounds);
+            
+                if (active !== undefined) {
+                    entry.active = active;
+                }
+                if (bounds) {
+                    Object.assign(entry.bounds, bounds);
+                }
             }
         } else if (!bounds) {
             // Must request bounds before being able to add

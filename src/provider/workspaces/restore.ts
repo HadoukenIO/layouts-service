@@ -32,6 +32,8 @@ const appsToRestoreWhenReady = new Map<string, AppToRestore>();
 
 const appsToDeleteFromWorkspace = new Set<string>();
 
+let timeoutsToClear: number[] = [];
+
 // A token unique to the current run of restoreWorkspace, needed so that we can correctly release the exclusivity token after a timeout if needed
 let restoreExclusivityToken: {}|null = null;
 
@@ -117,15 +119,21 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
     const event: WorkspaceRestoredEvent = {type: 'workspace-restored', workspace};
     apiHandler.sendToAll(EVENT_CHANNEL_TOPIC, event);
 
-    restoreExclusivityToken = null;
-
-    clearPlaceholderMap();
-    appsToDeleteFromWorkspace.clear();
+    restorationCleanup();
 
     console.log('Restore completed: ', workspace);
 
     // Send the workspace back to the requester of the restore
     return workspace;
+};
+
+const restorationCleanup = (): void => {
+    restoreExclusivityToken = null;
+    clearPlaceholderMap();
+    appsToDeleteFromWorkspace.clear();
+    appsToRestoreWhenReady.clear();
+    timeoutsToClear.forEach((timeout) => clearTimeout(timeout));
+    timeoutsToClear = [];
 };
 
 
@@ -425,7 +433,7 @@ const setAppToClientRestoreWithTimeout = (workspaceApp: WorkspaceApp, resolve: F
 
     appsToRestoreWhenReady.set(uuid, save);
 
-    setTimeout(() => {
+    const timeout = window.setTimeout(() => {
         if (appsToRestoreWhenReady.delete(uuid)) {
             console.error(
                 `App ${uuid} failed to call its ready function. 
@@ -437,4 +445,6 @@ const setAppToClientRestoreWithTimeout = (workspaceApp: WorkspaceApp, resolve: F
             resolve(failedResponse);
         }
     }, CLIENT_STARTUP_TIMEOUT);
+
+    timeoutsToClear.push(timeout);
 };

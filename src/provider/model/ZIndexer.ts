@@ -79,7 +79,11 @@ export class ZIndexer {
             if (item.active) {
                 const index: number = ids.indexOf(item.id);
                 if (index >= 0) {
-                    return items[index];
+                    if (item.identity.uuid === SERVICE_IDENTITY.uuid) {
+                        console.log(`Ignoring service window in ZIndexer which would otherwise be on top`);
+                    } else {
+                        return items[index];
+                    }
                 }
             }
         }
@@ -88,6 +92,9 @@ export class ZIndexer {
     }
 
     public getWindowAt(x: number, y: number, exclusions: WindowIdentity[]): WindowIdentity|null {
+        console.log(`*** getWindowAt `, this._stack);
+
+        
         const entry: ZIndex|undefined = this._stack.find((item: ZIndex) => {
             const identity = item.identity;
 

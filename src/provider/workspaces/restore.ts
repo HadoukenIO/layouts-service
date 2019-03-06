@@ -150,8 +150,8 @@ const processAppResponse = async(appResponse: WorkspaceApp, workspace: Workspace
     } else {
         const originalWorkspaceApp: WorkspaceApp = workspace.apps.find((potentialMatch) => potentialMatch.uuid === appResponse.uuid)!;
         promiseForEach(originalWorkspaceApp.childWindows, async (childWindow) => {
-            const childWindowInAppResponse = appResponse.childWindows.some((appResponseChildWin) => appResponseChildWin.name === childWindow.name);
-            if (!childWindowInAppResponse) {
+            const hasChildWindowInAppResponse = appResponse.childWindows.some((appResponseChildWin) => appResponseChildWin.name === childWindow.name);
+            if (!hasChildWindowInAppResponse) {
                 console.error(
                     `Application ${appResponse.uuid} did not restore its child window ${childWindow.name} 
                         (or the App's setGenerateHandler didn't return that child window). Placeholder will be closed: 

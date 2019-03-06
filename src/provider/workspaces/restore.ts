@@ -16,14 +16,14 @@ import {addToWindowObject, canRestoreProgrammatically, childWindowPlaceholderChe
 // Duration in milliseconds that the entire Workspace restore may take, before we allow another restore to start
 const GLOBAL_EXCLUSIVITY_TIMEOUT = 120000;
 
-// Duration in milliseconds that we give a client app to startup when restoring a Workspace
-const CLIENT_STARTUP_TIMEOUT = 60000;
+// Duration in milliseconds that we give the run() call for a client app to resolve
+const CLIENT_APP_RUN_TIMEOUT = 60000;
 
-// Duration in milliseconds that we give a client app to run during restoration
-const CLIENT_RUN_TIMEOUT = 60000;
+// Duration in milliseconds that we give a client app to call appReadyForRestore() after being started
+const CLIENT_APP_READY_TIMEOUT = 60000;
 
-// Duration in milliseconds that we give a client app to restore itself when restoring a Workspace
-const CLIENT_RESTORE_TIMEOUT = 60000;
+// Duration in milliseconds that we give a client app to restore itself and its children when given a WorkspaceApp
+const CLIENT_APP_RESTORE_TIMEOUT = 60000;
 
 // All apps that we've ever received a appReadyForRestore call from. Used as a heuristic to determine which apps properly implement S&R features
 const allAppsEverReady = new Map<string, boolean>();
@@ -352,7 +352,7 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
                 // Even if run() hangs.
                 const timeoutPromise = new Promise<string>((resolve, reject) => timeout = window.setTimeout(() => {
                     reject(`Run was called on Application ${app.uuid}, but it seems to be hanging. Continuing restoration.`);
-                }, CLIENT_RUN_TIMEOUT));
+                }, CLIENT_APP_RUN_TIMEOUT));
                 const runCall = ofAppNotRunning.run();
 
                 await Promise.race([timeoutPromise, runCall]);
@@ -413,7 +413,7 @@ const clientRestoreAppWithTimeout = async(workspaceApp: WorkspaceApp): Promise<W
             workspaceApp);
             promiseForEach(workspaceApp.childWindows, closeCorrespondingPlaceholder);
         resolve(failedResponse);
-    }, CLIENT_RESTORE_TIMEOUT));
+    }, CLIENT_APP_RESTORE_TIMEOUT));
 
     return Promise.race([responsePromise, timeoutPromise]);
 };
@@ -443,7 +443,7 @@ const setAppToClientRestoreWithTimeout = (workspaceApp: WorkspaceApp, resolve: F
                 promiseForEach(workspaceApp.childWindows, closeCorrespondingPlaceholder);
             resolve(failedResponse);
         }
-    }, CLIENT_STARTUP_TIMEOUT);
+    }, CLIENT_APP_READY_TIMEOUT);
 
     timeoutsToClear.push(timeout);
 };

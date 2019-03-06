@@ -171,7 +171,16 @@ async function createApplication(options: Omit<AppData, 'parent'>): Promise<Appl
         const data: fin.ApplicationOptions = {
             uuid,
             name: uuid,
-            mainWindowOptions: {...position, url, frame: options.frame, state, autoShow: true, saveWindowState: false, defaultWidth: size.x, defaultHeight: size.y, }
+            mainWindowOptions: {
+                ...position,
+                url,
+                frame: options.frame,
+                state,
+                autoShow: true,
+                saveWindowState: false,
+                defaultWidth: size.x,
+                defaultHeight: size.y,
+            }
         };
         return await startApp(fin.Application.create(data));
     } else {

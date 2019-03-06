@@ -124,6 +124,10 @@ export class ZIndexer {
         const entry: ZIndex|undefined = this._stack.find(i => i.id === id);
 
         if (entry) {
+            if (timestamp < entry.timestamp) {
+                console.warn('Out-of-order update in ZIndexer. Timestamp being replaced with earlier timestamp');
+            }
+
             // Update existing entry
             entry.timestamp = timestamp;
 

@@ -33,34 +33,30 @@ export const regroupWorkspace = async (apps: WorkspaceApp[]) => {
     });
 };
 
-export const groupWindow = async (win: WorkspaceWindow) => {
-    await promiseMap(win.windowGroup, async (w: Identity) => {
-        if (w.uuid === 'layouts-service') {
+export const groupWindow = async (baseWindow: WorkspaceWindow) => {
+    await promiseMap(baseWindow.windowGroup, async (windowFromWindowGroup: Identity) => {
+        if (windowFromWindowGroup.uuid === 'layouts-service') {
             return;
         }
 
-        // We cannot guarantee that all of our windows are up, because some groupings may have been broken in restoration, and some groupings are supplied by
-        // the user. Therefore, we must check each of these conditions.
-        try {
-            const curEntityWindow = await model.expect(w as WindowIdentity);
-            try {
-                const targetEntityWindow = await model.expect(win as WindowIdentity);
-                if (curEntityWindow && targetEntityWindow) {
-                    // If window has a tabGroup, we should group it instead of the window itself.
-                    const targetEntity = targetEntityWindow.tabGroup || targetEntityWindow;
-                    const curEntity = curEntityWindow.tabGroup || curEntityWindow;
+        // We iterate through win.windowGroup for all main WorkspaceWindows and child WorkspaceWindows.
+        // Each application saves its own Workspace information at the time the generate function is called, 
+        // and each application also has the opportunity to pass back different Workspace information with its setRestoreHandler function.
+        // As a result, a window's win.windowGroup may include windows from another application that are no longer coming up.
+        const curEntityWindow = await model.expect(windowFromWindowGroup as WindowIdentity);
+        const targetEntityWindow = await model.expect(baseWindow as WindowIdentity);
+        if (curEntityWindow && targetEntityWindow) {
+            // If window has a tabGroup, we should group it instead of the window itself.
+            const targetEntity = targetEntityWindow.tabGroup || targetEntityWindow;
+            const curEntity = curEntityWindow.tabGroup || curEntityWindow;
 
-                    if (curEntity.snapGroup.id !== targetEntity.snapGroup.id) {
-                        await curEntity.setSnapGroup(targetEntity.snapGroup);
-                    }
+            if (curEntity.snapGroup.id !== targetEntity.snapGroup.id) {
+                try {
+                    await curEntity.setSnapGroup(targetEntity.snapGroup);
+                } catch (error) {
+                    console.error('setSnapGroup in groupWindow failed for: ', baseWindow, windowFromWindowGroup);
                 }
-            } catch (error) {
-                console.log(`${win.uuid} does not exist. Cannot group with it.`);
-                return;
             }
-        } catch (error) {
-            console.log(`${w.uuid} does not exist. Cannot group with it.`);
-            return;
         }
     });
 };

@@ -7,7 +7,7 @@ import {TabGroup, Workspace, WorkspaceApp, WorkspaceRestoredEvent} from '../../c
 import {EVENT_CHANNEL_TOPIC} from '../APIMessages';
 import {apiHandler, loader, model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
-import {promiseMap} from '../snapanddock/utils/async';
+import {promiseMap, promiseForEach, promiseFilter} from '../snapanddock/utils/async';
 
 import {SCHEMA_MAJOR_VERSION} from './create';
 import {regroupWorkspace} from './group';
@@ -93,14 +93,12 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
         return appResponse ? appResponse : app;
     });
 
-    // Go through all of the app responses from and check them for failures
-    const parsedAppResponses: WorkspaceApp[] = [];
-
-    allAppResponses.forEach(async (appResponse) => {
-        await parseAppResponse(appResponse, parsedAppResponses, workspace);
+    // Go through all of the app responses and check them for failures. Exclude any apps that didn't come up from returned Workspace.
+    const processedAppResponses: WorkspaceApp[] = await promiseFilter(allAppResponses, async (appResponse) => {
+        return await processAppResponse(appResponse, workspace);
     });
 
-    workspace.apps = parsedAppResponses;
+    workspace.apps = processedAppResponses;
 
     // Wait for all child windows to appear. Continue and Warn if placeholders aren't closed in 60 seconds.
     try {
@@ -110,7 +108,7 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
     }
 
     // Regroup the windows
-    await regroupWorkspace(parsedAppResponses).catch(console.log);
+    await regroupWorkspace(processedAppResponses).catch(console.log);
     // Validate groups
     for (const group of model.snapGroups) {
         group.validate();
@@ -143,15 +141,16 @@ export const appCanRestore = (uuid: string): boolean => {
 
 // Check app response against appsToDeleteFromWorkspace to remove it from the Workspace and close its placeholders
 // Check the app responses's child windows against the original child windows in WorkspaceApp, and close any hanging placeholders.
-const parseAppResponse = async(appResponse: WorkspaceApp, parsedAppResponses: WorkspaceApp[], workspace: Workspace): Promise<void> => {
+const processAppResponse = async(appResponse: WorkspaceApp, workspace: Workspace): Promise<boolean> => {
     if (appsToDeleteFromWorkspace.has(appResponse.uuid)) {
         console.error(`App launch for ${appResponse.uuid} failed. Application will be removed from workspace: `, appResponse);
         await closeCorrespondingPlaceholder({uuid: appResponse.uuid, name: appResponse.uuid});
-        appResponse.childWindows.forEach(async (childWindow) => await closeCorrespondingPlaceholder(childWindow));
+        promiseForEach(appResponse.childWindows, closeCorrespondingPlaceholder);
+        return false;
     } else {
         const originalWorkspaceApp: WorkspaceApp|undefined = workspace.apps.find((potentialMatch) => potentialMatch.uuid === appResponse.uuid);
         if (originalWorkspaceApp) {
-            originalWorkspaceApp.childWindows.forEach(async (childWindow) => {
+            promiseForEach(originalWorkspaceApp.childWindows, async (childWindow) => {
                 const childWindowInAppResponse = appResponse.childWindows.some((appResponseChildWin) => appResponseChildWin.name === childWindow.name);
                 if (!childWindowInAppResponse) {
                     console.error(
@@ -163,7 +162,7 @@ const parseAppResponse = async(appResponse: WorkspaceApp, parsedAppResponses: Wo
                 }
             });
         }
-        parsedAppResponses.push(appResponse);
+        return true;
     }
 };
 
@@ -375,7 +374,7 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
 };
 
 // If an app fails to create during the beginning of the restore process, resolve its pending setAppToClientRestoreWithTimeout promise and remove it from
-// appsToRestoreWhenReady Finally, add to appsToDeleteFromWorkspace so it can get cleaned up in the parseAppResponse function.
+// appsToRestoreWhenReady Finally, add to appsToDeleteFromWorkspace so it can get cleaned up in the processAppResponse function.
 const deleteAppFromRestoreWhenReadyMap = (app: WorkspaceApp) => {
     const appThatFailedToRestore = appsToRestoreWhenReady.get(app.uuid);
     if (appThatFailedToRestore) {
@@ -412,7 +411,7 @@ const clientRestoreAppWithTimeout = async(workspaceApp: WorkspaceApp): Promise<W
                 Application's child windows and confirmed status will be removed: 
             `,
             workspaceApp);
-        workspaceApp.childWindows.forEach(async (childWindow) => await closeCorrespondingPlaceholder(childWindow));
+            promiseForEach(workspaceApp.childWindows, closeCorrespondingPlaceholder);
         resolve(failedResponse);
     }, CLIENT_RESTORE_TIMEOUT));
 
@@ -441,7 +440,7 @@ const setAppToClientRestoreWithTimeout = (workspaceApp: WorkspaceApp, resolve: F
                     Application's child windows and confirmed status will be removed: 
                 `,
                 workspaceApp);
-            workspaceApp.childWindows.forEach(async (childWindow) => await closeCorrespondingPlaceholder(childWindow));
+                promiseForEach(workspaceApp.childWindows, closeCorrespondingPlaceholder);
             resolve(failedResponse);
         }
     }, CLIENT_STARTUP_TIMEOUT);

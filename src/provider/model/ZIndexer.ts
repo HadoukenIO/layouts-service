@@ -79,7 +79,7 @@ export class ZIndexer {
             if (item.active) {
                 const index: number = ids.indexOf(item.id);
                 if (index >= 0) {
-                    if (!this.isPreviewWindow(item)) {
+                    if (!this.isServiceWindow(item)) {
                         return items[index];
                     } else {
                         console.warn('Top-most window is a preview window, ignoring');
@@ -98,7 +98,7 @@ export class ZIndexer {
             if (!item.active) {
                 // Exclude inactive windows
                 return false;
-            } else if (identity.uuid === SERVICE_IDENTITY.uuid && !identity.name.startsWith('TABSET-')) {
+            } else if (this.isServiceWindow(item)) {
                 // Exclude service-owned windows
                 return false;
             } else if (exclusions.some(exclusion => exclusion.uuid === identity.uuid && exclusion.name === identity.name)) {
@@ -129,17 +129,13 @@ export class ZIndexer {
 
         if (entry) {
             // Update existing entry
-            if (timestamp >= entry.timestamp) {
-                entry.timestamp = timestamp;
+            entry.timestamp = timestamp;
 
-                if (active !== undefined) {
-                    entry.active = active;
-                }
-                if (bounds) {
-                    Object.assign(entry.bounds, bounds);
-                }
-            } else {
-                console.warn('Out of order update attempted in ZIndexer, rejecting');
+            if (active !== undefined) {
+                entry.active = active;
+            }
+            if (bounds) {
+                Object.assign(entry.bounds, bounds);
             }
         } else if (!bounds) {
             // Must request bounds before being able to add
@@ -223,9 +219,8 @@ export class ZIndexer {
 
         // If the window is showing, add the window to the stack ASAP, as there are rare cases where neither
         // 'shown' nor 'focused' will be called following the 'window-created' event. See SERVICE-380
-        const timestamp = Date.now();
         if (await win.isShowing()) {
-            this.update(identity, undefined, undefined, timestamp);
+            this.update(identity);
         }
     }
 
@@ -263,13 +258,9 @@ export class ZIndexer {
         return (item as ObjectWithIdentity).identity !== undefined;
     }
 
-    private isPreviewWindow(item: ZIndex) {
-        if (item.identity.uuid === SERVICE_IDENTITY.uuid) {
-            const name = item.identity.name;
+    private isServiceWindow(item: ZIndex) {
+        const identity = item.identity;
 
-            return name === 'successPreview' || name === 'failurePreview';
-        } else {
-            return false;
-        }
+        return identity.uuid === SERVICE_IDENTITY.uuid && !identity.name.startsWith('TABSET-');
     }
 }

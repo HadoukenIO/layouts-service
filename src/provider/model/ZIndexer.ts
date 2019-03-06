@@ -142,7 +142,7 @@ export class ZIndexer {
                     Object.assign(entry.bounds, bounds);
                 }
             } else {
-                console.warn("Rejecting update due to earlier timestamp");
+                console.warn('Rejecting update due to earlier timestamp');
             }
         } else if (!bounds) {
             // Must request bounds before being able to add

@@ -92,9 +92,6 @@ export class ZIndexer {
     }
 
     public getWindowAt(x: number, y: number, exclusions: WindowIdentity[]): WindowIdentity|null {
-        console.log(`*** getWindowAt `, this._stack);
-
-        
         const entry: ZIndex|undefined = this._stack.find((item: ZIndex) => {
             const identity = item.identity;
 

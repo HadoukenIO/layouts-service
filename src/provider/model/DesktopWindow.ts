@@ -116,12 +116,13 @@ export class DesktopWindow implements DesktopEntity {
     public static activeTransactions: Transaction[] = [];
 
     public static async getWindowState(window: Window): Promise<EntityState> {
-        return Promise.all([window.getOptions(), window.getInfo(), window.isShowing(), window.getBounds()])
-            .then((results: [fin.WindowOptions, WindowInfo, boolean, fin.WindowBounds]): EntityState => {
+        return Promise.all([window.getOptions(), window.getState(), window.getInfo(), window.isShowing(), window.getBounds()])
+            .then((results: [fin.WindowOptions, string, WindowInfo, boolean, fin.WindowBounds]): EntityState => {
                 const options: fin.WindowOptions = results[0];
-                const info: WindowInfo = results[1];
-                const isShowing: boolean = results[2];
-                const bounds: fin.WindowBounds = results[3];
+                const state: WindowState = results[1] as WindowState;
+                const info: WindowInfo = results[2];
+                const isShowing: boolean = results[3];
+                const bounds: fin.WindowBounds = results[4];
                 const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
                 const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
 
@@ -183,7 +184,7 @@ export class DesktopWindow implements DesktopEntity {
                     resizeConstraints,
                     frame: options.frame!,
                     hidden: !isShowing,
-                    state: options.state!,
+                    state,
                     icon: options.icon || `https://www.google.com/s2/favicons?domain=${options.url}`,
                     title: windowTitle,
                     showTaskbarIcon: options.showTaskbarIcon!,

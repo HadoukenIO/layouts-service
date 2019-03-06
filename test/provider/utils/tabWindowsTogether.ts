@@ -1,10 +1,10 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
+import {executeJavascriptOnService} from '../../demo/utils/serviceUtils';
 import {getTabGroupID, getTabGroupIdentity} from '../../demo/utils/tabServiceUtils';
 
 import {delay} from './delay';
 import {dragWindowToOtherWindow} from './dragWindowTo';
-import { executeJavascriptOnService } from '../../demo/utils/serviceUtils';
 
 export async function tabWindowsTogether(target: _Window, windowToTab: _Window, expectSucceess = true, retries = 5) {
     const isTargetTabbed: boolean = await getTabGroupIdentity(target.identity) !== null;
@@ -27,11 +27,13 @@ export async function tabWindowsTogether(target: _Window, windowToTab: _Window, 
         if (targetTabGroupID === null || windowToTabTabGroupID === null) {
             if (retries > 0) {
                 await delay(1000);
-                console.warn(`**** Windows window not tabbed following tabWindowsTogether (${target.identity.uuid}/${target.identity.name}, ${windowToTab.identity.uuid}/${windowToTab.identity.name}). Retrying`);
+                console.warn(`**** Windows window not tabbed following tabWindowsTogether (${target.identity.uuid}/${target.identity.name}, ${
+                    windowToTab.identity.uuid}/${windowToTab.identity.name}). Retrying`);
                 tabWindowsTogether(target, windowToTab, expectSucceess, retries - 1);
             } else {
-                console.warn(`**** Windows window not tabbed following tabWindowsTogether (${target.identity.uuid}/${target.identity.name}, ${windowToTab.identity.uuid}/${windowToTab.identity.name})`);
-    
+                console.warn(`**** Windows window not tabbed following tabWindowsTogether (${target.identity.uuid}/${target.identity.name}, ${
+                    windowToTab.identity.uuid}/${windowToTab.identity.name})`);
+
                 console.trace();
                 console.warn(`**************************`);
             }

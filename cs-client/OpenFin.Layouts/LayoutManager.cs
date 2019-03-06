@@ -75,7 +75,7 @@ namespace OpenFin.Layouts
 
         public void Ungroup()
         {
-            ChannelClient.Dispatch<object>("undockWindow", new
+            ChannelClient.Dispatch<object>("UNDOCK-WINDOW", new
             {
                 uuid = LayoutsHostAppUuid,
                 name = _observedWindowName
@@ -84,7 +84,7 @@ namespace OpenFin.Layouts
 
         public void UngroupAll()
         {
-            ChannelClient.Dispatch<object>("undockGroup", new
+            ChannelClient.Dispatch<object>("UNDOCK-GROUP", new
             {
                 uuid = LayoutsHostAppUuid,
                 name = _observedWindowName

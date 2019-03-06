@@ -148,20 +148,18 @@ const processAppResponse = async(appResponse: WorkspaceApp, workspace: Workspace
         promiseForEach(appResponse.childWindows, closeCorrespondingPlaceholder);
         return false;
     } else {
-        const originalWorkspaceApp: WorkspaceApp|undefined = workspace.apps.find((potentialMatch) => potentialMatch.uuid === appResponse.uuid);
-        if (originalWorkspaceApp) {
-            promiseForEach(originalWorkspaceApp.childWindows, async (childWindow) => {
-                const childWindowInAppResponse = appResponse.childWindows.some((appResponseChildWin) => appResponseChildWin.name === childWindow.name);
-                if (!childWindowInAppResponse) {
-                    console.error(
-                        `Application ${appResponse.uuid} did not restore its child window ${childWindow.name} 
-                            (or the App's setGenerateHandler didn't return that child window). Placeholder will be closed: 
-                        `,
-                        appResponse);
-                    await closeCorrespondingPlaceholder(childWindow);
-                }
-            });
-        }
+        const originalWorkspaceApp: WorkspaceApp = workspace.apps.find((potentialMatch) => potentialMatch.uuid === appResponse.uuid)!;
+        promiseForEach(originalWorkspaceApp.childWindows, async (childWindow) => {
+            const childWindowInAppResponse = appResponse.childWindows.some((appResponseChildWin) => appResponseChildWin.name === childWindow.name);
+            if (!childWindowInAppResponse) {
+                console.error(
+                    `Application ${appResponse.uuid} did not restore its child window ${childWindow.name} 
+                        (or the App's setGenerateHandler didn't return that child window). Placeholder will be closed: 
+                    `,
+                    appResponse);
+                await closeCorrespondingPlaceholder(childWindow);
+            }
+        });
         return true;
     }
 };

@@ -79,10 +79,10 @@ export class ZIndexer {
             if (item.active) {
                 const index: number = ids.indexOf(item.id);
                 if (index >= 0) {
-                    if (item.identity.uuid !== SERVICE_IDENTITY.uuid) {
+                    if (!this.isPreviewWindow(item)) {
                         return items[index];
                     } else {
-                        console.warn('Top-most window is a service window, ignoring');
+                        console.warn('Top-most window is a preview window, ignoring');
                     }
                 }
             }
@@ -264,5 +264,15 @@ export class ZIndexer {
 
     private hasIdentity(item: Identifiable): item is ObjectWithIdentity {
         return (item as ObjectWithIdentity).identity !== undefined;
+    }
+
+    private isPreviewWindow(item : ZIndex) {
+        if (item.identity.uuid === SERVICE_IDENTITY.uuid) {
+            const name = item.identity.name;
+
+            return name === 'successPreview' || name === 'failurePreview';
+        } else {
+            return false;
+        }
     }
 }

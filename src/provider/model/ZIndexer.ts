@@ -263,7 +263,7 @@ export class ZIndexer {
         return (item as ObjectWithIdentity).identity !== undefined;
     }
 
-    private isPreviewWindow(item : ZIndex) {
+    private isPreviewWindow(item: ZIndex) {
         if (item.identity.uuid === SERVICE_IDENTITY.uuid) {
             const name = item.identity.name;
 

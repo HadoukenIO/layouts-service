@@ -79,10 +79,10 @@ export class ZIndexer {
             if (item.active) {
                 const index: number = ids.indexOf(item.id);
                 if (index >= 0) {
-                    if (item.identity.uuid === SERVICE_IDENTITY.uuid) {
-                        console.log(`Ignoring service window in ZIndexer which would otherwise be on top`);
-                    } else {
+                    if (item.identity.uuid !== SERVICE_IDENTITY.uuid) {
                         return items[index];
+                    } else {
+                        console.warn('Top-most window is a service window, ignoring');
                     }
                 }
             }
@@ -94,7 +94,7 @@ export class ZIndexer {
     public getWindowAt(x: number, y: number, exclusions: WindowIdentity[]): WindowIdentity|null {
         console.log(`*** getWindowAt `, this._stack);
 
-        
+
         const entry: ZIndex|undefined = this._stack.find((item: ZIndex) => {
             const identity = item.identity;
 
@@ -142,7 +142,7 @@ export class ZIndexer {
                     Object.assign(entry.bounds, bounds);
                 }
             } else {
-                console.warn('Rejecting update due to earlier timestamp');
+                console.warn('Out of order update attempted in ZIndexer, rejecting');
             }
         } else if (!bounds) {
             // Must request bounds before being able to add

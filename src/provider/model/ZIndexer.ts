@@ -82,7 +82,7 @@ export class ZIndexer {
                     if (!this.isServiceWindow(item)) {
                         return items[index];
                     } else {
-                        console.warn('Top-most window is a preview window, ignoring');
+                        console.warn('Top-most window is a service window, ignoring');
                     }
                 }
             }

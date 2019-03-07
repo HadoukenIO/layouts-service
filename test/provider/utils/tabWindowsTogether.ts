@@ -13,12 +13,11 @@ export async function tabWindowsTogether(target: _Window, windowToTab: _Window, 
 
     if (expectSucceess) {
         const targetTabGroupID = await getTabGroupID(target.identity);
-        if (targetTabGroupID === null) {
-            console.warn(`Target window not tabbed following tabWindowsTogether (${target.identity.uuid}/${target.identity.name})`);
-        }
         const windowToTabTabGroupID = await getTabGroupID(windowToTab.identity);
-        if (windowToTabTabGroupID === null) {
-            console.warn(`Window to tab not tabbed following tabWindowsformerTogether (${windowToTab.identity.uuid}/${windowToTab.identity.name})`);
+
+        if (targetTabGroupID === null || windowToTabTabGroupID == null || (targetTabGroupID !== windowToTabTabGroupID)) {
+            console.warn(`Windows not tabbed following tabWindowsTogether. Target window: ${target.identity.uuid}/${target.identity.name}, ${
+                targetTabGroupID}. Window to tab: ${windowToTab.identity.uuid}/${windowToTab.identity.name}, ${windowToTabTabGroupID}`);
         }
     }
 }

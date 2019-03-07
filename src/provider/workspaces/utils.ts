@@ -38,8 +38,8 @@ const DEFAULT_PLACEHOLDER_URL = (() => {
 
 // TODO: Create Placeholder and PlaceholderStore classes?
 // This keeps track of how many placeholders we have open, so we know when we can start regrouping a layout.
-const placeholderMap = new Map<string, _Window>();
-const placeholderReverseMap = new Map<string, string>();
+const identityToPlaceholderMap = new Map<string, _Window>();
+const placeholderNameToIdentityMap = new Map<string, string>();
 let functionToContinueRestorationWhenPlaceholdersClosed: (() => void)|undefined;
 let rejectTimeout: number|undefined;
 
@@ -56,7 +56,7 @@ export async function waitUntilAllPlaceholdersClosed() {
     }
 
     // All placeholders are already closed, so no need to wait.
-    if (placeholderMap.size === 0) {
+    if (identityToPlaceholderMap.size === 0) {
         return;
     }
 
@@ -64,7 +64,7 @@ export async function waitUntilAllPlaceholdersClosed() {
         // Set the restoration continuation function and wait. If placeholders are left open for 60 seconds, close them and attempt to group.
         functionToContinueRestorationWhenPlaceholdersClosed = res;
         rejectTimeout = window.setTimeout(async () => {
-            rej(`${placeholderMap.size} Placeholder(s) Left Open after 60 seconds. ${placeholderMap.size} Window(s) did not come up. Attempting to group anyway.`);
+            rej(`${identityToPlaceholderMap.size} Placeholder(s) Left Open after 60 seconds. ${identityToPlaceholderMap.size} Window(s) did not come up. Attempting to group anyway.`);
             await closeAllPlaceholders();
             cleanupPlaceholderObjects();
         }, 60000);
@@ -88,8 +88,8 @@ export async function closeCorrespondingPlaceholder(windowIdentity: Identity): P
 export function cleanupPlaceholderObjects() {
     functionToContinueRestorationWhenPlaceholdersClosed = undefined;
     rejectTimeout = undefined;
-    placeholderMap.clear();
-    placeholderReverseMap.clear();
+    identityToPlaceholderMap.clear();
+    placeholderNameToIdentityMap.clear();
 }
 
 // Positions a window when it is restored.
@@ -335,25 +335,25 @@ function placeholderClosed(placeholderWinEvent: WindowEvent<"system", "window-cl
 }
 
 function addPlaceholderToMaps(windowIdentity: WindowIdentity, placeholderWindow: _Window): void {
-    placeholderMap.set(getId(windowIdentity), placeholderWindow);
-    placeholderReverseMap.set(`${placeholderWindow.identity.name}`, getId(windowIdentity));
+    identityToPlaceholderMap.set(getId(windowIdentity), placeholderWindow);
+    placeholderNameToIdentityMap.set(`${placeholderWindow.identity.name}`, getId(windowIdentity));
 }
 
 function getPlaceholderFromMap(windowIdentity: Identity): _Window|undefined {
     const id = {uuid: windowIdentity.uuid, name: windowIdentity.name || windowIdentity.uuid};
-    return placeholderMap.get(getId(id));
+    return identityToPlaceholderMap.get(getId(id));
 }
 
 function deletePlaceholderFromMapsGivenPlaceholder(placeholderWinEvent: WindowEvent<"system", "window-closed">) {
-    const hashedIdentity = placeholderReverseMap.get(placeholderWinEvent.name);
-    if (hashedIdentity) {
-        placeholderMap.delete(hashedIdentity);
-        placeholderReverseMap.delete(placeholderWinEvent.name);
+    const correspondingWindowIdentity = placeholderNameToIdentityMap.get(placeholderWinEvent.name);
+    if (correspondingWindowIdentity) {
+        identityToPlaceholderMap.delete(correspondingWindowIdentity);
+        placeholderNameToIdentityMap.delete(placeholderWinEvent.name);
     }
 }
 
 async function closeAllPlaceholders(): Promise<void> {
-    for (const placeholderWindow of placeholderMap.values()) {
+    for (const placeholderWindow of identityToPlaceholderMap.values()) {
         await closePlaceholderWindow(placeholderWindow);
     }
 }
@@ -369,7 +369,7 @@ async function closePlaceholderWindow(placeholderWindow: _Window) {
 }
 
 function continueRestorationIfReady() {
-    if (!!(placeholderMap.size === 0 && functionToContinueRestorationWhenPlaceholdersClosed)) {
+    if (!!(identityToPlaceholderMap.size === 0 && functionToContinueRestorationWhenPlaceholdersClosed)) {
         clearTimeout(rejectTimeout);
         functionToContinueRestorationWhenPlaceholdersClosed();
         cleanupPlaceholderObjects();

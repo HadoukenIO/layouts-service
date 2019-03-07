@@ -44,7 +44,7 @@ testParameterized(
             }
         } else {
             const restoredBounds: NormalizedBounds = await getBounds(windows[1]);
-            await tabWindowsTogether(windows[1], windows[0]);
+            await tabWindowsTogether(windows[1], windows[0], false);
             // Windows should not have tabbed
             await Promise.all(windows.map(win => assertNotTabbed(win, t)));
         }
@@ -68,7 +68,7 @@ testParameterized(
         await windows[1].setAsForeground();
         await windows[0].setAsForeground();
 
-        await tabWindowsTogether(windows[2], windows[0]);
+        await tabWindowsTogether(windows[2], windows[0], false);
 
         // None of the windows should be tabbed
         await Promise.all(windows.map(win => assertNotTabbed(win, t)));

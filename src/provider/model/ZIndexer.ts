@@ -79,7 +79,11 @@ export class ZIndexer {
             if (item.active) {
                 const index: number = ids.indexOf(item.id);
                 if (index >= 0) {
-                    return items[index];
+                    if (!this.isServiceWindow(item)) {
+                        return items[index];
+                    } else {
+                        console.warn('Top-most window is a service window, ignoring');
+                    }
                 }
             }
         }
@@ -94,7 +98,7 @@ export class ZIndexer {
             if (!item.active) {
                 // Exclude inactive windows
                 return false;
-            } else if (identity.uuid === SERVICE_IDENTITY.uuid && !identity.name.startsWith('TABSET-')) {
+            } else if (this.isServiceWindow(item)) {
                 // Exclude service-owned windows
                 return false;
             } else if (exclusions.some(exclusion => exclusion.uuid === identity.uuid && exclusion.name === identity.name)) {
@@ -124,6 +128,10 @@ export class ZIndexer {
         const entry: ZIndex|undefined = this._stack.find(i => i.id === id);
 
         if (entry) {
+            if (timestamp < entry.timestamp) {
+                console.warn('Out of order update in ZIndexer');
+            }
+
             // Update existing entry
             entry.timestamp = timestamp;
 
@@ -171,7 +179,7 @@ export class ZIndexer {
      * Creates window event listeners on a specified window.
      * @param win Window to add the event listeners to.
      */
-    private _addEventListeners(win: _Window) {
+    private async _addEventListeners(win: _Window) {
         const identity = win.identity as WindowIdentity;  // A window identity will always have a name, so it is safe to cast
 
         const bringToFront = () => {
@@ -212,6 +220,12 @@ export class ZIndexer {
 
         // Remove listeners when the window is destroyed
         win.addListener('closed', onClose);
+
+        // If the window is showing, add the window to the stack ASAP, as there are rare cases where neither
+        // 'shown' nor 'focused' will be called following the 'window-created' event. See SERVICE-380
+        if (await win.isShowing()) {
+            this.update(identity);
+        }
     }
 
     private addToStack(entry: ZIndex): void {
@@ -246,5 +260,11 @@ export class ZIndexer {
 
     private hasIdentity(item: Identifiable): item is ObjectWithIdentity {
         return (item as ObjectWithIdentity).identity !== undefined;
+    }
+
+    private isServiceWindow(item: ZIndex) {
+        const identity = item.identity;
+
+        return identity.uuid === SERVICE_IDENTITY.uuid && !identity.name.startsWith('TABSET-');
     }
 }

@@ -18,7 +18,7 @@ const deregisteredManifestParentandChild =
 const combinedManifestApps = registeredManifestApp.concat(deregisteredManifestParentandChild);
 
 // First grouping includes a deregistered window. It exists to move the deregistered window out the way of the registered window underneath.
-const windowGrouping = [[3, 1], [0, 2]];
+const windowGrouping = [{group: [3, 1], expectSuccess: false}, {group: [0, 2], expectSuccess: true}];
 
 test.afterEach.always(async (t) => {
     await closeAllPreviews(t);
@@ -31,9 +31,9 @@ testParameterized<CreateAppData, AppContext>(
     [{apps: combinedProgrammaticApps, tabWindowGrouping: windowGrouping}, {apps: combinedManifestApps, tabWindowGrouping: windowGrouping}],
     createAppTest(async (t, applicationData: CreateAppData) => {
         if (applicationData.tabWindowGrouping) {
-            const group = applicationData.tabWindowGrouping[1];
-            const win1 = t.context.windows[group[0]];
-            const win2 = t.context.windows[group[1]];
+            const grouping = applicationData.tabWindowGrouping[1];
+            const win1 = t.context.windows[grouping.group[0]];
+            const win2 = t.context.windows[grouping.group[1]];
 
             await assertPairTabbed(win1, win2, t);
             await assertGrouped(t, win1, win2);

@@ -115,7 +115,10 @@ export function createAppsArray(numAppsToCreate: number, numberOfChildren: numbe
 
 // A WindowGrouping is an array of array of numbers that corresponds to two windows grouped.
 // e.g. [[0, 1], [2, 3]] would mean that out of an array of 4 windows, win0 and win1 should be grouped, and win2 and win3 should be grouped.
-export type WindowGrouping = number[][];
+export type WindowGrouping = {
+    group: number[],
+    expectSuccess?: boolean
+}[];
 
 // createWindowGroupings takes a number of apps and children, and creates a 1-to-1 mapping of all combinations of apps and child windows.
 // For simplicity, we're supporting up to 4 windows right now, but this is meant to be extended.
@@ -133,7 +136,7 @@ export function createWindowGroupings(numApps: number, children: number): Window
 function createWindowPairs(windows: number[]): WindowGrouping[] {
     const result: WindowGrouping[] = [];
     if (windows.length <= 2) {
-        return [[windows]];
+        return [[{group: windows}]];
     } else {
         const a = windows[0];
         for (let index = 1; index < windows.length; index++) {
@@ -143,7 +146,7 @@ function createWindowPairs(windows: number[]): WindowGrouping[] {
 
             const subCombinations = createWindowPairs(newArray);
             subCombinations.forEach(subCombo => {
-                result.push([pair].concat(subCombo));
+                result.push([{group: pair}].concat(subCombo));
             });
         }
     }
@@ -198,18 +201,18 @@ export class AppInitializer {
     }
 
     public async snapWindows(snapWindowGrouping: WindowGrouping, windows: _Window[]): Promise<void> {
-        for (const group of snapWindowGrouping) {
-            const win1 = windows[group[0]];
-            const win2 = windows[group[1]];
+        for (const grouping of snapWindowGrouping) {
+            const win1 = windows[grouping.group[0]];
+            const win2 = windows[grouping.group[1]];
             await dragSideToSide(win1, 'left', win2, 'right');
         }
     }
 
     public async tabWindows(tabWindowGrouping: WindowGrouping, windows: _Window[]): Promise<void> {
-        for (const group of tabWindowGrouping) {
-            const win1 = windows[group[0]];
-            const win2 = windows[group[1]];
-            await tabWindowsTogether(win1, win2);
+        for (const grouping of tabWindowGrouping) {
+            const win1 = windows[grouping.group[0]];
+            const win2 = windows[grouping.group[1]];
+            await tabWindowsTogether(win1, win2, grouping.expectSuccess !== undefined ? grouping.expectSuccess : true);
         }
     }
 }

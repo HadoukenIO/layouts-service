@@ -82,7 +82,7 @@ export class ZIndexer {
                     if (!this.isServiceWindow(item)) {
                         return items[index];
                     } else {
-                        console.warn('Top-most window is a preview window, ignoring');
+                        console.warn('Top-most window is a service window, ignoring');
                     }
                 }
             }
@@ -128,6 +128,10 @@ export class ZIndexer {
         const entry: ZIndex|undefined = this._stack.find(i => i.id === id);
 
         if (entry) {
+            if (timestamp < entry.timestamp) {
+                console.warn('Out of order update in ZIndexer');
+            }
+
             // Update existing entry
             entry.timestamp = timestamp;
 

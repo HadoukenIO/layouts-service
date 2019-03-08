@@ -28,6 +28,7 @@ body {
 	height: 28px;
 	display: flex;
 	margin: 0 20;
+	pointer-events: none;
 }
 
 #tabs-container {
@@ -38,6 +39,7 @@ body {
 	margin-right: 15px;
 	overflow: scroll;
 	z-index: 15;
+	pointer-events: none;
 }
 
 .tab {
@@ -48,6 +50,7 @@ body {
 	justify-content: space-between;
 	margin: 0 -7px;
 	min-width: 72px;
+	pointer-events: auto;
 }
 
 

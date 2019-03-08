@@ -98,19 +98,17 @@ const createWindowUIListeners = () => {
 
     // Draggable area
     dragElem.onmousedown = async () => {
-        if (!tabManager.isMaximized) {
-            window.getSelection().empty();
+        window.getSelection().empty();
 
-            const [startMousePosition, startBounds] = await Promise.all<PointTopLeft, Bounds>([fin.System.getMousePosition(), ofWindow.getBounds()]);
+        const mousePosition = await fin.System.getMousePosition();
 
-            if (dragAnimationFrameRequestID !== undefined) {
-                cancelAnimationFrame(dragAnimationFrameRequestID);
-            }
-
-            dragAnimationFrameRequestID = requestAnimationFrame(async () => {
-                await updateBoundsFromDragging(startMousePosition, startBounds, ofWindow);
-            });
+        if (dragAnimationFrameRequestID !== undefined) {
+            cancelAnimationFrame(dragAnimationFrameRequestID);
         }
+
+        dragAnimationFrameRequestID = requestAnimationFrame(() => {
+            updateBoundsFromDragging(mousePosition, ofWindow);
+        });
     };
 
     window.onmouseup = () => {
@@ -121,22 +119,25 @@ const createWindowUIListeners = () => {
     };
 };
 
-const updateBoundsFromDragging = async (startMousePosition: PointTopLeft, startBounds: Bounds, ofWindow: _Window) => {
+const updateBoundsFromDragging = async (previousMousePosition: PointTopLeft, ofWindow: _Window) => {
     const mousePosition = await fin.System.getMousePosition();
-    const xDelta = mousePosition.left - startMousePosition.left;
-    const yDelta = mousePosition.top - startMousePosition.top;
+    const previousBounds = await ofWindow.getBounds();
 
-    const left = startBounds.left + xDelta;
-    const top = startBounds.top + yDelta;
-    const width = startBounds.width;
-    const height = startBounds.height;
+    const xDelta = mousePosition.left - previousMousePosition.left;
+    const yDelta = mousePosition.top - previousMousePosition.top;
+
+    const left = previousBounds.left + xDelta;
+    const top = previousBounds.top + yDelta;
+    const width = previousBounds.width;
+    const height = previousBounds.height;
 
     const bounds = {left, top, width, height};
 
     await ofWindow.setBounds(bounds);
+
     if (dragAnimationFrameRequestID !== undefined) {
-        dragAnimationFrameRequestID = requestAnimationFrame(async () => {
-            await updateBoundsFromDragging(startMousePosition, startBounds, ofWindow);
+        dragAnimationFrameRequestID = requestAnimationFrame(() => {
+            updateBoundsFromDragging(mousePosition, ofWindow);
         });
     }
 };

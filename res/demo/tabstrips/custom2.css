@@ -54,7 +54,6 @@ body {
 	justify-content: space-between;
 	margin-left: -15px;
 	min-width: 72px;
-	-webkit-app-region: no-drag;
 }
 
 
@@ -171,7 +170,6 @@ body {
 	display: flex;
 	align-items: center;
 	z-index: 15;
-	-webkit-app-region: no-drag;
 }
 
 #window-button-wrap div {
@@ -218,10 +216,6 @@ body {
 	background-color: rgba(0, 0, 0, 0.3);
 }
 
-.drag {
-	-webkit-app-region: drag;
-}
-
 #drag-region {
 	position: absolute;
 	top:2px;
@@ -229,6 +223,7 @@ body {
 	height:calc(100% - 8px);
 	width:calc(100% - 8px);
 	z-index: 1;
+	-webkit-user-select: none;
 }
 
 #drag-shield {
@@ -239,7 +234,6 @@ body {
 	width:calc(100% - 8px);
 	display: none;
 	z-index:5;
-	-webkit-app-region: no-drag;
 }
 
 .preview {

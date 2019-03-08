@@ -1,3 +1,8 @@
+import {Fin} from 'hadouken-js-adapter';
+import {PointTopLeft} from 'hadouken-js-adapter/out/types/src/api/system/point';
+import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
+import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
+
 import * as layouts from '../../../client/main';
 import {WindowIdentity} from '../../../client/main';
 import {TabActivatedEvent, TabAddedEvent, TabPropertiesUpdatedEvent, TabRemovedEvent} from '../../../client/tabbing';
@@ -58,28 +63,79 @@ const createLayoutsEventListeners = () => {
  * Creates Event Listeners for window controls (close, maximize, minimize, etc);
  */
 const createWindowUIListeners = () => {
+    const ofWindow = fin.Window.getCurrentSync();
+    let intervalID: number|undefined;
+
     const minimizeElem: HTMLElement = document.getElementById('window-button-minimize')!;
     const maximizeElem: HTMLElement = document.getElementById('window-button-maximize')!;
     const closeElem: HTMLElement = document.getElementById('window-button-exit')!;
+
+    const dragElem: HTMLElement = document.getElementById('drag-region')!;
 
     // Minimize Button
     minimizeElem.onclick = () => {
         layouts.tabbing.minimizeTabGroup(tabManager.getTabs[0].ID);
     };
 
-    // Maximize / Restore button
-    maximizeElem.onclick = () => {
+    // Maximize/Restore button/area
+    const toggleHandler = () => {
         if (!tabManager.isMaximized) {
             layouts.tabbing.maximizeTabGroup(tabManager.getTabs[0].ID);
         } else {
             layouts.tabbing.restoreTabGroup(tabManager.getTabs[0].ID);
         }
+
+        clearInterval(intervalID);
     };
+    maximizeElem.onclick = toggleHandler;
+    dragElem.ondblclick = toggleHandler;
 
     // Close Button
     closeElem.onclick = () => {
         layouts.tabbing.closeTabGroup(tabManager.getTabs[0].ID);
     };
+
+    // Draggable area
+    dragElem.onmousedown = async () => {
+        if (!tabManager.isMaximized) {
+            window.getSelection().empty();
+
+            const [startMousePosition, startBounds] = await Promise.all<PointTopLeft, Bounds>([fin.System.getMousePosition(), ofWindow.getBounds()]);
+
+            if (intervalID !== undefined) {
+                cancelAnimationFrame(intervalID);
+            }
+
+            const setIntervalResult = setInterval(async () => {
+                updateBoundsFromDragging(startMousePosition, startBounds, ofWindow);
+            }, 10);
+            // This is due to a disagreement between Visual Studio Code and tsc about the return type of setInterval
+            intervalID = setIntervalResult as unknown as number;
+        }
+    };
+
+    dragElem.onmouseup = () => {
+        if (intervalID) {
+            clearInterval(intervalID);
+            intervalID = undefined;
+        }
+    };
+};
+
+const updateBoundsFromDragging = async (startMousePosition: PointTopLeft, startBounds: Bounds, ofWindow: _Window) => {
+    const mousePosition = await fin.System.getMousePosition();
+
+    const xDelta = mousePosition.left - startMousePosition.left;
+    const yDelta = mousePosition.top - startMousePosition.top;
+
+    const left = startBounds.left + xDelta;
+    const top = startBounds.top + yDelta;
+    const width = startBounds.width;
+    const height = startBounds.height;
+
+    const bounds = {left, top, width, height};
+
+    ofWindow.setBounds(bounds);
 };
 
 

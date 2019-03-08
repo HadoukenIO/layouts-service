@@ -48,7 +48,6 @@ body {
 	justify-content: space-between;
 	margin: 0 -7px;
 	min-width: 72px;
-	-webkit-app-region: no-drag;
 }
 
 
@@ -174,7 +173,6 @@ body {
 	display: flex;
 	align-items: center;
 	z-index: 15;
-	-webkit-app-region: no-drag;
 }
 
 #window-button-wrap div {
@@ -218,7 +216,6 @@ body {
 	background-color: rgba(0, 0, 0, 0.3);
 }
 
-
 #drag-region {
 	position: absolute;
 	top:2px;
@@ -226,5 +223,5 @@ body {
 	height:calc(100% - 8px);
 	width:calc(100% - 8px);
 	z-index: 1;
-	-webkit-app-region: drag;
+	-webkit-user-select: none;
 }

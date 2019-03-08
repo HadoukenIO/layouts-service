@@ -14,6 +14,8 @@ let tabManager: TabManager;
 
 tabManager = new TabManager();
 
+let dragAnimationFrameRequestID: number|undefined;
+
 /**
  * Creates event listeners for events fired from the openfin layouts service.
  */
@@ -64,7 +66,6 @@ const createLayoutsEventListeners = () => {
  */
 const createWindowUIListeners = () => {
     const ofWindow = fin.Window.getCurrentSync();
-    let intervalID: number|undefined;
 
     const minimizeElem: HTMLElement = document.getElementById('window-button-minimize')!;
     const maximizeElem: HTMLElement = document.getElementById('window-button-maximize')!;
@@ -85,7 +86,7 @@ const createWindowUIListeners = () => {
             layouts.tabbing.restoreTabGroup(tabManager.getTabs[0].ID);
         }
 
-        clearInterval(intervalID);
+        clearInterval(dragAnimationFrameRequestID);
     };
     maximizeElem.onclick = toggleHandler;
     dragElem.ondblclick = toggleHandler;
@@ -102,29 +103,26 @@ const createWindowUIListeners = () => {
 
             const [startMousePosition, startBounds] = await Promise.all<PointTopLeft, Bounds>([fin.System.getMousePosition(), ofWindow.getBounds()]);
 
-            if (intervalID !== undefined) {
-                cancelAnimationFrame(intervalID);
+            if (dragAnimationFrameRequestID !== undefined) {
+                cancelAnimationFrame(dragAnimationFrameRequestID);
             }
 
-            const setIntervalResult = setInterval(async () => {
-                updateBoundsFromDragging(startMousePosition, startBounds, ofWindow);
-            }, 10);
-            // This is due to a disagreement between Visual Studio Code and tsc about the return type of setInterval
-            intervalID = setIntervalResult as unknown as number;
+            dragAnimationFrameRequestID = requestAnimationFrame(async () => {
+                await updateBoundsFromDragging(startMousePosition, startBounds, ofWindow);
+            });
         }
     };
 
     dragElem.onmouseup = () => {
-        if (intervalID) {
-            clearInterval(intervalID);
-            intervalID = undefined;
+        if (dragAnimationFrameRequestID) {
+            cancelAnimationFrame(dragAnimationFrameRequestID);
+            dragAnimationFrameRequestID = undefined;
         }
     };
 };
 
 const updateBoundsFromDragging = async (startMousePosition: PointTopLeft, startBounds: Bounds, ofWindow: _Window) => {
     const mousePosition = await fin.System.getMousePosition();
-
     const xDelta = mousePosition.left - startMousePosition.left;
     const yDelta = mousePosition.top - startMousePosition.top;
 
@@ -136,6 +134,9 @@ const updateBoundsFromDragging = async (startMousePosition: PointTopLeft, startB
     const bounds = {left, top, width, height};
 
     ofWindow.setBounds(bounds);
+    dragAnimationFrameRequestID = requestAnimationFrame(async () => {
+        await updateBoundsFromDragging(startMousePosition, startBounds, ofWindow);
+    });
 };
 
 

@@ -139,6 +139,5 @@ const updateBoundsFromDragging = async (startMousePosition: PointTopLeft, startB
     });
 };
 
-
 createLayoutsEventListeners();
 createWindowUIListeners();

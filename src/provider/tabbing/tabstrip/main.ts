@@ -113,7 +113,7 @@ const createWindowUIListeners = () => {
         }
     };
 
-    dragElem.onmouseup = () => {
+    window.onmouseup = () => {
         if (dragAnimationFrameRequestID) {
             cancelAnimationFrame(dragAnimationFrameRequestID);
             dragAnimationFrameRequestID = undefined;

@@ -74,12 +74,7 @@ export async function waitUntilAllPlaceholdersClosed() {
 export async function closeCorrespondingPlaceholder(windowIdentity: Identity): Promise<void> {
     const placeholderWindow = getPlaceholderFromMap(windowIdentity);
     if (placeholderWindow) {
-        try {
-            await closePlaceholderWindow(placeholderWindow);
-        } catch (error) {
-            console.log(
-                `Placeholder window ${placeholderWindow.identity.name} for Window ${windowIdentity.uuid} ${windowIdentity.name} has already been closed`);
-        }
+        await closePlaceholderWindow(placeholderWindow);
     } else {
         console.warn('No placeholder returned for given identity in closeCorrespondingPlaceholder. Either Placeholder is already closed, or identity given was invalid: ', windowIdentity);
     }
@@ -359,12 +354,10 @@ async function closeAllPlaceholders(): Promise<void> {
 }
 
 async function closePlaceholderWindow(placeholderWindow: _Window) {
-    await tabService.removeTab(placeholderWindow.identity as WindowIdentity);
     const placeholderWindowModel = await model.expect(placeholderWindow.identity as WindowIdentity);
-    if (placeholderWindowModel) {
+    if (placeholderWindowModel && placeholderWindowModel.isReady) {
+        await tabService.removeTab(placeholderWindow.identity as WindowIdentity);
         await placeholderWindowModel.close();
-    } else {
-        await placeholderWindow.close();
     }
 }
 

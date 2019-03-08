@@ -40,6 +40,7 @@ export interface Elements {
     inputURL: HTMLInputElement;
     inputSection: HTMLSelectElement;
     inputFrame: HTMLSelectElement;
+    inputState: HTMLSelectElement;
     inputSize: HTMLSelectElement;
     inputSizeRandomize: HTMLSelectElement;
     inputUseService: HTMLSelectElement;
@@ -116,6 +117,7 @@ export class View {
             inputURL: document.getElementById('inputURL') as HTMLInputElement,
             inputSection: document.getElementById('inputSection') as HTMLSelectElement,
             inputFrame: document.getElementById('inputFrame') as HTMLSelectElement,
+            inputState: document.getElementById('inputState') as HTMLSelectElement,
             inputSize: document.getElementById('inputSize') as HTMLSelectElement,
             inputSizeRandomize: document.getElementById('inputSizeRandomize') as HTMLSelectElement,
             inputUseService: document.getElementById('inputUseService') as HTMLSelectElement,

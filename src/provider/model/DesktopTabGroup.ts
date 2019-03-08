@@ -9,7 +9,7 @@ import {tabService} from '../main';
 import {Signal1} from '../Signal';
 import {Debounced} from '../snapanddock/utils/Debounced';
 import {Point, PointUtils} from '../snapanddock/utils/PointUtils';
-import {Rectangle} from '../snapanddock/utils/RectUtils';
+import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
@@ -62,7 +62,8 @@ export class DesktopTabGroup implements DesktopEntity {
     private _activeTab: DesktopWindow|null;
 
     private _isMaximized: boolean;
-    private _beforeMaximizeBounds: Rectangle|undefined;
+    private _beforeMaximizeTabBounds: Rectangle|undefined;
+    private _afterMaximizeTabStripBounds: Rectangle|undefined;
 
     private _config: ApplicationUIConfig;
 
@@ -82,8 +83,8 @@ export class DesktopTabGroup implements DesktopEntity {
         this._model = model;
         this._activeTab = null;
         this._window = new DesktopWindow(model, windowSpec);
-        this._window.onModified.add((window: DesktopWindow) => this.updateBounds());
         this._window.onTransform.add((window: DesktopWindow, type: Mask<eTransformType>) => this.updateBounds());
+        this._window.onModified.add(async (window: DesktopWindow) => await this.onTabstripModified());
         this._window.onCommit.add((window: DesktopWindow, type: Mask<eTransformType>) => this.updateBounds());
         this._window.onTeardown.add((window: DesktopWindow) => this.onTabGroupTeardown());
         this._groupState = {...this._window.currentState};
@@ -237,12 +238,14 @@ export class DesktopTabGroup implements DesktopEntity {
 
             const {center, halfSize} = this._activeTab && this._activeTab.currentState || this._tabs[0].currentState;
 
-            this._beforeMaximizeBounds = {center: {...center}, halfSize: {...halfSize}};
+            this._beforeMaximizeTabBounds = {center: {...center}, halfSize: {...halfSize}};
 
             const currentMonitor = this._model.getMonitorByRect(this._groupState) || this._model.monitors[0];
 
-            await this._window.applyProperties(
-                {center: {x: currentMonitor.center.x, y: this._config.height / 2}, halfSize: {x: currentMonitor.halfSize.x, y: this._config.height / 2}});
+            this._afterMaximizeTabStripBounds = {center: {x: currentMonitor.center.x, y: this._config.height / 2}, halfSize: {x: currentMonitor.halfSize.x, y: this._config.height / 2}};
+
+            await this._window.applyProperties(this._afterMaximizeTabStripBounds);
+                
             await this.activeTab.applyProperties({
                 center: {x: currentMonitor.center.x, y: currentMonitor.center.y + this._config.height / 2},
                 halfSize: {x: currentMonitor.halfSize.x, y: currentMonitor.halfSize.y - this._config.height / 2}
@@ -258,7 +261,7 @@ export class DesktopTabGroup implements DesktopEntity {
     /**
      * Restores the tab set window.  If the tab set window is in a maximized state we will restore the window to its "before maximized" bounds.
      */
-    public async restore(): Promise<void> {
+    public async restore(preservePositionUnderMouse: boolean = false): Promise<void> {
         if (this.state === 'minimized') {
             const result = this.window.applyProperties({state: 'normal'});
 
@@ -270,15 +273,24 @@ export class DesktopTabGroup implements DesktopEntity {
             if (this._isMaximized) {
                 if (this.activeTab.currentState.state === 'minimized') {
                     await Promise.all(this._tabs.map(tab => tab.applyProperties({state: 'normal'})));
-                } else if (this._beforeMaximizeBounds) {
+                } else if (this._beforeMaximizeTabBounds) {
+                    // We need to do this before setting new bounds, so when onTabstripModified is called, we know it's an internally triggered restore
                     this._isMaximized = false;
 
-                    const bounds: Rectangle = this._beforeMaximizeBounds;
-                    await this._window.applyProperties({
-                        center: {x: bounds.center.x, y: bounds.center.y - bounds.halfSize.y - (this._config.height / 2)},
-                        halfSize: {x: bounds.halfSize.x, y: this._config.height / 2}
-                    });
-                    await this.activeTab.applyProperties(bounds);
+                    const tabBounds: Rectangle = Object.assign({}, this._beforeMaximizeTabBounds);
+                    const tabstripBounds: Rectangle = {
+                        center: {x: tabBounds.center.x, y: tabBounds.center.y - tabBounds.halfSize.y - (this._config.height / 2)},
+                        halfSize: {x: tabBounds.halfSize.x, y: this._config.height / 2}
+                    };
+
+                    if (preservePositionUnderMouse) {
+                        await this.adjustBoundsToUnderMouse(tabstripBounds, tabBounds);
+                    }
+
+                    await this._window.applyProperties(tabstripBounds);
+                    await this.activeTab.applyProperties(tabBounds);
+
+                    console.log(Date.now(), tabstripBounds.halfSize.x * 2);
                 }
             } else {
                 await Promise.all(this._tabs.map(tab => tab.applyProperties({state: 'normal'})));
@@ -506,8 +518,8 @@ export class DesktopTabGroup implements DesktopEntity {
     }
 
     public getSaveDimensions(): TabGroupDimensions {
-        if (this._isMaximized && this._beforeMaximizeBounds) {
-            const bounds: Rectangle = this._beforeMaximizeBounds;
+        if (this._isMaximized && this._beforeMaximizeTabBounds) {
+            const bounds: Rectangle = this._beforeMaximizeTabBounds;
 
             return {
                 x: bounds.center.x - bounds.halfSize.x,
@@ -542,6 +554,17 @@ export class DesktopTabGroup implements DesktopEntity {
         state.halfSize.x = tabstripState.halfSize.x;
         state.center.y = tabState.center.y - tabstripState.halfSize.y;
         state.halfSize.y = tabState.halfSize.y + tabstripState.halfSize.y;
+    }
+
+    private async onTabstripModified(): Promise<void> {
+        this.updateBounds();
+        
+        // If bounds have changed while maximized, we assume this has come from the tabstrip being dragged
+        if (this._isMaximized) {
+            if (!RectUtils.isEqual(this._window.currentState, this._afterMaximizeTabStripBounds!)) {
+                await this.restore(true);
+            }
+        }
     }
 
     private onTabTransform(window: DesktopWindow, type: Mask<eTransformType>): void {
@@ -766,5 +789,24 @@ export class DesktopTabGroup implements DesktopEntity {
                 await wins[0].applyOffset(tabStripOffset);
             });
         }
+    }
+
+    private async adjustBoundsToUnderMouse(tabstripBounds: Rectangle, tabBounds: Rectangle) {
+        const mousePosition = await fin.System.getMousePosition();
+
+        const previousTabstripCenter = this._afterMaximizeTabStripBounds!.center;
+        const previousTabstripHalfSize = this._afterMaximizeTabStripBounds!.halfSize;
+
+        const mouseXRelToPreviousTabstrip = (mousePosition.left - previousTabstripCenter.x) / previousTabstripHalfSize.x;
+        const mouseYRelToPreviousTabstrip = (mousePosition.top - previousTabstripCenter.y) / previousTabstripHalfSize.y;
+
+        const offsetX = Math.round((mousePosition.left - tabstripBounds.center.x) - (mouseXRelToPreviousTabstrip * tabstripBounds.halfSize.x));
+        const offsetY = Math.round((mousePosition.top - tabstripBounds.center.y) - (mouseYRelToPreviousTabstrip * tabstripBounds.halfSize.y));
+        
+        tabBounds.center.x += offsetX;
+        tabBounds.center.y += offsetY;
+        
+        tabstripBounds.center.x += offsetX;
+        tabstripBounds.center.y += offsetY;
     }
 }

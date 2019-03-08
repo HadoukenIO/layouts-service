@@ -133,10 +133,12 @@ const updateBoundsFromDragging = async (startMousePosition: PointTopLeft, startB
 
     const bounds = {left, top, width, height};
 
-    ofWindow.setBounds(bounds);
-    dragAnimationFrameRequestID = requestAnimationFrame(async () => {
-        await updateBoundsFromDragging(startMousePosition, startBounds, ofWindow);
-    });
+    await ofWindow.setBounds(bounds);
+    if (dragAnimationFrameRequestID !== undefined) {
+        dragAnimationFrameRequestID = requestAnimationFrame(async () => {
+            await updateBoundsFromDragging(startMousePosition, startBounds, ofWindow);
+        });
+    }
 };
 
 createLayoutsEventListeners();

@@ -416,12 +416,9 @@ const clientRestoreAppWithTimeout = async(workspaceApp: WorkspaceApp): Promise<W
     return Promise.race([responsePromise, timeoutPromise]);
 };
 
-// If an application isn't up at the time of restoration, we need to give it its WorkspaceApp object once it comes up.
-// SetAppToClientRestoreWithTimeout sets that information on the appsToRestoreWhenReady object, which the application pulls
-// from once it is open.
-// Afterwards, it sets a timeout and waits for the application to come up.
-// If the application never comes up and/or calls its ready function to grab the WorkspaceApp object, we resolve this hanging promise
-// with a modified WorkspaceApp object.
+// Adds the WorkspaceApp object to a map, and waits for its corresponding application to come up.
+// Once the application comes up, it is given that WorkspaceApp object to use for child window restoration.
+// If the application never comes up, we resolve this hanging promise and nullify that application's child windows.
 const setAppToClientRestoreWithTimeout = (workspaceApp: WorkspaceApp, resolve: Function): void => {
     const {uuid} = workspaceApp;
     const save = {workspaceApp, resolve};

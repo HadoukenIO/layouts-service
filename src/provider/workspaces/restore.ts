@@ -365,7 +365,7 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
 
 const attemptToRunCreatedApp = async (ofAppNotRunning: Application) => {
     let timeout;
-    const timeoutPromise = new Promise<string>((resolve, reject) => timeout = window.setTimeout(() => {
+    const timeoutPromise = new Promise<void>((resolve, reject) => timeout = window.setTimeout(() => {
         reject(`Run was called on Application ${ofAppNotRunning.identity.uuid}, but it seems to be hanging. Continuing restoration.`);
     }, CLIENT_APP_RUN_TIMEOUT));
     const runCall = ofAppNotRunning.run();

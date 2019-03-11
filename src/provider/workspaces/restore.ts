@@ -144,7 +144,7 @@ export const appCanRestore = (uuid: string): boolean => {
 const processAppResponse = async(appResponse: WorkspaceApp, workspace: Workspace): Promise<boolean> => {
     if (appsToDeleteFromWorkspace.has(appResponse.uuid)) {
         console.error(`App launch for ${appResponse.uuid} failed. Application will be removed from workspace: `, appResponse);
-        await closeCorrespondingPlaceholder({uuid: appResponse.uuid, name: appResponse.uuid});
+        await closeCorrespondingPlaceholder(appResponse);
         promiseForEach(appResponse.childWindows, closeCorrespondingPlaceholder);
         return false;
     } else {

@@ -345,8 +345,10 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
             }
 
             if (ofAppNotRunning) {
-                // Application.run() can hang with createFromManifest calls, so we set a timeout to continue restoration
-                // Even if run() hangs.
+                // Application.run() can hang with createFromManifest calls, so we set a timeout to 
+                // continue restoration even if run() hangs.
+                // We throw an exception to continue restoration, so take a look at the functions in our
+                // catch to see how we handle it.
                 await attemptToRunCreatedApp(ofAppNotRunning);
                 await model.expect({uuid, name: uuid});
                 await positionWindow(app.mainWindow, true);

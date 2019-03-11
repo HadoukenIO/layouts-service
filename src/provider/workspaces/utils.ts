@@ -139,6 +139,7 @@ export const createNormalPlaceholder = async (win: WorkspaceWindow) => {
     }
 
     const placeholderWindow = await createPlaceholderWindow(win);
+    const placeholderWindowModel = await model.expect(placeholderWindow.identity as WindowIdentity);
 
     const actualWindow = await fin.Window.wrap({uuid, name});
     const updateOptionsAndShow = async () => {
@@ -147,7 +148,9 @@ export const createNormalPlaceholder = async (win: WorkspaceWindow) => {
             await model.expect(actualWindow.identity as WindowIdentity);
             await positionWindow(win, true);
         } finally {
-            await placeholderWindow.close();
+            if (placeholderWindowModel.isReady) {
+                await placeholderWindowModel.close();
+            }
         }
     };
     // We add a listener to show-requested so that the window shows up in the location it's supposed to be restored at.
@@ -162,6 +165,7 @@ export const createTabPlaceholder = async (win: WorkspaceWindow) => {
     const {name, uuid} = win;
 
     const placeholderWindow = await createPlaceholderWindow(win);
+    const placeholderWindowModel = await model.expect(placeholderWindow.identity as WindowIdentity);
 
     const actualWindow = await fin.Window.wrap({uuid, name});
     const updateOptionsAndShow = async () => {
@@ -170,9 +174,19 @@ export const createTabPlaceholder = async (win: WorkspaceWindow) => {
             await model.expect(actualWindow.identity as WindowIdentity);
             // TODO: Remove this once RUN-5006 has been resolved. If you try to swapTab too early after the window shows, you can get a JS exception.
             await delay(500);
-            await tabService.swapTab(placeholderWindow.identity as WindowIdentity, actualWindow.identity as WindowIdentity);
+            if (placeholderWindowModel.isReady) {
+                if (placeholderWindowModel.tabGroup) {
+                    await tabService.swapTab(placeholderWindow.identity as WindowIdentity, actualWindow.identity as WindowIdentity);
+                } else {
+                    console.error(`Placeholder window for ${win.uuid} - ${win.name} lost its Tab Group. Other windows tabbed to it may have been closed.`);
+                }
+            } else {
+                console.error(`Placeholder window for ${win.uuid} - ${win.name} was closed before the actual window came up. You may have hanging windows that should have been tabbed.`);
+            }
         } finally {
-            await placeholderWindow.close();
+            if (placeholderWindowModel.isReady) {
+                await placeholderWindowModel.close();
+            }
         }
     };
     // We add a listener to shown so that the core has time to set the proper properties on the window for grouping.

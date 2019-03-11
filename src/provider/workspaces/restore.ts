@@ -359,7 +359,6 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
     } catch (e) {
         console.error('Error restoring app', app, e);
         // App has failed to start. Let's mark it as such so we can delete it from the workspace later.
-        appsToDeleteFromWorkspace.add(app.uuid);
         deleteAppFromRestoreWhenReadyMap(app);
         return defaultResponse;
     }
@@ -378,9 +377,10 @@ const attemptToRunCreatedApp = async (ofAppNotRunning: Application) => {
 };
 
 
-// If an app fails to create during the beginning of the restore process, resolve its pending setAppToClientRestoreWithTimeout promise and remove it from
-// appsToRestoreWhenReady Finally, add to appsToDeleteFromWorkspace so it can get cleaned up in the processAppResponse function.
+// If an app fails to create during the beginning of the restore process, add it to appsToDeleteFromWorkspace so it can get cleaned up in the processAppResponse function. 
+// Then, resolve its pending setAppToClientRestoreWithTimeout promise and remove it from appsToRestoreWhenReady. 
 const deleteAppFromRestoreWhenReadyMap = (app: WorkspaceApp) => {
+    appsToDeleteFromWorkspace.add(app.uuid);
     const appThatFailedToRestore = appsToRestoreWhenReady.get(app.uuid);
     if (appThatFailedToRestore) {
         appsToRestoreWhenReady.delete(app.uuid);

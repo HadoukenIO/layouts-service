@@ -764,10 +764,10 @@ export class DesktopWindow implements DesktopEntity {
                         // Bring other windows in group to front
                         await windows.map(groupWindow => {
                             // Checks to make sure the window actually exists before bringing it to front. Fix for SERVICE-384
-                            if (groupWindow._window && groupWindow._window.bringToFront) {
+                            if (groupWindow.isReady) {
                                 groupWindow._window.bringToFront();
                             } else {
-                                console.warn("groupWindow._window.bringToFront called with a nonexistent window: ", groupWindow);
+                                console.warn("groupWindow is not ready. You may have a nonexistent window in your snapGroup: ", groupWindow);
                             }
                         });
                     }

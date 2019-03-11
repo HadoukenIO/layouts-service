@@ -345,17 +345,9 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
             }
 
             if (ofAppNotRunning) {
-                let timeout;
                 // Application.run() can hang with createFromManifest calls, so we set a timeout to continue restoration
                 // Even if run() hangs.
-                const timeoutPromise = new Promise<string>((resolve, reject) => timeout = window.setTimeout(() => {
-                    reject(`Run was called on Application ${app.uuid}, but it seems to be hanging. Continuing restoration.`);
-                }, CLIENT_APP_RUN_TIMEOUT));
-                const runCall = ofAppNotRunning.run();
-
-                await Promise.race([timeoutPromise, runCall]);
-
-                clearTimeout(timeout);
+                await attemptToRunCreatedApp(ofAppNotRunning);
                 await model.expect({uuid, name: uuid});
                 await positionWindow(app.mainWindow, true);
             }
@@ -370,6 +362,19 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
         return defaultResponse;
     }
 };
+
+const attemptToRunCreatedApp = async(ofAppNotRunning: Application) => {
+    let timeout;
+    const timeoutPromise = new Promise<string>((resolve, reject) => timeout = window.setTimeout(() => {
+        reject(`Run was called on Application ${ofAppNotRunning.identity.uuid}, but it seems to be hanging. Continuing restoration.`);
+    }, CLIENT_APP_RUN_TIMEOUT));
+    const runCall = ofAppNotRunning.run();
+
+    await Promise.race([timeoutPromise, runCall]);
+
+    clearTimeout(timeout);
+};
+
 
 // If an app fails to create during the beginning of the restore process, resolve its pending setAppToClientRestoreWithTimeout promise and remove it from
 // appsToRestoreWhenReady Finally, add to appsToDeleteFromWorkspace so it can get cleaned up in the processAppResponse function.
@@ -404,9 +409,7 @@ const clientRestoreAppWithTimeout = async(workspaceApp: WorkspaceApp): Promise<W
 
     const timeoutPromise = new Promise<WorkspaceApp>((resolve) => timeout = window.setTimeout(() => {
         console.error(
-            `Sent WorkspaceApp object to ${workspaceApp.uuid}'s restore handler, but it timed out. 
-                Child window restoration may have failed. 
-                Application's child windows and confirmed status will be removed: 
+            `Sent WorkspaceApp object to ${workspaceApp.uuid}'s restore handler, but it timed out. Child window restoration may have failed. Application's child windows and confirmed status will be removed: 
             `,
             workspaceApp);
             promiseForEach(workspaceApp.childWindows, closeCorrespondingPlaceholder);
@@ -430,10 +433,7 @@ const setAppToClientRestoreWithTimeout = (workspaceApp: WorkspaceApp, resolve: F
     const timeout = window.setTimeout(() => {
         if (appsToRestoreWhenReady.delete(uuid)) {
             console.error(
-                `App ${uuid} failed to call its ready function. 
-                    App is either not launching, or didn't call ready. 
-                    Application's child windows and confirmed status will be removed: 
-                `,
+                `App ${uuid} failed to call its ready function. App is either not launching, or didn't call ready. Application's child windows and confirmed status will be removed: `,
                 workspaceApp);
                 promiseForEach(workspaceApp.childWindows, closeCorrespondingPlaceholder);
             resolve(failedResponse);

@@ -345,7 +345,7 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
             }
 
             if (ofAppNotRunning) {
-                // Application.run() can hang with createFromManifest calls, so we set a timeout to 
+                // Application.run() can hang with createFromManifest calls, so we set a timeout to
                 // continue restoration even if run() hangs.
                 // We throw an exception to continue restoration, so take a look at the functions in our
                 // catch to see how we handle it.
@@ -377,8 +377,8 @@ const attemptToRunCreatedApp = async (ofAppNotRunning: Application) => {
 };
 
 
-// If an app creation fails during the beginning of the restore process, add it to appsToDeleteFromWorkspace so it can get cleaned up in the processAppResponse function. 
-// Then, resolve its pending setAppToClientRestoreWithTimeout promise and remove it from appsToRestoreWhenReady. 
+// If an app creation fails during the beginning of the restore process, add it to appsToDeleteFromWorkspace so it can get cleaned up in the processAppResponse
+// function. Then, resolve its pending setAppToClientRestoreWithTimeout promise and remove it from appsToRestoreWhenReady.
 const deleteAppFromRestoreWhenReadyMap = (app: WorkspaceApp) => {
     appsToDeleteFromWorkspace.add(app.uuid);
     const appThatFailedToRestore = appsToRestoreWhenReady.get(app.uuid);

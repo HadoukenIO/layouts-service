@@ -181,7 +181,8 @@ export const createTabPlaceholder = async (win: WorkspaceWindow) => {
                     console.error(`Placeholder window for ${win.uuid} - ${win.name} lost its Tab Group. Other windows tabbed to it may have been closed.`);
                 }
             } else {
-                console.error(`Placeholder window for ${win.uuid} - ${win.name} was closed before the actual window came up. You may have hanging windows that should have been tabbed.`);
+                console.error(`Placeholder window for ${win.uuid} - ${win.name} was closed before the actual window came up. 
+                    You may have hanging windows that should have been tabbed.`);
             }
         } finally {
             if (placeholderWindowModel.isReady) {

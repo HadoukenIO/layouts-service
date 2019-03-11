@@ -377,7 +377,7 @@ const attemptToRunCreatedApp = async (ofAppNotRunning: Application) => {
 };
 
 
-// If an app fails to create during the beginning of the restore process, add it to appsToDeleteFromWorkspace so it can get cleaned up in the processAppResponse function. 
+// If an app creation fails during the beginning of the restore process, add it to appsToDeleteFromWorkspace so it can get cleaned up in the processAppResponse function. 
 // Then, resolve its pending setAppToClientRestoreWithTimeout promise and remove it from appsToRestoreWhenReady. 
 const deleteAppFromRestoreWhenReadyMap = (app: WorkspaceApp) => {
     appsToDeleteFromWorkspace.add(app.uuid);

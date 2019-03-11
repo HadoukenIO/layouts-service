@@ -1,13 +1,14 @@
 import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/application/application';
+import {WindowEvent} from 'hadouken-js-adapter/out/types/src/api/events/base';
 import {WindowDetail} from 'hadouken-js-adapter/out/types/src/api/system/window';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
+
 import {WorkspaceApp, WorkspaceWindow} from '../../client/workspaces';
 import {model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {WindowIdentity} from '../model/DesktopWindow';
 import {isWin10} from '../snapanddock/utils/platform';
-import {WindowEvent} from 'hadouken-js-adapter/out/types/src/api/events/base';
 
 export interface SemVer {
     major: number;
@@ -64,7 +65,8 @@ export async function waitUntilAllPlaceholdersClosed() {
         // Set the restoration continuation function and wait. If placeholders are left open for 60 seconds, close them and attempt to group.
         functionToContinueRestorationWhenPlaceholdersClosed = res;
         rejectTimeout = window.setTimeout(async () => {
-            rej(`${identityToPlaceholderMap.size} Placeholder(s) Left Open after 60 seconds. ${identityToPlaceholderMap.size} Window(s) did not come up. Attempting to group anyway.`);
+            rej(`${identityToPlaceholderMap.size} Placeholder(s) Left Open after 60 seconds. ${
+                identityToPlaceholderMap.size} Window(s) did not come up. Attempting to group anyway.`);
             await closeAllPlaceholders();
             cleanupPlaceholderObjects();
         }, 60000);
@@ -76,7 +78,9 @@ export async function closeCorrespondingPlaceholder(windowIdentity: Identity): P
     if (placeholderWindow) {
         await closePlaceholderWindow(placeholderWindow);
     } else {
-        console.warn('No placeholder returned for given identity in closeCorrespondingPlaceholder. Either Placeholder is already closed, or identity given was invalid: ', windowIdentity);
+        console.warn(
+            'No placeholder returned for given identity in closeCorrespondingPlaceholder. Either Placeholder is already closed, or identity given was invalid: ',
+            windowIdentity);
     }
 }
 
@@ -324,7 +328,7 @@ function placeholderCreated(windowIdentity: WindowIdentity, placeholderWindow: _
     addPlaceholderToMaps(windowIdentity, placeholderWindow);
 }
 
-function placeholderClosed(placeholderWinEvent: WindowEvent<"system", "window-closed">): void {
+function placeholderClosed(placeholderWinEvent: WindowEvent<'system', 'window-closed'>): void {
     deletePlaceholderFromMapsGivenPlaceholder(placeholderWinEvent);
     continueRestorationIfReady();
 }
@@ -339,7 +343,7 @@ function getPlaceholderFromMap(windowIdentity: Identity): _Window|undefined {
     return identityToPlaceholderMap.get(getId(id));
 }
 
-function deletePlaceholderFromMapsGivenPlaceholder(placeholderWinEvent: WindowEvent<"system", "window-closed">) {
+function deletePlaceholderFromMapsGivenPlaceholder(placeholderWinEvent: WindowEvent<'system', 'window-closed'>) {
     const correspondingWindowIdentity = placeholderNameToIdentityMap.get(placeholderWinEvent.name);
     if (correspondingWindowIdentity) {
         identityToPlaceholderMap.delete(correspondingWindowIdentity);

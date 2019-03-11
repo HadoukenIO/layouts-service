@@ -7,11 +7,11 @@ import {TabGroup, Workspace, WorkspaceApp, WorkspaceRestoredEvent} from '../../c
 import {EVENT_CHANNEL_TOPIC} from '../APIMessages';
 import {apiHandler, loader, model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
-import {promiseMap, promiseForEach, promiseFilter} from '../snapanddock/utils/async';
+import {promiseFilter, promiseForEach, promiseMap} from '../snapanddock/utils/async';
 
 import {SCHEMA_MAJOR_VERSION} from './create';
 import {regroupWorkspace} from './group';
-import {addToWindowObject, canRestoreProgrammatically, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, closeCorrespondingPlaceholder, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, parseVersionString, positionWindow, SemVer, TabbedPlaceholders, waitUntilAllPlaceholdersClosed, WindowObject, cleanupPlaceholderObjects} from './utils';
+import {addToWindowObject, canRestoreProgrammatically, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, cleanupPlaceholderObjects, closeCorrespondingPlaceholder, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, parseVersionString, positionWindow, SemVer, TabbedPlaceholders, waitUntilAllPlaceholdersClosed, WindowObject} from './utils';
 
 // Duration in milliseconds that the entire Workspace restore may take, before we allow another restore to start
 const GLOBAL_EXCLUSIVITY_TIMEOUT = 120000;
@@ -363,7 +363,7 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
     }
 };
 
-const attemptToRunCreatedApp = async(ofAppNotRunning: Application) => {
+const attemptToRunCreatedApp = async (ofAppNotRunning: Application) => {
     let timeout;
     const timeoutPromise = new Promise<string>((resolve, reject) => timeout = window.setTimeout(() => {
         reject(`Run was called on Application ${ofAppNotRunning.identity.uuid}, but it seems to be hanging. Continuing restoration.`);
@@ -409,10 +409,11 @@ const clientRestoreAppWithTimeout = async(workspaceApp: WorkspaceApp): Promise<W
 
     const timeoutPromise = new Promise<WorkspaceApp>((resolve) => timeout = window.setTimeout(() => {
         console.error(
-            `Sent WorkspaceApp object to ${workspaceApp.uuid}'s restore handler, but it timed out. Child window restoration may have failed. Application's child windows and confirmed status will be removed: 
-            `,
+            `Sent WorkspaceApp object to ${workspaceApp.uuid}'s restore handler, but it timed out. 
+            Child window restoration may have failed. 
+            Application's child windows and confirmed status will be removed: `,
             workspaceApp);
-            promiseForEach(workspaceApp.childWindows, closeCorrespondingPlaceholder);
+        promiseForEach(workspaceApp.childWindows, closeCorrespondingPlaceholder);
         resolve(failedResponse);
     }, CLIENT_APP_RESTORE_TIMEOUT));
 
@@ -433,9 +434,11 @@ const setAppToClientRestoreWithTimeout = (workspaceApp: WorkspaceApp, resolve: F
     const timeout = window.setTimeout(() => {
         if (appsToRestoreWhenReady.delete(uuid)) {
             console.error(
-                `App ${uuid} failed to call its ready function. App is either not launching, or didn't call ready. Application's child windows and confirmed status will be removed: `,
+                `App ${uuid} failed to call its ready function. 
+                App is either not launching, or didn't call ready. 
+                Application's child windows and confirmed status will be removed: `,
                 workspaceApp);
-                promiseForEach(workspaceApp.childWindows, closeCorrespondingPlaceholder);
+            promiseForEach(workspaceApp.childWindows, closeCorrespondingPlaceholder);
             resolve(failedResponse);
         }
     }, CLIENT_APP_READY_TIMEOUT);

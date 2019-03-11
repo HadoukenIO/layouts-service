@@ -7,6 +7,7 @@ import {getTopmostWindow} from '../../demo/utils/modelUtils';
 import {getGroupedWindows, getSnapGroupID} from '../../demo/utils/snapServiceUtils';
 import {getActiveTab, getId, getTabbedWindows, getTabGroupID, getTabGroupIdentity, getTabstrip} from '../../demo/utils/tabServiceUtils';
 
+import {delay} from './delay';
 import {getBounds, NormalizedBounds} from './getBounds';
 import {Win} from './getWindow';
 import {isAdjacentTo} from './isAdjacentTo';
@@ -80,6 +81,12 @@ export async function assertNotGrouped(win: Window, t: TestContext) {
 
     // Window is alone in it's SnapGroup
     const snapGroup = await getGroupedWindows(win.identity);
+
+    if (snapGroup.length !== 1) {
+        console.log(`about to fail in assertNotGrouped (${win.identity.name}/${win.identity.uuid})`);
+        snapGroup.map((w, i) => console.log(`${i}: (${w.identity.name}/${w.identity.uuid}) sId:${w.snapGroup.id}`));
+    }
+
     t.is(snapGroup.length, 1);
 }
 

@@ -65,25 +65,25 @@ const createWindowUIListeners = () => {
 
     // Minimize Button
     minimizeElem.onclick = () => {
-        layouts.tabbing.minimizeTabGroup(tabManager.getTabs[0].ID);
+        layouts.tabbing.minimizeTabGroup();
     };
 
     // Maximize / Restore button
     maximizeElem.onclick = () => {
         if (!tabManager.isMaximized) {
-            layouts.tabbing.maximizeTabGroup(tabManager.getTabs[0].ID);
+            layouts.tabbing.maximizeTabGroup();
         } else {
-            layouts.tabbing.restoreTabGroup(tabManager.getTabs[0].ID);
+            layouts.tabbing.restoreTabGroup();
         }
     };
 
     // Close Button
     closeElem.onclick = () => {
-        layouts.tabbing.closeTabGroup(tabManager.getTabs[0].ID);
+        layouts.tabbing.closeTabGroup();
     };
 
     undockElem.onclick =() => {
-        layouts.snapAndDock.undockWindow(tabManager.getTabs[0].ID);
+        layouts.snapAndDock.undockWindow();
     };
 };
 

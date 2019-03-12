@@ -189,6 +189,10 @@ body {
 
 }
 
+#window-button-wrap #window-button-undock {
+	background-image: url("./image/undock.png");
+}
+
 #window-button-wrap #window-button-exit {
 	background-image: url("./image/close.png");
 }

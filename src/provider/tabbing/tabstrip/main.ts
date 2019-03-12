@@ -4,6 +4,7 @@ import {TabActivatedEvent, TabAddedEvent, TabPropertiesUpdatedEvent, TabRemovedE
 import {TabGroupMaximizedEvent, TabGroupRestoredEvent} from '../../../client/tabstrip';
 
 import {TabManager} from './TabManager';
+import { WindowDockedEvent, WindowUndockedEvent } from '../../../client/snapanddock';
 
 let tabManager: TabManager;
 
@@ -51,6 +52,16 @@ const createLayoutsEventListeners = () => {
         if (maximizeElem.classList.contains('restore')) {
             maximizeElem.classList.remove('restore');
         }
+    });
+
+    const undockElem: HTMLElement = document.getElementById('window-button-undock')!;
+
+    layouts.snapAndDock.addEventListener('window-docked', (event: WindowDockedEvent) => {
+        undockElem.classList.remove('hidden');
+    });
+
+    layouts.snapAndDock.addEventListener('window-undocked', (event: WindowUndockedEvent) => {
+        undockElem.classList.add('hidden');
     });
 };
 

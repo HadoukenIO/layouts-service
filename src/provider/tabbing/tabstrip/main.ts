@@ -73,7 +73,7 @@ const createLayoutsEventListeners = (tabstripElements: TabstripElements) => {
     const undockElem = tabstripElements.undockElem;
 
     layouts.snapAndDock.addEventListener('window-docked', (event: WindowDockedEvent) => {
-        if (maximizeElem.classList.contains('hidden')) {
+        if (undockElem.classList.contains('hidden')) {
             undockElem.classList.remove('hidden');
         }
     });

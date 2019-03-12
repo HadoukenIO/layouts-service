@@ -139,7 +139,6 @@ export const createNormalPlaceholder = async (win: WorkspaceWindow) => {
     }
 
     const placeholderWindow = await createPlaceholderWindow(win);
-    const placeholderWindowModel = await model.expect(placeholderWindow.identity as WindowIdentity);
 
     const actualWindow = await fin.Window.wrap({uuid, name});
     const updateOptionsAndShow = async () => {
@@ -148,9 +147,7 @@ export const createNormalPlaceholder = async (win: WorkspaceWindow) => {
             await model.expect(actualWindow.identity as WindowIdentity);
             await positionWindow(win, true);
         } finally {
-            if (placeholderWindowModel.isReady) {
-                await placeholderWindowModel.close();
-            }
+            await closePlaceholderWindow(placeholderWindow);
         }
     };
     // We add a listener to show-requested so that the window shows up in the location it's supposed to be restored at.
@@ -185,9 +182,7 @@ export const createTabPlaceholder = async (win: WorkspaceWindow) => {
                     You may have hanging windows that should have been tabbed.`);
             }
         } finally {
-            if (placeholderWindowModel.isReady) {
-                await placeholderWindowModel.close();
-            }
+            await closePlaceholderWindow(placeholderWindow);
         }
     };
     // We add a listener to shown so that the core has time to set the proper properties on the window for grouping.

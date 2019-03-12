@@ -278,9 +278,11 @@ const createWorkspacePlaceholders = async(workspace: Workspace): Promise<void> =
     // Kick off placeholder creation for all apps.
     await promiseMap(workspace.apps, createWorkspaceAppPlaceholders);
 
+    const tabGroupsCopy = JSON.parse(JSON.stringify(workspace.tabGroups));
+
     // Edit the tabGroups object with the placeholder window names/uuids, so we can create a Tab Group with a combination of open applications and placeholder
     // windows.
-    workspace.tabGroups.forEach((groupDef: TabGroup) => {
+    tabGroupsCopy.forEach((groupDef: TabGroup) => {
         const activeWindow = groupDef.groupInfo.active;
         // Active Window could be a placeholder window.
         if (inWindowObject(activeWindow, tabbedPlaceholdersToWindows)) {
@@ -294,7 +296,7 @@ const createWorkspacePlaceholders = async(workspace: Workspace): Promise<void> =
         });
     });
 
-    await tabService.createTabGroupsFromWorkspace(workspace.tabGroups);
+    await tabService.createTabGroupsFromWorkspace(tabGroupsCopy);
 };
 
 const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]): Promise<WorkspaceApp> => {

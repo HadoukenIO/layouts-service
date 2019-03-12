@@ -39,10 +39,7 @@ export const groupWindow = async (baseWindow: WorkspaceWindow) => {
             return;
         }
 
-        // We iterate through baseWindow.windowGroup for all main WorkspaceWindows and child WorkspaceWindows.
-        // Each application saves its own Workspace information at the time the generate function is called,
-        // and each application also has the opportunity to pass back different Workspace information with its setRestoreHandler function.
-        // As a result, a window's baseWindow.windowGroup may include windows from other applications that are no longer coming up.
+        // We cannot guarantee that any particular requested window will be restored, so we don't rely on any particular entry in windowGroup being present.
         const curEntityWindow = await model.expect(windowFromWindowGroup as WindowIdentity);
         const targetEntityWindow = await model.expect(baseWindow as WindowIdentity);
         if (curEntityWindow && targetEntityWindow) {

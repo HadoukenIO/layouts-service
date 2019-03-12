@@ -1,6 +1,5 @@
 import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/application/application';
 import {WindowEvent} from 'hadouken-js-adapter/out/types/src/api/events/base';
-import {WindowDetail} from 'hadouken-js-adapter/out/types/src/api/system/window';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
@@ -40,7 +39,8 @@ const DEFAULT_PLACEHOLDER_URL = (() => {
 // TODO: Create Placeholder and PlaceholderStore classes?
 // This keeps track of how many placeholders we have open, so we know when we can start regrouping a layout.
 const identityToPlaceholderMap = new Map<string, _Window>();
-const placeholderNameToIdentityMap = new Map<string, string>();
+const placeholderNameToIdentityMap = new Map<string, WindowIdentity>();
+let windowsWithManuallyClosedPlaceholders: WindowIdentity[] = [];
 let functionToContinueRestorationWhenPlaceholdersClosed: (() => void)|undefined;
 let rejectTimeout: number|undefined;
 
@@ -89,6 +89,11 @@ export function cleanupPlaceholderObjects() {
     rejectTimeout = undefined;
     identityToPlaceholderMap.clear();
     placeholderNameToIdentityMap.clear();
+    windowsWithManuallyClosedPlaceholders = [];
+}
+
+export function getWindowsWithManuallyClosedPlaceholders() {
+    return windowsWithManuallyClosedPlaceholders;
 }
 
 // Positions a window when it is restored.
@@ -330,7 +335,7 @@ export function adjustSizeOfFormerlyTabbedWindows(layoutWindow: WorkspaceWindow,
  *
  * @param identity Any entity identity
  */
-function getId(identity: WindowIdentity): string {
+export function getId(identity: WindowIdentity): string {
     return `${identity.uuid}/${identity.name}`;
 }
 
@@ -339,13 +344,20 @@ function placeholderCreated(windowIdentity: WindowIdentity, placeholderWindow: _
 }
 
 function placeholderClosed(placeholderWinEvent: WindowEvent<'system', 'window-closed'>): void {
-    deletePlaceholderFromMapsGivenPlaceholder(placeholderWinEvent);
+    const correspondingWindowIdentity = placeholderNameToIdentityMap.get(placeholderWinEvent.name);
+
+    // Check to see if the placeholder wasn't deleted from the map.
+    // If it wasn't, that means the placeholder was closed manually, and we have to record it so we can try to tab its corresponding window later on.
+    if (correspondingWindowIdentity) {
+        windowsWithManuallyClosedPlaceholders.push(correspondingWindowIdentity);
+        deletePlaceholderFromMapsGivenPlaceholder(placeholderWinEvent);
+    }
     continueRestorationIfReady();
 }
 
 function addPlaceholderToMaps(windowIdentity: WindowIdentity, placeholderWindow: _Window): void {
     identityToPlaceholderMap.set(getId(windowIdentity), placeholderWindow);
-    placeholderNameToIdentityMap.set(`${placeholderWindow.identity.name}`, getId(windowIdentity));
+    placeholderNameToIdentityMap.set(`${placeholderWindow.identity.name}`, windowIdentity);
 }
 
 function getPlaceholderFromMap(windowIdentity: Identity): _Window|undefined {
@@ -353,10 +365,10 @@ function getPlaceholderFromMap(windowIdentity: Identity): _Window|undefined {
     return identityToPlaceholderMap.get(getId(id));
 }
 
-function deletePlaceholderFromMapsGivenPlaceholder(placeholderWinEvent: WindowEvent<'system', 'window-closed'>) {
+function deletePlaceholderFromMapsGivenPlaceholder(placeholderWinEvent: WindowEvent<'system', 'window-closed'>|WindowIdentity) {
     const correspondingWindowIdentity = placeholderNameToIdentityMap.get(placeholderWinEvent.name);
     if (correspondingWindowIdentity) {
-        identityToPlaceholderMap.delete(correspondingWindowIdentity);
+        identityToPlaceholderMap.delete(getId(correspondingWindowIdentity));
         placeholderNameToIdentityMap.delete(placeholderWinEvent.name);
     }
 }
@@ -371,6 +383,7 @@ async function closePlaceholderWindow(placeholderWindow: _Window) {
     const placeholderWindowModel = await model.expect(placeholderWindow.identity as WindowIdentity);
     if (placeholderWindowModel && placeholderWindowModel.isReady) {
         await tabService.removeTab(placeholderWindow.identity as WindowIdentity);
+        deletePlaceholderFromMapsGivenPlaceholder(placeholderWindow.identity as WindowIdentity);
         await placeholderWindowModel.close();
     }
 }
@@ -379,7 +392,6 @@ function continueRestorationIfReady() {
     if (!!(identityToPlaceholderMap.size === 0 && functionToContinueRestorationWhenPlaceholdersClosed)) {
         clearTimeout(rejectTimeout);
         functionToContinueRestorationWhenPlaceholdersClosed();
-        cleanupPlaceholderObjects();
     }
 }
 

@@ -7,11 +7,12 @@ import {TabGroup, Workspace, WorkspaceApp, WorkspaceRestoredEvent} from '../../c
 import {EVENT_CHANNEL_TOPIC} from '../APIMessages';
 import {apiHandler, loader, model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
+import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {promiseFilter, promiseForEach, promiseMap} from '../snapanddock/utils/async';
 
 import {SCHEMA_MAJOR_VERSION} from './create';
 import {regroupWorkspace} from './group';
-import {addToWindowObject, canRestoreProgrammatically, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, cleanupPlaceholderObjects, closeCorrespondingPlaceholder, createNormalPlaceholder, createTabbedPlaceholderAndRecord, inWindowObject, parseVersionString, positionWindow, SemVer, TabbedPlaceholders, waitUntilAllPlaceholdersClosed, WindowObject} from './utils';
+import {addToWindowObject, canRestoreProgrammatically, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, cleanupPlaceholderObjects, closeCorrespondingPlaceholder, createNormalPlaceholder, createTabbedPlaceholderAndRecord, getId, getWindowsWithManuallyClosedPlaceholders, inWindowObject, parseVersionString, positionWindow, SemVer, TabbedPlaceholders, waitUntilAllPlaceholdersClosed, WindowObject} from './utils';
 
 // Duration in milliseconds that the entire Workspace restore may take, before we allow another restore to start
 const GLOBAL_EXCLUSIVITY_TIMEOUT = 120000;
@@ -107,6 +108,8 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
         console.warn(error);
     }
 
+    await tabWindowsWithManuallyClosedPlaceholders(workspace);
+
     // Regroup the windows
     await regroupWorkspace(processedAppResponses).catch(console.log);
     // Validate groups
@@ -124,16 +127,6 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
     // Send the workspace back to the requester of the restore
     return workspace;
 };
-
-const restorationCleanup = (): void => {
-    restoreExclusivityToken = null;
-    cleanupPlaceholderObjects();
-    appsToDeleteFromWorkspace.clear();
-    appsToRestoreWhenReady.clear();
-    timeoutsToClear.forEach((timeout) => clearTimeout(timeout));
-    timeoutsToClear = [];
-};
-
 
 export const appCanRestore = (uuid: string): boolean => {
     return allAppsEverReady.has(uuid);
@@ -161,6 +154,61 @@ const processAppResponse = async(appResponse: WorkspaceApp, workspace: Workspace
             }
         });
         return true;
+    }
+};
+
+const restorationCleanup = (): void => {
+    restoreExclusivityToken = null;
+    cleanupPlaceholderObjects();
+    appsToDeleteFromWorkspace.clear();
+    appsToRestoreWhenReady.clear();
+    timeoutsToClear.forEach((timeout) => clearTimeout(timeout));
+    timeoutsToClear = [];
+};
+
+const tabWindowsWithManuallyClosedPlaceholders = async (workspace: Workspace) => {
+    const manuallyClosedWindows = getWindowsWithManuallyClosedPlaceholders();
+    if (manuallyClosedWindows.length === 0) {
+        return;
+    }
+
+    // Create a tabGroupMap so we don't have to loop through all of the windows in all of the TabGroups.
+    const tabGroupMap = new Map<string, TabGroup>();
+
+    workspace.tabGroups.forEach((tabGroup) => {
+        tabGroup.tabs.forEach((tab) => {
+            tabGroupMap.set(getId(tab), tabGroup);
+        });
+    });
+
+    for (let i = 0; i < manuallyClosedWindows.length; i++) {
+        const manuallyClosedWindow = manuallyClosedWindows[i];
+        const closedWindowModel = await model.expect(manuallyClosedWindow);
+        const tabGroup = tabGroupMap.get(getId(manuallyClosedWindow));
+        // Make sure the closed window is up, and that it has a TabGroup
+        if (closedWindowModel && closedWindowModel.isReady && tabGroup) {
+            // Check to see if there's already a TabGroup up for this window.
+            let existingTabGroup: DesktopTabGroup|null = null;
+            for (let index = 0; index < tabGroup.tabs.length; index++) {
+                const tab = tabGroup.tabs[index];
+                const tabModel = await model.expect(tab);
+                if (tabModel) {
+                    existingTabGroup = existingTabGroup || tabModel.tabGroup;
+                }
+            }
+
+            // If there is a TabGroup, add this window to that group.
+            if (existingTabGroup) {
+                existingTabGroup.addTab(closedWindowModel);
+            } else {
+                // Otherwise, we create a TabGroup from the Workspace info. This needs to be done one at a time.
+                // If we instead push this TabGroup to an array, we may end up pushing multiple of the same
+                // TabGroup to the array (If multiple tabs in that group were closed manually).
+                // If we try to call createTabGroupsFromWorkspace on that,
+                // it results in a TabGroup of larger size than it should be.
+                await tabService.createTabGroupsFromWorkspace([tabGroup]);
+            }
+        }
     }
 };
 

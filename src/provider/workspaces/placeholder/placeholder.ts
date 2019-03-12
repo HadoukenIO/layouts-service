@@ -7,5 +7,5 @@ document.addEventListener('DOMContentLoaded', () => {
         div.addEventListener('click', () => {
             window.close();
         });
-    }, 40000);
+    }, 10000);
 });

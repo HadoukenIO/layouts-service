@@ -344,7 +344,7 @@ export class TabService {
             return null;
         }
 
-        if (this.isEntityTabEnabled(activeWindow)) {
+        if (!this.isEntityTabEnabled(activeWindow)) {
             return null;
         }
 

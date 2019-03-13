@@ -432,13 +432,13 @@ export class DesktopSnapGroup {
         }
     }
 
-    private async sendEventIfReadyOrCheckLater(window: DesktopWindow, type: 'window-docked' | 'window-undocked'): Promise<void> {
+    private async sendEventIfReadyOrCheckLater(window: DesktopWindow, type: 'window-docked'|'window-undocked'): Promise<void> {
         if (!window.isReady) {
             await window.sync();
         }
-        
+
         if (window.isReady) {
-            if (type == 'window-docked') {
+            if (type === 'window-docked') {
                 window.sendEvent<WindowDockedEvent>({type});
             } else {
                 window.sendEvent<WindowUndockedEvent>({type});

@@ -127,7 +127,7 @@ module.exports = [
     createConfig(`${outputDir}/provider`, {
         main: './src/provider/main.ts',
         tabStrip: './src/provider/tabbing/tabstrip/main.ts',
-        placeholder: './src/provider/workspaces/placeholder/placeholder.ts'
+        placeholder: './src/provider/workspaces/placeholder/main.ts'
     }, undefined, manifestPlugin, versionPlugin, schemaDefaultsPlugin, schemaTypesPlugin),
     createConfig(`${outputDir}/provider`, './src/provider/ServiceWorker.js', {minify: true, outputFilename: "sw"}, versionPlugin),
     createConfig(`${outputDir}/demo`, {

@@ -10,9 +10,9 @@ import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {promiseFilter, promiseForEach, promiseMap} from '../snapanddock/utils/async';
 
-import {SCHEMA_MAJOR_VERSION} from './create';
 import {regroupWorkspace} from './group';
-import {addToWindowObject, canRestoreProgrammatically, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, cleanupPlaceholderObjects, closeCorrespondingPlaceholder, createNormalPlaceholder, createTabbedPlaceholderAndRecord, getId, getWindowsWithManuallyClosedPlaceholders, inWindowObject, parseVersionString, positionWindow, SemVer, TabbedPlaceholders, waitUntilAllPlaceholdersClosed, WindowObject} from './utils';
+import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, cleanupPlaceholderObjects, closeCorrespondingPlaceholder, createNormalPlaceholder, createTabbedPlaceholderAndRecord, getId, getWindowsWithManuallyClosedPlaceholders, inWindowObject, positionWindow, TabbedPlaceholders, waitUntilAllPlaceholdersClosed, WindowObject} from './placeholder';
+import {canRestoreProgrammatically, consolidateAppResponses, linkAppsToOriginalParentUuid, validatePayload} from './utils';
 
 // Duration in milliseconds that the entire Workspace restore may take, before we allow another restore to start
 const GLOBAL_EXCLUSIVITY_TIMEOUT = 120000;
@@ -43,32 +43,12 @@ interface AppToRestore {
     resolve: Function;
 }
 
-export const appReadyForRestore = async(uuid: string): Promise<void> => {
-    allAppsEverReady.set(uuid, true);
-
-    const appToRestore = appsToRestoreWhenReady.get(uuid)!;
-
-    if (appToRestore) {
-        const {workspaceApp, resolve} = appToRestore;
-
-        appsToRestoreWhenReady.delete(uuid);
-
-        requestClientRestoreApp(workspaceApp, resolve);
-    } else {
-        console.warn('Ignoring duplicate \'appReadyForRestore\' call');
-    }
-};
-
 export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> => {
     console.log('Restoring workspace:', payload);
 
     // Ensure the loader links any apps being programmatically restored with their parentUuid at time of workspace
     // generation, rather than their parentUuid now (which will be layouts-service)
-    payload.apps.forEach((app: WorkspaceApp) => {
-        if (app.parentUuid) {
-            loader.overrideAppParent(app.uuid, app.parentUuid);
-        }
-    });
+    linkAppsToOriginalParentUuid(payload);
 
     if (restoreExclusivityToken !== null) {
         throw new Error('Attempting to restore while restore in progress');
@@ -76,6 +56,7 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
 
     validatePayload(payload);
 
+    // Prevent the user from restoring a layout in the middle of a restoration.
     startExclusivityTimeout();
 
     const workspace = payload;
@@ -89,10 +70,7 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
     const startupResponses: WorkspaceApp[] = await Promise.all(startupApps);
 
     // Consolidate application responses
-    const allAppResponses: WorkspaceApp[] = apps.map(app => {
-        const appResponse = startupResponses.find(appRes => appRes.uuid === app.uuid);
-        return appResponse ? appResponse : app;
-    });
+    const allAppResponses: WorkspaceApp[] = consolidateAppResponses(apps, startupResponses);
 
     // Go through all of the app responses and check them for failures. Exclude any apps that didn't come up from returned Workspace.
     const processedAppResponses: WorkspaceApp[] = await promiseFilter(allAppResponses, async (appResponse) => {
@@ -108,6 +86,7 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
         console.warn(error);
     }
 
+    // If the user manually closed placeholder windows associated with tabbed windows, tab them if they're up.
     await tabWindowsWithManuallyClosedPlaceholders(workspace);
 
     // Regroup the windows
@@ -132,125 +111,19 @@ export const appCanRestore = (uuid: string): boolean => {
     return allAppsEverReady.has(uuid);
 };
 
-// Check app response against appsToDeleteFromWorkspace to remove it from the Workspace and close its placeholders
-// Check the app responses's child windows against the original child windows in WorkspaceApp, and close any hanging placeholders.
-const processAppResponse = async(appResponse: WorkspaceApp, workspace: Workspace): Promise<boolean> => {
-    if (appsToDeleteFromWorkspace.has(appResponse.uuid)) {
-        console.error(`App launch for ${appResponse.uuid} failed. Application will be removed from workspace: `, appResponse);
-        await closeCorrespondingPlaceholder(appResponse);
-        promiseForEach(appResponse.childWindows, closeCorrespondingPlaceholder);
-        return false;
+export const appReadyForRestore = async(uuid: string): Promise<void> => {
+    allAppsEverReady.set(uuid, true);
+
+    const appToRestore = appsToRestoreWhenReady.get(uuid)!;
+
+    if (appToRestore) {
+        const {workspaceApp, resolve} = appToRestore;
+
+        appsToRestoreWhenReady.delete(uuid);
+
+        sendWorkspaceToAppAndContinueRestore(workspaceApp, resolve);
     } else {
-        const originalWorkspaceApp: WorkspaceApp = workspace.apps.find((potentialMatch) => potentialMatch.uuid === appResponse.uuid)!;
-        promiseForEach(originalWorkspaceApp.childWindows, async (childWindow) => {
-            const hasChildWindowInAppResponse = appResponse.childWindows.some((appResponseChildWin) => appResponseChildWin.name === childWindow.name);
-            if (!hasChildWindowInAppResponse) {
-                console.error(
-                    `Application ${appResponse.uuid} did not restore its child window ${childWindow.name} 
-                        (or the App's setGenerateHandler didn't return that child window). Placeholder will be closed: 
-                    `,
-                    appResponse);
-                await closeCorrespondingPlaceholder(childWindow);
-            }
-        });
-        return true;
-    }
-};
-
-const restorationCleanup = (): void => {
-    restoreExclusivityToken = null;
-    cleanupPlaceholderObjects();
-    appsToDeleteFromWorkspace.clear();
-    appsToRestoreWhenReady.clear();
-    timeoutsToClear.forEach((timeout) => clearTimeout(timeout));
-    timeoutsToClear = [];
-};
-
-const tabWindowsWithManuallyClosedPlaceholders = async (workspace: Workspace) => {
-    const manuallyClosedWindows = getWindowsWithManuallyClosedPlaceholders();
-    if (manuallyClosedWindows.length === 0) {
-        return;
-    }
-
-    // Create a tabGroupMap so we don't have to loop through all of the windows in all of the TabGroups.
-    const tabGroupMap = new Map<string, TabGroup>();
-
-    workspace.tabGroups.forEach((tabGroup) => {
-        tabGroup.tabs.forEach((tab) => {
-            tabGroupMap.set(getId(tab), tabGroup);
-        });
-    });
-
-    for (let i = 0; i < manuallyClosedWindows.length; i++) {
-        const manuallyClosedWindow = manuallyClosedWindows[i];
-        const closedWindowModel = await model.expect(manuallyClosedWindow);
-        const tabGroup = tabGroupMap.get(getId(manuallyClosedWindow));
-        // Make sure the closed window is up, and that it has a TabGroup
-        if (closedWindowModel && closedWindowModel.isReady && tabGroup) {
-            // Check to see if there's already a TabGroup up for this window.
-            let existingTabGroup: DesktopTabGroup|null = null;
-            for (let index = 0; index < tabGroup.tabs.length; index++) {
-                const tab = tabGroup.tabs[index];
-                const tabModel = await model.expect(tab);
-                if (tabModel) {
-                    existingTabGroup = existingTabGroup || tabModel.tabGroup;
-                }
-            }
-
-            // If there is a TabGroup, add this window to that group.
-            if (existingTabGroup) {
-                existingTabGroup.addTab(closedWindowModel);
-            } else {
-                // Otherwise, we create a TabGroup from the Workspace info. This needs to be done one at a time.
-                // If we instead push this TabGroup to an array, we may end up pushing multiple of the same
-                // TabGroup to the array (If multiple tabs in that group were closed manually).
-                // If we try to call createTabGroupsFromWorkspace on that,
-                // it results in a TabGroup of larger size than it should be.
-                await tabService.createTabGroupsFromWorkspace([tabGroup]);
-            }
-        }
-    }
-};
-
-const requestClientRestoreApp = async(workspaceApp: WorkspaceApp, resolve: Function): Promise<void> => {
-    const {uuid} = workspaceApp;
-    const appConnection = apiHandler.isClientConnection({uuid, name: uuid});
-    if (appConnection) {
-        // Instruct app to restore its child windows
-        const appworkspaceAppResult = await clientRestoreAppWithTimeout(workspaceApp);
-
-        resolve(appworkspaceAppResult);
-    }
-};
-
-const validatePayload = (payload: Workspace): void => {
-    // Guards against invalid workspace objects (since we are receiving them over the service bus, this is in theory possible)
-    // These allow us to return sensible error messages back to the consumer
-    if (!payload) {
-        throw new Error('Received invalid workspace object');
-    }
-    if (!payload.schemaVersion) {
-        throw new Error('Received invalid workspace object: payload.schemaVersion is undefined');
-    } else {
-        let providedSchemaVersion: SemVer;
-        try {
-            providedSchemaVersion = parseVersionString(payload.schemaVersion);
-        } catch (e) {
-            throw new Error('Received invalid workspace object: schemaVersion string does not comply with semver format ("a.b.c")');
-        }
-
-        // Only checks major version. Service is assumed to work with minor and patch version changes.
-        if (providedSchemaVersion.major > SCHEMA_MAJOR_VERSION) {
-            throw new Error(`Received incompatible worksapce object. Provided schemaVersion is ${
-                payload.schemaVersion}, but this version of the service only supports versions up to ${SCHEMA_MAJOR_VERSION}.x.x`);
-        }
-    }
-
-    if (!payload.apps) {
-        throw new Error('Received invalid workspace object: payload.apps is undefined');
-    }
-    if (!payload.monitorInfo) {
-        throw new Error('Received invalid workspace object: payload.monitorInfo is undefined');
+        console.warn('Ignoring duplicate \'appReadyForRestore\' call');
     }
 };
 
@@ -313,13 +186,14 @@ const createWorkspacePlaceholders = async(workspace: Workspace): Promise<void> =
                 await mainWindowModel.setSnapGroup(new DesktopSnapGroup());
             }
         } else {
+            // If the app's main window is tabbed, create a tabbed placeholder window for it, otherwise, create a normal placeholder
             if (inWindowObject(app.mainWindow, tabbedWindows)) {
                 await createTabbedPlaceholderAndRecord(app.mainWindow, tabbedPlaceholdersToWindows);
-                await childWindowPlaceholderCheck(app, tabbedWindows, tabbedPlaceholdersToWindows);
             } else {
                 await createNormalPlaceholder(app.mainWindow);
-                await childWindowPlaceholderCheck(app, tabbedWindows, tabbedPlaceholdersToWindows);
             }
+            // Do the same for child windows
+            await childWindowPlaceholderCheck(app, tabbedWindows, tabbedPlaceholdersToWindows);
         }
     }
 
@@ -361,7 +235,7 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
                 await positionWindow(app.mainWindow, false);
                 console.log('App is running:', app);
                 // Send WorkspaceApp to connected application so it can handle child windows
-                return await clientRestoreAppWithTimeout(app);
+                return await instructClientAppToRestoreItself(app);
             } else {
                 // Not connected to service
                 console.log('App is open, but not connected to the service:', app);
@@ -375,7 +249,7 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
             // App is not running - setup communication to fire once app is started
             if (app.confirmed) {
                 startupApps.push(new Promise((resolve: (workspaceApp: WorkspaceApp) => void) => {
-                    setAppToClientRestoreWithTimeout(app, resolve);
+                    setClientAppToRestoreWhenReady(app, resolve);
                 }));
             }
             // Start App
@@ -414,34 +288,115 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
     }
 };
 
-const attemptToRunCreatedApp = async (ofAppNotRunning: Application) => {
-    let timeout;
-    const timeoutPromise = new Promise<void>((resolve, reject) => timeout = window.setTimeout(() => {
-        reject(`Run was called on Application ${ofAppNotRunning.identity.uuid}, but it seems to be hanging. Continuing restoration.`);
-    }, CLIENT_APP_RUN_TIMEOUT));
-    const runCall = ofAppNotRunning.run();
-
-    await Promise.race([timeoutPromise, runCall]);
-
-    clearTimeout(timeout);
+// Check app response against appsToDeleteFromWorkspace to remove it from the Workspace and close its placeholders
+// Check the app responses's child windows against the original child windows in WorkspaceApp, and close any hanging placeholders.
+const processAppResponse = async(appResponse: WorkspaceApp, workspace: Workspace): Promise<boolean> => {
+    if (appsToDeleteFromWorkspace.has(appResponse.uuid)) {
+        console.error(`App launch for ${appResponse.uuid} failed. Application will be removed from workspace: `, appResponse);
+        await closeCorrespondingPlaceholder(appResponse);
+        promiseForEach(appResponse.childWindows, closeCorrespondingPlaceholder);
+        return false;
+    } else {
+        const originalWorkspaceApp: WorkspaceApp = workspace.apps.find((potentialMatch) => potentialMatch.uuid === appResponse.uuid)!;
+        promiseForEach(originalWorkspaceApp.childWindows, async (childWindow) => {
+            const hasChildWindowInAppResponse = appResponse.childWindows.some((appResponseChildWin) => appResponseChildWin.name === childWindow.name);
+            if (!hasChildWindowInAppResponse) {
+                console.error(
+                    `Application ${appResponse.uuid} did not restore its child window ${childWindow.name} 
+                        (or the App's setGenerateHandler didn't return that child window). Placeholder will be closed: 
+                    `,
+                    appResponse);
+                await closeCorrespondingPlaceholder(childWindow);
+            }
+        });
+        return true;
+    }
 };
 
-
-// If an app creation fails during the beginning of the restore process, add it to appsToDeleteFromWorkspace so it can get cleaned up in the processAppResponse
-// function. Then, resolve its pending setAppToClientRestoreWithTimeout promise and remove it from appsToRestoreWhenReady.
-const deleteAppFromRestoreWhenReadyMap = (app: WorkspaceApp) => {
-    appsToDeleteFromWorkspace.add(app.uuid);
-    const appThatFailedToRestore = appsToRestoreWhenReady.get(app.uuid);
-    if (appThatFailedToRestore) {
-        appsToRestoreWhenReady.delete(app.uuid);
-        const {workspaceApp, resolve} = appThatFailedToRestore;
-        resolve(workspaceApp);
+const tabWindowsWithManuallyClosedPlaceholders = async (workspace: Workspace) => {
+    const manuallyClosedWindows = getWindowsWithManuallyClosedPlaceholders();
+    if (manuallyClosedWindows.length === 0) {
+        return;
     }
+
+    // Create a tabGroupMap so we don't have to loop through all of the windows in all of the TabGroups.
+    const tabGroupMap = new Map<string, TabGroup>();
+
+    workspace.tabGroups.forEach((tabGroup) => {
+        tabGroup.tabs.forEach((tab) => {
+            tabGroupMap.set(getId(tab), tabGroup);
+        });
+    });
+
+    for (let i = 0; i < manuallyClosedWindows.length; i++) {
+        const manuallyClosedWindow = manuallyClosedWindows[i];
+        const closedWindowModel = await model.expect(manuallyClosedWindow);
+        const tabGroup = tabGroupMap.get(getId(manuallyClosedWindow));
+        // Make sure the closed window is up, and that it has a TabGroup
+        if (closedWindowModel && closedWindowModel.isReady && tabGroup) {
+            // Check to see if there's already a TabGroup up for this window.
+            let existingTabGroup: DesktopTabGroup|null = null;
+            for (let index = 0; index < tabGroup.tabs.length; index++) {
+                const tab = tabGroup.tabs[index];
+                const tabModel = await model.expect(tab);
+                if (tabModel) {
+                    existingTabGroup = existingTabGroup || tabModel.tabGroup;
+                }
+            }
+
+            // If there is a TabGroup, add this window to that group.
+            if (existingTabGroup) {
+                existingTabGroup.addTab(closedWindowModel);
+            } else {
+                // Otherwise, we create a TabGroup from the Workspace info. This needs to be done one at a time.
+                // If we instead push this TabGroup to an array, we may end up pushing multiple of the same
+                // TabGroup to the array (If multiple tabs in that group were closed manually).
+                // If we try to call createTabGroupsFromWorkspace on that,
+                // it results in a TabGroup of larger size than it should be.
+                await tabService.createTabGroupsFromWorkspace([tabGroup]);
+            }
+        }
+    }
+};
+
+const restorationCleanup = (): void => {
+    restoreExclusivityToken = null;
+    cleanupPlaceholderObjects();
+    appsToDeleteFromWorkspace.clear();
+    appsToRestoreWhenReady.clear();
+    timeoutsToClear.forEach((timeout) => clearTimeout(timeout));
+    timeoutsToClear = [];
+};
+
+// Adds the WorkspaceApp object to a map, and waits for its corresponding application to come up.
+// Once the application comes up, it is given that WorkspaceApp object to use for child window restoration.
+// If the application never comes up, we resolve this hanging promise and nullify that application's child windows.
+const setClientAppToRestoreWhenReady = (workspaceApp: WorkspaceApp, resolve: Function): void => {
+    const {uuid} = workspaceApp;
+    const save = {workspaceApp, resolve};
+
+    const failedResponse = {...workspaceApp, childWindows: [], confirmed: false};
+
+    appsToRestoreWhenReady.set(uuid, save);
+
+    const timeout = window.setTimeout(() => {
+        if (appsToRestoreWhenReady.delete(uuid)) {
+            console.error(
+                `App ${uuid} failed to call its ready function. 
+                App is either not launching, or didn't call ready. 
+                Application's child windows and confirmed status will be removed: `,
+                workspaceApp);
+            promiseForEach(workspaceApp.childWindows, closeCorrespondingPlaceholder);
+            resolve(failedResponse);
+        }
+    }, CLIENT_APP_READY_TIMEOUT);
+
+    timeoutsToClear.push(timeout);
 };
 
 // Attempt to send the WorkspaceApp object to an application that has signaled that it's ready, and wait for it to respond back.
 // If the message hangs, resolve this hanging promise with a modified WorkspaceApp object.
-const clientRestoreAppWithTimeout = async(workspaceApp: WorkspaceApp): Promise<WorkspaceApp> => {
+const instructClientAppToRestoreItself = async(workspaceApp: WorkspaceApp): Promise<WorkspaceApp> => {
     const identity = {uuid: workspaceApp.uuid, name: workspaceApp.uuid};
 
     const defaultResponse = {...workspaceApp, childWindows: []};
@@ -472,28 +427,37 @@ const clientRestoreAppWithTimeout = async(workspaceApp: WorkspaceApp): Promise<W
     return Promise.race([responsePromise, timeoutPromise]);
 };
 
-// Adds the WorkspaceApp object to a map, and waits for its corresponding application to come up.
-// Once the application comes up, it is given that WorkspaceApp object to use for child window restoration.
-// If the application never comes up, we resolve this hanging promise and nullify that application's child windows.
-const setAppToClientRestoreWithTimeout = (workspaceApp: WorkspaceApp, resolve: Function): void => {
+const attemptToRunCreatedApp = async (ofAppNotRunning: Application) => {
+    let timeout;
+    const timeoutPromise = new Promise<void>((resolve, reject) => timeout = window.setTimeout(() => {
+        reject(`Run was called on Application ${ofAppNotRunning.identity.uuid}, but it seems to be hanging. Continuing restoration.`);
+    }, CLIENT_APP_RUN_TIMEOUT));
+    const runCall = ofAppNotRunning.run();
+
+    await Promise.race([timeoutPromise, runCall]);
+
+    clearTimeout(timeout);
+};
+
+// If an app creation fails during the beginning of the restore process, add it to appsToDeleteFromWorkspace so it can get cleaned up in the processAppResponse
+// function. Then, resolve its pending setClientAppToRestoreWhenReady promise and remove it from appsToRestoreWhenReady.
+const deleteAppFromRestoreWhenReadyMap = (app: WorkspaceApp) => {
+    appsToDeleteFromWorkspace.add(app.uuid);
+    const appThatFailedToRestore = appsToRestoreWhenReady.get(app.uuid);
+    if (appThatFailedToRestore) {
+        appsToRestoreWhenReady.delete(app.uuid);
+        const {workspaceApp, resolve} = appThatFailedToRestore;
+        resolve(workspaceApp);
+    }
+};
+
+const sendWorkspaceToAppAndContinueRestore = async(workspaceApp: WorkspaceApp, resolve: Function): Promise<void> => {
     const {uuid} = workspaceApp;
-    const save = {workspaceApp, resolve};
+    const appConnection = apiHandler.isClientConnection({uuid, name: uuid});
+    if (appConnection) {
+        // Instruct app to restore its child windows
+        const appworkspaceAppResult = await instructClientAppToRestoreItself(workspaceApp);
 
-    const failedResponse = {...workspaceApp, childWindows: [], confirmed: false};
-
-    appsToRestoreWhenReady.set(uuid, save);
-
-    const timeout = window.setTimeout(() => {
-        if (appsToRestoreWhenReady.delete(uuid)) {
-            console.error(
-                `App ${uuid} failed to call its ready function. 
-                App is either not launching, or didn't call ready. 
-                Application's child windows and confirmed status will be removed: `,
-                workspaceApp);
-            promiseForEach(workspaceApp.childWindows, closeCorrespondingPlaceholder);
-            resolve(failedResponse);
-        }
-    }, CLIENT_APP_READY_TIMEOUT);
-
-    timeoutsToClear.push(timeout);
+        resolve(appworkspaceAppResult);
+    }
 };

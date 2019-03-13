@@ -399,7 +399,6 @@ const setClientAppToRestoreWhenReady = (workspaceApp: WorkspaceApp, resolve: Fun
 const instructClientAppToRestoreItself = async(workspaceApp: WorkspaceApp): Promise<WorkspaceApp> => {
     const identity = {uuid: workspaceApp.uuid, name: workspaceApp.uuid};
 
-    const defaultResponse = {...workspaceApp, childWindows: []};
     const failedResponse = {...workspaceApp, childWindows: [], confirmed: false};
     let timeout: number;
 
@@ -411,7 +410,8 @@ const instructClientAppToRestoreItself = async(workspaceApp: WorkspaceApp): Prom
         if (timeout) {
             clearTimeout(timeout);
         }
-        return response ? response : defaultResponse;
+
+        return response ? response : failedResponse;
     });
 
     const timeoutPromise = new Promise<WorkspaceApp>((resolve) => timeout = window.setTimeout(() => {
@@ -424,7 +424,13 @@ const instructClientAppToRestoreItself = async(workspaceApp: WorkspaceApp): Prom
         resolve(failedResponse);
     }, CLIENT_APP_RESTORE_TIMEOUT));
 
-    return Promise.race([responsePromise, timeoutPromise]);
+    try {
+        const raceResult = await Promise.race([responsePromise, timeoutPromise]);
+        return raceResult;
+    } catch (error) {
+        console.error('Error attempting to send workspace to client app: ', workspaceApp, error);
+        return failedResponse;
+    }
 };
 
 const attemptToRunCreatedApp = async (ofAppNotRunning: Application) => {

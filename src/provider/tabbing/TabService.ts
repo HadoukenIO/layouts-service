@@ -339,18 +339,33 @@ export class TabService {
      * @param item2 Details about the second entity, either window about to be tabbed or the tabstrip a window is to be added to
      */
     public canTabTogether(item1: DesktopEntity, item2: DesktopEntity): boolean {
-        const configs: {enabled: boolean; config: Tabstrip}[] = [item1, item2].map(entity => {
+        return this.isEntityTabEnabled(item1) && this.isEntityTabEnabled(item1) && this.doEntitiesShareTabstripConfig(item1, item2);
+    }
+
+    private doEntitiesShareTabstripConfig(item1: DesktopEntity, item2: DesktopEntity): boolean {
+        const configUrls: string[] = [item1, item2].map(entity => {
             const isTabstrip = !!entity.tabGroup && entity.tabGroup.window === entity;
 
             if (isTabstrip) {
-                return {enabled: true, config: entity.tabGroup!.config};
+                return entity.tabGroup!.config.url;
             } else {
                 const config = this._config.query(entity.scope);
-                return {enabled: config.features.tab, config: config.tabstrip};
+                return config.tabstrip.url;
             }
         });
 
-        return configs.every(c => c.enabled) && configs[0].config.url === configs[1].config.url;
+        return configUrls[0] === configUrls[1];
+    }
+
+    private isEntityTabEnabled(entity: DesktopEntity): boolean {
+        const isTabstrip = !!entity.tabGroup && entity.tabGroup.window === entity;
+
+        if (isTabstrip) {
+            return true;
+        } else {
+            const config = this._config.query(entity.scope);
+            return config.features.tab;
+        }
     }
 
     private getScope(x: WindowIdentity|DesktopEntity): Scope {
@@ -423,10 +438,12 @@ export class TabService {
             return null;
         }
 
-        const activeGroup = activeWindow.snapGroup;
+        if (this.isEntityTabEnabled(activeWindow)) {
+            return null;
+        }
 
-        const targetWindow: DesktopWindow|null =
-            this._model.getWindowAt(position.x, position.y, this._model.mouseTracker.isDraggingTab ? undefined : activeWindow.identity);
+        const activeGroup = activeWindow.snapGroup;
+        const targetWindow: DesktopWindow|null = this.getTargetWindow(position, activeWindow);
 
         /**
          * Checks if the mouse position is outside of the activeWindows group bounds.  Needed for tab drag & drop validity check.
@@ -469,7 +486,8 @@ export class TabService {
             const targetTabGroup = targetWindow.tabGroup;
 
             // Check if the target and active window have same tab config.
-            const valid = this.constraintsCompatible(activeWindow, targetTabGroup || targetWindow) && this.canTabTogether(targetWindow, activeWindow);
+            const valid =
+                this.constraintsCompatible(activeWindow, targetTabGroup || targetWindow) && this.doEntitiesShareTabstripConfig(targetWindow, activeWindow);
             return {
                 type: eTargetType.TAB,
                 activeWindow,
@@ -485,6 +503,17 @@ export class TabService {
         }
 
         return null;
+    }
+
+    private getTargetWindow(position: Point, activeWindow: DesktopEntity): DesktopWindow|null {
+        const exclude = this._model.mouseTracker.isDraggingTab ? undefined : activeWindow.identity;
+        const candidateTarget = this._model.getWindowAt(position.x, position.y, exclude);
+
+        if (candidateTarget) {
+            return this.isEntityTabEnabled(candidateTarget) ? candidateTarget : null;
+        } else {
+            return null;
+        }
     }
 
     private constraintsCompatible(active: DesktopEntity, target: DesktopEntity): boolean {

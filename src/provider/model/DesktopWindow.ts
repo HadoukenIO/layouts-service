@@ -671,6 +671,10 @@ export class DesktopWindow implements DesktopEntity {
         }
     }
     public async sendEvent<T extends LayoutsEvent>(event: T): Promise<void> {
+        if (this._lifecycleStage === LifecycleStage.STARTING) {
+            await this.sync();
+        }
+
         if (this.isReady && apiHandler.isClientConnection(this.identity)) {
             return apiHandler.sendToClient(this._identity, EVENT_CHANNEL_TOPIC, event);
         }

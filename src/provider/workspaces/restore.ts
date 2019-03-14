@@ -328,16 +328,14 @@ const tabWindowsWithManuallyClosedPlaceholders = async (workspace: Workspace) =>
         });
     });
 
-    for (let i = 0; i < manuallyClosedWindows.length; i++) {
-        const manuallyClosedWindow = manuallyClosedWindows[i];
+    for (const manuallyClosedWindow of manuallyClosedWindows) {
         const closedWindowModel = await model.expect(manuallyClosedWindow);
         const tabGroup = tabGroupMap.get(getId(manuallyClosedWindow));
         // Make sure the closed window is up, and that it has a TabGroup
         if (closedWindowModel && closedWindowModel.isReady && tabGroup) {
             // Check to see if there's already a TabGroup up for this window.
             let existingTabGroup: DesktopTabGroup|null = null;
-            for (let index = 0; index < tabGroup.tabs.length; index++) {
-                const tab = tabGroup.tabs[index];
+            for (const tab of tabGroup.tabs) {
                 const tabModel = await model.expect(tab);
                 if (tabModel) {
                     existingTabGroup = existingTabGroup || tabModel.tabGroup;

@@ -104,5 +104,5 @@ Layouts.workspaces.setGenerateHandler(() => {
 });
 Layouts.workspaces.setRestoreHandler(onAppRes);
 // This is meant to test what happens when an application doesn't call its `ready` function.
-// In this case, the application never tells the service that it's ready to accept its workspace payload, so 
+// In this case, the application never tells the service that it's ready to accept its workspace payload, so
 // `onAppRes` never gets called. This results in child windows not being restored.

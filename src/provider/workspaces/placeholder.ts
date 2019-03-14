@@ -24,7 +24,7 @@ const DEFAULT_PLACEHOLDER_URL = (() => {
 // This keeps track of how many placeholders we have open, so we know when we can start regrouping a layout.
 const identityToPlaceholderMap = new Map<string, _Window>();
 const placeholderNameToIdentityMap = new Map<string, WindowIdentity>();
-let windowsWithManuallyClosedPlaceholders: WindowIdentity[] = [];
+const windowsWithManuallyClosedPlaceholders = new Set<string>();
 let functionToContinueRestorationWhenPlaceholdersClosed: (() => void)|undefined;
 let rejectTimeout: number|undefined;
 
@@ -134,7 +134,7 @@ export function cleanupPlaceholderObjects() {
     rejectTimeout = undefined;
     identityToPlaceholderMap.clear();
     placeholderNameToIdentityMap.clear();
-    windowsWithManuallyClosedPlaceholders = [];
+    windowsWithManuallyClosedPlaceholders.clear();
 }
 
 export function getWindowsWithManuallyClosedPlaceholders() {
@@ -328,7 +328,7 @@ function placeholderClosed(placeholderWinEvent: WindowEvent<'system', 'window-cl
     // Check to see if the placeholder wasn't deleted from the map.
     // If it wasn't, that means the placeholder was closed manually, and we have to record it so we can try to tab its corresponding window later on.
     if (correspondingWindowIdentity) {
-        windowsWithManuallyClosedPlaceholders.push(correspondingWindowIdentity);
+        windowsWithManuallyClosedPlaceholders.add(getId(correspondingWindowIdentity));
         deletePlaceholderFromMapsGivenPlaceholder(placeholderWinEvent);
     }
     continueRestorationIfReady();

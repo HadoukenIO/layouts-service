@@ -8,6 +8,7 @@ import {EVENT_CHANNEL_TOPIC} from '../APIMessages';
 import {apiHandler, loader, model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
+import {DesktopWindow, WindowIdentity} from '../model/DesktopWindow';
 import {promiseFilter, promiseForEach, promiseMap} from '../snapanddock/utils/async';
 
 import {regroupWorkspace} from './group';
@@ -87,7 +88,7 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
     }
 
     // If the user manually closed placeholder windows associated with tabbed windows, tab them if they're up.
-    await tabWindowsWithManuallyClosedPlaceholders(workspace);
+    await restoreTabGroupsWithManuallyClosedPlaceholders(workspace);
 
     // Regroup the windows
     await regroupWorkspace(processedAppResponses).catch(console.log);
@@ -313,48 +314,69 @@ const processAppResponse = async(appResponse: WorkspaceApp, workspace: Workspace
     }
 };
 
-const tabWindowsWithManuallyClosedPlaceholders = async (workspace: Workspace) => {
+const restoreTabGroupsWithManuallyClosedPlaceholders = async (workspace: Workspace) => {
     const manuallyClosedWindows = getWindowsWithManuallyClosedPlaceholders();
-    if (manuallyClosedWindows.length === 0) {
+    if (manuallyClosedWindows.size === 0) {
         return;
     }
 
-    // Create a tabGroupMap so we don't have to loop through all of the windows in all of the TabGroups.
-    const tabGroupMap = new Map<string, TabGroup>();
+    const tabGroupsToRecreate: TabGroup[] = [];
 
-    workspace.tabGroups.forEach((tabGroup) => {
-        tabGroup.tabs.forEach((tab) => {
-            tabGroupMap.set(getId(tab), tabGroup);
-        });
-    });
+    // Look for manually closed tabs and restore them
+    for (const tabGroup of workspace.tabGroups) {
+        for (const tab1 of tabGroup.tabs) {
+            const wasManuallyClosed = manuallyClosedWindows.has(getId(tab1));
 
-    for (const manuallyClosedWindow of manuallyClosedWindows) {
-        const closedWindowModel = await model.expect(manuallyClosedWindow);
-        const tabGroup = tabGroupMap.get(getId(manuallyClosedWindow));
-        // Make sure the closed window is up, and that it has a TabGroup
-        if (closedWindowModel && closedWindowModel.isReady && tabGroup) {
-            // Check to see if there's already a TabGroup up for this window.
-            let existingTabGroup: DesktopTabGroup|null = null;
-            for (const tab of tabGroup.tabs) {
-                const tabModel = await model.expect(tab);
-                if (tabModel) {
-                    existingTabGroup = existingTabGroup || tabModel.tabGroup;
+            if (wasManuallyClosed) {
+                const closedWindowModel = await model.expect(tab1);
+
+                // If the manually closed placeholder's owner is up and ready
+                if (closedWindowModel && closedWindowModel.isReady) {
+                    // Let's see if its group already has a TabGroup
+                    let existingTabGroup: DesktopTabGroup|null = null;
+                    const otherManuallyClosedWindows: DesktopWindow[] = [];
+
+                    // Let's check the other tabs in the group for up-and-running TabGroups
+                    for (const tab2 of tabGroup.tabs) {
+                        // If it's the same tab, it doesn't have a TabGroup, so skip it
+                        if (tab1.name === tab2.name && tab2.uuid === tab2.uuid) {
+                            continue;
+                        }
+
+                        const otherTabModel = await model.expect(tab2);
+
+                        // If the other tab is up, let's see if it has a TabGroup
+                        if (otherTabModel && otherTabModel.isReady) {
+                            existingTabGroup = existingTabGroup || otherTabModel.tabGroup;
+                            // Check to see if that tab was also manually closed
+                            const otherWasManuallyClosed = manuallyClosedWindows.has(getId(tab2));
+                            if (otherWasManuallyClosed) {
+                                otherManuallyClosedWindows.push(otherTabModel);
+                            }
+                        }
+                    }
+
+                    // We've found our TabGroup! Let's add all these windows to it.
+                    if (existingTabGroup) {
+                        otherManuallyClosedWindows.push(closedWindowModel);
+                        await existingTabGroup.addTabs(otherManuallyClosedWindows);
+                        const activeTab = await model.expect(tabGroup.groupInfo.active);
+                        if (activeTab && activeTab.isReady) {
+                            await existingTabGroup.switchTab(activeTab);
+                        }
+                    } else {
+                        // If we don't have an existing TabGroup, recreate the whole group instead later
+                        tabGroupsToRecreate.push(tabGroup);
+                    }
+
+                    // Break the loop, because we've already taken care of this TabGroup
+                    break;
                 }
-            }
-
-            // If there is a TabGroup, add this window to that group.
-            if (existingTabGroup) {
-                existingTabGroup.addTab(closedWindowModel);
-            } else {
-                // Otherwise, we create a TabGroup from the Workspace info. This needs to be done one at a time.
-                // If we instead push this TabGroup to an array, we may end up pushing multiple of the same
-                // TabGroup to the array (If multiple tabs in that group were closed manually).
-                // If we try to call createTabGroupsFromWorkspace on that,
-                // it results in a TabGroup of larger size than it should be.
-                await tabService.createTabGroupsFromWorkspace([tabGroup]);
             }
         }
     }
+
+    await tabService.createTabGroupsFromWorkspace(tabGroupsToRecreate);
 };
 
 const restorationCleanup = (): void => {

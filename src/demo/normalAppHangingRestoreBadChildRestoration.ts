@@ -51,6 +51,7 @@ export async function onAppRes(layoutApp: WorkspaceApp): Promise<WorkspaceApp> {
     console.log('Apprestore called:', layoutApp);
     const ofApp = fin.Application.getCurrentSync();
     const openWindows = await ofApp.getChildWindows();
+    // This is intentionally commented out to test what happens when you have an empty restore handler
     // const openAndPosition = layoutApp.childWindows.map(async (win: WorkspaceWindow, index: number) => {
     //     if (!openWindows.some((w: _Window) => w.identity.name === win.name)) {
     //         await openChild(win.name, index, win.frame, win.state, win.info.url, win);
@@ -103,5 +104,6 @@ const positionWindow = async (win: WorkspaceWindow) => {
 Layouts.workspaces.setGenerateHandler(() => {
     return {test: true};
 });
+// Take a look at onAppRes to see what causes the bad child restoration
 Layouts.workspaces.setRestoreHandler(onAppRes);
 Layouts.workspaces.ready();

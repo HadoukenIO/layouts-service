@@ -246,7 +246,7 @@ test('Tearout tab dragged into singleton window, invalid ragion - should not cre
     await Promise.all([assertNotTabbed(wins[0], t), assertNotTabbed(wins[1], t), assertNotTabbed(win3, t)]);
 });
 */
-for (let i = 0; i < 100; i++) {
+for (let i = 0; i < 50; i++) {
 
     test('test Tearout tab dragged into tab group - should add tab to tabgroup', async t => {
         // Tab 2 Windows Together

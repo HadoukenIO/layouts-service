@@ -291,6 +291,7 @@ for (let i = 0; i < 100; i++) {
         // Assert win1 not tabbed, win2&3 are tabbed
         await Promise.all([assertNotTabbed(wins[0], t), assertPairTabbed(wins[1], win3, t)]);
     });
+}
 
 
 /*

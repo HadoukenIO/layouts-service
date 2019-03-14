@@ -134,9 +134,7 @@ const startExclusivityTimeout = (): void => {
 
         setTimeout(() => {
             if (capturedRestoreExclusivityToken === restoreExclusivityToken) {
-                restoreExclusivityToken = null;
-
-                appsToRestoreWhenReady.clear();
+                restorationCleanup();
             }
         }, GLOBAL_EXCLUSIVITY_TIMEOUT);
     })();

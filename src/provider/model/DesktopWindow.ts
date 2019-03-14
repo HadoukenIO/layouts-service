@@ -96,6 +96,12 @@ enum ActionOrigin {
     SERVICE_TEMPORARY
 }
 
+enum LifecycleStage {
+    STARTING,
+    READY,
+    ENDING
+}
+
 type OpenFinWindowEvent = keyof fin.OpenFinWindowEventMap;
 
 interface Transaction {
@@ -326,7 +332,7 @@ export class DesktopWindow implements DesktopEntity {
     private _snapGroup: DesktopSnapGroup;
     private _tabGroup: DesktopTabGroup|null;
     private _prevGroup: DesktopSnapGroup|null;
-    private _ready: boolean;
+    private _lifecycleStage: LifecycleStage;
 
     private _pendingActions: Promise<void>[];
     private _actionTags: WeakMap<Promise<void>, string>;
@@ -347,7 +353,7 @@ export class DesktopWindow implements DesktopEntity {
         this._pendingActions = [];
         this._actionTags = new WeakMap();
 
-        this._ready = false;
+        this._lifecycleStage = LifecycleStage.STARTING;
 
         if (!DesktopWindow.isWindow(window)) {
             this._window = fin.Window.wrapSync({uuid: fin.Application.me.uuid, name: window.name});
@@ -356,7 +362,7 @@ export class DesktopWindow implements DesktopEntity {
                 this._currentState = await DesktopWindow.getWindowState(window);
                 this._applicationState = {...this._currentState};
 
-                this._ready = true;
+                this._lifecycleStage = LifecycleStage.READY;
                 this.addListeners();
             }));
         } else if (!initialState) {
@@ -365,12 +371,12 @@ export class DesktopWindow implements DesktopEntity {
                 this._currentState = state;
                 this._applicationState = {...this._currentState};
 
-                this._ready = true;
+                this._lifecycleStage = LifecycleStage.READY;
                 this.addListeners();
             }));
         } else {
             this._window = window as Window;
-            this._ready = true;
+            this._lifecycleStage = LifecycleStage.READY;
         }
 
         if (!initialState) {
@@ -385,7 +391,7 @@ export class DesktopWindow implements DesktopEntity {
         this._prevGroup = null;
         this._snapGroup.addWindow(this);
 
-        if (this._ready) {
+        if (this.isReady) {
             this.addListeners();
         }
 
@@ -407,7 +413,7 @@ export class DesktopWindow implements DesktopEntity {
             await this._tabGroup.removeTab(this);
         }
 
-        if (this._ready) {
+        if (this.isReady) {
             // Reset overrides
             const overrides = Object.keys(this._temporaryState) as (keyof EntityState)[];
             await Promise.all(overrides.map((property: keyof EntityState) => {
@@ -419,7 +425,7 @@ export class DesktopWindow implements DesktopEntity {
         }
         await this.onTeardown.emit(this);
         DesktopWindow.onDestroyed.emit(this);
-        this._ready = false;
+        this._lifecycleStage = LifecycleStage.ENDING;
     }
 
     private createTemporaryState(): EntityState {
@@ -459,7 +465,7 @@ export class DesktopWindow implements DesktopEntity {
     }
 
     public get isReady(): boolean {
-        return this._ready;
+        return this._lifecycleStage === LifecycleStage.READY;
     }
 
     public get isActive(): boolean {
@@ -566,7 +572,7 @@ export class DesktopWindow implements DesktopEntity {
         this.onTabGroupChanged.emit(this);
 
         // Modify state for tabbed windows (except for tabstrip windows)
-        if (this._identity.uuid !== SERVICE_IDENTITY.uuid && this._ready) {
+        if (this._identity.uuid !== SERVICE_IDENTITY.uuid && this.isReady) {
             if (group) {
                 // Set tabbed windows to be non-maximizable
                 const delta: Partial<EntityState> = {maximizable: false};
@@ -600,7 +606,7 @@ export class DesktopWindow implements DesktopEntity {
     public refresh(): Promise<void> {
         const window: Window = this._window;
 
-        if (this._ready) {
+        if (this.isReady) {
             return DesktopWindow.getWindowState(window).then((state: EntityState) => {
                 const appState: EntityState = this._applicationState;
                 const modifications: Partial<EntityState> = {};
@@ -640,7 +646,7 @@ export class DesktopWindow implements DesktopEntity {
     }
 
     public async close(): Promise<void> {
-        this._ready = false;
+        this._lifecycleStage = LifecycleStage.ENDING;
         return this.addPendingActions('close ' + this._id, this._window.close(true));
     }
 
@@ -665,7 +671,7 @@ export class DesktopWindow implements DesktopEntity {
         }
     }
     public async sendEvent<T extends LayoutsEvent>(event: T): Promise<void> {
-        if (this._ready && apiHandler.isClientConnection(this.identity)) {
+        if (this.isReady && apiHandler.isClientConnection(this.identity)) {
             return apiHandler.sendToClient(this._identity, EVENT_CHANNEL_TOPIC, event);
         }
     }
@@ -734,13 +740,13 @@ export class DesktopWindow implements DesktopEntity {
         const count = windows.length;
         const index = windows.indexOf(this);
 
-        if (count >= 2 && index >= 0 && this._ready) {
+        if (count >= 2 && index >= 0 && this.isReady) {
             const other: DesktopWindow = windows[index === 0 ? 1 : 0];
 
             // Merge window groups
             return Promise.all([this.sync(), other.sync()]).then(() => {
                 const joinGroupPromise: Promise<void> = (async () => {
-                    if (this._ready && group === this._snapGroup) {
+                    if (this.isReady && group === this._snapGroup) {
                         // It's possible that "other" has closed in the inervening time between registration of this pending
                         // action and its execution. If that is the case, we will roll over to the next window in the group
                         // until we find one that is groupable. If there are no groupable windows left in the group we will
@@ -780,7 +786,7 @@ export class DesktopWindow implements DesktopEntity {
         if (error) {
             if (error.message.includes('Could not locate the requested window')) {
                 // Pre-emptively clear ready flag to prevent future window interactions, but postpone teardown until 'handleClosed'.
-                this._ready = false;
+                this._lifecycleStage = LifecycleStage.ENDING;
             } else {
                 throw error;
             }
@@ -789,7 +795,7 @@ export class DesktopWindow implements DesktopEntity {
 
     private unsnap(): Promise<void> {
         // TODO: Wrap with 'addPendingActions'?..
-        if (this._ready) {
+        if (this.isReady) {
             return this._window.leaveGroup();
         } else {
             return Promise.resolve();
@@ -807,7 +813,7 @@ export class DesktopWindow implements DesktopEntity {
 
         if (origin !== ActionOrigin.APPLICATION) {
             // Ensure we can modify window before we update our cache
-            if (!this._ready) {
+            if (!this.isReady) {
                 throw new Error('Cannot modify window, window not in ready state ' + this._id);
             }
         } else {
@@ -1046,7 +1052,7 @@ export class DesktopWindow implements DesktopEntity {
     private handleClosing(): void {
         // If 'onclose' event has fired, we shouldn't attempt to call any OpenFin API on the window.
         // Will immediately reset ready flag, to prevent any API calls as part of clean-up/destroy process.
-        this._ready = false;
+        this._lifecycleStage = LifecycleStage.ENDING;
 
         // Clean-up model state
         this.teardown();

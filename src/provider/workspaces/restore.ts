@@ -46,13 +46,13 @@ interface AppToRestore {
 export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> => {
     console.log('Restoring workspace:', payload);
 
-    // Ensure the loader links any apps being programmatically restored with their parentUuid at time of workspace
-    // generation, rather than their parentUuid now (which will be layouts-service)
-    linkAppsToOriginalParentUuid(payload);
-
     if (restoreExclusivityToken !== null) {
         throw new Error('Attempting to restore while restore in progress');
     }
+
+    // Ensure the loader links any apps being programmatically restored with their parentUuid at time of workspace
+    // generation, rather than their parentUuid now (which will be layouts-service)
+    linkAppsToOriginalParentUuid(payload);
 
     validatePayload(payload);
 

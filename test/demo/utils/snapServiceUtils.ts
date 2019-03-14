@@ -25,18 +25,18 @@ export async function isWindowRegistered(identity: Identity): Promise<boolean> {
  *
  * If the window is not grouped, a single-item array of its own identity is returned.
  */
-export async function getGroupedWindows(identity: Identity): Promise<DesktopEntity[]> {
-    function remoteFunc(this: ProviderWindow, identity: WindowIdentity): DesktopEntity[] {
+export async function getGroupedWindows(identity: Identity): Promise<Identity[]> {
+    function remoteFunc(this: ProviderWindow, identity: WindowIdentity): Identity[] {
         const snapWindow: DesktopWindow|null = this.model.getWindow(identity);
         if (snapWindow) {
             return snapWindow.snapGroup.windows.map((win: DesktopEntity) => {
-                return win;
+                return win.identity;
             });
         } else {
             throw new Error(`Attempted to get window group of non-existent or deregistered window: ${identity.uuid}/${identity.name}`);
         }
     }
-    return executeJavascriptOnService<WindowIdentity, DesktopEntity[]>(remoteFunc, identity as WindowIdentity);
+    return executeJavascriptOnService<WindowIdentity, Identity[]>(remoteFunc, identity as WindowIdentity);
 }
 
 /**

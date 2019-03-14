@@ -2,7 +2,7 @@ import {TestContext} from 'ava';
 import deepEqual from 'fast-deep-equal';
 import {Window} from 'hadouken-js-adapter';
 
-import {promiseFilter, promiseMap} from '../../../src/provider/snapanddock/utils/async';
+import {promiseFilter, promiseMap, promiseForEach} from '../../../src/provider/snapanddock/utils/async';
 import {getTopmostWindow} from '../../demo/utils/modelUtils';
 import {getGroupedWindows, getSnapGroupID} from '../../demo/utils/snapServiceUtils';
 import {getActiveTab, getId, getTabbedWindows, getTabGroupID, getTabGroupIdentity, getTabstrip} from '../../demo/utils/tabServiceUtils';
@@ -84,7 +84,14 @@ export async function assertNotGrouped(win: Window, t: TestContext) {
 
     if (snapGroup.length !== 1) {
         console.log(`about to fail in assertNotGrouped (${win.identity.name}/${win.identity.uuid})`);
-        snapGroup.map((w, i) => console.log(`${i}: (${w.identity.name}/${w.identity.uuid}) sId:${w.snapGroup.id}`));
+
+        let i = 0;
+        promiseForEach(snapGroup, async (w) => {
+            const snapGroupId = await getSnapGroupID(w);
+            console.log(`${i}: (${w.name}/${w.uuid}) sId:${snapGroupId}`);
+            i++;
+        });
+
     }
 
     t.is(snapGroup.length, 1);

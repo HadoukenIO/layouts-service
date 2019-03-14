@@ -34,14 +34,13 @@ const appsToRestoreWhenReady = new Map<string, AppToRestore>();
 
 const appsToDeleteFromWorkspace = new Set<string>();
 
-let timeoutsToClear: number[] = [];
-
 // A token unique to the current run of restoreWorkspace, needed so that we can correctly release the exclusivity token after a timeout if needed
 let restoreExclusivityToken: {}|null = null;
 
 interface AppToRestore {
     workspaceApp: WorkspaceApp;
     resolve: Function;
+    timeout: number;
 }
 
 export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> => {
@@ -118,10 +117,10 @@ export const appReadyForRestore = async(uuid: string): Promise<void> => {
     const appToRestore = appsToRestoreWhenReady.get(uuid)!;
 
     if (appToRestore) {
-        const {workspaceApp, resolve} = appToRestore;
+        const {workspaceApp, resolve, timeout} = appToRestore;
 
+        clearTimeout(timeout);
         appsToRestoreWhenReady.delete(uuid);
-
         sendWorkspaceToAppAndContinueRestore(workspaceApp, resolve);
     } else {
         console.warn('Ignoring duplicate \'appReadyForRestore\' call');
@@ -384,8 +383,6 @@ const restorationCleanup = (): void => {
     cleanupPlaceholderObjects();
     appsToDeleteFromWorkspace.clear();
     appsToRestoreWhenReady.clear();
-    timeoutsToClear.forEach((timeout) => clearTimeout(timeout));
-    timeoutsToClear = [];
 };
 
 // Adds the WorkspaceApp object to a map, and waits for its corresponding application to come up.
@@ -393,11 +390,7 @@ const restorationCleanup = (): void => {
 // If the application never comes up, we resolve this hanging promise and nullify that application's child windows.
 const setClientAppToRestoreWhenReady = (workspaceApp: WorkspaceApp, resolve: Function): void => {
     const {uuid} = workspaceApp;
-    const save = {workspaceApp, resolve};
-
     const failedResponse = {...workspaceApp, childWindows: [], confirmed: false};
-
-    appsToRestoreWhenReady.set(uuid, save);
 
     const timeout = window.setTimeout(() => {
         if (appsToRestoreWhenReady.delete(uuid)) {
@@ -411,7 +404,8 @@ const setClientAppToRestoreWhenReady = (workspaceApp: WorkspaceApp, resolve: Fun
         }
     }, CLIENT_APP_READY_TIMEOUT);
 
-    timeoutsToClear.push(timeout);
+    const save = {workspaceApp, resolve, timeout};
+    appsToRestoreWhenReady.set(uuid, save);
 };
 
 // Attempt to send the WorkspaceApp object to an application that has signaled that it's ready, and wait for it to respond back.
@@ -472,7 +466,8 @@ const deleteAppFromRestoreWhenReadyMap = (app: WorkspaceApp) => {
     const appThatFailedToRestore = appsToRestoreWhenReady.get(app.uuid);
     if (appThatFailedToRestore) {
         appsToRestoreWhenReady.delete(app.uuid);
-        const {workspaceApp, resolve} = appThatFailedToRestore;
+        const {workspaceApp, resolve, timeout} = appThatFailedToRestore;
+        clearTimeout(timeout);
         resolve(workspaceApp);
     }
 };

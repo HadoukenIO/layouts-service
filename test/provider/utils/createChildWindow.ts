@@ -17,7 +17,7 @@ const getClientConnection = async (uuid: string) => {
 getConnection().then(fin => {
     fin.System.addListener('window-closed', evt => {
         if (evt.uuid === 'testApp' && evt.name.match(/win\d/)) {
-            childWindowCount--;
+            //childWindowCount--;
         }
     });
 });
@@ -52,7 +52,11 @@ export async function createChildWindow(windowOptions: fin.WindowOptions, uuid?:
     const fin = await getConnection();
     const client = await getClientConnection(uuid);
 
-    const windowName: string = windowOptions.name || 'win' + childWindowCount++;
+
+    const windowName: string = windowOptions.name || 'win' + childWindowCount
+
+    childWindowCount = (childWindowCount + 1) % Number.MAX_SAFE_INTEGER;
+
     await client.dispatch('createWindow', {saveWindowState: false, ...windowOptions, uuid, name: windowName});
 
     const newWin = fin.Window.wrapSync({uuid, name: windowName});

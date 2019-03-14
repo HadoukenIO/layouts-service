@@ -1,4 +1,4 @@
-import {Context, GenericTestContext, Test, TestContext} from 'ava';
+/*import {Context, GenericTestContext, Test, TestContext} from 'ava';
 import {Application} from 'hadouken-js-adapter';
 import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/system/application';
 
@@ -92,14 +92,14 @@ export async function createCloseAndRestoreLayout(t: TestContext|SaveRestoreTest
     await sendServiceMessage(WorkspaceAPI.RESTORE_LAYOUT, workspace);
 
     return workspace;
-}
+}*/
 
 export interface TestCreationOptions {
     url?: string;
     manifest?: boolean;
     autoShow?: boolean;
 }
-
+/*
 export function createBasicSaveAndRestoreTest(
     numAppsToCreate: number, numberOfChildren: number, testOptions?: TestCreationOptions): BasicSaveRestoreTestOptions {
     const appsArray = createAppsArray(numAppsToCreate, numberOfChildren, testOptions);
@@ -136,4 +136,4 @@ export async function closeAllPreviews(t: TestContext): Promise<void> {
         }
     }
     return Promise.all(actions).then(() => {});
-}
+}*/

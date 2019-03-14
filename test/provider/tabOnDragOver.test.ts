@@ -78,7 +78,7 @@ test.afterEach.always(async () => {
     wins = [];
 });
 test.afterEach.always(teardown);
-
+/*
 test('Drag window over window - should create tabgroup', async t => {
     // Drag wins[0] over wins[1] to make a tabset (in valid drop region)
     await tabWindowsTogether(wins[0], wins[1]);
@@ -245,100 +245,101 @@ test('Tearout tab dragged into singleton window, invalid ragion - should not cre
     // Assert win1 not tabbed, win2&3 are tabbed
     await Promise.all([assertNotTabbed(wins[0], t), assertNotTabbed(wins[1], t), assertNotTabbed(win3, t)]);
 });
+*/
 
+for (let i = 0; i < 50; i++) {
+    test('test Tearout tab dragged into tab group - should add tab to tabgroup', async t => {
+        // Tab 2 Windows Together
+        await tabWindowsTogether(wins[1], wins[0]);
 
+        const win3 = await createChildWindow({
+            autoShow: true,
+            saveWindowState: false,
+            defaultTop: 500,
+            defaultLeft: 500,
+            defaultHeight: 200,
+            defaultWidth: 200,
+            url: 'http://localhost:1337/demo/tabbing/default.html',
+            frame: true
+        });
 
-test('test Tearout tab dragged into tab group - should add tab to tabgroup', async t => {
-    // Tab 2 Windows Together
-    await tabWindowsTogether(wins[1], wins[0]);
+        const win4 = await createChildWindow({
+            autoShow: true,
+            saveWindowState: false,
+            defaultTop: 500,
+            defaultLeft: 600,
+            defaultHeight: 200,
+            defaultWidth: 200,
+            url: 'http://localhost:1337/demo/tabbing/default.html',
+            frame: true
+        });
 
-    const win3 = await createChildWindow({
-        autoShow: true,
-        saveWindowState: false,
-        defaultTop: 500,
-        defaultLeft: 500,
-        defaultHeight: 200,
-        defaultWidth: 200,
-        url: 'http://localhost:1337/demo/tabbing/default.html',
-        frame: true
+        // Mark win3 , win4 for close
+        wins.push(win3, win4);
+
+        await tabWindowsTogether(win3, win4);
+        // Tearout tab & drag to valid drop region in win3
+        const [bounds1, bounds2] = await Promise.all([getBounds(wins[0]), getBounds(win3)]);
+        robot.mouseToggle('up');
+        robot.moveMouseSmooth(bounds1.left + 30, bounds1.top - 20);
+        robot.mouseToggle('down');
+        robot.moveMouseSmooth(bounds2.left + 20, bounds2.top - 20);
+        robot.mouseToggle('up');
+
+        await delay(500);
+
+        // Assert win1 not tabbed, win2&3 are tabbed
+        await Promise.all([assertNotTabbed(wins[0], t), assertPairTabbed(wins[1], win3, t)]);
     });
 
-    const win4 = await createChildWindow({
-        autoShow: true,
-        saveWindowState: false,
-        defaultTop: 500,
-        defaultLeft: 600,
-        defaultHeight: 200,
-        defaultWidth: 200,
-        url: 'http://localhost:1337/demo/tabbing/default.html',
-        frame: true
+
+
+    test('Tearout tab dragged into tab group, invalid region - should not add tab to tabgroup', async t => {
+        // Tab 2 Windows Together
+        await tabWindowsTogether(wins[1], wins[0]);
+
+        const win3 = await createChildWindow({
+            autoShow: true,
+            saveWindowState: false,
+            defaultTop: 80,
+            defaultLeft: 200,
+            defaultHeight: 200,
+            defaultWidth: 200,
+            url: 'http://localhost:1337/demo/tabbing/default.html',
+            frame: true
+        });
+
+        const win4 = await createChildWindow({
+            autoShow: true,
+            saveWindowState: false,
+            defaultTop: 500,
+            defaultLeft: 600,
+            defaultHeight: 200,
+            defaultWidth: 200,
+            url: 'http://localhost:1337/demo/tabbing/default.html',
+            frame: true
+        });
+
+        // Mark win3 , win4 for close
+        wins.push(win3, win4);
+
+        await tabWindowsTogether(win3, win4);
+        // Tearout tab & drag to valid drop region in win3
+        const [bounds1, bounds2] = await Promise.all([getBounds(wins[0]), getBounds(win3)]);
+        robot.mouseToggle('up');
+        robot.moveMouseSmooth(bounds1.left + 30, bounds1.top - 20);
+        robot.mouseToggle('down');
+        robot.moveMouseSmooth(bounds2.left + 20, bounds2.bottom - 20);
+        robot.mouseToggle('up');
+
+        await delay(500);
+
+        // Assert win1 not tabbed, win2&3 are tabbed
+        await Promise.all([assertNotTabbed(wins[0], t), assertNotTabbed(wins[1], t)]);
     });
+}
 
-    // Mark win3 , win4 for close
-    wins.push(win3, win4);
-
-    await tabWindowsTogether(win3, win4);
-    // Tearout tab & drag to valid drop region in win3
-    const [bounds1, bounds2] = await Promise.all([getBounds(wins[0]), getBounds(win3)]);
-    robot.mouseToggle('up');
-    robot.moveMouseSmooth(bounds1.left + 30, bounds1.top - 20);
-    robot.mouseToggle('down');
-    robot.moveMouseSmooth(bounds2.left + 20, bounds2.top - 20);
-    robot.mouseToggle('up');
-
-    await delay(500);
-
-    // Assert win1 not tabbed, win2&3 are tabbed
-    await Promise.all([assertNotTabbed(wins[0], t), assertPairTabbed(wins[1], win3, t)]);
-});
-
-
-
-test('Tearout tab dragged into tab group, invalid region - should not add tab to tabgroup', async t => {
-    // Tab 2 Windows Together
-    await tabWindowsTogether(wins[1], wins[0]);
-
-    const win3 = await createChildWindow({
-        autoShow: true,
-        saveWindowState: false,
-        defaultTop: 80,
-        defaultLeft: 200,
-        defaultHeight: 200,
-        defaultWidth: 200,
-        url: 'http://localhost:1337/demo/tabbing/default.html',
-        frame: true
-    });
-
-    const win4 = await createChildWindow({
-        autoShow: true,
-        saveWindowState: false,
-        defaultTop: 500,
-        defaultLeft: 600,
-        defaultHeight: 200,
-        defaultWidth: 200,
-        url: 'http://localhost:1337/demo/tabbing/default.html',
-        frame: true
-    });
-
-    // Mark win3 , win4 for close
-    wins.push(win3, win4);
-
-    await tabWindowsTogether(win3, win4);
-    // Tearout tab & drag to valid drop region in win3
-    const [bounds1, bounds2] = await Promise.all([getBounds(wins[0]), getBounds(win3)]);
-    robot.mouseToggle('up');
-    robot.moveMouseSmooth(bounds1.left + 30, bounds1.top - 20);
-    robot.mouseToggle('down');
-    robot.moveMouseSmooth(bounds2.left + 20, bounds2.bottom - 20);
-    robot.mouseToggle('up');
-
-    await delay(500);
-
-    // Assert win1 not tabbed, win2&3 are tabbed
-    await Promise.all([assertNotTabbed(wins[0], t), assertNotTabbed(wins[1], t)]);
-});
-
-
+/*
 test('2 tab tabgroup, Tab closed - should destroy tabgroup', async t => {
     // Create tab group
     await tabWindowsTogether(wins[1], wins[0]);
@@ -583,3 +584,5 @@ test('Cannot tab to a window that is obscured by a window not registered to the 
     await delay(500);
     await Promise.all(wins.map(win => assertNotTabbed(win, t)));
 });
+
+*/

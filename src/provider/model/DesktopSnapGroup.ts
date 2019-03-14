@@ -160,12 +160,12 @@ export class DesktopSnapGroup {
             const nonTrivialAfter = this.isNonTrivial();
 
             if (nonTrivialBefore && nonTrivialAfter) {
-                this.sendEventIfReadyOrCheckLater(window, 'window-docked');
+                window.sendEvent<WindowDockedEvent>({type: 'window-docked'});
             } else if (!nonTrivialBefore && nonTrivialAfter) {
-                this._windows.forEach(groupWindow => this.sendEventIfReadyOrCheckLater(groupWindow, 'window-docked'));
+                this._windows.forEach(groupWindow => groupWindow.sendEvent<WindowDockedEvent>({type: 'window-docked'}));
             } else if (nonTrivialBefore && !nonTrivialAfter) {
                 // This case can occur if the tabstrip window gets added to the snap group after the individual tab windows
-                this._windows.forEach(groupWindow => this.sendEventIfReadyOrCheckLater(groupWindow, 'window-undocked'));
+                this._windows.forEach(groupWindow => groupWindow.sendEvent<WindowUndockedEvent>({type: 'window-undocked'}));
             }
 
             // Inform service of addition
@@ -275,19 +275,25 @@ export class DesktopSnapGroup {
             // Inform window of removal
             // Note that client API only considers windows to belong to a group if it contains two or more windows
             if (nonTrivialBefore && nonTrivialAfter) {
-                this.sendEventIfReadyOrCheckLater(window, 'window-undocked');
-
+                if (window.isReady) {
+                    window.sendEvent<WindowUndockedEvent>({type: 'window-undocked'});
+                }
             } else if (nonTrivialBefore && !nonTrivialAfter) {
-                this.sendEventIfReadyOrCheckLater(window, 'window-undocked');
-
+                if (window.isReady) {
+                    window.sendEvent<WindowUndockedEvent>({type: 'window-undocked'});
+                }
 
                 this._windows.forEach(groupWindow => {
-                    this.sendEventIfReadyOrCheckLater(groupWindow, 'window-undocked');
+                    if (groupWindow.isReady) {
+                        groupWindow.sendEvent<WindowUndockedEvent>({type: 'window-undocked'});
+                    }
                 });
             } else if (!nonTrivialBefore && nonTrivialAfter) {
                 // This case can occur if the tabstrip window gets removed from the snap group before the individual tab windows
                 this._windows.forEach(groupWindow => {
-                    this.sendEventIfReadyOrCheckLater(groupWindow, 'window-docked');
+                    if (groupWindow.isReady) {
+                        groupWindow.sendEvent<WindowDockedEvent>({type: 'window-docked'});
+                    }
                 });
             }
 
@@ -429,20 +435,6 @@ export class DesktopSnapGroup {
                 center: {x: ((min.x + max.x) / 2) - rootPosition.x, y: ((min.y + max.y) / 2) - rootPosition.y},
                 halfSize: {x: (max.x - min.x) / 2, y: (max.y - min.y) / 2}
             };
-        }
-    }
-
-    private async sendEventIfReadyOrCheckLater(window: DesktopWindow, type: 'window-docked'|'window-undocked'): Promise<void> {
-        if (!window.isReady) {
-            await window.sync();
-        }
-
-        if (window.isReady) {
-            if (type === 'window-docked') {
-                window.sendEvent<WindowDockedEvent>({type});
-            } else {
-                window.sendEvent<WindowUndockedEvent>({type});
-            }
         }
     }
 }

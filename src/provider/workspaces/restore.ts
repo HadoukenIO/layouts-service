@@ -321,55 +321,33 @@ const restoreTabGroupsWithManuallyClosedPlaceholders = async (workspace: Workspa
 
     // Look for manually closed tabs and restore them
     for (const tabGroup of workspace.tabGroups) {
-        for (const tab1 of tabGroup.tabs) {
-            const wasManuallyClosed = manuallyClosedWindows.has(getId(tab1));
+        // Find the tabs in this tabgroup with manually closed placeholders
+        const manuallyClosedWindowsInTabGroup = tabGroup.tabs.filter(tab => manuallyClosedWindows.has(getId(tab)));
+        if (manuallyClosedWindowsInTabGroup.length === 0) {
+            continue;
+        }
 
-            if (wasManuallyClosed) {
-                const closedWindowModel = await model.expect(tab1);
+        // Find the existing tab group (if any) for these tabs to rejoin
+        let existingTabGroup: DesktopTabGroup|boolean|null = null;
 
-                // If the manually closed placeholder's owner is up and ready
-                if (closedWindowModel && closedWindowModel.isReady) {
-                    // Let's see if its group already has a TabGroup
-                    let existingTabGroup: DesktopTabGroup|null = null;
-                    const otherManuallyClosedWindows: DesktopWindow[] = [];
+        for (const tab of tabGroup.tabs) {
+            const notManuallyClosed = !manuallyClosedWindows.has(getId(tab));
+            const tabModel = notManuallyClosed && await model.expect(tab);
+            existingTabGroup = tabModel && tabModel.tabGroup;
+        }
 
-                    // Let's check the other tabs in the group for up-and-running TabGroups
-                    for (const tab2 of tabGroup.tabs) {
-                        // If it's the same tab, it doesn't have a TabGroup, so skip it
-                        if (tab1.name === tab2.name && tab2.uuid === tab2.uuid) {
-                            continue;
-                        }
-
-                        const otherTabModel = await model.expect(tab2);
-
-                        // If the other tab is up, let's see if it has a TabGroup
-                        if (otherTabModel && otherTabModel.isReady) {
-                            existingTabGroup = existingTabGroup || otherTabModel.tabGroup;
-                            // Check to see if that tab was also manually closed
-                            const otherWasManuallyClosed = manuallyClosedWindows.has(getId(tab2));
-                            if (otherWasManuallyClosed) {
-                                otherManuallyClosedWindows.push(otherTabModel);
-                            }
-                        }
-                    }
-
-                    // We've found our TabGroup! Let's add all these windows to it.
-                    if (existingTabGroup) {
-                        otherManuallyClosedWindows.push(closedWindowModel);
-                        await existingTabGroup.addTabs(otherManuallyClosedWindows);
-                        const activeTab = await model.expect(tabGroup.groupInfo.active);
-                        if (activeTab && activeTab.isReady) {
-                            await existingTabGroup.switchTab(activeTab);
-                        }
-                    } else {
-                        // If we don't have an existing TabGroup, recreate the whole group instead later
-                        tabGroupsToRecreate.push(tabGroup);
-                    }
-
-                    // Break the loop, because we've already taken care of this TabGroup
-                    break;
-                }
+        // We've found our TabGroup! Let's add all these windows to it.
+        if (existingTabGroup) {
+            // Re-add the ungrouped tabs back into the existing tab group if it exists
+            const tabWindows = await promiseMap(manuallyClosedWindowsInTabGroup, async (tab) => await model.expect(tab));
+            await existingTabGroup.addTabs(tabWindows.filter(tabWindow => tabWindow.isReady));
+            const activeTab = await model.expect(tabGroup.groupInfo.active);
+            if (activeTab && activeTab.isReady) {
+                await existingTabGroup.switchTab(activeTab);
             }
+        } else {
+            // If existingTabGroup doesn't exist, store to restore at the end
+            tabGroupsToRecreate.push(tabGroup);
         }
     }
 

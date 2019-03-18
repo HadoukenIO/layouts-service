@@ -259,7 +259,6 @@ test('Tearout tab dragged into singleton window, invalid ragion - should not cre
 });
 */
 for (let i = 0; i < 50; i++) {
-
     test('test Tearout tab dragged into tab group - should add tab to tabgroup', async () => {
         // Tab 2 Windows Together
         await tabWindowsTogether(wins[1], wins[0]);

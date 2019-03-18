@@ -146,14 +146,14 @@ export async function assertPairTabbed(win1: Window, win2: Window, t: TestContex
 
     // Both windows have the same bounds
     const [bounds1, bounds2] = [await getBounds(win1), await getBounds(win2)];
-    expect(bounds1).toEqual(bounds2);// 'Tabbed windows do not have the same bounds');
+    expect(bounds1).toEqual(bounds2);  // 'Tabbed windows do not have the same bounds');
 
     // Both windows are attached to the tabStrip
     const tabStripWindow = group1.find((win: Window) => getId(win.identity) === tabGroupID1);
     if (tabStripWindow) {
         await assertAdjacent(t, tabStripWindow, win1, 'bottom');
     } else {
-        expect(true).toEqual(false);// t.fail('Windows are not native grouped to the tabStrip A');
+        expect(true).toEqual(false);  // t.fail('Windows are not native grouped to the tabStrip A');
         return Promise.reject('Windows are not native grouped to the tabStrip B');
     }
 
@@ -162,8 +162,8 @@ export async function assertPairTabbed(win1: Window, win2: Window, t: TestContex
         const isShowing = await win.isShowing();
         const shouldBeShowing = deepEqual(win.identity, await getActiveTab(win.identity));
         expect(isShowing).toBe(shouldBeShowing);
-//            `Window ${'"' + win.identity.uuid + '/' + win.identity.name + '"'} expected to ${shouldBeShowing ? 'not ' : ''}be hidden, but was${
-//                isShowing ? ' not.' : '.'}`);
+        //            `Window ${'"' + win.identity.uuid + '/' + win.identity.name + '"'} expected to ${shouldBeShowing ? 'not ' : ''}be hidden, but was${
+        //                isShowing ? ' not.' : '.'}`);
     }
 }
 

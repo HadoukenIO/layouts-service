@@ -1,4 +1,4 @@
-//import {AnyContext, GenericTestContext, test} from 'ava';
+// import {AnyContext, GenericTestContext, test} from 'ava';
 import {Fin, Window} from 'hadouken-js-adapter';
 
 import {WindowIdentity} from '../../src/client/main';
@@ -21,7 +21,9 @@ beforeAll(async () => {
     fin = await getConnection();
     windowInitializer = new WindowInitializer();
 });
-afterEach(async () => {await teardown();});
+afterEach(async () => {
+    await teardown();
+});
 afterEach(async () => {
     // Closes all windows and resets the array for the next test.
     for (const win of windows) {

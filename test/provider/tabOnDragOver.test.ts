@@ -37,13 +37,13 @@ async function getTabTitle(identity: Identity) {
 
 jest.setTimeout(30 * 1000);
 
-interface IJest {
-    retryTimes: any;
+interface JestInterface {
+    retryTimes: Function;
 }
 
-const retryTimes: any = (jest as unknown as IJest).retryTimes;
+(jest as unknown as JestInterface).retryTimes(5);
 
-retryTimes(5);
+
 
 let wins: Window[] = [];
 
@@ -74,7 +74,6 @@ beforeEach(async () => {
     await delay(500);
 });
 
-afterEach(async() => {await teardown()});
 
 afterEach(async () => {
     // Try and close all the windows.  If the window is already closed then it will throw an error which we catch and ignore.
@@ -87,7 +86,10 @@ afterEach(async () => {
     }));
 
     wins = [];
+
+    await teardown();
 });
+
 /*
 test('Drag window over window - should create tabgroup', async t => {
     // Drag wins[0] over wins[1] to make a tabset (in valid drop region)

@@ -82,8 +82,10 @@ Options:
     process.exit();
 }
 
-const fileNamesArg = testFileNames.slice(testFileNames.length > 1 ? 1 : 0).map(testFileName => `dist/test/**/${testFileName}.test.js`).join(" ");
-const testCommand = `jest --forceExit --runInBand --verbose`;
+const fileNamesArg = testFileNames.slice(testFileNames.length > 1 ? 1 : 0).map(testFileName => `${testFileName}.test.ts`).join(" ");
+
+const testCommand = `jest --config=jest-int.config.json --forceExit --runInBand --verbose ${fileNamesArg} ${testNameFilter ? '--testNamePattern=' + testNameFilter: ''} ${unusedArgs.join(' ')}`;
+
 
 const cleanup = async res => {
     if (os.platform().match(/^win/)) {

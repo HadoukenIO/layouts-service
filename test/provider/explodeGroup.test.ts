@@ -10,12 +10,17 @@ import {getBounds} from './utils/getBounds';
 import {isInGroup} from './utils/isInGroup';
 import {isOverlappedWith} from './utils/isOverlappedWith';
 import {defaultArrangements, WindowInitializer} from './utils/WindowInitializer';
+import { delay } from './utils/delay';
 
 let windows: Window[] = new Array<Window>();
 let fin: Fin;
 let windowInitializer: WindowInitializer;
 
 jest.setTimeout(60 * 1000);
+interface JestInterface {
+    retryTimes: Function;
+}
+(jest as unknown as JestInterface).retryTimes(5);
 
 beforeAll(async () => {
     fin = await getConnection();
@@ -25,13 +30,14 @@ afterEach(async () => {
     await teardown();
 });
 afterEach(async () => {
-    // Closes all windows and resets the array for the next test.
+    // Try and close all the windows.  If the window is already closed then it will throw an error which we catch and ignore.
     for (const win of windows) {
-        if (win) {
-            await win.close();
-        }
+        await win.close().catch(e => {console.warn(`error closing window ${win.identity.name}`)});
     }
-    windows = new Array<Window>();
+
+    windows = [];
+    await delay(500);
+    await teardown();
 });
 
 
@@ -61,11 +67,16 @@ async function assertExploded() {
  * arrangemtns object. To add an additional window layouts to be tested, simply
  * add new entries there.
  */
+
+let testNumber = 0;
+
 Object.keys(defaultArrangements).forEach(num => {
     const count = Number.parseInt(num, 10);
 
     Object.keys(defaultArrangements[count]).forEach(name => {
         test(`${count} windows - ${name}`, async () => {
+            console.log(`*** Running ${count} windows - ${name}`);
+            
             // This will spawn the required number of windows in the correct
             // positions/groups
             windows = await windowInitializer.initWindows(count, name);

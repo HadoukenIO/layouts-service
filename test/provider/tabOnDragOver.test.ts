@@ -11,6 +11,7 @@ import {delay} from './utils/delay';
 import {dragWindowTo, dragWindowToOtherWindow} from './utils/dragWindowTo';
 import {getBounds} from './utils/getBounds';
 import {tabWindowsTogether} from './utils/tabWindowsTogether';
+import { promiseForEach } from '../../src/provider/snapanddock/utils/async';
 
 /**
  * Fetches the tab title of a window. Will fetch the text from the DOM element within the tabstrip window.
@@ -40,7 +41,6 @@ jest.setTimeout(30 * 1000);
 interface JestInterface {
     retryTimes: Function;
 }
-
 (jest as unknown as JestInterface).retryTimes(5);
 
 
@@ -77,16 +77,12 @@ beforeEach(async () => {
 
 afterEach(async () => {
     // Try and close all the windows.  If the window is already closed then it will throw an error which we catch and ignore.
-    await Promise.all(wins.map(win => {
-        try {
-            return win.close();
-        } catch (e) {
-            return;
-        }
-    }));
+    for (const win of wins) {
+        await win.close().catch(e => {console.warn(`error closing window ${win.identity.name}`)});
+    }
 
     wins = [];
-
+    await delay(500);
     await teardown();
 });
 
@@ -259,7 +255,13 @@ test('Tearout tab dragged into singleton window, invalid ragion - should not cre
 });
 */
 for (let i = 0; i < 50; i++) {
+
+    const count = i;
+
     test('test Tearout tab dragged into tab group - should add tab to tabgroup', async () => {
+        
+        console.log(`*** Running ${count} test Tearout tab dragged into tab group - should add tab to tabgroup`);
+        
         // Tab 2 Windows Together
         await tabWindowsTogether(wins[1], wins[0]);
 
@@ -304,6 +306,9 @@ for (let i = 0; i < 50; i++) {
     });
 
     test('Tearout tab dragged into tab group, invalid region - should not add tab to tabgroup', async () => {
+
+        console.log(`*** Running ${count} Tearout tab dragged into tab group, invalid region - should not add tab to tabgroup`);
+
         // Tab 2 Windows Together
         await tabWindowsTogether(wins[1], wins[0]);
 

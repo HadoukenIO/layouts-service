@@ -8,7 +8,7 @@
     "dist/client"
   ],
   "scripts": {
-    "test:unit": "jest --color --no-cache",
+    "test:unit": "echo Hello",
     "test:int": "node test/runner.js",
     "test": "npm run test:unit && npm run test:int",
     "check": "gts check && cd test && gts check",
@@ -30,7 +30,7 @@
   "keywords": [],
   "license": "Apache-2.0",
   "devDependencies": {
-    "@types/jest": "^23.3.12",
+    "@types/jest": "^23.3.3",
     "@types/sortablejs": "^1.3.32",
     "archiver": "^3.0.0",
     "ava": "^0.25.0",
@@ -38,15 +38,16 @@
     "execa": "^0.10.0",
     "express": "^4.16.3",
     "gts": "^0.7.1",
-    "jest": "^23.6.0",
-    "jest-cli": "^23.6.0",
+    "jest": "24.1.0",
+    "jest-circus": "^24.5.0",
+    "jest-cli": "^24.1.0",
     "jest-junit": "^5.2.0",
     "json-schema-defaults": "^0.4.0",
     "json-schema-to-typescript": "^6.1.0",
     "mkdirp": "^0.5.1",
     "rimraf": "^2.6.2",
     "robotjs": "^0.5.1",
-    "ts-jest": "^23.10.5",
+    "ts-jest": "^24.0.0",
     "ts-loader": "^4.4.2",
     "typedoc": "^0.12.0",
     "typedoc-plugin-external-module-name": "^1.1.3",
@@ -65,7 +66,8 @@
       "^.+\\.tsx?$": "<rootDir>/../node_modules/ts-jest"
     },
     "rootDir": "test",
-    "testRegex": ".unittest.ts$",
+    "testRegex": "tabOnDragOver.test.ts$",
+    "testRunner": "jest-circus/runner",
     "modulePaths": [
       "<rootDir>/../node_modules"
     ],

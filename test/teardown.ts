@@ -19,7 +19,7 @@ import {delay} from './provider/utils/delay';
  * 
  * @param t Test context
  */
-export async function teardown(t: TestContext): Promise<void> {
+export async function teardown(t: TestContext|null = null): Promise<void> {
     const fin = await getConnection();
 
     await closeAllWindows(t);
@@ -42,7 +42,7 @@ export async function teardown(t: TestContext): Promise<void> {
     }
 }
 
-async function closeAllWindows(t: TestContext): Promise<void> {
+async function closeAllWindows(t: TestContext|null): Promise<void> {
     const fin = await getConnection();
 
     // Fetch all open windows
@@ -95,7 +95,7 @@ async function closeAllWindows(t: TestContext): Promise<void> {
     }
 }
 
-async function resetProviderState(t: TestContext): Promise<void> {
+async function resetProviderState(t: TestContext|null): Promise<void> {
     const msg: string|null = await executeJavascriptOnService<Scopes[], string|null>(function(this: ProviderWindow, allScopes: Scopes[]): string|null {
         const SEPARATOR_LIST = ', ';
         const SEPARATOR_LINE = '\n    ';

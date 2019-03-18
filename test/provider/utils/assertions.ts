@@ -130,30 +130,30 @@ export function assertNotMoved(bounds1: NormalizedBounds, bounds2: NormalizedBou
 /**
  * Assert that the given windows are part of the same TabGroup.
  */
-export async function assertPairTabbed(win1: Window, win2: Window, t: TestContext): Promise<void> {
+export async function assertPairTabbed(win1: Window, win2: Window, t: TestContext|null = null): Promise<void> {
     // Get the tabGroup UUID for each window
     const [tabGroupID1, tabGroupID2] = [await getTabGroupID(win1.identity), await getTabGroupID(win2.identity)];
 
     // Assert that the windows have the same UUID and that is is not null
-    t.is(tabGroupID1, tabGroupID2);
-    t.not(tabGroupID1, null);
+    expect(tabGroupID1).toEqual(tabGroupID2);
+    expect(tabGroupID1).not.toEqual(null);
 
     // Both windows are in the same native openfin group
     const [group1, group2] = [await win1.getGroup(), await win2.getGroup()];
     for (let i = 0; i < group1.length; i++) {
-        t.deepEqual(group1[i].identity, group2[i].identity, 'Window native groups are different');
+        expect(group1[i].identity).toEqual(group2[i].identity);
     }
 
     // Both windows have the same bounds
     const [bounds1, bounds2] = [await getBounds(win1), await getBounds(win2)];
-    t.deepEqual(bounds1, bounds2, 'Tabbed windows do not have the same bounds');
+    expect(bounds1).toEqual(bounds2);// 'Tabbed windows do not have the same bounds');
 
     // Both windows are attached to the tabStrip
     const tabStripWindow = group1.find((win: Window) => getId(win.identity) === tabGroupID1);
     if (tabStripWindow) {
         await assertAdjacent(t, tabStripWindow, win1, 'bottom');
     } else {
-        t.fail('Windows are not native grouped to the tabStrip A');
+        expect(true).toEqual(false);// t.fail('Windows are not native grouped to the tabStrip A');
         return Promise.reject('Windows are not native grouped to the tabStrip B');
     }
 
@@ -161,11 +161,9 @@ export async function assertPairTabbed(win1: Window, win2: Window, t: TestContex
     for (const win of [win1, win2]) {
         const isShowing = await win.isShowing();
         const shouldBeShowing = deepEqual(win.identity, await getActiveTab(win.identity));
-        t.is(
-            isShowing,
-            shouldBeShowing,
-            `Window ${'"' + win.identity.uuid + '/' + win.identity.name + '"'} expected to ${shouldBeShowing ? 'not ' : ''}be hidden, but was${
-                isShowing ? ' not.' : '.'}`);
+        expect(isShowing).toBe(shouldBeShowing);
+//            `Window ${'"' + win.identity.uuid + '/' + win.identity.name + '"'} expected to ${shouldBeShowing ? 'not ' : ''}be hidden, but was${
+//                isShowing ? ' not.' : '.'}`);
     }
 }
 
@@ -223,19 +221,20 @@ export async function assertTabbed(win: Window, t: TestContext): Promise<void> {
 /**
  * Assert that a given window is not part of a TabGroup.
  */
-export async function assertNotTabbed(win: Window, t: TestContext): Promise<void> {
+export async function assertNotTabbed(win: Window, t: TestContext|null = null): Promise<void> {
     // Get the tabGroup ID for the window
     const tabGroupID = await getTabGroupIdentity(win.identity);
     // Untabbed windows will return null
-    t.is(tabGroupID, null);
+    expect(tabGroupID).toBeNull();
 }
 
 /**
  * Assert that two given windows are adjacent. If side is not specified, will check on all sides
  * and pass if any are true.
  */
-export async function assertAdjacent(t: TestContext, win1: Win, win2: Win, side?: Side): Promise<void> {
-    t.true(await isAdjacentTo(win1, win2, side));
+export async function assertAdjacent(t: TestContext|null, win1: Win, win2: Win, side?: Side): Promise<void> {
+    const adjacent = await isAdjacentTo(win1, win2, side);
+    expect(adjacent).toBeTruthy();
 }
 
 /**

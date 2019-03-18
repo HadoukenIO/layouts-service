@@ -1,4 +1,3 @@
-import {test} from 'ava';
 import {Identity, Window} from 'hadouken-js-adapter';
 import * as robot from 'robotjs';
 
@@ -36,9 +35,19 @@ async function getTabTitle(identity: Identity) {
 }
 
 
+jest.setTimeout(30 * 1000);
+
+interface IJest {
+    retryTimes: any;
+}
+
+const retryTimes: any = (jest as unknown as IJest).retryTimes;
+
+retryTimes(5);
+
 let wins: Window[] = [];
 
-test.beforeEach(async () => {
+beforeEach(async () => {
     // Spawn two windows - wins[0] unframed, wins[1] framed.  Any additional windows needed should be created in the test.
     wins[0] = await createChildWindow({
         name: 'tab-window-1',
@@ -65,7 +74,9 @@ test.beforeEach(async () => {
     await delay(500);
 });
 
-test.afterEach.always(async () => {
+afterEach(async() => {await teardown()});
+
+afterEach(async () => {
     // Try and close all the windows.  If the window is already closed then it will throw an error which we catch and ignore.
     await Promise.all(wins.map(win => {
         try {
@@ -77,7 +88,6 @@ test.afterEach.always(async () => {
 
     wins = [];
 });
-test.afterEach.always(teardown);
 /*
 test('Drag window over window - should create tabgroup', async t => {
     // Drag wins[0] over wins[1] to make a tabset (in valid drop region)
@@ -248,7 +258,7 @@ test('Tearout tab dragged into singleton window, invalid ragion - should not cre
 */
 for (let i = 0; i < 50; i++) {
 
-    test('test Tearout tab dragged into tab group - should add tab to tabgroup', async t => {
+    test('test Tearout tab dragged into tab group - should add tab to tabgroup', async () => {
         // Tab 2 Windows Together
         await tabWindowsTogether(wins[1], wins[0]);
 
@@ -289,10 +299,10 @@ for (let i = 0; i < 50; i++) {
         await delay(500);
 
         // Assert win1 not tabbed, win2&3 are tabbed
-        await Promise.all([assertNotTabbed(wins[0], t), assertPairTabbed(wins[1], win3, t)]);
+        await Promise.all([assertNotTabbed(wins[0]), assertPairTabbed(wins[1], win3)]);
     });
 
-    test('Tearout tab dragged into tab group, invalid region - should not add tab to tabgroup', async t => {
+    test('Tearout tab dragged into tab group, invalid region - should not add tab to tabgroup', async () => {
         // Tab 2 Windows Together
         await tabWindowsTogether(wins[1], wins[0]);
 
@@ -333,7 +343,7 @@ for (let i = 0; i < 50; i++) {
         await delay(500);
 
         // Assert win1 not tabbed, win2&3 are tabbed
-        await Promise.all([assertNotTabbed(wins[0], t), assertNotTabbed(wins[1], t)]);
+        await Promise.all([assertNotTabbed(wins[0]), assertNotTabbed(wins[1])]);
     });
 }
 /*

@@ -83,7 +83,7 @@ Options:
 }
 
 const fileNamesArg = testFileNames.slice(testFileNames.length > 1 ? 1 : 0).map(testFileName => `dist/test/**/${testFileName}.test.js`).join(" ");
-const testCommand = `ava --serial ${fileNamesArg} ${testNameFilter ? '--match ' + testNameFilter: ''} ${unusedArgs.join(' ')}`;
+const testCommand = `jest --forceExit --runInBand --verbose`;
 
 const cleanup = async res => {
     if (os.platform().match(/^win/)) {

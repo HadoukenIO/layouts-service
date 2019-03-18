@@ -6,11 +6,11 @@ import {explodeGroup} from '../demo/utils/snapServiceUtils';
 import {teardown} from '../teardown';
 
 import {getConnection} from './utils/connect';
+import {delay} from './utils/delay';
 import {getBounds} from './utils/getBounds';
 import {isInGroup} from './utils/isInGroup';
 import {isOverlappedWith} from './utils/isOverlappedWith';
 import {defaultArrangements, WindowInitializer} from './utils/WindowInitializer';
-import { delay } from './utils/delay';
 
 let windows: Window[] = new Array<Window>();
 let fin: Fin;
@@ -32,7 +32,9 @@ afterEach(async () => {
 afterEach(async () => {
     // Try and close all the windows.  If the window is already closed then it will throw an error which we catch and ignore.
     for (const win of windows) {
-        await win.close().catch(e => {console.warn(`error closing window ${win.identity.name}`)});
+        await win.close().catch(e => {
+            console.warn(`error closing window ${win.identity.name}`);
+        });
     }
 
     windows = [];
@@ -68,7 +70,7 @@ async function assertExploded() {
  * add new entries there.
  */
 
-let testNumber = 0;
+const testNumber = 0;
 
 Object.keys(defaultArrangements).forEach(num => {
     const count = Number.parseInt(num, 10);
@@ -76,7 +78,7 @@ Object.keys(defaultArrangements).forEach(num => {
     Object.keys(defaultArrangements[count]).forEach(name => {
         test(`${count} windows - ${name}`, async () => {
             console.log(`*** Running ${count} windows - ${name}`);
-            
+
             // This will spawn the required number of windows in the correct
             // positions/groups
             windows = await windowInitializer.initWindows(count, name);

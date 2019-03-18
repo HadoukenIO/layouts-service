@@ -5,8 +5,8 @@
  * passed-through to the invoked application. For example: 'npm test -- --help'
  * 
  * Any additional command line parameters (arguments that are not described within the help text) will be passed through to ava as-is.
- *     A list of valid command line parameters can be found in the ava documentation: https://github.com/avajs/ava#cli
- *     NOTE: --match is not supported, use --filter instead
+ *     A list of valid command line parameters can be found in the Jest documentation: https://jestjs.io/docs/en/cli
+ *     NOTE: --testNamePattern is not supported, use --filter instead
  */
 
 const execa = require('execa');

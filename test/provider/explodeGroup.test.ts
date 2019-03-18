@@ -26,14 +26,12 @@ beforeAll(async () => {
     fin = await getConnection();
     windowInitializer = new WindowInitializer();
 });
-afterEach(async () => {
-    await teardown();
-});
+
 afterEach(async () => {
     // Try and close all the windows.  If the window is already closed then it will throw an error which we catch and ignore.
     for (const win of windows) {
         await win.close().catch(e => {
-            console.warn(`error closing window ${win.identity.name}`);
+            console.warn(`error closing window ${win.identity.name} ${e.message}`);
         });
     }
 

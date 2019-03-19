@@ -418,7 +418,7 @@ export class TabService {
      * @param item2 Details about the second entity, either window about to be tabbed or the tabstrip a window is to be added to
      */
     public canTabTogether(item1: DesktopEntity, item2: DesktopEntity): boolean {
-        return this.isEntityTabEnabled(item1) && this.isEntityTabEnabled(item1) && this.doEntitiesShareTabstripConfig(item1, item2);
+        return this.isEntityTabEnabled(item1) && this.isEntityTabEnabled(item2) && this.doEntitiesShareTabstripConfig(item1, item2);
     }
 
     private doEntitiesShareTabstripConfig(item1: DesktopEntity, item2: DesktopEntity): boolean {

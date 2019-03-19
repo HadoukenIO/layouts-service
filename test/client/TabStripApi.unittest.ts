@@ -12,7 +12,7 @@ import {TabProperties} from "../../src/client/tabbing";
 stub();
 
 let channel: ChannelClient;
-let channelDispatch: jest.SpyInstance<typeof channel.dispatch>;
+let channelDispatch: jest.SpyInstance<Promise<any>, [string, any?]>;
 
 beforeEach(async () => {
     jest.restoreAllMocks();

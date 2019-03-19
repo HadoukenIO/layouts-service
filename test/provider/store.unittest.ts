@@ -371,8 +371,8 @@ describe('Store', () => {
         const config = {bool: true};
 
         let watch: ScopeWatch<Config>;
-        let onAddProxy: jest.Mock<WatchCallback>;
-        let onRemoveProxy: jest.Mock<WatchCallback>;
+        let onAddProxy: jest.Mock<void, any>;
+        let onRemoveProxy: jest.Mock<void, any>;
 
         beforeEach(() => {
             watch = new ScopeWatch(store, {level: 'application', uuid: 'my-app'});
@@ -436,8 +436,8 @@ describe('Store', () => {
     describe('When adding a mask-based watch', () => {
         const mask = {features: {dock: true}};
         let watch: MaskWatch<Config, typeof mask>;
-        let onAddProxy: jest.Mock<WatchCallback>;
-        let onRemoveProxy: jest.Mock<WatchCallback>;
+        let onAddProxy: jest.Mock<void, any>;
+        let onRemoveProxy: jest.Mock<void, any>;
 
         beforeEach(() => {
             watch = new MaskWatch(store, mask);

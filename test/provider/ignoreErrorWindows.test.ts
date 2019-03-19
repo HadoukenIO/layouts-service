@@ -22,7 +22,7 @@ test.afterEach.always(async t => {
         crashApp.close(true);
     }
 
-    await teardown(t);
+    await teardown();
 });
 
 test('Error windows are not registered with S&D or Tabbing', async t => {

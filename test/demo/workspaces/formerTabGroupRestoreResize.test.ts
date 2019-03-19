@@ -22,7 +22,7 @@ const windowGrouping = [{group: [3, 1], expectSuccess: false}, {group: [0, 2], e
 
 test.afterEach.always(async (t) => {
     await closeAllPreviews(t);
-    await teardown(t);
+    await teardown();
 });
 
 testParameterized<CreateAppData, AppContext>(

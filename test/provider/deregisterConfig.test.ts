@@ -36,7 +36,7 @@ test.beforeEach(async (t: TestContext) => {
 test.afterEach.always(async (t: TestContext) => {
     await Promise.all(t.context.windows.map(win => win.close()));
 
-    await teardown(t);
+    await teardown();
 });
 
 test('Window can be de-registered by adding a rule to the store', async (t: TestContext) => {

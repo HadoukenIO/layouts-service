@@ -50,7 +50,7 @@ test.afterEach.always(async t => {
     }
     windows = new Array<Window>(2);
 
-    await teardown(t);
+    await teardown();
 });
 
 test('docking enabled - normal behaviour expected', async t => {

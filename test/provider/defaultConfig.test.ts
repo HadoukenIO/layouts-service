@@ -25,7 +25,7 @@ test.beforeEach(async (t: TestContext) => {
 test.afterEach.always(async (t: TestContext) => {
     await Promise.all(t.context.windows.map(win => win.close()));
 
-    await teardown(t);
+    await teardown();
 });
 
 interface TestApps {

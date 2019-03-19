@@ -18,14 +18,12 @@ const testAppUuid = getTestAppUuid();
  * 
  * Any left-over state will ultimately cause the previous test to fail, but some additional hardening work is required
  * first. Either way, any invalid state will be cleaned-up so that it does not impact the next test to run.
- * 
- * @param t Test context
  */
-export async function teardown(t: TestContext): Promise<void> {
+export async function teardown(): Promise<void> {
     const fin = await getConnection();
 
-    await closeAllWindows(t);
-    await resetProviderState(t);
+    await closeAllWindows();
+    await resetProviderState();
     
     fin.InterApplicationBus.removeAllListeners();
     
@@ -44,7 +42,7 @@ export async function teardown(t: TestContext): Promise<void> {
     }
 }
 
-async function closeAllWindows(t: TestContext): Promise<void> {
+async function closeAllWindows(): Promise<void> {
     const fin = await getConnection();
 
     // Fetch all open windows
@@ -97,7 +95,7 @@ async function closeAllWindows(t: TestContext): Promise<void> {
     }
 }
 
-async function resetProviderState(t: TestContext): Promise<void> {
+async function resetProviderState(): Promise<void> {
     const msg: string|null = await executeJavascriptOnService<Scopes[], string|null>(function(this: ProviderWindow, allScopes: Scopes[]): string|null {
         const SEPARATOR_LIST = ', ';
         const SEPARATOR_LINE = '\n    ';

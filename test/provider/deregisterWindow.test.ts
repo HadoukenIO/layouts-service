@@ -22,7 +22,7 @@ test.afterEach.always(async (t) => {
     await win1.close();
     await win2.close();
 
-    await teardown(t);
+    await teardown();
 });
 
 test('normal deregister, snap with registered', async t => {

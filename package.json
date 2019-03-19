@@ -8,7 +8,7 @@
     "dist/client"
   ],
   "scripts": {
-    "test:unit": "jest --color --no-cache",
+    "test:unit": "jest --colors --no-cache --config=jest-unit.config.json",
     "test:int": "node test/runner.js",
     "test": "npm run test:unit && npm run test:int",
     "check": "gts check && cd test && gts check",
@@ -60,24 +60,6 @@
     "fast-deep-equal": "^2.0.1",
     "hadouken-js-adapter": "0.36.1-alpha.1",
     "sortablejs": "^1.7.0"
-  },
-  "jest": {
-    "transform": {
-      "^.+\\.tsx?$": "<rootDir>/../node_modules/ts-jest"
-    },
-    "rootDir": "test",
-    "testRegex": ".unittest.ts$",
-    "modulePaths": [
-      "<rootDir>/../node_modules"
-    ],
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js",
-      "jsx",
-      "json",
-      "node"
-    ]
   },
   "jest-junit": {
     "outputDirectory": "./dist/test",

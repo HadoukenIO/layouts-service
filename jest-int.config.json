@@ -1,0 +1,18 @@
+{
+    "rootDir": "test",
+    "transform": {
+      "^.+\\.tsx?$": "<rootDir>/../node_modules/ts-jest"
+    },
+    "testRunner": "jest-circus/runner",
+    "modulePaths": [
+      "<rootDir>/../node_modules"
+    ],
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ]
+}

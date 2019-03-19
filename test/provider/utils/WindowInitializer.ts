@@ -125,7 +125,7 @@ export const defaultArrangements: ArrangementsType = {
             [1, 'top-left', 0, 'top-right', {x: 2, y: 10}],
         ]
     },
-    3: {
+    /*3: {
         // 0 1 2
         'line': [
             [1, 'bottom-left', 0, 'bottom-right', {x: 2, y: -10}],
@@ -177,5 +177,5 @@ export const defaultArrangements: ArrangementsType = {
             [5, 'top-right', 3, 'bottom-left', {x: 123, y: 2}],
             [6, 'top-left', 3, 'bottom-right', {x: -120, y: 2}],
         ]
-    }
+    }*/
 };

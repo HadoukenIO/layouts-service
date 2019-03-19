@@ -256,11 +256,20 @@ test('Tearout tab dragged into singleton window, invalid ragion - should not cre
     await Promise.all([assertNotTabbed(wins[0], t), assertNotTabbed(wins[1], t), assertNotTabbed(win3, t)]);
 });
 */
+
+const test1Runs = new Set<number>();
+const test2Runs = new Set<number>();
+
 for (let i = 0; i < 50; i++) {
     const count = i;
 
     test('test Tearout tab dragged into tab group - should add tab to tabgroup', async () => {
-        console.log(`*** Running ${count} test Tearout tab dragged into tab group - should add tab to tabgroup`);
+        if (!test1Runs.has(count)) {
+            test1Runs.add(count);
+            console.log(`*** Running ${count} test Tearout tab dragged into tab group - should add tab to tabgroup`);
+        } else {
+            console.log(`*** Retrying ${count} test Tearout tab dragged into tab group - should add tab to tabgroup`);
+        }
 
         // Tab 2 Windows Together
         await tabWindowsTogether(wins[1], wins[0]);
@@ -306,7 +315,13 @@ for (let i = 0; i < 50; i++) {
     });
 
     test('Tearout tab dragged into tab group, invalid region - should not add tab to tabgroup', async () => {
-        console.log(`*** Running ${count} Tearout tab dragged into tab group, invalid region - should not add tab to tabgroup`);
+        if (!test2Runs.has(count)) {
+            test2Runs.add(count);
+            console.log(`*** Running ${count} Tearout tab dragged into tab group, invalid region - should not add tab to tabgroup`);
+        } else {
+            console.log(`*** Retrying ${count} Tearout tab dragged into tab group, invalid region - should not add tab to tabgroup`);
+        }
+
 
         // Tab 2 Windows Together
         await tabWindowsTogether(wins[1], wins[0]);

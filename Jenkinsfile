@@ -8,7 +8,7 @@ pipeline {
                 stage('Unit Tests') {
                     agent { label 'linux-slave' }
                     steps {
-                        sh "npm i"
+                        sh "npm i --ignore-scripts"
                         sh "npm run test:unit -- --color=false --reporters=default --reporters=jest-junit"
                         sh "npm run check"
                     }

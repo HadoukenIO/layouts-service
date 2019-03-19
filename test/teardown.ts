@@ -4,7 +4,7 @@ import {Window} from 'hadouken-js-adapter';
 import {Scopes} from '../src/provider/config/Store';
 import {ScopePrecedence} from '../src/provider/config/ConfigUtil';
 
-import {getConnection} from './provider/utils/connect';
+import {getConnection, getTestUuid} from './provider/utils/connect';
 import {executeJavascriptOnService} from './demo/utils/serviceUtils';
 import {WindowInfo, WindowDetail} from 'hadouken-js-adapter/out/types/src/api/system/window';
 import {delay} from './provider/utils/delay';
@@ -19,6 +19,9 @@ import {delay} from './provider/utils/delay';
  * 
  * @param t Test context
  */
+
+ const testUuid = getTestUuid();
+
 export async function teardown(t: TestContext|null = null): Promise<void> {
     const fin = await getConnection();
 
@@ -148,9 +151,9 @@ async function resetProviderState(t: TestContext|null): Promise<void> {
         if (watches.length !== expectedWatcherCount) {
             msgs.push(`Had ${watches.length} config watchers registered, expected ${expectedWatcherCount}`);
         }
-        if (Object.keys(loaderApps).filter(uuid => uuid !== 'TEST').length > 0) {
+        if (Object.keys(loaderApps).filter(uuid => uuid !== testUuid).length > 0) {
             const loaderInfo = JSON.stringify(loaderApps, null, 4).replace(/\n/g, SEPARATOR_LINE);
-            msgs.push(`Expected loader's appState cache to be empty (except for TEST), contains:${SEPARATOR_LINE}${loaderInfo}`);
+            msgs.push(`Expected loader's appState cache to be empty (except for ${testUuid}), contains:${SEPARATOR_LINE}${loaderInfo}`);
         }
         if (loaderWindows.length !== 1 || loaderWindows[0] !== 'window:testApp/testApp') {
             const loaderInfo = loaderWindows.join(SEPARATOR_LIST);

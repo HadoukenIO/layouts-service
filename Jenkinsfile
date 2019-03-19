@@ -9,6 +9,7 @@ pipeline {
                     agent { label 'linux-slave' }
                     steps {
                         sh "npm i --ignore-scripts"
+                        sh "npm run generate"
                         sh "npm run test:unit -- --color=false --reporters=default --reporters=jest-junit"
                         sh "npm run check"
                     }

@@ -346,7 +346,7 @@ export async function setGenerateHandler(customDataDecorator: () => CustomData):
  * If an application has set a {@link setRestoreHandler} callback, and called the {@link ready} function, the layouts service
  * will send it its Workspace data when the {@link restore} function is called, and wait for this function to return. If
  * an application has saved its child windows, it *MUST* create those child windows with the same names defined in its
- * Workspace. If those child windowws are already up, position them in their proper location using the bounds given.
+ * Workspace. If those child windows are already up, position them in their proper location using the bounds given.
  *
  * If this function does not return, or this function does not create the app's child windows appropriately,
  * {@link restore} will hang indefinitely.

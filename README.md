@@ -131,10 +131,10 @@ The service provider is a standard OpenFin application, only its lifecycle is co
 - If using Parallels Desktop, you have to be in a mode where Parallels can control the mouse. Set `Settings>Hardware>Mouse&Keyboard>Mouse` to `Optimize for Games`
 
 ## Known Issues
-A list of known issues can be found on our [Versions page.]https://developer.openfin.co/versions/?product=Services
+A list of known issues can be found on our [Versions page](https://developer.openfin.co/versions/?product=Services).
 
 ## License
-This project uses the [Apache2 license.](https://www.apache.org/licenses/LICENSE-2.0)
+This project uses the [Apache2 license](https://www.apache.org/licenses/LICENSE-2.0).
 
 However, if you run this code, it may call on the OpenFin RVM or OpenFin Runtime, which are covered by OpenFin's Developer, Community, and Enterprise licenses. You can learn more about OpenFin licensing at the links listed below or just email us at support@openfin.co with questions.
 

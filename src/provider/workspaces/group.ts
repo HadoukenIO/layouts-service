@@ -33,18 +33,27 @@ export const regroupWorkspace = async (apps: WorkspaceApp[]) => {
     });
 };
 
-export const groupWindow = async (win: WorkspaceWindow) => {
-    await promiseMap(win.windowGroup, async (w: Identity) => {
-        if (w.uuid === 'layouts-service') {
+export const groupWindow = async (baseWindow: WorkspaceWindow) => {
+    await promiseMap(baseWindow.windowGroup, async (windowFromWindowGroup: Identity) => {
+        if (windowFromWindowGroup.uuid === 'layouts-service') {
             return;
         }
 
-        // If window has a tabGroup, we should group it instead of the window itself.
-        const targetEntity = await model.expect(win as WindowIdentity).then(w => w.tabGroup || w);
-        const curEntity = await model.expect(w as WindowIdentity).then(w => w.tabGroup || w);
+        // We cannot guarantee that any particular requested window will be restored, so we don't rely on any particular entry in windowGroup being present.
+        const curEntityWindow = await model.expect(windowFromWindowGroup as WindowIdentity);
+        const targetEntityWindow = await model.expect(baseWindow as WindowIdentity);
+        if (curEntityWindow && targetEntityWindow) {
+            // If window has a tabGroup, we should group it instead of the window itself.
+            const targetEntity = targetEntityWindow.tabGroup || targetEntityWindow;
+            const curEntity = curEntityWindow.tabGroup || curEntityWindow;
 
-        if (curEntity.snapGroup.id !== targetEntity.snapGroup.id) {
-            await curEntity.setSnapGroup(targetEntity.snapGroup);
+            if (curEntity.snapGroup.id !== targetEntity.snapGroup.id) {
+                try {
+                    await curEntity.setSnapGroup(targetEntity.snapGroup);
+                } catch (error) {
+                    console.error('setSnapGroup in groupWindow failed for: ', baseWindow, windowFromWindowGroup);
+                }
+            }
         }
     });
 };

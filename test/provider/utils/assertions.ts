@@ -1,6 +1,7 @@
 import {TestContext} from 'ava';
 import deepEqual from 'fast-deep-equal';
 import {Window} from 'hadouken-js-adapter';
+import * as assert from 'power-assert';
 
 import {promiseFilter, promiseMap} from '../../../src/provider/snapanddock/utils/async';
 import {getTopmostWindow} from '../../demo/utils/modelUtils';
@@ -135,6 +136,9 @@ export async function assertPairTabbed(win1: Window, win2: Window, t: TestContex
     const [tabGroupID1, tabGroupID2] = [await getTabGroupID(win1.identity), await getTabGroupID(win2.identity)];
 
     // Assert that the windows have the same UUID and that is is not null
+
+    assert.notDeepEqual(tabGroupID1, tabGroupID2, 'message');
+
     expect(tabGroupID1).toEqual(tabGroupID2);
     expect(tabGroupID1).not.toEqual(null);
 

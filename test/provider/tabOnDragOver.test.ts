@@ -260,7 +260,7 @@ test('Tearout tab dragged into singleton window, invalid ragion - should not cre
 const test1Runs = new Set<number>();
 const test2Runs = new Set<number>();
 
-for (let i = 0; i < 50; i++) {
+for (let i = 0; i < 2; i++) {
     const count = i;
 
     test('test Tearout tab dragged into tab group - should add tab to tabgroup', async () => {

@@ -12,11 +12,11 @@ import {isInGroup} from './utils/isInGroup';
 import {isOverlappedWith} from './utils/isOverlappedWith';
 import {defaultArrangements, WindowInitializer} from './utils/WindowInitializer';
 
-/*const windows: Window[] = new Array<Window>();
+let windows: Window[] = new Array<Window>();
 let fin: Fin;
-let windowInitializer: WindowInitializer;*/
+let windowInitializer: WindowInitializer;
 
-/*jest.setTimeout(60 * 1000);
+jest.setTimeout(60 * 1000);
 interface JestInterface {
     retryTimes: Function;
 }
@@ -41,10 +41,10 @@ afterEach(async () => {
     windows = [];
     await delay(500);
     await teardown();
-});*/
+});
 
 
-/*async function assertExploded() {
+async function assertExploded() {
     // Check each window
     for (let i = 0; i < windows.length; i++) {
         // Windows are no longer grouped
@@ -63,7 +63,7 @@ afterEach(async () => {
             }
         }
     }
-}*/
+}
 
 /*
  * A basic explode test will be run for each window arrangement in the
@@ -73,7 +73,7 @@ afterEach(async () => {
 
 const testNumber = 0;
 
-/*Object.keys(defaultArrangements).forEach(num => {
+Object.keys(defaultArrangements).forEach(num => {
     const count = Number.parseInt(num, 10);
 
     Object.keys(defaultArrangements[count]).forEach(name => {
@@ -98,4 +98,4 @@ const testNumber = 0;
             await assertExploded();
         });
     });
-});*/
+});

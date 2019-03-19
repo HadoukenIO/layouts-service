@@ -7,6 +7,7 @@
     "modulePaths": [
       "<rootDir>/../node_modules"
     ],
+    "setupFilesAfterEnv": ["<rootDir>/provider/utils/setup.ts"],
     "moduleFileExtensions": [
       "ts",
       "tsx",

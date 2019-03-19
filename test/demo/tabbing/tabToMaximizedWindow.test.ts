@@ -32,7 +32,7 @@ testParameterized(
             const maximizedBounds: Rect = (await fin.System.getMonitorInfo()).primaryMonitor.availableRect;
             await dragWindowTo(windows[0], maximizedBounds.left + 50, maximizedBounds.top + 30);
             // Windows should have tabbed
-            await assertPairTabbed(windows[0], windows[1], t);
+            await assertPairTabbed(windows[0], windows[1]);
             // Make sure that the internal state of the tabGroup is correct
             t.is(await getTabGroupState(windows[0].identity), 'maximized');
             // TabGroup fills the whole screen
@@ -46,7 +46,7 @@ testParameterized(
             const restoredBounds: NormalizedBounds = await getBounds(windows[1]);
             await tabWindowsTogether(windows[1], windows[0], false);
             // Windows should not have tabbed
-            await Promise.all(windows.map(win => assertNotTabbed(win, t)));
+            await Promise.all(windows.map(win => assertNotTabbed(win)));
         }
     }));
 
@@ -71,5 +71,5 @@ testParameterized(
         await tabWindowsTogether(windows[2], windows[0], false);
 
         // None of the windows should be tabbed
-        await Promise.all(windows.map(win => assertNotTabbed(win, t)));
+        await Promise.all(windows.map(win => assertNotTabbed(win)));
     }));

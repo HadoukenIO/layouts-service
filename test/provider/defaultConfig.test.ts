@@ -71,16 +71,16 @@ test('Programmatically creating a child app extends config lifespan', async (t: 
 
     // Check docking is disabled
     await dragSideToSide(childWindows[0], 'left', childWindows[1], 'right', {x: 10, y: 50});
-    await assertNotGrouped(childWindows[0], t);
-    await assertNotGrouped(childWindows[1], t);
+    await assertNotGrouped(childWindows[0]);
+    await assertNotGrouped(childWindows[1]);
 
     // Close parent app
     await parent.close();
 
     // Ensure docking is still disabled
     await dragSideToSide(childWindows[1], 'left', childWindows[0], 'right', {x: 10, y: 50});
-    await assertNotGrouped(childWindows[0], t);
-    await assertNotGrouped(childWindows[1], t);
+    await assertNotGrouped(childWindows[0]);
+    await assertNotGrouped(childWindows[1]);
 
     await Promise.all(childApps.map(app => app.close()));
 });
@@ -90,15 +90,15 @@ test('Creating a child app from manifest has no effect on parent config lifespan
 
     // Check docking is disabled
     await dragSideToSide(childWindows[0], 'left', childWindows[1], 'right', {x: 10, y: 50});
-    await assertNotGrouped(childWindows[0], t);
-    await assertNotGrouped(childWindows[1], t);
+    await assertNotGrouped(childWindows[0]);
+    await assertNotGrouped(childWindows[1]);
 
     // Close parent app
     await parent.close();
 
     // Ensure docking is now enabled
     await dragSideToSide(childWindows[1], 'left', childWindows[0], 'right', {x: 10, y: 50});
-    await assertGrouped(t, childWindows[0], childWindows[1]);
+    await assertGrouped(childWindows[0], childWindows[1]);
 
     await Promise.all(childApps.map(app => app.close()));
 });
@@ -110,16 +110,16 @@ test('Loader will override parentUuids with data in workspace when building app 
 
     // Check docking is disabled
     await dragSideToSide(childWindows[0], 'left', childWindows[1], 'right', {x: 10, y: 50});
-    await assertNotGrouped(childWindows[0], t);
-    await assertNotGrouped(childWindows[1], t);
+    await assertNotGrouped(childWindows[0]);
+    await assertNotGrouped(childWindows[1]);
 
     // Close parent app
     await parent.close();
 
     // Ensure docking is still disabled
     await dragSideToSide(childWindows[1], 'left', childWindows[0], 'right', {x: 10, y: 50});
-    await assertNotGrouped(childWindows[0], t);
-    await assertNotGrouped(childWindows[1], t);
+    await assertNotGrouped(childWindows[0]);
+    await assertNotGrouped(childWindows[1]);
 
     await Promise.all(childApps.map(app => app.close()));
 });

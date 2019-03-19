@@ -82,7 +82,7 @@ async function snapWindows(win1: Window, win2: Window, t: TestContext) {
     await dragSideToSide(win2, 'left', win1, 'right');
 
     // Assert in snap group and native group
-    await assertGrouped(t, win1, win2);
+    await assertGrouped(win1, win2);
 }
 
 async function groupWindows(win1: Window, win2: Window, t: TestContext) {
@@ -90,7 +90,7 @@ async function groupWindows(win1: Window, win2: Window, t: TestContext) {
     win1.joinGroup(win2);
 
     // Assert in snap group and native group
-    await assertGrouped(t, win1, win2);
+    await assertGrouped(win1, win2);
 }
 
 async function unsnapWindows(win1: Window, win2: Window, shouldMove: boolean, t: TestContext) {
@@ -101,15 +101,15 @@ async function unsnapWindows(win1: Window, win2: Window, shouldMove: boolean, t:
 
     if (shouldMove) {
         // Assert moved
-        await assertMoved(boundsBefore, boundsAfter, t);
+        await assertMoved(boundsBefore, boundsAfter);
     } else {
         // Assert window did not move
-        await assertNotMoved(boundsBefore, boundsAfter, t);
+        await assertNotMoved(boundsBefore, boundsAfter);
     }
 
     // Assert not in snap group or native group
-    await assertNotGrouped(win1, t);
-    await assertNotGrouped(win2, t);
+    await assertNotGrouped(win1);
+    await assertNotGrouped(win2);
 }
 
 async function ungroupWindows(win1: Window, win2: Window, shouldMove: boolean, t: TestContext) {
@@ -119,11 +119,11 @@ async function ungroupWindows(win1: Window, win2: Window, shouldMove: boolean, t
     const boundsAfter = await getBounds(win1);
 
     // Assert did not move (smoke test for native grouping)
-    await assertNotMoved(boundsBefore, boundsAfter, t);
+    await assertNotMoved(boundsBefore, boundsAfter);
 
     // Assert not in snap group or native group
-    await assertNotGrouped(win1, t);
-    await assertNotGrouped(win2, t);
+    await assertNotGrouped(win1);
+    await assertNotGrouped(win2);
 }
 
 /* ====== Tests ====== */
@@ -168,7 +168,7 @@ test('Native window group works the same as snapService grouping (native merge, 
     win1.mergeGroups(win2);
 
     // Assert in snap group and native group
-    await assertGrouped(t, win1, win2);
+    await assertGrouped(win1, win2);
 
     // Undock
     let boundsBefore = await getBounds(win1);
@@ -176,11 +176,11 @@ test('Native window group works the same as snapService grouping (native merge, 
     let boundsAfter = await getBounds(win1);
 
     // Assert moved
-    await assertMoved(boundsBefore, boundsAfter, t);
+    await assertMoved(boundsBefore, boundsAfter);
 
     // Assert not in snap group or native group
-    await assertNotGrouped(win1, t);
-    await assertNotGrouped(win2, t);
+    await assertNotGrouped(win1);
+    await assertNotGrouped(win2);
 
     // Native ungroup
     boundsBefore = await getBounds(win1);
@@ -188,5 +188,5 @@ test('Native window group works the same as snapService grouping (native merge, 
     boundsAfter = await getBounds(win1);
 
     // Assert window did not move
-    await assertNotMoved(boundsBefore, boundsAfter, t);
+    await assertNotMoved(boundsBefore, boundsAfter);
 });

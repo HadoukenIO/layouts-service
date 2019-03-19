@@ -63,7 +63,7 @@ test('When a snapped window is de-registered, it is removed from its snap group'
     windows.push(await createChildWindow({...DEFAULT_OPTIONS, name: 'testWindow2'}));
 
     await dragSideToSide(windows[0], 'left', windows[1], 'right');
-    await assertGrouped(t, ...windows);
+    await assertGrouped(...windows);
     await addRuleToProvider({level: 'window', uuid: 'testApp', name: 'testWindow1'}, {enabled: false});
 
     t.false(await isWindowRegistered(windows[0].identity));
@@ -84,7 +84,7 @@ test('When a tabbed window is de-registered, it is removed from its tab group', 
 
     await delay(1000);
 
-    await assertPairTabbed(windows[0], windows[1], t);
+    await assertPairTabbed(windows[0], windows[1]);
     await addRuleToProvider({level: 'window', uuid: 'testApp', name: 'testWindow1'}, {enabled: false});
 
     t.false(await isWindowRegistered(windows[0].identity));
@@ -111,9 +111,9 @@ test('When a tabbed window is de-registered, it is removed from its snapped tab 
     await dragWindowTo(windows[0], bounds.left + 100, bounds.top + 100);
 
     // Ensure windows are in position
-    await assertPairTabbed(windows[0], windows[1], t);
-    await assertPairTabbed(windows[2], windows[3], t);
-    await assertGrouped(t, ...windows);
+    await assertPairTabbed(windows[0], windows[1]);
+    await assertPairTabbed(windows[2], windows[3]);
+    await assertGrouped(...windows);
 
     // De-register first window
     await addRuleToProvider({level: 'window', uuid: 'testApp', name: 'testWindow1'}, {enabled: false});

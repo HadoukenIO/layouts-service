@@ -70,7 +70,7 @@ testParameterized(
 
         const initializer = new WindowInitializer();
         await initializer.arrangeWindows(windows, arrangement);
-        await assertGrouped(t, ...windows);
+        await assertGrouped(...windows);
 
         const layout: Workspace = await layoutsClient.workspaces.generate();
 
@@ -87,11 +87,11 @@ testParameterized(
 
         for (const group of remainingGroups) {
             if (group.length === 1) {
-                await assertNotGrouped(windows[group[0]], t);
+                await assertNotGrouped(windows[group[0]]);
             } else {
                 const groupedWindows = group.map(id => windows[id]);
-                await assertGrouped(t, ...groupedWindows);
-                await assertAllContiguous(t, groupedWindows);
+                await assertGrouped(...groupedWindows);
+                await assertAllContiguous(groupedWindows);
             }
         }
 

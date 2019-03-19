@@ -100,8 +100,8 @@ function twoWindowTest(side: Side) {
         t.is(await getDistanceBetween(windows[0], perpendicular(side), windows[1], perpendicular(side)), 0);
 
         // Check that both windows are undocked at the service level
-        await assertNotGrouped(windows[0], t);
-        await assertNotGrouped(windows[1], t);
+        await assertNotGrouped(windows[0]);
+        await assertNotGrouped(windows[1]);
     });
 }
 
@@ -143,6 +143,6 @@ function fourWindowTest(corner: Corner) {
         t.is(distanceY, UNDOCK_MOVE_DISTANCE);
 
         // Check that the window is undocked at the service level
-        await assertNotGrouped(windows[undockedIndex], t);
+        await assertNotGrouped(windows[undockedIndex]);
     });
 }

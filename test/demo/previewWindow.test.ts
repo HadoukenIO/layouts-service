@@ -42,7 +42,7 @@ testParameterized(
 
         await dragSideToSide(windows[1], opposite(side), windows[0], side, {x: 5, y: 5}, false);
 
-        await assertAdjacent(t, windows[0], previewWin);
+        await assertAdjacent(windows[0], previewWin);
         const previewBounds = await getBounds(previewWin);
         robot.mouseToggle('up');
 

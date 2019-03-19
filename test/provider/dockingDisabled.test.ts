@@ -58,13 +58,13 @@ test('docking enabled - normal behaviour expected', async t => {
 
     await dragSideToSide(windows[1], 'left', windows[0], 'right', {x: 5, y: 10});
 
-    await assertGrouped(t, windows[0], windows[1]);
+    await assertGrouped(windows[0], windows[1]);
     bounds = await promiseMap(windows, win => getBounds(win));
     t.is(bounds[0].right, bounds[1].left);
 
     await dragWindowTo(windows[0], 200, 400);
 
-    await assertGrouped(t, windows[0], windows[1]);
+    await assertGrouped(windows[0], windows[1]);
     bounds = await promiseMap(windows, win => getBounds(win));
     t.is(bounds[0].right, bounds[1].left);
 });
@@ -76,15 +76,15 @@ test('docking disabled - windows should snap but not dock', async t => {
 
     await dragSideToSide(windows[1], 'left', windows[0], 'right', {x: 5, y: 10});
 
-    await assertNotGrouped(windows[0], t);
-    await assertNotGrouped(windows[1], t);
+    await assertNotGrouped(windows[0]);
+    await assertNotGrouped(windows[1]);
     bounds = await promiseMap(windows, win => getBounds(win));
     t.is(bounds[0].right, bounds[1].left);
 
     await dragWindowTo(windows[0], 400, 400);
 
-    await assertNotGrouped(windows[0], t);
-    await assertNotGrouped(windows[1], t);
+    await assertNotGrouped(windows[0]);
+    await assertNotGrouped(windows[1]);
     bounds = await promiseMap(windows, win => getBounds(win));
     t.not(bounds[0].right, bounds[1].left);
 });

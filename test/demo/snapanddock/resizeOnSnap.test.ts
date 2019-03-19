@@ -178,8 +178,8 @@ testParameterized(
         await dragSideToSide(windows[1], SideUtils.opposite(side), windows[0], side);
 
         // Assert snapped and docked
-        await assertAdjacent(t, windows[0], windows[1], side);
-        await assertGrouped(t, windows[0], windows[1]);
+        await assertAdjacent(windows[0], windows[1], side);
+        await assertGrouped(windows[0], windows[1]);
 
 
         const bounds = [await getBounds(windows[0]), await getBounds(windows[1])];
@@ -234,8 +234,8 @@ testParameterized(
 
         await delay(500);
 
-        await assertPairTabbed(windows[0], windows[1], t);
-        await assertPairTabbed(windows[2], windows[3], t);
+        await assertPairTabbed(windows[0], windows[1]);
+        await assertPairTabbed(windows[2], windows[3]);
 
         const tabstrips = [await getTabstrip(windows[0].identity), await getTabstrip(windows[2].identity)];
         const activeTabs = await Promise.all([windows[0], windows[2]].map(async win => fin.Window.wrap(await getActiveTab(win.identity))));
@@ -246,8 +246,8 @@ testParameterized(
         await dragSideToSide(activeTabs[1], SideUtils.opposite(side), activeTabs[0], side, {x: 10, y: side === 'bottom' ? 70 : 10});
 
         // Assert snapped and docked
-        await assertGrouped(t, ...[...windows, ...tabstrips]);
-        await assertAllContiguous(t, [...windows, ...tabstrips]);
+        await assertGrouped(...[...windows, ...tabstrips]);
+        await assertAllContiguous([...windows, ...tabstrips]);
 
         // CHANGES BELOW
 

@@ -122,7 +122,7 @@ test('If an application creates a child application, the parent can apply rules 
 
     // Snapping should still be disabled on windows belonging to childApp
     await dragSideToSide(await childApp.getWindow(), 'left', childWindow, 'right', {x: 5, y: 20});
-    await assertNotGrouped(childWindow, t);
+    await assertNotGrouped(childWindow);
 
     await childApp.close();
 });

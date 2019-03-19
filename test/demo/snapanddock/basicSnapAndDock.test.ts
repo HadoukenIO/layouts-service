@@ -36,15 +36,15 @@ testParameterized<TwoWindowTestOptions, WindowContext>(
         await dragSideToSide(windows[1], opposite(side), windows[0], side);
 
         // Assert snapped and docked
-        await assertAdjacent(t, windows[0], windows[1], side);
-        await assertGrouped(t, windows[0], windows[1]);
+        await assertAdjacent(windows[0], windows[1], side);
+        await assertGrouped(windows[0], windows[1]);
 
         // Move windows
         await dragWindowTo(windows[0], 300, 300);
 
         // Assert still docked and adjacent
-        await assertAdjacent(t, windows[0], windows[1], side);
-        await assertGrouped(t, windows[0], windows[1]);
+        await assertAdjacent(windows[0], windows[1], side);
+        await assertGrouped(windows[0], windows[1]);
     }));
 
 
@@ -63,15 +63,15 @@ testParameterized<CreateWindowData, WindowContext>(
         await dragSideToSide(windows[3], 'left', windows[2], 'right');
 
         // Assert snapped and docked
-        await assertGrouped(t, ...windows);
-        await assertAdjacent(t, windows[0], windows[1], 'right');
-        await assertAdjacent(t, windows[0], windows[2], 'bottom');
-        await assertAdjacent(t, windows[2], windows[3], 'right');
+        await assertGrouped(...windows);
+        await assertAdjacent(windows[0], windows[1], 'right');
+        await assertAdjacent(windows[0], windows[2], 'bottom');
+        await assertAdjacent(windows[2], windows[3], 'right');
 
         // Move windows
         await dragWindowTo(windows[0], 300, 300);
 
         // Assert still docked and adjacent
-        await assertGrouped(t, ...windows);
-        await assertSquare(t, ...windows);
+        await assertGrouped(...windows);
+        await assertSquare(...windows);
     }));

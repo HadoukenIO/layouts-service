@@ -55,8 +55,8 @@ testParameterized<CreateAppData, AppContext>(
             const win2 = t.context.windows[grouping.group[1]];
 
             await dragWindowTo(win1, 500, ((260 * index) + 100));
-            await assertAdjacent(t, win1, win2);
-            await assertGrouped(t, win1, win2);
+            await assertAdjacent(win1, win2);
+            await assertGrouped(win1, win2);
         }
     }));
 

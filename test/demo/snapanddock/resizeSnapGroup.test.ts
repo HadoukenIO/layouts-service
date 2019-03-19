@@ -45,8 +45,8 @@ testParameterized(
         await windowInitializer.arrangeWindows(windows, arrangementName);
 
         // Assert snapped and docked
-        await assertGrouped(t, ...windows);
-        windowCount === 2 ? await assertAdjacent(t, windows[0], windows[1]) : await assertSquare(t, ...windows);
+        await assertGrouped(...windows);
+        windowCount === 2 ? await assertAdjacent(windows[0], windows[1]) : await assertSquare(...windows);
 
         // Ensure we are using the right window objects for the test case
         const targetIndices = [0, 1];
@@ -88,6 +88,6 @@ testParameterized(
         await delay(100);
 
         // Assert still docked and adjacent
-        await assertGrouped(t, ...windows);
-        windowCount === 2 ? await assertAdjacent(t, windows[0], windows[1]) : await assertSquare(t, ...windows);
+        await assertGrouped(...windows);
+        windowCount === 2 ? await assertAdjacent(windows[0], windows[1]) : await assertSquare(...windows);
     }));

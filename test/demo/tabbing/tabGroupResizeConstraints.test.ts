@@ -52,7 +52,7 @@ testParameterized(
 
         await delay(1000);
 
-        await assertCompleteTabGroup(t, ...windows);
+        await assertCompleteTabGroup(...windows);
 
         const resultingConstraints = constraintsUnion(...options.windowConstraints);
 
@@ -98,10 +98,10 @@ testParameterized(
         await delay(1000);
 
         if (options.shouldTab) {
-            await assertPairTabbed(windows[0], windows[1], t);
+            await assertPairTabbed(windows[0], windows[1]);
         } else {
-            await assertNotTabbed(windows[0], t);
-            await assertNotTabbed(windows[1], t);
+            await assertNotTabbed(windows[0]);
+            await assertNotTabbed(windows[1]);
         }
     }));
 
@@ -136,7 +136,7 @@ testParameterized(
         await Promise.all(windows.map((win) => refreshWindowState(win.identity)));
 
         await tabWindowsTogether(windows[0], windows[1]);
-        await assertPairTabbed(windows[0], windows[1], t);
+        await assertPairTabbed(windows[0], windows[1]);
 
         if (options.windowConstraints[1].maxHeight || options.windowConstraints[1].maxWidth) {
             await t.throws(tabbing.maximizeTabGroup(windows[0].identity));

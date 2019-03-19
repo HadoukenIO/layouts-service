@@ -17,7 +17,7 @@ interface SnapTabInstanceData {
     side: Side;
 }
 
-test.afterEach.always(teardown);
+afterEach(teardown);
 
 /**
  * Performs the necessary test setup - tabs the windows into two tab groups, then snaps those groups together.

@@ -12,10 +12,10 @@ let fin: Fin;
 
 let wins: Window[] = [];
 
-test.before(async () => {
+beforeAll(async () => {
     fin = await getConnection();
 });
-test.beforeEach(async () => {
+beforeEach(async () => {
     // Spawn two windows - wins[0] untabbed, wins[1] tabbed.  Any additional windows needed should be created in the test.
     wins[0] = await createChildWindow({
         autoShow: true,
@@ -40,7 +40,7 @@ test.beforeEach(async () => {
     await delay(500);
 });
 
-test.afterEach.always(async () => {
+afterEach(async () => {
     // Try and close all the windows.  If the window is already closed then it will throw an error which we catch and ignore.
     await Promise.all(wins.map(win => {
         try {
@@ -52,7 +52,7 @@ test.afterEach.always(async () => {
 
     wins = [];
 });
-test.afterEach.always(teardown);
+afterEach(teardown);
 
 test('Animate Basic Snap, top - should not snap', async t => {
     const win2Bounds = await getBounds(wins[1]);

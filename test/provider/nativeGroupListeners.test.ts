@@ -35,10 +35,10 @@ let fin: Fin;
 
 /* ====== Setup/Teardown ====== */
 
-test.before(async () => {
+beforeAll(async () => {
     fin = await getConnection();
 });
-test.beforeEach(async () => {
+beforeEach(async () => {
     // Spawn two windows - win1 untabbed, win2 tabbed
     win1 = await createChildWindow({
         autoShow: true,
@@ -63,7 +63,7 @@ test.beforeEach(async () => {
     windows = [win1, win2];
     await delay(1000);
 });
-test.afterEach.always(async () => {
+afterEach(async () => {
     if (win1 && win1.identity) {
         await win1.close();
     }
@@ -73,7 +73,7 @@ test.afterEach.always(async () => {
     win1 = win2 = {} as Window;
     windows = new Array<Window>();
 });
-test.afterEach.always(teardown);
+afterEach(teardown);
 
 /* ====== Utils ====== */
 

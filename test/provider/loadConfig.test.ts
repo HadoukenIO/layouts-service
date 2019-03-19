@@ -29,10 +29,10 @@ async function getWindowConfig(identity: Identity): Promise<ConfigurationObject>
     }, identity);
 }
 
-test.before(async () => {
+beforeAll(async () => {
     fin = await getConnection();
 });
-test.afterEach.always(teardown);
+afterEach(teardown);
 
 async function createAppWithConfig(uuid: string, config: ConfigWithRules<ConfigurationObject>, parentUuid?: string): Promise<Application> {
     const url = `http://localhost:1337/create-manifest?uuid=${uuid}&config=${encodeURIComponent(JSON.stringify(config))}`;

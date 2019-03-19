@@ -1,6 +1,7 @@
 import {Context, GenericTestContext, Test, TestContext} from 'ava';
 import {Application} from 'hadouken-js-adapter';
 import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/system/application';
+import * as assert from 'power-assert';
 
 import {SERVICE_IDENTITY, WorkspaceAPI} from '../../../src/client/internal';
 import {Workspace} from '../../../src/client/workspaces';
@@ -125,13 +126,13 @@ export function createTabTests(numAppsToCreate: number, numberOfChildren: number
     });
 }
 
-export async function closeAllPreviews(t: TestContext): Promise<void> {
+export async function closeAllPreviews(): Promise<void> {
     const serviceApp = fin.Application.wrapSync(SERVICE_IDENTITY);
     const children = await serviceApp.getChildWindows();
     const actions: Promise<void>[] = [];
     for (const child of children) {
         if (child.identity.name!.startsWith('Placeholder-')) {
-            t.fail('Placeholder still exists after save/restore: ' + child.identity.name);
+            assert.fail('Placeholder still exists after save/restore: ' + child.identity.name);
             actions.push(child.close());
         }
     }

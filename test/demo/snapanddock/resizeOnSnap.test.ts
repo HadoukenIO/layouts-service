@@ -40,7 +40,7 @@ interface ResizeWithConstrainsOptions extends ResizeOnSnapOptions {
     windowCount: 2;
 }
 
-test.afterEach.always(teardown);
+afterEach(teardown);
 
 // With window constraints
 testParameterized(

@@ -13,7 +13,7 @@ interface ResizeGroupOptions extends CreateWindowData {
     resizeType: ['inner'|'outer', 'vertical'|'horizontal'];
 }
 
-test.afterEach.always(teardown);
+afterEach(teardown);
 
 testParameterized(
     (testOptions: ResizeGroupOptions): string =>

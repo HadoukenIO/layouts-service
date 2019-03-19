@@ -12,7 +12,7 @@ interface SchemaVersionTestOptions {
     shouldError: boolean;
 }
 
-test.afterEach.always(teardown);
+afterEach(teardown);
 
 testParameterized(
     (testOptions: SchemaVersionTestOptions) =>

@@ -17,14 +17,14 @@ let wins: _Window[] = [];
 
 const windowInitializer = new WindowInitializer();
 
-test.before(async () => {
+beforeAll(async () => {
     fin = await getConnection();
 });
-test.beforeEach(async () => {
+beforeEach(async () => {
     wins = await windowInitializer.initWindows(2);
 });
 
-test.afterEach.always(async () => {
+afterEach(async () => {
     // Try and close all the windows.  If the window is already closed then it will throw an error which we catch and ignore.
     await Promise.all(wins.map(win => {
         return win.close().catch(() => {});
@@ -32,7 +32,7 @@ test.afterEach.always(async () => {
 
     wins = [];
 });
-test.afterEach.always(teardown);
+afterEach(teardown);
 
 test('Update Tab Properties - property changes reflected in service', async t => {
     // Drag wins[0] over wins[1] to make a tabset (in valid drop region)

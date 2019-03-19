@@ -12,7 +12,7 @@ import {getTabstrip} from '../utils/tabServiceUtils';
 import {tearoutToPoint} from '../utils/tabstripUtils';
 
 
-test.afterEach.always(teardown);
+afterEach(teardown);
 
 testParameterized(
     (testOptions: CreateWindowData): string => `DragWindow matches virtualScreen size`,

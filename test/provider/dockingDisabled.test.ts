@@ -39,12 +39,12 @@ const windowOptions = [
 ];
 const windowScopes: Scope[] = [{level: 'window', uuid: 'testApp', name: 'dock-win1'}, {level: 'window', uuid: 'testApp', name: 'dock-win2'}];
 
-test.beforeEach(async t => {
+beforeEach(async t => {
     for (let i = 0; i < 2; i++) {
         windows[i] = await createChildWindow(windowOptions[i]);
     }
 });
-test.afterEach.always(async t => {
+afterEach(async t => {
     for (let i = 0; i < windows.length; i++) {
         await windows[i].close();
     }

@@ -68,7 +68,7 @@ const customArrangements: ArrangementsType = Object.assign({}, defaultArrangemen
     }
 });
 
-test.afterEach.always(teardown);
+afterEach(teardown);
 
 testParameterized<ValidateGroupOptions, WindowContext>(
     (testOptions: ValidateGroupOptions): string => `Validate Group - ${testOptions.frame ? 'framed' : 'frameless'} - ${testOptions.windowCount} window ${

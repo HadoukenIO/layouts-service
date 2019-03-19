@@ -15,7 +15,7 @@ interface MinimizeTestOptions extends CreateWindowData {
     restoreIndex: number;
 }
 
-test.afterEach.always(teardown);
+afterEach(teardown);
 
 testParameterized(
     (testOptions: MinimizeTestOptions) =>

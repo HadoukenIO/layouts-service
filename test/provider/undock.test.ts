@@ -29,10 +29,10 @@ const windowOptions = {
     frame: false
 };
 
-test.before(async () => {
+beforeAll(async () => {
     fin = await getConnection();
 });
-test.afterEach.always(async () => {
+afterEach(async () => {
     for (const win of windows) {
         if (win) {
             await win.close();
@@ -40,7 +40,7 @@ test.afterEach.always(async () => {
     }
     windows = new Array<Window>();
 });
-test.afterEach.always(teardown);
+afterEach(teardown);
 
 
 async function initWindows(t: TestContext, num: number, side?: Side) {

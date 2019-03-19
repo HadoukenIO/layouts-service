@@ -8,7 +8,7 @@ import {teardown} from '../../teardown';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 
-test.afterEach.always(teardown);
+afterEach(teardown);
 
 // Using testParameterized more for type safety than parameterization
 // since this just one very specific test

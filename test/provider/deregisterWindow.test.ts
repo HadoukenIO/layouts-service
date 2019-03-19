@@ -15,10 +15,10 @@ import {getWindow} from './utils/getWindow';
 let win1: Window, win2: Window;
 let fin: Fin;
 
-test.before(async () => {
+beforeAll(async () => {
     fin = await getConnection();
 });
-test.afterEach.always(async (t) => {
+afterEach(async (t) => {
     await win1.close();
     await win2.close();
 

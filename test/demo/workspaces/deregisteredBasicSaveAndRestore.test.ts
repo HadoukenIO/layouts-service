@@ -25,7 +25,7 @@ numberOfApps.forEach(appNumber => {
     });
 });
 
-test.afterEach.always(teardown);
+afterEach(teardown);
 
 testParameterized<CreateAppData, AppContext>(
     (testOptions: CreateAppData): string =>
@@ -45,4 +45,4 @@ testParameterized<CreateAppData, AppContext>(
     }));
 
 
-test.afterEach.always(closeAllPreviews);
+afterEach(closeAllPreviews);

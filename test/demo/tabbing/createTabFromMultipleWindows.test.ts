@@ -14,16 +14,16 @@ let win1: Window;
 let win2: Window;
 let fin: Fin;
 
-test.before(async () => {
+beforeAll(async () => {
     fin = await getConnection();
 });
-test.afterEach.always(async () => {
+afterEach(async () => {
     await win1.close();
     await win2.close();
     fin.InterApplicationBus.removeAllListeners();
 });
 
-test.afterEach.always(teardown);
+afterEach(teardown);
 
 test('Create tab group from 2 windows', async (assert) => {
     // Arrange

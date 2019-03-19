@@ -20,8 +20,8 @@ const combinedManifestApps = registeredManifestApp.concat(deregisteredManifestPa
 // First grouping includes a deregistered window. It exists to move the deregistered window out the way of the registered window underneath.
 const windowGrouping = [{group: [3, 1], expectSuccess: false}, {group: [0, 2], expectSuccess: true}];
 
-test.afterEach.always(async (t) => {
-    await closeAllPreviews(t);
+afterEach(async () => {
+    await closeAllPreviews();
     await teardown();
 });
 

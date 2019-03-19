@@ -38,7 +38,7 @@ async function getTabTitle(identity: Identity) {
 
 let wins: Window[] = [];
 
-test.beforeEach(async () => {
+beforeEach(async () => {
     // Spawn two windows - wins[0] unframed, wins[1] framed.  Any additional windows needed should be created in the test.
     wins[0] = await createChildWindow({
         name: 'tab-window-1',
@@ -65,7 +65,7 @@ test.beforeEach(async () => {
     await delay(500);
 });
 
-test.afterEach.always(async () => {
+afterEach(async () => {
     // Try and close all the windows.  If the window is already closed then it will throw an error which we catch and ignore.
     await Promise.all(wins.map(win => {
         try {
@@ -77,7 +77,7 @@ test.afterEach.always(async () => {
 
     wins = [];
 });
-test.afterEach.always(teardown);
+afterEach(teardown);
 
 test('Drag window over window - should create tabgroup', async t => {
     // Drag wins[0] over wins[1] to make a tabset (in valid drop region)

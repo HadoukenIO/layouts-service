@@ -42,7 +42,7 @@ const windowPositions = [
     {defaultTop: 650, defaultLeft: 925},
 ];
 
-test.afterEach.always(teardown);
+afterEach(teardown);
 
 testParameterized<CreateTabGroupFromTabsOptions, WindowContext>(
     (testOptions: CreateTabGroupFromTabsOptions): string => `createTabGroupFromTabs ${testOptions.description}`,

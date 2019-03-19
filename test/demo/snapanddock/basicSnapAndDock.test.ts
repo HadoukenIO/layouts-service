@@ -12,7 +12,7 @@ interface TwoWindowTestOptions extends CreateWindowData {
     side: Side;
 }
 
-test.afterEach.always(teardown);
+afterEach(teardown);
 
 testParameterized<TwoWindowTestOptions, WindowContext>(
     (testOptions: TwoWindowTestOptions): string => `Basic SnapAndDock - ${testOptions.windowCount} windows - ${testOptions.frame ? 'framed' : 'frameless'} - ${

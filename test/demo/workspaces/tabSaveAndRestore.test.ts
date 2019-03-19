@@ -38,7 +38,7 @@ appNumbers.forEach(appNumber => {
     });
 });
 
-test.afterEach.always(teardown);
+afterEach(teardown);
 
 testParameterized<CreateAppData, AppContext>(
     (testOptions: CreateAppData): string => `Tab SaveAndRestore - ${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - ${
@@ -57,4 +57,4 @@ testParameterized<CreateAppData, AppContext>(
     }));
 
 
-test.afterEach.always(closeAllPreviews);
+afterEach(closeAllPreviews);

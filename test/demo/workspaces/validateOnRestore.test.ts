@@ -26,7 +26,7 @@ const childOptions = {
     frame: false
 };
 
-test.afterEach.always(teardown);
+afterEach(teardown);
 
 testParameterized(
     'Validate Group on Restore',

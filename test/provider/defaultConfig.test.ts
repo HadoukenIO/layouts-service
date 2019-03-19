@@ -11,19 +11,25 @@ import {assertGrouped, assertNotGrouped} from './utils/assertions';
 import {getConnection} from './utils/connect';
 import {dragSideToSide} from './utils/dragWindowTo';
 
-type TestContext = GenericTestContext<Context<{windows: _Window[]}>>;
+type TestContext = {
+    windows: _Window[]
+};
 
 let appId = 0;
 
-test.before(async () => {
+const context: TestContext = {
+    windows: []
+};
+
+beforeAll(async () => {
     (global as NodeJS.Global & {fin: Fin}).fin = await getConnection();
 });
 
-test.beforeEach(async (t: TestContext) => {
-    t.context.windows = [];
+beforeEach(async () => {
+    context.windows = [];
 });
-test.afterEach.always(async (t: TestContext) => {
-    await Promise.all(t.context.windows.map(win => win.close()));
+afterEach(async () => {
+    await Promise.all(context.windows.map(win => win.close()));
 
     await teardown();
 });
@@ -50,7 +56,7 @@ async function createAppWithChildren(childType: 'manifest'|'programmatic'): Prom
     return {parent, childApps, childWindows: await Promise.all(childApps.map(app => app.getWindow()))};
 }
 
-test('An application that declares the service is registered', async (t: TestContext) => {
+test('An application that declares the service is registered', async t => {
     const app = await createApp({id: 'AppA', provider: 'http://localhost:1337/test/provider.json'});
 
     t.true(await isWindowRegistered(app.identity));
@@ -58,7 +64,7 @@ test('An application that declares the service is registered', async (t: TestCon
     await app.close();
 });
 
-test('An application that doesn\'t declare the service is degistered', async (t: TestContext) => {
+test('An application that doesn\'t declare the service is degistered', async t => {
     const app = await createApp({id: 'AppB', useService: false});
 
     t.false(await isWindowRegistered(app.identity));
@@ -66,7 +72,7 @@ test('An application that doesn\'t declare the service is degistered', async (t:
     await app.close();
 });
 
-test('Programmatically creating a child app extends config lifespan', async (t: TestContext) => {
+test('Programmatically creating a child app extends config lifespan', async t => {
     const {parent, childApps, childWindows} = await createAppWithChildren('programmatic');
 
     // Check docking is disabled
@@ -85,7 +91,7 @@ test('Programmatically creating a child app extends config lifespan', async (t: 
     await Promise.all(childApps.map(app => app.close()));
 });
 
-test('Creating a child app from manifest has no effect on parent config lifespan', async (t: TestContext) => {
+test('Creating a child app from manifest has no effect on parent config lifespan', async (t) => {
     const {parent, childApps, childWindows} = await createAppWithChildren('programmatic');
 
     // Check docking is disabled
@@ -103,7 +109,7 @@ test('Creating a child app from manifest has no effect on parent config lifespan
     await Promise.all(childApps.map(app => app.close()));
 });
 
-test('Loader will override parentUuids with data in workspace when building app hierarchy', async (t: TestContext) => {
+test('Loader will override parentUuids with data in workspace when building app hierarchy', async t => {
     const {parent, childApps, childWindows} = await createAppWithChildren('programmatic');
 
     await createCloseAndRestoreLayout(t);
@@ -124,7 +130,7 @@ test('Loader will override parentUuids with data in workspace when building app 
     await Promise.all(childApps.map(app => app.close()));
 });
 
-test('When saving a previously-restored workspace, the generated workspace will import parentUuids from Loader', async (t: TestContext) => {
+test('When saving a previously-restored workspace, the generated workspace will import parentUuids from Loader', async t => {
     const {parent, childApps} = await createAppWithChildren('programmatic');
 
     const workspace1 = await createCloseAndRestoreLayout(t);

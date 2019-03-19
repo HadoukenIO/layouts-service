@@ -14,10 +14,10 @@ import {delay} from './utils/delay';
 let fin: Fin;
 let crashApp: Application|undefined = undefined;
 
-test.before(async t => {
+beforeAll(async t => {
     fin = await getConnection();
 });
-test.afterEach.always(async t => {
+afterEach(async t => {
     if (crashApp) {
         crashApp.close(true);
     }

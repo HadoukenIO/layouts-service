@@ -18,7 +18,7 @@ import {getTabstrip} from './utils/tabServiceUtils';
 import {tearoutToOtherTabstrip, tearoutToPoint} from './utils/tabstripUtils';
 
 
-test.afterEach.always(teardown);
+afterEach(teardown);
 
 interface PreviewTestOptions extends CreateWindowData {
     side: Side;

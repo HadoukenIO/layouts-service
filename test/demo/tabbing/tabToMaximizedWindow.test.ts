@@ -9,6 +9,8 @@ import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {getTabGroupState} from '../utils/tabServiceUtils';
 
+import * as assert from 'power-assert';
+
 interface TabToMaximizedWindowTestOptions extends CreateWindowData {
     windowCount: 2;
     tabTo: 'maximized'|'restored';
@@ -22,9 +24,9 @@ testParameterized(
         {frame: false, windowCount: 2, tabTo: 'restored'},
         {frame: false, windowCount: 2, tabTo: 'maximized'},
     ],
-    createWindowTest(async (t, options: TabToMaximizedWindowTestOptions) => {
+    createWindowTest(async (context, options: TabToMaximizedWindowTestOptions) => {
         const fin = await getConnection();
-        const {windows} = t.context;
+        const {windows} = context;
 
         await windows[1].maximize();
 
@@ -34,12 +36,12 @@ testParameterized(
             // Windows should have tabbed
             await assertPairTabbed(windows[0], windows[1]);
             // Make sure that the internal state of the tabGroup is correct
-            t.is(await getTabGroupState(windows[0].identity), 'maximized');
+            assert.strictEqual(await getTabGroupState(windows[0].identity), 'maximized');
             // TabGroup fills the whole screen
             const groupBounds = await getTabsetBounds(windows[0]);
             for (const side of Object.keys(maximizedBounds) as (keyof Rect)[]) {
                 if (maximizedBounds.hasOwnProperty(side)) {
-                    t.is(maximizedBounds[side], groupBounds[side]);
+                    assert.strictEqual(maximizedBounds[side], groupBounds[side]);
                 }
             }
         } else {
@@ -57,8 +59,8 @@ testParameterized(
         {frame: true, windowCount: 3},
         {frame: false, windowCount: 3},
     ],
-    createWindowTest(async t => {
-        const {windows} = t.context;
+    createWindowTest(async context => {
+        const {windows} = context;
 
         await windows[2].moveBy(200, 200);
         await windows[1].maximize();

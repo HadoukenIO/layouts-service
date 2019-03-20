@@ -1,4 +1,3 @@
-import {test} from 'ava';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {assertAllContiguous, assertGrouped, assertNotGrouped} from '../../provider/utils/assertions';
@@ -70,7 +69,7 @@ const customArrangements: ArrangementsType = Object.assign({}, defaultArrangemen
 
 afterEach(teardown);
 
-testParameterized<ValidateGroupOptions, WindowContext>(
+testParameterized<ValidateGroupOptions>(
     (testOptions: ValidateGroupOptions): string => `Validate Group - ${testOptions.frame ? 'framed' : 'frameless'} - ${testOptions.windowCount} window ${
         testOptions.arrangement} - window ${testOptions.undockIndex} ungrouped by ${testOptions.undockBy}`,
     [
@@ -105,8 +104,8 @@ testParameterized<ValidateGroupOptions, WindowContext>(
         {frame: true, undockBy: 'maximize', windowCount: 3, arrangement: 'line', undockIndex: 1, remainingGroups: [[0], [1], [2]]},
         {frame: true, undockBy: 'maximize', windowCount: 3, arrangement: 'line', undockIndex: 2, remainingGroups: [[0, 1], [2]]},
     ],
-    createWindowTest(async (t, testOptions: ValidateGroupOptions) => {
-        const windows = t.context.windows;
+    createWindowTest(async (context, testOptions: ValidateGroupOptions) => {
+        const windows = context.windows;
 
         await assertGrouped(...windows);
         await assertAllContiguous(windows);

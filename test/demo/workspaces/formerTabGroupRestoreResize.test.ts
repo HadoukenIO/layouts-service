@@ -1,11 +1,11 @@
-import test from 'ava';
 import {assertGrouped, assertPairTabbed} from '../../provider/utils/assertions';
 import {delay} from '../../provider/utils/delay';
 import {teardown} from '../../teardown';
 import {createAppsArray} from '../utils/AppInitializer';
-import {AppContext, CreateAppData, createAppTest} from '../utils/createAppTest';
+import {CreateAppData, createAppTest} from '../utils/createAppTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {assertWindowRestored, closeAllPreviews, createCloseAndRestoreLayout} from '../utils/workspacesUtils';
+import * as assert from 'power-assert'
 
 const registeredProgrammaticApp = createAppsArray(1, 0);
 const deregisteredProgrammaticParentandChild =
@@ -25,21 +25,21 @@ afterEach(async () => {
     await teardown();
 });
 
-testParameterized<CreateAppData, AppContext>(
+testParameterized<CreateAppData>(
     (testOptions: CreateAppData): string =>
         `Tab SaveAndRestore - ${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - Formerly tabbed window resize`,
     [{apps: combinedProgrammaticApps, tabWindowGrouping: windowGrouping}, {apps: combinedManifestApps, tabWindowGrouping: windowGrouping}],
-    createAppTest(async (t, applicationData: CreateAppData) => {
+    createAppTest(async (context, applicationData: CreateAppData) => {
         if (applicationData.tabWindowGrouping) {
             const grouping = applicationData.tabWindowGrouping[1];
-            const win1 = t.context.windows[grouping.group[0]];
-            const win2 = t.context.windows[grouping.group[1]];
+            const win1 = context.windows[grouping.group[0]];
+            const win2 = context.windows[grouping.group[1]];
 
             await assertPairTabbed(win1, win2);
             await assertGrouped(win1, win2);
             const tabbedBounds = await win1.getBounds();
 
-            await createCloseAndRestoreLayout(t.context);
+            await createCloseAndRestoreLayout(context);
             await delay(2000);
 
             await assertWindowRestored(win1.identity.uuid, win1.identity.name!);
@@ -47,12 +47,10 @@ testParameterized<CreateAppData, AppContext>(
             const untabbedBounds = await win1.getBounds();
 
             if (untabbedBounds.top === tabbedBounds.top || untabbedBounds.height === tabbedBounds.height) {
-                t.fail(`Application ${win1.identity.uuid} was restored at: ${tabbedBounds.top} x ${tabbedBounds.left} instead of ${untabbedBounds.top} x ${
+                assert.fail(`Application ${win1.identity.uuid} was restored at: ${tabbedBounds.top} x ${tabbedBounds.left} instead of ${untabbedBounds.top} x ${
                     untabbedBounds.left}`);
-            } else {
-                t.pass();
             }
         } else {
-            t.fail('Improper test options passed in. Test options must include tabWindowGroupings in order to test');
+            assert.fail('Improper test options passed in. Test options must include tabWindowGroupings in order to test');
         }
     }));

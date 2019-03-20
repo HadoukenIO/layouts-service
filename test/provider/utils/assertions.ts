@@ -292,3 +292,11 @@ export async function assertAllNormalState(windows: Window[]) {
         assert.strictEqual(state, 'normal');
     }));
 }
+
+export async function assertDoesNotReject<T>(promise: Promise<T>, message: string|undefined = undefined): Promise<void> {
+    await promise.catch(e => assert.fail(message));
+}
+
+export async function assertRejects<T>(promise: Promise<T>, message: string|undefined = undefined): Promise<void> {
+    await promise.then(e => assert.fail(message)).catch();
+}

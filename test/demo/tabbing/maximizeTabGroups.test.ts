@@ -16,8 +16,8 @@ testParameterized(
         {windowCount: 3, frame: false},
         {windowCount: 4, frame: false},
     ],
-    createWindowTest(async(t, options: MaximizeTabGroupsInstance): Promise<void> => {
-        const {windows} = t.context;
+    createWindowTest(async(context, options: MaximizeTabGroupsInstance): Promise<void> => {
+        const {windows} = context;
         const layoutsClient = await layoutsClientPromise;
 
         await layoutsClient.tabbing.createTabGroup([windows[0].identity, windows[1].identity]);

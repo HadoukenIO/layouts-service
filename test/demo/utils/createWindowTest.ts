@@ -1,10 +1,9 @@
-import {Context, GenericTestContext} from 'ava';
 import {Window} from 'hadouken-js-adapter';
 
 import {delay} from '../../provider/utils/delay';
 import {ArrangementsType, WindowInitializer, WindowPosition} from '../../provider/utils/WindowInitializer';
 
-import {TestMacro} from './parameterizedTestUtils';
+import {ContextTestMacro, TestMacro} from './parameterizedTestUtils';
 
 const windowOptionsBase = {
     autoShow: true,
@@ -25,28 +24,27 @@ export interface WindowContext {
     windowInitializer: WindowInitializer;
 }
 
-export function createWindowTest<T extends CreateWindowData, C extends WindowContext = WindowContext>(
-    testFunc: TestMacro<T, C>, windowOptions?: fin.WindowOptions, customArrangements?: ArrangementsType, customWindowPositions?: WindowPosition[]):
-    TestMacro<T, C> {
+export function createWindowTest<T extends CreateWindowData>(
+    testFunc: ContextTestMacro<T, WindowContext>, windowOptions?: fin.WindowOptions, customArrangements?: ArrangementsType, customWindowPositions?: WindowPosition[]):
+    TestMacro<T> {
     const options: fin.WindowOptions = Object.assign({}, windowOptionsBase, windowOptions);
     const framedInitializer: WindowInitializer = new WindowInitializer(customArrangements, customWindowPositions, Object.assign({}, options, {frame: true}));
     const framelessInitializer: WindowInitializer =
         new WindowInitializer(customArrangements, customWindowPositions, Object.assign({}, options, {frame: false}));
 
-    return async (t: GenericTestContext<Context<C>>, data: T) => {
+    return async (data: T) => {
         const {frame, windowCount} = data;
 
         // Create all windows
         const windowInitializer = frame ? framedInitializer : framelessInitializer;
         const windows: Window[] = await windowInitializer.initWindows(windowCount, data.arrangement);
-        t.context.windows = windows;
-        t.context.windowInitializer = windowInitializer;
+        const context = {windows, windowInitializer};
 
         // Delay slightly to allow windows to initialize
         await delay(300);
 
         try {
-            await testFunc(t, data);
+            await testFunc(context, data);
         } finally {
             // Close all windows
             await Promise.all(windows.map(win => win.close()));

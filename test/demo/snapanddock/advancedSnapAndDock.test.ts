@@ -1,5 +1,3 @@
-import {test} from 'ava';
-
 import {assertAllContiguous, assertGrouped, assertNoOverlap, assertNotGrouped} from '../../provider/utils/assertions';
 import {delay} from '../../provider/utils/delay';
 import {dragSideToSide} from '../../provider/utils/dragWindowTo';
@@ -8,6 +6,8 @@ import {teardown} from '../../teardown';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 
+import * as assert from 'power-assert';
+
 afterEach(teardown);
 
 // Using testParameterized more for type safety than parameterization
@@ -15,8 +15,8 @@ afterEach(teardown);
 testParameterized(
     (testOptions: CreateWindowData) => 'Cannot snap windows so they overlap - shape: U',
     [{windowCount: 5, frame: true}],
-    createWindowTest(async (t, testOptions: CreateWindowData) => {
-        const windows = t.context.windows;
+    createWindowTest(async (context, testOptions: CreateWindowData) => {
+        const windows = context.windows;
 
         // Sizes for the windows to make it work
         await Promise.all([
@@ -43,7 +43,7 @@ testParameterized(
         // This is a safety check in case snapping behavior changes and the magic numbers above
         // no longer do what theyre supposed to. Window should be offset or this test will pass but not
         // actually test for the defect.
-        t.not(
+        assert.notStrictEqual(
             (await getBounds(windows[1])).left,
             (await getBounds(windows[0])).left,
             'Window 1 resized when snapped - should be offset - snap/anchor distance may have changed');
@@ -60,8 +60,8 @@ testParameterized(
 testParameterized(
     (testOptions: CreateWindowData) => 'Cannot snap windows so they overlap - shape: O',
     [{windowCount: 5, frame: true}],
-    createWindowTest(async (t, testOptions: CreateWindowData) => {
-        const windows = t.context.windows;
+    createWindowTest(async (context, testOptions: CreateWindowData) => {
+        const windows = context.windows;
 
         // Sizes for the windows to make it work
         await Promise.all([

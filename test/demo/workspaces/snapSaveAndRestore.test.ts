@@ -1,10 +1,8 @@
-import {test} from 'ava';
-
 import {assertAdjacent, assertGrouped} from '../../provider/utils/assertions';
 import {dragWindowTo} from '../../provider/utils/dragWindowTo';
 import {teardown} from '../../teardown';
 import {WindowGrouping} from '../utils/AppInitializer';
-import {AppContext, CreateAppData, createAppTest} from '../utils/createAppTest';
+import {CreateAppData, createAppTest} from '../utils/createAppTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {closeAllPreviews, createCloseAndRestoreLayout, createSnapTests} from '../utils/workspacesUtils';
 
@@ -41,18 +39,18 @@ appNumbers.forEach(appNumber => {
 
 afterEach(teardown);
 
-testParameterized<CreateAppData, AppContext>(
+testParameterized<CreateAppData>(
     (testOptions: CreateAppData): string => `Snap SaveAndRestore - ${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - ${
         testOptions.apps.length} App(s) - ${testOptions.apps[0].childWindows.length} Child(ren) Each`,
     snapTestOptionsArray,
-    createAppTest(async (t, applicationData: CreateAppData) => {
-        await createCloseAndRestoreLayout(t.context);
+    createAppTest(async (context, applicationData: CreateAppData) => {
+        await createCloseAndRestoreLayout(context);
 
         for (let index = 0; index < applicationData.snapWindowGrouping!.length; index++) {
             const grouping = applicationData.snapWindowGrouping![index];
 
-            const win1 = t.context.windows[grouping.group[0]];
-            const win2 = t.context.windows[grouping.group[1]];
+            const win1 = context.windows[grouping.group[0]];
+            const win2 = context.windows[grouping.group[1]];
 
             await dragWindowTo(win1, 500, ((260 * index) + 100));
             await assertAdjacent(win1, win2);

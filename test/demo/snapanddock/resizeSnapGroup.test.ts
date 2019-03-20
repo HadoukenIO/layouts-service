@@ -1,4 +1,3 @@
-import {test} from 'ava';
 import robot from 'robotjs';
 
 import {assertAdjacent, assertGrouped, assertSquare} from '../../provider/utils/assertions';
@@ -36,9 +35,9 @@ testParameterized(
         {frame: false, windowCount: 4, resizeType: ['outer', 'horizontal']},
         {frame: false, windowCount: 4, resizeType: ['outer', 'vertical']},
     ],
-    createWindowTest(async (t, testOptions: ResizeGroupOptions) => {
+    createWindowTest(async (context, testOptions: ResizeGroupOptions) => {
         const {resizeType, windowCount} = testOptions;
-        const {windows, windowInitializer} = t.context;
+        const {windows, windowInitializer} = context;
 
         // Create and arrange the windows based on number of windows and resize type
         const arrangementName = windowCount === 2 ? resizeType[1] : 'square';

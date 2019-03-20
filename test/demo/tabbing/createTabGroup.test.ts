@@ -1,4 +1,3 @@
-import {Context, GenericTestContext, test, TestContext} from 'ava';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {WindowIdentity} from '../../../src/provider/model/DesktopWindow';
@@ -44,7 +43,7 @@ const windowPositions = [
 
 afterEach(teardown);
 
-testParameterized<CreateTabGroupFromTabsOptions, WindowContext>(
+testParameterized<CreateTabGroupFromTabsOptions>(
     (testOptions: CreateTabGroupFromTabsOptions): string => `createTabGroupFromTabs ${testOptions.description}`,
     [
         createCreateTabGroupFromTabsOption({
@@ -136,13 +135,13 @@ testParameterized<CreateTabGroupFromTabsOptions, WindowContext>(
             tabsToTakeFromTargetTabGroup: 1
         })
     ],
-    createWindowTest(async (t, testOptions: CreateTabGroupFromTabsOptions) => {
-        const windows = t.context.windows;
+    createWindowTest(async (context, testOptions: CreateTabGroupFromTabsOptions) => {
+        const windows = context.windows;
 
         const newTabs = testOptions.newTabGroup.map(index => windows[index]);
         const ejectedTabs = testOptions.ejectedTabGroup.map(index => windows[index]);
 
-        await setupSnapAndTabGroups(t, testOptions);
+        await setupSnapAndTabGroups(context, testOptions);
 
         const oldBounds = await getBoundsMap(windows);
 
@@ -220,8 +219,8 @@ function createCreateTabGroupFromTabsOption(config: CreateTabGroupFromTabsOption
     return {windowCount, snapGroups, tabGroups, newTabGroup, ejectedTabGroup, description, frame: true};
 }
 
-async function setupSnapAndTabGroups(t: GenericTestContext<Context<WindowContext>>, testOptions: CreateTabGroupFromTabsOptions) {
-    const windows = t.context.windows;
+async function setupSnapAndTabGroups(context: WindowContext, testOptions: CreateTabGroupFromTabsOptions) {
+    const windows = context.windows;
 
     // Create each SnapGroup by dragging each window to the right of the last
     await promiseForEach(testOptions.snapGroups, async (snapGroup) => {

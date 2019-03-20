@@ -1,4 +1,3 @@
-import {test} from 'ava';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {assertAdjacent, assertAllContiguous, assertGrouped, assertPairTabbed} from '../../provider/utils/assertions';
@@ -13,6 +12,8 @@ import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
 import {refreshWindowState} from '../utils/modelUtils';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {getActiveTab, getTabstrip} from '../utils/tabServiceUtils';
+
+import * as assert from 'power-assert'
 
 // Width and Height of the windows when spawned
 const WINDOW_SIZE = 250;
@@ -155,9 +156,9 @@ testParameterized(
             shouldResize: true
         },
     ],
-    createWindowTest(async (t, testOptions: ResizeWithConstrainsOptions) => {
+    createWindowTest(async (context, testOptions: ResizeWithConstrainsOptions) => {
         const {resizeDirection, side, shouldResize, constraints} = testOptions;
-        const windows = t.context.windows;
+        const windows = context.windows;
 
         // Resize the second window based on the test params
         if (resizeDirection === 'big-to-small') {
@@ -184,18 +185,18 @@ testParameterized(
 
         const bounds = [await getBounds(windows[0]), await getBounds(windows[1])];
 
-        t.true(
-            (boundsBefore.height !== bounds[1].height || boundsBefore.width !== bounds[1].width) === shouldResize,
+        assert.strictEqual(
+            (boundsBefore.height !== bounds[1].height || boundsBefore.width !== bounds[1].width) === shouldResize, true,
             `Window${shouldResize ? ' not' : ''} resized when it should${shouldResize ? '' : 'n\'t'}`);
 
         // Check that the windows are (not) aligned (depending on constraints)
         if (side === 'top' || side === 'bottom') {
-            t.true(
-                (bounds[0].left === bounds[1].left && bounds[0].right === bounds[1].right) === shouldResize,
+            assert.strictEqual(
+                (bounds[0].left === bounds[1].left && bounds[0].right === bounds[1].right) === shouldResize, true,
                 `Windows${shouldResize ? ' not' : ''} aligned when they should${shouldResize ? '' : 'n\'t'} be`);
         } else {
-            t.true(
-                (bounds[0].top === bounds[1].top && bounds[0].bottom === bounds[1].bottom) === shouldResize,
+            assert.strictEqual(
+                (bounds[0].top === bounds[1].top && bounds[0].bottom === bounds[1].bottom) === shouldResize, true,
                 `Windows${shouldResize ? ' not' : ''} aligned when they should${shouldResize ? '' : 'n\'t'} be`);
         }
     }, {defaultHeight: WINDOW_SIZE, defaultWidth: WINDOW_SIZE}));
@@ -216,9 +217,9 @@ testParameterized(
         {frame: true, windowCount: 4, resizeDirection: 'small-to-big', side: 'right'},
         {frame: true, windowCount: 4, resizeDirection: 'small-to-big', side: 'bottom'}
     ],
-    createWindowTest(async (t, testOptions: ResizeOnSnapOptions) => {
+    createWindowTest(async (context, testOptions: ResizeOnSnapOptions) => {
         const {resizeDirection, side} = testOptions;
-        const windows = t.context.windows;
+        const windows = context.windows;
 
         // Resize the second window based on the test params
         if (resizeDirection === 'big-to-small') {
@@ -253,12 +254,12 @@ testParameterized(
 
         const bounds = [await getTabsetBounds(activeTabs[0]), await getTabsetBounds(activeTabs[1])];
 
-        t.true(boundsBefore.height !== bounds[1].height || boundsBefore.width !== bounds[1].width, `Window not resized when it should`);
+        assert.strictEqual(boundsBefore.height !== bounds[1].height || boundsBefore.width !== bounds[1].width, true, `Window not resized when it should`);
 
         // Check that the windows are (not) aligned (depending on constraints)
         if (side === 'top' || side === 'bottom') {
-            t.true((bounds[0].left === bounds[1].left && bounds[0].right === bounds[1].right), `Windows not aligned when they should be`);
+            assert.strictEqual((bounds[0].left === bounds[1].left && bounds[0].right === bounds[1].right), true, `Windows not aligned when they should be`);
         } else {
-            t.true((bounds[0].top === bounds[1].top && bounds[0].bottom === bounds[1].bottom), `Windows not aligned when they should be`);
+            assert.strictEqual((bounds[0].top === bounds[1].top && bounds[0].bottom === bounds[1].bottom), true, `Windows not aligned when they should be`);
         }
     }, {defaultHeight: WINDOW_SIZE, defaultWidth: WINDOW_SIZE}));

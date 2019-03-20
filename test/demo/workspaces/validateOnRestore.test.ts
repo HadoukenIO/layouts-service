@@ -1,5 +1,3 @@
-import {test} from 'ava';
-
 import {Workspace} from '../../../src/client/workspaces';
 import {assertAllContiguous, assertGrouped, assertNotGrouped} from '../../provider/utils/assertions';
 import {createChildWindow} from '../../provider/utils/createChildWindow';
@@ -37,7 +35,7 @@ testParameterized(
         {windowCount: 3, arrangement: 'vertical-triangle', deregisteredIndex: 2, remainingGroups: [[0, 1]]},
         {windowCount: 5, arrangement: 'hourglass', deregisteredIndex: 2, remainingGroups: [[0, 1], [3, 4]]},
     ],
-    async (t, testOptions: ValidateOnRestoreOptions) => {
+    async (testOptions: ValidateOnRestoreOptions) => {
         const layoutsClient = await layoutsClientPromise;
         const {windowCount, arrangement, remainingGroups, deregisteredIndex} = testOptions;
 

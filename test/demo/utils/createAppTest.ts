@@ -1,10 +1,9 @@
-import {Context, GenericTestContext} from 'ava';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {delay} from '../../provider/utils/delay';
 
 import {AppInitializer, AppInitializerParams, TestAppData, WindowGrouping} from './AppInitializer';
-import {TestMacro} from './parameterizedTestUtils';
+import {TestMacro, ContextTestMacro} from './parameterizedTestUtils';
 
 export interface CreateAppData {
     apps: AppInitializerParams[];
@@ -18,11 +17,11 @@ export interface AppContext {
     windows: _Window[];
 }
 
-export function createAppTest<T extends CreateAppData, C extends AppContext = AppContext>(
-    testFunc: TestMacro<T, C>, apps?: AppInitializerParams[]): TestMacro<T, C> {
+export function createAppTest<T extends CreateAppData>(
+    testFunc: ContextTestMacro<T, AppContext>, apps?: AppInitializerParams[]): TestMacro<T> {
     const appInitializer: AppInitializer = new AppInitializer();
 
-    return async (t: GenericTestContext<Context<C>>, data: T) => {
+    return async (data: T) => {
         // Create all apps
         const testAppData: TestAppData[] = await appInitializer.initApps(data.apps);
 
@@ -52,12 +51,10 @@ export function createAppTest<T extends CreateAppData, C extends AppContext = Ap
         await delay(300);
 
         // Set context variables
-        t.context.testAppData = testAppData;
-        t.context.appInitializer = appInitializer;
-        t.context.windows = windows;
+        const context = {testAppData, appInitializer, windows};
 
         try {
-            await testFunc(t, data);
+            await testFunc(context, data);
         } finally {
             // Close all windows
             await Promise.all(testAppData.map(async appData => await appData.app.close(true)));

@@ -1,4 +1,3 @@
-import {test} from 'ava';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {assertAllMinimizedOrHidden, assertAllNormalState, assertGrouped, assertPairTabbed} from '../../provider/utils/assertions';
@@ -25,8 +24,8 @@ testParameterized(
         {frame: true, windowCount: 2, arrangement: 'horizontal', restoreIndex: 1},
         {frame: true, windowCount: 3, arrangement: 'line', restoreIndex: 1}
     ],
-    createWindowTest(async (t, testOptions: MinimizeTestOptions) => {
-        const {windows} = t.context;
+    createWindowTest(async (context, testOptions: MinimizeTestOptions) => {
+        const {windows} = context;
         const {windowCount, restoreIndex} = testOptions;
 
         await windows[0].minimize();
@@ -45,10 +44,10 @@ testParameterized(
     (testOptions: MinimizeTestOptions) => `Minimize and restore (snapped tabs) - ${testOptions.windowCount} windows - restoring ${
         testOptions.restoreIndex === 0 ? 'minimized' : 'grouped'} window`,
     [{frame: true, windowCount: 4, restoreIndex: 0}, {frame: true, windowCount: 4, restoreIndex: 1}, {frame: true, windowCount: 6, restoreIndex: 1}],
-    createWindowTest(async (t, testOptions: MinimizeTestOptions) => {
+    createWindowTest(async (context, testOptions: MinimizeTestOptions) => {
         const layoutsClient = await layoutsClientPromise;
 
-        const {windows, windowInitializer} = t.context;
+        const {windows, windowInitializer} = context;
         const {restoreIndex, windowCount} = testOptions;
 
         const tabStrips: _Window[] = [];

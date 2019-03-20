@@ -1,4 +1,3 @@
-import {test} from 'ava';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {assertAdjacent, assertGrouped, assertSquare} from '../../provider/utils/assertions';
@@ -14,7 +13,7 @@ interface TwoWindowTestOptions extends CreateWindowData {
 
 afterEach(teardown);
 
-testParameterized<TwoWindowTestOptions, WindowContext>(
+testParameterized<TwoWindowTestOptions>(
     (testOptions: TwoWindowTestOptions): string => `Basic SnapAndDock - ${testOptions.windowCount} windows - ${testOptions.frame ? 'framed' : 'frameless'} - ${
         testOptions.side ? `- ${testOptions.side}` : ''}`,
     [
@@ -27,8 +26,8 @@ testParameterized<TwoWindowTestOptions, WindowContext>(
         {frame: false, windowCount: 2, side: 'left'},
         {frame: false, windowCount: 2, side: 'right'},
     ],
-    createWindowTest(async (t, testOptions: TwoWindowTestOptions) => {
-        const windows = t.context.windows;
+    createWindowTest(async (context, testOptions: TwoWindowTestOptions) => {
+        const windows = context.windows;
         const {side} = testOptions;
 
         await dragWindowTo(windows[0], 375, 375);
@@ -48,14 +47,14 @@ testParameterized<TwoWindowTestOptions, WindowContext>(
     }));
 
 
-testParameterized<CreateWindowData, WindowContext>(
+testParameterized<CreateWindowData>(
     (testOptions: CreateWindowData): string => `Basic SnapAndDock - ${testOptions.windowCount} windows - ${testOptions.frame}}`,
     [
         {frame: true, windowCount: 4},
         {frame: false, windowCount: 4},
     ],
-    createWindowTest(async t => {
-        const windows = t.context.windows;
+    createWindowTest(async context => {
+        const windows = context.windows;
 
         // Snap all four windows together
         await dragSideToSide(windows[1], 'left', windows[0], 'right');

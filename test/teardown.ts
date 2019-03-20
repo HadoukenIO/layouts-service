@@ -1,4 +1,3 @@
-import {TestContext} from 'ava';
 import {Window} from 'hadouken-js-adapter';
 
 import {Scopes} from '../src/provider/config/Store';

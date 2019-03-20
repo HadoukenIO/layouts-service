@@ -1,4 +1,3 @@
-import {test, TestContext} from 'ava';
 import {Fin, Window} from 'hadouken-js-adapter';
 
 import {WindowIdentity} from '../../src/client/main';
@@ -77,7 +76,7 @@ afterEach(teardown);
 
 /* ====== Utils ====== */
 
-async function snapWindows(win1: Window, win2: Window, t: TestContext) {
+async function snapWindows(win1: Window, win2: Window) {
     // Snap the windows together
     await dragSideToSide(win2, 'left', win1, 'right');
 
@@ -85,7 +84,7 @@ async function snapWindows(win1: Window, win2: Window, t: TestContext) {
     await assertGrouped(win1, win2);
 }
 
-async function groupWindows(win1: Window, win2: Window, t: TestContext) {
+async function groupWindows(win1: Window, win2: Window) {
     // Native group the windows
     win1.joinGroup(win2);
 
@@ -93,7 +92,7 @@ async function groupWindows(win1: Window, win2: Window, t: TestContext) {
     await assertGrouped(win1, win2);
 }
 
-async function unsnapWindows(win1: Window, win2: Window, shouldMove: boolean, t: TestContext) {
+async function unsnapWindows(win1: Window, win2: Window, shouldMove: boolean) {
     // Undock
     const boundsBefore = await getBounds(win1);
     await undockWindow(win1.identity as WindowIdentity);
@@ -112,7 +111,7 @@ async function unsnapWindows(win1: Window, win2: Window, shouldMove: boolean, t:
     await assertNotGrouped(win2);
 }
 
-async function ungroupWindows(win1: Window, win2: Window, shouldMove: boolean, t: TestContext) {
+async function ungroupWindows(win1: Window, win2: Window, shouldMove: boolean) {
     // Native ungroup
     const boundsBefore = await getBounds(win1);
     await win1.leaveGroup();
@@ -150,20 +149,20 @@ for (const firstGroup of Object.keys(groupingFunctions) as GroupingType[]) {
 function runNativeGroupListenerTest(groupType: GroupingType, firstUngroupType: UngroupingType, secondUngroupType: UngroupingType, ungroupedWindowIndex: 0|1) {
     test(
         `Native window group works the same as snapService grouping (${[groupType, firstUngroupType, secondUngroupType, ungroupedWindowIndex].join(', ')})`,
-        async t => {
+        async () => {
             // Group the windows
-            await groupingFunctions[groupType](windows[0], windows[1], t);
+            await groupingFunctions[groupType](windows[0], windows[1]);
 
             // Ungroup the windows with the first method. Should only move on
             // unsnap.
-            await ungroupingFunctions[firstUngroupType](windows[0], windows[0], firstUngroupType === 'unsnap', t);
+            await ungroupingFunctions[firstUngroupType](windows[0], windows[0], firstUngroupType === 'unsnap');
 
             // Ungroup the windows with the second method. Should never move.
-            await ungroupingFunctions[secondUngroupType](windows[0], windows[ungroupedWindowIndex], false, t);
+            await ungroupingFunctions[secondUngroupType](windows[0], windows[ungroupedWindowIndex], false);
         });
 }
 
-test('Native window group works the same as snapService grouping (native merge, undock, native, 1)', async t => {
+test('Native window group works the same as snapService grouping (native merge, undock, native, 1)', async () => {
     // Native group the windows
     win1.mergeGroups(win2);
 

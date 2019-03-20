@@ -1,3 +1,5 @@
+import * as assert from 'power-assert';
+
 import {assertGrouped, assertPairTabbed} from '../../provider/utils/assertions';
 import {delay} from '../../provider/utils/delay';
 import {teardown} from '../../teardown';
@@ -5,7 +7,6 @@ import {createAppsArray} from '../utils/AppInitializer';
 import {CreateAppData, createAppTest} from '../utils/createAppTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {assertWindowRestored, closeAllPreviews, createCloseAndRestoreLayout} from '../utils/workspacesUtils';
-import * as assert from 'power-assert'
 
 const registeredProgrammaticApp = createAppsArray(1, 0);
 const deregisteredProgrammaticParentandChild =

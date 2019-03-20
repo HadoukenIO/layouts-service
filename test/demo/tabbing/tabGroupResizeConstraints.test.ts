@@ -1,6 +1,7 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
+import * as assert from 'power-assert';
 
-import {assertCompleteTabGroup, assertNotTabbed, assertPairTabbed, assertRejects, assertDoesNotReject} from '../../provider/utils/assertions';
+import {assertCompleteTabGroup, assertDoesNotReject, assertNotTabbed, assertPairTabbed, assertRejects} from '../../provider/utils/assertions';
 import {delay} from '../../provider/utils/delay';
 import {Side, sideArray} from '../../provider/utils/SideUtils';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
@@ -10,8 +11,6 @@ import {refreshWindowState} from '../utils/modelUtils';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {layoutsClientPromise} from '../utils/serviceUtils';
 import {getTabGroupState} from '../utils/tabServiceUtils';
-
-import * as assert from 'power-assert';
 
 interface TabConstraintsOptions extends CreateWindowData {
     windowConstraints: Constraints[];

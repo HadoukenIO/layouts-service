@@ -1,4 +1,5 @@
 import {Rect} from 'hadouken-js-adapter/out/types/src/api/system/monitor';
+import * as assert from 'power-assert';
 
 import {assertNotTabbed, assertPairTabbed} from '../../provider/utils/assertions';
 import {getConnection} from '../../provider/utils/connect';
@@ -8,8 +9,6 @@ import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {getTabGroupState} from '../utils/tabServiceUtils';
-
-import * as assert from 'power-assert';
 
 interface TabToMaximizedWindowTestOptions extends CreateWindowData {
     windowCount: 2;

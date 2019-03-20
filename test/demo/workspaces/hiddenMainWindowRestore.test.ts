@@ -1,11 +1,12 @@
 import {WindowEvent} from 'hadouken-js-adapter/out/types/src/api/events/base';
+import * as assert from 'power-assert';
+
 import {teardown} from '../../teardown';
 import {CreateAppData, createAppTest} from '../utils/createAppTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {assertWindowRestored, closeAllPreviews, createBasicSaveAndRestoreTest, createCloseAndRestoreLayout} from '../utils/workspacesUtils';
-import {BasicSaveRestoreTestOptions} from './basicSaveAndRestore.test';
 
-import * as assert from 'power-assert';
+import {BasicSaveRestoreTestOptions} from './basicSaveAndRestore.test';
 
 const hiddenParentTestArray: BasicSaveRestoreTestOptions[] = [];
 

@@ -1,4 +1,5 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
+import * as assert from 'power-assert';
 
 import {assertAdjacent, assertAllContiguous, assertGrouped, assertPairTabbed} from '../../provider/utils/assertions';
 import {delay} from '../../provider/utils/delay';
@@ -12,8 +13,6 @@ import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
 import {refreshWindowState} from '../utils/modelUtils';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {getActiveTab, getTabstrip} from '../utils/tabServiceUtils';
-
-import * as assert from 'power-assert'
 
 // Width and Height of the windows when spawned
 const WINDOW_SIZE = 250;
@@ -186,17 +185,20 @@ testParameterized(
         const bounds = [await getBounds(windows[0]), await getBounds(windows[1])];
 
         assert.strictEqual(
-            (boundsBefore.height !== bounds[1].height || boundsBefore.width !== bounds[1].width) === shouldResize, true,
+            (boundsBefore.height !== bounds[1].height || boundsBefore.width !== bounds[1].width) === shouldResize,
+            true,
             `Window${shouldResize ? ' not' : ''} resized when it should${shouldResize ? '' : 'n\'t'}`);
 
         // Check that the windows are (not) aligned (depending on constraints)
         if (side === 'top' || side === 'bottom') {
             assert.strictEqual(
-                (bounds[0].left === bounds[1].left && bounds[0].right === bounds[1].right) === shouldResize, true,
+                (bounds[0].left === bounds[1].left && bounds[0].right === bounds[1].right) === shouldResize,
+                true,
                 `Windows${shouldResize ? ' not' : ''} aligned when they should${shouldResize ? '' : 'n\'t'} be`);
         } else {
             assert.strictEqual(
-                (bounds[0].top === bounds[1].top && bounds[0].bottom === bounds[1].bottom) === shouldResize, true,
+                (bounds[0].top === bounds[1].top && bounds[0].bottom === bounds[1].bottom) === shouldResize,
+                true,
                 `Windows${shouldResize ? ' not' : ''} aligned when they should${shouldResize ? '' : 'n\'t'} be`);
         }
     }, {defaultHeight: WINDOW_SIZE, defaultWidth: WINDOW_SIZE}));

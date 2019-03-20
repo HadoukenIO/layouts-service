@@ -1,3 +1,5 @@
+import * as assert from 'power-assert';
+
 import {assertAllContiguous, assertGrouped, assertNoOverlap, assertNotGrouped} from '../../provider/utils/assertions';
 import {delay} from '../../provider/utils/delay';
 import {dragSideToSide} from '../../provider/utils/dragWindowTo';
@@ -5,8 +7,6 @@ import {getBounds} from '../../provider/utils/getBounds';
 import {teardown} from '../../teardown';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
-
-import * as assert from 'power-assert';
 
 afterEach(teardown);
 

@@ -1,4 +1,5 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
+import * as assert from 'power-assert';
 import robot from 'robotjs';
 
 import {CreateWindowData, createWindowTest} from '../demo/utils/createWindowTest';
@@ -15,8 +16,6 @@ import {teardown} from '../teardown';
 
 import {getTabstrip} from './utils/tabServiceUtils';
 import {tearoutToOtherTabstrip, tearoutToPoint} from './utils/tabstripUtils';
-
-import * as assert from 'power-assert';
 
 
 afterEach(teardown);

@@ -41,8 +41,8 @@ export async function assertWindowNotRestored(t: TestContext, uuid: string, name
     active ? t.fail(`Window ${uuid}:${name} was restored when it should not have been`) : t.pass();
 }
 
-function assertIsLayoutObject(t: TestContext, layout: Workspace) {
-    layout.type === 'workspace' ? t.pass() : t.fail('Layout object has an incorrect type!');
+function assertIsLayoutObject(layout: Workspace) {
+    assert.strictEqual(layout.type, 'workspace', 'Layout object has an incorrect type!');
 }
 
 async function assertAllAppsClosed(t: SaveRestoreTestContext) {
@@ -55,9 +55,8 @@ async function assertAllAppsClosed(t: SaveRestoreTestContext) {
     });
 }
 
-function isSaveRestoreContext(t: TestContext|SaveRestoreTestContext): t is SaveRestoreTestContext {
-    const c: SaveRestoreTestContext = t as SaveRestoreTestContext;
-    return !!(c.context && c.context.testAppData);
+function isSaveRestoreContext(t: SaveRestoreTestContext): t is SaveRestoreTestContext {
+    return !!(t.context && t.context.testAppData);
 }
 
 async function getTestApps(): Promise<Application[]> {
@@ -71,11 +70,11 @@ async function getTestApps(): Promise<Application[]> {
                            }));
 }
 
-export async function createCloseAndRestoreLayout(t: TestContext|SaveRestoreTestContext): Promise<Workspace> {
+export async function createCloseAndRestoreLayout(t: SaveRestoreTestContext|undefined = undefined): Promise<Workspace> {
     const workspace = await sendServiceMessage(WorkspaceAPI.GENERATE_LAYOUT, undefined) as Workspace;
 
-    assertIsLayoutObject(t, workspace);
-    if (isSaveRestoreContext(t)) {
+    assertIsLayoutObject(workspace);
+    if (t !== undefined && isSaveRestoreContext(t)) {
         // Close all apps that were created as part of restore
         await Promise.all(t.context.testAppData.map(async (appData: TestAppData) => await appData.app.close(true)));
         await assertAllAppsClosed(t);
@@ -85,7 +84,7 @@ export async function createCloseAndRestoreLayout(t: TestContext|SaveRestoreTest
         await getTestApps().then(async (apps: Application[]) => {
             await Promise.all(apps.map(async (app) => {
                 if (await app.isRunning()) {
-                    t.fail(`Application ${app.identity.uuid} is running, but it should have been closed.`);
+                    assert.fail(`Application ${app.identity.uuid} is running, but it should have been closed.`);
                 }
             }));
         });

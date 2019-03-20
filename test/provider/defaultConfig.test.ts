@@ -1,6 +1,6 @@
-import {Context, GenericTestContext, test} from 'ava';
 import {Application, Fin} from 'hadouken-js-adapter';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
+import * as assert from 'power-assert';
 
 import {createApp} from '../../src/demo/spawn';
 import {isWindowRegistered} from '../demo/utils/snapServiceUtils';
@@ -56,23 +56,23 @@ async function createAppWithChildren(childType: 'manifest'|'programmatic'): Prom
     return {parent, childApps, childWindows: await Promise.all(childApps.map(app => app.getWindow()))};
 }
 
-test('An application that declares the service is registered', async t => {
+test('An application that declares the service is registered', async () => {
     const app = await createApp({id: 'AppA', provider: 'http://localhost:1337/test/provider.json'});
 
-    t.true(await isWindowRegistered(app.identity));
+    assert.strictEqual(await isWindowRegistered(app.identity), true);
 
     await app.close();
 });
 
-test('An application that doesn\'t declare the service is degistered', async t => {
+test('An application that doesn\'t declare the service is degistered', async () => {
     const app = await createApp({id: 'AppB', useService: false});
 
-    t.false(await isWindowRegistered(app.identity));
+    assert.strictEqual(await isWindowRegistered(app.identity), false);
 
     await app.close();
 });
 
-test('Programmatically creating a child app extends config lifespan', async t => {
+test('Programmatically creating a child app extends config lifespan', async () => {
     const {parent, childApps, childWindows} = await createAppWithChildren('programmatic');
 
     // Check docking is disabled
@@ -91,7 +91,7 @@ test('Programmatically creating a child app extends config lifespan', async t =>
     await Promise.all(childApps.map(app => app.close()));
 });
 
-test('Creating a child app from manifest has no effect on parent config lifespan', async (t) => {
+test('Creating a child app from manifest has no effect on parent config lifespan', async () => {
     const {parent, childApps, childWindows} = await createAppWithChildren('programmatic');
 
     // Check docking is disabled
@@ -109,10 +109,10 @@ test('Creating a child app from manifest has no effect on parent config lifespan
     await Promise.all(childApps.map(app => app.close()));
 });
 
-test('Loader will override parentUuids with data in workspace when building app hierarchy', async t => {
+test('Loader will override parentUuids with data in workspace when building app hierarchy', async () => {
     const {parent, childApps, childWindows} = await createAppWithChildren('programmatic');
 
-    await createCloseAndRestoreLayout(t);
+    await createCloseAndRestoreLayout();
 
     // Check docking is disabled
     await dragSideToSide(childWindows[0], 'left', childWindows[1], 'right', {x: 10, y: 50});
@@ -130,21 +130,21 @@ test('Loader will override parentUuids with data in workspace when building app 
     await Promise.all(childApps.map(app => app.close()));
 });
 
-test('When saving a previously-restored workspace, the generated workspace will import parentUuids from Loader', async t => {
+test('When saving a previously-restored workspace, the generated workspace will import parentUuids from Loader', async () => {
     const {parent, childApps} = await createAppWithChildren('programmatic');
 
-    const workspace1 = await createCloseAndRestoreLayout(t);
-    t.is(workspace1.apps.length, 3);
-    t.is(workspace1.apps[0].parentUuid, undefined);
-    t.is(workspace1.apps[1].parentUuid, parent.identity.uuid);
-    t.is(workspace1.apps[2].parentUuid, parent.identity.uuid);
+    const workspace1 = await createCloseAndRestoreLayout();
+    assert.strictEqual(workspace1.apps.length, 3);
+    assert.strictEqual(workspace1.apps[0].parentUuid, undefined);
+    assert.strictEqual(workspace1.apps[1].parentUuid, parent.identity.uuid);
+    assert.strictEqual(workspace1.apps[2].parentUuid, parent.identity.uuid);
 
     // Don't actually need restore here, but re-using existing utils.
-    const workspace2 = await createCloseAndRestoreLayout(t);
-    t.is(workspace2.apps.length, 3);
-    t.is(workspace2.apps[0].parentUuid, undefined);
-    t.is(workspace2.apps[1].parentUuid, parent.identity.uuid);
-    t.is(workspace2.apps[2].parentUuid, parent.identity.uuid);
+    const workspace2 = await createCloseAndRestoreLayout();
+    assert.strictEqual(workspace2.apps.length, 3);
+    assert.strictEqual(workspace2.apps[0].parentUuid, undefined);
+    assert.strictEqual(workspace2.apps[1].parentUuid, parent.identity.uuid);
+    assert.strictEqual(workspace2.apps[2].parentUuid, parent.identity.uuid);
 
     // These will now be new app instances, but can still use these handles to close currently running apps
     await Promise.all(childApps.concat(parent).map(app => app.close()));

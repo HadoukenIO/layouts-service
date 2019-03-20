@@ -46,6 +46,7 @@
     "json-schema-to-typescript": "^6.1.0",
     "mkdirp": "^0.5.1",
     "power-assert": "^1.6.1",
+    "pre-commit": "^1.2.2",
     "rimraf": "^2.6.2",
     "robotjs": "^0.5.1",
     "ts-jest": "^24.0.0",
@@ -68,5 +69,10 @@
     "classNameTemplate": "{classname} > {title}",
     "titleTemplate": "{title}",
     "ancestorSeparator": " > "
+  },
+  "precommit": {
+    "run": [
+      "check"
+    ]
   }
 }

@@ -773,7 +773,14 @@ export class DesktopWindow implements DesktopEntity {
                         const windows: DesktopWindow[] = this._snapGroup.windows as DesktopWindow[];
 
                         // Bring other windows in group to front
-                        await windows.map(groupWindow => groupWindow._window.bringToFront());
+                        await windows.map(groupWindow => {
+                            // Checks to make sure the window actually exists before bringing it to front. Fix for SERVICE-384
+                            if (groupWindow.isReady) {
+                                groupWindow._window.bringToFront();
+                            } else {
+                                console.warn('groupWindow is not ready. You may have a nonexistent window in your snapGroup: ', groupWindow);
+                            }
+                        });
                     }
                 })();
 

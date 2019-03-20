@@ -1,5 +1,5 @@
-import {test} from 'ava';
 import {Application, Fin, Window} from 'hadouken-js-adapter';
+import * as assert from 'power-assert';
 
 import {ApplicationUIConfig} from '../../../src/client/tabbing';
 import {TabGroup} from '../../../src/client/workspaces';
@@ -25,7 +25,7 @@ afterEach(async () => {
 
 afterEach(teardown);
 
-test('Create tab group from 2 windows', async (assert) => {
+test('Create tab group from 2 windows', async () => {
     // Arrange
     const app1: Application = await createTabbingWindow('default', 'tabapp1', 200);
     const app2: Application = await createTabbingWindow('default', 'tabapp2', 500);
@@ -60,14 +60,14 @@ test('Create tab group from 2 windows', async (assert) => {
         });
     }
     const tabGroupId: string = await executeJavascriptOnService<TabGroup[], string>(scriptToExecute, tabGroups);
-    assert.truthy(tabGroupId);
+    assert.ok(tabGroupId);
 
     // Tab group should have been created
     const serviceChildWindows: Window[] = await serviceApplication.getChildWindows();
     const newTabGroupWindow: Window|undefined = serviceChildWindows.find((window: Window) => {
         return getId(window.identity) === tabGroupId;
     });
-    assert.truthy(newTabGroupWindow);
+    assert.ok(newTabGroupWindow);
 
     // Assert
     const win1Bounds: NormalizedBounds = await getBounds(win1);
@@ -75,22 +75,22 @@ test('Create tab group from 2 windows', async (assert) => {
     const tabGroupBounds: NormalizedBounds = await getBounds(newTabGroupWindow!);
 
     // Window Bounds equality check
-    assert.is(win2Bounds.bottom, win1Bounds.bottom);
-    assert.is(win2Bounds.height, win1Bounds.height);
-    assert.is(win2Bounds.left, win1Bounds.left);
-    assert.is(win2Bounds.right, win1Bounds.right);
-    assert.is(win2Bounds.top, win1Bounds.top);
-    assert.is(win2Bounds.width, win1Bounds.width);
-    assert.is(win2Bounds.top, (tabGroups[0].groupInfo.dimensions.y + (tabGroups[0].groupInfo.config as ApplicationUIConfig).height));
-    assert.is(win2Bounds.left, tabGroups[0].groupInfo.dimensions.x);
+    assert.strictEqual(win2Bounds.bottom, win1Bounds.bottom);
+    assert.strictEqual(win2Bounds.height, win1Bounds.height);
+    assert.strictEqual(win2Bounds.left, win1Bounds.left);
+    assert.strictEqual(win2Bounds.right, win1Bounds.right);
+    assert.strictEqual(win2Bounds.top, win1Bounds.top);
+    assert.strictEqual(win2Bounds.width, win1Bounds.width);
+    assert.strictEqual(win2Bounds.top, (tabGroups[0].groupInfo.dimensions.y + (tabGroups[0].groupInfo.config as ApplicationUIConfig).height));
+    assert.strictEqual(win2Bounds.left, tabGroups[0].groupInfo.dimensions.x);
 
 
     // TabGroup existence check
-    assert.is(tabGroupBounds.bottom, win2Bounds.top);
-    assert.is(tabGroupBounds.width, win2Bounds.width);
-    assert.is(tabGroupBounds.left, win1Bounds.left);
-    assert.is(tabGroupBounds.right, win1Bounds.right);
-    assert.is(tabGroupBounds.top + tabGroupBounds.height, win2Bounds.top);
+    assert.strictEqual(tabGroupBounds.bottom, win2Bounds.top);
+    assert.strictEqual(tabGroupBounds.width, win2Bounds.width);
+    assert.strictEqual(tabGroupBounds.left, win1Bounds.left);
+    assert.strictEqual(tabGroupBounds.right, win1Bounds.right);
+    assert.strictEqual(tabGroupBounds.top + tabGroupBounds.height, win2Bounds.top);
 });
 
 /**

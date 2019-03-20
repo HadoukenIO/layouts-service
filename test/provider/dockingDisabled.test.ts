@@ -1,5 +1,5 @@
-import {test} from 'ava';
 import {Window} from 'hadouken-js-adapter';
+import * as assert from 'power-assert';
 
 import {Scope} from '../../gen/provider/config/layouts-config';
 import {promiseMap} from '../../src/provider/snapanddock/utils/async';
@@ -39,12 +39,12 @@ const windowOptions = [
 ];
 const windowScopes: Scope[] = [{level: 'window', uuid: 'testApp', name: 'dock-win1'}, {level: 'window', uuid: 'testApp', name: 'dock-win2'}];
 
-beforeEach(async t => {
+beforeEach(async () => {
     for (let i = 0; i < 2; i++) {
         windows[i] = await createChildWindow(windowOptions[i]);
     }
 });
-afterEach(async t => {
+afterEach(async () => {
     for (let i = 0; i < windows.length; i++) {
         await windows[i].close();
     }
@@ -53,23 +53,23 @@ afterEach(async t => {
     await teardown();
 });
 
-test('docking enabled - normal behaviour expected', async t => {
+test('docking enabled - normal behaviour expected', async () => {
     let bounds: NormalizedBounds[];
 
     await dragSideToSide(windows[1], 'left', windows[0], 'right', {x: 5, y: 10});
 
     await assertGrouped(windows[0], windows[1]);
     bounds = await promiseMap(windows, win => getBounds(win));
-    t.is(bounds[0].right, bounds[1].left);
+    assert.strictEqual(bounds[0].right, bounds[1].left);
 
     await dragWindowTo(windows[0], 200, 400);
 
     await assertGrouped(windows[0], windows[1]);
     bounds = await promiseMap(windows, win => getBounds(win));
-    t.is(bounds[0].right, bounds[1].left);
+    assert.strictEqual(bounds[0].right, bounds[1].left);
 });
 
-test('docking disabled - windows should snap but not dock', async t => {
+test('docking disabled - windows should snap but not dock', async () => {
     await toggleDocking(false);
 
     let bounds: NormalizedBounds[];
@@ -79,14 +79,14 @@ test('docking disabled - windows should snap but not dock', async t => {
     await assertNotGrouped(windows[0]);
     await assertNotGrouped(windows[1]);
     bounds = await promiseMap(windows, win => getBounds(win));
-    t.is(bounds[0].right, bounds[1].left);
+    assert.strictEqual(bounds[0].right, bounds[1].left);
 
     await dragWindowTo(windows[0], 400, 400);
 
     await assertNotGrouped(windows[0]);
     await assertNotGrouped(windows[1]);
     bounds = await promiseMap(windows, win => getBounds(win));
-    t.not(bounds[0].right, bounds[1].left);
+    assert.notStrictEqual(bounds[0].right, bounds[1].left);
 });
 
 export async function toggleDocking(dockingEnabled: boolean): Promise<void> {

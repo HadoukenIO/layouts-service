@@ -39,10 +39,10 @@ testParameterized<CreateAppData, AppContext>(
             await assertGrouped(win1, win2);
             const tabbedBounds = await win1.getBounds();
 
-            await createCloseAndRestoreLayout(t);
+            await createCloseAndRestoreLayout(t.context);
             await delay(2000);
 
-            await assertWindowRestored(t, win1.identity.uuid, win1.identity.name!);
+            await assertWindowRestored(win1.identity.uuid, win1.identity.name!);
 
             const untabbedBounds = await win1.getBounds();
 

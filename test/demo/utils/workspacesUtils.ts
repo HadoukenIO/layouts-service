@@ -1,4 +1,3 @@
-import {Context, GenericTestContext, Test, TestContext} from 'ava';
 import {Application} from 'hadouken-js-adapter';
 import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/system/application';
 import * as assert from 'power-assert';
@@ -13,8 +12,6 @@ import {TabSaveRestoreTestOptions} from '../workspaces/tabSaveAndRestore.test';
 import {createAppsArray, createWindowGroupings, TestAppData} from './AppInitializer';
 import {AppContext} from './createAppTest';
 import {sendServiceMessage} from './serviceUtils';
-
-type SaveRestoreTestContext = GenericTestContext<Context<AppContext>>;
 
 async function isWindowActive(uuid: string, name: string) {
     const fin = await getConnection();
@@ -31,32 +28,30 @@ async function isWindowActive(uuid: string, name: string) {
     });
 }
 
-export async function assertWindowRestored(t: TestContext, uuid: string, name: string) {
-    const active = await isWindowActive(uuid, name);
-    active ? t.pass() : t.fail(`Window ${uuid}:${name} was not restored`);
+export async function assertWindowRestored(uuid: string, name: string) {
+    assert.strictEqual(await isWindowActive(uuid, name), true, `Window ${uuid}:${name} was not restored`);
 }
 
-export async function assertWindowNotRestored(t: TestContext, uuid: string, name: string) {
-    const active = await isWindowActive(uuid, name);
-    active ? t.fail(`Window ${uuid}:${name} was restored when it should not have been`) : t.pass();
+export async function assertWindowNotRestored(uuid: string, name: string) {
+    assert.strictEqual(await isWindowActive(uuid, name), false, `Window ${uuid}:${name} was restored when it should not have been`);
 }
 
 function assertIsLayoutObject(layout: Workspace) {
     assert.strictEqual(layout.type, 'workspace', 'Layout object has an incorrect type!');
 }
 
-async function assertAllAppsClosed(t: SaveRestoreTestContext) {
-    t.context.testAppData.forEach(async (appData: TestAppData) => {
+async function assertAllAppsClosed(context: AppContext) {
+    context.testAppData.forEach(async (appData: TestAppData) => {
         const appRunning = await appData.app.isRunning();
         if (appRunning) {
-            t.fail(`Application ${appData.uuid} is running, but it should have been closed.`);
+            assert.fail(`Application ${appData.uuid} is running, but it should have been closed.`);
             return;
         }
     });
 }
 
-function isSaveRestoreContext(t: SaveRestoreTestContext): t is SaveRestoreTestContext {
-    return !!(t.context && t.context.testAppData);
+function isSaveRestoreContext(context: AppContext): context is AppContext {
+    return !!(context && context.testAppData);
 }
 
 async function getTestApps(): Promise<Application[]> {
@@ -70,14 +65,14 @@ async function getTestApps(): Promise<Application[]> {
                            }));
 }
 
-export async function createCloseAndRestoreLayout(t: SaveRestoreTestContext|undefined = undefined): Promise<Workspace> {
+export async function createCloseAndRestoreLayout(context: AppContext|undefined = undefined): Promise<Workspace> {
     const workspace = await sendServiceMessage(WorkspaceAPI.GENERATE_LAYOUT, undefined) as Workspace;
 
     assertIsLayoutObject(workspace);
-    if (t !== undefined && isSaveRestoreContext(t)) {
+    if (context !== undefined && isSaveRestoreContext(context)) {
         // Close all apps that were created as part of restore
-        await Promise.all(t.context.testAppData.map(async (appData: TestAppData) => await appData.app.close(true)));
-        await assertAllAppsClosed(t);
+        await Promise.all(context.testAppData.map(async (appData: TestAppData) => await appData.app.close(true)));
+        await assertAllAppsClosed(context);
     } else {
         // Close all apps
         await Promise.all((await getTestApps()).map(app => app.close()));

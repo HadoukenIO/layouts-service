@@ -40,12 +40,12 @@ testParameterized<CreateAppData, AppContext>(
             await applicationInfo.app.addListener('shown', failIfShown);
         }
 
-        await createCloseAndRestoreLayout(t);
+        await createCloseAndRestoreLayout(t.context);
 
         for (const applicationInfo of t.context.testAppData) {
-            await assertWindowRestored(t, applicationInfo.uuid, applicationInfo.uuid);
+            await assertWindowRestored(applicationInfo.uuid, applicationInfo.uuid);
             for (const applicationChild of applicationInfo.children) {
-                await assertWindowRestored(t, applicationInfo.uuid, applicationChild.identity.name!);
+                await assertWindowRestored(applicationInfo.uuid, applicationChild.identity.name!);
             }
         }
     }));

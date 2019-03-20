@@ -33,13 +33,13 @@ testParameterized<CreateAppData, AppContext>(
             testOptions.apps.length} App(s) - ${testOptions.apps[0].childWindows.length} Child(ren) Each`,
     deregisteredTestOptionsArray,
     createAppTest(async (t, applicationData: CreateAppData) => {
-        await createCloseAndRestoreLayout(t);
+        await createCloseAndRestoreLayout(t.context);
         await delay(2000);
 
         for (const applicationInfo of t.context.testAppData) {
-            await assertWindowNotRestored(t, applicationInfo.uuid, applicationInfo.uuid);
+            await assertWindowNotRestored(applicationInfo.uuid, applicationInfo.uuid);
             for (const applicationChild of applicationInfo.children) {
-                await assertWindowNotRestored(t, applicationInfo.uuid, applicationChild.identity.name!);
+                await assertWindowNotRestored(applicationInfo.uuid, applicationChild.identity.name!);
             }
         }
     }));

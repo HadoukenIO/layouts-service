@@ -81,9 +81,9 @@ testParameterized(
         await layoutsClient.workspaces.restore(layout);
         await delay(1500);
 
-        await Promise.all(registeredChildren.map(w => assertWindowRestored(t, w.identity.uuid, w.identity.name!)));
+        await Promise.all(registeredChildren.map(w => assertWindowRestored(w.identity.uuid, w.identity.name!)));
 
-        await assertWindowNotRestored(t, deregisteredChild.identity.uuid, deregisteredChild.identity.name!);
+        await assertWindowNotRestored(deregisteredChild.identity.uuid, deregisteredChild.identity.name!);
 
         for (const group of remainingGroups) {
             if (group.length === 1) {

@@ -45,7 +45,7 @@ testParameterized<CreateAppData, AppContext>(
         testOptions.apps.length} App(s) - ${testOptions.apps[0].childWindows.length} Child(ren) Each`,
     tabTestOptionsArray,
     createAppTest(async (t, applicationData: CreateAppData) => {
-        await createCloseAndRestoreLayout(t);
+        await createCloseAndRestoreLayout(t.context);
 
         for (const grouping of applicationData.tabWindowGrouping!) {
             const win1 = t.context.windows[grouping.group[0]];

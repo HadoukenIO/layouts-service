@@ -46,7 +46,7 @@ testParameterized<CreateAppData, AppContext>(
         testOptions.apps.length} App(s) - ${testOptions.apps[0].childWindows.length} Child(ren) Each`,
     snapTestOptionsArray,
     createAppTest(async (t, applicationData: CreateAppData) => {
-        await createCloseAndRestoreLayout(t);
+        await createCloseAndRestoreLayout(t.context);
 
         for (let index = 0; index < applicationData.snapWindowGrouping!.length; index++) {
             const grouping = applicationData.snapWindowGrouping![index];

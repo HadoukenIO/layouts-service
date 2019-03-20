@@ -10,6 +10,9 @@ const schemaRoot = path.resolve(__dirname, './res/provider/config');
 const schemaOutput = path.resolve(__dirname, './gen/provider/config');
 const defaultsOutput = path.resolve(__dirname, './gen/provider/config/defaults.json');
 
+/**
+ * Import the webpack tools from openfin-service-tooling
+ */
 const webpackTools = require('openfin-service-tooling').webpackTools;
 
 

@@ -12,12 +12,8 @@
 const execa = require('execa');
 const os = require('os');
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
-
 const {launch} = require('hadouken-js-adapter');
-
-const {createCustomManifestMiddleware} = require('../scripts/server/spawn');
+const tooling = require('openfin-service-tooling');
 
 let port;
 
@@ -123,22 +119,13 @@ async function build() {
 async function serve() {
     return new Promise((resolve, reject) => {
         const app = express();
-        
-        // Intercepts requests for app manifests and replaces the runtime version with the one
-        // given as a command line parameter.
-        app.get('/*/*.json', (req, res) => {
-            let configData = JSON.parse(fs.readFileSync(path.join('res', req.path.substr(1))));
-            if (runtimeVersion && configData.runtime && configData.runtime.version) {
-                configData.runtime.version = runtimeVersion;
-            }
-            res.json(configData);
-        });
 
+        app.use(/\/?(.*app\.json)/, tooling.middleware.createAppJsonMiddleware("testing", runtimeVersion));
         app.use(express.static('dist'));
         app.use(express.static('res'));
 
         // Add route to dynamically generate app manifests
-        app.use('/manifest', createCustomManifestMiddleware());
+        app.use('/manifest', tooling.middleware.createCustomManifestMiddleware());
         app.use('/create-manifest', (req, res) => {
             const {uuid, url, defaultTop, config, autoShow} = req.query;
             const additionalServiceProperties = config ? {config: JSON.parse(config)} : {};

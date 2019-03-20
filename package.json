@@ -32,9 +32,7 @@
   "devDependencies": {
     "@types/jest": "^23.3.12",
     "@types/sortablejs": "^1.3.32",
-    "archiver": "^3.0.0",
     "ava": "^0.25.0",
-    "copy-webpack-plugin": "^4.5.1",
     "execa": "^0.10.0",
     "express": "^4.16.3",
     "gts": "^0.7.1",
@@ -44,17 +42,13 @@
     "json-schema-defaults": "^0.4.0",
     "json-schema-to-typescript": "^6.1.0",
     "mkdirp": "^0.5.1",
-    "openfin-service-tooling": "^1.0.1",
+    "openfin-service-tooling": "1.0.2-alpha.6",
     "rimraf": "^2.6.2",
     "robotjs": "^0.5.1",
     "ts-jest": "^23.10.5",
-    "ts-loader": "^4.4.2",
     "typedoc": "^0.12.0",
     "typedoc-plugin-external-module-name": "^1.1.3",
-    "typescript": "~3.0.3",
-    "webpack": "^4.20.2",
-    "webpack-cli": "^3.1.0",
-    "webpack-dev-middleware": "^3.4.0"
+    "typescript": "~3.0.3"
   },
   "dependencies": {
     "fast-deep-equal": "^2.0.1",

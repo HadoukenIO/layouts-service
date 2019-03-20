@@ -778,7 +778,7 @@ export class DesktopWindow implements DesktopEntity {
                             if (groupWindow.isReady) {
                                 groupWindow._window.bringToFront();
                             } else {
-                                console.warn("groupWindow is not ready. You may have a nonexistent window in your snapGroup: ", groupWindow);
+                                console.warn('groupWindow is not ready. You may have a nonexistent window in your snapGroup: ', groupWindow);
                             }
                         });
                     }

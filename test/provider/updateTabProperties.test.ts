@@ -1,6 +1,6 @@
-import {test} from 'ava';
 import {Fin} from 'hadouken-js-adapter';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
+import * as assert from 'power-assert';
 
 import {WindowIdentity} from '../../src/provider/model/DesktopWindow';
 import {executeJavascriptOnService} from '../demo/utils/serviceUtils';
@@ -34,7 +34,7 @@ afterEach(async () => {
 });
 afterEach(teardown);
 
-test('Update Tab Properties - property changes reflected in service', async t => {
+test('Update Tab Properties - property changes reflected in service', async () => {
     // Drag wins[0] over wins[1] to make a tabset (in valid drop region)
     await tabWindowsTogether(wins[0], wins[1]);
 
@@ -54,7 +54,7 @@ test('Update Tab Properties - property changes reflected in service', async t =>
     const result = await executeJavascriptOnService(remoteFunc, wins[0].identity as WindowIdentity);
 
     // Assert that the properties we get back are equal to the ones we updated with.
-    t.deepEqual(result, newProps);
+    assert.deepEqual(result, newProps);
 });
 
 /**
@@ -62,7 +62,7 @@ test('Update Tab Properties - property changes reflected in service', async t =>
  *
  * TODO: See if there is an alternate way of testing this.
  */
-test.failing('Update Tab Properties - property changes reflected in tabstrip DOM', async t => {
+test.skip('Update Tab Properties - property changes reflected in tabstrip DOM', async () => {
     // Drag wins[0] over wins[1] to make a tabset (in valid drop region)
     await tabWindowsTogether(wins[0], wins[1]);
 
@@ -93,5 +93,5 @@ test.failing('Update Tab Properties - property changes reflected in tabstrip DOM
     const result = await executeJavascriptOnService(remoteFunc, wins[0].identity as WindowIdentity);
 
     // Assert that at least one of the tabs match the properties we updated with.
-    t.true(result.some(el => el.title === newProps.title && el.icon!.includes(newProps.icon)));
+    assert.strictEqual(result.some(el => el.title === newProps.title && el.icon!.includes(newProps.icon)), true);
 });

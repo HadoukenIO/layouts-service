@@ -1,5 +1,5 @@
-import {test, TestContext} from 'ava';
 import {Fin, Window} from 'hadouken-js-adapter';
+import * as assert from 'power-assert';
 
 import {WindowIdentity} from '../../src/client/main';
 import {UNDOCK_MOVE_DISTANCE} from '../../src/provider/snapanddock/Constants';
@@ -43,7 +43,7 @@ afterEach(async () => {
 afterEach(teardown);
 
 
-async function initWindows(t: TestContext, num: number, side?: Side) {
+async function initWindows(num: number, side?: Side) {
     for (let i = 0; i < num; i++) {
         windows[i] = await createChildWindow({...(windowPositions[i]), ...windowOptions});
     }
@@ -53,7 +53,7 @@ async function initWindows(t: TestContext, num: number, side?: Side) {
         await dragSideToSide(windows[1], opposite(side), windows[0], side);
 
         // Windows are adjacent
-        t.true(await isAdjacentTo(windows[0], windows[1], side));
+        assert.strictEqual(await isAdjacentTo(windows[0], windows[1], side), true);
     }
 
     if (num === 4) {
@@ -63,8 +63,8 @@ async function initWindows(t: TestContext, num: number, side?: Side) {
     }
 }
 
-test('One ungrouped window - no effect on undock', async t => {
-    await initWindows(t, 1);
+test('One ungrouped window - no effect on undock', async () => {
+    await initWindows(1);
 
     const boundsBefore = await getBounds(windows[0]);
 
@@ -74,7 +74,7 @@ test('One ungrouped window - no effect on undock', async t => {
 
     const boundsAfter = await getBounds(windows[0]);
 
-    t.deepEqual(boundsBefore, boundsAfter);
+    assert.deepStrictEqual(boundsBefore, boundsAfter);
 });
 
 // Runs two-window test for each side
@@ -88,16 +88,16 @@ test('One ungrouped window - no effect on undock', async t => {
 });
 
 function twoWindowTest(side: Side) {
-    test('Two windows - undock ' + side, async t => {
+    test('Two windows - undock ' + side, async () => {
         // Spawn and snap two windows
-        await initWindows(t, 2, side);
+        await initWindows(2, side);
 
         // Send and undock message to the service
         await undockWindow(windows[1].identity as WindowIdentity);
 
         // Undocked window moved away from other window(s)
-        t.is(await getDistanceBetween(windows[0], side, windows[1], opposite(side)), UNDOCK_MOVE_DISTANCE);
-        t.is(await getDistanceBetween(windows[0], perpendicular(side), windows[1], perpendicular(side)), 0);
+        assert.strictEqual(await getDistanceBetween(windows[0], side, windows[1], opposite(side)), UNDOCK_MOVE_DISTANCE);
+        assert.strictEqual(await getDistanceBetween(windows[0], perpendicular(side), windows[1], perpendicular(side)), 0);
 
         // Check that both windows are undocked at the service level
         await assertNotGrouped(windows[0]);
@@ -121,9 +121,9 @@ function fourWindowTest(corner: Corner) {
     // 2 is (2 + map['right']) = 2 + 1 ==> window 3 is right of window 2
     const sideToWindowMap = {'bottom': 2, 'top': -2, 'right': 1, 'left': -1};
 
-    test('Four windows - undock ' + corner, async t => {
+    test('Four windows - undock ' + corner, async () => {
         // Spawn and snap 4 windows
-        await initWindows(t, 4);
+        await initWindows(4);
 
         // Gets the window index to be undocked
         const undockedIndex = cornerToWindowMap[corner];
@@ -139,8 +139,8 @@ function fourWindowTest(corner: Corner) {
         const distanceY = await getDistanceBetween(windows[undockedIndex], opposite(sideY), windows[undockedIndex + sideToWindowMap[opposite(sideY)]], sideY);
 
         // Check that the window moved in the expected way
-        t.is(distanceX, UNDOCK_MOVE_DISTANCE);
-        t.is(distanceY, UNDOCK_MOVE_DISTANCE);
+        assert.strictEqual(distanceX, UNDOCK_MOVE_DISTANCE);
+        assert.strictEqual(distanceY, UNDOCK_MOVE_DISTANCE);
 
         // Check that the window is undocked at the service level
         await assertNotGrouped(windows[undockedIndex]);

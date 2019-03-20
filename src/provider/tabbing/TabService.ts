@@ -333,24 +333,118 @@ export class TabService {
     }
 
     /**
+     * Generates a valid tabbing target for a given active group in its current position.
+     * @param {DesktopSnapGroup} activeGroup The current active group being moved by the user.
+     */
+    public getTarget(activeWindow: DesktopEntity): TabTarget|EjectTarget|null {
+        const position: Point|null = this._model.mouseTracker.getPosition();
+
+        if (!position) {
+            // We should get a mouse position whenever we are running a getTarget op.
+            return null;
+        }
+
+        if (!this.isEntityTabEnabled(activeWindow)) {
+            return null;
+        }
+
+        const activeGroup = activeWindow.snapGroup;
+        const targetWindow: DesktopWindow|null = this.getTargetWindow(position, activeWindow);
+
+        /**
+         * Checks if the mouse position is outside of the activeWindows group bounds.  Needed for tab drag & drop validity check.
+         */
+        const isMouseInsideGroupBounds = activeWindow.tabGroup ?
+            RectUtils.isPointInRect(activeWindow.tabGroup.currentState.center, activeWindow.tabGroup.currentState.halfSize, position) :
+            RectUtils.isPointInRect(activeWindow.currentState.center, activeWindow.currentState.halfSize, position);
+
+        /**
+         * Checks the mouse position is over a valid window drop area.
+         */
+        const isOverWindowValid: boolean = !!targetWindow && this.isOverWindowDropArea(targetWindow, position);
+
+        /**
+         * Checks if the window we are dragging is a tab group.
+         */
+        const activeTabGroup = activeWindow.tabGroup;
+
+        /**
+         * Prevent snapped windows from tabbing to other windows/groups
+         */
+        const targetAlreadySnapped: boolean = activeGroup.isNonTrivial();
+
+        /**
+         * Prevent windows that are snapped together from tabbing - only tab windows that are in different snap groups
+         */
+        const alreadyTabbed: boolean = !!targetWindow && targetWindow.snapGroup === activeGroup;
+
+        /**
+         * Validity conditions check for window over window tab target creation.
+         */
+        const targetWindowOverWindow = targetWindow && !targetAlreadySnapped && !alreadyTabbed && isOverWindowValid && !activeTabGroup;
+
+        /**
+         * Validity conditions check for tab dragging over window tab target creation.
+         */
+        const targetTabDragOverWindow = targetWindow && this._model.mouseTracker.isDraggingTab && isOverWindowValid;
+
+        if (targetWindow && (targetWindowOverWindow || targetTabDragOverWindow)) {
+            const targetTabGroup = targetWindow.tabGroup;
+
+            // Check if the target and active window have same tab config.
+            const valid =
+                this.constraintsCompatible(activeWindow, targetTabGroup || targetWindow) && this.doEntitiesShareTabstripConfig(targetWindow, activeWindow);
+            return {
+                type: eTargetType.TAB,
+                activeWindow,
+                targetWindow,
+                dropArea: this.getWindowDropArea(targetWindow),
+                valid,
+                tabDragging: this._model.mouseTracker.isDraggingTab
+            };
+        } else if (
+            activeTabGroup && this._model.mouseTracker.isDraggingTab &&
+            (!isMouseInsideGroupBounds || isMouseInsideGroupBounds && !this.isOverWindowDropArea(activeWindow as DesktopWindow, position))) {
+            return {type: eTargetType.EJECT, activeWindow, position, valid: true};
+        }
+
+        return null;
+    }
+
+    /**
      * Determines if two windows can be tabbed together. The windows being tabbed can be identified in one of two ways.
      *
      * @param item1 Details about the first entity, either window about to be tabbed or the tabstrip a window is to be added to
      * @param item2 Details about the second entity, either window about to be tabbed or the tabstrip a window is to be added to
      */
     public canTabTogether(item1: DesktopEntity, item2: DesktopEntity): boolean {
-        const configs: {enabled: boolean; config: Tabstrip}[] = [item1, item2].map(entity => {
+        return this.isEntityTabEnabled(item1) && this.isEntityTabEnabled(item2) && this.doEntitiesShareTabstripConfig(item1, item2);
+    }
+
+    private doEntitiesShareTabstripConfig(item1: DesktopEntity, item2: DesktopEntity): boolean {
+        const configUrls: string[] = [item1, item2].map(entity => {
             const isTabstrip = !!entity.tabGroup && entity.tabGroup.window === entity;
 
             if (isTabstrip) {
-                return {enabled: true, config: entity.tabGroup!.config};
+                return entity.tabGroup!.config.url;
             } else {
                 const config = this._config.query(entity.scope);
-                return {enabled: config.features.tab, config: config.tabstrip};
+                return config.tabstrip.url;
             }
         });
 
-        return configs.every(c => c.enabled) && configs[0].config.url === configs[1].config.url;
+        return configUrls[0] === configUrls[1];
+    }
+
+    private isEntityTabEnabled(entity: DesktopEntity): boolean {
+        const isTabstrip = !!entity.tabGroup && entity.tabGroup.window === entity;
+
+        if (isTabstrip) {
+            return true;
+        } else {
+            const config = this._config.query(entity.scope);
+            return config.features.tab;
+        }
     }
 
     private getScope(x: WindowIdentity|DesktopEntity): Scope {
@@ -411,80 +505,15 @@ export class TabService {
         }
     }
 
-    /**
-     * Generates a valid tabbing target for a given active group in its current position.
-     * @param {DesktopSnapGroup} activeGroup The current active group being moved by the user.
-     */
-    public getTarget(activeWindow: DesktopEntity): TabTarget|EjectTarget|null {
-        const position: Point|null = this._model.mouseTracker.getPosition();
+    private getTargetWindow(position: Point, activeWindow: DesktopEntity): DesktopWindow|null {
+        const exclude = this._model.mouseTracker.isDraggingTab ? undefined : activeWindow.identity;
+        const candidateTarget = this._model.getWindowAt(position.x, position.y, exclude);
 
-        if (!position) {
-            // We should get a mouse position whenever we are running a getTarget op.
+        if (candidateTarget) {
+            return this.isEntityTabEnabled(candidateTarget) ? candidateTarget : null;
+        } else {
             return null;
         }
-
-        const activeGroup = activeWindow.snapGroup;
-
-        const targetWindow: DesktopWindow|null =
-            this._model.getWindowAt(position.x, position.y, this._model.mouseTracker.isDraggingTab ? undefined : activeWindow.identity);
-
-        /**
-         * Checks if the mouse position is outside of the activeWindows group bounds.  Needed for tab drag & drop validity check.
-         */
-        const isMouseInsideGroupBounds = activeWindow.tabGroup ?
-            RectUtils.isPointInRect(activeWindow.tabGroup.currentState.center, activeWindow.tabGroup.currentState.halfSize, position) :
-            RectUtils.isPointInRect(activeWindow.currentState.center, activeWindow.currentState.halfSize, position);
-
-        /**
-         * Checks the mouse position is over a valid window drop area.
-         */
-        const isOverWindowValid: boolean = !!targetWindow && this.isOverWindowDropArea(targetWindow, position);
-
-        /**
-         * Checks if the window we are dragging is a tab group.
-         */
-        const activeTabGroup = activeWindow.tabGroup;
-
-        /**
-         * Prevent snapped windows from tabbing to other windows/groups
-         */
-        const targetAlreadySnapped: boolean = activeGroup.isNonTrivial();
-
-        /**
-         * Prevent windows that are snapped together from tabbing - only tab windows that are in different snap groups
-         */
-        const alreadyTabbed: boolean = !!targetWindow && targetWindow.snapGroup === activeGroup;
-
-        /**
-         * Validity conditions check for window over window tab target creation.
-         */
-        const targetWindowOverWindow = targetWindow && !targetAlreadySnapped && !alreadyTabbed && isOverWindowValid && !activeTabGroup;
-
-        /**
-         * Validity conditions check for tab dragging over window tab target creation.
-         */
-        const targetTabDragOverWindow = targetWindow && this._model.mouseTracker.isDraggingTab && isOverWindowValid;
-
-        if (targetWindow && (targetWindowOverWindow || targetTabDragOverWindow)) {
-            const targetTabGroup = targetWindow.tabGroup;
-
-            // Check if the target and active window have same tab config.
-            const valid = this.constraintsCompatible(activeWindow, targetTabGroup || targetWindow) && this.canTabTogether(targetWindow, activeWindow);
-            return {
-                type: eTargetType.TAB,
-                activeWindow,
-                targetWindow,
-                dropArea: this.getWindowDropArea(targetWindow),
-                valid,
-                tabDragging: this._model.mouseTracker.isDraggingTab
-            };
-        } else if (
-            activeTabGroup && this._model.mouseTracker.isDraggingTab &&
-            (!isMouseInsideGroupBounds || isMouseInsideGroupBounds && !this.isOverWindowDropArea(activeWindow as DesktopWindow, position))) {
-            return {type: eTargetType.EJECT, activeWindow, position, valid: true};
-        }
-
-        return null;
     }
 
     private constraintsCompatible(active: DesktopEntity, target: DesktopEntity): boolean {

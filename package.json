@@ -43,6 +43,7 @@
     "json-schema-to-typescript": "^6.1.0",
     "mkdirp": "^0.5.1",
     "openfin-service-tooling": "1.0.2-alpha.6",
+    "pre-commit": "^1.2.2",
     "rimraf": "^2.6.2",
     "robotjs": "^0.5.1",
     "ts-jest": "^23.10.5",
@@ -79,5 +80,10 @@
     "classNameTemplate": "{classname} > {title}",
     "titleTemplate": "{title}",
     "ancestorSeparator": " > "
+  },
+  "precommit": {
+    "run": [
+      "check"
+    ]
   }
 }

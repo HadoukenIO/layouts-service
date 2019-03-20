@@ -46,7 +46,8 @@ module.exports = [
     webpackTools.createConfig(`${outputDir}/client`, './src/client/main.ts', {minify: true, isLibrary: true, libraryName: 'OpenFinLayouts', outputFilename: "openfin-layouts"}, webpackTools.versionPlugin),
     webpackTools.createConfig(`${outputDir}/provider`, {
         main: './src/provider/main.ts',
-        tabStrip: './src/provider/tabbing/tabstrip/main.ts'
+        tabStrip: './src/provider/tabbing/tabstrip/main.ts',
+        placeholder: './src/provider/workspaces/placeholder/main.ts'
     }, undefined, webpackTools.manifestPlugin, webpackTools.versionPlugin, schemaDefaultsPlugin, schemaTypesPlugin),
     webpackTools.createConfig(`${outputDir}/provider`, './src/provider/ServiceWorker.js', {minify: true, outputFilename: "sw"}, webpackTools.versionPlugin),
     webpackTools.createConfig(`${outputDir}/demo`, {
@@ -55,6 +56,8 @@ module.exports = [
         popup: './src/demo/popup.ts',
         deregisteredApp: './src/demo/deregisteredApp.ts',
         normalApp: './src/demo/normalApp.ts',
+        normalAppHangingRestoreBadChildRestoration: './src/demo/normalAppHangingRestoreBadChildRestoration.ts',
+        normalAppHangingRestoreNoReady: './src/demo/normalAppHangingRestoreNoReady.ts',
         saveRestoreTestingApp: './src/demo/saveRestoreTestingApp.ts',
         tabapp1: './src/demo/tabapp1.ts',
         tabapp2: './src/demo/tabapp2.ts'

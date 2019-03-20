@@ -442,8 +442,10 @@ export class DesktopTabGroup implements DesktopEntity {
                 // the other snapped windows.
                 // TODO (SERVICE-311): Investigate how to properly harden against these issues
                 await new Promise(res => setTimeout(res, 10));
-                console.log('Re-attaching remaining tab: ' + remainingTab.id + ' => ' + joinedSnappable.id);
-                await remainingTab.setSnapGroup(joinedSnappable.snapGroup);
+                if (remainingTab.isReady) {
+                    console.log('Re-attaching remaining tab: ' + remainingTab.id + ' => ' + joinedSnappable.id);
+                    await remainingTab.setSnapGroup(joinedSnappable.snapGroup);
+                }
             }
         }
     }

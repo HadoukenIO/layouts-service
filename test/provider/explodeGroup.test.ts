@@ -1,4 +1,5 @@
 import {Fin, Window} from 'hadouken-js-adapter';
+import * as assert from 'power-assert';
 
 import {WindowIdentity} from '../../src/client/main';
 import {explodeGroup} from '../demo/utils/snapServiceUtils';
@@ -9,7 +10,6 @@ import {getBounds} from './utils/getBounds';
 import {isInGroup} from './utils/isInGroup';
 import {isOverlappedWith} from './utils/isOverlappedWith';
 import {defaultArrangements, WindowInitializer} from './utils/WindowInitializer';
-import * as assert from 'power-assert';
 
 let windows: Window[] = new Array<Window>();
 let fin: Fin;

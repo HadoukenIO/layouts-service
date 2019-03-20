@@ -1,8 +1,7 @@
-import {test} from 'ava';
 import {Fin, Window} from 'hadouken-js-adapter';
+import * as assert from 'power-assert';
 import * as robot from 'robotjs';
 
-import {executeJavascriptOnService} from '../demo/utils/serviceUtils';
 import {teardown} from '../teardown';
 
 import {getConnection} from './utils/connect';
@@ -18,14 +17,14 @@ let fin: Fin;
 beforeAll(async () => {
     fin = await getConnection();
 });
-afterEach(async (t) => {
+afterEach(async () => {
     await win1.close();
     await win2.close();
 
     await teardown();
 });
 
-test('normal deregister, snap with registered', async t => {
+test('normal deregister, snap with registered', async () => {
     win1 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
@@ -56,11 +55,11 @@ test('normal deregister, snap with registered', async t => {
     const bounds1 = await getBounds(win1);
     const bounds2 = await getBounds(win2);
 
-    t.not(bounds1.left, bounds2.left);
-    t.not(bounds1.top, bounds2.bottom);
+    assert.notStrictEqual(bounds1.left, bounds2.left);
+    assert.notStrictEqual(bounds1.top, bounds2.bottom);
 });
 
-test('normal deregister, snap with degistered', async t => {
+test('normal deregister, snap with degistered', async () => {
     win1 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
@@ -90,11 +89,11 @@ test('normal deregister, snap with degistered', async t => {
     const bounds1 = await getBounds(win1);
     const bounds2 = await getBounds(win2);
 
-    t.not(bounds2.left, bounds1.left);
-    t.not(bounds2.top, bounds1.bottom);
+    assert.notStrictEqual(bounds2.left, bounds1.left);
+    assert.notStrictEqual(bounds2.top, bounds1.bottom);
 });
 
-test('delayed deregister, snap with registered', async t => {
+test('delayed deregister, snap with registered', async () => {
     win1 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
@@ -124,11 +123,11 @@ test('delayed deregister, snap with registered', async t => {
     const bounds1 = await getBounds(win1);
     const bounds2 = await getBounds(win2);
 
-    t.not(bounds1.left, bounds2.left);
-    t.not(bounds1.top, bounds2.bottom);
+    assert.notStrictEqual(bounds1.left, bounds2.left);
+    assert.notStrictEqual(bounds1.top, bounds2.bottom);
 });
 
-test('delayed deregister, snap with deregistered', async t => {
+test('delayed deregister, snap with deregistered', async () => {
     win1 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
@@ -158,11 +157,11 @@ test('delayed deregister, snap with deregistered', async t => {
     const bounds1 = await getBounds(win1);
     const bounds2 = await getBounds(win2);
 
-    t.not(bounds2.left, bounds1.left);
-    t.not(bounds2.top, bounds1.bottom);
+    assert.notStrictEqual(bounds2.left, bounds1.left);
+    assert.notStrictEqual(bounds2.top, bounds1.bottom);
 });
 
-test('deregister snapped window', async t => {
+test('deregister snapped window', async () => {
     win1 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
@@ -195,8 +194,8 @@ test('deregister snapped window', async t => {
     const bounds2 = await getBounds(win2);
 
     // Windows should still be snapped.
-    t.is(bounds2.left, bounds1.left);
-    t.is(bounds2.top, bounds1.bottom);
+    assert.strictEqual(bounds2.left, bounds1.left);
+    assert.strictEqual(bounds2.top, bounds1.bottom);
 
     // Send message to triggered app to deregister.
     await fin.InterApplicationBus.send(win2.identity, 'deregister', '');
@@ -208,11 +207,11 @@ test('deregister snapped window', async t => {
     const endbounds2 = await getBounds(win2);
 
     // Windows should no longer be snapped.
-    t.not(endbounds2.left, endbounds1.left);
-    t.not(endbounds2.top, endbounds1.bottom);
+    assert.notStrictEqual(endbounds2.left, endbounds1.left);
+    assert.notStrictEqual(endbounds2.top, endbounds1.bottom);
 });
 
-test('no preview when deregistered - dragging registered', async t => {
+test('no preview when deregistered - dragging registered', async () => {
     // Wrap the pre-spawned preview window
     const previewWin = await getWindow({name: 'successPreview', uuid: 'layouts-service'});
 
@@ -243,13 +242,13 @@ test('no preview when deregistered - dragging registered', async t => {
     await dragWindowAndHover(win2, win1Bounds.right + 2, win1Bounds.top + 5);
 
     // The preview window should still be hidden.
-    t.false(await previewWin.isShowing());
+    assert.strictEqual(await previewWin.isShowing(), false);
 
     // Drop the window
     robot.mouseToggle('up');
 });
 
-test('no preview when deregistered - dragging deregistered', async t => {
+test('no preview when deregistered - dragging deregistered', async () => {
     // Wrap the pre-spawned preview window
     const previewWin = await getWindow({name: 'successPreview', uuid: 'layouts-service'});
 
@@ -280,7 +279,7 @@ test('no preview when deregistered - dragging deregistered', async t => {
     await dragWindowAndHover(win2, win1Bounds.right + 2, win1Bounds.top + 5);
 
     // The preview window should still be hidden.
-    t.false(await previewWin.isShowing());
+    assert.strictEqual(await previewWin.isShowing(), false);
 
     // Drop the window
     robot.mouseToggle('up');

@@ -96,7 +96,9 @@ async function closeAllWindows(): Promise<void> {
 }
 
 async function resetProviderState(): Promise<void> {
-    const msg: string|null = await executeJavascriptOnService<Scopes[], string|null>(function(this: ProviderWindow, allScopes: Scopes[]): string|null {
+    const msg: string|null = await executeJavascriptOnService<{allScopes: Scopes[], testAppUuid: string}, string|null>(function(this: ProviderWindow, params: {allScopes: Scopes[], testAppUuid: string}): string|null {
+        const {allScopes, testAppUuid} = params;
+        
         const SEPARATOR_LIST = ', ';
         const SEPARATOR_LINE = '\n    ';
 
@@ -164,7 +166,7 @@ async function resetProviderState(): Promise<void> {
         } else {
             return null;
         }
-    }, Object.keys(ScopePrecedence) as Scopes[]);
+    }, {allScopes:Object.keys(ScopePrecedence) as Scopes[], testAppUuid});
 
     if (msg) {
         // Pass-through debug info from provider

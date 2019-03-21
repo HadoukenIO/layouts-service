@@ -8,7 +8,7 @@
     "dist/client"
   ],
   "scripts": {
-    "test:unit": "jest --colors --no-cache --config=jest-unit.config.json --reporters=default",
+    "test:unit": "jest --colors --no-cache --config=jest-unit.config.json",
     "test:int": "node test/runner.js",
     "test": "npm run test:unit && npm run test:int",
     "check": "gts check && cd test && gts check",

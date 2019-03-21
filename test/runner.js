@@ -60,6 +60,7 @@ const showHelp = getArg('--help') || getArg('-h');
 const skipBuild = getArg('--run') || getArg('-r');
 const debugMode = getArg('--debug') || getArg('-d');
 const runtimeVersion = getArg('--runtime-version', true);
+const color = getArg('--color', true, true);
 
 let testFileName;
 while(testFileName = getArg('--file-name', true)) {
@@ -83,7 +84,11 @@ Options:
 }
 
 const fileNamesArg = testFileNames.length > 1 ? testFileNames.slice(1).map(testFileName => `${testFileName}.test.ts`).join(" ") : '';
-const testCommand = `jest --colors --no-cache --config=jest-int.config.json --forceExit --runInBand --verbose ${fileNamesArg} ${testNameFilter ? '--testNamePattern=' + testNameFilter: ''} ${unusedArgs.join(' ')}`;
+const testCommand = `jest ` +
+    `--color=${color} ` +
+    `--no-cache --config=jest-int.config.json --forceExit --runInBand --verbose ` +
+    `${fileNamesArg} ${testNameFilter ? '--testNamePattern=' + testNameFilter: ''} ` +
+    `${unusedArgs.join(' ')}`;
 
 const cleanup = async res => {
     if (os.platform().match(/^win/)) {

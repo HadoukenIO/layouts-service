@@ -24,7 +24,7 @@ pipeline {
                     agent { label 'win10-dservices' }
                     steps {
                         bat "npm i"
-                        bat "npm run test:int -- --verbose"
+                        bat "npm run test:int -- --color=false --verbose"
                     }
                     // Still needs some research:
                     //   - No obvious way to have ava write to both console and file

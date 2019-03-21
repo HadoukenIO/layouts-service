@@ -194,7 +194,7 @@ async function createApplication(options: Omit<AppData, 'parent'>): Promise<Appl
             frame: options.frame || false,
             realmName: options.realm || '',
             enableMesh: options.enableMesh || false,
-            runtime: options.runtime || 'stable',
+            runtime: options.runtime || await fin.System.getVersion(),
             useService: options.useService !== undefined ? options.useService : true,
             provider: options.provider || 'local',
             config: options.config ? JSON.stringify(options.config) : ''

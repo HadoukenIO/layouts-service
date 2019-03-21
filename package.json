@@ -8,7 +8,7 @@
     "dist/client"
   ],
   "scripts": {
-    "test:unit": "jest --colors --no-cache --config=jest-unit.config.json",
+    "test:unit": "jest --colors --no-cache --config=jest-unit.config.json --reporters=default",
     "test:int": "node test/runner.js",
     "test": "npm run test:unit && npm run test:int",
     "check": "gts check && cd test && gts check",
@@ -62,13 +62,6 @@
     "fast-deep-equal": "^2.0.1",
     "hadouken-js-adapter": "0.36.1-alpha.1",
     "sortablejs": "^1.7.0"
-  },
-  "jest-junit": {
-    "outputDirectory": "./dist/test",
-    "outputName": "results-unit.xml",
-    "classNameTemplate": "{classname} > {title}",
-    "titleTemplate": "{title}",
-    "ancestorSeparator": " > "
   },
   "precommit": {
     "run": [

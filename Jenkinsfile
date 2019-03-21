@@ -10,7 +10,7 @@ pipeline {
                     steps {
                         sh "npm i --ignore-scripts"
                         sh "npm run generate"
-                        sh "npm run test:unit -- --color=false --reporters=default --reporters=jest-junit"
+                        sh "npm run test:unit -- --color=false --reporters=jest-junit"
                         sh "npm run check"
                     }
                     post {
@@ -24,7 +24,7 @@ pipeline {
                     agent { label 'win10-dservices' }
                     steps {
                         bat "npm i"
-                        bat "npm run test:int -- --color=false --verbose"
+                        bat "npm run test:int -- --color=false --verbose --reporters=jest-junit "
                     }
                     // Still needs some research:
                     //   - No obvious way to have ava write to both console and file

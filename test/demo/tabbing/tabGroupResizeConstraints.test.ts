@@ -5,6 +5,7 @@ import {assertCompleteTabGroup, assertDoesNotReject, assertNotTabbed, assertPair
 import {delay} from '../../provider/utils/delay';
 import {Side, sideArray} from '../../provider/utils/SideUtils';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
+import {teardown} from '../../teardown';
 import {Constraints} from '../snapanddock/resizeOnSnap.test';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
 import {refreshWindowState} from '../utils/modelUtils';
@@ -15,6 +16,8 @@ import {getTabGroupState} from '../utils/tabServiceUtils';
 interface TabConstraintsOptions extends CreateWindowData {
     windowConstraints: Constraints[];
 }
+
+afterEach(teardown);
 
 testParameterized(
     'Constraints applied and restored correctly when tabbing',

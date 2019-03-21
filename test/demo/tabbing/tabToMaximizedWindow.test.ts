@@ -6,6 +6,7 @@ import {getConnection} from '../../provider/utils/connect';
 import {dragWindowTo} from '../../provider/utils/dragWindowTo';
 import {getBounds, getTabsetBounds, NormalizedBounds} from '../../provider/utils/getBounds';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
+import {teardown} from '../../teardown';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {getTabGroupState} from '../utils/tabServiceUtils';
@@ -14,6 +15,8 @@ interface TabToMaximizedWindowTestOptions extends CreateWindowData {
     windowCount: 2;
     tabTo: 'maximized'|'restored';
 }
+
+afterEach(teardown);
 
 testParameterized(
     `Tab to maximized window`,

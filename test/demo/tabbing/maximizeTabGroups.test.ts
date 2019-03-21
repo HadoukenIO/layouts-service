@@ -1,6 +1,7 @@
 import {assertGrouped, assertNotGrouped, assertNotGroupedTogether, assertNotMoved, assertPairTabbed} from '../../provider/utils/assertions';
 import {dragSideToSide} from '../../provider/utils/dragWindowTo';
 import {getBounds} from '../../provider/utils/getBounds';
+import {teardown} from '../../teardown';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {layoutsClientPromise} from '../utils/serviceUtils';
@@ -9,6 +10,7 @@ interface MaximizeTabGroupsInstance extends CreateWindowData {
     windowCount: 3|4;
 }
 
+afterEach(teardown);
 
 testParameterized(
     `Docked tabGroups undock when maximized`,

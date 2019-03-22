@@ -1,10 +1,7 @@
 const path = require('path');
-const webpack = require('webpack');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
 const SchemaToDefaultsPlugin = require('./scripts/plugins/SchemaToDefaultsPlugin');
 const SchemaToTypeScriptPlugin = require('./scripts/plugins/SchemaToTypeScriptPlugin');
 
-const version = require("./package.json").version;
 const outputDir = path.resolve(__dirname, './dist');
 const schemaRoot = path.resolve(__dirname, './res/provider/config');
 const schemaOutput = path.resolve(__dirname, './gen/provider/config');

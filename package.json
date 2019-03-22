@@ -20,12 +20,11 @@
     "prepare": "npm run generate",
     "posttest": "npm run check",
     "prepack": "npm run clean && npm run build && tsc -p src/client/tsconfig.types.json",
-    "build": "webpack --mode production",
-    "build:dev": "webpack --mode development",
-    "watch": "webpack --watch --mode development",
+    "build": "svc-tools build -- --mode production",
+    "build:dev": "svc-tools build -- --mode development",
     "generate": "node scripts/generateCode.js",
-    "zip": "node scripts/createProviderZip.js",
-    "start": "node server.js"
+    "zip": "svc-tools zip",
+    "start": "svc-tools start"
   },
   "keywords": [],
   "license": "Apache-2.0",
@@ -46,6 +45,7 @@
     "json-schema-to-typescript": "^6.1.0",
     "mkdirp": "^0.5.1",
     "power-assert": "^1.6.1",
+    "openfin-service-tooling": "^1.0.2",
     "pre-commit": "^1.2.2",
     "rimraf": "^2.6.2",
     "robotjs": "^0.5.1",
@@ -53,10 +53,7 @@
     "ts-loader": "^4.4.2",
     "typedoc": "^0.12.0",
     "typedoc-plugin-external-module-name": "^1.1.3",
-    "typescript": "~3.0.3",
-    "webpack": "^4.20.2",
-    "webpack-cli": "^3.1.0",
-    "webpack-dev-middleware": "^3.4.0"
+    "typescript": "~3.0.3"
   },
   "dependencies": {
     "fast-deep-equal": "^2.0.1",

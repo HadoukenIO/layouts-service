@@ -2,7 +2,7 @@ import deepEqual from 'fast-deep-equal';
 
 import {Scope, Tabstrip} from '../../../gen/provider/config/layouts-config';
 import {LayoutsEvent} from '../../client/connection';
-import {TabProperties, TabPropertiesUpdatedEvent} from '../../client/tabbing';
+import {ApplicationUIConfig, TabProperties, TabPropertiesUpdatedEvent} from '../../client/tabbing';
 import {TabGroup, TabGroupDimensions} from '../../client/workspaces';
 import {ConfigStore} from '../main';
 import {DesktopEntity} from '../model/DesktopEntity';
@@ -183,7 +183,8 @@ export class TabService {
                 return tab.identity;
             });
 
-            const config: Tabstrip|'default' = (group.config === DesktopTabstripFactory.DEFAULT_CONFIG) ? 'default' : group.config;
+            const config: Tabstrip|'default' =
+                this.areTabstripConfigurationsCompatible(group.config, DesktopTabstripFactory.DEFAULT_CONFIG) ? 'default' : group.config;
 
             const groupInfo = {active: group.activeTab.identity, dimensions: group.getSaveDimensions(), config, state: group.state};
 
@@ -422,18 +423,22 @@ export class TabService {
     }
 
     private doEntitiesShareTabstripConfig(item1: DesktopEntity, item2: DesktopEntity): boolean {
-        const configUrls: string[] = [item1, item2].map(entity => {
+        const configs: ApplicationUIConfig[] = [item1, item2].map(entity => {
             const isTabstrip = !!entity.tabGroup && entity.tabGroup.window === entity;
 
             if (isTabstrip) {
-                return entity.tabGroup!.config.url;
+                return entity.tabGroup!.config;
             } else {
                 const config = this._config.query(entity.scope);
-                return config.tabstrip.url;
+                return config.tabstrip;
             }
         });
 
-        return configUrls[0] === configUrls[1];
+        return this.areTabstripConfigurationsCompatible(configs[0], configs[1]);
+    }
+
+    private areTabstripConfigurationsCompatible(config1: ApplicationUIConfig, config2: ApplicationUIConfig): boolean {
+        return config1.url === config2.url && config1.height === config2.height;
     }
 
     private isEntityTabEnabled(entity: DesktopEntity): boolean {

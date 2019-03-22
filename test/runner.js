@@ -120,7 +120,7 @@ async function serve() {
     return new Promise((resolve, reject) => {
         const app = express();
 
-        app.use(/\/?(.*app\.json)/, tooling.middleware.createAppJsonMiddleware("testing", runtimeVersion));
+        app.use(/\/?(.*(app|provider)\.json)/, tooling.middleware.createAppJsonMiddleware("testing", runtimeVersion));
         app.use(express.static('dist'));
         app.use(express.static('res'));
 

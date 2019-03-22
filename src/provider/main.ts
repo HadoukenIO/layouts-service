@@ -1,4 +1,7 @@
+import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
+
 import {ConfigurationObject} from '../../gen/provider/config/layouts-config';
+import {SERVICE_CHANNEL} from '../client/internal';
 
 import {APIHandler} from './APIHandler';
 import {Loader} from './config/Loader';
@@ -43,6 +46,13 @@ export async function main() {
             'OpenFin Layouts will only work with monitors that are set to a scaling ratio of 100%. This can be changed in monitor or display settings. \n\nPlease contact <a href="mailto:support@openfin.co">support@openfin.co</a> with any further questions.';
         const title = 'OpenFin Layouts Notice';
         await createErrorBox(title, errorMessage);
+
+        const providerChannel: ChannelProvider = await fin.InterApplicationBus.Channel.create(SERVICE_CHANNEL);
+        providerChannel.setDefaultAction(() => {
+            throw Error(
+                'OpenFin Layouts will only work with monitors that are set to a scaling ratio of 100%. This can be changed in monitor or display settings. \n\nPlease contact support@openfin.co with any further questions. \n');
+        });
+
         return;  // NOTE: Service will still be running, but will not function.
     }
 

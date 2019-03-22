@@ -21,7 +21,8 @@
     	["jest-junit", {
         "outputDirectory": "./dist/test",
         "outputName": "results-int.xml",
-        "classNameTemplate": "{classname} > {title}",
+        "suiteNameTemplate": "{filename}",
+        "classNameTemplate": "Integration Tests > {filename} > {title}",
         "titleTemplate": "{title}",
         "ancestorSeparator": " > "
       }]

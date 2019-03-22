@@ -149,9 +149,21 @@ async function resetProviderState(): Promise<void> {
         if (watches.length !== expectedWatcherCount) {
             msgs.push(`Had ${watches.length} config watchers registered, expected ${expectedWatcherCount}`);
         }
-        if (Object.keys(loaderApps).filter(uuid => uuid !== testAppUuid).length > 0) {
-            const loaderInfo = JSON.stringify(loaderApps, null, 4).replace(/\n/g, SEPARATOR_LINE);
-            msgs.push(`Expected loader's appState cache to be empty (except for ${testAppUuid}), contains:${SEPARATOR_LINE}${loaderInfo}`);
+
+        const nonTestAppLoaderKeys = Object.keys(loaderApps).filter(uuid => uuid !== testAppUuid);
+        if (nonTestAppLoaderKeys.length > 0) {
+            let loaderInfo: string|undefined;
+
+            try {
+                loaderInfo = JSON.stringify(loaderApps, null, 4).replace(/\n/g, SEPARATOR_LINE);
+            } catch (e) {
+            }
+
+            if (loaderInfo) {
+                msgs.push(`Expected loader's appState cache to be empty (except for ${testAppUuid}), contains:${SEPARATOR_LINE}${loaderInfo}`);
+            } else {
+                msgs.push(`Expected loader's appState cache to be empty (except for ${testAppUuid}) and unable to stringify appState, contains other uuids:${SEPARATOR_LINE}${nonTestAppLoaderKeys.join(', ')}`);
+            }
         }
         if (loaderWindows.length !== 1 || loaderWindows[0] !== 'window:testApp/testApp') {
             const loaderInfo = loaderWindows.join(SEPARATOR_LIST);

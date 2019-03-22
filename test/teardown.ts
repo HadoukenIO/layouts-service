@@ -3,12 +3,10 @@ import {Window} from 'hadouken-js-adapter';
 import {Scopes} from '../src/provider/config/Store';
 import {ScopePrecedence} from '../src/provider/config/ConfigUtil';
 
-import {getConnection, getTestAppUuid} from './provider/utils/connect';
+import {getConnection, TESTSUITE_SANDBOX_PREFIX} from './provider/utils/connect';
 import {executeJavascriptOnService} from './demo/utils/serviceUtils';
 import {WindowInfo, WindowDetail} from 'hadouken-js-adapter/out/types/src/api/system/window';
 import {delay} from './provider/utils/delay';
-
-const testAppUuid = getTestAppUuid();
 
 /**
  * Util function to completely reset the desktop in-between test runs.
@@ -95,8 +93,8 @@ async function closeAllWindows(): Promise<void> {
 }
 
 async function resetProviderState(): Promise<void> {
-    const msg: string|null = await executeJavascriptOnService<{allScopes: Scopes[], testAppUuid: string}, string|null>(function(this: ProviderWindow, params: {allScopes: Scopes[], testAppUuid: string}): string|null {
-        const {allScopes, testAppUuid} = params;
+    const msg: string|null = await executeJavascriptOnService<{allScopes: Scopes[], testSuiteSandboxPrefix: string}, string|null>(function(this: ProviderWindow, params: {allScopes: Scopes[], testSuiteSandboxPrefix: string}): string|null {
+        const {allScopes, testSuiteSandboxPrefix} = params;
         
         const SEPARATOR_LIST = ', ';
         const SEPARATOR_LINE = '\n    ';
@@ -150,7 +148,7 @@ async function resetProviderState(): Promise<void> {
             msgs.push(`Had ${watches.length} config watchers registered, expected ${expectedWatcherCount}`);
         }
 
-        const nonTestAppLoaderKeys = Object.keys(loaderApps).filter(uuid => uuid !== testAppUuid);
+        const nonTestAppLoaderKeys = Object.keys(loaderApps).filter(uuid => !uuid.startsWith(testSuiteSandboxPrefix));
         if (nonTestAppLoaderKeys.length > 0) {
             let loaderInfo: string|undefined;
 
@@ -160,9 +158,9 @@ async function resetProviderState(): Promise<void> {
             }
 
             if (loaderInfo) {
-                msgs.push(`Expected loader's appState cache to be empty (except for ${testAppUuid}), contains:${SEPARATOR_LINE}${loaderInfo}`);
+                msgs.push(`Expected loader's appState cache to be empty (except for ${testSuiteSandboxPrefix}*), contains:${SEPARATOR_LINE}${loaderInfo}`);
             } else {
-                msgs.push(`Expected loader's appState cache to be empty (except for ${testAppUuid}) and unable to stringify appState, contains other uuids:${SEPARATOR_LINE}${nonTestAppLoaderKeys.join(', ')}`);
+                msgs.push(`Expected loader's appState cache to be empty (except for ${testSuiteSandboxPrefix}*) and unable to stringify appState, contains other uuids:${SEPARATOR_LINE}${nonTestAppLoaderKeys.join(', ')}`);
             }
         }
         if (loaderWindows.length !== 1 || loaderWindows[0] !== 'window:testApp/testApp') {
@@ -177,7 +175,7 @@ async function resetProviderState(): Promise<void> {
         } else {
             return null;
         }
-    }, {allScopes:Object.keys(ScopePrecedence) as Scopes[], testAppUuid});
+    }, {allScopes:Object.keys(ScopePrecedence) as Scopes[], testSuiteSandboxPrefix: TESTSUITE_SANDBOX_PREFIX});
 
     if (msg) {
         // Pass-through debug info from provider

@@ -1,8 +1,8 @@
-import {connect, Fin} from 'hadouken-js-adapter';
-import * as path from 'path';
+import {connect} from 'hadouken-js-adapter';
 
-const testAppUuid = `test-app-${Math.random().toString(36).substr(2, 16)}`;
+export const TESTSUITE_SANDBOX_PREFIX = 'testsuite-sandbox-';
+
+const testAppUuid = `${TESTSUITE_SANDBOX_PREFIX}${Math.random().toString(36).substr(2, 16)}`;
 const connection = connect({address: `ws://localhost:${process.env.OF_PORT}`, uuid: testAppUuid});
 
 export const getConnection = async () => connection;
-export const getTestAppUuid = () => testAppUuid;

@@ -6,7 +6,7 @@ import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/c
 import {MonitorInfo} from 'hadouken-js-adapter/out/types/src/api/system/monitor';
 import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
 
-import {channelPromise, eventEmitter, tryServiceDispatch} from './connection';
+import {eventEmitter, getServicePromise, tryServiceDispatch} from './connection';
 import {WorkspaceAPI} from './internal';
 import {WindowIdentity} from './main';
 import {ApplicationUIConfig} from './tabbing';
@@ -336,7 +336,7 @@ export function removeEventListener<K extends WorkspacesEvent>(eventType: K['typ
  * will be saved as the workspace's `customData` property for this app within the generated {@link Workspace}.
  */
 export async function setGenerateHandler(customDataDecorator: () => CustomData): Promise<boolean> {
-    const channel: ChannelClient = await channelPromise;
+    const channel: ChannelClient = await getServicePromise();
     return channel.register(WorkspaceAPI.GENERATE_HANDLER, customDataDecorator);
 }
 
@@ -359,7 +359,7 @@ export async function setGenerateHandler(customDataDecorator: () => CustomData):
  *
  */
 export async function setRestoreHandler(listener: (workspaceApp: WorkspaceApp) => WorkspaceApp | false | Promise<WorkspaceApp|false>): Promise<boolean> {
-    const channel: ChannelClient = await channelPromise;
+    const channel: ChannelClient = await getServicePromise();
     return channel.register(WorkspaceAPI.RESTORE_HANDLER, listener);
 }
 

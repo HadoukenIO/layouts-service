@@ -4,7 +4,7 @@ import {createChildWindow} from '../../provider/utils/createChildWindow';
 import {delay} from '../../provider/utils/delay';
 import {WindowInitializer} from '../../provider/utils/WindowInitializer';
 import {teardown} from '../../teardown';
-import {testParameterized} from '../utils/parameterizedTestUtils';
+import {itParameterized} from '../utils/parameterizedTestUtils';
 import {layoutsClientPromise} from '../utils/serviceUtils';
 import {assertWindowNotRestored, assertWindowRestored} from '../utils/workspacesUtils';
 
@@ -26,7 +26,7 @@ const childOptions = {
 
 afterEach(teardown);
 
-testParameterized(
+itParameterized(
     'Validate Group on Restore',
     [
         {windowCount: 3, arrangement: 'line', deregisteredIndex: 1, remainingGroups: [[0], [2]]},

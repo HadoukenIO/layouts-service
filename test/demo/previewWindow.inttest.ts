@@ -3,7 +3,7 @@ import * as assert from 'power-assert';
 import robot from 'robotjs';
 
 import {CreateWindowData, createWindowTest} from '../demo/utils/createWindowTest';
-import {testParameterized} from '../demo/utils/parameterizedTestUtils';
+import {itParameterized} from '../demo/utils/parameterizedTestUtils';
 import {assertAdjacent} from '../provider/utils/assertions';
 import {getConnection} from '../provider/utils/connect';
 import {delay} from '../provider/utils/delay';
@@ -24,7 +24,7 @@ interface PreviewTestOptions extends CreateWindowData {
     side: Side;
 }
 
-testParameterized(
+itParameterized(
     (testOptions: PreviewTestOptions): string => `Preview on ${testOptions.side} side`,
     [
         {frame: true, side: 'top', windowCount: 2},
@@ -57,7 +57,7 @@ interface PreviewResizeTestOptions extends CreateWindowData {
     dimension: 'height'|'width';
 }
 
-testParameterized(
+itParameterized(
     (testOptions: PreviewResizeTestOptions): string =>
         `Preview resize ${testOptions.dimension} on snap - ${testOptions.direction[0]} to ${testOptions.direction[1]}`,
     [
@@ -89,7 +89,7 @@ testParameterized(
         assert.strictEqual(previewBounds[dimension], windowBounds[0][dimension]);
     }, {defaultCentered: true, defaultWidth: 250, defaultHeight: 150}));
 
-testParameterized(
+itParameterized(
     (testOptions: CreateWindowData): string => `Preview tab - ${testOptions.windowCount > 2 ? 'tabbed' : 'single'} window`,
     [
         {frame: true, windowCount: 2},
@@ -120,7 +120,7 @@ testParameterized(
         assert.deepEqual(previewBounds, {...windowBounds[0], height: 60, bottom: windowBounds[0].top + previewBounds.height});
     }, {defaultCentered: true, defaultWidth: 250, defaultHeight: 150}));
 
-testParameterized(
+itParameterized(
     (testOptions: CreateWindowData): string => `Preview tab drag ${testOptions.windowCount > 3 ? 'tabbed' : 'single'} window`,
     [{frame: true, windowCount: 3}, {frame: true, windowCount: 4}],
     createWindowTest(async (context, testOptions: CreateWindowData) => {

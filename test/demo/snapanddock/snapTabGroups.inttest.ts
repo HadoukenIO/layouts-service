@@ -8,7 +8,7 @@ import {opposite, Side, Sides} from '../../provider/utils/SideUtils';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 import {teardown} from '../../teardown';
 import {CreateWindowData, createWindowTest, WindowContext} from '../utils/createWindowTest';
-import {testParameterized} from '../utils/parameterizedTestUtils';
+import {itParameterized} from '../utils/parameterizedTestUtils';
 import {getTabstrip} from '../utils/tabServiceUtils';
 import {switchTab, tearoutTab, tearoutToOtherTabstrip} from '../utils/tabstripUtils';
 
@@ -46,7 +46,7 @@ async function tabSnapAndMove(side: Side, windows: _Window[]): Promise<[_Window,
     return tabstrips;
 }
 
-testParameterized<SnapTabInstanceData&CreateWindowData>(
+itParameterized<SnapTabInstanceData&CreateWindowData>(
     (instance) => `Can snap tabsets together: ${instance.side}`,
     [{side: Sides.right}, {side: Sides.bottom}].map(instance => ({...instance, frame: true, windowCount: 4})),
     createWindowTest(async (context, instance: SnapTabInstanceData&CreateWindowData) => {
@@ -60,7 +60,7 @@ testParameterized<SnapTabInstanceData&CreateWindowData>(
         await assertGrouped(...windows);
     }));
 
-testParameterized<SnapTabInstanceData&CreateWindowData>(
+itParameterized<SnapTabInstanceData&CreateWindowData>(
     `Tab groups remain functional once grouped`,
     [{side: Sides.right}].map(instance => ({...instance, frame: true, windowCount: 4})),
     createWindowTest(async (context, instance: SnapTabInstanceData&CreateWindowData) => {
@@ -85,7 +85,7 @@ testParameterized<SnapTabInstanceData&CreateWindowData>(
         await assertGrouped(...windows);
     }));
 
-testParameterized<SnapTabInstanceData&CreateWindowData>(
+itParameterized<SnapTabInstanceData&CreateWindowData>(
     `Can tearout tab from snapped tabgroup`,
     [{side: Sides.right}].map(instance => ({...instance, frame: true, windowCount: 4})),
     createWindowTest(async (context) => {
@@ -102,7 +102,7 @@ testParameterized<SnapTabInstanceData&CreateWindowData>(
         await assertGrouped(...windows.slice(1));
     }));
 
-testParameterized<SnapTabInstanceData&CreateWindowData>(
+itParameterized<SnapTabInstanceData&CreateWindowData>(
     `Can tab into snapped window`,
     [{side: Sides.right}, {side: Sides.bottom}].map(instance => ({...instance, frame: true, windowCount: 4})),
     createWindowTest(async (context, instance: SnapTabInstanceData&CreateWindowData) => {
@@ -124,7 +124,7 @@ testParameterized<SnapTabInstanceData&CreateWindowData>(
         await assertGrouped(...windows);
     }));
 
-testParameterized<SnapTabInstanceData&CreateWindowData>(
+itParameterized<SnapTabInstanceData&CreateWindowData>(
     `Can tearout into snapped window`,
     [{side: Sides.right}, {side: Sides.bottom}].map(instance => ({...instance, frame: true, windowCount: 4})),
     createWindowTest(async (context, instance: SnapTabInstanceData&CreateWindowData) => {
@@ -151,7 +151,7 @@ testParameterized<SnapTabInstanceData&CreateWindowData>(
         await assertGrouped(...windows);
     }));
 
-testParameterized<SnapTabInstanceData&CreateWindowData>(
+itParameterized<SnapTabInstanceData&CreateWindowData>(
     `Can tearout into other group`,
     [{side: Sides.right}, {side: Sides.bottom}].map(instance => ({...instance, frame: true, windowCount: 5})),
     createWindowTest(async (context, instance: SnapTabInstanceData&CreateWindowData) => {

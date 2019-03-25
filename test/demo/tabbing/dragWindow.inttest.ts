@@ -3,7 +3,7 @@ import * as assert from 'power-assert';
 import robot from 'robotjs';
 
 import {CreateWindowData, createWindowTest} from '../../demo/utils/createWindowTest';
-import {testParameterized} from '../../demo/utils/parameterizedTestUtils';
+import {itParameterized} from '../../demo/utils/parameterizedTestUtils';
 import {getConnection} from '../../provider/utils/connect';
 import {getBounds} from '../../provider/utils/getBounds';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
@@ -14,7 +14,7 @@ import {tearoutToPoint} from '../utils/tabstripUtils';
 
 afterEach(teardown);
 
-testParameterized(
+itParameterized(
     (testOptions: CreateWindowData): string => `DragWindow matches virtualScreen size`,
     [{frame: true, windowCount: 2}],
     createWindowTest(async (context, testOptions: CreateWindowData) => {

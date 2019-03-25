@@ -3,7 +3,7 @@ import {dragSideToSide} from '../../provider/utils/dragWindowTo';
 import {getBounds} from '../../provider/utils/getBounds';
 import {teardown} from '../../teardown';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
-import {testParameterized} from '../utils/parameterizedTestUtils';
+import {itParameterized} from '../utils/parameterizedTestUtils';
 import {layoutsClientPromise} from '../utils/serviceUtils';
 
 interface MaximizeTabGroupsInstance extends CreateWindowData {
@@ -12,7 +12,7 @@ interface MaximizeTabGroupsInstance extends CreateWindowData {
 
 afterEach(teardown);
 
-testParameterized(
+itParameterized(
     `Docked tabGroups undock when maximized`,
     [
         {windowCount: 3, frame: false},

@@ -3,7 +3,7 @@ import * as assert from 'power-assert';
 
 import {teardown} from '../../teardown';
 import {CreateAppData, createAppTest} from '../utils/createAppTest';
-import {testParameterized} from '../utils/parameterizedTestUtils';
+import {itParameterized} from '../utils/parameterizedTestUtils';
 import {assertWindowRestored, closeAllPreviews, createBasicSaveAndRestoreTest, createCloseAndRestoreLayout} from '../utils/workspacesUtils';
 
 import {BasicSaveRestoreTestOptions} from './basicSaveAndRestore.inttest';
@@ -27,7 +27,7 @@ numberOfApps.forEach(appNumber => {
 
 afterEach(teardown);
 
-testParameterized<CreateAppData>(
+itParameterized<CreateAppData>(
     (testOptions: CreateAppData): string =>
         `Flash Check for SaveAndRestore - Parent Windows shouldn't show - ${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - ${
             testOptions.apps.length} App(s) - ${testOptions.apps[0].childWindows.length} Child(ren) Each`,

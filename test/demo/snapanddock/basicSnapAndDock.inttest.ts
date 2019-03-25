@@ -5,7 +5,7 @@ import {dragSideToSide, dragWindowTo} from '../../provider/utils/dragWindowTo';
 import {opposite, Side} from '../../provider/utils/SideUtils';
 import {teardown} from '../../teardown';
 import {CreateWindowData, createWindowTest, WindowContext} from '../utils/createWindowTest';
-import {testParameterized} from '../utils/parameterizedTestUtils';
+import {itParameterized} from '../utils/parameterizedTestUtils';
 
 interface TwoWindowTestOptions extends CreateWindowData {
     side: Side;
@@ -13,7 +13,7 @@ interface TwoWindowTestOptions extends CreateWindowData {
 
 afterEach(teardown);
 
-testParameterized<TwoWindowTestOptions>(
+itParameterized<TwoWindowTestOptions>(
     (testOptions: TwoWindowTestOptions): string => `Basic SnapAndDock - ${testOptions.windowCount} windows - ${testOptions.frame ? 'framed' : 'frameless'} - ${
         testOptions.side ? `- ${testOptions.side}` : ''}`,
     [
@@ -47,7 +47,7 @@ testParameterized<TwoWindowTestOptions>(
     }));
 
 
-testParameterized<CreateWindowData>(
+itParameterized<CreateWindowData>(
     (testOptions: CreateWindowData): string => `Basic SnapAndDock - ${testOptions.windowCount} windows - ${testOptions.frame}}`,
     [
         {frame: true, windowCount: 4},

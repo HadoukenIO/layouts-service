@@ -3,7 +3,7 @@ import {dragWindowTo} from '../../provider/utils/dragWindowTo';
 import {teardown} from '../../teardown';
 import {WindowGrouping} from '../utils/AppInitializer';
 import {CreateAppData, createAppTest} from '../utils/createAppTest';
-import {testParameterized} from '../utils/parameterizedTestUtils';
+import {itParameterized} from '../utils/parameterizedTestUtils';
 import {closeAllPreviews, createCloseAndRestoreLayout, createSnapTests} from '../utils/workspacesUtils';
 
 import {BasicSaveRestoreTestOptions} from './basicSaveAndRestore.inttest';
@@ -39,7 +39,7 @@ appNumbers.forEach(appNumber => {
 
 afterEach(teardown);
 
-testParameterized<CreateAppData>(
+itParameterized<CreateAppData>(
     (testOptions: CreateAppData): string => `Snap SaveAndRestore - ${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - ${
         testOptions.apps.length} App(s) - ${testOptions.apps[0].childWindows.length} Child(ren) Each`,
     snapTestOptionsArray,

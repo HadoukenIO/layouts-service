@@ -5,7 +5,7 @@ import {delay} from '../../provider/utils/delay';
 import {teardown} from '../../teardown';
 import {createAppsArray} from '../utils/AppInitializer';
 import {CreateAppData, createAppTest} from '../utils/createAppTest';
-import {testParameterized} from '../utils/parameterizedTestUtils';
+import {itParameterized} from '../utils/parameterizedTestUtils';
 import {assertWindowRestored, closeAllPreviews, createCloseAndRestoreLayout} from '../utils/workspacesUtils';
 
 const registeredProgrammaticApp = createAppsArray(1, 0);
@@ -26,7 +26,7 @@ afterEach(async () => {
     await teardown();
 });
 
-testParameterized<CreateAppData>(
+itParameterized<CreateAppData>(
     (testOptions: CreateAppData): string =>
         `Tab SaveAndRestore - ${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - Formerly tabbed window resize`,
     [{apps: combinedProgrammaticApps, tabWindowGrouping: windowGrouping}, {apps: combinedManifestApps, tabWindowGrouping: windowGrouping}],

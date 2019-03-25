@@ -6,13 +6,13 @@ import {dragSideToSide} from '../../provider/utils/dragWindowTo';
 import {getBounds} from '../../provider/utils/getBounds';
 import {teardown} from '../../teardown';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
-import {testParameterized} from '../utils/parameterizedTestUtils';
+import {itParameterized} from '../utils/parameterizedTestUtils';
 
 afterEach(teardown);
 
 // Using testParameterized more for type safety than parameterization
 // since this just one very specific test
-testParameterized(
+itParameterized(
     (testOptions: CreateWindowData) => 'Cannot snap windows so they overlap - shape: U',
     [{windowCount: 5, frame: true}],
     createWindowTest(async (context, testOptions: CreateWindowData) => {
@@ -57,7 +57,7 @@ testParameterized(
         await assertNoOverlap(windows);
     }));
 
-testParameterized(
+itParameterized(
     (testOptions: CreateWindowData) => 'Cannot snap windows so they overlap - shape: O',
     [{windowCount: 5, frame: true}],
     createWindowTest(async (context, testOptions: CreateWindowData) => {

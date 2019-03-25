@@ -1,7 +1,7 @@
 import {teardown} from '../../teardown';
 import {AppInitializerParams} from '../utils/AppInitializer';
 import {CreateAppData, createAppTest} from '../utils/createAppTest';
-import {testParameterized} from '../utils/parameterizedTestUtils';
+import {itParameterized} from '../utils/parameterizedTestUtils';
 import {assertWindowRestored, closeAllPreviews, createBasicSaveAndRestoreTest, createCloseAndRestoreLayout} from '../utils/workspacesUtils';
 
 export interface BasicSaveRestoreTestOptions {
@@ -26,7 +26,7 @@ numberOfApps.forEach(appNumber => {
 
 afterEach(teardown);
 
-testParameterized<CreateAppData>(
+itParameterized<CreateAppData>(
     (testOptions: CreateAppData): string => `Basic SaveAndRestore - ${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - ${
         testOptions.apps.length} App(s) - ${testOptions.apps[0].childWindows.length} Child(ren) Each`,
     basicTestOptionsArray,

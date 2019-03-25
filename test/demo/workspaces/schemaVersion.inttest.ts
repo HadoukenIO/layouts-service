@@ -5,7 +5,7 @@ import {WorkspaceAPI} from '../../../src/client/internal';
 import {Workspace} from '../../../src/client/workspaces';
 import {assertDoesNotReject, assertRejects} from '../../provider/utils/assertions';
 import {teardown} from '../../teardown';
-import {testParameterized} from '../utils/parameterizedTestUtils';
+import {itParameterized} from '../utils/parameterizedTestUtils';
 import {sendServiceMessage} from '../utils/serviceUtils';
 
 interface SchemaVersionTestOptions {
@@ -15,7 +15,7 @@ interface SchemaVersionTestOptions {
 
 afterEach(teardown);
 
-testParameterized(
+itParameterized(
     (testOptions: SchemaVersionTestOptions) =>
         `Layout schemaVersion tests - versionString: "${testOptions.versionString}" - expected ${testOptions.shouldError ? '' : 'not '}to error`,
     [

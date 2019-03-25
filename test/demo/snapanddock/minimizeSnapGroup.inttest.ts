@@ -5,7 +5,7 @@ import {delay} from '../../provider/utils/delay';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 import {teardown} from '../../teardown';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
-import {testParameterized} from '../utils/parameterizedTestUtils';
+import {itParameterized} from '../utils/parameterizedTestUtils';
 import {layoutsClientPromise} from '../utils/serviceUtils';
 import {getTabstrip} from '../utils/tabServiceUtils';
 
@@ -16,7 +16,7 @@ interface MinimizeTestOptions extends CreateWindowData {
 
 afterEach(teardown);
 
-testParameterized(
+itParameterized(
     (testOptions: MinimizeTestOptions) =>
         `Minimize and restore - ${testOptions.windowCount} windows - restoring ${testOptions.restoreIndex === 0 ? 'minimized' : 'grouped'} window`,
     [
@@ -40,7 +40,7 @@ testParameterized(
     }));
 
 // With tabsets
-testParameterized(
+itParameterized(
     (testOptions: MinimizeTestOptions) => `Minimize and restore (snapped tabs) - ${testOptions.windowCount} windows - restoring ${
         testOptions.restoreIndex === 0 ? 'minimized' : 'grouped'} window`,
     [{frame: true, windowCount: 4, restoreIndex: 0}, {frame: true, windowCount: 4, restoreIndex: 1}, {frame: true, windowCount: 6, restoreIndex: 1}],

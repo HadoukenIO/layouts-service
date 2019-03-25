@@ -8,7 +8,7 @@ import {getEntityBounds, NormalizedBounds} from '../../provider/utils/getBounds'
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 import {teardown} from '../../teardown';
 import {CreateWindowData, createWindowTest, WindowContext} from '../utils/createWindowTest';
-import {testParameterized} from '../utils/parameterizedTestUtils';
+import {itParameterized} from '../utils/parameterizedTestUtils';
 import {executeJavascriptOnService, layoutsClientPromise} from '../utils/serviceUtils';
 
 interface CreateTabGroupFromTabsOptions extends CreateWindowData {
@@ -43,7 +43,7 @@ const windowPositions = [
 
 afterEach(teardown);
 
-testParameterized<CreateTabGroupFromTabsOptions>(
+itParameterized<CreateTabGroupFromTabsOptions>(
     (testOptions: CreateTabGroupFromTabsOptions): string => `createTabGroupFromTabs ${testOptions.description}`,
     [
         createCreateTabGroupFromTabsOption({

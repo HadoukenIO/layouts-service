@@ -9,7 +9,7 @@ import {teardown} from '../../teardown';
 import {Constraints} from '../snapanddock/resizeOnSnap.inttest';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
 import {refreshWindowState} from '../utils/modelUtils';
-import {testParameterized} from '../utils/parameterizedTestUtils';
+import {itParameterized} from '../utils/parameterizedTestUtils';
 import {layoutsClientPromise} from '../utils/serviceUtils';
 import {getTabGroupState} from '../utils/tabServiceUtils';
 
@@ -19,7 +19,7 @@ interface TabConstraintsOptions extends CreateWindowData {
 
 afterEach(teardown);
 
-testParameterized(
+itParameterized(
     'Constraints applied and restored correctly when tabbing',
     [
         {frame: true, windowCount: 2, windowConstraints: [{resizable: false}, {}]},
@@ -80,7 +80,7 @@ testParameterized(
         }
     }));
 
-testParameterized(
+itParameterized(
     'Cannot tab windows with incompatible constraints',
     [
         {frame: true, windowCount: 2, windowConstraints: [{resizable: false}, {}], shouldTab: false},
@@ -124,7 +124,7 @@ const defaultConstraints: Required<Constraints> = {
     }
 };
 
-testParameterized(
+itParameterized(
     `Cannot maximize tabset when tab has maxWidth/Height`,
     [
         {frame: true, windowCount: 2, windowConstraints: [{}, {}]},

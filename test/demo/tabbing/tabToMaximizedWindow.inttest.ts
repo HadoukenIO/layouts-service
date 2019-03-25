@@ -8,7 +8,7 @@ import {getBounds, getTabsetBounds, NormalizedBounds} from '../../provider/utils
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 import {teardown} from '../../teardown';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
-import {testParameterized} from '../utils/parameterizedTestUtils';
+import {itParameterized} from '../utils/parameterizedTestUtils';
 import {getTabGroupState} from '../utils/tabServiceUtils';
 
 interface TabToMaximizedWindowTestOptions extends CreateWindowData {
@@ -18,7 +18,7 @@ interface TabToMaximizedWindowTestOptions extends CreateWindowData {
 
 afterEach(teardown);
 
-testParameterized(
+itParameterized(
     `Tab to maximized window`,
     [
         {frame: true, windowCount: 2, tabTo: 'restored'},
@@ -55,7 +55,7 @@ testParameterized(
     }));
 
 
-testParameterized(
+itParameterized(
     `Cannot tab to window hidden by maximized window`,
     [
         {frame: true, windowCount: 3},

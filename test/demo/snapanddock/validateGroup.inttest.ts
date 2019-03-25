@@ -5,7 +5,7 @@ import {delay} from '../../provider/utils/delay';
 import {ArrangementsType, defaultArrangements} from '../../provider/utils/WindowInitializer';
 import {teardown} from '../../teardown';
 import {CreateWindowData, createWindowTest, WindowContext} from '../utils/createWindowTest';
-import {testParameterized} from '../utils/parameterizedTestUtils';
+import {itParameterized} from '../utils/parameterizedTestUtils';
 import {undockWindow} from '../utils/snapServiceUtils';
 
 interface ValidateGroupOptions extends CreateWindowData {
@@ -69,7 +69,7 @@ const customArrangements: ArrangementsType = Object.assign({}, defaultArrangemen
 
 afterEach(teardown);
 
-testParameterized<ValidateGroupOptions>(
+itParameterized<ValidateGroupOptions>(
     (testOptions: ValidateGroupOptions): string => `Validate Group - ${testOptions.frame ? 'framed' : 'frameless'} - ${testOptions.windowCount} window ${
         testOptions.arrangement} - window ${testOptions.undockIndex} ungrouped by ${testOptions.undockBy}`,
     [

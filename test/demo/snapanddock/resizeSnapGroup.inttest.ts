@@ -5,7 +5,7 @@ import {delay} from '../../provider/utils/delay';
 import {getBounds, NormalizedBounds} from '../../provider/utils/getBounds';
 import {teardown} from '../../teardown';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
-import {testParameterized} from '../utils/parameterizedTestUtils';
+import {itParameterized} from '../utils/parameterizedTestUtils';
 
 interface ResizeGroupOptions extends CreateWindowData {
     windowCount: 2|4;
@@ -14,7 +14,7 @@ interface ResizeGroupOptions extends CreateWindowData {
 
 afterEach(teardown);
 
-testParameterized(
+itParameterized(
     (testOptions: ResizeGroupOptions): string =>
         `Resize SnapGroup - ${testOptions.windowCount} windows - ${testOptions.frame ? 'framed' : 'frameless'} - ${testOptions.resizeType.join('-')} resize`,
     [

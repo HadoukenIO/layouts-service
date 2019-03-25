@@ -11,7 +11,7 @@ import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 import {teardown} from '../../teardown';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
 import {refreshWindowState} from '../utils/modelUtils';
-import {testParameterized} from '../utils/parameterizedTestUtils';
+import {itParameterized} from '../utils/parameterizedTestUtils';
 import {getActiveTab, getTabstrip} from '../utils/tabServiceUtils';
 
 // Width and Height of the windows when spawned
@@ -43,7 +43,7 @@ interface ResizeWithConstrainsOptions extends ResizeOnSnapOptions {
 afterEach(teardown);
 
 // With window constraints
-testParameterized(
+itParameterized(
     (testOptions: ResizeWithConstrainsOptions):
         string => {
             const frameString = testOptions.frame ? 'framed' : 'frameless';
@@ -205,7 +205,7 @@ testParameterized(
 
 
 // With tabsets
-testParameterized(
+itParameterized(
     (testOptions: ResizeOnSnapOptions):
         string => {
             const resizeDirectionString = testOptions.resizeDirection.split('-').join(' ');

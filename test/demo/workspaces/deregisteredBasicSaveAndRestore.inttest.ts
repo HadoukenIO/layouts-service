@@ -1,7 +1,7 @@
 import {delay} from '../../provider/utils/delay';
 import {teardown} from '../../teardown';
 import {CreateAppData, createAppTest} from '../utils/createAppTest';
-import {testParameterized} from '../utils/parameterizedTestUtils';
+import {itParameterized} from '../utils/parameterizedTestUtils';
 import {assertWindowNotRestored, closeAllPreviews, createBasicSaveAndRestoreTest, createCloseAndRestoreLayout} from '../utils/workspacesUtils';
 
 import {BasicSaveRestoreTestOptions} from './basicSaveAndRestore.inttest';
@@ -25,7 +25,7 @@ numberOfApps.forEach(appNumber => {
 
 afterEach(teardown);
 
-testParameterized<CreateAppData>(
+itParameterized<CreateAppData>(
     (testOptions: CreateAppData): string =>
         `Basic Deregistered SaveAndRestore - ${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - ${
             testOptions.apps.length} App(s) - ${testOptions.apps[0].childWindows.length} Child(ren) Each`,

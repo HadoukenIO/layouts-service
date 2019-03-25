@@ -10,7 +10,7 @@ import {itParameterized} from '../utils/parameterizedTestUtils';
 
 afterEach(teardown);
 
-// Using testParameterized more for type safety than parameterization
+// Using itParameterized more for type safety than parameterization
 // since this just one very specific test
 itParameterized(
     (testOptions: CreateWindowData) => 'Cannot snap windows so they overlap - shape: U',

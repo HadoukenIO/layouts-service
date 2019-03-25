@@ -26,9 +26,9 @@ numberOfApps.forEach(appNumber => {
 afterEach(teardown);
 
 itParameterized<CreateAppData>(
-    (testOptions: CreateAppData): string =>
-        `Basic Deregistered SaveAndRestore - ${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - ${
-            testOptions.apps.length} App(s) - ${testOptions.apps[0].childWindows.length} Child(ren) Each`,
+    'When calling generate and restore, deregisted windows are not restored',
+    (testOptions: CreateAppData): string => `${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - ${
+        testOptions.apps.length} App(s) - ${testOptions.apps[0].childWindows.length} Child(ren) Each`,
     deregisteredTestOptionsArray,
     createAppTest(async (context, applicationData: CreateAppData) => {
         await createCloseAndRestoreLayout(context);

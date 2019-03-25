@@ -27,7 +27,9 @@ const childOptions = {
 afterEach(teardown);
 
 itParameterized(
-    'Validate Group on Restore',
+    'When calling generate and restore on a workspace with registered and deregistered workspace, groups are preserved and broken as expected',
+    (testOptions: ValidateOnRestoreOptions) =>
+        `Windows:${testOptions.windowCount}, arrangement:${testOptions.arrangement}, deregisteredIndex:${testOptions.deregisteredIndex}`,
     [
         {windowCount: 3, arrangement: 'line', deregisteredIndex: 1, remainingGroups: [[0], [2]]},
         {windowCount: 3, arrangement: 'line', deregisteredIndex: 2, remainingGroups: [[0, 1]]},

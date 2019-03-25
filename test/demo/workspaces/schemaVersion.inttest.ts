@@ -2,7 +2,7 @@ import {MonitorInfo} from 'hadouken-js-adapter/out/types/src/api/system/monitor'
 import * as assert from 'power-assert';
 
 import {WorkspaceAPI} from '../../../src/client/internal';
-import {Workspace} from '../../../src/client/workspaces';
+import {restore, Workspace} from '../../../src/client/workspaces';
 import {assertDoesNotReject, assertRejects} from '../../provider/utils/assertions';
 import {teardown} from '../../teardown';
 import {itParameterized} from '../utils/parameterizedTestUtils';
@@ -16,8 +16,8 @@ interface SchemaVersionTestOptions {
 afterEach(teardown);
 
 itParameterized(
-    (testOptions: SchemaVersionTestOptions) =>
-        `Layout schemaVersion tests - versionString: "${testOptions.versionString}" - expected ${testOptions.shouldError ? '' : 'not '}to error`,
+    'When calling restore, schemaVersion is handled as expected',
+    (testOptions: SchemaVersionTestOptions) => `versionString: "${testOptions.versionString}" - expected ${testOptions.shouldError ? '' : 'not '}to error`,
     [
         {versionString: '1.0.0', shouldError: false},
         {versionString: '1.3.2', shouldError: false},
@@ -29,8 +29,7 @@ itParameterized(
     async (testOptions: SchemaVersionTestOptions) => {
         const layoutToRestore = {...layoutBase, schemaVersion: testOptions.versionString};
 
-        // This should be replaced with a proper client call once SERVICE-200 is merged (it has the import logic)
-        const restorePromise = sendServiceMessage<Workspace, Workspace>(WorkspaceAPI.RESTORE_LAYOUT, layoutToRestore as Workspace);
+        const restorePromise = restore(layoutToRestore as Workspace);
         if (testOptions.shouldError) {
             await assertRejects(restorePromise);
         } else {

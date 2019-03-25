@@ -25,6 +25,7 @@ interface PreviewTestOptions extends CreateWindowData {
 }
 
 itParameterized(
+    'When docking windows, preview window appears on correct side',
     (testOptions: PreviewTestOptions): string => `Preview on ${testOptions.side} side`,
     [
         {frame: true, side: 'top', windowCount: 2},
@@ -58,6 +59,7 @@ interface PreviewResizeTestOptions extends CreateWindowData {
 }
 
 itParameterized(
+    'Whoo knows',
     (testOptions: PreviewResizeTestOptions): string =>
         `Preview resize ${testOptions.dimension} on snap - ${testOptions.direction[0]} to ${testOptions.direction[1]}`,
     [
@@ -90,6 +92,7 @@ itParameterized(
     }, {defaultCentered: true, defaultWidth: 250, defaultHeight: 150}));
 
 itParameterized(
+    'When tabbing windows, preview window appears correct size and position',
     (testOptions: CreateWindowData): string => `Preview tab - ${testOptions.windowCount > 2 ? 'tabbed' : 'single'} window`,
     [
         {frame: true, windowCount: 2},
@@ -121,6 +124,7 @@ itParameterized(
     }, {defaultCentered: true, defaultWidth: 250, defaultHeight: 150}));
 
 itParameterized(
+    'When dragging tab from one window to another, preview window appears correct size and position',
     (testOptions: CreateWindowData): string => `Preview tab drag ${testOptions.windowCount > 3 ? 'tabbed' : 'single'} window`,
     [{frame: true, windowCount: 3}, {frame: true, windowCount: 4}],
     createWindowTest(async (context, testOptions: CreateWindowData) => {

@@ -27,7 +27,8 @@ numberOfApps.forEach(appNumber => {
 afterEach(teardown);
 
 itParameterized<CreateAppData>(
-    (testOptions: CreateAppData): string => `Basic SaveAndRestore - ${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - ${
+    'When calling generate and restore, workspace is restored as expected',
+    (testOptions: CreateAppData): string => `${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - ${
         testOptions.apps.length} App(s) - ${testOptions.apps[0].childWindows.length} Child(ren) Each`,
     basicTestOptionsArray,
     createAppTest(async (context, applicationData: CreateAppData) => {

@@ -1,6 +1,5 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import {WindowIdentity} from '../../../src/provider/model/DesktopWindow';
 import {promiseForEach, promiseMap} from '../../../src/provider/snapanddock/utils/async';
 import {assertAllContiguous, assertCompleteGroup, assertCompleteTabGroup, assertNoOverlap, assertNotMoved} from '../../provider/utils/assertions';
 import {dragSideToSide} from '../../provider/utils/dragWindowTo';
@@ -9,7 +8,7 @@ import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 import {teardown} from '../../teardown';
 import {CreateWindowData, createWindowTest, WindowContext} from '../utils/createWindowTest';
 import {itParameterized} from '../utils/parameterizedTestUtils';
-import {executeJavascriptOnService, layoutsClientPromise} from '../utils/serviceUtils';
+import {layoutsClientPromise} from '../utils/serviceUtils';
 
 interface CreateTabGroupFromTabsOptions extends CreateWindowData {
     snapGroups: number[][];
@@ -20,7 +19,7 @@ interface CreateTabGroupFromTabsOptions extends CreateWindowData {
 }
 
 // High-level representation of test parameters that we will use to construct each CreateTabGroupFromTabsOptions
-interface CreateTabGroupFromTabsOptionsConfig {
+interface CreateTabGroupOptionsConfig {
     entitiesInTargetSnapGroup: 1|2;
     entitiesInSourceSnapGroup: 1|2;
     tabsInTargetTabGroup: 1|2|3;
@@ -44,9 +43,10 @@ const windowPositions = [
 afterEach(teardown);
 
 itParameterized<CreateTabGroupFromTabsOptions>(
-    (testOptions: CreateTabGroupFromTabsOptions): string => `createTabGroupFromTabs ${testOptions.description}`,
+    'When calling createTabGroup, tabs move as expected',
+    (testOptions: CreateTabGroupFromTabsOptions): string => `${testOptions.description}`,
     [
-        createCreateTabGroupFromTabsOption({
+        createCreateTabGroupOption({
             entitiesInTargetSnapGroup: 1,
             entitiesInSourceSnapGroup: 1,
             tabsInTargetTabGroup: 2,
@@ -54,7 +54,7 @@ itParameterized<CreateTabGroupFromTabsOptions>(
             tabsToTakeFromTargetTabGroup: 1,
             tabsToTakeFromSourceTabGroup: 1
         }),
-        createCreateTabGroupFromTabsOption({
+        createCreateTabGroupOption({
             entitiesInTargetSnapGroup: 2,
             entitiesInSourceSnapGroup: 2,
             tabsInTargetTabGroup: 2,
@@ -62,7 +62,7 @@ itParameterized<CreateTabGroupFromTabsOptions>(
             tabsToTakeFromTargetTabGroup: 1,
             tabsToTakeFromSourceTabGroup: 1
         }),
-        createCreateTabGroupFromTabsOption({
+        createCreateTabGroupOption({
             entitiesInTargetSnapGroup: 1,
             entitiesInSourceSnapGroup: 1,
             tabsInTargetTabGroup: 2,
@@ -70,7 +70,7 @@ itParameterized<CreateTabGroupFromTabsOptions>(
             tabsToTakeFromTargetTabGroup: 1,
             tabsToTakeFromSourceTabGroup: 1
         }),
-        createCreateTabGroupFromTabsOption({
+        createCreateTabGroupOption({
             entitiesInTargetSnapGroup: 1,
             entitiesInSourceSnapGroup: 1,
             tabsInTargetTabGroup: 2,
@@ -78,7 +78,7 @@ itParameterized<CreateTabGroupFromTabsOptions>(
             tabsToTakeFromTargetTabGroup: 1,
             tabsToTakeFromSourceTabGroup: 2
         }),
-        createCreateTabGroupFromTabsOption({
+        createCreateTabGroupOption({
             entitiesInTargetSnapGroup: 1,
             entitiesInSourceSnapGroup: 1,
             tabsInTargetTabGroup: 2,
@@ -86,7 +86,7 @@ itParameterized<CreateTabGroupFromTabsOptions>(
             tabsToTakeFromTargetTabGroup: 1,
             tabsToTakeFromSourceTabGroup: 2
         }),
-        createCreateTabGroupFromTabsOption({
+        createCreateTabGroupOption({
             entitiesInTargetSnapGroup: 1,
             entitiesInSourceSnapGroup: 1,
             tabsInTargetTabGroup: 2,
@@ -94,7 +94,7 @@ itParameterized<CreateTabGroupFromTabsOptions>(
             tabsToTakeFromTargetTabGroup: 1,
             tabsToTakeFromSourceTabGroup: 3
         }),
-        createCreateTabGroupFromTabsOption({
+        createCreateTabGroupOption({
             entitiesInTargetSnapGroup: 1,
             entitiesInSourceSnapGroup: 1,
             tabsInTargetTabGroup: 2,
@@ -102,7 +102,7 @@ itParameterized<CreateTabGroupFromTabsOptions>(
             tabsToTakeFromTargetTabGroup: 1,
             tabsToTakeFromSourceTabGroup: 1
         }),
-        createCreateTabGroupFromTabsOption({
+        createCreateTabGroupOption({
             entitiesInTargetSnapGroup: 1,
             entitiesInSourceSnapGroup: 1,
             tabsInTargetTabGroup: 2,
@@ -110,7 +110,7 @@ itParameterized<CreateTabGroupFromTabsOptions>(
             tabsToTakeFromTargetTabGroup: 2,
             tabsToTakeFromSourceTabGroup: 2
         }),
-        createCreateTabGroupFromTabsOption({
+        createCreateTabGroupOption({
             entitiesInTargetSnapGroup: 1,
             entitiesInSourceSnapGroup: 1,
             tabsInTargetTabGroup: 3,
@@ -118,7 +118,7 @@ itParameterized<CreateTabGroupFromTabsOptions>(
             tabsToTakeFromTargetTabGroup: 2,
             tabsToTakeFromSourceTabGroup: 1
         }),
-        createCreateTabGroupFromTabsOption({
+        createCreateTabGroupOption({
             entitiesInTargetSnapGroup: 1,
             entitiesInSourceSnapGroup: 1,
             tabsInTargetTabGroup: 3,
@@ -126,7 +126,7 @@ itParameterized<CreateTabGroupFromTabsOptions>(
             tabsToTakeFromTargetTabGroup: 3,
             tabsToTakeFromSourceTabGroup: 1
         }),
-        createCreateTabGroupFromTabsOption({
+        createCreateTabGroupOption({
             entitiesInSourceSnapGroup: 1,
             entitiesInTargetSnapGroup: 2,
             tabsInSourceTabGroup: 1,
@@ -150,7 +150,7 @@ itParameterized<CreateTabGroupFromTabsOptions>(
 
         const newBounds = await getBoundsMap(windows);
 
-        // Assert windows passed to createTabGroupWithTabs form a TabGroup
+        // Assert windows passed to createTabGroup form a TabGroup
         await assertCompleteTabGroup(...newTabs);
 
         // Assert ejected tabs form a TabGroup
@@ -173,7 +173,7 @@ itParameterized<CreateTabGroupFromTabsOptions>(
 
 // Takes the high level test representation of CreateTabGroupFromTabsOptionsConfig and outputs a CreateTabGroupFromTabsOptions that we can use directly in the
 // test
-function createCreateTabGroupFromTabsOption(config: CreateTabGroupFromTabsOptionsConfig): CreateTabGroupFromTabsOptions {
+function createCreateTabGroupOption(config: CreateTabGroupOptionsConfig): CreateTabGroupFromTabsOptions {
     let windowCount = 0;
 
     // Construct window index arrays representing each SnapGroup

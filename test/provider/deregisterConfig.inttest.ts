@@ -45,7 +45,7 @@ afterEach(async () => {
     await teardown();
 });
 
-test('Window can be de-registered by adding a rule to the store', async () => {
+it('Window can be de-registered by adding a rule to the store', async () => {
     const win = await createChildWindow({...DEFAULT_OPTIONS, name: 'testWindow'});
     context.windows.push(win);
 
@@ -55,7 +55,7 @@ test('Window can be de-registered by adding a rule to the store', async () => {
     assert.strictEqual(await isWindowRegistered(win.identity), false);
 });
 
-test('A de-registered window can be re-registered by adding a rule to the store', async () => {
+it('A de-registered window can be re-registered by adding a rule to the store', async () => {
     const win = await createChildWindow({...DEFAULT_OPTIONS, name: 'testWindow', url: 'http://localhost:1337/test/popup-deregistered.html'});
     context.windows.push(win);
 
@@ -64,7 +64,7 @@ test('A de-registered window can be re-registered by adding a rule to the store'
     assert.strictEqual(await isWindowRegistered(win.identity), true);
 });
 
-test('When a snapped window is de-registered, it is removed from its snap group', async () => {
+it('When a snapped window is de-registered, it is removed from its snap group', async () => {
     const windows = context.windows;
     windows.push(await createChildWindow({...DEFAULT_OPTIONS, name: 'testWindow1'}));
     windows.push(await createChildWindow({...DEFAULT_OPTIONS, name: 'testWindow2'}));
@@ -81,7 +81,7 @@ test('When a snapped window is de-registered, it is removed from its snap group'
     assert.strictEqual(groups[1].length, 0);
 });
 
-test('When a tabbed window is de-registered, it is removed from its tab group', async () => {
+it('When a tabbed window is de-registered, it is removed from its tab group', async () => {
     const windows = context.windows;
     const w1 = await createChildWindow({...DEFAULT_OPTIONS, name: 'testWindow1'});
     const w2 = await createChildWindow({...DEFAULT_OPTIONS, name: 'testWindow2'});
@@ -102,7 +102,7 @@ test('When a tabbed window is de-registered, it is removed from its tab group', 
     assert.strictEqual(groups[1].length, 0);
 });
 
-test('When a tabbed window is de-registered, it is removed from its snapped tab group', async () => {
+it('When a tabbed window is de-registered, it is removed from its snapped tab group', async () => {
     const windows = context.windows;
     for (let i = 0; i < 4; i++) {
         windows.push(

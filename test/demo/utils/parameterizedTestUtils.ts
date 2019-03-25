@@ -12,14 +12,14 @@ export interface ContextTestMacro<T, C> {
     (context: C, instance: T): void;
 }
 
-export function testParameterized<T>(title: string|((data: T) => string), instanceData: Parameterized<T>[], testFunc: TestMacro<T>): void {
+export function itParameterized<T>(title: string|((data: T) => string), instanceData: Parameterized<T>[], testFunc: TestMacro<T>): void {
     instanceData.forEach((instance: T&InstanceData) => {
         const instanceTitle: string = typeof title === 'string' ? `${title} ${JSON.stringify(instance)}` : title(instance);
 
         if (instance.skip === true) {
-            test.skip(instanceTitle, async () => await testFunc(instance));
+            it.skip(instanceTitle, async () => await testFunc(instance));
         } else {
-            test(instanceTitle, async () => await testFunc(instance));
+            it(instanceTitle, async () => await testFunc(instance));
         }
     });
 }

@@ -48,7 +48,7 @@ async function createAppWithConfig(uuid: string, config: ConfigWithRules<Configu
     }
 }
 
-test('Config is loaded from an application\'s manifest', async () => {
+it('Config is loaded from an application\'s manifest', async () => {
     const uuid = createUuid();
     const identity = {uuid, name: uuid};
 
@@ -66,7 +66,7 @@ test('Config is loaded from an application\'s manifest', async () => {
     await delay(1000);
 });
 
-test('Config is unloaded when the application exits', async () => {
+it('Config is unloaded when the application exits', async () => {
     const uuid = createUuid();
     const identity = {uuid, name: uuid};
 
@@ -83,7 +83,7 @@ test('Config is unloaded when the application exits', async () => {
     assert.strictEqual(postConfig.enabled, true);
 });
 
-test('If an application creates a child application, the config of the parent application persists for the lifecycle of its child', async () => {
+it('If an application creates a child application, the config of the parent application persists for the lifecycle of its child', async () => {
     const uuids: [string, string] = [createUuid(), createUuid()];
     const app = await createAppWithConfig(uuids[0], {enabled: false});
     const child = await createChildApp(
@@ -107,7 +107,7 @@ test('If an application creates a child application, the config of the parent ap
     assert.strictEqual((await getWindowConfig(child.identity)).enabled, true);
 });
 
-test('If an application creates a child application, the parent can apply rules to the child that still apply after the parent exits', async () => {
+it('If an application creates a child application, the parent can apply rules to the child that still apply after the parent exits', async () => {
     const uuids: [string, string] = [createUuid(), createUuid()];
     const app =
         await createAppWithConfig(uuids[0], {enabled: false, rules: [{scope: {level: 'application', uuid: uuids[1]}, config: {features: {snap: false}}}]});
@@ -127,7 +127,7 @@ test('If an application creates a child application, the parent can apply rules 
     await childApp.close();
 });
 
-test('If an application creates a child application via manifest, there is no extension of parent config lifecycle', async () => {
+it('If an application creates a child application via manifest, there is no extension of parent config lifecycle', async () => {
     const app = await createAppWithConfig(createUuid(), {enabled: false});
     const child = await createAppWithConfig(createUuid(), {enabled: false}, app.identity.uuid);
 

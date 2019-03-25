@@ -53,7 +53,7 @@ afterEach(async () => {
     await teardown();
 });
 
-test('docking enabled - normal behaviour expected', async () => {
+it('docking enabled - normal behaviour expected', async () => {
     let bounds: NormalizedBounds[];
 
     await dragSideToSide(windows[1], 'left', windows[0], 'right', {x: 5, y: 10});
@@ -69,7 +69,7 @@ test('docking enabled - normal behaviour expected', async () => {
     assert.strictEqual(bounds[0].right, bounds[1].left);
 });
 
-test('docking disabled - windows should snap but not dock', async () => {
+it('docking disabled - windows should snap but not dock', async () => {
     await toggleDocking(false);
 
     let bounds: NormalizedBounds[];

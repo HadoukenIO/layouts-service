@@ -81,7 +81,7 @@ afterEach(async () => {
 });
 afterEach(teardown);
 
-test('Drag window over window - should create tabgroup', async () => {
+it('Drag window over window - should create tabgroup', async () => {
     // Drag wins[0] over wins[1] to make a tabset (in valid drop region)
     await tabWindowsTogether(wins[0], wins[1]);
 
@@ -89,7 +89,7 @@ test('Drag window over window - should create tabgroup', async () => {
     await assertPairTabbed(wins[0], wins[1]);
 });
 
-test('Drag window over window - window title is displayed in tabstrip', async () => {
+it('Drag window over window - window title is displayed in tabstrip', async () => {
     await tabWindowsTogether(wins[0], wins[1]);
     await assertPairTabbed(wins[0], wins[1]);
 
@@ -102,7 +102,7 @@ test('Drag window over window - window title is displayed in tabstrip', async ()
     assert.strictEqual(tabTitles[1], 'tab-window-2');
 });
 
-test('Drag window over window, invalid region - should not create tabgroup', async () => {
+it('Drag window over window, invalid region - should not create tabgroup', async () => {
     // Fail creating group using invalid drop region
     await dragWindowToOtherWindow(wins[0], 'top-left', wins[1], 'top-left', {x: 20, y: 100});
 
@@ -110,7 +110,7 @@ test('Drag window over window, invalid region - should not create tabgroup', asy
     await assertNotTabbed(wins[0]);
 });
 
-test('Drag window into tabgroup - should create 3 tab tabgroup', async () => {
+it('Drag window into tabgroup - should create 3 tab tabgroup', async () => {
     const win3 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
@@ -133,7 +133,7 @@ test('Drag window into tabgroup - should create 3 tab tabgroup', async () => {
     await assertPairTabbed(wins[0], win3);
 });
 
-test('Drag window into tabgroup, invalid region - should not create 3 tab tabgroup', async () => {
+it('Drag window into tabgroup, invalid region - should not create 3 tab tabgroup', async () => {
     // Tab 2 Windows Together
     await tabWindowsTogether(wins[1], wins[0]);
 
@@ -158,7 +158,7 @@ test('Drag window into tabgroup, invalid region - should not create 3 tab tabgro
     await assertNotTabbed(win3);
 });
 
-test('Tearout tab - should create 2 singleton windows', async () => {
+it('Tearout tab - should create 2 singleton windows', async () => {
     // Drag wins[0] over wins[1] to make a tabset
     await tabWindowsTogether(wins[0], wins[1]);
 
@@ -181,7 +181,7 @@ test('Tearout tab - should create 2 singleton windows', async () => {
 });
 
 
-test('Tearout tab dragged into singleton window - should create new tab group', async () => {
+it('Tearout tab dragged into singleton window - should create new tab group', async () => {
     // Tab 2 Windows Together
     await tabWindowsTogether(wins[1], wins[0]);
 
@@ -216,7 +216,7 @@ test('Tearout tab dragged into singleton window - should create new tab group', 
 });
 
 
-test('Tearout tab dragged into singleton window, invalid ragion - should not create new tab group', async () => {
+it('Tearout tab dragged into singleton window, invalid ragion - should not create new tab group', async () => {
     // Tab 2 Windows Together
     await tabWindowsTogether(wins[1], wins[0]);
 
@@ -250,7 +250,7 @@ test('Tearout tab dragged into singleton window, invalid ragion - should not cre
 
 
 
-test('test Tearout tab dragged into tab group - should add tab to tabgroup', async () => {
+it('test Tearout tab dragged into tab group - should add tab to tabgroup', async () => {
     // Tab 2 Windows Together
     await tabWindowsTogether(wins[1], wins[0]);
 
@@ -296,7 +296,7 @@ test('test Tearout tab dragged into tab group - should add tab to tabgroup', asy
 
 
 
-test('Tearout tab dragged into tab group, invalid region - should not add tab to tabgroup', async () => {
+it('Tearout tab dragged into tab group, invalid region - should not add tab to tabgroup', async () => {
     // Tab 2 Windows Together
     await tabWindowsTogether(wins[1], wins[0]);
 
@@ -341,7 +341,7 @@ test('Tearout tab dragged into tab group, invalid region - should not add tab to
 });
 
 
-test('2 tab tabgroup, Tab closed - should destroy tabgroup', async () => {
+it('2 tab tabgroup, Tab closed - should destroy tabgroup', async () => {
     // Create tab group
     await tabWindowsTogether(wins[1], wins[0]);
     await assertPairTabbed(wins[0], wins[1]);
@@ -354,7 +354,7 @@ test('2 tab tabgroup, Tab closed - should destroy tabgroup', async () => {
     await assertNotTabbed(wins[1]);
 });
 
-test('2 tab tabgroup, Tab tearout - should destroy tabgroup', async () => {
+it('2 tab tabgroup, Tab tearout - should destroy tabgroup', async () => {
     // Create tab group
     await tabWindowsTogether(wins[1], wins[0]);
     await assertPairTabbed(wins[0], wins[1]);
@@ -371,7 +371,7 @@ test('2 tab tabgroup, Tab tearout - should destroy tabgroup', async () => {
     await Promise.all([assertNotTabbed(wins[1]), assertNotTabbed(wins[0])]);
 });
 
-test('3 tab tabgroup, Tab closed - should retain tabgroup', async () => {
+it('3 tab tabgroup, Tab closed - should retain tabgroup', async () => {
     const win3 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
@@ -397,7 +397,7 @@ test('3 tab tabgroup, Tab closed - should retain tabgroup', async () => {
     await assertPairTabbed(wins[0], wins[1]);
 });
 
-test('3 tab tabgroup, Tab tearout - should retain tabgroup', async () => {
+it('3 tab tabgroup, Tab tearout - should retain tabgroup', async () => {
     const win3 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
@@ -429,7 +429,7 @@ test('3 tab tabgroup, Tab tearout - should retain tabgroup', async () => {
     await Promise.all([assertPairTabbed(win3, wins[0]), assertNotTabbed(wins[1])]);
 });
 
-test('Tearout tab then retab - should create tabgroup', async () => {
+it('Tearout tab then retab - should create tabgroup', async () => {
     // Drag wins[0] over wins[1] to make a tabset
     await tabWindowsTogether(wins[0], wins[1]);
 
@@ -459,7 +459,7 @@ test('Tearout tab then retab - should create tabgroup', async () => {
 });
 
 
-test('Close tab then retab - should create tabgroup', async () => {
+it('Close tab then retab - should create tabgroup', async () => {
     const win3 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
@@ -494,7 +494,7 @@ test('Close tab then retab - should create tabgroup', async () => {
 });
 
 
-test('Tearout tab onto itself - should remain in tabgroup', async () => {
+it('Tearout tab onto itself - should remain in tabgroup', async () => {
     // Create tab group
     await tabWindowsTogether(wins[1], wins[0]);
     await assertPairTabbed(wins[0], wins[1]);
@@ -514,7 +514,7 @@ test('Tearout tab onto itself - should remain in tabgroup', async () => {
     await delay(1000);
 });
 
-test('Drag window into tabgroup then tearout - window should be maximizable if-and-only-if not in tabgroup', async () => {
+it('Drag window into tabgroup then tearout - window should be maximizable if-and-only-if not in tabgroup', async () => {
     // Check that we can maximize windows
     await wins[0].maximize();
     await wins[1].maximize();
@@ -541,7 +541,7 @@ test('Drag window into tabgroup then tearout - window should be maximizable if-a
     await assertAllMaximized(wins);
 });
 
-test('Cannot tab to an obscured window', async () => {
+it('Cannot tab to an obscured window', async () => {
     const win3 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
@@ -560,7 +560,7 @@ test('Cannot tab to an obscured window', async () => {
     await Promise.all(wins.map(win => assertNotTabbed(win)));
 });
 
-test('Cannot tab to a window that is obscured by a window not registered to the service', async () => {
+it('Cannot tab to a window that is obscured by a window not registered to the service', async () => {
     const win3 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,

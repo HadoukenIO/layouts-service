@@ -147,22 +147,21 @@ for (const firstGroup of Object.keys(groupingFunctions) as GroupingType[]) {
 }
 
 function runNativeGroupListenerTest(groupType: GroupingType, firstUngroupType: UngroupingType, secondUngroupType: UngroupingType, ungroupedWindowIndex: 0|1) {
-    test(
-        `Native window group works the same as snapService grouping (${[groupType, firstUngroupType, secondUngroupType, ungroupedWindowIndex].join(', ')})`,
-        async () => {
-            // Group the windows
-            await groupingFunctions[groupType](windows[0], windows[1]);
+    it(`Native window group works the same as snapService grouping (${[groupType, firstUngroupType, secondUngroupType, ungroupedWindowIndex].join(', ')})`,
+       async () => {
+           // Group the windows
+           await groupingFunctions[groupType](windows[0], windows[1]);
 
-            // Ungroup the windows with the first method. Should only move on
-            // unsnap.
-            await ungroupingFunctions[firstUngroupType](windows[0], windows[0], firstUngroupType === 'unsnap');
+           // Ungroup the windows with the first method. Should only move on
+           // unsnap.
+           await ungroupingFunctions[firstUngroupType](windows[0], windows[0], firstUngroupType === 'unsnap');
 
-            // Ungroup the windows with the second method. Should never move.
-            await ungroupingFunctions[secondUngroupType](windows[0], windows[ungroupedWindowIndex], false);
-        });
+           // Ungroup the windows with the second method. Should never move.
+           await ungroupingFunctions[secondUngroupType](windows[0], windows[ungroupedWindowIndex], false);
+       });
 }
 
-test('Native window group works the same as snapService grouping (native merge, undock, native, 1)', async () => {
+it('Native window group works the same as snapService grouping (native merge, undock, native, 1)', async () => {
     // Native group the windows
     win1.mergeGroups(win2);
 

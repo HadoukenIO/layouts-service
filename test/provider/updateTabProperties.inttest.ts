@@ -34,7 +34,7 @@ afterEach(async () => {
 });
 afterEach(teardown);
 
-test('Update Tab Properties - property changes reflected in service', async () => {
+it('Update Tab Properties - property changes reflected in service', async () => {
     // Drag wins[0] over wins[1] to make a tabset (in valid drop region)
     await tabWindowsTogether(wins[0], wins[1]);
 
@@ -62,7 +62,7 @@ test('Update Tab Properties - property changes reflected in service', async () =
  *
  * TODO: See if there is an alternate way of testing this.
  */
-test.skip('Update Tab Properties - property changes reflected in tabstrip DOM', async () => {
+it.skip('Update Tab Properties - property changes reflected in tabstrip DOM', async () => {
     // Drag wins[0] over wins[1] to make a tabset (in valid drop region)
     await tabWindowsTogether(wins[0], wins[1]);
 

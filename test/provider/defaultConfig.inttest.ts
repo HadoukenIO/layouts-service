@@ -56,7 +56,7 @@ async function createAppWithChildren(childType: 'manifest'|'programmatic'): Prom
     return {parent, childApps, childWindows: await Promise.all(childApps.map(app => app.getWindow()))};
 }
 
-test('An application that declares the service is registered', async () => {
+it('An application that declares the service is registered', async () => {
     const app = await createApp({id: 'AppA', provider: 'http://localhost:1337/test/provider.json'});
 
     assert.strictEqual(await isWindowRegistered(app.identity), true);
@@ -64,7 +64,7 @@ test('An application that declares the service is registered', async () => {
     await app.close();
 });
 
-test('An application that doesn\'t declare the service is degistered', async () => {
+it('An application that doesn\'t declare the service is degistered', async () => {
     const app = await createApp({id: 'AppB', useService: false});
 
     assert.strictEqual(await isWindowRegistered(app.identity), false);
@@ -72,7 +72,7 @@ test('An application that doesn\'t declare the service is degistered', async () 
     await app.close();
 });
 
-test('Programmatically creating a child app extends config lifespan', async () => {
+it('Programmatically creating a child app extends config lifespan', async () => {
     const {parent, childApps, childWindows} = await createAppWithChildren('programmatic');
 
     // Check docking is disabled
@@ -91,7 +91,7 @@ test('Programmatically creating a child app extends config lifespan', async () =
     await Promise.all(childApps.map(app => app.close()));
 });
 
-test('Creating a child app from manifest has no effect on parent config lifespan', async () => {
+it('Creating a child app from manifest has no effect on parent config lifespan', async () => {
     const {parent, childApps, childWindows} = await createAppWithChildren('programmatic');
 
     // Check docking is disabled
@@ -109,7 +109,7 @@ test('Creating a child app from manifest has no effect on parent config lifespan
     await Promise.all(childApps.map(app => app.close()));
 });
 
-test('Loader will override parentUuids with data in workspace when building app hierarchy', async () => {
+it('Loader will override parentUuids with data in workspace when building app hierarchy', async () => {
     const {parent, childApps, childWindows} = await createAppWithChildren('programmatic');
 
     await createCloseAndRestoreLayout();
@@ -130,7 +130,7 @@ test('Loader will override parentUuids with data in workspace when building app 
     await Promise.all(childApps.map(app => app.close()));
 });
 
-test('When saving a previously-restored workspace, the generated workspace will import parentUuids from Loader', async () => {
+it('When saving a previously-restored workspace, the generated workspace will import parentUuids from Loader', async () => {
     const {parent, childApps} = await createAppWithChildren('programmatic');
 
     const workspace1 = await createCloseAndRestoreLayout();

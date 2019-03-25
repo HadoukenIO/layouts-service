@@ -25,7 +25,7 @@ afterEach(async () => {
 
 afterEach(teardown);
 
-test('Create tab group from 2 windows', async () => {
+it('Create tab group from 2 windows', async () => {
     // Arrange
     const app1: Application = await createTabbingWindow('default', 'tabapp1', 200);
     const app2: Application = await createTabbingWindow('default', 'tabapp2', 500);

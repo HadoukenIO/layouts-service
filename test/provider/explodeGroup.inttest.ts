@@ -56,7 +56,7 @@ Object.keys(defaultArrangements).forEach(num => {
     const count = Number.parseInt(num, 10);
 
     Object.keys(defaultArrangements[count]).forEach(name => {
-        test(`${count} windows - ${name}`, async () => {
+        it(`${count} windows - ${name}`, async () => {
             // This will spawn the required number of windows in the correct
             // positions/groups
             windows = await windowInitializer.initWindows(count, name);

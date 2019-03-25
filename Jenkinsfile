@@ -19,19 +19,6 @@ pipeline {
                         }
                     }
                 }
-
-                stage('Integration Tests') {
-                    agent { label 'win10-dservices' }
-                    steps {
-                        bat "npm i"
-                        bat "npm run test:int -- --color=false --verbose"
-                    }
-                     post {
-                        always {
-                            junit "dist/test/results-int.xml"
-                        }
-                    }
-                }
             }
         }
 

@@ -82,7 +82,7 @@ Options:
 const fileNamesArg = testFileNames.length > 1 ? testFileNames.slice(1).map(testFileName => `${testFileName}.test.ts`).join(" ") : '';
 const testCommand = `jest ` +
     `--color=${color} ` +
-    `--no-cache --config=jest-int.config.json --forceExit --runInBand ` +
+    `--no-cache --config=jest-int.config.js --forceExit --runInBand ` +
     `${fileNamesArg} ${testNameFilter ? '--testNamePattern=' + testNameFilter: ''} ` +
     `${unusedArgs.join(' ')}`;
 

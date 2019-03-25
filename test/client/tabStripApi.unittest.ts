@@ -60,7 +60,7 @@ describe('When calling updateTabProperties', () => {
 });
 
 describe('When calling startDrag', () => {
-    it('should call fin.desktop.InterApplicationBus.send', async () => {
+    it('Calls fin.desktop.InterApplicationBus.send', async () => {
         const uuid = 'someuuid';
         const name = 'somename';
         const expectedPayload: WindowIdentity = {uuid, name};

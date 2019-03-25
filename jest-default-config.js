@@ -31,12 +31,15 @@ module.exports = function createConfig(testType) {
   
             return testType + '.' + filePathTokens.join('.');
           },
-          "titleTemplate": (vars) => {
+          "titleTemplate": (vars) => {            
+            let title;
             if (vars.classname) {
-              return vars.classname + ' > ' + vars.title;
+              title = vars.classname + ' > ' + vars.title;
             } else {
-              return vars.title;
+              title = vars.title;
             }
+
+            return title.replace('.', '•');
           },
           "ancestorSeparator": " > "
         }]

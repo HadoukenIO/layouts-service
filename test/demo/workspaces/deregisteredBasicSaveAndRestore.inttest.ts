@@ -4,7 +4,7 @@ import {CreateAppData, createAppTest} from '../utils/createAppTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {assertWindowNotRestored, closeAllPreviews, createBasicSaveAndRestoreTest, createCloseAndRestoreLayout} from '../utils/workspacesUtils';
 
-import {BasicSaveRestoreTestOptions} from './basicSaveAndRestore.test';
+import {BasicSaveRestoreTestOptions} from './basicSaveAndRestore.inttest';
 
 const deregisteredTestOptionsArray: BasicSaveRestoreTestOptions[] = [];
 

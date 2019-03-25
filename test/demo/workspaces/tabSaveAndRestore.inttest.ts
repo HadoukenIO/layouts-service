@@ -5,7 +5,7 @@ import {CreateAppData, createAppTest} from '../utils/createAppTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {closeAllPreviews, createCloseAndRestoreLayout, createTabTests} from '../utils/workspacesUtils';
 
-import {BasicSaveRestoreTestOptions} from './basicSaveAndRestore.test';
+import {BasicSaveRestoreTestOptions} from './basicSaveAndRestore.inttest';
 
 export interface TabSaveRestoreTestOptions extends BasicSaveRestoreTestOptions {
     tabWindowGrouping: WindowGrouping;

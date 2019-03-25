@@ -6,7 +6,7 @@ import {CreateAppData, createAppTest} from '../utils/createAppTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {closeAllPreviews, createCloseAndRestoreLayout, createSnapTests} from '../utils/workspacesUtils';
 
-import {BasicSaveRestoreTestOptions} from './basicSaveAndRestore.test';
+import {BasicSaveRestoreTestOptions} from './basicSaveAndRestore.inttest';
 
 export interface SnapSaveRestoreTestOptions extends BasicSaveRestoreTestOptions {
     snapWindowGrouping: WindowGrouping;

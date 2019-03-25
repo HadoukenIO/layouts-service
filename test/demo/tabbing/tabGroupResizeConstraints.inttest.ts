@@ -6,7 +6,7 @@ import {delay} from '../../provider/utils/delay';
 import {Side, sideArray} from '../../provider/utils/SideUtils';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 import {teardown} from '../../teardown';
-import {Constraints} from '../snapanddock/resizeOnSnap.test';
+import {Constraints} from '../snapanddock/resizeOnSnap.inttest';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
 import {refreshWindowState} from '../utils/modelUtils';
 import {testParameterized} from '../utils/parameterizedTestUtils';

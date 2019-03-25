@@ -4,7 +4,7 @@ module.exports = function createConfig(testType) {
       transform: {
         "^.+\\.tsx?$": "<rootDir>/../node_modules/ts-jest"
       },
-      testRegex: "." + testType + ".ts$",
+      testRegex: "." + testType + "test.ts$",
       testRunner: "jest-circus/runner",
       modulePaths: [
         "<rootDir>/../node_modules"

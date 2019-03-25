@@ -3,7 +3,7 @@ import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/system/appl
 import * as assert from 'power-assert';
 
 import {SERVICE_IDENTITY, WorkspaceAPI} from '../../../src/client/internal';
-import {Workspace} from '../../../src/client/workspaces';
+import {generate, restore, Workspace} from '../../../src/client/workspaces';
 import {getConnection} from '../../provider/utils/connect';
 import {BasicSaveRestoreTestOptions} from '../workspaces/basicSaveAndRestore.inttest';
 import {SnapSaveRestoreTestOptions} from '../workspaces/snapSaveAndRestore.inttest';
@@ -11,7 +11,6 @@ import {TabSaveRestoreTestOptions} from '../workspaces/tabSaveAndRestore.inttest
 
 import {createAppsArray, createWindowGroupings, TestAppData} from './AppInitializer';
 import {AppContext} from './createAppTest';
-import {sendServiceMessage} from './serviceUtils';
 
 async function isWindowActive(uuid: string, name: string) {
     const fin = await getConnection();
@@ -66,7 +65,7 @@ async function getTestApps(): Promise<Application[]> {
 }
 
 export async function createCloseAndRestoreLayout(context: AppContext|undefined = undefined): Promise<Workspace> {
-    const workspace = await sendServiceMessage(WorkspaceAPI.GENERATE_LAYOUT, undefined) as Workspace;
+    const workspace = await generate();
 
     assertIsLayoutObject(workspace);
     if (context !== undefined && isSaveRestoreContext(context)) {
@@ -84,7 +83,7 @@ export async function createCloseAndRestoreLayout(context: AppContext|undefined 
             }));
         });
     }
-    await sendServiceMessage(WorkspaceAPI.RESTORE_LAYOUT, workspace);
+    await restore(workspace);
 
     return workspace;
 }

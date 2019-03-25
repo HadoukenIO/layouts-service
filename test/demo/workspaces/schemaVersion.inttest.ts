@@ -1,12 +1,9 @@
 import {MonitorInfo} from 'hadouken-js-adapter/out/types/src/api/system/monitor';
-import * as assert from 'power-assert';
 
-import {WorkspaceAPI} from '../../../src/client/internal';
 import {restore, Workspace} from '../../../src/client/workspaces';
 import {assertDoesNotReject, assertRejects} from '../../provider/utils/assertions';
 import {teardown} from '../../teardown';
 import {itParameterized} from '../utils/parameterizedTestUtils';
-import {sendServiceMessage} from '../utils/serviceUtils';
 
 interface SchemaVersionTestOptions {
     versionString: string|undefined;

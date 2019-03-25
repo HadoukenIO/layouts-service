@@ -54,7 +54,7 @@ afterEach(async () => {
 });
 afterEach(teardown);
 
-test('Animate Basic Snap, top - should not snap', async () => {
+it('Animate Basic Snap, top - should not snap', async () => {
     const win2Bounds = await getBounds(wins[1]);
 
     await wins[0].animate(
@@ -70,7 +70,7 @@ test('Animate Basic Snap, top - should not snap', async () => {
 });
 
 
-test('Animate Basic Tab - should not tab', async () => {
+it('Animate Basic Tab - should not tab', async () => {
     const win2bounds = await getBounds(wins[1]);
 
     await wins[0].animate({position: {left: win2bounds.left + 20, top: win2bounds.top + 20, duration: 3000}}, {interrupt: false});
@@ -80,7 +80,7 @@ test('Animate Basic Tab - should not tab', async () => {
     await assertNotTabbed(wins[0]);
 });
 
-test('Programmatic move, Basic Snap, top - should not snap', async () => {
+it('Programmatic move, Basic Snap, top - should not snap', async () => {
     const win2Bounds = await getBounds(wins[1]);
 
     await wins[0].moveTo(
@@ -98,7 +98,7 @@ test('Programmatic move, Basic Snap, top - should not snap', async () => {
 });
 
 
-test('Programmatic move, Tab - should not tab', async () => {
+it('Programmatic move, Tab - should not tab', async () => {
     const win2bounds = await getBounds(wins[1]);
 
     await wins[0].moveTo(win2bounds.left + 20, win2bounds.top + 20);

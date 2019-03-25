@@ -63,7 +63,7 @@ async function initWindows(num: number, side?: Side) {
     }
 }
 
-test('One ungrouped window - no effect on undock', async () => {
+it('One ungrouped window - no effect on undock', async () => {
     await initWindows(1);
 
     const boundsBefore = await getBounds(windows[0]);
@@ -88,7 +88,7 @@ test('One ungrouped window - no effect on undock', async () => {
 });
 
 function twoWindowTest(side: Side) {
-    test('Two windows - undock ' + side, async () => {
+    it('Two windows - undock ' + side, async () => {
         // Spawn and snap two windows
         await initWindows(2, side);
 
@@ -121,7 +121,7 @@ function fourWindowTest(corner: Corner) {
     // 2 is (2 + map['right']) = 2 + 1 ==> window 3 is right of window 2
     const sideToWindowMap = {'bottom': 2, 'top': -2, 'right': 1, 'left': -1};
 
-    test('Four windows - undock ' + corner, async () => {
+    it('Four windows - undock ' + corner, async () => {
         // Spawn and snap 4 windows
         await initWindows(4);
 

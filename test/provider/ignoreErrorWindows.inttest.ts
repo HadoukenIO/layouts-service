@@ -25,7 +25,7 @@ afterEach(async () => {
     await teardown();
 });
 
-test('Error windows are not registered with S&D or Tabbing', async () => {
+it('Error windows are not registered with S&D or Tabbing', async () => {
     crashApp = await fin.Application.create(
         {uuid: 'crash-app-1', name: 'crash-app-1', url: 'http://localhost:1337/test/crash.html', mainWindowOptions: {autoShow: true}});
 
@@ -58,7 +58,7 @@ test('Error windows are not registered with S&D or Tabbing', async () => {
     }
 });
 
-test('Error windows are not included in generateLayout', async () => {
+it('Error windows are not included in generateLayout', async () => {
     crashApp = await fin.Application.create(
         {uuid: 'crash-app-1', name: 'crash-app-1', url: 'http://localhost:1337/test/crash.html', mainWindowOptions: {autoShow: true}});
 

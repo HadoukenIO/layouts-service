@@ -24,7 +24,7 @@ afterEach(async () => {
     await teardown();
 });
 
-test('normal deregister, snap with registered', async () => {
+it('normal deregister, snap with registered', async () => {
     win1 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
@@ -59,7 +59,7 @@ test('normal deregister, snap with registered', async () => {
     assert.notStrictEqual(bounds1.top, bounds2.bottom);
 });
 
-test('normal deregister, snap with degistered', async () => {
+it('normal deregister, snap with degistered', async () => {
     win1 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
@@ -93,7 +93,7 @@ test('normal deregister, snap with degistered', async () => {
     assert.notStrictEqual(bounds2.top, bounds1.bottom);
 });
 
-test('delayed deregister, snap with registered', async () => {
+it('delayed deregister, snap with registered', async () => {
     win1 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
@@ -127,7 +127,7 @@ test('delayed deregister, snap with registered', async () => {
     assert.notStrictEqual(bounds1.top, bounds2.bottom);
 });
 
-test('delayed deregister, snap with deregistered', async () => {
+it('delayed deregister, snap with deregistered', async () => {
     win1 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
@@ -161,7 +161,7 @@ test('delayed deregister, snap with deregistered', async () => {
     assert.notStrictEqual(bounds2.top, bounds1.bottom);
 });
 
-test('deregister snapped window', async () => {
+it('deregister snapped window', async () => {
     win1 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
@@ -211,7 +211,7 @@ test('deregister snapped window', async () => {
     assert.notStrictEqual(endbounds2.top, endbounds1.bottom);
 });
 
-test('no preview when deregistered - dragging registered', async () => {
+it('no preview when deregistered - dragging registered', async () => {
     // Wrap the pre-spawned preview window
     const previewWin = await getWindow({name: 'successPreview', uuid: 'layouts-service'});
 
@@ -248,7 +248,7 @@ test('no preview when deregistered - dragging registered', async () => {
     robot.mouseToggle('up');
 });
 
-test('no preview when deregistered - dragging deregistered', async () => {
+it('no preview when deregistered - dragging deregistered', async () => {
     // Wrap the pre-spawned preview window
     const previewWin = await getWindow({name: 'successPreview', uuid: 'layouts-service'});
 

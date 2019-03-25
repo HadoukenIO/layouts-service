@@ -102,9 +102,9 @@ After checkout, install project dependencies using `npm install`. The integratio
 To setup the project whilst avoiding the above dependencies, can instead be installed with `npm install --ignore-scripts`.
 
 ### Startup
-Once dependencies are installed, start the "built-in" sample application with `npm start`. This uses `webpack-dev-middleware` to both build and host the application; a custom `server.js` script will start the OpenFin application once the server is up and running.
+Once dependencies are installed, start the "built-in" sample application with `npm start`. This uses `webpack-dev-middleware` to both build and host the application; a custom server script will start the OpenFin application once the server is up and running.
 
-The startup script has optional arguments which can be used to tweak the behavior of the build and the test server. See the constants at the top of `server.js` for details on the available parameters and their effects.
+The startup script has optional arguments which can be used to tweak the behavior of the build and the test server. See the constants at the top of [this file](https://github.com/HadoukenIO/service-tooling/blob/develop/src/server/server.ts) for details on the available parameters and their effects.
 
 ### Build Process
 The service consists of several different components unified into a single project. The `package.json` defines the combined dependencies of all components; anything required for the pre-built client to work within an application is included in the `"dependencies"` section, and the remaining dependencies - used to build the client, and to both build & run the provider and demo application - are included under `"devDependencies"`.

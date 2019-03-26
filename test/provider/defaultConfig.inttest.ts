@@ -64,7 +64,7 @@ it('An application that declares the service is registered', async () => {
     await app.close();
 });
 
-it('An application that doesn\'t declare the service is degistered', async () => {
+it('An application that doesn\'t declare the service is de-registered', async () => {
     const app = await createApp({id: 'AppB', useService: false});
 
     assert.strictEqual(await isWindowRegistered(app.identity), false);

@@ -18,7 +18,7 @@ const deregisteredManifestParentandChild =
     createAppsArray(1, 2, {manifest: true, url: 'http://localhost:1337/test/saveRestoreTestingApp.html?deregistered=true'});
 const combinedManifestApps = registeredManifestApp.concat(deregisteredManifestParentandChild);
 
-// First grouping includes a deregistered window. It exists to move the deregistered window out the way of the registered window underneath.
+// First grouping includes a de-registered window. It exists to move the de-registered window out the way of the registered window underneath.
 const windowGrouping = [{group: [3, 1], expectSuccess: false}, {group: [0, 2], expectSuccess: true}];
 
 afterEach(async () => {
@@ -27,7 +27,7 @@ afterEach(async () => {
 });
 
 itParameterized<CreateAppData>(
-    'When calling generate and restore, tabgroups of registered and deregistered windows are restored as expected',
+    'When calling generate and restore, tabgroups of registered and de-registered windows are restored as expected',
     (testOptions: CreateAppData): string => `${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'}`,
     [{apps: combinedProgrammaticApps, tabWindowGrouping: windowGrouping}, {apps: combinedManifestApps, tabWindowGrouping: windowGrouping}],
     createAppTest(async (context, applicationData: CreateAppData) => {

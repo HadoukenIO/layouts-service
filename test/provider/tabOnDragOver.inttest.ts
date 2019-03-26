@@ -560,7 +560,7 @@ it('When window is dragged on top obscured window, window is not tabbed', async 
     await Promise.all(wins.map(win => assertNotTabbed(win)));
 });
 
-it('When window is dragged on top window obscured by deregistered window, window is not tabbed', async () => {
+it('When window is dragged on top window obscured by de-registered window, window is not tabbed', async () => {
     const win3 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,

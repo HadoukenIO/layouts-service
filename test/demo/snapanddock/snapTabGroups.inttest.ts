@@ -47,7 +47,7 @@ async function tabSnapAndMove(side: Side, windows: _Window[]): Promise<[_Window,
 }
 
 itParameterized<SnapTabInstanceData&CreateWindowData>(
-    'When dragging windows together, can create groups and tabs',
+    'When dragging windows together, can create snapgroups and tabgroup',
     (testOptions) => `${testOptions.side}`,
     [{side: Sides.right}, {side: Sides.bottom}].map(instance => ({...instance, frame: true, windowCount: 4})),
     createWindowTest(async (context, testOptions: SnapTabInstanceData&CreateWindowData) => {
@@ -62,7 +62,7 @@ itParameterized<SnapTabInstanceData&CreateWindowData>(
     }));
 
 itParameterized<SnapTabInstanceData&CreateWindowData>(
-    'When tabbed windows are grouped, tabs work as expected',
+    'When a tabbed window is in a snapgroup, tabs work as expected',
     (testOptions) => `Side: ${testOptions.side}`,
     [{side: Sides.right}].map(instance => ({...instance, frame: true, windowCount: 4})),
     createWindowTest(async (context, instance: SnapTabInstanceData&CreateWindowData) => {
@@ -88,7 +88,7 @@ itParameterized<SnapTabInstanceData&CreateWindowData>(
     }));
 
 itParameterized<SnapTabInstanceData&CreateWindowData>(
-    'When tabbed windows are grouped, can tearout tabs',
+    'When a tabbed window is in a snapgroup, can tearout tabs',
     (testOptions) => `Side: ${testOptions.side}`,
     [{side: Sides.right}].map(instance => ({...instance, frame: true, windowCount: 4})),
     createWindowTest(async (context) => {
@@ -106,7 +106,7 @@ itParameterized<SnapTabInstanceData&CreateWindowData>(
     }));
 
 itParameterized<SnapTabInstanceData&CreateWindowData>(
-    'When tabbed windows are grouped, can drag a new window into a tabgroup',
+    'When a tabbed window is in a snapgroup, can drag a new window into the tabgroup',
     testOptions => `Side: ${testOptions.side}`,
     [{side: Sides.right}, {side: Sides.bottom}].map(instance => ({...instance, frame: true, windowCount: 4})),
     createWindowTest(async (context, testOptions: SnapTabInstanceData&CreateWindowData) => {
@@ -129,7 +129,7 @@ itParameterized<SnapTabInstanceData&CreateWindowData>(
     }));
 
 itParameterized<SnapTabInstanceData&CreateWindowData>(
-    'When tabbed windows are grouped, can drag a tab from one tabgroup to another',
+    'When two tabbed windows share a snapgroup, can drag a tab from one tabgroup to another',
     (testOptions) => `Side: ${testOptions.side}`,
     [{side: Sides.right}, {side: Sides.bottom}].map(instance => ({...instance, frame: true, windowCount: 4})),
     createWindowTest(async (context, testOptions: SnapTabInstanceData&CreateWindowData) => {
@@ -157,7 +157,7 @@ itParameterized<SnapTabInstanceData&CreateWindowData>(
     }));
 
 itParameterized<SnapTabInstanceData&CreateWindowData>(
-    'When tabbed windows are grouped, can drag a tab to form a tabgroup in a different snapgroup',
+    'When two tabbed windows share a snapgroup, can drag a tab to form a tabgroup in a different snapgroup',
     (testOptions) => `Side: ${testOptions.side}`,
     [{side: Sides.right}, {side: Sides.bottom}].map(instance => ({...instance, frame: true, windowCount: 5})),
     createWindowTest(async (context, testOptions: SnapTabInstanceData&CreateWindowData) => {

@@ -44,7 +44,7 @@ afterEach(teardown);
 
 // With window constraints
 itParameterized(
-    'When dragging two differently sized windows together, windows are grouped and resized as expected, respecting constraints',
+    'When a window is dragged adjacent to a similarly sized window, the windows form a snapgroup, and the window is resized as expected respecting constraints',
     (testOptions: ResizeWithConstrainsOptions):
         string => {
             const frameString = testOptions.frame ? 'framed' : 'frameless';
@@ -182,7 +182,6 @@ itParameterized(
         await assertAdjacent(windows[0], windows[1], side);
         await assertGrouped(windows[0], windows[1]);
 
-
         const bounds = [await getBounds(windows[0]), await getBounds(windows[1])];
 
         assert.strictEqual(
@@ -207,7 +206,7 @@ itParameterized(
 
 // With tabsets
 itParameterized(
-    'When dragging two differently sized, tabbed, windows together, windows are grouped and resized as expected',
+    'When a tabbed window is dragged adjacent to a similarly sized tabbed window, the windows form a snapgroup, and the window is resized as expected',
     (testOptions: ResizeOnSnapOptions):
         string => {
             const resizeDirectionString = testOptions.resizeDirection.split('-').join(' ');

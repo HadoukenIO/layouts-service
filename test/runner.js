@@ -79,7 +79,7 @@ Options:
     process.exit();
 }
 
-const fileNamesArg = testFileNames.length > 1 ? testFileNames.slice(1).map(testFileName => `${testFileName}.test.ts`).join(" ") : '';
+const fileNamesArg = testFileNames.length > 1 ? testFileNames.slice(1).map(testFileName => `${testFileName}.inttest.ts`).join(" ") : '';
 const testCommand = `jest ` +
     `--color=${color} ` +
     `--no-cache --config=jest-int.config.js --forceExit --runInBand ` +

@@ -63,7 +63,7 @@ async function initWindows(num: number, side?: Side) {
     }
 }
 
-it('One ungrouped window - no effect on undock', async () => {
+it('When undockWindow is called with a singleton window, the window is not moved', async () => {
     await initWindows(1);
 
     const boundsBefore = await getBounds(windows[0]);

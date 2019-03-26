@@ -17,8 +17,8 @@ interface MinimizeTestOptions extends CreateWindowData {
 afterEach(teardown);
 
 itParameterized(
-    (testOptions: MinimizeTestOptions) =>
-        `Minimize and restore - ${testOptions.windowCount} windows - restoring ${testOptions.restoreIndex === 0 ? 'minimized' : 'grouped'} window`,
+    'When minizing and restoring grouped windows, the group is minimized and restored as expected',
+    (testOptions: MinimizeTestOptions) => `${testOptions.windowCount} windows - restoring ${testOptions.restoreIndex === 0 ? 'minimized' : 'grouped'} window`,
     [
         {frame: true, windowCount: 2, arrangement: 'horizontal', restoreIndex: 0},
         {frame: true, windowCount: 2, arrangement: 'horizontal', restoreIndex: 1},
@@ -26,7 +26,7 @@ itParameterized(
     ],
     createWindowTest(async (context, testOptions: MinimizeTestOptions) => {
         const {windows} = context;
-        const {windowCount, restoreIndex} = testOptions;
+        const {restoreIndex} = testOptions;
 
         await windows[0].minimize();
         await delay(500);
@@ -41,8 +41,8 @@ itParameterized(
 
 // With tabsets
 itParameterized(
-    (testOptions: MinimizeTestOptions) => `Minimize and restore (snapped tabs) - ${testOptions.windowCount} windows - restoring ${
-        testOptions.restoreIndex === 0 ? 'minimized' : 'grouped'} window`,
+    'When minizing and restoring grouped, tabbed, windows, the group is minimized and restored as expected',
+    (testOptions: MinimizeTestOptions) => `${testOptions.windowCount} windows - restoring ${testOptions.restoreIndex === 0 ? 'minimized' : 'grouped'} window`,
     [{frame: true, windowCount: 4, restoreIndex: 0}, {frame: true, windowCount: 4, restoreIndex: 1}, {frame: true, windowCount: 6, restoreIndex: 1}],
     createWindowTest(async (context, testOptions: MinimizeTestOptions) => {
         const layoutsClient = await layoutsClientPromise;

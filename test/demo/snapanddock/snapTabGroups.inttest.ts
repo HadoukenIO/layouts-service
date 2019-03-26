@@ -47,7 +47,8 @@ async function tabSnapAndMove(side: Side, windows: _Window[]): Promise<[_Window,
 }
 
 itParameterized<SnapTabInstanceData&CreateWindowData>(
-    (instance) => `Can snap tabsets together: ${instance.side}`,
+    'When dragging windows together, can create groups and tabs',
+    (instance) => `${instance.side}`,
     [{side: Sides.right}, {side: Sides.bottom}].map(instance => ({...instance, frame: true, windowCount: 4})),
     createWindowTest(async (context, instance: SnapTabInstanceData&CreateWindowData) => {
         const windows = context.windows;
@@ -61,7 +62,8 @@ itParameterized<SnapTabInstanceData&CreateWindowData>(
     }));
 
 itParameterized<SnapTabInstanceData&CreateWindowData>(
-    `Tab groups remain functional once grouped`,
+    'When tabbed windows are grouped, tabs work as expected',
+    (instance) => `Side: ${instance.side}`,
     [{side: Sides.right}].map(instance => ({...instance, frame: true, windowCount: 4})),
     createWindowTest(async (context, instance: SnapTabInstanceData&CreateWindowData) => {
         const windows = context.windows;
@@ -86,7 +88,8 @@ itParameterized<SnapTabInstanceData&CreateWindowData>(
     }));
 
 itParameterized<SnapTabInstanceData&CreateWindowData>(
-    `Can tearout tab from snapped tabgroup`,
+    'When tabbed windows are grouped, can tearout tabs',
+    (instance) => `Side: ${instance.side}`,
     [{side: Sides.right}].map(instance => ({...instance, frame: true, windowCount: 4})),
     createWindowTest(async (context) => {
         const windows = context.windows;
@@ -103,7 +106,8 @@ itParameterized<SnapTabInstanceData&CreateWindowData>(
     }));
 
 itParameterized<SnapTabInstanceData&CreateWindowData>(
-    `Can tab into snapped window`,
+    'When tabbed windows are grouped, can drag a new window into a tabgroup',
+    (instance) => `Side: ${instance.side}`,
     [{side: Sides.right}, {side: Sides.bottom}].map(instance => ({...instance, frame: true, windowCount: 4})),
     createWindowTest(async (context, instance: SnapTabInstanceData&CreateWindowData) => {
         const windows = context.windows;
@@ -125,7 +129,8 @@ itParameterized<SnapTabInstanceData&CreateWindowData>(
     }));
 
 itParameterized<SnapTabInstanceData&CreateWindowData>(
-    `Can tearout into snapped window`,
+    'When tabbed windows are grouped, can drag a tab from one tabgroup to another',
+    (instance) => `Side: ${instance.side}`,
     [{side: Sides.right}, {side: Sides.bottom}].map(instance => ({...instance, frame: true, windowCount: 4})),
     createWindowTest(async (context, instance: SnapTabInstanceData&CreateWindowData) => {
         const windows = context.windows;
@@ -152,7 +157,8 @@ itParameterized<SnapTabInstanceData&CreateWindowData>(
     }));
 
 itParameterized<SnapTabInstanceData&CreateWindowData>(
-    `Can tearout into other group`,
+    'When tabbed windows are grouped, can drag a tab to form a tabgroup in a different snapgroup',
+    (instance) => `Side: ${instance.side}`,
     [{side: Sides.right}, {side: Sides.bottom}].map(instance => ({...instance, frame: true, windowCount: 5})),
     createWindowTest(async (context, instance: SnapTabInstanceData&CreateWindowData) => {
         const windows = context.windows;

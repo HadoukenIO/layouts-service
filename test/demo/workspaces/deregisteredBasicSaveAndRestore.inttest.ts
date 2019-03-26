@@ -23,6 +23,7 @@ numberOfApps.forEach(appNumber => {
     });
 });
 
+afterEach(closeAllPreviews);
 afterEach(teardown);
 
 itParameterized<CreateAppData>(
@@ -41,6 +42,3 @@ itParameterized<CreateAppData>(
             }
         }
     }));
-
-
-afterEach(closeAllPreviews);

@@ -70,7 +70,8 @@ const customArrangements: ArrangementsType = Object.assign({}, defaultArrangemen
 afterEach(teardown);
 
 itParameterized<ValidateGroupOptions>(
-    (testOptions: ValidateGroupOptions): string => `Validate Group - ${testOptions.frame ? 'framed' : 'frameless'} - ${testOptions.windowCount} window ${
+    'When a window in a snapgroup is undocked, the snapgroup is broken into expected remaining groups',
+    (testOptions: ValidateGroupOptions): string => `${testOptions.frame ? 'framed' : 'frameless'} - ${testOptions.windowCount} window ${
         testOptions.arrangement} - window ${testOptions.undockIndex} ungrouped by ${testOptions.undockBy}`,
     [
         {frame: true, undockBy: 'service', windowCount: 3, arrangement: 'line', undockIndex: 1, remainingGroups: [[0], [1], [2]]},

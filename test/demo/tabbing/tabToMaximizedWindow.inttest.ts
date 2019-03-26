@@ -27,13 +27,13 @@ itParameterized(
         {frame: false, windowCount: 2, tabTo: 'restored'},
         {frame: false, windowCount: 2, tabTo: 'maximized'},
     ],
-    createWindowTest(async (context, options: TabToMaximizedWindowTestOptions) => {
+    createWindowTest(async (context, testOptions: TabToMaximizedWindowTestOptions) => {
         const fin = await getConnection();
         const {windows} = context;
 
         await windows[1].maximize();
 
-        if (options.tabTo === 'maximized') {
+        if (testOptions.tabTo === 'maximized') {
             const maximizedBounds: Rect = (await fin.System.getMonitorInfo()).primaryMonitor.availableRect;
             await dragWindowTo(windows[0], maximizedBounds.left + 50, maximizedBounds.top + 30);
             // Windows should have tabbed

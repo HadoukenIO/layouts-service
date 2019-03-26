@@ -27,7 +27,7 @@ itParameterized<TwoWindowTestOptions>(
         {frame: false, windowCount: 2, side: 'right'},
     ],
     createWindowTest(async (context, testOptions: TwoWindowTestOptions) => {
-        const windows = context.windows;
+        const {windows} = context;
         const {side} = testOptions;
 
         await dragWindowTo(windows[0], 375, 375);
@@ -55,7 +55,7 @@ itParameterized<CreateWindowData>(
         {frame: false, windowCount: 4},
     ],
     createWindowTest(async context => {
-        const windows = context.windows;
+        const {windows} = context;
 
         // Snap all four windows together
         await dragSideToSide(windows[1], 'left', windows[0], 'right');

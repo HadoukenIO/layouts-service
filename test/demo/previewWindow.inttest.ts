@@ -34,8 +34,8 @@ itParameterized(
         {frame: true, side: 'right', windowCount: 2}
     ],
     createWindowTest(async (context, testOptions: PreviewTestOptions) => {
-        const {side} = testOptions;
         const {windows} = context;
+        const {side} = testOptions;
 
         const fin = await getConnection();
         const previewWin: _Window = await fin.Window.wrap({name: 'successPreview', uuid: 'layouts-service'});

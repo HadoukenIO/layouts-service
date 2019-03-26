@@ -157,8 +157,8 @@ itParameterized(
         },
     ],
     createWindowTest(async (context, testOptions: ResizeWithConstrainsOptions) => {
+        const {windows} = context;
         const {resizeDirection, side, shouldResize, constraints} = testOptions;
-        const windows = context.windows;
 
         // Resize the second window based on the test params
         if (resizeDirection === 'big-to-small') {
@@ -222,8 +222,8 @@ itParameterized(
         {frame: true, windowCount: 4, resizeDirection: 'small-to-big', side: 'bottom'}
     ],
     createWindowTest(async (context, testOptions: ResizeOnSnapOptions) => {
+        const {windows} = context;
         const {resizeDirection, side} = testOptions;
-        const windows = context.windows;
 
         // Resize the second window based on the test params
         if (resizeDirection === 'big-to-small') {

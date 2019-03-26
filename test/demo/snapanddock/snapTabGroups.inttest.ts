@@ -48,12 +48,12 @@ async function tabSnapAndMove(side: Side, windows: _Window[]): Promise<[_Window,
 
 itParameterized<SnapTabInstanceData&CreateWindowData>(
     'When dragging windows together, can create groups and tabs',
-    (instance) => `${instance.side}`,
+    (testOptions) => `${testOptions.side}`,
     [{side: Sides.right}, {side: Sides.bottom}].map(instance => ({...instance, frame: true, windowCount: 4})),
-    createWindowTest(async (context, instance: SnapTabInstanceData&CreateWindowData) => {
-        const windows = context.windows;
+    createWindowTest(async (context, testOptions: SnapTabInstanceData&CreateWindowData) => {
+        const {windows} = context;
 
-        await tabSnapAndMove(instance.side, windows);
+        await tabSnapAndMove(testOptions.side, windows);
 
         // Assert tabbed
         await assertPairTabbed(windows[0], windows[1]);
@@ -63,10 +63,10 @@ itParameterized<SnapTabInstanceData&CreateWindowData>(
 
 itParameterized<SnapTabInstanceData&CreateWindowData>(
     'When tabbed windows are grouped, tabs work as expected',
-    (instance) => `Side: ${instance.side}`,
+    (testOptions) => `Side: ${testOptions.side}`,
     [{side: Sides.right}].map(instance => ({...instance, frame: true, windowCount: 4})),
     createWindowTest(async (context, instance: SnapTabInstanceData&CreateWindowData) => {
-        const windows = context.windows;
+        const {windows} = context;
 
         const tabstrips = await tabSnapAndMove('right', windows);
 
@@ -89,10 +89,10 @@ itParameterized<SnapTabInstanceData&CreateWindowData>(
 
 itParameterized<SnapTabInstanceData&CreateWindowData>(
     'When tabbed windows are grouped, can tearout tabs',
-    (instance) => `Side: ${instance.side}`,
+    (testOptions) => `Side: ${testOptions.side}`,
     [{side: Sides.right}].map(instance => ({...instance, frame: true, windowCount: 4})),
     createWindowTest(async (context) => {
-        const windows = context.windows;
+        const {windows} = context;
 
         const tabstrips = await tabSnapAndMove('right', windows);
 
@@ -107,11 +107,11 @@ itParameterized<SnapTabInstanceData&CreateWindowData>(
 
 itParameterized<SnapTabInstanceData&CreateWindowData>(
     'When tabbed windows are grouped, can drag a new window into a tabgroup',
-    (instance) => `Side: ${instance.side}`,
+    testOptions => `Side: ${testOptions.side}`,
     [{side: Sides.right}, {side: Sides.bottom}].map(instance => ({...instance, frame: true, windowCount: 4})),
-    createWindowTest(async (context, instance: SnapTabInstanceData&CreateWindowData) => {
-        const windows = context.windows;
-        const side = instance.side;
+    createWindowTest(async (context, testOptions: SnapTabInstanceData&CreateWindowData) => {
+        const {windows} = context;
+        const {side} = testOptions;
 
         // Create tab group
         await tabWindowsTogether(windows[0], windows[1]);
@@ -130,11 +130,11 @@ itParameterized<SnapTabInstanceData&CreateWindowData>(
 
 itParameterized<SnapTabInstanceData&CreateWindowData>(
     'When tabbed windows are grouped, can drag a tab from one tabgroup to another',
-    (instance) => `Side: ${instance.side}`,
+    (testOptions) => `Side: ${testOptions.side}`,
     [{side: Sides.right}, {side: Sides.bottom}].map(instance => ({...instance, frame: true, windowCount: 4})),
-    createWindowTest(async (context, instance: SnapTabInstanceData&CreateWindowData) => {
-        const windows = context.windows;
-        const side = instance.side;
+    createWindowTest(async (context, testOptions: SnapTabInstanceData&CreateWindowData) => {
+        const {windows} = context;
+        const {side} = testOptions;
 
         // Create tab group
         await tabWindowsTogether(windows[0], windows[1]);
@@ -158,11 +158,11 @@ itParameterized<SnapTabInstanceData&CreateWindowData>(
 
 itParameterized<SnapTabInstanceData&CreateWindowData>(
     'When tabbed windows are grouped, can drag a tab to form a tabgroup in a different snapgroup',
-    (instance) => `Side: ${instance.side}`,
+    (testOptions) => `Side: ${testOptions.side}`,
     [{side: Sides.right}, {side: Sides.bottom}].map(instance => ({...instance, frame: true, windowCount: 5})),
-    createWindowTest(async (context, instance: SnapTabInstanceData&CreateWindowData) => {
-        const windows = context.windows;
-        const side = instance.side;
+    createWindowTest(async (context, testOptions: SnapTabInstanceData&CreateWindowData) => {
+        const {windows} = context;
+        const {side} = testOptions;
 
         // Create tab group
         await tabWindowsTogether(windows[0], windows[1]);

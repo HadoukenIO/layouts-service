@@ -17,7 +17,7 @@ itParameterized(
     (testOptions: CreateWindowData) => 'Shape: U',
     [{windowCount: 5, frame: true}],
     createWindowTest(async (context, testOptions: CreateWindowData) => {
-        const windows = context.windows;
+        const {windows} = context;
 
         // Sizes for the windows to make it work
         await Promise.all([
@@ -63,7 +63,7 @@ itParameterized(
     (testOptions: CreateWindowData) => 'Shape: O',
     [{windowCount: 5, frame: true}],
     createWindowTest(async (context, testOptions: CreateWindowData) => {
-        const windows = context.windows;
+        const {windows} = context;
 
         // Sizes for the windows to make it work
         await Promise.all([

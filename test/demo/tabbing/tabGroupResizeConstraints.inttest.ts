@@ -40,13 +40,13 @@ itParameterized(
             windowConstraints: [{resizeRegion: {sides: {top: false, left: false, bottom: true, right: true}}}, {resizable: false}, {}]
         },
     ],
-    createWindowTest(async (context, options: TabConstraintsOptions) => {
+    createWindowTest(async (context, testOptions: TabConstraintsOptions) => {
+        const {windows} = context;
+
         const layoutsClient = await layoutsClientPromise;
         const {tabbing} = layoutsClient;
 
-        const windows = context.windows;
-
-        await Promise.all(windows.map((win, index) => win.updateOptions(options.windowConstraints[index])));
+        await Promise.all(windows.map((win, index) => win.updateOptions(testOptions.windowConstraints[index])));
         await Promise.all(windows.map((win) => refreshWindowState(win.identity)));
 
         const startingState = await Promise.all(windows.map(win => getNormalizedConstraints(win)));
@@ -58,7 +58,7 @@ itParameterized(
 
         await assertCompleteTabGroup(...windows);
 
-        const resultingConstraints = constraintsUnion(...options.windowConstraints);
+        const resultingConstraints = constraintsUnion(...testOptions.windowConstraints);
 
         // Check constraints applied to all tabs
         for (let i = 0; i < windows.length; i++) {
@@ -91,18 +91,18 @@ itParameterized(
         // Checks edge case where the target is large enough when untabbed but would not be once resized for tabbing
         {frame: true, windowCount: 2, windowConstraints: [{}, {minHeight: 200}], shouldTab: false},
     ],
-    createWindowTest(async (context, options: TabConstraintsOptions&{shouldTab: boolean}) => {
-        const windows = context.windows;
+    createWindowTest(async (context, testOptions: TabConstraintsOptions&{shouldTab: boolean}) => {
+        const {windows} = context;
 
-        await Promise.all(windows.map((win, index) => win.updateOptions(options.windowConstraints[index])));
+        await Promise.all(windows.map((win, index) => win.updateOptions(testOptions.windowConstraints[index])));
         await Promise.all(windows.map((win) => refreshWindowState(win.identity)));
 
         await windows[1].resizeBy(-20, -20, 'top-left');
 
-        await tabWindowsTogether(windows[1], windows[0], options.shouldTab);
+        await tabWindowsTogether(windows[1], windows[0], testOptions.shouldTab);
         await delay(1000);
 
-        if (options.shouldTab) {
+        if (testOptions.shouldTab) {
             await assertPairTabbed(windows[0], windows[1]);
         } else {
             await assertNotTabbed(windows[0]);
@@ -134,17 +134,17 @@ itParameterized(
         {frame: true, windowCount: 2, windowConstraints: [{}, {maxHeight: 500}]},
         {frame: true, windowCount: 2, windowConstraints: [{}, {maxWidth: 500}]},
     ],
-    createWindowTest(async (context, options: TabConstraintsOptions) => {
+    createWindowTest(async (context, testOptions: TabConstraintsOptions) => {
+        const {windows} = context;
         const {tabbing} = await layoutsClientPromise;
-        const windows = context.windows;
 
-        await Promise.all(windows.map((win, index) => win.updateOptions(options.windowConstraints[index])));
+        await Promise.all(windows.map((win, index) => win.updateOptions(testOptions.windowConstraints[index])));
         await Promise.all(windows.map((win) => refreshWindowState(win.identity)));
 
         await tabWindowsTogether(windows[0], windows[1]);
         await assertPairTabbed(windows[0], windows[1]);
 
-        if (options.windowConstraints[1].maxHeight || options.windowConstraints[1].maxWidth) {
+        if (testOptions.windowConstraints[1].maxHeight || testOptions.windowConstraints[1].maxWidth) {
             await assertRejects(tabbing.maximizeTabGroup(windows[0].identity));
         } else {
             await assertDoesNotReject(tabbing.maximizeTabGroup(windows[0].identity));

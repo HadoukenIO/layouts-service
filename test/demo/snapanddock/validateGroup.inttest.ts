@@ -106,7 +106,7 @@ itParameterized<ValidateGroupOptions>(
         {frame: true, undockBy: 'maximize', windowCount: 3, arrangement: 'line', undockIndex: 2, remainingGroups: [[0, 1], [2]]},
     ],
     createWindowTest(async (context, testOptions: ValidateGroupOptions) => {
-        const windows = context.windows;
+        const {windows} = context;
 
         await assertGrouped(...windows);
         await assertAllContiguous(windows);

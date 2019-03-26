@@ -65,7 +65,7 @@ it('A de-registered window can be re-registered by adding a rule to the store', 
 });
 
 it('When a snapped window is de-registered, it is removed from its snap group', async () => {
-    const windows = context.windows;
+    const {windows} = context;
     windows.push(await createChildWindow({...DEFAULT_OPTIONS, name: 'testWindow1'}));
     windows.push(await createChildWindow({...DEFAULT_OPTIONS, name: 'testWindow2'}));
 
@@ -82,7 +82,7 @@ it('When a snapped window is de-registered, it is removed from its snap group', 
 });
 
 it('When a tabbed window is de-registered, it is removed from its tab group', async () => {
-    const windows = context.windows;
+    const {windows} = context;
     const w1 = await createChildWindow({...DEFAULT_OPTIONS, name: 'testWindow1'});
     const w2 = await createChildWindow({...DEFAULT_OPTIONS, name: 'testWindow2'});
     windows.push(w1, w2);
@@ -103,7 +103,7 @@ it('When a tabbed window is de-registered, it is removed from its tab group', as
 });
 
 it('When a tabbed window is de-registered, it is removed from its snapped tab group', async () => {
-    const windows = context.windows;
+    const {windows} = context;
     for (let i = 0; i < 4; i++) {
         windows.push(
             await createChildWindow({...DEFAULT_OPTIONS, name: `testWindow${i + 1}`, defaultLeft: (i % 2) * 320, defaultTop: Math.floor(i / 2) * 220}));

@@ -136,7 +136,7 @@ itParameterized<CreateTabGroupFromTabsOptions>(
         })
     ],
     createWindowTest(async (context, testOptions: CreateTabGroupFromTabsOptions) => {
-        const windows = context.windows;
+        const {windows} = context;
 
         const newTabs = testOptions.newTabGroup.map(index => windows[index]);
         const ejectedTabs = testOptions.ejectedTabGroup.map(index => windows[index]);
@@ -220,7 +220,7 @@ function createCreateTabGroupOption(config: CreateTabGroupOptionsConfig): Create
 }
 
 async function setupSnapAndTabGroups(context: WindowContext, testOptions: CreateTabGroupFromTabsOptions) {
-    const windows = context.windows;
+    const {windows} = context;
 
     // Create each SnapGroup by dragging each window to the right of the last
     await promiseForEach(testOptions.snapGroups, async (snapGroup) => {

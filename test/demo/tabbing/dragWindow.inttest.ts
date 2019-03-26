@@ -19,7 +19,6 @@ itParameterized(
     (testOptions: CreateWindowData): string => `windowCount: ${testOptions.windowCount}, frame:${testOptions.frame}`,
     [{frame: true, windowCount: 2}],
     createWindowTest(async (context, testOptions: CreateWindowData) => {
-        const {windowCount} = testOptions;
         const {windows} = context;
 
         const fin = await getConnection();

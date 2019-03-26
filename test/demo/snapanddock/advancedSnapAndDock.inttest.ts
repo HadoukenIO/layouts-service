@@ -9,7 +9,7 @@ import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
 
 afterEach(teardown);
 
-describe('When snapping windows, they cannot overlap', () => {
+describe('When a window is dragged adjacent to an existing snapgroup, it snaps as expected without overlap', () => {
     it('Shape: U', async () => await createWindowTest(async (context, testOptions: CreateWindowData) => {
                        const {windows} = context;
 

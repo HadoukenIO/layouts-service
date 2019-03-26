@@ -14,7 +14,7 @@ interface TwoWindowTestOptions extends CreateWindowData {
 afterEach(teardown);
 
 itParameterized<TwoWindowTestOptions>(
-    'When dragging two windows together, windows group as expected',
+    'When a window is dragged adjacent to another window, windows form a snapgroup as expected',
     (testOptions: TwoWindowTestOptions): string => `${testOptions.frame ? 'framed' : 'frameless'} - ${testOptions.side ? `- ${testOptions.side}` : ''}`,
     [
         {frame: true, windowCount: 2, side: 'top'},
@@ -48,7 +48,7 @@ itParameterized<TwoWindowTestOptions>(
 
 
 itParameterized<CreateWindowData>(
-    'When dragging four windows together, windows group as expected',
+    'When four windows are dragged adjacent to each other, windows form a snapgroup as expected',
     (testOptions: CreateWindowData): string => `${testOptions.windowCount} windows - ${testOptions.frame}}`,
     [
         {frame: true, windowCount: 4},

@@ -15,7 +15,7 @@ import {tearoutToPoint} from '../utils/tabstripUtils';
 afterEach(teardown);
 
 itParameterized(
-    'When dragging a tab, TabbingDragWindow fills the screen',
+    'When a tab is torn-out, TabbingDragWindow fills the screen',
     (testOptions: CreateWindowData): string => `windowCount: ${testOptions.windowCount}, frame:${testOptions.frame}`,
     [{frame: true, windowCount: 2}],
     createWindowTest(async (context, testOptions: CreateWindowData) => {

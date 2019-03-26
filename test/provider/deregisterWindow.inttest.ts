@@ -161,7 +161,7 @@ it('When dragging a delayed de-registered window to a registed window, windows d
     assert.notStrictEqual(bounds2.top, bounds1.bottom);
 });
 
-it('When dragging a deregistered-on-trigger window to a registed window, windows do not snap', async () => {
+it('When dragging a de-registered-on-trigger window to a registed window, windows do not snap', async () => {
     win1 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,

@@ -19,7 +19,7 @@ interface TabToMaximizedWindowTestOptions extends CreateWindowData {
 afterEach(teardown);
 
 itParameterized(
-    'When a dragging window on top another window, windows become tabbed',
+    'When dragging a window on-top another window, windows become tabbed',
     (testOptions) => `frame: ${testOptions.frame}, tabTo: ${testOptions.tabTo}`,
     [
         {frame: true, windowCount: 2, tabTo: 'restored'},
@@ -57,7 +57,7 @@ itParameterized(
 
 
 itParameterized(
-    'When a dragging window on top another window hidden by a maximized window, windows do not become tabbed',
+    'When dragging a window on-top another window hidden by a maximized window, windows do not become tabbed',
     (testOptions) => `frame: ${testOptions.frame}`,
     [
         {frame: true, windowCount: 3},

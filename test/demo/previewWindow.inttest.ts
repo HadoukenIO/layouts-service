@@ -59,7 +59,7 @@ interface PreviewResizeTestOptions extends CreateWindowData {
 }
 
 itParameterized(
-    'Whoo knows',
+    'When docking windows such that windows are resized, preview window appears correct size',
     (testOptions: PreviewResizeTestOptions): string =>
         `Preview resize ${testOptions.dimension} on snap - ${testOptions.direction[0]} to ${testOptions.direction[1]}`,
     [

@@ -541,7 +541,7 @@ it('When a window is dragged into a tabgroup then torn-out, the window is maximi
     await assertAllMaximized(wins);
 });
 
-it('When a window is dragged on-top an obscured window, the window is not tabbed', async () => {
+it('When a window is dragged on-top a window obscured by a registered, the window is not tabbed', async () => {
     const win3 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
@@ -560,7 +560,7 @@ it('When a window is dragged on-top an obscured window, the window is not tabbed
     await Promise.all(wins.map(win => assertNotTabbed(win)));
 });
 
-it('When a window is dragged on-top a window obscured by de-registered window, window is not tabbed', async () => {
+it('When a window is dragged on-top a window obscured by a de-registered window, window is not tabbed', async () => {
     const win3 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,

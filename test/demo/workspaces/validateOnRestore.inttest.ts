@@ -27,7 +27,7 @@ const childOptions = {
 afterEach(teardown);
 
 itParameterized(
-    'When calling generate and restore on a workspace with registered and deregistered windows, snapgroups are preserved and broken as expected',
+    'When calling generate and restore on a workspace with registered and de-registered windows, snapgroups are preserved and broken as expected',
     (testOptions: ValidateOnRestoreOptions) =>
         `Windows:${testOptions.windowCount}, arrangement:${testOptions.arrangement}, deregisteredIndex:${testOptions.deregisteredIndex}`,
     [

@@ -27,7 +27,7 @@ itParameterized<TwoWindowTestOptions>(
         {frame: false, windowCount: 2, side: 'right'},
     ],
     createWindowTest(async (context, testOptions: TwoWindowTestOptions) => {
-        const {windows} = context;
+        const windows = context.windows;
         const {side} = testOptions;
 
         await dragWindowTo(windows[0], 375, 375);
@@ -49,7 +49,7 @@ itParameterized<TwoWindowTestOptions>(
 
 itParameterized<CreateWindowData>(
     'When dragging four windows together, windows group as expected',
-    (testOptions: CreateWindowData): string => `Basic SnapAndDock - ${testOptions.windowCount} windows - ${testOptions.frame}}`,
+    (testOptions: CreateWindowData): string => `${testOptions.windowCount} windows - ${testOptions.frame}}`,
     [
         {frame: true, windowCount: 4},
         {frame: false, windowCount: 4},

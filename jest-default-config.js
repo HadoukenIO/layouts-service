@@ -39,7 +39,11 @@ module.exports = function createConfig(testType) {
               title = vars.title;
             }
 
-            return title.replace('.', '•');
+            while (title.includes('.')) {
+              title = title.replace('•');
+            }
+
+            return title;
           },
           "ancestorSeparator": " > "
         }]

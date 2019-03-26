@@ -40,7 +40,7 @@ module.exports = function createConfig(testType) {
             }
 
             while (title.includes('.')) {
-              title = title.replace('•');
+              title = title.replace('.', '•');
             }
 
             return title;

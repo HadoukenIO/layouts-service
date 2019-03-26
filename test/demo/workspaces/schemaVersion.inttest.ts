@@ -1,9 +1,11 @@
 import {MonitorInfo} from 'hadouken-js-adapter/out/types/src/api/system/monitor';
 
-import {restore, Workspace} from '../../../src/client/workspaces';
+import {WorkspaceAPI} from '../../../src/client/internal';
+import {Workspace} from '../../../src/client/workspaces';
 import {assertDoesNotReject, assertRejects} from '../../provider/utils/assertions';
 import {teardown} from '../../teardown';
 import {itParameterized} from '../utils/parameterizedTestUtils';
+import {sendServiceMessage} from '../utils/serviceUtils';
 
 interface SchemaVersionTestOptions {
     versionString: string|undefined;
@@ -26,7 +28,7 @@ itParameterized(
     async (testOptions: SchemaVersionTestOptions) => {
         const layoutToRestore = {...layoutBase, schemaVersion: testOptions.versionString};
 
-        const restorePromise = restore(layoutToRestore as Workspace);
+        const restorePromise = sendServiceMessage<Workspace, Workspace>(WorkspaceAPI.RESTORE_LAYOUT, layoutToRestore as Workspace);
         if (testOptions.shouldError) {
             await assertRejects(restorePromise);
         } else {

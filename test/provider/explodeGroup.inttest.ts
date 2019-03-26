@@ -52,27 +52,29 @@ async function assertExploded() {
  * arrangemtns object. To add an additional window layouts to be tested, simply
  * add new entries there.
  */
-Object.keys(defaultArrangements).forEach(num => {
-    const count = Number.parseInt(num, 10);
+describe('When calling explodeGroup, windows are ungrouped and moved as expected', () => {
+    Object.keys(defaultArrangements).forEach(num => {
+        const count = Number.parseInt(num, 10);
 
-    Object.keys(defaultArrangements[count]).forEach(name => {
-        it(`${count} windows - ${name}`, async () => {
-            // This will spawn the required number of windows in the correct
-            // positions/groups
-            windows = await windowInitializer.initWindows(count, name);
+        Object.keys(defaultArrangements[count]).forEach(name => {
+            it(`${count} windows - ${name}`, async () => {
+                // This will spawn the required number of windows in the correct
+                // positions/groups
+                windows = await windowInitializer.initWindows(count, name);
 
-            // Special handling for single window. Checks window did not move in any way
-            if (count === 1) {
-                const boundsBefore = await getBounds(windows[0]);
-                await explodeGroup(windows[0].identity as WindowIdentity);
-                const boundsAfter = await getBounds(windows[0]);
-                assert.deepEqual(boundsBefore, boundsAfter, 'Single window moved during explode');
-            } else {
-                await explodeGroup(windows[0].identity as WindowIdentity);
-            }
+                // Special handling for single window. Checks window did not move in any way
+                if (count === 1) {
+                    const boundsBefore = await getBounds(windows[0]);
+                    await explodeGroup(windows[0].identity as WindowIdentity);
+                    const boundsAfter = await getBounds(windows[0]);
+                    assert.deepEqual(boundsBefore, boundsAfter, 'Single window moved during explode');
+                } else {
+                    await explodeGroup(windows[0].identity as WindowIdentity);
+                }
 
-            // Runs multiple tests to ensure that the group has succesfully exploded.
-            await assertExploded();
+                // Runs multiple tests to ensure that the group has succesfully exploded.
+                await assertExploded();
+            });
         });
     });
 });

@@ -77,14 +77,16 @@ it('One ungrouped window - no effect on undock', async () => {
     assert.deepStrictEqual(boundsBefore, boundsAfter);
 });
 
-// Runs two-window test for each side
-(['bottom', 'top', 'left', 'right'] as Side[]).forEach((side: Side) => {
-    twoWindowTest(side);
+describe('When undockWindow is called with a window in a group of two windows, windows are ungrouped and moved as expected', () => {
+    (['bottom', 'top', 'left', 'right'] as Side[]).forEach((side: Side) => {
+        twoWindowTest(side);
+    });
 });
 
-// Runs four-window test for each corner
-(['top-left', 'top-right', 'bottom-left', 'bottom-right'] as Corner[]).forEach((corner) => {
-    fourWindowTest(corner);
+describe('When undockWindow is called with a window in a group of four windows, windows are ungrouped and moved as expected', () => {
+    (['top-left', 'top-right', 'bottom-left', 'bottom-right'] as Corner[]).forEach((corner) => {
+        fourWindowTest(corner);
+    });
 });
 
 function twoWindowTest(side: Side) {

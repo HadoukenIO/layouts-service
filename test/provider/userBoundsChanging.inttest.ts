@@ -54,7 +54,7 @@ afterEach(async () => {
 });
 afterEach(teardown);
 
-it('Animate Basic Snap, top - should not snap', async () => {
+it('When animating window movement, windows should not snap', async () => {
     const win2Bounds = await getBounds(wins[1]);
 
     await wins[0].animate(
@@ -70,7 +70,7 @@ it('Animate Basic Snap, top - should not snap', async () => {
 });
 
 
-it('Animate Basic Tab - should not tab', async () => {
+it('When animating window movement, window should not tab', async () => {
     const win2bounds = await getBounds(wins[1]);
 
     await wins[0].animate({position: {left: win2bounds.left + 20, top: win2bounds.top + 20, duration: 3000}}, {interrupt: false});
@@ -80,7 +80,7 @@ it('Animate Basic Tab - should not tab', async () => {
     await assertNotTabbed(wins[0]);
 });
 
-it('Programmatic move, Basic Snap, top - should not snap', async () => {
+it('When programmatically moving window, window should not snap', async () => {
     const win2Bounds = await getBounds(wins[1]);
 
     await wins[0].moveTo(
@@ -98,7 +98,7 @@ it('Programmatic move, Basic Snap, top - should not snap', async () => {
 });
 
 
-it('Programmatic move, Tab - should not tab', async () => {
+it('When programmatically moving window, window should not tab', async () => {
     const win2bounds = await getBounds(wins[1]);
 
     await wins[0].moveTo(win2bounds.left + 20, win2bounds.top + 20);

@@ -24,7 +24,7 @@ afterEach(async () => {
     await teardown();
 });
 
-it('normal deregister, snap with registered', async () => {
+it('When dragging a registered window to a deregisted window, windows do not snap', async () => {
     win1 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
@@ -59,7 +59,7 @@ it('normal deregister, snap with registered', async () => {
     assert.notStrictEqual(bounds1.top, bounds2.bottom);
 });
 
-it('normal deregister, snap with degistered', async () => {
+it('When dragging a deregistered window to a registed window, windows do not snap', async () => {
     win1 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
@@ -93,7 +93,7 @@ it('normal deregister, snap with degistered', async () => {
     assert.notStrictEqual(bounds2.top, bounds1.bottom);
 });
 
-it('delayed deregister, snap with registered', async () => {
+it('When dragging a registered window to a delayed deregisted window, windows do not snap', async () => {
     win1 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
@@ -127,7 +127,7 @@ it('delayed deregister, snap with registered', async () => {
     assert.notStrictEqual(bounds1.top, bounds2.bottom);
 });
 
-it('delayed deregister, snap with deregistered', async () => {
+it('When dragging a delayed deregistered window to a registed window, windows do not snap', async () => {
     win1 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
@@ -161,7 +161,7 @@ it('delayed deregister, snap with deregistered', async () => {
     assert.notStrictEqual(bounds2.top, bounds1.bottom);
 });
 
-it('deregister snapped window', async () => {
+it('When dragging a deregistered-on-trigger window to a registed window, windows do not snap', async () => {
     win1 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
@@ -211,7 +211,7 @@ it('deregister snapped window', async () => {
     assert.notStrictEqual(endbounds2.top, endbounds1.bottom);
 });
 
-it('no preview when deregistered - dragging registered', async () => {
+it('When dragging a registered window to a deregisted window, no snap preview window is shown', async () => {
     // Wrap the pre-spawned preview window
     const previewWin = await getWindow({name: 'successPreview', uuid: 'layouts-service'});
 
@@ -248,7 +248,7 @@ it('no preview when deregistered - dragging registered', async () => {
     robot.mouseToggle('up');
 });
 
-it('no preview when deregistered - dragging deregistered', async () => {
+it('When dragging a deregistered window to a registed window, no snap preview window is shown', async () => {
     // Wrap the pre-spawned preview window
     const previewWin = await getWindow({name: 'successPreview', uuid: 'layouts-service'});
 

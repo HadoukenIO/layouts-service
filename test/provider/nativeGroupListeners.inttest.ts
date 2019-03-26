@@ -127,64 +127,65 @@ async function ungroupWindows(win1: Window, win2: Window, shouldMove: boolean) {
 
 /* ====== Tests ====== */
 
-for (const firstGroup of Object.keys(groupingFunctions) as GroupingType[]) {
-    for (const firstUngroup of Object.keys(ungroupingFunctions) as UngroupingType[]) {
-        let secondUngroup: UngroupingType;
-        switch (firstUngroup) {
-            case 'native':
-                secondUngroup = 'unsnap';
-                break;
-            case 'unsnap':
-                secondUngroup = 'native';
-                break;
-            default:
-                throw new Error('Invalid grouping type in native group event test');
-        }
-        for (const ungroupedIndex of [0, 1] as (0 | 1)[]) {
-            runNativeGroupListenerTest(firstGroup, firstUngroup, secondUngroup, ungroupedIndex);
+function runNativeGroupListenerTest(groupType: GroupingType, firstUngroupType: UngroupingType, secondUngroupType: UngroupingType, ungroupedWindowIndex: 0|1) {
+    it(`${[groupType, firstUngroupType, secondUngroupType, ungroupedWindowIndex].join(', ')}`, async () => {
+        // Group the windows
+        await groupingFunctions[groupType](windows[0], windows[1]);
+
+        // Ungroup the windows with the first method. Should only move on
+        // unsnap.
+        await ungroupingFunctions[firstUngroupType](windows[0], windows[0], firstUngroupType === 'unsnap');
+
+        // Ungroup the windows with the second method. Should never move.
+        await ungroupingFunctions[secondUngroupType](windows[0], windows[ungroupedWindowIndex], false);
+    });
+}
+
+describe('Native window group works the same as snapService grouping', () => {
+    for (const firstGroup of Object.keys(groupingFunctions) as GroupingType[]) {
+        for (const firstUngroup of Object.keys(ungroupingFunctions) as UngroupingType[]) {
+            let secondUngroup: UngroupingType;
+            switch (firstUngroup) {
+                case 'native':
+                    secondUngroup = 'unsnap';
+                    break;
+                case 'unsnap':
+                    secondUngroup = 'native';
+                    break;
+                default:
+                    throw new Error('Invalid grouping type in native group event test');
+            }
+            for (const ungroupedIndex of [0, 1] as (0 | 1)[]) {
+                runNativeGroupListenerTest(firstGroup, firstUngroup, secondUngroup, ungroupedIndex);
+            }
         }
     }
-}
 
-function runNativeGroupListenerTest(groupType: GroupingType, firstUngroupType: UngroupingType, secondUngroupType: UngroupingType, ungroupedWindowIndex: 0|1) {
-    it(`Native window group works the same as snapService grouping (${[groupType, firstUngroupType, secondUngroupType, ungroupedWindowIndex].join(', ')})`,
-       async () => {
-           // Group the windows
-           await groupingFunctions[groupType](windows[0], windows[1]);
+    it('native merge, undock, native, 1', async () => {
+        // Native group the windows
+        win1.mergeGroups(win2);
 
-           // Ungroup the windows with the first method. Should only move on
-           // unsnap.
-           await ungroupingFunctions[firstUngroupType](windows[0], windows[0], firstUngroupType === 'unsnap');
+        // Assert in snap group and native group
+        await assertGrouped(win1, win2);
 
-           // Ungroup the windows with the second method. Should never move.
-           await ungroupingFunctions[secondUngroupType](windows[0], windows[ungroupedWindowIndex], false);
-       });
-}
+        // Undock
+        let boundsBefore = await getBounds(win1);
+        await undockWindow(win1.identity as WindowIdentity);
+        let boundsAfter = await getBounds(win1);
 
-it('Native window group works the same as snapService grouping (native merge, undock, native, 1)', async () => {
-    // Native group the windows
-    win1.mergeGroups(win2);
+        // Assert moved
+        await assertMoved(boundsBefore, boundsAfter);
 
-    // Assert in snap group and native group
-    await assertGrouped(win1, win2);
+        // Assert not in snap group or native group
+        await assertNotGrouped(win1);
+        await assertNotGrouped(win2);
 
-    // Undock
-    let boundsBefore = await getBounds(win1);
-    await undockWindow(win1.identity as WindowIdentity);
-    let boundsAfter = await getBounds(win1);
+        // Native ungroup
+        boundsBefore = await getBounds(win1);
+        await win1.leaveGroup();
+        boundsAfter = await getBounds(win1);
 
-    // Assert moved
-    await assertMoved(boundsBefore, boundsAfter);
-
-    // Assert not in snap group or native group
-    await assertNotGrouped(win1);
-    await assertNotGrouped(win2);
-
-    // Native ungroup
-    boundsBefore = await getBounds(win1);
-    await win1.leaveGroup();
-    boundsAfter = await getBounds(win1);
-
-    // Assert window did not move
-    await assertNotMoved(boundsBefore, boundsAfter);
+        // Assert window did not move
+        await assertNotMoved(boundsBefore, boundsAfter);
+    });
 });

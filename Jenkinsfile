@@ -26,7 +26,7 @@ pipeline {
                         bat "npm i"
                         bat "npm run test:int -- --color=false --verbose"
                     }
-                     post {
+                    post {
                         always {
                             junit "dist/test/results-int.xml"
                         }

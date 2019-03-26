@@ -27,9 +27,8 @@ afterEach(async () => {
 });
 
 itParameterized<CreateAppData>(
-    'When calling generate and restore, tabbed windows are restored as expected',
-    (testOptions: CreateAppData): string =>
-        `Tab SaveAndRestore - ${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - Formerly tabbed window resize`,
+    'When calling generate and restore, mixed tabgroups registered and deregistered windows are restored as expected',
+    (testOptions: CreateAppData): string => `${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'}`,
     [{apps: combinedProgrammaticApps, tabWindowGrouping: windowGrouping}, {apps: combinedManifestApps, tabWindowGrouping: windowGrouping}],
     createAppTest(async (context, applicationData: CreateAppData) => {
         if (applicationData.tabWindowGrouping) {

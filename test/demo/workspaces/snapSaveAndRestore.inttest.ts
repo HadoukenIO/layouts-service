@@ -37,10 +37,12 @@ appNumbers.forEach(appNumber => {
     });
 });
 
+afterEach(closeAllPreviews);
 afterEach(teardown);
 
 itParameterized<CreateAppData>(
-    (testOptions: CreateAppData): string => `Snap SaveAndRestore - ${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - ${
+    'When calling generate and restore, snapgroups are restored as expected',
+    (testOptions: CreateAppData): string => `${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - ${
         testOptions.apps.length} App(s) - ${testOptions.apps[0].childWindows.length} Child(ren) Each`,
     snapTestOptionsArray,
     createAppTest(async (context, applicationData: CreateAppData) => {
@@ -57,6 +59,3 @@ itParameterized<CreateAppData>(
             await assertGrouped(win1, win2);
         }
     }));
-
-
-afterEach(closeAllPreviews);

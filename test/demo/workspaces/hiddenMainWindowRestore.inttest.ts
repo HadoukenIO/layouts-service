@@ -25,12 +25,13 @@ numberOfApps.forEach(appNumber => {
     });
 });
 
+afterEach(closeAllPreviews);
 afterEach(teardown);
 
 itParameterized<CreateAppData>(
-    (testOptions: CreateAppData): string =>
-        `Flash Check for SaveAndRestore - Parent Windows shouldn't show - ${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - ${
-            testOptions.apps.length} App(s) - ${testOptions.apps[0].childWindows.length} Child(ren) Each`,
+    'When calling generate and restore, hidden windows remain hidden',
+    (testOptions: CreateAppData): string => `${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - ${
+        testOptions.apps.length} App(s) - ${testOptions.apps[0].childWindows.length} Child(ren) Each`,
     hiddenParentTestArray,
     createAppTest(async (context, applicationData: CreateAppData) => {
         // Set up the callback to fail the test if the parent window shows.
@@ -51,6 +52,3 @@ itParameterized<CreateAppData>(
             }
         }
     }));
-
-
-afterEach(closeAllPreviews);

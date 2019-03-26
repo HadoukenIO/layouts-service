@@ -14,8 +14,8 @@ interface TwoWindowTestOptions extends CreateWindowData {
 afterEach(teardown);
 
 itParameterized<TwoWindowTestOptions>(
-    (testOptions: TwoWindowTestOptions): string => `Basic SnapAndDock - ${testOptions.windowCount} windows - ${testOptions.frame ? 'framed' : 'frameless'} - ${
-        testOptions.side ? `- ${testOptions.side}` : ''}`,
+    'When dragging two windows together, windows group as expected',
+    (testOptions: TwoWindowTestOptions): string => `${testOptions.frame ? 'framed' : 'frameless'} - ${testOptions.side ? `- ${testOptions.side}` : ''}`,
     [
         {frame: true, windowCount: 2, side: 'top'},
         {frame: true, windowCount: 2, side: 'bottom'},
@@ -48,6 +48,7 @@ itParameterized<TwoWindowTestOptions>(
 
 
 itParameterized<CreateWindowData>(
+    'When dragging four windows together, windows group as expected',
     (testOptions: CreateWindowData): string => `Basic SnapAndDock - ${testOptions.windowCount} windows - ${testOptions.frame}}`,
     [
         {frame: true, windowCount: 4},

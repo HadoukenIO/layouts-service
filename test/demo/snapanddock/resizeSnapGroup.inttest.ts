@@ -15,8 +15,9 @@ interface ResizeGroupOptions extends CreateWindowData {
 afterEach(teardown);
 
 itParameterized(
+    'When a window in a group is resized, the group remains unbroken and other windows in group are resized as expected',
     (testOptions: ResizeGroupOptions): string =>
-        `Resize SnapGroup - ${testOptions.windowCount} windows - ${testOptions.frame ? 'framed' : 'frameless'} - ${testOptions.resizeType.join('-')} resize`,
+        `${testOptions.windowCount} windows - ${testOptions.frame ? 'framed' : 'frameless'} - ${testOptions.resizeType.join('-')} resize`,
     [
         {frame: true, windowCount: 2, resizeType: ['inner', 'horizontal']},
         {frame: true, windowCount: 2, resizeType: ['inner', 'vertical']},

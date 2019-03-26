@@ -36,9 +36,11 @@ appNumbers.forEach(appNumber => {
     });
 });
 
+afterEach(closeAllPreviews);
 afterEach(teardown);
 
 itParameterized<CreateAppData>(
+    'When calling generate and restore, tabgroups are restored as expected',
     (testOptions: CreateAppData): string => `Tab SaveAndRestore - ${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - ${
         testOptions.apps.length} App(s) - ${testOptions.apps[0].childWindows.length} Child(ren) Each`,
     tabTestOptionsArray,
@@ -53,6 +55,3 @@ itParameterized<CreateAppData>(
             await assertGrouped(win1, win2);
         }
     }));
-
-
-afterEach(closeAllPreviews);

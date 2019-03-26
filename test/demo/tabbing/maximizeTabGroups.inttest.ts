@@ -13,7 +13,8 @@ interface MaximizeTabGroupsInstance extends CreateWindowData {
 afterEach(teardown);
 
 itParameterized(
-    `Docked tabGroups undock when maximized`,
+    'When a tabgroup is grouped with another window, maximizing the tabgroup undocks the tabgroup',
+    (testOptions) => `windowCount: ${testOptions.windowCount}`,
     [
         {windowCount: 3, frame: false},
         {windowCount: 4, frame: false},

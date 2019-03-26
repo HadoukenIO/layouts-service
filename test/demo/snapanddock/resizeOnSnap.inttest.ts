@@ -44,6 +44,7 @@ afterEach(teardown);
 
 // With window constraints
 itParameterized(
+    'When dragging two differently sized windows together, windows are grouped and resized as expected, respecting constraints',
     (testOptions: ResizeWithConstrainsOptions):
         string => {
             const frameString = testOptions.frame ? 'framed' : 'frameless';
@@ -58,7 +59,7 @@ itParameterized(
                 constraintsString = `Constraints: ${JSON.stringify(testOptions.constraints).slice(1, -1)}`;
             }
 
-            return `Resize on Snap - ${frameString} - ${testOptions.side} - ${resizeDirectionString} - ${constraintsString}`;
+            return `${frameString} - ${testOptions.side} - ${resizeDirectionString} - ${constraintsString}`;
         },
     [
         // No constraints. Normal resizing behaviour expected
@@ -206,11 +207,12 @@ itParameterized(
 
 // With tabsets
 itParameterized(
+    'When dragging two differently sized, tabbed, windows together, windows are grouped and resized as expected',
     (testOptions: ResizeOnSnapOptions):
         string => {
             const resizeDirectionString = testOptions.resizeDirection.split('-').join(' ');
 
-            return `Resize on Snap - Tabbed Windows - ${testOptions.side} - ${resizeDirectionString}`;
+            return `${testOptions.side} - ${resizeDirectionString}`;
         },
     [
         // No constraints. Normal resizing behaviour expected

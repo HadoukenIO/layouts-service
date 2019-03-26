@@ -13,7 +13,8 @@ afterEach(teardown);
 // Using itParameterized more for type safety than parameterization
 // since this just one very specific test
 itParameterized(
-    (testOptions: CreateWindowData) => 'Cannot snap windows so they overlap - shape: U',
+    'When snapping windows, they cannot overlap',
+    (testOptions: CreateWindowData) => 'Shape: U',
     [{windowCount: 5, frame: true}],
     createWindowTest(async (context, testOptions: CreateWindowData) => {
         const windows = context.windows;
@@ -58,7 +59,8 @@ itParameterized(
     }));
 
 itParameterized(
-    (testOptions: CreateWindowData) => 'Cannot snap windows so they overlap - shape: O',
+    'When snapping windows, they cannot overlap',
+    (testOptions: CreateWindowData) => 'Shape: O',
     [{windowCount: 5, frame: true}],
     createWindowTest(async (context, testOptions: CreateWindowData) => {
         const windows = context.windows;

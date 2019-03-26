@@ -40,20 +40,6 @@ function assertIsLayoutObject(layout: Workspace) {
     assert.strictEqual(layout.type, 'workspace', 'Layout object has an incorrect type!');
 }
 
-async function assertAllAppsClosed(context: AppContext) {
-    context.testAppData.forEach(async (appData: TestAppData) => {
-        const appRunning = await appData.app.isRunning();
-        if (appRunning) {
-            assert.fail(`Application ${appData.uuid} is running, but it should have been closed.`);
-            return;
-        }
-    });
-}
-
-function isSaveRestoreContext(context: AppContext): context is AppContext {
-    return !!(context && context.testAppData);
-}
-
 async function getTestApps(): Promise<Application[]> {
     return Promise.all((await fin.System.getAllApplications())
                            .filter((app: ApplicationInfo) => {
@@ -69,21 +55,21 @@ export async function createCloseAndRestoreLayout(context: AppContext|undefined 
     const workspace = await sendServiceMessage(WorkspaceAPI.GENERATE_LAYOUT, undefined) as Workspace;
 
     assertIsLayoutObject(workspace);
-    if (context !== undefined && isSaveRestoreContext(context)) {
-        // Close all apps that were created as part of restore
-        await Promise.all(context.testAppData.map(async (appData: TestAppData) => await appData.app.close(true)));
-        await assertAllAppsClosed(context);
+
+    let apps: Application[];
+    if (context !== undefined) {
+        apps = context.testAppData.map(appData => appData.app);
     } else {
-        // Close all apps
-        await Promise.all((await getTestApps()).map(app => app.close()));
-        await getTestApps().then(async (apps: Application[]) => {
-            await Promise.all(apps.map(async (app) => {
-                if (await app.isRunning()) {
-                    assert.fail(`Application ${app.identity.uuid} is running, but it should have been closed.`);
-                }
-            }));
-        });
+        apps = await getTestApps();
     }
+
+    await Promise.all(apps.map(app => app.close()));
+    await Promise.all(apps.map(async (app) => {
+        if (await app.isRunning()) {
+            assert.fail(`Application ${app.identity.uuid} is running, but it should have been closed.`);
+        }
+    }));
+
     await sendServiceMessage(WorkspaceAPI.RESTORE_LAYOUT, workspace);
 
     return workspace;

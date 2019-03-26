@@ -1,2 +1,5 @@
 const createConfig = require('./jest-default-config');
-module.exports = createConfig('int');
+config = createConfig('int');
+config["setupFilesAfterEnv"] = ['<rootDir>/provider/utils/setup.ts'];
+
+module.exports = config;

@@ -43,7 +43,7 @@ const windowPositions = [
 afterEach(teardown);
 
 itParameterized<CreateTabGroupFromTabsOptions>(
-    'When calling createTabGroup, tabs move as expected',
+    'When calling createTabGroup, windows are tabbed, grouped, and moved as expected',
     (testOptions: CreateTabGroupFromTabsOptions): string => `${testOptions.description}`,
     [
         createCreateTabGroupOption({

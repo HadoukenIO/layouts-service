@@ -20,7 +20,7 @@ interface TabConstraintsOptions extends CreateWindowData {
 afterEach(teardown);
 
 itParameterized(
-    `When windows are tabbed together, constraints are applied and restored correctly`,
+    `When windows are tabbed together, constraints are applied correctly`,
     (testOptions) => `${JSON.stringify(testOptions)}`,
     [
         {frame: true, windowCount: 2, windowConstraints: [{resizable: false}, {}]},
@@ -127,7 +127,7 @@ const defaultConstraints: Required<Constraints> = {
 };
 
 itParameterized(
-    'When window in tabgroup has specified maxWidthHeight, tabgroup cannot be maximized',
+    'When a window in tabgroup has specified maxWidthHeight, tabgroup cannot be maximized',
     (testOptions) => `${JSON.stringify(testOptions)}`,
     [
         {frame: true, windowCount: 2, windowConstraints: [{}, {}]},

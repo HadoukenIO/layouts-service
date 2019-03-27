@@ -15,6 +15,6 @@
     },
     "runtime": {
         "arguments": "--enable-aggressive-domstorage-flushing --message-timeout=60000",
-        "version": "9.61.38.40"
+        "version": "9.61.38.41"
     }
 }

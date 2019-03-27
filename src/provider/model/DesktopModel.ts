@@ -18,6 +18,7 @@ import {DesktopTabGroup} from './DesktopTabGroup';
 import {DesktopWindow, EntityState, WindowIdentity} from './DesktopWindow';
 import {MouseTracker} from './MouseTracker';
 import {ZIndexer} from './ZIndexer';
+import { wrapWindow } from '../utils/main';
 
 type EnabledMask = {
     enabled: true
@@ -88,6 +89,15 @@ export class DesktopModel {
                 });
             });
         });
+        (<any>fin.System).getAllExternalWindows().then((externalWindows: any) => {
+            const notepad = externalWindows.find((e: any) => e.name === 'Notepad');
+            if (!notepad) {
+                return console.error('Cant find notepad');
+            }
+            const { uuid } = notepad;
+            this.addIfEnabled({ uuid, name: uuid, isExternalWindow: true });
+        });
+        // -------------------------------------------------------
 
         // Validate everything on monitor change, as groups may become disjointed
         fin.System.addListener('monitor-info-changed', async (evt: MonitorEvent<'system', 'monitor-info-changed'>) => {
@@ -295,7 +305,7 @@ export class DesktopModel {
             existingWindow.teardown();
         }
 
-        const window: Window = fin.Window.wrapSync(identity);
+        const window: Window = wrapWindow(identity);
         return DesktopWindow.getWindowState(window).then<DesktopWindow|null>((state: EntityState): DesktopWindow|null => {
             if (!this._config.queryPartial({level: 'window', ...identity}, enabledMask).enabled) {
                 // An 'enabled: false' rule was added to the store whilst we were in the process of setting-up the

@@ -51,6 +51,7 @@ export interface ResizeConstraint {
 export interface WindowIdentity extends Identity {
     uuid: string;
     name: string;
+    isExternalWindow?: boolean;
 }
 
 /**

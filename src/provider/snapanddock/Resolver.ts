@@ -105,9 +105,12 @@ export class Resolver {
                     // Need to iterate over every window in both groups
                     activeGroup.entities.forEach(activeWindow => {
                         const activeState: EntityState = activeWindow.currentState;
+                        const isSnappable = this.isSnappable(activeWindow, activeState);
+                        const distance = RectUtils.distance(candidateGroup, activeState);
+                        const isDistanceWithin = distance.within(SNAP_DISTANCE);
 
                         // Only do the next loop if there's a chance that this window can intersect with the other group
-                        if (this.isSnappable(activeWindow, activeState) && RectUtils.distance(candidateGroup, activeState).within(SNAP_DISTANCE)) {
+                        if (isSnappable && isDistanceWithin) {
                             candidateGroup.entities.forEach(candidateWindow => {
                                 const candidateState: EntityState = candidateWindow.currentState;
 
@@ -170,6 +173,10 @@ export class Resolver {
      * @param state State of the window object we are considering for snapping
      */
     private isSnappable(window: DesktopEntity, state: EntityState): boolean {
-        return !state.hidden && state.opacity > 0 && state.state === 'normal' && this._config.query(window.scope).features.snap;
+        const isVisible = !state.hidden;
+        const isOpaque = state.opacity > 0;
+        const isNormalState = state.state === 'normal';
+        const snapFeature = this._config.query(window.scope).features.snap;
+        return isVisible && isOpaque && isNormalState && snapFeature;
     }
 }

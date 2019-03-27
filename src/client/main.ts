@@ -28,6 +28,11 @@ export interface WindowIdentity {
      * Window identifier
      */
     name: string;
+
+    /**
+     * External Window identifier
+     */
+    isExternalWindow?: boolean;
 }
 
 /**

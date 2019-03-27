@@ -10,6 +10,7 @@ import {SERVICE_IDENTITY} from '../../client/internal';
 import {DesktopModel} from './DesktopModel';
 import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {DesktopWindow, WindowIdentity} from './DesktopWindow';
+import {wrapWindow} from '../utils/main';
 
 export interface ZIndex {
     timestamp: number;
@@ -143,7 +144,7 @@ export class ZIndexer {
             }
         } else if (!bounds) {
             // Must request bounds before being able to add
-            fin.Window.wrapSync(identity).getBounds().then(bounds => {
+            wrapWindow(identity).getBounds().then((bounds: Bounds) => {
                 // Since this required an async operation, entry may now exist within stack, so recursively call update
                 this.update(identity, active, this.sanitizeBounds(bounds), timestamp);
             });

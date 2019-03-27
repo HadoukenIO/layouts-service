@@ -257,6 +257,9 @@
                 },
                 "name": {
                     "type": "string"
+                },
+                "isExternalWindow": {
+                    "type": "boolean"
                 }
             },
             "required": [

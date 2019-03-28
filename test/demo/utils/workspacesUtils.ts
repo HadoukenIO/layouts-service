@@ -51,7 +51,7 @@ async function getTestApps(): Promise<Application[]> {
                            }));
 }
 
-export async function createCloseAndRestoreLayout(context: AppContext|undefined = undefined): Promise<Workspace> {
+export async function createCloseAndRestoreLayout(context?: AppContext): Promise<Workspace> {
     const workspace = await sendServiceMessage(WorkspaceAPI.GENERATE_LAYOUT, undefined) as Workspace;
 
     assertIsLayoutObject(workspace);

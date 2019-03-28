@@ -63,9 +63,9 @@ const scopes = {
 };
 
 /**
- * Function signature of the callbacks added to the `onAdd` and `onRemove` signals of a `Watch` object.
+ * Parameters of the callbacks added to the `onAdd` and `onRemove` signals of a `Watch` object.
  */
-type WatchCallback = (store: Store<Config>, config: ScopedConfig<Config>) => void;
+type WatchCallbackParams = [ScopedConfig<Config>, Scope];
 
 let store: Store<Config>;
 const defaults: RequiredRecursive<Config> = {
@@ -371,8 +371,8 @@ describe('Store', () => {
         const config = {bool: true};
 
         let watch: ScopeWatch<Config>;
-        let onAddProxy: jest.Mock<void, any>;
-        let onRemoveProxy: jest.Mock<void, any>;
+        let onAddProxy: jest.Mock<void, WatchCallbackParams>;
+        let onRemoveProxy: jest.Mock<void, WatchCallbackParams>;
 
         beforeEach(() => {
             watch = new ScopeWatch(store, {level: 'application', uuid: 'my-app'});

@@ -31,9 +31,12 @@ const DEFAULT_OPTIONS: fin.WindowOptions = {
 };
 
 async function addRuleToProvider(scope: Scope, config: ConfigurationObject): Promise<void> {
-    return executeJavascriptOnService(function(this: ProviderWindow, data) {
+    await executeJavascriptOnService(function(this: ProviderWindow, data) {
         this.config.add(data.scope, data.config);
     }, {scope, config});
+
+    // Small delay to allow any side effects of the rule addition to take place
+    await delay(500);
 }
 
 beforeEach(async () => {

@@ -41,8 +41,8 @@ export const eventEmitter = new EventEmitter();
 /**
  * Promise to the channel object that allows us to connect to the client
  */
-
-let channelPromise: Promise<ChannelClient>|null = (typeof fin !== 'undefined') ? getServicePromise() : null;
+let channelPromise: Promise<ChannelClient>|null;
+channelPromise = (typeof fin !== 'undefined') ? getServicePromise() : null;
 
 export function getServicePromise(): Promise<ChannelClient> {
     if (!channelPromise) {

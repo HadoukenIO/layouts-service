@@ -4,7 +4,7 @@ import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/c
 
 import {stub} from './utils/FinMock';
 
-import {channelPromise} from '../../src/client/connection';
+import {getServicePromise} from '../../src/client/connection';
 import {TabAPI} from '../../src/client/internal';
 import {tabbing} from '../../src/client/main';
 import {WindowIdentity} from '../../src/client/main';
@@ -16,7 +16,7 @@ let channelDispatch: jest.SpyInstance<typeof channel.dispatch>;
 
 beforeEach(async () => {
     jest.restoreAllMocks();
-    channel = await channelPromise;
+    channel = await getServicePromise();
     channelDispatch = jest.spyOn(channel, 'dispatch');
 });
 

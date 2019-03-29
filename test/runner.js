@@ -10,10 +10,10 @@
  */
 
 const execa = require('execa');
+const fetch = require('node-fetch');
 const os = require('os');
 const express = require('express');
 const {launch} = require('hadouken-js-adapter');
-const tooling = require('openfin-service-tooling');
 
 let port;
 
@@ -113,19 +113,20 @@ async function build() {
     await run('tsc', ['-p', 'test', '--skipLibCheck']);
 }
 
+async function waitForUrl(url) {
+    let found = false
+    
+    while (!found) {
+        await fetch(url).then((response) => {found = response.ok}, () => {});
+    }
+}
+
 /**
  * Starts a local server for hosting the test windows
  */
 async function serve() {
     return new Promise((resolve, reject) => {
         const app = express();
-
-        app.use(/\/?(.*(app|provider)\.json)/, tooling.middleware.createAppJsonMiddleware("testing", runtimeVersion));
-        app.use(express.static('dist'));
-        app.use(express.static('res'));
-
-        // Add route to dynamically generate app manifests
-        app.use('/manifest', tooling.middleware.createCustomManifestMiddleware());
         app.use('/create-manifest', (req, res) => {
             const {uuid, url, defaultTop, config, autoShow} = req.query;
             const additionalServiceProperties = config ? {config: JSON.parse(config)} : {};
@@ -146,7 +147,7 @@ async function serve() {
                 },
                 services: [{
                     name: 'layouts',
-                    manifestUrl: "http://localhost:1337/test/provider.json",
+                    manifestUrl: 'http://localhost:1337/test/provider.json',
                     ...additionalServiceProperties
                 }]
             };
@@ -157,14 +158,16 @@ async function serve() {
         });
         
         console.log("Starting test server...");
-        app.listen(1337, resolve);
+        app.listen(1338, resolve);
     });
 }
 
 const buildStep = skipBuild ? Promise.resolve() : build();
 
 buildStep
+    .then(() => {run('svc-tools start --static --noDemo --providerVersion testing'); return;})
     .then(() => serve())
+    .then(() => waitForUrl('http://localhost:1337/test/app.json'))
     .then(async () => {
         port = await launch({manifestUrl: 'http://localhost:1337/test/app.json'});
         console.log('Openfin running on port ' + port);

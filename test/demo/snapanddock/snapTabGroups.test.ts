@@ -1,4 +1,3 @@
-import {test} from 'ava';
 import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
@@ -17,7 +16,7 @@ interface SnapTabInstanceData {
     side: Side;
 }
 
-test.afterEach.always(teardown);
+afterEach(teardown);
 
 /**
  * Performs the necessary test setup - tabs the windows into two tab groups, then snaps those groups together.
@@ -47,67 +46,67 @@ async function tabSnapAndMove(side: Side, windows: _Window[]): Promise<[_Window,
     return tabstrips;
 }
 
-testParameterized<SnapTabInstanceData&CreateWindowData, WindowContext>(
+testParameterized<SnapTabInstanceData&CreateWindowData>(
     (instance) => `Can snap tabsets together: ${instance.side}`,
     [{side: Sides.right}, {side: Sides.bottom}].map(instance => ({...instance, frame: true, windowCount: 4})),
-    createWindowTest(async (t, instance: SnapTabInstanceData&CreateWindowData) => {
-        const windows = t.context.windows;
+    createWindowTest(async (context, instance: SnapTabInstanceData&CreateWindowData) => {
+        const windows = context.windows;
 
         await tabSnapAndMove(instance.side, windows);
 
         // Assert tabbed
-        await assertPairTabbed(windows[0], windows[1], t);
-        await assertPairTabbed(windows[2], windows[3], t);
-        await assertGrouped(t, ...windows);
+        await assertPairTabbed(windows[0], windows[1]);
+        await assertPairTabbed(windows[2], windows[3]);
+        await assertGrouped(...windows);
     }));
 
-testParameterized<SnapTabInstanceData&CreateWindowData, WindowContext>(
+testParameterized<SnapTabInstanceData&CreateWindowData>(
     `Tab groups remain functional once grouped`,
     [{side: Sides.right}].map(instance => ({...instance, frame: true, windowCount: 4})),
-    createWindowTest(async (t, instance: SnapTabInstanceData&CreateWindowData) => {
-        const windows = t.context.windows;
+    createWindowTest(async (context, instance: SnapTabInstanceData&CreateWindowData) => {
+        const windows = context.windows;
 
         const tabstrips = await tabSnapAndMove('right', windows);
 
         await switchTab(tabstrips[0], 1);
-        await assertActiveTab(t, windows[1]);
+        await assertActiveTab(windows[1]);
         await switchTab(tabstrips[0], 0);
-        await assertActiveTab(t, windows[0]);
+        await assertActiveTab(windows[0]);
 
         await switchTab(tabstrips[1], 0);
-        await assertActiveTab(t, windows[2]);
+        await assertActiveTab(windows[2]);
         await switchTab(tabstrips[1], 1);
-        await assertActiveTab(t, windows[3]);
+        await assertActiveTab(windows[3]);
         await switchTab(tabstrips[1], 0);
-        await assertActiveTab(t, windows[2]);
+        await assertActiveTab(windows[2]);
 
-        await assertPairTabbed(windows[0], windows[1], t);
-        await assertPairTabbed(windows[2], windows[3], t);
-        await assertGrouped(t, ...windows);
+        await assertPairTabbed(windows[0], windows[1]);
+        await assertPairTabbed(windows[2], windows[3]);
+        await assertGrouped(...windows);
     }));
 
-testParameterized<SnapTabInstanceData&CreateWindowData, WindowContext>(
+testParameterized<SnapTabInstanceData&CreateWindowData>(
     `Can tearout tab from snapped tabgroup`,
     [{side: Sides.right}].map(instance => ({...instance, frame: true, windowCount: 4})),
-    createWindowTest(async (t) => {
-        const windows = t.context.windows;
+    createWindowTest(async (context) => {
+        const windows = context.windows;
 
         const tabstrips = await tabSnapAndMove('right', windows);
 
         await tearoutTab(tabstrips[0], 0);
 
-        await assertNotTabbed(windows[0], t);
-        await assertNotTabbed(windows[1], t);
+        await assertNotTabbed(windows[0]);
+        await assertNotTabbed(windows[1]);
 
-        await assertPairTabbed(windows[2], windows[3], t);
-        await assertGrouped(t, ...windows.slice(1));
+        await assertPairTabbed(windows[2], windows[3]);
+        await assertGrouped(...windows.slice(1));
     }));
 
-testParameterized<SnapTabInstanceData&CreateWindowData, WindowContext>(
+testParameterized<SnapTabInstanceData&CreateWindowData>(
     `Can tab into snapped window`,
     [{side: Sides.right}, {side: Sides.bottom}].map(instance => ({...instance, frame: true, windowCount: 4})),
-    createWindowTest(async (t, instance: SnapTabInstanceData&CreateWindowData) => {
-        const windows = t.context.windows;
+    createWindowTest(async (context, instance: SnapTabInstanceData&CreateWindowData) => {
+        const windows = context.windows;
         const side = instance.side;
 
         // Create tab group
@@ -120,16 +119,16 @@ testParameterized<SnapTabInstanceData&CreateWindowData, WindowContext>(
         // Tab remaining window to snapped window
         await tabWindowsTogether(windows[2], windows[3]);
 
-        await assertPairTabbed(windows[0], windows[1], t);
-        await assertPairTabbed(windows[2], windows[3], t);
-        await assertGrouped(t, ...windows);
+        await assertPairTabbed(windows[0], windows[1]);
+        await assertPairTabbed(windows[2], windows[3]);
+        await assertGrouped(...windows);
     }));
 
-testParameterized<SnapTabInstanceData&CreateWindowData, WindowContext>(
+testParameterized<SnapTabInstanceData&CreateWindowData>(
     `Can tearout into snapped window`,
     [{side: Sides.right}, {side: Sides.bottom}].map(instance => ({...instance, frame: true, windowCount: 4})),
-    createWindowTest(async (t, instance: SnapTabInstanceData&CreateWindowData) => {
-        const windows = t.context.windows;
+    createWindowTest(async (context, instance: SnapTabInstanceData&CreateWindowData) => {
+        const windows = context.windows;
         const side = instance.side;
 
         // Create tab group
@@ -147,16 +146,16 @@ testParameterized<SnapTabInstanceData&CreateWindowData, WindowContext>(
         const bounds: Bounds = await tabstrip.getBounds();
         await dragWindowTo(tabstrip, bounds.left + -300, bounds.top + -200);
 
-        await assertPairTabbed(windows[0], windows[1], t);
-        await assertPairTabbed(windows[2], windows[3], t);
-        await assertGrouped(t, ...windows);
+        await assertPairTabbed(windows[0], windows[1]);
+        await assertPairTabbed(windows[2], windows[3]);
+        await assertGrouped(...windows);
     }));
 
-testParameterized<SnapTabInstanceData&CreateWindowData, WindowContext>(
+testParameterized<SnapTabInstanceData&CreateWindowData>(
     `Can tearout into other group`,
     [{side: Sides.right}, {side: Sides.bottom}].map(instance => ({...instance, frame: true, windowCount: 5})),
-    createWindowTest(async (t, instance: SnapTabInstanceData&CreateWindowData) => {
-        const windows = t.context.windows;
+    createWindowTest(async (context, instance: SnapTabInstanceData&CreateWindowData) => {
+        const windows = context.windows;
         const side = instance.side;
 
         // Create tab group
@@ -170,7 +169,7 @@ testParameterized<SnapTabInstanceData&CreateWindowData, WindowContext>(
         // Tab remaining window to snapped window
         await tearoutToOtherTabstrip(tabstrip, 2, windows[3]);
 
-        await assertPairTabbed(windows[0], windows[1], t);
-        await assertPairTabbed(windows[2], windows[3], t);
-        await assertGrouped(t, ...windows.slice(2));
+        await assertPairTabbed(windows[0], windows[1]);
+        await assertPairTabbed(windows[2], windows[3]);
+        await assertGrouped(...windows.slice(2));
     }));

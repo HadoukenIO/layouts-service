@@ -1,4 +1,3 @@
-import {Context, GenericTestContext, test, TestContext} from 'ava';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {WindowIdentity} from '../../../src/provider/model/DesktopWindow';
@@ -42,9 +41,9 @@ const windowPositions = [
     {defaultTop: 650, defaultLeft: 925},
 ];
 
-test.afterEach.always(teardown);
+afterEach(teardown);
 
-testParameterized<CreateTabGroupFromTabsOptions, WindowContext>(
+testParameterized<CreateTabGroupFromTabsOptions>(
     (testOptions: CreateTabGroupFromTabsOptions): string => `createTabGroupFromTabs ${testOptions.description}`,
     [
         createCreateTabGroupFromTabsOption({
@@ -136,13 +135,13 @@ testParameterized<CreateTabGroupFromTabsOptions, WindowContext>(
             tabsToTakeFromTargetTabGroup: 1
         })
     ],
-    createWindowTest(async (t, testOptions: CreateTabGroupFromTabsOptions) => {
-        const windows = t.context.windows;
+    createWindowTest(async (context, testOptions: CreateTabGroupFromTabsOptions) => {
+        const windows = context.windows;
 
         const newTabs = testOptions.newTabGroup.map(index => windows[index]);
         const ejectedTabs = testOptions.ejectedTabGroup.map(index => windows[index]);
 
-        await setupSnapAndTabGroups(t, testOptions);
+        await setupSnapAndTabGroups(context, testOptions);
 
         const oldBounds = await getBoundsMap(windows);
 
@@ -152,23 +151,23 @@ testParameterized<CreateTabGroupFromTabsOptions, WindowContext>(
         const newBounds = await getBoundsMap(windows);
 
         // Assert windows passed to createTabGroupWithTabs form a TabGroup
-        await assertCompleteTabGroup(t, ...newTabs);
+        await assertCompleteTabGroup(...newTabs);
 
         // Assert ejected tabs form a TabGroup
-        await assertCompleteTabGroup(t, ...ejectedTabs);
+        await assertCompleteTabGroup(...ejectedTabs);
 
         // Assert ejected tabs form a SnapGroup
-        await assertCompleteGroup(t, ...ejectedTabs);
+        await assertCompleteGroup(...ejectedTabs);
 
         // Assert new TabGroup is positioned on first window passed to createTabGroupWithTabs
-        await assertNotMoved(oldBounds.get(newTabs[0])!, newBounds.get(newTabs[0])!, t);
+        await assertNotMoved(oldBounds.get(newTabs[0])!, newBounds.get(newTabs[0])!);
 
         // Assert ejected TabGroup has not moved
-        await assertNotMoved(oldBounds.get(ejectedTabs[0])!, newBounds.get(ejectedTabs[0])!, t);
+        await assertNotMoved(oldBounds.get(ejectedTabs[0])!, newBounds.get(ejectedTabs[0])!);
 
         // Assert no other windows have moved
         await Promise.all(windows.filter(window => !newTabs.includes(window)).map(window => {
-            return assertNotMoved(oldBounds.get(window)!, newBounds.get(window)!, t);
+            return assertNotMoved(oldBounds.get(window)!, newBounds.get(window)!);
         }));
     }, undefined, undefined, windowPositions));
 
@@ -220,8 +219,8 @@ function createCreateTabGroupFromTabsOption(config: CreateTabGroupFromTabsOption
     return {windowCount, snapGroups, tabGroups, newTabGroup, ejectedTabGroup, description, frame: true};
 }
 
-async function setupSnapAndTabGroups(t: GenericTestContext<Context<WindowContext>>, testOptions: CreateTabGroupFromTabsOptions) {
-    const windows = t.context.windows;
+async function setupSnapAndTabGroups(context: WindowContext, testOptions: CreateTabGroupFromTabsOptions) {
+    const windows = context.windows;
 
     // Create each SnapGroup by dragging each window to the right of the last
     await promiseForEach(testOptions.snapGroups, async (snapGroup) => {
@@ -229,9 +228,9 @@ async function setupSnapAndTabGroups(t: GenericTestContext<Context<WindowContext
         for (let i = 0; i < snapGroup.length - 1; i++) {
             await dragSideToSide(snapGroupWindows[i + 1], 'left', snapGroupWindows[i], 'right');
         }
-        await assertCompleteGroup(t, ...snapGroupWindows);
-        await assertAllContiguous(t, snapGroupWindows);
-        await assertNoOverlap(t, snapGroupWindows);
+        await assertCompleteGroup(...snapGroupWindows);
+        await assertAllContiguous(snapGroupWindows);
+        await assertNoOverlap(snapGroupWindows);
     });
 
     // Create each TabGroup by dragging each window onto the first
@@ -240,7 +239,7 @@ async function setupSnapAndTabGroups(t: GenericTestContext<Context<WindowContext
         for (let i = 1; i < tabGroup.length; i++) {
             await tabWindowsTogether(tabGroupWindows[0], tabGroupWindows[i]);
         }
-        await assertCompleteTabGroup(t, ...tabGroupWindows);
+        await assertCompleteTabGroup(...tabGroupWindows);
     });
 }
 

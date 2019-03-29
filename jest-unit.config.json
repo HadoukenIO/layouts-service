@@ -1,0 +1,29 @@
+{
+    "rootDir": "test",
+    "transform": {
+      "^.+\\.tsx?$": "<rootDir>/../node_modules/ts-jest"
+    },
+    "testRegex": ".unittest.ts$",
+    "testRunner": "jest-circus/runner",
+    "modulePaths": [
+      "<rootDir>/../node_modules"
+    ],
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ],
+    "reporters": [
+      "default",
+    	["jest-junit", {
+        "outputDirectory": "./dist/test",
+        "outputName": "results-unit.xml",
+        "classNameTemplate": "Unit Tests > {classname} > {title}",
+        "titleTemplate": "{title}",
+        "ancestorSeparator": " > "
+      }]
+    ]
+}

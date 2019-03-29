@@ -1,5 +1,3 @@
-import {test} from 'ava';
-
 import {Workspace} from '../../../src/client/workspaces';
 import {assertAllContiguous, assertGrouped, assertNotGrouped} from '../../provider/utils/assertions';
 import {createChildWindow} from '../../provider/utils/createChildWindow';
@@ -26,7 +24,7 @@ const childOptions = {
     frame: false
 };
 
-test.afterEach.always(teardown);
+afterEach(teardown);
 
 testParameterized(
     'Validate Group on Restore',
@@ -37,7 +35,7 @@ testParameterized(
         {windowCount: 3, arrangement: 'vertical-triangle', deregisteredIndex: 2, remainingGroups: [[0, 1]]},
         {windowCount: 5, arrangement: 'hourglass', deregisteredIndex: 2, remainingGroups: [[0, 1], [3, 4]]},
     ],
-    async (t, testOptions: ValidateOnRestoreOptions) => {
+    async (testOptions: ValidateOnRestoreOptions) => {
         const layoutsClient = await layoutsClientPromise;
         const {windowCount, arrangement, remainingGroups, deregisteredIndex} = testOptions;
 
@@ -70,7 +68,7 @@ testParameterized(
 
         const initializer = new WindowInitializer();
         await initializer.arrangeWindows(windows, arrangement);
-        await assertGrouped(t, ...windows);
+        await assertGrouped(...windows);
 
         const layout: Workspace = await layoutsClient.workspaces.generate();
 
@@ -81,17 +79,17 @@ testParameterized(
         await layoutsClient.workspaces.restore(layout);
         await delay(1500);
 
-        await Promise.all(registeredChildren.map(w => assertWindowRestored(t, w.identity.uuid, w.identity.name!)));
+        await Promise.all(registeredChildren.map(w => assertWindowRestored(w.identity.uuid, w.identity.name!)));
 
-        await assertWindowNotRestored(t, deregisteredChild.identity.uuid, deregisteredChild.identity.name!);
+        await assertWindowNotRestored(deregisteredChild.identity.uuid, deregisteredChild.identity.name!);
 
         for (const group of remainingGroups) {
             if (group.length === 1) {
-                await assertNotGrouped(windows[group[0]], t);
+                await assertNotGrouped(windows[group[0]]);
             } else {
                 const groupedWindows = group.map(id => windows[id]);
-                await assertGrouped(t, ...groupedWindows);
-                await assertAllContiguous(t, groupedWindows);
+                await assertGrouped(...groupedWindows);
+                await assertAllContiguous(groupedWindows);
             }
         }
 

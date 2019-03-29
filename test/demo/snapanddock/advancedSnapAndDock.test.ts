@@ -1,4 +1,4 @@
-import {test} from 'ava';
+import * as assert from 'power-assert';
 
 import {assertAllContiguous, assertGrouped, assertNoOverlap, assertNotGrouped} from '../../provider/utils/assertions';
 import {delay} from '../../provider/utils/delay';
@@ -8,15 +8,15 @@ import {teardown} from '../../teardown';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 
-test.afterEach.always(teardown);
+afterEach(teardown);
 
 // Using testParameterized more for type safety than parameterization
 // since this just one very specific test
 testParameterized(
     (testOptions: CreateWindowData) => 'Cannot snap windows so they overlap - shape: U',
     [{windowCount: 5, frame: true}],
-    createWindowTest(async (t, testOptions: CreateWindowData) => {
-        const windows = t.context.windows;
+    createWindowTest(async (context, testOptions: CreateWindowData) => {
+        const windows = context.windows;
 
         // Sizes for the windows to make it work
         await Promise.all([
@@ -36,14 +36,14 @@ testParameterized(
         await dragSideToSide(windows[2], 'right', windows[1], 'left', {x: -5, y: 50});
         await dragSideToSide(windows[3], 'right', windows[2], 'left', {x: 0, y: -210});
 
-        await assertGrouped(t, ...windows.slice(0, -1));
-        await assertAllContiguous(t, windows.slice(0, -1));
-        await assertNotGrouped(windows[4], t);
+        await assertGrouped(...windows.slice(0, -1));
+        await assertAllContiguous(windows.slice(0, -1));
+        await assertNotGrouped(windows[4]);
 
         // This is a safety check in case snapping behavior changes and the magic numbers above
         // no longer do what theyre supposed to. Window should be offset or this test will pass but not
         // actually test for the defect.
-        t.not(
+        assert.notStrictEqual(
             (await getBounds(windows[1])).left,
             (await getBounds(windows[0])).left,
             'Window 1 resized when snapped - should be offset - snap/anchor distance may have changed');
@@ -52,16 +52,16 @@ testParameterized(
         await dragSideToSide(windows[4], 'bottom', windows[2], 'top', {x: 10, y: -5});
         await delay(500);
 
-        await assertGrouped(t, ...windows);
-        await assertAllContiguous(t, windows);
-        await assertNoOverlap(t, windows);
+        await assertGrouped(...windows);
+        await assertAllContiguous(windows);
+        await assertNoOverlap(windows);
     }));
 
 testParameterized(
     (testOptions: CreateWindowData) => 'Cannot snap windows so they overlap - shape: O',
     [{windowCount: 5, frame: true}],
-    createWindowTest(async (t, testOptions: CreateWindowData) => {
-        const windows = t.context.windows;
+    createWindowTest(async (context, testOptions: CreateWindowData) => {
+        const windows = context.windows;
 
         // Sizes for the windows to make it work
         await Promise.all([
@@ -81,15 +81,15 @@ testParameterized(
         await dragSideToSide(windows[2], 'right', windows[1], 'left', {x: -5, y: -230});
         await dragSideToSide(windows[3], 'bottom', windows[2], 'top', {x: 120, y: -5});
 
-        await assertGrouped(t, ...windows.slice(0, -1));
-        await assertAllContiguous(t, windows.slice(0, -1));
-        await assertNotGrouped(windows[4], t);
+        await assertGrouped(...windows.slice(0, -1));
+        await assertAllContiguous(windows.slice(0, -1));
+        await assertNotGrouped(windows[4]);
 
         // Drag remaining window into the middle of the horshoe and check it snaps with no overlap
         await dragSideToSide(windows[4], 'bottom', windows[1], 'top', {x: 15, y: -10});
         await delay(500);
 
-        await assertGrouped(t, ...windows);
-        await assertAllContiguous(t, windows);
-        await assertNoOverlap(t, windows);
+        await assertGrouped(...windows);
+        await assertAllContiguous(windows);
+        await assertNoOverlap(windows);
     }));

@@ -1,9 +1,11 @@
-import {test} from 'ava';
 import {WindowEvent} from 'hadouken-js-adapter/out/types/src/api/events/base';
+import * as assert from 'power-assert';
+
 import {teardown} from '../../teardown';
-import {AppContext, CreateAppData, createAppTest} from '../utils/createAppTest';
+import {CreateAppData, createAppTest} from '../utils/createAppTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {assertWindowRestored, closeAllPreviews, createBasicSaveAndRestoreTest, createCloseAndRestoreLayout} from '../utils/workspacesUtils';
+
 import {BasicSaveRestoreTestOptions} from './basicSaveAndRestore.test';
 
 const hiddenParentTestArray: BasicSaveRestoreTestOptions[] = [];
@@ -23,32 +25,32 @@ numberOfApps.forEach(appNumber => {
     });
 });
 
-test.afterEach.always(teardown);
+afterEach(teardown);
 
-testParameterized<CreateAppData, AppContext>(
+testParameterized<CreateAppData>(
     (testOptions: CreateAppData): string =>
         `Flash Check for SaveAndRestore - Parent Windows shouldn't show - ${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - ${
             testOptions.apps.length} App(s) - ${testOptions.apps[0].childWindows.length} Child(ren) Each`,
     hiddenParentTestArray,
-    createAppTest(async (t, applicationData: CreateAppData) => {
+    createAppTest(async (context, applicationData: CreateAppData) => {
         // Set up the callback to fail the test if the parent window shows.
         const failIfShown = (e: WindowEvent<'window', 'shown'>) => {
-            t.fail(`Parent Window ${e.uuid} showed when it shouldn't have.`);
+            assert.fail(`Parent Window ${e.uuid} showed when it shouldn't have.`);
         };
 
-        for (const applicationInfo of t.context.testAppData) {
+        for (const applicationInfo of context.testAppData) {
             await applicationInfo.app.addListener('shown', failIfShown);
         }
 
-        await createCloseAndRestoreLayout(t);
+        await createCloseAndRestoreLayout(context);
 
-        for (const applicationInfo of t.context.testAppData) {
-            await assertWindowRestored(t, applicationInfo.uuid, applicationInfo.uuid);
+        for (const applicationInfo of context.testAppData) {
+            await assertWindowRestored(applicationInfo.uuid, applicationInfo.uuid);
             for (const applicationChild of applicationInfo.children) {
-                await assertWindowRestored(t, applicationInfo.uuid, applicationChild.identity.name!);
+                await assertWindowRestored(applicationInfo.uuid, applicationChild.identity.name!);
             }
         }
     }));
 
 
-test.afterEach.always(closeAllPreviews);
+afterEach(closeAllPreviews);

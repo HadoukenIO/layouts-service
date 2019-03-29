@@ -15,6 +15,8 @@ const os = require('os');
 const express = require('express');
 const {launch} = require('hadouken-js-adapter');
 
+const ROOT_URL = 'http://localhost:1337/test/';
+
 let port;
 
 /**
@@ -142,7 +144,7 @@ async function serve() {
                 ...baseManifest,
                 startup_app: {
                     uuid: uuid || 'save-restore-test-app-' + Math.random().toString(36).substring(2),
-                    url: url || 'http://localhost:1337/test/saveRestoreTestingApp.html?deregistered=false',
+                    url: url || (ROOT_URL + 'saveRestoreTestingApp.html?deregistered=false'),
                     autoShow: autoShow || true,
                     saveWindowState: false,
                     defaultTop: defaultTop ? JSON.parse(defaultTop): 100,
@@ -152,7 +154,7 @@ async function serve() {
                 },
                 services: [{
                     name: 'layouts',
-                    manifestUrl: 'http://localhost:1337/test/provider.json',
+                    manifestUrl: ROOT_URL + 'provider.json',
                     ...additionalServiceProperties
                 }]
             };
@@ -170,11 +172,11 @@ async function serve() {
 const buildStep = skipBuild ? Promise.resolve() : build();
 
 buildStep
-    .then(() => {run('svc-tools start --static --noDemo --providerVersion testing'); return;})
+    .then(() => {run('npm run start -- --static --noDemo --providerVersion testing'); return;})
     .then(() => serve())
-    .then(() => waitForUrl('http://localhost:1337/test/app.json'))
+    .then(() => waitForUrl(ROOT_URL + 'app.json'))
     .then(async () => {
-        port = await launch({manifestUrl: 'http://localhost:1337/test/app.json'});
+        port = await launch({manifestUrl: ROOT_URL + 'app.json'});
         console.log('Openfin running on port ' + port);
         return port
     })

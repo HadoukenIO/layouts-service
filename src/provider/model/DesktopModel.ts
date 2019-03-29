@@ -18,7 +18,7 @@ import {DesktopTabGroup} from './DesktopTabGroup';
 import {DesktopWindow, EntityState, WindowIdentity} from './DesktopWindow';
 import {MouseTracker} from './MouseTracker';
 import {ZIndexer} from './ZIndexer';
-import { wrapWindow } from '../utils/main';
+import {wrapWindow} from '../utils/main';
 
 type EnabledMask = {
     enabled: true

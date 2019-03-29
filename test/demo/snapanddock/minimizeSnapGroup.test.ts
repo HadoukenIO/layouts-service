@@ -1,4 +1,3 @@
-import {test} from 'ava';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {assertAllMinimizedOrHidden, assertAllNormalState, assertGrouped, assertPairTabbed} from '../../provider/utils/assertions';
@@ -15,7 +14,7 @@ interface MinimizeTestOptions extends CreateWindowData {
     restoreIndex: number;
 }
 
-test.afterEach.always(teardown);
+afterEach(teardown);
 
 testParameterized(
     (testOptions: MinimizeTestOptions) =>
@@ -25,19 +24,19 @@ testParameterized(
         {frame: true, windowCount: 2, arrangement: 'horizontal', restoreIndex: 1},
         {frame: true, windowCount: 3, arrangement: 'line', restoreIndex: 1}
     ],
-    createWindowTest(async (t, testOptions: MinimizeTestOptions) => {
-        const {windows} = t.context;
+    createWindowTest(async (context, testOptions: MinimizeTestOptions) => {
+        const {windows} = context;
         const {windowCount, restoreIndex} = testOptions;
 
         await windows[0].minimize();
         await delay(500);
 
-        await assertAllMinimizedOrHidden(t, windows);
+        await assertAllMinimizedOrHidden(windows);
 
         await windows[restoreIndex].restore();
         await delay(500);
 
-        await assertAllNormalState(t, windows);
+        await assertAllNormalState(windows);
     }));
 
 // With tabsets
@@ -45,10 +44,10 @@ testParameterized(
     (testOptions: MinimizeTestOptions) => `Minimize and restore (snapped tabs) - ${testOptions.windowCount} windows - restoring ${
         testOptions.restoreIndex === 0 ? 'minimized' : 'grouped'} window`,
     [{frame: true, windowCount: 4, restoreIndex: 0}, {frame: true, windowCount: 4, restoreIndex: 1}, {frame: true, windowCount: 6, restoreIndex: 1}],
-    createWindowTest(async (t, testOptions: MinimizeTestOptions) => {
+    createWindowTest(async (context, testOptions: MinimizeTestOptions) => {
         const layoutsClient = await layoutsClientPromise;
 
-        const {windows, windowInitializer} = t.context;
+        const {windows, windowInitializer} = context;
         const {restoreIndex, windowCount} = testOptions;
 
         const tabStrips: _Window[] = [];
@@ -57,25 +56,25 @@ testParameterized(
 
             await delay(100);
 
-            await assertPairTabbed(windows[i], windows[i + 1], t);
+            await assertPairTabbed(windows[i], windows[i + 1]);
 
             tabStrips.push(await getTabstrip(windows[i].identity));
         }
 
         await windowInitializer.arrangeWindows(tabStrips, windowCount === 4 ? 'horizontal' : 'line');
-        await assertGrouped(t, ...windows, ...tabStrips);
+        await assertGrouped(...windows, ...tabStrips);
 
         await layoutsClient.tabbing.minimizeTabGroup(tabStrips[0].identity);
         await delay(500);
 
-        await assertAllMinimizedOrHidden(t, [...windows, ...tabStrips]);
+        await assertAllMinimizedOrHidden([...windows, ...tabStrips]);
 
         await tabStrips[restoreIndex].restore();
         await delay(500);
 
-        await assertAllNormalState(t, [...windows, ...tabStrips]);
+        await assertAllNormalState([...windows, ...tabStrips]);
         for (let i = 0; i < windowCount; i += 2) {
-            await assertPairTabbed(windows[i], windows[i + 1], t);
+            await assertPairTabbed(windows[i], windows[i + 1]);
         }
-        await assertGrouped(t, ...windows, ...tabStrips);
+        await assertGrouped(...windows, ...tabStrips);
     }));

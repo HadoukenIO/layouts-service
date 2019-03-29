@@ -1,4 +1,3 @@
-import {test} from 'ava';
 import robot from 'robotjs';
 
 import {assertAdjacent, assertGrouped, assertSquare} from '../../provider/utils/assertions';
@@ -13,7 +12,7 @@ interface ResizeGroupOptions extends CreateWindowData {
     resizeType: ['inner'|'outer', 'vertical'|'horizontal'];
 }
 
-test.afterEach.always(teardown);
+afterEach(teardown);
 
 testParameterized(
     (testOptions: ResizeGroupOptions): string =>
@@ -36,17 +35,17 @@ testParameterized(
         {frame: false, windowCount: 4, resizeType: ['outer', 'horizontal']},
         {frame: false, windowCount: 4, resizeType: ['outer', 'vertical']},
     ],
-    createWindowTest(async (t, testOptions: ResizeGroupOptions) => {
+    createWindowTest(async (context, testOptions: ResizeGroupOptions) => {
         const {resizeType, windowCount} = testOptions;
-        const {windows, windowInitializer} = t.context;
+        const {windows, windowInitializer} = context;
 
         // Create and arrange the windows based on number of windows and resize type
         const arrangementName = windowCount === 2 ? resizeType[1] : 'square';
         await windowInitializer.arrangeWindows(windows, arrangementName);
 
         // Assert snapped and docked
-        await assertGrouped(t, ...windows);
-        windowCount === 2 ? await assertAdjacent(t, windows[0], windows[1]) : await assertSquare(t, ...windows);
+        await assertGrouped(...windows);
+        windowCount === 2 ? await assertAdjacent(windows[0], windows[1]) : await assertSquare(...windows);
 
         // Ensure we are using the right window objects for the test case
         const targetIndices = [0, 1];
@@ -88,6 +87,6 @@ testParameterized(
         await delay(100);
 
         // Assert still docked and adjacent
-        await assertGrouped(t, ...windows);
-        windowCount === 2 ? await assertAdjacent(t, windows[0], windows[1]) : await assertSquare(t, ...windows);
+        await assertGrouped(...windows);
+        windowCount === 2 ? await assertAdjacent(windows[0], windows[1]) : await assertSquare(...windows);
     }));

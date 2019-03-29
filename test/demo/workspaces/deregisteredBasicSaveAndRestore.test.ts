@@ -1,8 +1,6 @@
-import {test} from 'ava';
-
 import {delay} from '../../provider/utils/delay';
 import {teardown} from '../../teardown';
-import {AppContext, CreateAppData, createAppTest} from '../utils/createAppTest';
+import {CreateAppData, createAppTest} from '../utils/createAppTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {assertWindowNotRestored, closeAllPreviews, createBasicSaveAndRestoreTest, createCloseAndRestoreLayout} from '../utils/workspacesUtils';
 
@@ -25,24 +23,24 @@ numberOfApps.forEach(appNumber => {
     });
 });
 
-test.afterEach.always(teardown);
+afterEach(teardown);
 
-testParameterized<CreateAppData, AppContext>(
+testParameterized<CreateAppData>(
     (testOptions: CreateAppData): string =>
         `Basic Deregistered SaveAndRestore - ${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - ${
             testOptions.apps.length} App(s) - ${testOptions.apps[0].childWindows.length} Child(ren) Each`,
     deregisteredTestOptionsArray,
-    createAppTest(async (t, applicationData: CreateAppData) => {
-        await createCloseAndRestoreLayout(t);
+    createAppTest(async (context, applicationData: CreateAppData) => {
+        await createCloseAndRestoreLayout(context);
         await delay(2000);
 
-        for (const applicationInfo of t.context.testAppData) {
-            await assertWindowNotRestored(t, applicationInfo.uuid, applicationInfo.uuid);
+        for (const applicationInfo of context.testAppData) {
+            await assertWindowNotRestored(applicationInfo.uuid, applicationInfo.uuid);
             for (const applicationChild of applicationInfo.children) {
-                await assertWindowNotRestored(t, applicationInfo.uuid, applicationChild.identity.name!);
+                await assertWindowNotRestored(applicationInfo.uuid, applicationChild.identity.name!);
             }
         }
     }));
 
 
-test.afterEach.always(closeAllPreviews);
+afterEach(closeAllPreviews);

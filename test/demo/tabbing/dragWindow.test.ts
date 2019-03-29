@@ -1,5 +1,5 @@
-import {test} from 'ava';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
+import * as assert from 'power-assert';
 import robot from 'robotjs';
 
 import {CreateWindowData, createWindowTest} from '../../demo/utils/createWindowTest';
@@ -12,14 +12,14 @@ import {getTabstrip} from '../utils/tabServiceUtils';
 import {tearoutToPoint} from '../utils/tabstripUtils';
 
 
-test.afterEach.always(teardown);
+afterEach(teardown);
 
 testParameterized(
     (testOptions: CreateWindowData): string => `DragWindow matches virtualScreen size`,
     [{frame: true, windowCount: 2}],
-    createWindowTest(async (t, testOptions: CreateWindowData) => {
+    createWindowTest(async (context, testOptions: CreateWindowData) => {
         const {windowCount} = testOptions;
-        const {windows} = t.context;
+        const {windows} = context;
 
         const fin = await getConnection();
         const dragWindow: _Window = await fin.Window.wrap({name: 'TabbingDragWindow', uuid: 'layouts-service'});
@@ -33,5 +33,5 @@ testParameterized(
 
         robot.mouseToggle('up');
 
-        t.deepEqual(virtualScreen, Object.assign(virtualScreen, dragWindowBounds));
+        assert.deepEqual(virtualScreen, Object.assign(virtualScreen, dragWindowBounds));
     }, {defaultCentered: true, defaultWidth: 250, defaultHeight: 150}));

@@ -10,7 +10,7 @@ import {tabbing, WindowIdentity} from '../../src/client/main';
 stub();
 
 let channel: ChannelClient;
-let channelDispatch: jest.SpyInstance<typeof channel.dispatch>;
+let channelDispatch: jest.SpyInstance<Promise<any>, [string, any?]>;
 
 beforeEach(async () => {
     jest.restoreAllMocks();

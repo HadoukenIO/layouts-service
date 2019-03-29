@@ -1,10 +1,11 @@
-import {test, TestContext} from 'ava';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
+import * as assert from 'power-assert';
 
-import {assertCompleteTabGroup, assertNotTabbed, assertPairTabbed} from '../../provider/utils/assertions';
+import {assertCompleteTabGroup, assertDoesNotReject, assertNotTabbed, assertPairTabbed, assertRejects} from '../../provider/utils/assertions';
 import {delay} from '../../provider/utils/delay';
 import {Side, sideArray} from '../../provider/utils/SideUtils';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
+import {teardown} from '../../teardown';
 import {Constraints} from '../snapanddock/resizeOnSnap.test';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
 import {refreshWindowState} from '../utils/modelUtils';
@@ -15,6 +16,8 @@ import {getTabGroupState} from '../utils/tabServiceUtils';
 interface TabConstraintsOptions extends CreateWindowData {
     windowConstraints: Constraints[];
 }
+
+afterEach(teardown);
 
 testParameterized(
     'Constraints applied and restored correctly when tabbing',
@@ -36,11 +39,11 @@ testParameterized(
             windowConstraints: [{resizeRegion: {sides: {top: false, left: false, bottom: true, right: true}}}, {resizable: false}, {}]
         },
     ],
-    createWindowTest(async (t, options: TabConstraintsOptions) => {
+    createWindowTest(async (context, options: TabConstraintsOptions) => {
         const layoutsClient = await layoutsClientPromise;
         const {tabbing} = layoutsClient;
 
-        const windows = t.context.windows;
+        const windows = context.windows;
 
         await Promise.all(windows.map((win, index) => win.updateOptions(options.windowConstraints[index])));
         await Promise.all(windows.map((win) => refreshWindowState(win.identity)));
@@ -52,14 +55,14 @@ testParameterized(
 
         await delay(1000);
 
-        await assertCompleteTabGroup(t, ...windows);
+        await assertCompleteTabGroup(...windows);
 
         const resultingConstraints = constraintsUnion(...options.windowConstraints);
 
         // Check constraints applied to all tabs
         for (let i = 0; i < windows.length; i++) {
             const windowOptions: Required<Constraints> = await getNormalizedConstraints(windows[i]);
-            assertConstraintsMatch(resultingConstraints, windowOptions, t);
+            assertConstraintsMatch(resultingConstraints, windowOptions);
         }
 
         // Untab the windows
@@ -73,7 +76,7 @@ testParameterized(
         for (let i = 0; i < windows.length; i++) {
             const finalState = await getNormalizedConstraints(windows[i]);
 
-            assertConstraintsMatch(startingState[i], finalState, t);
+            assertConstraintsMatch(startingState[i], finalState);
         }
     }));
 
@@ -86,8 +89,8 @@ testParameterized(
         // Checks edge case where the target is large enough when untabbed but would not be once resized for tabbing
         {frame: true, windowCount: 2, windowConstraints: [{}, {minHeight: 200}], shouldTab: false},
     ],
-    createWindowTest(async (t, options: TabConstraintsOptions&{shouldTab: boolean}) => {
-        const windows = t.context.windows;
+    createWindowTest(async (context, options: TabConstraintsOptions&{shouldTab: boolean}) => {
+        const windows = context.windows;
 
         await Promise.all(windows.map((win, index) => win.updateOptions(options.windowConstraints[index])));
         await Promise.all(windows.map((win) => refreshWindowState(win.identity)));
@@ -98,10 +101,10 @@ testParameterized(
         await delay(1000);
 
         if (options.shouldTab) {
-            await assertPairTabbed(windows[0], windows[1], t);
+            await assertPairTabbed(windows[0], windows[1]);
         } else {
-            await assertNotTabbed(windows[0], t);
-            await assertNotTabbed(windows[1], t);
+            await assertNotTabbed(windows[0]);
+            await assertNotTabbed(windows[1]);
         }
     }));
 
@@ -128,32 +131,32 @@ testParameterized(
         {frame: true, windowCount: 2, windowConstraints: [{}, {maxHeight: 500}]},
         {frame: true, windowCount: 2, windowConstraints: [{}, {maxWidth: 500}]},
     ],
-    createWindowTest(async (t, options: TabConstraintsOptions) => {
+    createWindowTest(async (context, options: TabConstraintsOptions) => {
         const {tabbing} = await layoutsClientPromise;
-        const windows = t.context.windows;
+        const windows = context.windows;
 
         await Promise.all(windows.map((win, index) => win.updateOptions(options.windowConstraints[index])));
         await Promise.all(windows.map((win) => refreshWindowState(win.identity)));
 
         await tabWindowsTogether(windows[0], windows[1]);
-        await assertPairTabbed(windows[0], windows[1], t);
+        await assertPairTabbed(windows[0], windows[1]);
 
         if (options.windowConstraints[1].maxHeight || options.windowConstraints[1].maxWidth) {
-            await t.throws(tabbing.maximizeTabGroup(windows[0].identity));
+            await assertRejects(tabbing.maximizeTabGroup(windows[0].identity));
         } else {
-            await t.notThrows(tabbing.maximizeTabGroup(windows[0].identity));
-            t.is(await getTabGroupState(windows[0].identity), 'maximized');
+            await assertDoesNotReject(tabbing.maximizeTabGroup(windows[0].identity));
+            assert.strictEqual(await getTabGroupState(windows[0].identity), 'maximized');
         }
     }));
 
-function assertConstraintsMatch(expected: Constraints, actual: Constraints, t: TestContext): void {
+function assertConstraintsMatch(expected: Constraints, actual: Constraints): void {
     for (const key of Object.keys(defaultConstraints) as (keyof Constraints)[]) {
         if (actual.hasOwnProperty(key) && expected.hasOwnProperty(key)) {
             if (typeof actual[key] === 'object') {
-                t.deepEqual(
+                assert.deepStrictEqual(
                     expected[key], actual[key], `${key} does not match. Expected: ${JSON.stringify(expected[key])}. Received: ${JSON.stringify(actual[key])}`);
             } else {
-                t.is(expected[key], actual[key], `${key} does not match. Expected: ${expected[key]}. Received ${actual[key]}`);
+                assert.strictEqual(expected[key], actual[key], `${key} does not match. Expected: ${expected[key]}. Received ${actual[key]}`);
             }
         }
     }

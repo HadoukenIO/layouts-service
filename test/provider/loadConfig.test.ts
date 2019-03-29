@@ -1,5 +1,5 @@
-import test from 'ava';
 import {Application, Fin, Identity} from 'hadouken-js-adapter';
+import * as assert from 'power-assert';
 
 import {ConfigurationObject, Scope} from '../../gen/provider/config/layouts-config';
 import {ConfigWithRules} from '../../src/provider/config/Store';
@@ -29,10 +29,10 @@ async function getWindowConfig(identity: Identity): Promise<ConfigurationObject>
     }, identity);
 }
 
-test.before(async () => {
+beforeAll(async () => {
     fin = await getConnection();
 });
-test.afterEach.always(teardown);
+afterEach(teardown);
 
 async function createAppWithConfig(uuid: string, config: ConfigWithRules<ConfigurationObject>, parentUuid?: string): Promise<Application> {
     const url = `http://localhost:1337/create-manifest?uuid=${uuid}&config=${encodeURIComponent(JSON.stringify(config))}`;
@@ -48,7 +48,7 @@ async function createAppWithConfig(uuid: string, config: ConfigWithRules<Configu
     }
 }
 
-test('Config is loaded from an application\'s manifest', async (t) => {
+test('Config is loaded from an application\'s manifest', async () => {
     const uuid = createUuid();
     const identity = {uuid, name: uuid};
 
@@ -56,17 +56,17 @@ test('Config is loaded from an application\'s manifest', async (t) => {
 
     // Config specifies that window shouldn't be registered
     const config = await getWindowConfig(identity);
-    t.false(config.enabled);
+    assert.strictEqual(config.enabled, false);
 
     // Window isn't registered within model
-    t.false(await isWindowRegistered(identity));
+    assert.strictEqual(await isWindowRegistered(identity), false);
 
     await app.close();
 
     await delay(1000);
 });
 
-test('Config is unloaded when the application exits', async (t) => {
+test('Config is unloaded when the application exits', async () => {
     const uuid = createUuid();
     const identity = {uuid, name: uuid};
 
@@ -74,16 +74,16 @@ test('Config is unloaded when the application exits', async (t) => {
 
     // Sanity check - make sure config was definitely loaded initially
     const preConfig = await getWindowConfig(identity);
-    t.false(preConfig.enabled);
+    assert.strictEqual(preConfig.enabled, false);
 
     await app.close();
 
     // App-specific config has been removed, querying 'enabled' returns the default value of true
     const postConfig = await getWindowConfig(identity);
-    t.true(postConfig.enabled);
+    assert.strictEqual(postConfig.enabled, true);
 });
 
-test('If an application creates a child application, the config of the parent application persists for the lifecycle of its child', async (t) => {
+test('If an application creates a child application, the config of the parent application persists for the lifecycle of its child', async () => {
     const uuids: [string, string] = [createUuid(), createUuid()];
     const app = await createAppWithConfig(uuids[0], {enabled: false});
     const child = await createChildApp(
@@ -91,23 +91,23 @@ test('If an application creates a child application, the config of the parent ap
         app.identity.uuid);
 
     // Config should disable main app, child app remains registered
-    t.false((await getWindowConfig(app.identity)).enabled);
-    t.true((await getWindowConfig(child.identity)).enabled);
+    assert.strictEqual((await getWindowConfig(app.identity)).enabled, false);
+    assert.strictEqual((await getWindowConfig(child.identity)).enabled, true);
 
     await app.close();
 
     // No change in config state, as child app extends the lifespan of main app's config
-    t.false((await getWindowConfig(app.identity)).enabled);
-    t.true((await getWindowConfig(child.identity)).enabled);
+    assert.strictEqual((await getWindowConfig(app.identity)).enabled, false);
+    assert.strictEqual((await getWindowConfig(child.identity)).enabled, true);
 
     await child.close();
 
     // Config should now revert to initial state (everything enabled)
-    t.true((await getWindowConfig(app.identity)).enabled);
-    t.true((await getWindowConfig(child.identity)).enabled);
+    assert.strictEqual((await getWindowConfig(app.identity)).enabled, true);
+    assert.strictEqual((await getWindowConfig(child.identity)).enabled, true);
 });
 
-test('If an application creates a child application, the parent can apply rules to the child that still apply after the parent exits', async (t) => {
+test('If an application creates a child application, the parent can apply rules to the child that still apply after the parent exits', async () => {
     const uuids: [string, string] = [createUuid(), createUuid()];
     const app =
         await createAppWithConfig(uuids[0], {enabled: false, rules: [{scope: {level: 'application', uuid: uuids[1]}, config: {features: {snap: false}}}]});
@@ -122,25 +122,25 @@ test('If an application creates a child application, the parent can apply rules 
 
     // Snapping should still be disabled on windows belonging to childApp
     await dragSideToSide(await childApp.getWindow(), 'left', childWindow, 'right', {x: 5, y: 20});
-    await assertNotGrouped(childWindow, t);
+    await assertNotGrouped(childWindow);
 
     await childApp.close();
 });
 
-test('If an application creates a child application via manifest, there is no extension of parent config lifecycle', async (t) => {
+test('If an application creates a child application via manifest, there is no extension of parent config lifecycle', async () => {
     const app = await createAppWithConfig(createUuid(), {enabled: false});
     const child = await createAppWithConfig(createUuid(), {enabled: false}, app.identity.uuid);
 
-    t.false((await getWindowConfig(app.identity)).enabled);
-    t.false((await getWindowConfig(child.identity)).enabled);
+    assert.strictEqual((await getWindowConfig(app.identity)).enabled, false);
+    assert.strictEqual((await getWindowConfig(child.identity)).enabled, false);
 
     await app.close();
 
-    t.true((await getWindowConfig(app.identity)).enabled);
-    t.false((await getWindowConfig(child.identity)).enabled);
+    assert.strictEqual((await getWindowConfig(app.identity)).enabled, true);
+    assert.strictEqual((await getWindowConfig(child.identity)).enabled, false);
 
     await child.close();
 
-    t.true((await getWindowConfig(app.identity)).enabled);
-    t.true((await getWindowConfig(child.identity)).enabled);
+    assert.strictEqual((await getWindowConfig(app.identity)).enabled, true);
+    assert.strictEqual((await getWindowConfig(child.identity)).enabled, true);
 });

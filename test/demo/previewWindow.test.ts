@@ -1,5 +1,5 @@
-import {test} from 'ava';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
+import * as assert from 'power-assert';
 import robot from 'robotjs';
 
 import {CreateWindowData, createWindowTest} from '../demo/utils/createWindowTest';
@@ -18,7 +18,7 @@ import {getTabstrip} from './utils/tabServiceUtils';
 import {tearoutToOtherTabstrip, tearoutToPoint} from './utils/tabstripUtils';
 
 
-test.afterEach.always(teardown);
+afterEach(teardown);
 
 interface PreviewTestOptions extends CreateWindowData {
     side: Side;
@@ -32,9 +32,9 @@ testParameterized(
         {frame: true, side: 'left', windowCount: 2},
         {frame: true, side: 'right', windowCount: 2}
     ],
-    createWindowTest(async (t, testOptions: PreviewTestOptions) => {
+    createWindowTest(async (context, testOptions: PreviewTestOptions) => {
         const {side} = testOptions;
-        const {windows} = t.context;
+        const {windows} = context;
 
         const fin = await getConnection();
         const previewWin: _Window = await fin.Window.wrap({name: 'successPreview', uuid: 'layouts-service'});
@@ -42,12 +42,12 @@ testParameterized(
 
         await dragSideToSide(windows[1], opposite(side), windows[0], side, {x: 5, y: 5}, false);
 
-        await assertAdjacent(t, windows[0], previewWin);
+        await assertAdjacent(windows[0], previewWin);
         const previewBounds = await getBounds(previewWin);
         robot.mouseToggle('up');
 
-        t.is(windowBounds[1].width, previewBounds.width);
-        t.is(windowBounds[1].height, previewBounds.height);
+        assert.strictEqual(windowBounds[1].width, previewBounds.width);
+        assert.strictEqual(windowBounds[1].height, previewBounds.height);
     }, {defaultCentered: true, defaultWidth: 250, defaultHeight: 150}));
 
 
@@ -66,9 +66,9 @@ testParameterized(
         {frame: true, dimension: 'width', direction: ['bigger', 'smaller'], windowCount: 2},
         {frame: true, dimension: 'width', direction: ['smaller', 'bigger'], windowCount: 2},
     ],
-    createWindowTest(async (t, testOptions: PreviewResizeTestOptions) => {
+    createWindowTest(async (context, testOptions: PreviewResizeTestOptions) => {
         const {dimension, direction} = testOptions;
-        const {windows} = t.context;
+        const {windows} = context;
 
         const fin = await getConnection();
         const previewWin: _Window = await fin.Window.wrap({name: 'successPreview', uuid: 'layouts-service'});
@@ -86,7 +86,7 @@ testParameterized(
 
         robot.mouseToggle('up');
 
-        t.is(previewBounds[dimension], windowBounds[0][dimension]);
+        assert.strictEqual(previewBounds[dimension], windowBounds[0][dimension]);
     }, {defaultCentered: true, defaultWidth: 250, defaultHeight: 150}));
 
 testParameterized(
@@ -95,9 +95,9 @@ testParameterized(
         {frame: true, windowCount: 2},
         {frame: true, windowCount: 3},
     ],
-    createWindowTest(async (t, testOptions: CreateWindowData) => {
+    createWindowTest(async (context, testOptions: CreateWindowData) => {
         const {windowCount} = testOptions;
-        const {windows} = t.context;
+        const {windows} = context;
 
         const fin = await getConnection();
         const previewWin: _Window = await fin.Window.wrap({name: 'successPreview', uuid: 'layouts-service'});
@@ -117,15 +117,15 @@ testParameterized(
 
         robot.mouseToggle('up');
 
-        t.deepEqual(previewBounds, {...windowBounds[0], height: 60, bottom: windowBounds[0].top + previewBounds.height});
+        assert.deepEqual(previewBounds, {...windowBounds[0], height: 60, bottom: windowBounds[0].top + previewBounds.height});
     }, {defaultCentered: true, defaultWidth: 250, defaultHeight: 150}));
 
 testParameterized(
     (testOptions: CreateWindowData): string => `Preview tab drag ${testOptions.windowCount > 3 ? 'tabbed' : 'single'} window`,
     [{frame: true, windowCount: 3}, {frame: true, windowCount: 4}],
-    createWindowTest(async (t, testOptions: CreateWindowData) => {
+    createWindowTest(async (context, testOptions: CreateWindowData) => {
         const {windowCount} = testOptions;
-        const {windows} = t.context;
+        const {windows} = context;
 
         const fin = await getConnection();
         const previewWin: _Window = await fin.Window.wrap({name: 'successPreview', uuid: 'layouts-service'});
@@ -147,5 +147,5 @@ testParameterized(
         const previewBounds = await getBounds(previewWin);
         robot.mouseToggle('up');
 
-        t.deepEqual(previewBounds, {...windowBounds[0], height: 60, bottom: windowBounds[0].top + previewBounds.height});
+        assert.deepEqual(previewBounds, {...windowBounds[0], height: 60, bottom: windowBounds[0].top + previewBounds.height});
     }, {defaultCentered: true, defaultWidth: 250, defaultHeight: 150}));

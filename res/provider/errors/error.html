@@ -17,7 +17,7 @@
 			overflow: hidden;
 		}
 
-		.error-icon {
+		#error-icon {
 			height: 30px;
 			width: 30px;
 		}
@@ -66,12 +66,48 @@
 			height: 20px;
 			width: 70px;
 		}
+
+
+		@media (max-height: 80px) {
+			body{
+				line-height: 1.2em;
+			}
+			#container-error {
+				display: flex;
+				flex: 1;
+				padding: 4px 4px 1px 4px;
+			}
+
+			#error-icon {
+				height: 24px;
+				width: 24px;
+			}
+
+			#error-title {
+				color: #3361ad;
+				font-size: 13px;
+				padding: 5px 0 10px 0;
+			}
+
+			#error-wrapper {
+				padding-left: 4px;
+			}
+
+			#error-message {
+				width: auto;
+				padding-right:0px;
+			}
+
+			#footer {
+				display: none;
+			}
+		}
 	</style>
 </head>
 
 <body>
 	<div id="container-error">
-		<img class="error-icon" src="error-icon.png">
+		<img id="error-icon" src="error-icon.png">
 		<div id="error-wrapper">
 			<div id="error-title"></div>
 			<div id="error-body">
@@ -84,8 +120,23 @@
 	</div>
 
 	<script>
-		document.addEventListener('DOMContentLoaded', getExceptionData);
+		const errorTitleEl = document.querySelector('#error-title');
+		const errorMessageEl = document.querySelector('#error-message');
+		const errorIconEl = document.querySelector("#error-icon");
 
+		document.addEventListener('DOMContentLoaded', onWindowLoad);
+
+		/**
+		 * This is the hardcoded openfin Notification method to retrieve a notification method.  This will never be triggerd when viewed in a window.
+		 */
+		function onNotificationMessage(message) {
+			writeError(message.title, message.error, message.icon);
+
+			document.body.addEventListener('copy', (event) => {
+				fin.Clipboard.writeText({ data: message.error });
+			});
+        }
+		
 		async function closeWin() {
 			try {
 				const wnd = await fin.Window.getCurrent();
@@ -95,19 +146,21 @@
 			}
 		}
 
-		async function getExceptionData() {
+		/**
+		 * Handles updating the DOM if this is viewed in a window.  If viewed in a notification, this will silently exit.  Theres no reliable method to test what we are viewed in.
+		 */
+		async function onWindowLoad() {
 			const wnd = await fin.Window.getCurrent();
-			const { customData: { title, error } } = await wnd.getOptions();
-			const errorTitleEl = document.querySelector('#error-title');
-			const errorMessageEl = document.querySelector('#error-message');
-			
-			if (title) {
-				errorTitleEl.innerHTML = title;
-			} else {
-				errorTitleEl.remove();
+			const { customData } = await wnd.getOptions();
+
+			if(!customData) {
+				// If we have no custom data then we are likely in a notification.
+				return;
 			}
-			
-			errorMessageEl.innerHTML = error;
+
+			const {title, error, icon} = customData;
+
+			writeError(title, error, icon);
 			
 			// Keep increasing the height of the error dialog until
 			// the error message is fully visible. This will ensure
@@ -123,6 +176,21 @@
 			document.body.addEventListener('copy', (event) => {
 				fin.Clipboard.writeText({ data: error });
 			});
+		}
+
+		// Writes error and title to DOM
+		function writeError(title, error, icon) {
+			if (title) {
+				errorTitleEl.innerHTML = title;
+			} else {
+				errorTitleEl.remove();
+			}
+			
+			if(icon) {
+				errorIconEl.setAttribute('src', icon);
+			}
+
+			errorMessageEl.innerHTML = error;
 		}
 
 		// Answers whether a DOM element is fully visible

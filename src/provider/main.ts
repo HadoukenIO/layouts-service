@@ -47,7 +47,7 @@ export async function main() {
         const title = 'OpenFin Layouts Notice';
 
         // Create Error  Notice
-        createErrorNotice(title, errorMessage, null, null, ErrorMedium.NOTIFICATION);
+        createErrorNotice(title, errorMessage, "https://openfin.co/favicon.ico", "scalingErrorShown", ErrorMedium.NOTIFICATION);
 
         const providerChannel: ChannelProvider = await fin.InterApplicationBus.Channel.create(SERVICE_CHANNEL);
         providerChannel.setDefaultAction(() => {

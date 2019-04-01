@@ -26,8 +26,6 @@ export async function createErrorNotice(title: string, message: string, icon: st
                 const errorNote = new fin.desktop.Notification({
                     url,
                     message: customData,
-                    //@ts-ignore Timeout is valid and has been for a very long time: https://developer.openfin.co/jsdocs/stable/fin.desktop.Notification.html#~options
-                    timeout: 500000,
                     onShow: () => {
                         if(showOnceKey) {
                             localStorage.setItem(showOnceKey, 'true');

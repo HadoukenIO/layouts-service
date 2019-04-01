@@ -237,7 +237,7 @@ export class DesktopTabGroup implements DesktopEntity {
 
             const {center, halfSize} = this._activeTab && this._activeTab.currentState || this._tabs[0].currentState;
 
-            this._beforeMaximizeBounds = beforeMaximizeBounds || {center: {...center}, halfSize: {...halfSize}}
+            this._beforeMaximizeBounds = beforeMaximizeBounds || {center: {...center}, halfSize: {...halfSize}};
 
             const currentMonitor = this._model.getMonitorByRect(this._groupState) || this._model.monitors[0];
 

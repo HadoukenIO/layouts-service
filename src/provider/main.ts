@@ -37,7 +37,6 @@ fin.desktop.main(main);
 
 export async function main() {
     const monitorInfo = await fin.System.getMonitorInfo();
-    console.log(monitorInfo);
     // Disable the service if display scaling is not 100%
     if (monitorInfo.deviceScaleFactor !== 1) {
         console.error('Desktop has non-standard display scaling. Notifying user and disabling all layouts functionality.');

@@ -130,15 +130,21 @@ export class TabService {
         }
 
         // Used after formation to determine if group should be maximized
-        const previousState = tabs[0].currentState.state;
+        const state = tabs[0].currentState;
+        const maximized = state.state === 'maximized';
+
+        let beforeMaximizeBounds: Rectangle;
+        if (maximized) {
+            beforeMaximizeBounds = tabs[0].beforeMaximizeBounds;
+        }
 
         const config: Tabstrip = this.getTabstripConfig(tabIdentities[0]);
         const snapGroup: DesktopSnapGroup = tabs[0].snapGroup.isNonTrivial() ? tabs[0].snapGroup : new DesktopSnapGroup();
         const tabGroup: DesktopTabGroup = new DesktopTabGroup(this._model, snapGroup, config);
         await tabGroup.addTabs(tabs, activeTab);
 
-        if (previousState === 'maximized') {
-            tabGroup.maximize().catch(console.warn);
+        if (maximized) {
+            tabGroup.maximize(beforeMaximizeBounds!).catch(console.warn);
         }
     }
 

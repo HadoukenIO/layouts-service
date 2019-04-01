@@ -210,7 +210,7 @@ export class DesktopTabGroup implements DesktopEntity {
     /**
      * Maximizes the tab set window.  This will resize the tab window to as large as possible with the tab set window on top.
      */
-    public async maximize(): Promise<void> {
+    public async maximize(beforeMaximizeBounds?: Rectangle): Promise<void> {
         if (!this.currentState.maximizable) {
             const nonMaximizableWindows: string[] = this._tabs.filter(tab => !tab.applicationState.maximizable).map(tab => tab.id);
             const sizeConstrainedWindows: string[] =
@@ -237,7 +237,7 @@ export class DesktopTabGroup implements DesktopEntity {
 
             const {center, halfSize} = this._activeTab && this._activeTab.currentState || this._tabs[0].currentState;
 
-            this._beforeMaximizeBounds = {center: {...center}, halfSize: {...halfSize}};
+            this._beforeMaximizeBounds = beforeMaximizeBounds || {center: {...center}, halfSize: {...halfSize}}
 
             const currentMonitor = this._model.getMonitorByRect(this._groupState) || this._model.monitors[0];
 

@@ -500,6 +500,10 @@ export class DesktopWindow implements DesktopEntity {
         return this._currentState;
     }
 
+    public get beforeMaximizeBounds(): Rectangle {
+        return {center: this._currentState.center, halfSize: this._currentState.halfSize};
+    }
+
     public get applicationState(): EntityState {
         return this._applicationState;
     }

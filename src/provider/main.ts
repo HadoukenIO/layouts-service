@@ -47,12 +47,14 @@ export async function main() {
         const title = 'OpenFin Layouts Notice';
 
         // Create Error  Notice
-        createErrorNotice(title, errorMessage, "https://openfin.co/favicon.ico", "scalingErrorShown", ErrorMedium.NOTIFICATION);
+        createErrorNotice(title, errorMessage, 'https://openfin.co/favicon.ico', 'scalingErrorShown', ErrorMedium.NOTIFICATION);
 
         const providerChannel: ChannelProvider = await fin.InterApplicationBus.Channel.create(SERVICE_CHANNEL);
         providerChannel.setDefaultAction(() => {
             throw Error(
-                errorMessage.replace(new RegExp(/<a .*? *href\=[\"]mailto:([-a-z0-9_]+@[a-z0-9-]+.[a-z]+)[\"]>(.*)<\/a>/gi), '$1') // Strip out HTML mailto and replace with the email
+                errorMessage.replace(
+                    new RegExp(/<a .*? *href\=[\"]mailto:([-a-z0-9_]+@[a-z0-9-]+.[a-z]+)[\"]>(.*)<\/a>/gi),
+                    '$1')  // Strip out HTML mailto and replace with the email
             );
         });
 

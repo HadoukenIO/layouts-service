@@ -12,7 +12,7 @@
     "test:int": "node test/runner.js",
     "test": "npm run test:unit && npm run test:int",
     "check": "svc-tools check",
-    "clean": "gts clean && rimraf gen",
+    "clean": "rimraf gen dist",
     "docs:api": "typedoc --name \"OpenFin Layouts\" --theme ./typedoc-template --out ./dist/docs/api --excludeNotExported --excludePrivate --excludeProtected --hideGenerator --readme DOCS.md --tsconfig src/client/tsconfig.json --readme none",
     "docs:config": "bootprint json-schema ./res/provider/config/layouts-config.schema.json ./dist/docs/config",
     "docs": "npm run docs:api && npm run docs:config",

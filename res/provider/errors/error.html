@@ -127,7 +127,7 @@
 		document.addEventListener('DOMContentLoaded', onWindowLoad);
 
 		/**
-		 * This is the hardcoded openfin Notification method to retrieve a notification method.  This will never be triggerd when viewed in a window.
+		 * This is the hardcoded openfin Notification method to retrieve a notification message.  This will never be triggered when viewed in a window.
 		 */
 		function onNotificationMessage(message) {
 			writeError(message.title, message.error, message.icon);
@@ -151,7 +151,7 @@
 		 */
 		async function onWindowLoad() {
 			const wnd = await fin.Window.getCurrent();
-			const { customData } = await wnd.getOptions();
+			const {customData} = await wnd.getOptions();
 
 			if(!customData) {
 				// If we have no custom data then we are likely in a notification.
@@ -186,7 +186,7 @@
 				errorTitleEl.remove();
 			}
 			
-			if(icon) {
+			if (icon) {
 				errorIconEl.setAttribute('src', icon);
 			}
 

@@ -40,7 +40,7 @@
     "json-schema-defaults": "^0.4.0",
     "json-schema-to-typescript": "^6.1.0",
     "mkdirp": "^0.5.1",
-    "openfin-service-tooling": "^1.0.3",
+    "openfin-service-tooling": "^1.0.4",
     "pre-commit": "^1.2.2",
     "rimraf": "^2.6.2",
     "robotjs": "^0.5.1",

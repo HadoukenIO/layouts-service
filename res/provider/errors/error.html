@@ -153,7 +153,7 @@
 			const wnd = await fin.Window.getCurrent();
 			const {customData} = await wnd.getOptions();
 
-			if(!customData) {
+			if (!customData) {
 				// If we have no custom data then we are likely in a notification.
 				return;
 			}

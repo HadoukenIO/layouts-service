@@ -1,3 +1,5 @@
+import {getHrefDirectory} from './getHrefDirectory';
+
 /**
  * Medium for how the error will be displayed - either in a window or in a notification.
  */
@@ -16,7 +18,7 @@ export enum ErrorMedium {
  */
 export async function createErrorNotice(title: string, message: string, icon: string|null, showOnceKey: string|null, medium: ErrorMedium) {
     if (!showOnceKey || !localStorage.getItem(showOnceKey)) {
-        const launchDir = location.href.slice(0, location.href.lastIndexOf('/'));
+        const launchDir = getHrefDirectory();
         const url = launchDir + '/errors/error.html';
 
         /**

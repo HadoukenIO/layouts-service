@@ -2,6 +2,7 @@ import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import * as Layouts from '../client/main';
 import {Workspace, WorkspaceApp, WorkspaceWindow} from '../client/workspaces';
+import {getHrefDirectory} from '../provider/utils/getHrefDirectory';
 
 export interface Workspace {
     id: string;
@@ -9,7 +10,7 @@ export interface Workspace {
 }
 
 let numChildren = 0;
-const launchDir = location.href.slice(0, location.href.lastIndexOf('/'));
+const launchDir = getHrefDirectory();
 
 export async function createChild(parentWindowName: string): Promise<void> {
     await openChild(parentWindowName + ' - win' + numChildren, numChildren);

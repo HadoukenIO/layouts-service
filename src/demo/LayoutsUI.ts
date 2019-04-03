@@ -5,13 +5,14 @@ import {register, deregister, snapAndDock, tabbing, tabstrip, workspaces} from '
 import * as Storage from './storage';
 import {addSpawnListeners, AppData, createApp, WindowData, createWindow} from './spawn';
 import {Workspace} from '../client/workspaces';
+import {getHrefDirectory} from '../provider/utils/getHrefDirectory';
 
 export interface SavedWorkspace {
     id: string;
     layout: Workspace;
 }
 
-const launchDir = location.href.slice(0, location.href.lastIndexOf('/'));
+const launchDir = getHrefDirectory();
 
 const appTemplates: {[key: string]: AppData} = {
     'manifest': {type: 'manifest', id: 'App-1', position: 'center', size: {x: 1024, y: 800}},

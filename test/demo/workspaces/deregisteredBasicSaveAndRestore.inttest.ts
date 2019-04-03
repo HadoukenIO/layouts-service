@@ -27,7 +27,7 @@ afterEach(closeAllPreviews);
 afterEach(teardown);
 
 itParameterized<CreateAppData>(
-    'When calling generate and restore, deregisted windows are not restored',
+    'When calling generate and restore, de-registered windows are not restored',
     (testOptions: CreateAppData): string => `${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - ${
         testOptions.apps.length} App(s) - ${testOptions.apps[0].childWindows.length} Child(ren) Each`,
     deregisteredTestOptionsArray,

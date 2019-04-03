@@ -38,7 +38,7 @@ beforeAll(async () => {
     fin = await getConnection();
 });
 beforeEach(async () => {
-    // Spawn two windows - win1 untabbed, win2 tabbed
+    // Spawn two windows - win1 un-tabbed, win2 tabbed
     win1 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,

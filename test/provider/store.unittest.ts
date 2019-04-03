@@ -575,7 +575,7 @@ describe('When there are multiple rules that match the given query', () => {
     });
     
     describe('When adding rules of the same scope', () => {
-        it("Sourecs of a higher-precedence scope take priority", () => {
+        it("Sources of a higher-precedence scope take priority", () => {
             store.add(scopes.desktop, {
                 rules: [{
                     scope: scopes.win_1_1,

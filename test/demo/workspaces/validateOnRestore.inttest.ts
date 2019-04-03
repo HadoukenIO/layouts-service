@@ -63,7 +63,7 @@ itParameterized(
             registeredChildren.push(await createChildWindow({...childOptions, defaultTop: 200, defaultLeft: 200 + (i * 300)}, 'registered-test-app'));
         }
 
-        // Insert the deregisterd window where needed. We use a copy of
+        // Insert the deregistered window where needed. We use a copy of
         // registeredWindows as the original is needed later
         const windows = [...registeredChildren];
         windows.splice(deregisteredIndex, 0, deregisteredChild);

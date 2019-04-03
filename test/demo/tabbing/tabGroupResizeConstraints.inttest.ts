@@ -66,7 +66,7 @@ itParameterized(
             assertConstraintsMatch(resultingConstraints, windowOptions);
         }
 
-        // Untab the windows
+        // Un-tab the windows
         for (let i = 1; i < windows.length; i++) {
             await tabbing.removeTab(windows[i].identity);
         }
@@ -88,7 +88,7 @@ itParameterized(
         {frame: true, windowCount: 2, windowConstraints: [{resizable: false}, {}], shouldTab: false},
         {frame: true, windowCount: 2, windowConstraints: [{maxHeight: 300, minWidth: 250}, {}], shouldTab: false},
         {frame: true, windowCount: 2, windowConstraints: [{maxHeight: 300, minWidth: 200}, {}], shouldTab: true},
-        // Checks edge case where the target is large enough when untabbed but would not be once resized for tabbing
+        // Checks edge case where the target is large enough when un-tabbed but would not be once resized for tabbing
         {frame: true, windowCount: 2, windowConstraints: [{}, {minHeight: 200}], shouldTab: false},
     ],
     createWindowTest(async (context, testOptions: TabConstraintsOptions&{shouldTab: boolean}) => {

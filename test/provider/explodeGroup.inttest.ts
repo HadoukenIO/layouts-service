@@ -49,8 +49,8 @@ async function assertExploded() {
 
 /*
  * A basic explode test will be run for each window arrangement in the
- * arrangemtns object. To add an additional window layouts to be tested, simply
- * add new entries there.
+ * arrangements object. To add an additional window layouts to be tested,
+ * simply add new entries there.
  */
 describe('When calling explodeGroup, windows are ungrouped and moved as expected', () => {
     Object.keys(defaultArrangements).forEach(num => {
@@ -72,7 +72,7 @@ describe('When calling explodeGroup, windows are ungrouped and moved as expected
                     await explodeGroup(windows[0].identity as WindowIdentity);
                 }
 
-                // Runs multiple tests to ensure that the group has succesfully exploded.
+                // Runs multiple tests to ensure that the group has successfully exploded.
                 await assertExploded();
             });
         });

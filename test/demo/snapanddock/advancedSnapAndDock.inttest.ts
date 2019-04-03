@@ -36,14 +36,14 @@ describe('When a window is dragged adjacent to an existing snapgroup, it snaps a
                        await assertNotGrouped(windows[4]);
 
                        // This is a safety check in case snapping behavior changes and the magic numbers above
-                       // no longer do what theyre supposed to. Window should be offset or this test will pass but not
+                       // no longer do what they're supposed to. Window should be offset or this test will pass but not
                        // actually test for the defect.
                        assert.notStrictEqual(
                            (await getBounds(windows[1])).left,
                            (await getBounds(windows[0])).left,
                            'Window 1 resized when snapped - should be offset - snap/anchor distance may have changed');
 
-                       // Drag remaining window into the middle of the horshoe and check it snaps with no overlap
+                       // Drag remaining window into the middle of the horseshoe and check it snaps with no overlap
                        await dragSideToSide(windows[4], 'bottom', windows[2], 'top', {x: 10, y: -5});
                        await delay(500);
 
@@ -77,7 +77,7 @@ describe('When a window is dragged adjacent to an existing snapgroup, it snaps a
                        await assertAllContiguous(windows.slice(0, -1));
                        await assertNotGrouped(windows[4]);
 
-                       // Drag remaining window into the middle of the horshoe and check it snaps with no overlap
+                       // Drag remaining window into the middle of the horseshoe and check it snaps with no overlap
                        await dragSideToSide(windows[4], 'bottom', windows[1], 'top', {x: 15, y: -10});
                        await delay(500);
 

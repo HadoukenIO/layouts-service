@@ -17,7 +17,7 @@ interface MinimizeTestOptions extends CreateWindowData {
 afterEach(teardown);
 
 itParameterized(
-    'When minizing and restoring grouped windows, the group is minimized and restored as expected',
+    'When minimizing and restoring grouped windows, the group is minimized and restored as expected',
     (testOptions: MinimizeTestOptions) => `${testOptions.windowCount} windows - restoring ${testOptions.restoreIndex === 0 ? 'minimized' : 'grouped'} window`,
     [
         {frame: true, windowCount: 2, arrangement: 'horizontal', restoreIndex: 0},
@@ -41,7 +41,7 @@ itParameterized(
 
 // With tabsets
 itParameterized(
-    'When minizing and restoring grouped, tabbed, windows, the group is minimized and restored as expected',
+    'When minimizing and restoring grouped, tabbed, windows, the group is minimized and restored as expected',
     (testOptions: MinimizeTestOptions) => `${testOptions.windowCount} windows - restoring ${testOptions.restoreIndex === 0 ? 'minimized' : 'grouped'} window`,
     [{frame: true, windowCount: 4, restoreIndex: 0}, {frame: true, windowCount: 4, restoreIndex: 1}, {frame: true, windowCount: 6, restoreIndex: 1}],
     createWindowTest(async (context, testOptions: MinimizeTestOptions) => {

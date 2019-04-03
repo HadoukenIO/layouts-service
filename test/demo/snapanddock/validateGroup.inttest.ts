@@ -113,7 +113,7 @@ itParameterized<ValidateGroupOptions>(
 
         await undockFunctions[testOptions.undockBy](windows[testOptions.undockIndex]);
 
-        // The validation is delayed slightly, to ensure all bounds-changed events have been recieved from modified windows
+        // The validation is delayed slightly, to ensure all bounds-changed events have been received from modified windows
         // See SERVICE-284 for details.
         await delay(500);
 

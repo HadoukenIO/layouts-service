@@ -16,7 +16,7 @@ beforeAll(async () => {
     fin = await getConnection();
 });
 beforeEach(async () => {
-    // Spawn two windows - wins[0] untabbed, wins[1] tabbed.  Any additional windows needed should be created in the test.
+    // Spawn two windows - wins[0] un-tabbed, wins[1] tabbed.  Any additional windows needed should be created in the test.
     wins[0] = await createChildWindow({
         autoShow: true,
         saveWindowState: false,

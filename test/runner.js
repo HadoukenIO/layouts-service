@@ -172,7 +172,7 @@ async function serve() {
 const buildStep = skipBuild ? Promise.resolve() : build();
 
 buildStep
-    .then(() => {run('npm run start -- --static --noDemo --providerVersion testing'); return;})
+    .then(() => {run('npm run start -- --static --noDemo --providerVersion testing --runtime 9.61.38.41'); return;})
     .then(() => serve())
     .then(() => waitForUrl(ROOT_URL + 'app.json'))
     .then(async () => {

@@ -1,6 +1,6 @@
 {
   "name": "openfin-layouts",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Client library for the OpenFin Layouts service",
   "types": "dist/client/main.d.ts",
   "main": "dist/client/main-bundle.js",
@@ -8,7 +8,7 @@
     "dist/client"
   ],
   "scripts": {
-    "test:unit": "jest --colors --no-cache --config=jest-unit.config.json",
+    "test:unit": "jest --colors --no-cache --config=jest-unit.config.js",
     "test:int": "node test/runner.js",
     "test": "npm run test:unit && npm run test:int",
     "check": "gts check && cd test && gts check",

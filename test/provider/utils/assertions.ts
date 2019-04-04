@@ -211,7 +211,7 @@ export async function assertActiveTab(window: Window) {
 export async function assertTabbed(win: Window): Promise<void> {
     // Get the tabGroup ID for the window
     const tabGroupID = await getTabGroupIdentity(win.identity);
-    // Untabbed windows will return null
+    // Un-tabbed windows will return null
     assert.notStrictEqual(tabGroupID, null);
 }
 
@@ -221,7 +221,7 @@ export async function assertTabbed(win: Window): Promise<void> {
 export async function assertNotTabbed(win: Window): Promise<void> {
     // Get the tabGroup ID for the window
     const tabGroupID = await getTabGroupIdentity(win.identity);
-    // Untabbed windows will return null
+    // Un-tabbed windows will return null
     assert.strictEqual(tabGroupID, null);
 }
 
@@ -251,7 +251,7 @@ export async function assertSquare(...windows: Win[]) {
 }
 
 /**
- * Assert that some given set of windows are adjacent to eachother in such a way as to
+ * Assert that some given set of windows are adjacent to each other in such a way as to
  * form a contiguous set of windows (i.e. no physically disjoint windows)
  */
 export async function assertAllContiguous(windows: Window[]) {

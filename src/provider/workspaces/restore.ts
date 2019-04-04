@@ -66,7 +66,7 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
 
     const apps: WorkspaceApp[] = await promiseMap(workspace.apps, app => restoreApp(app, startupApps));
 
-    // Wait for all apps to startup
+    // Wait for all apps to start-up
     const startupResponses: WorkspaceApp[] = await Promise.all(startupApps);
 
     // Consolidate application responses
@@ -327,7 +327,7 @@ const restoreTabGroupsWithManuallyClosedPlaceholders = async (workspace: Workspa
             continue;
         }
 
-        // Find the existing tab group (if any) for these tabs to rejoin
+        // Find the existing tab group (if any) for these tabs to re-join
         let existingTabGroup: DesktopTabGroup|boolean|null = null;
 
         for (const tab of tabGroup.tabs) {
@@ -384,7 +384,7 @@ const setClientAppToRestoreWhenReady = (workspaceApp: WorkspaceApp, resolve: Fun
     appsToRestoreWhenReady.set(uuid, save);
 };
 
-// Attempt to send the WorkspaceApp object to an application that has signaled that it's ready, and wait for it to respond back.
+// Attempt to send the WorkspaceApp object to an application that has signalled that it's ready, and wait for it to respond back.
 // If the message hangs, resolve this hanging promise with a modified WorkspaceApp object.
 const instructClientAppToRestoreItself = async(workspaceApp: WorkspaceApp): Promise<WorkspaceApp> => {
     const identity = {uuid: workspaceApp.uuid, name: workspaceApp.uuid};

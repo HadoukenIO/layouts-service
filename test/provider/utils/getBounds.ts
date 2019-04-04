@@ -53,7 +53,7 @@ export async function getTabsetBounds(tabOrTabstrip: _Window): Promise<Normalize
         };
 
     } else {
-        throw new Error('Attempted to get tabstrip bounds of untabbed window.');
+        throw new Error('Attempted to get tabstrip bounds of un-tabbed window.');
     }
 }
 

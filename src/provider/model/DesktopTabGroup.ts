@@ -165,8 +165,8 @@ export class DesktopTabGroup implements DesktopEntity {
     }
 
     /**
-     * Returns the window state this tab group is currently mimicing. Note this may not match the internal underlying state
-     * as 'maximized' tabs are not truely maximized as far as Windows is concerned
+     * Returns the window state this tab group is currently mimicking. Note this may not match the internal underlying
+     * state as 'maximized' tabs are not truly maximized as far as Windows is concerned.
      */
     public get state(): WindowState {
         return this._window.currentState.state === 'minimized' ? 'minimized' : this._isMaximized ? 'maximized' : 'normal';

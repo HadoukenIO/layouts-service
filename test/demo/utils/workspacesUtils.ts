@@ -5,9 +5,9 @@ import * as assert from 'power-assert';
 import {SERVICE_IDENTITY, WorkspaceAPI} from '../../../src/client/internal';
 import {Workspace} from '../../../src/client/workspaces';
 import {getConnection} from '../../provider/utils/connect';
-import {BasicSaveRestoreTestOptions} from '../workspaces/basicSaveAndRestore.test';
-import {SnapSaveRestoreTestOptions} from '../workspaces/snapSaveAndRestore.test';
-import {TabSaveRestoreTestOptions} from '../workspaces/tabSaveAndRestore.test';
+import {BasicSaveRestoreTestOptions} from '../workspaces/basicSaveAndRestore.inttest';
+import {SnapSaveRestoreTestOptions} from '../workspaces/snapSaveAndRestore.inttest';
+import {TabSaveRestoreTestOptions} from '../workspaces/tabSaveAndRestore.inttest';
 
 import {createAppsArray, createWindowGroupings, TestAppData} from './AppInitializer';
 import {AppContext} from './createAppTest';

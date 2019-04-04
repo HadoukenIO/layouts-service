@@ -65,7 +65,7 @@ export class WindowInitializer {
             await this.arrangeWindows(windows, arrangementName);
         }
 
-        // Slight delay to allow things to stablize
+        // Slight delay to allow things to stabilize
         await delay(500);
 
         return windows;

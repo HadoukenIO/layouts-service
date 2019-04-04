@@ -65,8 +65,8 @@ export class View {
 
             this._activeItem = activeItem;
         } else if ((this._activeItem === this._targetItem) !== (activeItem === targetItem)) {
-            // Conditional for when we move from targeting the activewindow to another target.  There are special treatments needed for when we target the
-            // activewindow which are handled here.
+            // Conditional for when we move from targeting the active window to another target. There are special
+            // treatments needed for when we target the active window which are handled here.
 
             const bringActiveToFront = target !== null && !(target.type === eTargetType.TAB && target.tabDragging && activeItem !== targetItem);
             this.setAlwaysOnTop(activeItem, bringActiveToFront);

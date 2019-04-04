@@ -11,7 +11,7 @@ import {delay} from './provider/utils/delay';
 /**
  * Util function to completely reset the desktop in-between test runs.
  * 
- * This should be added as a `afterEach` hook in EVERY ava test file.
+ * This should be added as a `afterEach` hook in EVERY inttest file.
  * 
  * Any left-over state will ultimately cause the previous test to fail, but some additional hardening work is required
  * first. Either way, any invalid state will be cleaned-up so that it does not impact the next test to run.

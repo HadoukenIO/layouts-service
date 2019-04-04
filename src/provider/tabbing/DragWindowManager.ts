@@ -143,7 +143,7 @@ export class DragWindowManager {
     /**
      * Updates the in memory virtual screen bounds and positions the drag window accordingly.
      *
-     * This should only be called on initalization and on 'monitor info changed' events.
+     * This should only be called on initialization and on 'monitor info changed' events.
      */
     private async setWindowBounds(virtualScreen?: DipRect) {
         if (!virtualScreen) {

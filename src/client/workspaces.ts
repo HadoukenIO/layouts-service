@@ -334,6 +334,17 @@ export function removeEventListener<K extends WorkspacesEvent>(eventType: K['typ
  *
  * The callback will be invoked on each call to {@link generate}, and the return value (if anything is returned)
  * will be saved as the workspace's `customData` property for this app within the generated {@link Workspace}.
+ * 
+ * ``` ts
+ * // import the client module
+ * import * as Layouts from "openfin-layouts"
+ * 
+ * Layouts.workspaces.setGenerateHandler(() => {
+ *     // return custom data
+ *     return {"foo":"bar"};
+ * });
+ * ```
+ * 
  */
 export async function setGenerateHandler(customDataDecorator: () => CustomData): Promise<boolean> {
     const channel: ChannelClient = await getServicePromise();
@@ -357,6 +368,34 @@ export async function setGenerateHandler(customDataDecorator: () => CustomData):
  * It is recommended that you restore/position the child windows defined in workspaceApp, and after those windows have been created, return
  * that same workspaceApp object.
  *
+ * ``` ts
+ * //import the client module
+ * import * as Layouts from "openfin-layouts"
+ * 
+ * async function appRestoreHandler(workspaceApp) {
+ *     const ofApp = await fin.Application.getCurrent();
+ *     const openWindows = await ofApp.getChildWindows();
+ *     //iterate through the child windows of the workspaceApp data
+ *     const opened = workspaceApp.childWindows.map(async (win, index) => {
+ *         //check for existence of the window
+ *         if (!openWindows.some(w => w.identity.name === win.name)) {
+ *             //create the OpenFin window with the same name
+ *             const ofWin = await openChild(win.name, win.info.url);
+ *             //position the window based on the data in the workspaceApp
+ *             await positionWindow(win);
+ *         } else {
+ *             //only position if the window exists
+ *             await positionWindow(win);
+ *        }
+ *     });
+ * 
+ *     //wait for all windows to open and be positioned before returning
+ *     await Promise.all(opened);
+ *     return layoutApp;
+ * }
+ * 
+ * Layouts.workspaces.setRestoreHandler(appRestoreHandler);
+ * ```
  */
 export async function setRestoreHandler(listener: (workspaceApp: WorkspaceApp) => WorkspaceApp | false | Promise<WorkspaceApp|false>): Promise<boolean> {
     const channel: ChannelClient = await getServicePromise();
@@ -375,6 +414,19 @@ export async function setRestoreHandler(listener: (workspaceApp: WorkspaceApp) =
  * If an application wishes to restore its child windows and store custom data, it must properly integrate with the
  * layouts service by both registering {@link setGenerateHandler|generate} and {@link setRestoreHandler|restore} callbacks, and
  * calling the {@link ready} function. If this is not done properly, workspace restoration may be disrupted.
+ * 
+ * ``` ts
+ * //import the client module
+ * import * as Layouts from "openfin-layouts"
+ *
+ * async function saveCurrentWorkspace {
+ *    const workspaceObject = await Layouts.workspaces.generate();
+ *    //persist the workspaceObject somewhere of your choosing
+ *    saveWorkspace(workspaceObject);
+ *    return workspaceObject;
+ * }
+ * ```
+ * 
  */
 export async function generate(): Promise<Workspace> {
     return tryServiceDispatch<undefined, Workspace>(WorkspaceAPI.GENERATE_LAYOUT);
@@ -410,6 +462,17 @@ export async function generate(): Promise<Workspace> {
  * service will then group all windows that were formerly snapped together.
  *
  * Finally, the layouts service will send a 'workspace-restored' event to all windows, and complete restoration.
+ * 
+ * ``` ts
+ * //import the client module
+ * import * as Layouts from "openfin-layouts"
+ * 
+ * Layouts.workspaces.restore(workspaceObject).then(result => {
+ *    //promise resolves with result once the layout has been restored
+ *    handleResult(result)
+ * })
+ * ```
+ * 
  */
 export async function restore(payload: Workspace): Promise<Workspace> {
     return tryServiceDispatch<Workspace, Workspace>(WorkspaceAPI.RESTORE_LAYOUT, payload);
@@ -423,6 +486,16 @@ export async function restore(payload: Workspace): Promise<Workspace> {
  *
  * Note that by not calling this function, and workspace {@link restore} operation will hang
  * indefinitely.
+ * 
+ * ``` ts
+ * //import the client module
+ * import * as Layouts from "openfin-layouts"
+ *
+ * Layouts.workspaces.setRestoreHandler(someRestoreFunction);
+ * Layouts.workspaces.setGenerateHandler(someGenerateFunction);
+ * Layouts.workspaces.ready();
+ * ```
+ * 
  */
 export async function ready(): Promise<Workspace> {
     return tryServiceDispatch<undefined, Workspace>(WorkspaceAPI.APPLICATION_READY);

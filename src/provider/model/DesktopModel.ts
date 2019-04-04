@@ -76,7 +76,20 @@ export class DesktopModel {
             this.addIfEnabled({uuid: evt.uuid, name: evt.name});
         });
 
-        // Register any windows created before the service started
+        // Listen for external windows shown event and register only new ones.
+        // Using "...shown" event here instead of "...created" because most external
+        // windows are hidden at first when created, shown afterwards.
+        fin.System.addListener('external-window-shown', (evt: WindowEvent<'system', 'external-window-shown'>) => {
+            const { uuid } = evt;
+            const identity = { uuid, name: uuid, isExternalWindow: true };
+            const foundWindow = this.getWindow(identity);
+            
+            if (!foundWindow) {
+                this.addIfEnabled(identity);
+            }
+        });
+
+        // Register any OpenFin windows created before the service started
         fin.System.getAllWindows().then(apps => {
             apps.forEach((app) => {
                 // Register the main window
@@ -86,6 +99,16 @@ export class DesktopModel {
                 app.childWindows.forEach((child) => {
                     this.addIfEnabled({uuid: app.uuid, name: child.name});
                 });
+            });
+        });
+
+        // Register any external windows created before the service started
+        (<any>fin.System).getAllExternalWindows().then((externalWindows: any) => {
+            externalWindows.forEach((e: any) => {
+                const { uuid, visible } = e;
+                if (visible) {
+                    this.addIfEnabled({ uuid, name: uuid, isExternalWindow: true });
+                }
             });
         });
 

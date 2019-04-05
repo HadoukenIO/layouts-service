@@ -336,12 +336,11 @@ export function removeEventListener<K extends WorkspacesEvent>(eventType: K['typ
  * will be saved as the workspace's `customData` property for this app within the generated {@link Workspace}.
  * 
  * ``` ts
- * // import the client module
- * import * as Layouts from "openfin-layouts"
+ * import {workspaces} from 'openfin-layouts';
  * 
- * Layouts.workspaces.setGenerateHandler(() => {
- *     // return custom data
- *     return {"foo":"bar"};
+ * workspaces.setGenerateHandler(() => {
+ *     // Return custom data
+ *     return {currentStockSymbol: this._currentStockSymbol};
  * });
  * ```
  * 
@@ -369,32 +368,31 @@ export async function setGenerateHandler(customDataDecorator: () => CustomData):
  * that same workspaceApp object.
  *
  * ``` ts
- * //import the client module
- * import * as Layouts from "openfin-layouts"
+ * import {workspaces} from 'openfin-layouts';
+ * import {Workspace} from 'openfin-layouts/dist/client/workspaces';
  * 
- * async function appRestoreHandler(workspaceApp) {
+ * async function appRestoreHandler(workspaceApp: Workspace) {
  *     const ofApp = await fin.Application.getCurrent();
  *     const openWindows = await ofApp.getChildWindows();
- *     //iterate through the child windows of the workspaceApp data
- *     const opened = workspaceApp.childWindows.map(async (win, index) => {
- *         //check for existence of the window
- *         if (!openWindows.some(w => w.identity.name === win.name)) {
- *             //create the OpenFin window with the same name
- *             const ofWin = await openChild(win.name, win.info.url);
- *             //position the window based on the data in the workspaceApp
- *             await positionWindow(win);
- *         } else {
- *             //only position if the window exists
- *             await positionWindow(win);
- *        }
+ *     // Iterate through the child windows of the workspaceApp data
+ *     const opened = workspaceApp.childWindows.map(async (childWinInfo, index) => {
+ *         // Check for existence of the window
+ *         let openChildWin = openWindows.find(w => w.identity.name === childWinInfo.name);
+ *         if (!openChildWin) {
+ *             openChildWin = await openChild(childWinInfo.name, childWinInfo.info.url);
+ *         }
+ *         // Create the OpenFin window with the same name
+ *         // Position the window based on the data in the workspaceApp
+ *         // The user provides this positioning function
+ *         await positionWindow(childWinInfo, openChildWin);
  *     });
  * 
- *     //wait for all windows to open and be positioned before returning
+ *     // Wait for all windows to open and be positioned before returning
  *     await Promise.all(opened);
  *     return layoutApp;
  * }
  * 
- * Layouts.workspaces.setRestoreHandler(appRestoreHandler);
+ * workspaces.setRestoreHandler(appRestoreHandler);
  * ```
  */
 export async function setRestoreHandler(listener: (workspaceApp: WorkspaceApp) => WorkspaceApp | false | Promise<WorkspaceApp|false>): Promise<boolean> {
@@ -416,12 +414,11 @@ export async function setRestoreHandler(listener: (workspaceApp: WorkspaceApp) =
  * calling the {@link ready} function. If this is not done properly, workspace restoration may be disrupted.
  * 
  * ``` ts
- * //import the client module
- * import * as Layouts from "openfin-layouts"
+ * import {workspaces} from 'openfin-layouts';
  *
  * async function saveCurrentWorkspace {
- *    const workspaceObject = await Layouts.workspaces.generate();
- *    //persist the workspaceObject somewhere of your choosing
+ *    const workspaceObject = await workspaces.generate();
+ *    // Persist the workspaceObject in a location of your choosing
  *    saveWorkspace(workspaceObject);
  *    return workspaceObject;
  * }
@@ -464,13 +461,12 @@ export async function generate(): Promise<Workspace> {
  * Finally, the layouts service will send a 'workspace-restored' event to all windows, and complete restoration.
  * 
  * ``` ts
- * //import the client module
- * import * as Layouts from "openfin-layouts"
+ * import {workspaces} from 'openfin-layouts';
  * 
- * Layouts.workspaces.restore(workspaceObject).then(result => {
- *    //promise resolves with result once the layout has been restored
+ * workspaces.restore(workspaceObject).then(result => {
+ *    // Promise resolves with result once the layout has been restored
  *    handleResult(result)
- * })
+ * });
  * ```
  * 
  */
@@ -488,12 +484,11 @@ export async function restore(payload: Workspace): Promise<Workspace> {
  * indefinitely.
  * 
  * ``` ts
- * //import the client module
- * import * as Layouts from "openfin-layouts"
+ * import {workspaces} from 'openfin-layouts';
  *
- * Layouts.workspaces.setRestoreHandler(someRestoreFunction);
- * Layouts.workspaces.setGenerateHandler(someGenerateFunction);
- * Layouts.workspaces.ready();
+ * workspaces.setRestoreHandler(someRestoreFunction);
+ * workspaces.setGenerateHandler(someGenerateFunction);
+ * workspaces.ready();
  * ```
  * 
  */

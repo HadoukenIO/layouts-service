@@ -16,6 +16,8 @@ const express = require('express');
 const {launch} = require('hadouken-js-adapter');
 
 const ROOT_URL = 'http://localhost:1337/test/';
+const CREATE_MANIFEST_PORT = '1338';
+const CREATE_MANIFEST_PATH = '/create-manifest'
 
 let port;
 
@@ -134,7 +136,7 @@ async function waitForUrl(url) {
 async function serve() {
     return new Promise((resolve, reject) => {
         const app = express();
-        app.use('/create-manifest', (req, res) => {
+        app.use(CREATE_MANIFEST_PATH, (req, res) => {
             const {uuid, url, defaultTop, config, autoShow} = req.query;
             const additionalServiceProperties = config ? {config: JSON.parse(config)} : {};
 
@@ -165,7 +167,7 @@ async function serve() {
         });
         
         console.log("Starting test server...");
-        app.listen(1338, resolve);
+        app.listen(CREATE_MANIFEST_PORT, resolve);
     });
 }
 
@@ -181,6 +183,6 @@ buildStep
         return port
     })
     .catch(fail)
-    .then(OF_PORT => run(testCommand , { env: { OF_PORT } }))
+    .then(OF_PORT => run(testCommand, {env: {OF_PORT, CREATE_MANIFEST_URL: `http://localhost:${CREATE_MANIFEST_PORT}${CREATE_MANIFEST_PATH}`} }))
     .then(cleanup)
     .catch(cleanup);

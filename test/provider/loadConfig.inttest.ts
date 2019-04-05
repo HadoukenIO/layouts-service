@@ -35,7 +35,7 @@ beforeAll(async () => {
 afterEach(teardown);
 
 async function createAppWithConfig(uuid: string, config: ConfigWithRules<ConfigurationObject>, parentUuid?: string): Promise<Application> {
-    const url = `http://localhost:1337/create-manifest?uuid=${uuid}&config=${encodeURIComponent(JSON.stringify(config))}`;
+    const url = `${process.env.CREATE_MANIFEST_URL}?uuid=${uuid}&config=${encodeURIComponent(JSON.stringify(config))}`;
 
     if (!parentUuid) {
         // Create a new application directly

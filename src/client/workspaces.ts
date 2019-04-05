@@ -6,7 +6,7 @@ import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/c
 import {MonitorInfo} from 'hadouken-js-adapter/out/types/src/api/system/monitor';
 import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
 
-import {channelPromise, eventEmitter, tryServiceDispatch} from './connection';
+import {eventEmitter, getServicePromise, tryServiceDispatch} from './connection';
 import {WorkspaceAPI} from './internal';
 import {WindowIdentity} from './main';
 import {ApplicationUIConfig} from './tabbing';
@@ -52,7 +52,7 @@ export interface Workspace {
     /**
      * Tracks which windows are tabbed together, and the properties of the associated tabstrip windows.
      *
-     * This data has some overlap with that stored withing `apps` and `apps.mainWindow`/`apps.childWindows`. Generally,
+     * This data has some overlap with that stored within `apps` and `apps.mainWindow`/`apps.childWindows`. Generally,
      * `apps` holds the state necessary for restoring individual application windows, and `tabGroups` ensures the
      * windows are correctly placed into tab groups once they have been created.
      */
@@ -71,7 +71,7 @@ export interface WorkspaceApp {
     /**
      * The URL of the manifest from which this application was started.
      *
-     * This is only present if the application was started from a manifest. For applications started programatically
+     * This is only present if the application was started from a manifest. For applications started programmatically
      * (using the OpenFin API), `initialOptions` will be present instead.
      */
     manifestUrl?: string;
@@ -80,18 +80,18 @@ export interface WorkspaceApp {
      * Stores key information from the Application constructor parameters that were passed when this application was
      * started.
      *
-     * This is only present if the application was started programatically. For applications started from a manifest,
+     * This is only present if the application was started programmatically. For applications started from a manifest,
      * `manifestUrl` will be present instead.
      *
      * The [type](http://cdn.openfin.co/jsdocs/stable/fin.desktop.Application.html#~options) of this matches the
-     * options passed to `fin.Application.create` and those returned by `Applicaiton.getOptions()`.
+     * options passed to `fin.Application.create` and those returned by `Application.getOptions()`.
      */
     initialOptions?: object;
 
     /**
      * The UUID of the application that initially launched this app.
      *
-     * This is only present if the application was started programatically.
+     * This is only present if the application was started programmatically.
      */
     parentUuid?: string;
 
@@ -168,7 +168,7 @@ export interface WorkspaceWindow extends WindowIdentity {
     /**
      * Indicates if the window is part of a tab group.
      *
-     * Tab group information is stored seprately in `Workspace.tabGroups`. This flag indicates that the current window
+     * Tab group information is stored separately in `Workspace.tabGroups`. This flag indicates that the current window
      * will be a part of that data.
      */
     isTabbed: boolean;
@@ -336,7 +336,7 @@ export function removeEventListener<K extends WorkspacesEvent>(eventType: K['typ
  * will be saved as the workspace's `customData` property for this app within the generated {@link Workspace}.
  */
 export async function setGenerateHandler(customDataDecorator: () => CustomData): Promise<boolean> {
-    const channel: ChannelClient = await channelPromise;
+    const channel: ChannelClient = await getServicePromise();
     return channel.register(WorkspaceAPI.GENERATE_HANDLER, customDataDecorator);
 }
 
@@ -346,7 +346,7 @@ export async function setGenerateHandler(customDataDecorator: () => CustomData):
  * If an application has set a {@link setRestoreHandler} callback, and called the {@link ready} function, the layouts service
  * will send it its Workspace data when the {@link restore} function is called, and wait for this function to return. If
  * an application has saved its child windows, it *MUST* create those child windows with the same names defined in its
- * Workspace. If those child windowws are already up, position them in their proper location using the bounds given.
+ * Workspace. If those child windows are already up, position them in their proper location using the bounds given.
  *
  * If this function does not return, or this function does not create the app's child windows appropriately,
  * {@link restore} will hang indefinitely.
@@ -359,7 +359,7 @@ export async function setGenerateHandler(customDataDecorator: () => CustomData):
  *
  */
 export async function setRestoreHandler(listener: (workspaceApp: WorkspaceApp) => WorkspaceApp | false | Promise<WorkspaceApp|false>): Promise<boolean> {
-    const channel: ChannelClient = await channelPromise;
+    const channel: ChannelClient = await getServicePromise();
     return channel.register(WorkspaceAPI.RESTORE_HANDLER, listener);
 }
 
@@ -389,7 +389,7 @@ export async function generate(): Promise<Workspace> {
  * indication to the user that a window is in the process of loading. The placeholder window will listen for its corresponding window to
  * come up, and subsequently close itself.
  *
- * Once all placeholder windows are up, the layouts service will ungroup and untab any windows participating in restoration. This is done to
+ * Once all placeholder windows are up, the layouts service will ungroup and un-tab any windows participating in restoration. This is done to
  * prevent a window from dragging its group around the desktop, into a location that wasn't originally intended. Restore does not touch
  * any windows that were not declared in the Workspace object.
  *

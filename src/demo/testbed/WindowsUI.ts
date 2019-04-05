@@ -80,6 +80,7 @@ export class WindowsUI {
             url: elements.inputURL,
             queryArgs: elements.inputSection,
             frame: elements.inputFrame,
+            state: elements.inputState,
             size: elements.inputSize,
             sizeOffset: elements.inputSizeRandomize,
             useService: elements.inputUseService,
@@ -93,6 +94,7 @@ export class WindowsUI {
             url: elements.inputURL,
             queryArgs: elements.inputSection,
             frame: elements.inputFrame,
+            state: elements.inputState,
             size: elements.inputSize,
             sizeOffset: elements.inputSizeRandomize,
             parent: elements.inputParent

@@ -15,7 +15,7 @@ interface RemoteExecFailure {
 type RemoteExecResponse<R> = RemoteExecSuccess<R>|RemoteExecFailure;
 
 /**
- * Executes javascript code on the service
+ * Executes JavaScript code on the service
  * @param func
  */
 export async function executeJavascriptOnService<T, R>(func: ((data: T) => R | Promise<R>), data?: T): Promise<R> {

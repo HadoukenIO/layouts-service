@@ -1,10 +1,9 @@
-import {TestContext} from 'ava';
 import {Window} from 'hadouken-js-adapter';
 
 import {Scopes} from '../src/provider/config/Store';
 import {ScopePrecedence} from '../src/provider/config/ConfigUtil';
 
-import {getConnection} from './provider/utils/connect';
+import {getConnection, TESTSUITE_SANDBOX_PREFIX} from './provider/utils/connect';
 import {executeJavascriptOnService} from './demo/utils/serviceUtils';
 import {WindowInfo, WindowDetail} from 'hadouken-js-adapter/out/types/src/api/system/window';
 import {delay} from './provider/utils/delay';
@@ -12,18 +11,16 @@ import {delay} from './provider/utils/delay';
 /**
  * Util function to completely reset the desktop in-between test runs.
  * 
- * This should be added as a `test.afterEach.always` hook in EVERY ava test file.
+ * This should be added as a `afterEach` hook in EVERY inttest file.
  * 
  * Any left-over state will ultimately cause the previous test to fail, but some additional hardening work is required
  * first. Either way, any invalid state will be cleaned-up so that it does not impact the next test to run.
- * 
- * @param t Test context
  */
-export async function teardown(t: TestContext): Promise<void> {
+export async function teardown(): Promise<void> {
     const fin = await getConnection();
 
-    await closeAllWindows(t);
-    await resetProviderState(t);
+    await closeAllWindows();
+    await resetProviderState();
     
     fin.InterApplicationBus.removeAllListeners();
     
@@ -42,7 +39,7 @@ export async function teardown(t: TestContext): Promise<void> {
     }
 }
 
-async function closeAllWindows(t: TestContext): Promise<void> {
+async function closeAllWindows(): Promise<void> {
     const fin = await getConnection();
 
     // Fetch all open windows
@@ -95,8 +92,10 @@ async function closeAllWindows(t: TestContext): Promise<void> {
     }
 }
 
-async function resetProviderState(t: TestContext): Promise<void> {
-    const msg: string|null = await executeJavascriptOnService<Scopes[], string|null>(function(this: ProviderWindow, allScopes: Scopes[]): string|null {
+async function resetProviderState(): Promise<void> {
+    const msg: string|null = await executeJavascriptOnService<{allScopes: Scopes[], testSuiteSandboxPrefix: string}, string|null>(function(this: ProviderWindow, params: {allScopes: Scopes[], testSuiteSandboxPrefix: string}): string|null {
+        const {allScopes, testSuiteSandboxPrefix} = params;
+        
         const SEPARATOR_LIST = ', ';
         const SEPARATOR_LINE = '\n    ';
 
@@ -148,19 +147,20 @@ async function resetProviderState(t: TestContext): Promise<void> {
         if (watches.length !== expectedWatcherCount) {
             msgs.push(`Had ${watches.length} config watchers registered, expected ${expectedWatcherCount}`);
         }
-        const nonTestAppLoaderKeys = Object.keys(loaderApps).filter(uuid => uuid !== 'TEST');
+
+        const nonTestAppLoaderKeys = Object.keys(loaderApps).filter(uuid => !uuid.startsWith(testSuiteSandboxPrefix));
         if (nonTestAppLoaderKeys.length > 0) {
             let loaderInfo: string|undefined;
- 
+
             try {
                 loaderInfo = JSON.stringify(loaderApps, null, 4).replace(/\n/g, SEPARATOR_LINE);
             } catch (e) {
             }
- 
+
             if (loaderInfo) {
-                msgs.push(`Expected loader's appState cache to be empty (except for 'TEST'), contains:${SEPARATOR_LINE}${loaderInfo}`);
+                msgs.push(`Expected loader's appState cache to be empty (except for ${testSuiteSandboxPrefix}*), contains:${SEPARATOR_LINE}${loaderInfo}`);
             } else {
-                msgs.push(`Expected loader's appState cache to be empty (except for 'TEST') and unable to stringify appState, contains other uuids:${SEPARATOR_LINE}${nonTestAppLoaderKeys.join(', ')}`);
+                msgs.push(`Expected loader's appState cache to be empty (except for ${testSuiteSandboxPrefix}*) and unable to stringify appState, contains other uuids:${SEPARATOR_LINE}${nonTestAppLoaderKeys.join(', ')}`);
             }
         }
         if (loaderWindows.length !== 1 || loaderWindows[0] !== 'window:testApp/testApp') {
@@ -175,7 +175,7 @@ async function resetProviderState(t: TestContext): Promise<void> {
         } else {
             return null;
         }
-    }, Object.keys(ScopePrecedence) as Scopes[]);
+    }, {allScopes:Object.keys(ScopePrecedence) as Scopes[], testSuiteSandboxPrefix: TESTSUITE_SANDBOX_PREFIX});
 
     if (msg) {
         // Pass-through debug info from provider

@@ -67,7 +67,7 @@ export class RectUtils {
     /**
      * Determines the distance between two rectangles, separately in each dimension.
      *
-     * Negative values mean the rectangles are overlapping in that dimention, and 0 means they are touching edge-to-edge.
+     * Negative values mean the rectangles are overlapping in that dimension, and 0 means they are touching edge-to-edge.
      */
     public static distance(rect1: Rectangle, rect2: Rectangle): MeasureResult {
         // Pull center/halfSize into variables, as they may be getters rather than variables
@@ -85,7 +85,7 @@ export class RectUtils {
      * Determines the distance between two rectangles, separately in each dimension. Input rectangles are specified
      * two Point instances, for the rectangles center and half-size.
      *
-     * Negative values mean the rectangles are overlapping in that dimention, and 0 means they are touching edge-to-edge.
+     * Negative values mean the rectangles are overlapping in that dimension, and 0 means they are touching edge-to-edge.
      */
     public static distanceFromParts(rect1Center: Point, rect1HalfSize: Point, rect2Center: Point, rect2HalfSize: Point): MeasureResult {
         // Distance between rectangles is the absolute difference between the rectangle centers and sum of half-sizes
@@ -104,7 +104,7 @@ export class RectUtils {
     }
 
     /**
-     * Converts a rectangle from the {top,bottom,left,right} format used in the core to the {center, halfsize} format used in
+     * Converts a rectangle from the {top,bottom,left,right} format used in the core to the {center, halfSize} format used in
      * the model.
      */
     public static convertToCenterHalfSize(rect: Rect): Rectangle {

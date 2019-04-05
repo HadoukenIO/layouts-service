@@ -41,24 +41,36 @@ export const eventEmitter = new EventEmitter();
 /**
  * Promise to the channel object that allows us to connect to the client
  */
-export const channelPromise: Promise<ChannelClient> = typeof fin === 'undefined' ?
-    Promise.reject('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.') :
-    fin.InterApplicationBus.Channel.connect(SERVICE_CHANNEL, {payload: {version: PACKAGE_VERSION}}).then((channel: ChannelClient) => {
-        // Register service listeners
-        channel.register('WARN', (payload: any) => console.warn(payload));  // tslint:disable-line:no-any
-        channel.register('event', (event: LayoutsEvent) => {
-            eventEmitter.emit(event.type, event);
-        });
-        // Any unregistered action will simply return false
-        channel.setDefaultAction(() => false);
+let channelPromise: Promise<ChannelClient>|null = null;
 
-        return channel;
-    });
+if (typeof fin !== 'undefined') {
+    getServicePromise();
+}
+
+export function getServicePromise(): Promise<ChannelClient> {
+    if (!channelPromise) {
+        channelPromise = typeof fin === 'undefined' ?
+            Promise.reject('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.') :
+            fin.InterApplicationBus.Channel.connect(SERVICE_CHANNEL, {payload: {version: PACKAGE_VERSION}}).then((channel: ChannelClient) => {
+                // Register service listeners
+                channel.register('WARN', (payload: any) => console.warn(payload));  // tslint:disable-line:no-any
+                channel.register('event', (event: LayoutsEvent) => {
+                    eventEmitter.emit(event.type, event);
+                });
+                // Any unregistered action will simply return false
+                channel.setDefaultAction(() => false);
+
+                return channel;
+            });
+    }
+
+    return channelPromise;
+}
 
 /**
  * Wrapper around service.dispatch to help with type checking
  */
 export async function tryServiceDispatch<T, R>(action: APITopic, payload?: T): Promise<R> {
-    const channel: ChannelClient = await channelPromise;
+    const channel: ChannelClient = await getServicePromise();
     return channel.dispatch(action, payload) as Promise<R>;
 }

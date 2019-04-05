@@ -75,9 +75,9 @@ The client library is also available as a resource which can be included via `<s
 ```
    <script src="https://cdn.openfin/services/openfin/layouts/<VERSION>/openfin-layouts.js"></script>
 ```
-This will expose the global variable `OpenFinLayouts` with the API methods documented in the link below.  Example:
+This will expose the global variable `layouts` with the API methods documented in the link below.  Example:
 ```
-   OpenFinLayouts.snapAndDock.undockWindow();
+   layouts.snapAndDock.undockWindow();
 ```
 
 The client module exports a set of functions - [API docs available here](https://cdn.openfin.co/docs/services/layouts/stable/api/).

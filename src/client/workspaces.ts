@@ -369,17 +369,17 @@ export async function setGenerateHandler(customDataDecorator: () => CustomData):
  *
  * ``` ts
  * import {workspaces} from 'openfin-layouts';
- * import {Workspace} from 'openfin-layouts/dist/client/workspaces';
+ * import {WorkspaceApp, WorkspaceWindow} from 'openfin-layouts/dist/client/workspaces';
  * 
  * async function appRestoreHandler(workspaceApp: Workspace) {
  *     const ofApp = await fin.Application.getCurrent();
  *     const openWindows = await ofApp.getChildWindows();
  *     // Iterate through the child windows of the workspaceApp data
- *     const opened = workspaceApp.childWindows.map(async (childWinInfo, index) => {
+ *     const opened = workspaceApp.childWindows.map(async (childWinInfo: WorkspaceWindow, index: number) => {
  *         // Check for existence of the window
  *         let openChildWin = openWindows.find(w => w.identity.name === childWinInfo.name);
  *         if (!openChildWin) {
- *             openChildWin = await openChild(childWinInfo.name, childWinInfo.info.url);
+ *             openChildWin = await openChild(childWinInfo.name, childWinInfo.url);
  *         }
  *         // Create the OpenFin window with the same name
  *         // Position the window based on the data in the workspaceApp
@@ -415,9 +415,10 @@ export async function setRestoreHandler(listener: (workspaceApp: WorkspaceApp) =
  * 
  * ``` ts
  * import {workspaces} from 'openfin-layouts';
+ * import {Workspace} from 'openfin-layouts/dist/client/workspaces';
  *
  * async function saveCurrentWorkspace {
- *    const workspaceObject = await workspaces.generate();
+ *    const workspaceObject: Workspace = await workspaces.generate();
  *    // Persist the workspaceObject in a location of your choosing
  *    saveWorkspace(workspaceObject);
  *    return workspaceObject;

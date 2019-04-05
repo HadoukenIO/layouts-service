@@ -466,7 +466,7 @@ export async function generate(): Promise<Workspace> {
  * 
  * workspaces.restore(workspaceObject).then(result => {
  *    // Promise resolves with result once the layout has been restored
- *    handleResult(result)
+ *    handleResult(result);
  * });
  * ```
  * 

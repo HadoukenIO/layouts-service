@@ -16,10 +16,11 @@ const express = require('express');
 const {launch} = require('hadouken-js-adapter');
 
 const ROOT_URL = 'http://localhost:1337/test/';
+const STATIC_RESOURCES_PORT = '1337';
 const CREATE_MANIFEST_PORT = '1338';
 const CREATE_MANIFEST_PATH = '/create-manifest'
 
-let port;
+let finPort;
 
 /**
  * Simple command-line parser. Returns the named argument from the list of process arguments.
@@ -91,21 +92,26 @@ const testCommand = `jest ` +
     `${unusedArgs.join(' ')}`;
 
 const cleanup = async res => {
+    const cmds = [];
     if (os.platform().match(/^win/)) {
-        const cmd = 'taskkill /F /IM openfin.exe /T';
-        execa.shellSync(cmd);
+        for (const executable in ['openfin', 'node']) {
+            cmds.push(`taskkill /F /IM ${executable}.exe /T`);
+        }
     } else {
-        const cmd = `lsof -n -i4TCP:${port} | grep LISTEN | awk '{ print $2 }' | xargs kill`;
+        for (const port in [finPort, STATIC_RESOURCES_PORT]) {
+            cmds.push(`lsof -n -i4TCP:${port} | grep LISTEN | awk '{ print $2 }' | xargs kill`);
+        }
+    }
+
+    for (const cmd in cmds) {
         execa.shellSync(cmd);
     }
 
-    providerProcess.kill();
     process.exit((res.failed === true) ? 1 : 0);
 }
 
 const fail = err => {
     console.error(err);
-    providerProcess.kill();
     process.exit(1);
 }
 
@@ -175,18 +181,17 @@ async function serve() {
 }
 
 const buildStep = skipBuild ? Promise.resolve() : build();
-let providerProcess;
 
 buildStep
     .then(() => {
-        providerProcess = run(`npm run start -- --static --noDemo --providerVersion testing --runtime ${runtimeVersion}`);
+        run(`npm run start -- --static --noDemo --providerVersion testing --runtime 9.61.38.41`);
         return serve();
     })
     .then(() => waitForUrl(ROOT_URL + 'app.json'))
     .then(async () => {
-        port = await launch({manifestUrl: ROOT_URL + 'app.json'});
-        console.log('Openfin running on port ' + port);
-        return port
+        finPort = await launch({manifestUrl: ROOT_URL + 'app.json'});
+        console.log('Openfin running on port ' + finPort);
+        return finPort
     })
     .catch(fail)
     .then(OF_PORT => run(testCommand, {env: {OF_PORT, CREATE_MANIFEST_URL: `http://localhost:${CREATE_MANIFEST_PORT}${CREATE_MANIFEST_PATH}`} }))

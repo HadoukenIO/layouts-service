@@ -98,11 +98,14 @@ const cleanup = async res => {
         const cmd = `lsof -n -i4TCP:${port} | grep LISTEN | awk '{ print $2 }' | xargs kill`;
         execa.shellSync(cmd);
     }
-    process.exit((res.failed===true) ? 1 : 0);
+
+    providerProcess.exit();
+    process.exit((res.failed === true) ? 1 : 0);
 }
 
 const fail = err => {
     console.error(err);
+    providerProcess.exit();
     process.exit(1);
 }
 
@@ -173,8 +176,12 @@ async function serve() {
 
 const buildStep = skipBuild ? Promise.resolve() : build();
 
+let providerProcess;
+
 buildStep
-    .then(() => {run('npm run start -- --static --noDemo --providerVersion testing --runtime 9.61.38.41'); return;})
+    .then(() => {
+        providerProcess = run(`npm run start -- --static --noDemo --providerVersion testing --runtime ${runtimeVersion}`);
+    })
     .then(() => serve())
     .then(() => waitForUrl(ROOT_URL + 'app.json'))
     .then(async () => {

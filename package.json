@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "test:unit": "jest --colors --no-cache --config=jest-unit.config.js",
-    "test:int": "node test/runner.js",
+    "test:int": "node test/runner.js -- --runtime-version 9.61.38.41",
     "test": "npm run test:unit && npm run test:int",
     "check": "gts check && cd test && gts check",
     "clean": "gts clean && rimraf gen",

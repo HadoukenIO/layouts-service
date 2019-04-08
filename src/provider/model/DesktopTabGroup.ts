@@ -345,8 +345,9 @@ export class DesktopTabGroup implements DesktopEntity {
         await this.switchTab(activeTab);
 
         if (beforeMaximizeBounds) {
-            await this.maximize();
-            this._beforeMaximizeBounds = beforeMaximizeBounds;
+            await this.maximize().then(() => {
+                this._beforeMaximizeBounds = beforeMaximizeBounds;
+            }, () => {});
         }
     }
 

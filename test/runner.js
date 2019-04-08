@@ -94,16 +94,16 @@ const testCommand = `jest ` +
 const cleanup = async res => {
     const cmds = [];
     if (os.platform().match(/^win/)) {
-        for (const executable in ['openfin', 'node']) {
+        for (const executable of ['openfin', 'node']) {
             cmds.push(`taskkill /F /IM ${executable}.exe /T`);
         }
     } else {
-        for (const port in [finPort, STATIC_RESOURCES_PORT]) {
+        for (const port of [finPort, STATIC_RESOURCES_PORT]) {
             cmds.push(`lsof -n -i4TCP:${port} | grep LISTEN | awk '{ print $2 }' | xargs kill`);
         }
     }
 
-    for (const cmd in cmds) {
+    for (const cmd of cmds) {
         execa.shellSync(cmd);
     }
 

@@ -73,9 +73,8 @@ itParameterized(
         // Maximize the window
         await windows[1].maximize();
 
-        const maximizedBounds: Rect = (await fin.System.getMonitorInfo()).primaryMonitor.availableRect;
-
         // Create tabgroup from maximized window
+        const maximizedBounds: Rect = (await fin.System.getMonitorInfo()).primaryMonitor.availableRect;
         await dragWindowTo(windows[0], maximizedBounds.left + 50, maximizedBounds.top + 30);
         await assertPairTabbed(windows[0], windows[1]);
 

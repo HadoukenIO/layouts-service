@@ -152,7 +152,7 @@ export class Projector {
 
     /**
      * Determines the direction of the candidate window, relative to the active window. If windows are positioned
-     * diagonally, the dimension with the smallest offset takes precidence.
+     * diagonally, the dimension with the smallest offset takes precedence.
      *
      * e.g: Will return eDirection.LEFT if the candidate window is to the left of the active window.
      *
@@ -163,7 +163,7 @@ export class Projector {
     private getDirectionFromOffset(offset: Point, activeState: Rectangle, candidateState: Rectangle): eDirection {
         let orientation: Orientation;
 
-        // Dertermine orientation
+        // Determine orientation
         if (Math.sign(offset.x) === Math.sign(offset.y)) {
             orientation = offset.x > offset.y ? 'x' : 'y';
         } else {
@@ -213,8 +213,8 @@ class BorderProjection implements Range {
     public opposite: Orientation;
 
     public distance: number;  //< Distance between the edge of the active window and the closest candidate window in this direction
-    public limit: number;     //< Absolute pixel co-ordinate of the closest candidate window in this direction. (for the 'orienatation' axis)
-    public min: number;  //< Minimium extent of this border. Initialised to very large positive number, so that any 'less than' check for the first window to
+    public limit: number;     //< Absolute pixel co-ordinate of the closest candidate window in this direction. (for the 'orientation' axis)
+    public min: number;  //< Minimum extent of this border. Initialised to very large positive number, so that any 'less than' check for the first window to
                          // find will always pass.
     public max: number;  //< Maximum extend of this border. Initialised to very large negative number, so that any 'greater than' check for the first window to
                          // find will always pass.

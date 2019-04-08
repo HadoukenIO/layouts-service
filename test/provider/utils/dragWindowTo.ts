@@ -33,7 +33,7 @@ export const dragWindowToOtherWindow =
     let draggedAdjustment: Point = {x: 0, y: 0};
     switch (draggedCorner) {
         case 'top-left':
-            // Since dragWindow uses the top-left as it's achor, no adjustment is
+            // Since dragWindow uses the top-left as it's anchor, no adjustment is
             // needed
             break;
         case 'top-right':
@@ -52,7 +52,7 @@ export const dragWindowToOtherWindow =
     let targetAdjustment: Point = {x: 0, y: 0};
     switch (targetCorner) {
         case 'top-left':
-            // Since dragWindow uses the top-left as it's achor, no adjustment is
+            // Since dragWindow uses the top-left as it's anchor, no adjustment is
             // needed
             break;
         case 'top-right':

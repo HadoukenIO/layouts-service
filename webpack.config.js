@@ -39,8 +39,8 @@ const schemaTypesPlugin = new SchemaToTypeScriptPlugin({
 });
 
 module.exports = [
-    webpackTools.createConfig(`${outputDir}/client`, './src/client/main.ts', {minify: false, isLibrary: true, libraryName: 'OpenFinLayouts'}, webpackTools.versionPlugin),
-    webpackTools.createConfig(`${outputDir}/client`, './src/client/main.ts', {minify: true, isLibrary: true, libraryName: 'OpenFinLayouts', outputFilename: "openfin-layouts"}, webpackTools.versionPlugin),
+    webpackTools.createConfig(`${outputDir}/client`, './src/client/main.ts', {minify: false, isLibrary: true, libraryName: 'layouts'}, webpackTools.versionPlugin),
+    webpackTools.createConfig(`${outputDir}/client`, './src/client/main.ts', {minify: true, isLibrary: true, libraryName: 'layouts', outputFilename: "openfin-layouts"}, webpackTools.versionPlugin),
     webpackTools.createConfig(`${outputDir}/provider`, {
         main: './src/provider/main.ts',
         tabStrip: './src/provider/tabbing/tabstrip/main.ts',

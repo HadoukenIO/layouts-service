@@ -164,7 +164,7 @@ export class DesktopWindow implements DesktopEntity {
                 if (title && url && url.indexOf(title) >= 0) {
                     // The runtime will return (a subset of) the page URL as the title field if the document doesn't
                     // define a title. We would like to instead use the window name, to align with what is seen in the
-                    // untabbed window frame.
+                    // un-tabbed window frame.
 
                     // Current stable (9.61.38.41) behaviour is to return 'host+pathname+search+hash'. There is also a
                     // story (RUN-3457) to change this to 'host+pathname'. We will check for both of these strings, and
@@ -755,7 +755,7 @@ export class DesktopWindow implements DesktopEntity {
             return Promise.all([this.sync(), other.sync()]).then(() => {
                 const joinGroupPromise: Promise<void> = (async () => {
                     if (this.isReady && group === this._snapGroup) {
-                        // It's possible that "other" has closed in the inervening time between registration of this pending
+                        // It's possible that "other" has closed in the intervening time between registration of this pending
                         // action and its execution. If that is the case, we will roll over to the next window in the group
                         // until we find one that is groupable. If there are no groupable windows left in the group we will
                         // log a warning and not proceed with the snap.
@@ -782,7 +782,7 @@ export class DesktopWindow implements DesktopEntity {
                             if (groupWindow.isReady) {
                                 groupWindow._window.bringToFront();
                             } else {
-                                console.warn('groupWindow is not ready. You may have a nonexistent window in your snapGroup: ', groupWindow);
+                                console.warn('groupWindow is not ready. You may have a non-existent window in your snapGroup: ', groupWindow);
                             }
                         });
                     }
@@ -1074,7 +1074,7 @@ export class DesktopWindow implements DesktopEntity {
     }
 
     private async handleFocused(): Promise<void> {
-        // If we're not maximized ourself, bring all snapped, non-maximized windows to the front
+        // If we're not maximized ourselves, bring all snapped, non-maximized windows to the front
         if (!this.isMaximizedOrInMaximizedTab()) {
             this._snapGroup.windows
                 .filter(snapGroupWindow => snapGroupWindow !== this && !snapGroupWindow.isMaximizedOrInMaximizedTab() && !snapGroupWindow.currentState.hidden)

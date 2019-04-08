@@ -105,7 +105,7 @@ export function removeEventListener<K extends SnapAndDockEvent>(eventType: K['ty
  * ```ts
  * import {snapAndDock} from 'openfin-layouts';
  *
- * // Undock the current window (all are equivilant)
+ * // Undock the current window (all are equivalent)
  * snapAndDock.undockWindow();
  * snapAndDock.undockWindow(fin.desktop.Window.getCurrent());   // Using 'v1' API
  * snapAndDock.undockWindow(fin.Window.getCurrentSync());       // Using 'v2' API
@@ -133,7 +133,7 @@ export async function undockWindow(identity: Identity = getId()): Promise<void> 
  * ```ts
  * import {snapAndDock} from 'openfin-layouts';
  *
- * // Undock all windows attached to the current window (all are equivilant)
+ * // Undock all windows attached to the current window (all are equivalent)
  * snapAndDock.undockGroup();
  * snapAndDock.undockGroup(fin.desktop.Window.getCurrent());   // Using 'v1' API
  * snapAndDock.undockGroup(fin.Window.getCurrentSync());       // Using 'v2' API

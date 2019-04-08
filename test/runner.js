@@ -99,13 +99,11 @@ const cleanup = async res => {
         execa.shellSync(cmd);
     }
 
-    providerProcess.exit();
     process.exit((res.failed === true) ? 1 : 0);
 }
 
 const fail = err => {
     console.error(err);
-    providerProcess.exit();
     process.exit(1);
 }
 
@@ -176,13 +174,11 @@ async function serve() {
 
 const buildStep = skipBuild ? Promise.resolve() : build();
 
-let providerProcess;
-
 buildStep
     .then(() => {
-        providerProcess = run(`npm run start -- --static --noDemo --providerVersion testing --runtime ${runtimeVersion}`);
+        run(`npm run start -- --static --noDemo --providerVersion testing --runtime ${runtimeVersion}`);
+        return serve();
     })
-    .then(() => serve())
     .then(() => waitForUrl(ROOT_URL + 'app.json'))
     .then(async () => {
         port = await launch({manifestUrl: ROOT_URL + 'app.json'});

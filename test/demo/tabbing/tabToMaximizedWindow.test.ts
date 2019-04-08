@@ -15,12 +15,12 @@ interface TabToMaximizedWindowTestOptions extends CreateWindowData {
 }
 
 testParameterized(
-    `Tab to maximized window`,
+    'Tab to maximized window',
     [
         {frame: true, windowCount: 2, tabTo: 'restored'},
         {frame: true, windowCount: 2, tabTo: 'maximized'},
         {frame: false, windowCount: 2, tabTo: 'restored'},
-        {frame: false, windowCount: 2, tabTo: 'maximized'},
+        {frame: false, windowCount: 2, tabTo: 'maximized'}
     ],
     createWindowTest(async (t, options: TabToMaximizedWindowTestOptions) => {
         const fin = await getConnection();
@@ -48,14 +48,15 @@ testParameterized(
             // Windows should not have tabbed
             await Promise.all(windows.map(win => assertNotTabbed(win, t)));
         }
-    }));
+    })
+);
 
 
 testParameterized(
-    `Cannot tab to window hidden by maximized window`,
+    'Cannot tab to window hidden by maximized window',
     [
         {frame: true, windowCount: 3},
-        {frame: false, windowCount: 3},
+        {frame: false, windowCount: 3}
     ],
     createWindowTest(async t => {
         const {windows} = t.context;
@@ -72,4 +73,5 @@ testParameterized(
 
         // None of the windows should be tabbed
         await Promise.all(windows.map(win => assertNotTabbed(win, t)));
-    }));
+    })
+);

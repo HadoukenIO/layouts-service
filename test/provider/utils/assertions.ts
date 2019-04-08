@@ -64,7 +64,7 @@ export async function assertCompleteGroup(t: TestContext, ...windows: Window[]):
                 return true;
             }
         });
-        t.is(windows.length, group.length, `Unexpected number of windows in group`);
+        t.is(windows.length, group.length, 'Unexpected number of windows in group');
     } else {
         t.pass();
     }
@@ -95,13 +95,15 @@ export async function assertNotGroupedTogether(t: TestContext, win1: Window, win
     t.notDeepEqual(
         groups[0],
         groups[1],
-        `Window ${win1.identity.uuid + '/' + win1.identity.name} in same native group as ${win2.identity.uuid + '/' + win2.identity.name}`);
+        `Window ${win1.identity.uuid + '/' + win1.identity.name} in same native group as ${win2.identity.uuid + '/' + win2.identity.name}`
+    );
 
     const snapGroupIDs = await promiseMap([win1, win2], async win => getSnapGroupID(win.identity));
     t.not(
         snapGroupIDs[0],
         snapGroupIDs[1],
-        `Window ${win1.identity.uuid + '/' + win1.identity.name} in same snapGroup as ${win2.identity.uuid + '/' + win2.identity.name}`);
+        `Window ${win1.identity.uuid + '/' + win1.identity.name} in same snapGroup as ${win2.identity.uuid + '/' + win2.identity.name}`
+    );
 }
 
 /**
@@ -165,7 +167,8 @@ export async function assertPairTabbed(win1: Window, win2: Window, t: TestContex
             isShowing,
             shouldBeShowing,
             `Window ${'"' + win.identity.uuid + '/' + win.identity.name + '"'} expected to ${shouldBeShowing ? 'not ' : ''}be hidden, but was${
-                isShowing ? ' not.' : '.'}`);
+                isShowing ? ' not.' : '.'}`
+        );
     }
 }
 
@@ -200,7 +203,7 @@ export async function assertActiveTab(t: TestContext, window: Window) {
     t.true(await window.isShowing());
     // Active tab is on top
     const bounds = await getBounds(window);
-    t.deepEqual(await getTopmostWindow({x: bounds.left + bounds.width / 2, y: bounds.top + bounds.height / 2}), window.identity, `Active tab not on top.`);
+    t.deepEqual(await getTopmostWindow({x: bounds.left + bounds.width / 2, y: bounds.top + bounds.height / 2}), window.identity, 'Active tab not on top.');
     // All other tabs are hidden
     const tabbedWindows = await getTabbedWindows(window.identity);
     for (const tab of tabbedWindows) {

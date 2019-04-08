@@ -2,7 +2,7 @@ import * as Layouts from '../../client/main';
 
 import {App} from './App';
 
-declare var window: Window&{
+let var window: Window&{
     app: App;
     Layouts: typeof Layouts;
 };

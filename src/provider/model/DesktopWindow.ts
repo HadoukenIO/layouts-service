@@ -148,13 +148,13 @@ export class DesktopWindow implements DesktopEntity {
                         resizableMin: !!options.resizable && (options.resizeRegion.sides.left !== false),
                         resizableMax: !!options.resizable && (options.resizeRegion.sides.right !== false),
                         minSize: options.minWidth || 0,
-                        maxSize: options.maxWidth && options.maxWidth > 0 ? options.maxWidth : Number.MAX_SAFE_INTEGER,
+                        maxSize: options.maxWidth && options.maxWidth > 0 ? options.maxWidth : Number.MAX_SAFE_INTEGER
                     },
                     y: {
                         resizableMin: !!options.resizable && (options.resizeRegion.sides.top !== false),
                         resizableMax: !!options.resizable && (options.resizeRegion.sides.bottom !== false),
                         minSize: options.minHeight || 0,
-                        maxSize: options.maxHeight && options.maxHeight > 0 ? options.maxHeight : Number.MAX_SAFE_INTEGER,
+                        maxSize: options.maxHeight && options.maxHeight > 0 ? options.maxHeight : Number.MAX_SAFE_INTEGER
                     }
                 };
 
@@ -223,7 +223,8 @@ export class DesktopWindow implements DesktopEntity {
                         this.activeTransactions.splice(indexToRemove, 1);
                     }
                 },
-                this)
+                this
+            )
         };
         this.activeTransactions.push(transaction);
         try {
@@ -448,7 +449,7 @@ export class DesktopWindow implements DesktopEntity {
         };
     }
 
-    public get[Symbol.toStringTag]() {
+    public get [Symbol.toStringTag]() {
         return this._id;
     }
 
@@ -670,6 +671,7 @@ export class DesktopWindow implements DesktopEntity {
             return this.updateState({[property]: value}, ActionOrigin.SERVICE);  // TODO: Is this the right origin type?
         }
     }
+
     public async sendEvent<T extends LayoutsEvent>(event: T): Promise<void> {
         if (this._lifecycleStage === LifecycleStage.STARTING) {
             await this.sync();
@@ -933,7 +935,7 @@ export class DesktopWindow implements DesktopEntity {
                             left: resizeConstraints.x.resizableMin,
                             right: resizeConstraints.x.resizableMax,
                             top: resizeConstraints.y.resizableMin,
-                            bottom: resizeConstraints.y.resizableMax,
+                            bottom: resizeConstraints.y.resizableMax
                         }
                     },
                     minWidth: resizeConstraints.x.minSize,
@@ -1139,7 +1141,8 @@ export class DesktopWindow implements DesktopEntity {
             return deepEqual(
                 snapWindows.map(w => w.identity).sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid)),
                 eventWindows.map(w => ({uuid: w.appUuid, name: w.windowName}))
-                    .sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid)));
+                    .sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid))
+            );
         }
     }
 

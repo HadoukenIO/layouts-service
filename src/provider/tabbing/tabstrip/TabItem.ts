@@ -85,6 +85,7 @@ export class Tab {
 
         this._properties.title = text;
     }
+
     /**
      * Handles the HTML5 DragEvent onStart
      * @param {DragEvent} e DragEvent

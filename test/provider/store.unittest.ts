@@ -1,5 +1,4 @@
 import {Scope} from '../../gen/provider/config/layouts-config';
-
 import {RequiredRecursive} from '../../src/provider/config/ConfigUtil';
 import {ScopedConfig, Store} from '../../src/provider/config/Store';
 import {MaskWatch, ScopeWatch} from '../../src/provider/config/Watch';
@@ -8,7 +7,7 @@ import {addConsoleSpies, ConsoleSpy} from './utils-unit/console';
 
 /**
  * Configuration object used for testing.
- * 
+ *
  * In real usage, this would come from a JSON schema.
  */
 interface Config {
@@ -23,7 +22,7 @@ interface Config {
         dock?: boolean;
         tab?: boolean;
     };
-    
+
     // Object type, must either be fully-specified or not at all specified (borrowing the 'tabstrip' use-case from layouts config)
     tabstrip?: {
         url: string;
@@ -71,14 +70,14 @@ let store: Store<Config>;
 const defaults: RequiredRecursive<Config> = {
     bool: true,
     num: 0,
-    str: "",
+    str: '',
     features: {snap: true, dock: true, tab: true},
-    tabstrip: {url: "http://localhost/tabstrip.html", height: 60},
+    tabstrip: {url: 'http://localhost/tabstrip.html', height: 60},
     theme: {
-        scheme: "default",
+        scheme: 'default',
         opacity: 1,
         backColour: 0x808080,
-        borderColour: "black",
+        borderColour: 'black',
         borderThickness: 1
     }
 };
@@ -116,18 +115,18 @@ describe('Store', () => {
                 rules: [
                     {scope: {level: 'application', uuid: 'app-2'}, config: {features: {snap: false, dock: false}}},
                     {scope: {level: 'application', uuid: {expression: 'app-2|3'}}, config: {features: {snap: false, dock: true}}},
-                    {scope: {level: 'application', uuid: 'app-3'}, config: {features: {tab: false, dock: false}}},
+                    {scope: {level: 'application', uuid: 'app-3'}, config: {features: {tab: false, dock: false}}}
                 ]
             });
 
             // App1 receives top-level config, but none of the nested rules apply
-            expect(store.query(scopes.app_1)).toHaveProperty("features", {snap: true, dock: true, tab: false});
+            expect(store.query(scopes.app_1)).toHaveProperty('features', {snap: true, dock: true, tab: false});
 
             // App2 receives first and second rules, with first taking precedence due to higher specifity
-            expect(store.query(scopes.app_2)).toHaveProperty("features", {snap: false, dock: false, tab: true});
+            expect(store.query(scopes.app_2)).toHaveProperty('features', {snap: false, dock: false, tab: true});
 
             // App3 receives second and third rules, with the third taking precedence due to higher specifity
-            expect(store.query(scopes.app_3)).toHaveProperty("features", {snap: false, dock: false, tab: false});
+            expect(store.query(scopes.app_3)).toHaveProperty('features', {snap: false, dock: false, tab: false});
         });
 
         it('Application scopes are also applied to window scopes with matching uuids', () => {
@@ -136,21 +135,21 @@ describe('Store', () => {
                 rules: [
                     {scope: {level: 'application', uuid: 'app-2'}, config: {features: {snap: false, dock: false}}},
                     {scope: {level: 'application', uuid: {expression: 'app-2|3'}}, config: {features: {snap: false, dock: true}}},
-                    {scope: {level: 'application', uuid: 'app-3'}, config: {features: {tab: false, dock: false}}},
+                    {scope: {level: 'application', uuid: 'app-3'}, config: {features: {tab: false, dock: false}}}
                 ]
             });
 
             // App1 receives top-level config, but none of the nested rules apply
-            expect(store.query(scopes.win_1_1)).toHaveProperty("features", {snap: true, dock: true, tab: false});
-            expect(store.query(scopes.win_1_2)).toHaveProperty("features", {snap: true, dock: true, tab: false});
+            expect(store.query(scopes.win_1_1)).toHaveProperty('features', {snap: true, dock: true, tab: false});
+            expect(store.query(scopes.win_1_2)).toHaveProperty('features', {snap: true, dock: true, tab: false});
 
             // App2 receives first and second rules, with first taking precedence due to higher specifity
-            expect(store.query(scopes.win_2_1)).toHaveProperty("features", {snap: false, dock: false, tab: true});
-            expect(store.query(scopes.win_2_2)).toHaveProperty("features", {snap: false, dock: false, tab: true});
+            expect(store.query(scopes.win_2_1)).toHaveProperty('features', {snap: false, dock: false, tab: true});
+            expect(store.query(scopes.win_2_2)).toHaveProperty('features', {snap: false, dock: false, tab: true});
 
             // App3 receives second and third rules, with the third taking precedence due to higher specifity
-            expect(store.query(scopes.win_3_1)).toHaveProperty("features", {snap: false, dock: false, tab: false});
-            expect(store.query(scopes.win_3_2)).toHaveProperty("features", {snap: false, dock: false, tab: false});
+            expect(store.query(scopes.win_3_1)).toHaveProperty('features', {snap: false, dock: false, tab: false});
+            expect(store.query(scopes.win_3_2)).toHaveProperty('features', {snap: false, dock: false, tab: false});
         });
 
         it('Window scopes are applied only on matching uuids and names', () => {
@@ -159,16 +158,16 @@ describe('Store', () => {
                 rules: [
                     {scope: {level: 'window', uuid: 'app-2', name: 'win-2'}, config: {features: {snap: false, dock: false}}},
                     {scope: {level: 'window', uuid: {expression: 'app-2|3'}, name: 'win-1'}, config: {features: {snap: false, dock: true}}},
-                    {scope: {level: 'window', uuid: 'app-3', name: {expression: 'win-.+'}}, config: {features: {tab: false, dock: false}}},
+                    {scope: {level: 'window', uuid: 'app-3', name: {expression: 'win-.+'}}, config: {features: {tab: false, dock: false}}}
                 ]
             });
 
-            expect(store.query(scopes.win_1_1)).toHaveProperty("features", {snap: true, dock: true, tab: false});
-            expect(store.query(scopes.win_1_2)).toHaveProperty("features", {snap: true, dock: true, tab: true});
-            expect(store.query(scopes.win_2_1)).toHaveProperty("features", {snap: false, dock: true, tab: true});
-            expect(store.query(scopes.win_2_2)).toHaveProperty("features", {snap: false, dock: false, tab: true});
-            expect(store.query(scopes.win_3_1)).toHaveProperty("features", {snap: false, dock: false, tab: false});
-            expect(store.query(scopes.win_3_2)).toHaveProperty("features", {snap: true, dock: false, tab: false});
+            expect(store.query(scopes.win_1_1)).toHaveProperty('features', {snap: true, dock: true, tab: false});
+            expect(store.query(scopes.win_1_2)).toHaveProperty('features', {snap: true, dock: true, tab: true});
+            expect(store.query(scopes.win_2_1)).toHaveProperty('features', {snap: false, dock: true, tab: true});
+            expect(store.query(scopes.win_2_2)).toHaveProperty('features', {snap: false, dock: false, tab: true});
+            expect(store.query(scopes.win_3_1)).toHaveProperty('features', {snap: false, dock: false, tab: false});
+            expect(store.query(scopes.win_3_2)).toHaveProperty('features', {snap: true, dock: false, tab: false});
         });
 
         it('Window scopes are not applied to application queries', () => {
@@ -177,13 +176,13 @@ describe('Store', () => {
                 rules: [
                     {scope: {level: 'window', uuid: 'app-2', name: 'win-2'}, config: {features: {snap: false, dock: false}}},
                     {scope: {level: 'window', uuid: {expression: 'app-2|3'}, name: 'win-1'}, config: {features: {snap: false, dock: true}}},
-                    {scope: {level: 'window', uuid: 'app-3', name: {expression: 'win-.+'}}, config: {features: {tab: false, dock: false}}},
+                    {scope: {level: 'window', uuid: 'app-3', name: {expression: 'win-.+'}}, config: {features: {tab: false, dock: false}}}
                 ]
             });
 
-            expect(store.query(scopes.app_1)).toHaveProperty("features", {snap: true, dock: true, tab: true});
-            expect(store.query(scopes.app_2)).toHaveProperty("features", {snap: true, dock: true, tab: true});
-            expect(store.query(scopes.app_3)).toHaveProperty("features", {snap: true, dock: true, tab: true});
+            expect(store.query(scopes.app_1)).toHaveProperty('features', {snap: true, dock: true, tab: true});
+            expect(store.query(scopes.app_2)).toHaveProperty('features', {snap: true, dock: true, tab: true});
+            expect(store.query(scopes.app_3)).toHaveProperty('features', {snap: true, dock: true, tab: true});
         });
     });
 
@@ -191,11 +190,11 @@ describe('Store', () => {
         beforeEach(() => {
             store.add(scopes.app_1, {
                 bool: false,
-                str: "Hello World",
+                str: 'Hello World',
                 theme: {
-                    scheme: "default",
+                    scheme: 'default',
                     opacity: 0.5,
-                    backColour: "green",
+                    backColour: 'green',
                     borderThickness: 5
                 }
             });
@@ -239,7 +238,7 @@ describe('Store', () => {
                 bool: false,
                 num: 0,
                 theme: {
-                    borderColour: "black",
+                    borderColour: 'black',
                     borderThickness: 5
                 }
             };
@@ -258,7 +257,7 @@ describe('Store', () => {
                 bool: false,
                 num: 0,
                 tabstrip: {
-                    url: "http://localhost/tabstrip.html",
+                    url: 'http://localhost/tabstrip.html',
                     height: 60
                 }
             };
@@ -275,7 +274,7 @@ describe('Store', () => {
                     scope: scopes.app_1,
                     config: {
                         tabstrip: {
-                            url: "http://localhost/tabstrip2.html",
+                            url: 'http://localhost/tabstrip2.html',
                             height: 80
                         },
                         theme: {
@@ -287,12 +286,12 @@ describe('Store', () => {
                     scope: scopes.win_1_1,
                     config: {
                         theme: {
-                            "scheme": "blue"
+                            'scheme': 'blue'
                         }
                     }
                 }]
             });
-            
+
             const mask = {
                 bool: false,
                 num: true,
@@ -307,11 +306,11 @@ describe('Store', () => {
             const resultApp = {
                 num: 0,
                 tabstrip: {
-                    url: "http://localhost/tabstrip2.html",
+                    url: 'http://localhost/tabstrip2.html',
                     height: 80
                 },
                 theme: {
-                    scheme: "default",
+                    scheme: 'default',
                     opacity: 0.5,
                     borderThickness: 5
                 }
@@ -319,11 +318,11 @@ describe('Store', () => {
             const resultWindow = {
                 num: 0,
                 tabstrip: {
-                    url: "http://localhost/tabstrip2.html",
+                    url: 'http://localhost/tabstrip2.html',
                     height: 80
                 },
                 theme: {
-                    scheme: "blue",
+                    scheme: 'blue',
                     opacity: 0.5,
                     borderThickness: 5
                 }
@@ -349,21 +348,21 @@ describe('Store', () => {
         });
 
         it('Queries covering that scope no longer include those settings', () => {
-            expect(store.query(scopes.app_1)).toHaveProperty("num", 1);
+            expect(store.query(scopes.app_1)).toHaveProperty('num', 1);
             store.removeFromSource(scopes.app_1);
-            expect(store.query(scopes.app_1)).toHaveProperty("num", 99);
+            expect(store.query(scopes.app_1)).toHaveProperty('num', 99);
         });
 
         it('Removing a scope can expose previously overridden rules', () => {
-            expect(store.query(scopes.win_2_1)).toHaveProperty("num", 21);
-            expect(store.query(scopes.win_2_2)).toHaveProperty("num", 22);
+            expect(store.query(scopes.win_2_1)).toHaveProperty('num', 21);
+            expect(store.query(scopes.win_2_2)).toHaveProperty('num', 22);
             store.removeFromSource(scopes.win_2_1);
-            
+
             // Falls-back to the previously-overridden app_2 rule
-            expect(store.query(scopes.win_2_1)).toHaveProperty("num", 2);
-            
+            expect(store.query(scopes.win_2_1)).toHaveProperty('num', 2);
+
             // Other overrides are still intact
-            expect(store.query(scopes.win_2_2)).toHaveProperty("num", 22);
+            expect(store.query(scopes.win_2_2)).toHaveProperty('num', 22);
         });
     });
 
@@ -506,253 +505,253 @@ describe('Store', () => {
 
     describe('When there are multiple rules that match the given query', () => {
         describe('When rules are of different scopes', () => {
-            it("Higher-precedence scopes take priority", () => {
+            it('Higher-precedence scopes take priority', () => {
                 store.add(scopes.app_1, {
-                    theme: {scheme: "blue"}
+                    theme: {scheme: 'blue'}
                 });
                 store.add(scopes.win_1_1, {
-                    theme: {scheme: "red"}
+                    theme: {scheme: 'red'}
                 });
 
                 // The top-level win_1_1 rule takes precedence over the top-level app_1 rule
-                expect(store.query(scopes.win_1_1)).toHaveProperty("theme.scheme", "red");
+                expect(store.query(scopes.win_1_1)).toHaveProperty('theme.scheme', 'red');
             });
 
-            it("Precedence rules are also applied to nested rules", () => {
+            it('Precedence rules are also applied to nested rules', () => {
                 store.add(scopes.app_1, {
-                    theme: {scheme: "blue"},
+                    theme: {scheme: 'blue'},
                     rules: [{
                         scope: scopes.win_1_1,
-                        config: {theme: {scheme: "red"}}
+                        config: {theme: {scheme: 'red'}}
                     }]
                 });
 
                 // The nested win_1_1 rule takes precedence over the top-level app_1 rule
-                expect(store.query(scopes.win_1_1)).toHaveProperty("theme.scheme", "red");
+                expect(store.query(scopes.win_1_1)).toHaveProperty('theme.scheme', 'red');
             });
 
-            it("Config source does not override scope precedence", () => {
+            it('Config source does not override scope precedence', () => {
                 store.add(scopes.app_1, {
-                    theme: {scheme: "blue"}
+                    theme: {scheme: 'blue'}
                 });
                 store.add(scopes.desktop, {
-                    theme: {scheme: "green"},
+                    theme: {scheme: 'green'},
                     rules: [{
                         scope: scopes.win_1_1,
-                        config: {theme: {scheme: "red"}}
+                        config: {theme: {scheme: 'red'}}
                     }]
                 });
 
                 // The nested win_1_1 rule takes precedence over the top-level app_1 rule, despite being nested under the lower-precedence 'desktop' source
-                expect(store.query(scopes.win_1_1)).toHaveProperty("theme.scheme", "red");
+                expect(store.query(scopes.win_1_1)).toHaveProperty('theme.scheme', 'red');
             });
 
-            it("Rule specifity does not override scope precedence", () => {
+            it('Rule specifity does not override scope precedence', () => {
                 store.add(scopes.app_1, {
-                    theme: {scheme: "blue"}
+                    theme: {scheme: 'blue'}
                 });
                 store.add(scopes.desktop, {
-                    theme: {scheme: "green"},
+                    theme: {scheme: 'green'},
                     rules: [{
                         scope: {'level': 'window', uuid: {expression: 'ap[p]-\\d'}, name: {expression: 'wi.-1'}},
-                        config: {theme: {scheme: "red"}}
+                        config: {theme: {scheme: 'red'}}
                     }]
                 });
 
                 // The nested window rule takes precedence over the top-level app_1 rule, despite being a non-concrete regex rule
-                expect(store.query(scopes.win_1_1)).toHaveProperty("theme.scheme", "red");
+                expect(store.query(scopes.win_1_1)).toHaveProperty('theme.scheme', 'red');
             });
 
-            it("Order of addition does not override scope precedence", () => {
+            it('Order of addition does not override scope precedence', () => {
                 store.add(scopes.win_1_1, {
-                    theme: {scheme: "red"}
+                    theme: {scheme: 'red'}
                 });
                 store.add(scopes.app_1, {
-                    theme: {scheme: "blue"}
+                    theme: {scheme: 'blue'}
                 });
 
                 // The top-level win_1_1 rule takes precedence over the top-level app_1 rule, despite app_1 being added later
-                expect(store.query(scopes.win_1_1)).toHaveProperty("theme.scheme", "red");
+                expect(store.query(scopes.win_1_1)).toHaveProperty('theme.scheme', 'red');
             });
         });
-        
+
         describe('When adding rules of the same scope', () => {
-            it("Sourecs of a higher-precedence scope take priority", () => {
+            it('Sourecs of a higher-precedence scope take priority', () => {
                 store.add(scopes.desktop, {
                     rules: [{
                         scope: scopes.win_1_1,
-                        config: {theme: {scheme: "blue"}}
+                        config: {theme: {scheme: 'blue'}}
                     }]
                 });
                 store.add(scopes.app_1, {
                     rules: [{
                         scope: scopes.win_1_1,
-                        config: {theme: {scheme: "red"}}
+                        config: {theme: {scheme: 'red'}}
                     }]
                 });
 
                 // The win_1_1 rule from the app_1 source takes precedence over the win_1 rule from 'desktop' source
-                expect(store.query(scopes.win_1_1)).toHaveProperty("theme.scheme", "red");
+                expect(store.query(scopes.win_1_1)).toHaveProperty('theme.scheme', 'red');
             });
 
-            it("Rule specifity does not override scope precedence", () => {
+            it('Rule specifity does not override scope precedence', () => {
                 store.add(scopes.desktop, {
                     rules: [{
                         scope: scopes.win_1_1,
-                        config: {theme: {scheme: "blue"}}
+                        config: {theme: {scheme: 'blue'}}
                     }]
                 });
                 store.add(scopes.app_1, {
                     rules: [{
                         scope: {'level': 'window', uuid: {expression: 'ap[p]-\\d'}, name: {expression: 'wi.-1'}},
-                        config: {theme: {scheme: "red"}}
+                        config: {theme: {scheme: 'red'}}
                     }]
                 });
 
                 // The rule coming from app_1 still takes precedence over the coming from 'desktop' source, despite being a non-concrete regex rule
-                expect(store.query(scopes.win_1_1)).toHaveProperty("theme.scheme", "red");
+                expect(store.query(scopes.win_1_1)).toHaveProperty('theme.scheme', 'red');
             });
 
-            it("Order of addition does not override scope precedence", () => {
+            it('Order of addition does not override scope precedence', () => {
                 store.add(scopes.app_1, {
                     rules: [{
                         scope: scopes.win_1_1,
-                        config: {theme: {scheme: "red"}}
+                        config: {theme: {scheme: 'red'}}
                     }]
                 });
                 store.add(scopes.desktop, {
                     rules: [{
                         scope: scopes.win_1_1,
-                        config: {theme: {scheme: "blue"}}
+                        config: {theme: {scheme: 'blue'}}
                     }]
                 });
 
                 // The rule coming from app_1 takes precedence over the rule coming from 'desktop', despite the 'desktop' source being added later
-                expect(store.query(scopes.win_1_1)).toHaveProperty("theme.scheme", "red");
+                expect(store.query(scopes.win_1_1)).toHaveProperty('theme.scheme', 'red');
             });
         });
 
-        describe("When adding configs of the same scope and source", () => {
-            it("The most-specific rules are applied first", () => {
+        describe('When adding configs of the same scope and source', () => {
+            it('The most-specific rules are applied first', () => {
                 store.add(scopes.app_1, {
                     rules: [{
                         scope: {'level': 'window', uuid: {expression: 'ap[p]-\\d'}, name: {expression: 'wi.-1'}},
-                        config: {theme: {scheme: "blue"}}
+                        config: {theme: {scheme: 'blue'}}
                     }]
                 });
                 store.add(scopes.app_1, {
                     rules: [{
                         scope: {'level': 'window', uuid: {expression: 'ap[p]-\\d'}, name: 'win-1'},
-                        config: {theme: {scheme: "green"}}
+                        config: {theme: {scheme: 'green'}}
                     }]
                 });
                 store.add(scopes.app_1, {
                     rules: [{
                         scope: {'level': 'window', uuid: 'app-1', name: 'win-1'},
-                        config: {theme: {scheme: "red"}}
+                        config: {theme: {scheme: 'red'}}
                     }]
                 });
 
                 // The rule with fewest regex expressions takes precedence
-                expect(store.query(scopes.win_1_1)).toHaveProperty("theme.scheme", "red");
+                expect(store.query(scopes.win_1_1)).toHaveProperty('theme.scheme', 'red');
             });
 
-            it("Order of addition does not override rule specifity", () => {
+            it('Order of addition does not override rule specifity', () => {
                 store.add(scopes.app_1, {
                     rules: [{
                         scope: {'level': 'window', uuid: {expression: 'ap[p]-\\d'}, name: 'win-1'},
-                        config: {theme: {scheme: "green"}}
+                        config: {theme: {scheme: 'green'}}
                     }]
                 });
                 store.add(scopes.app_1, {
                     rules: [{
                         scope: {'level': 'window', uuid: 'app-1', name: 'win-1'},
-                        config: {theme: {scheme: "red"}}
+                        config: {theme: {scheme: 'red'}}
                     }]
                 });
                 store.add(scopes.app_1, {
                     rules: [{
                         scope: {'level': 'window', uuid: {expression: 'ap[p]-\\d'}, name: {expression: 'wi.-1'}},
-                        config: {theme: {scheme: "blue"}}
+                        config: {theme: {scheme: 'blue'}}
                     }]
                 });
 
                 // The rule with fewest regex expressions takes precedence, regardless of ordering of expressions
-                expect(store.query(scopes.win_1_1)).toHaveProperty("theme.scheme", "red");
+                expect(store.query(scopes.win_1_1)).toHaveProperty('theme.scheme', 'red');
             });
         });
 
-        describe("When adding configs of the same scope, source and specifity", () => {
-            it("The most-recently added rule takes precedence (concrete rules)", () => {
+        describe('When adding configs of the same scope, source and specifity', () => {
+            it('The most-recently added rule takes precedence (concrete rules)', () => {
                 store.add(scopes.app_1, {
                     rules: [{
                         scope: {'level': 'window', uuid: 'app-1', name: 'win-1'},
-                        config: {theme: {scheme: "blue"}}
+                        config: {theme: {scheme: 'blue'}}
                     }]
                 });
                 store.add(scopes.app_1, {
                     rules: [{
                         scope: {'level': 'window', uuid: 'app-1', name: 'win-1'},
-                        config: {theme: {scheme: "green"}}
+                        config: {theme: {scheme: 'green'}}
                     }]
                 });
                 store.add(scopes.app_1, {
                     rules: [{
                         scope: {'level': 'window', uuid: 'app-1', name: 'win-1'},
-                        config: {theme: {scheme: "red"}}
+                        config: {theme: {scheme: 'red'}}
                     }]
                 });
 
                 // The most-recently added rule has precedence, as there is no other way to determine precedence
-                expect(store.query(scopes.win_1_1)).toHaveProperty("theme.scheme", "red");
+                expect(store.query(scopes.win_1_1)).toHaveProperty('theme.scheme', 'red');
             });
-            
-            it("The most-recently added rule takes precedence (mixed concrete/regex rules)", () => {
+
+            it('The most-recently added rule takes precedence (mixed concrete/regex rules)', () => {
                 store.add(scopes.app_1, {
                     rules: [{
                         scope: {'level': 'window', uuid: {expression: 'ap[p]-\\d'}, name: 'win-1'},
-                        config: {theme: {scheme: "blue"}}
+                        config: {theme: {scheme: 'blue'}}
                     }]
                 });
                 store.add(scopes.app_1, {
                     rules: [{
                         scope: {'level': 'window', uuid: {expression: 'ap[p]-\\d'}, name: 'win-1'},
-                        config: {theme: {scheme: "green"}}
+                        config: {theme: {scheme: 'green'}}
                     }]
                 });
                 store.add(scopes.app_1, {
                     rules: [{
                         scope: {'level': 'window', uuid: {expression: 'ap[p]-\\d'}, name: 'win-1'},
-                        config: {theme: {scheme: "red"}}
+                        config: {theme: {scheme: 'red'}}
                     }]
                 });
 
                 // The most-recently added rule has precedence, as there is no other way to determine precedence
-                expect(store.query(scopes.win_1_1)).toHaveProperty("theme.scheme", "red");
+                expect(store.query(scopes.win_1_1)).toHaveProperty('theme.scheme', 'red');
             });
-            
-            it("The most-recently added rule takes precedence (regex rules)", () => {
+
+            it('The most-recently added rule takes precedence (regex rules)', () => {
                 store.add(scopes.app_1, {
                     rules: [{
                         scope: {'level': 'window', uuid: {expression: 'ap[p]-\\d'}, name: {expression: 'wi.-1'}},
-                        config: {theme: {scheme: "blue"}}
+                        config: {theme: {scheme: 'blue'}}
                     }]
                 });
                 store.add(scopes.app_1, {
                     rules: [{
                         scope: {'level': 'window', uuid: {expression: 'ap[p]-\\d'}, name: {expression: 'wi.-1'}},
-                        config: {theme: {scheme: "green"}}
+                        config: {theme: {scheme: 'green'}}
                     }]
                 });
                 store.add(scopes.app_1, {
                     rules: [{
                         scope: {'level': 'window', uuid: {expression: 'ap[p]-\\d'}, name: {expression: 'wi.-1'}},
-                        config: {theme: {scheme: "red"}}
+                        config: {theme: {scheme: 'red'}}
                     }]
                 });
 
                 // The most-recently added rule has precedence, as there is no other way to determine precedence
-                expect(store.query(scopes.win_1_1)).toHaveProperty("theme.scheme", "red");
+                expect(store.query(scopes.win_1_1)).toHaveProperty('theme.scheme', 'red');
             });
         });
     });

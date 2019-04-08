@@ -50,7 +50,7 @@ const customArrangements: ArrangementsType = Object.assign({}, defaultArrangemen
             [5, 'top-right', 2, 'bottom-left', {x: -10, y: -98}],
             [6, 'top-right', 5, 'bottom-left', {x: -10, y: -98}],
             [7, 'top-left', 2, 'bottom-right', {x: 10, y: -98}],
-            [8, 'top-left', 7, 'bottom-right', {x: 10, y: -98}],
+            [8, 'top-left', 7, 'bottom-right', {x: 10, y: -98}]
         ],
         // 0   1       5   6
         //         4
@@ -63,7 +63,7 @@ const customArrangements: ArrangementsType = Object.assign({}, defaultArrangemen
             [5, 'top-left', 4, 'top-right', {x: 2, y: -102}],
             [6, 'bottom-left', 5, 'bottom-right', {x: 2, y: 10}],
             [7, 'top-right', 5, 'bottom-right', {x: -10, y: 2}],
-            [8, 'top-left', 5, 'bottom-right', {x: 10, y: 2}],
+            [8, 'top-left', 5, 'bottom-right', {x: 10, y: 2}]
         ]
     }
 });
@@ -103,7 +103,7 @@ testParameterized<ValidateGroupOptions, WindowContext>(
         {frame: false, undockBy: 'runtime', windowCount: 9, arrangement: 'dumbell', undockIndex: 4, remainingGroups: [[0, 1, 2, 3], [4], [5, 6, 7, 8]]},
         {frame: false, undockBy: 'runtime', windowCount: 9, arrangement: 'x', undockIndex: 2, remainingGroups: [[0, 1], [3, 4], [5, 6], [7, 8], [2]]},
         {frame: true, undockBy: 'maximize', windowCount: 3, arrangement: 'line', undockIndex: 1, remainingGroups: [[0], [1], [2]]},
-        {frame: true, undockBy: 'maximize', windowCount: 3, arrangement: 'line', undockIndex: 2, remainingGroups: [[0, 1], [2]]},
+        {frame: true, undockBy: 'maximize', windowCount: 3, arrangement: 'line', undockIndex: 2, remainingGroups: [[0, 1], [2]]}
     ],
     createWindowTest(async (t, testOptions: ValidateGroupOptions) => {
         const windows = t.context.windows;
@@ -128,4 +128,5 @@ testParameterized<ValidateGroupOptions, WindowContext>(
                 await assertAllContiguous(t, groupedWindows);
             }
         }
-    }, undefined, customArrangements));
+    }, undefined, customArrangements)
+);

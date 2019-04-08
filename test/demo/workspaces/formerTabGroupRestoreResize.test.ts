@@ -1,4 +1,5 @@
 import test from 'ava';
+
 import {assertGrouped, assertPairTabbed} from '../../provider/utils/assertions';
 import {delay} from '../../provider/utils/delay';
 import {teardown} from '../../teardown';
@@ -55,4 +56,5 @@ testParameterized<CreateAppData, AppContext>(
         } else {
             t.fail('Improper test options passed in. Test options must include tabWindowGroupings in order to test');
         }
-    }));
+    })
+);

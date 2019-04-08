@@ -38,7 +38,8 @@ testParameterized(
         await delay(500);
 
         await assertAllNormalState(t, windows);
-    }));
+    })
+);
 
 // With tabsets
 testParameterized(
@@ -78,4 +79,5 @@ testParameterized(
             await assertPairTabbed(windows[i], windows[i + 1], t);
         }
         await assertGrouped(t, ...windows, ...tabStrips);
-    }));
+    })
+);

@@ -112,7 +112,7 @@ function fourWindowTest(corner: Corner) {
         'top-left': 0,
         'top-right': 1,
         'bottom-left': 2,
-        'bottom-right': 3,
+        'bottom-right': 3
     };
 
     // Map to get the offset from a window index to the window in the direction

@@ -56,7 +56,6 @@ export function getErrorMessage<T extends keyof ErrorMessageArgs>(msg: T, args: 
     return 'Unknown Error';
 }
 
-function isMsg<T extends keyof ErrorMessageArgs>(
-    expectedType: T, msgType: ErrorType, args: ErrorMessageArgs[keyof ErrorMessageArgs]): args is ErrorMessageArgs[T] {
+function isMsg<T extends keyof ErrorMessageArgs>(expectedType: T, msgType: ErrorType, args: ErrorMessageArgs[keyof ErrorMessageArgs]): args is ErrorMessageArgs[T] {
     return msgType === expectedType;
 }

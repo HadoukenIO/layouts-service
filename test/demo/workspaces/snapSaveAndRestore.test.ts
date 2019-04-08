@@ -58,7 +58,8 @@ testParameterized<CreateAppData, AppContext>(
             await assertAdjacent(t, win1, win2);
             await assertGrouped(t, win1, win2);
         }
-    }));
+    })
+);
 
 
 test.afterEach.always(closeAllPreviews);

@@ -46,20 +46,20 @@ test.afterEach.always(teardown);
 testParameterized(
     (testOptions: ResizeWithConstrainsOptions):
         string => {
-            const frameString = testOptions.frame ? 'framed' : 'frameless';
-            const resizeDirectionString = testOptions.resizeDirection.split('-').join(' ');
-            let constraintsString;
-            if (Object.keys(testOptions.constraints).length === 0) {
-                constraintsString = 'No Constraints';
-            } else if (!!testOptions.constraints.resizeRegion) {
-                const sides = testOptions.constraints.resizeRegion.sides;
-                constraintsString = `Resize regions: ${(Object.keys(sides) as (keyof fin.ResizeRegion['sides'])[]).filter((side) => sides[side]).join(', ')}`;
-            } else {
-                constraintsString = `Constraints: ${JSON.stringify(testOptions.constraints).slice(1, -1)}`;
-            }
+        const frameString = testOptions.frame ? 'framed' : 'frameless';
+        const resizeDirectionString = testOptions.resizeDirection.split('-').join(' ');
+        let constraintsString;
+        if (Object.keys(testOptions.constraints).length === 0) {
+            constraintsString = 'No Constraints';
+        } else if (testOptions.constraints.resizeRegion) {
+            const sides = testOptions.constraints.resizeRegion.sides;
+            constraintsString = `Resize regions: ${(Object.keys(sides) as (keyof fin.ResizeRegion['sides'])[]).filter((side) => sides[side]).join(', ')}`;
+        } else {
+            constraintsString = `Constraints: ${JSON.stringify(testOptions.constraints).slice(1, -1)}`;
+        }
 
-            return `Resize on Snap - ${frameString} - ${testOptions.side} - ${resizeDirectionString} - ${constraintsString}`;
-        },
+        return `Resize on Snap - ${frameString} - ${testOptions.side} - ${resizeDirectionString} - ${constraintsString}`;
+    },
     [
         // No constraints. Normal resizing behaviour expected
         {frame: true, windowCount: 2, resizeDirection: 'big-to-small', side: 'right', constraints: {}, shouldResize: true},
@@ -153,7 +153,7 @@ testParameterized(
             side: 'bottom',
             constraints: {minWidth: WINDOW_SIZE - RESIZE_AMOUNT / 2},
             shouldResize: true
-        },
+        }
     ],
     createWindowTest(async (t, testOptions: ResizeWithConstrainsOptions) => {
         const {resizeDirection, side, shouldResize, constraints} = testOptions;
@@ -186,29 +186,33 @@ testParameterized(
 
         t.true(
             (boundsBefore.height !== bounds[1].height || boundsBefore.width !== bounds[1].width) === shouldResize,
-            `Window${shouldResize ? ' not' : ''} resized when it should${shouldResize ? '' : 'n\'t'}`);
+            `Window${shouldResize ? ' not' : ''} resized when it should${shouldResize ? '' : 'n\'t'}`
+        );
 
         // Check that the windows are (not) aligned (depending on constraints)
         if (side === 'top' || side === 'bottom') {
             t.true(
                 (bounds[0].left === bounds[1].left && bounds[0].right === bounds[1].right) === shouldResize,
-                `Windows${shouldResize ? ' not' : ''} aligned when they should${shouldResize ? '' : 'n\'t'} be`);
+                `Windows${shouldResize ? ' not' : ''} aligned when they should${shouldResize ? '' : 'n\'t'} be`
+            );
         } else {
             t.true(
                 (bounds[0].top === bounds[1].top && bounds[0].bottom === bounds[1].bottom) === shouldResize,
-                `Windows${shouldResize ? ' not' : ''} aligned when they should${shouldResize ? '' : 'n\'t'} be`);
+                `Windows${shouldResize ? ' not' : ''} aligned when they should${shouldResize ? '' : 'n\'t'} be`
+            );
         }
-    }, {defaultHeight: WINDOW_SIZE, defaultWidth: WINDOW_SIZE}));
+    }, {defaultHeight: WINDOW_SIZE, defaultWidth: WINDOW_SIZE})
+);
 
 
 // With tabsets
 testParameterized(
     (testOptions: ResizeOnSnapOptions):
         string => {
-            const resizeDirectionString = testOptions.resizeDirection.split('-').join(' ');
+        const resizeDirectionString = testOptions.resizeDirection.split('-').join(' ');
 
-            return `Resize on Snap - Tabbed Windows - ${testOptions.side} - ${resizeDirectionString}`;
-        },
+        return `Resize on Snap - Tabbed Windows - ${testOptions.side} - ${resizeDirectionString}`;
+    },
     [
         // No constraints. Normal resizing behaviour expected
         {frame: true, windowCount: 4, resizeDirection: 'big-to-small', side: 'right'},
@@ -253,12 +257,13 @@ testParameterized(
 
         const bounds = [await getTabsetBounds(activeTabs[0]), await getTabsetBounds(activeTabs[1])];
 
-        t.true(boundsBefore.height !== bounds[1].height || boundsBefore.width !== bounds[1].width, `Window not resized when it should`);
+        t.true(boundsBefore.height !== bounds[1].height || boundsBefore.width !== bounds[1].width, 'Window not resized when it should');
 
         // Check that the windows are (not) aligned (depending on constraints)
         if (side === 'top' || side === 'bottom') {
-            t.true((bounds[0].left === bounds[1].left && bounds[0].right === bounds[1].right), `Windows not aligned when they should be`);
+            t.true((bounds[0].left === bounds[1].left && bounds[0].right === bounds[1].right), 'Windows not aligned when they should be');
         } else {
-            t.true((bounds[0].top === bounds[1].top && bounds[0].bottom === bounds[1].bottom), `Windows not aligned when they should be`);
+            t.true((bounds[0].top === bounds[1].top && bounds[0].bottom === bounds[1].bottom), 'Windows not aligned when they should be');
         }
-    }, {defaultHeight: WINDOW_SIZE, defaultWidth: WINDOW_SIZE}));
+    }, {defaultHeight: WINDOW_SIZE, defaultWidth: WINDOW_SIZE})
+);

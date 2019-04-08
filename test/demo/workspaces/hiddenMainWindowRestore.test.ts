@@ -1,9 +1,11 @@
 import {test} from 'ava';
 import {WindowEvent} from 'hadouken-js-adapter/out/types/src/api/events/base';
+
 import {teardown} from '../../teardown';
 import {AppContext, CreateAppData, createAppTest} from '../utils/createAppTest';
 import {testParameterized} from '../utils/parameterizedTestUtils';
 import {assertWindowRestored, closeAllPreviews, createBasicSaveAndRestoreTest, createCloseAndRestoreLayout} from '../utils/workspacesUtils';
+
 import {BasicSaveRestoreTestOptions} from './basicSaveAndRestore.test';
 
 const hiddenParentTestArray: BasicSaveRestoreTestOptions[] = [];
@@ -48,7 +50,8 @@ testParameterized<CreateAppData, AppContext>(
                 await assertWindowRestored(t, applicationInfo.uuid, applicationChild.identity.name!);
             }
         }
-    }));
+    })
+);
 
 
 test.afterEach.always(closeAllPreviews);

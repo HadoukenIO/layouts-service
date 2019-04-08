@@ -34,7 +34,7 @@ testParameterized(
             frame: true,
             windowCount: 3,
             windowConstraints: [{resizeRegion: {sides: {top: false, left: false, bottom: true, right: true}}}, {resizable: false}, {}]
-        },
+        }
     ],
     createWindowTest(async (t, options: TabConstraintsOptions) => {
         const layoutsClient = await layoutsClientPromise;
@@ -75,7 +75,8 @@ testParameterized(
 
             assertConstraintsMatch(startingState[i], finalState, t);
         }
-    }));
+    })
+);
 
 testParameterized(
     'Cannot tab windows with incompatible constraints',
@@ -84,7 +85,7 @@ testParameterized(
         {frame: true, windowCount: 2, windowConstraints: [{maxHeight: 300, minWidth: 250}, {}], shouldTab: false},
         {frame: true, windowCount: 2, windowConstraints: [{maxHeight: 300, minWidth: 200}, {}], shouldTab: true},
         // Checks edge case where the target is large enough when untabbed but would not be once resized for tabbing
-        {frame: true, windowCount: 2, windowConstraints: [{}, {minHeight: 200}], shouldTab: false},
+        {frame: true, windowCount: 2, windowConstraints: [{}, {minHeight: 200}], shouldTab: false}
     ],
     createWindowTest(async (t, options: TabConstraintsOptions&{shouldTab: boolean}) => {
         const windows = t.context.windows;
@@ -103,7 +104,8 @@ testParameterized(
             await assertNotTabbed(windows[0], t);
             await assertNotTabbed(windows[1], t);
         }
-    }));
+    })
+);
 
 const defaultConstraints: Required<Constraints> = {
     maxHeight: -1,
@@ -116,17 +118,17 @@ const defaultConstraints: Required<Constraints> = {
             top: true,
             bottom: true,
             left: true,
-            right: true,
+            right: true
         }
     }
 };
 
 testParameterized(
-    `Cannot maximize tabset when tab has maxWidth/Height`,
+    'Cannot maximize tabset when tab has maxWidth/Height',
     [
         {frame: true, windowCount: 2, windowConstraints: [{}, {}]},
         {frame: true, windowCount: 2, windowConstraints: [{}, {maxHeight: 500}]},
-        {frame: true, windowCount: 2, windowConstraints: [{}, {maxWidth: 500}]},
+        {frame: true, windowCount: 2, windowConstraints: [{}, {maxWidth: 500}]}
     ],
     createWindowTest(async (t, options: TabConstraintsOptions) => {
         const {tabbing} = await layoutsClientPromise;
@@ -144,14 +146,14 @@ testParameterized(
             await t.notThrows(tabbing.maximizeTabGroup(windows[0].identity));
             t.is(await getTabGroupState(windows[0].identity), 'maximized');
         }
-    }));
+    })
+);
 
 function assertConstraintsMatch(expected: Constraints, actual: Constraints, t: TestContext): void {
     for (const key of Object.keys(defaultConstraints) as (keyof Constraints)[]) {
         if (actual.hasOwnProperty(key) && expected.hasOwnProperty(key)) {
             if (typeof actual[key] === 'object') {
-                t.deepEqual(
-                    expected[key], actual[key], `${key} does not match. Expected: ${JSON.stringify(expected[key])}. Received: ${JSON.stringify(actual[key])}`);
+                t.deepEqual(expected[key], actual[key], `${key} does not match. Expected: ${JSON.stringify(expected[key])}. Received: ${JSON.stringify(actual[key])}`);
             } else {
                 t.is(expected[key], actual[key], `${key} does not match. Expected: ${expected[key]}. Received ${actual[key]}`);
             }

@@ -49,8 +49,7 @@ export async function main() {
 
         const providerChannel: ChannelProvider = await fin.InterApplicationBus.Channel.create(SERVICE_CHANNEL);
         providerChannel.setDefaultAction(() => {
-            throw Error(
-                'OpenFin Layouts will only work with monitors that are set to a scaling ratio of 100%. This can be changed in monitor or display settings. \n\nPlease contact support@openfin.co with any further questions. \n');
+            throw Error('OpenFin Layouts will only work with monitors that are set to a scaling ratio of 100%. This can be changed in monitor or display settings. \n\nPlease contact support@openfin.co with any further questions. \n');
         });
 
         return;  // NOTE: Service will still be running, but will not function.

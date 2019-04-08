@@ -312,8 +312,7 @@ export async function createTabGroup(identities: Identity[], activeTab?: Identit
  * @throws `Error`: If the `windowToAdd` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
  */
 export async function tabWindowToWindow(windowToAdd: Identity, targetWindow: Identity): Promise<void> {
-    return tryServiceDispatch<AddTabPayload, void>(
-        TabAPI.TAB_WINDOW_TO_WINDOW, {targetWindow: parseIdentity(targetWindow), windowToAdd: parseIdentity(windowToAdd)});
+    return tryServiceDispatch<AddTabPayload, void>(TabAPI.TAB_WINDOW_TO_WINDOW, {targetWindow: parseIdentity(targetWindow), windowToAdd: parseIdentity(windowToAdd)});
 }
 
 /**

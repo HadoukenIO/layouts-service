@@ -1,6 +1,7 @@
 import {Application, Identity} from 'hadouken-js-adapter';
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
+
 import {ConfigurationObject} from '../../gen/provider/config/layouts-config';
 import {ConfigWithRules} from '../provider/config/Store';
 import {Point} from '../provider/snapanddock/utils/PointUtils';
@@ -179,7 +180,7 @@ async function createApplication(options: Omit<AppData, 'parent'>): Promise<Appl
                 autoShow: true,
                 saveWindowState: false,
                 defaultWidth: size.x,
-                defaultHeight: size.y,
+                defaultHeight: size.y
             }
         };
         return await startApp(fin.Application.create(data));

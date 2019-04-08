@@ -1,4 +1,5 @@
 import {Orientation} from '../Resolver';
+
 import {Rectangle} from './RectUtils';
 
 /**

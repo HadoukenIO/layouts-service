@@ -93,22 +93,20 @@ export class TabService {
         });
 
         const tabs: DesktopWindow[] = tabIdentities
-                                          .map((identity: WindowIdentity) => {
-                                              return this._model.getWindow(identity);
-                                          })
-                                          .filter((tab: DesktopWindow|null): tab is DesktopWindow => {
-                                              // Also filter-out any tabbing-disabled windows
-                                              return tab !== null && this._config.query(tab.scope).features.tab;
-                                          });
+            .map((identity: WindowIdentity) => {
+                return this._model.getWindow(identity);
+            })
+            .filter((tab: DesktopWindow|null): tab is DesktopWindow => {
+                // Also filter-out any tabbing-disabled windows
+                return tab !== null && this._config.query(tab.scope).features.tab;
+            });
 
         if (tabs.length !== tabIdentities.length) {
             if (tabs.length < 2) {
-                throw new Error(
-                    'Must have at least two valid tab identities to create a tab group: ' +
+                throw new Error('Must have at least two valid tab identities to create a tab group: ' +
                     tabIdentities.map(identity => `${identity.uuid}/${identity.name}`).join('\n'));
             } else {
-                console.warn(
-                    'Tab list contained ' + (tabIdentities.length - tabs.length) + ' invalid identities', tabIdentities, tabs.map(tab => tab.identity));
+                console.warn('Tab list contained ' + (tabIdentities.length - tabs.length) + ' invalid identities', tabIdentities, tabs.map(tab => tab.identity));
             }
         }
 
@@ -307,7 +305,6 @@ export class TabService {
 
                 // Add ejected tab to tab group under Point.
                 await tabGroupUnderPoint.addTab(activeDesktopWindow);
-
             } else {
                 // Tab has been dragged and dropped onto the same tab group, do nothing.
                 // This was probably a tab re-ordering operation. This is handled separately

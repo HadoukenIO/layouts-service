@@ -139,7 +139,7 @@ export class TabService {
         await tabGroup.addTabs(tabs, activeTab);
 
         if (state.state === 'maximized') {
-            tabGroup.maximize(beforeMaximizeBounds!).catch(console.warn);
+            tabGroup.maximize(beforeMaximizeBounds).catch(console.warn);
         }
     }
 

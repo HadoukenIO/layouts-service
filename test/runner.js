@@ -99,13 +99,13 @@ const cleanup = async res => {
         execa.shellSync(cmd);
     }
 
-    providerProcess.cancel();
+    providerProcess.kill();
     process.exit((res.failed === true) ? 1 : 0);
 }
 
 const fail = err => {
     console.error(err);
-    providerProcess.cancel();
+    providerProcess.kill();
     process.exit(1);
 }
 

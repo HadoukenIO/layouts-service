@@ -20,7 +20,14 @@ numberOfApps.forEach(appNumber => {
         const programmaticSaveAndRestoreTest = createBasicSaveAndRestoreTest(appNumber, childNumber);
         basicTestOptionsArray.push(programmaticSaveAndRestoreTest);
 
-        const manifestSaveAndRestoreTest = createBasicSaveAndRestoreTest(appNumber, childNumber, {manifest: true, url: 'http://localhost:1337/test/saveRestoreTestingApp.html?deregistered=false'});
+        const manifestSaveAndRestoreTest = createBasicSaveAndRestoreTest(
+            appNumber,
+            childNumber,
+            {
+                manifest: true,
+                url: 'http://localhost:1337/test/saveRestoreTestingApp.html?deregistered=false'
+            }
+        );
         basicTestOptionsArray.push(manifestSaveAndRestoreTest);
     });
 });

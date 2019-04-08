@@ -599,7 +599,7 @@ export class DesktopWindow implements DesktopEntity {
                 await Promise.all(this._pendingActions);
             } else {
                 // If we've looped this many times, we're probably in some kind of deadlock scenario
-                return Promise.reject(`Couldn't sync ${this._id} after ${awaitCount} attempts`);
+                return Promise.reject(new Error(`Couldn't sync ${this._id} after ${awaitCount} attempts`));
             }
         }
     }
@@ -789,9 +789,9 @@ export class DesktopWindow implements DesktopEntity {
                 return this.addPendingActions('snap - joinGroup', joinGroupPromise);
             });
         } else if (index === -1) {
-            return Promise.reject('Attempting to snap, but window isn\'t in the target group');
+            return Promise.reject(new Error('Attempting to snap, but window isn\'t in the target group'));
         } else {
-            return Promise.reject('Need at least 2 windows in group to snap');
+            return Promise.reject(new Error('Need at least 2 windows in group to snap'));
         }
     }
 
@@ -1107,13 +1107,14 @@ export class DesktopWindow implements DesktopEntity {
         console.log('Received window group changed event: ', event);
 
         switch (event.reason) {
-            case 'leave':
+            case 'leave': {
                 const modifiedSourceGroup = event.sourceGroup.concat({appUuid: this._identity.uuid, windowName: this._identity.name});
                 if (this._snapGroup.length > 1 && compareSnapAndEventWindowArrays(this._snapGroup.windows, modifiedSourceGroup)) {
                     return this.setSnapGroup(new DesktopSnapGroup());
                 } else {
                     return Promise.resolve();
                 }
+            }
             case 'join':
                 if (targetWindow && targetGroup) {
                     return compareSnapAndEventWindowArrays(this._snapGroup.windows, event.targetGroup) ? Promise.resolve() : this.addToSnapGroup(targetGroup);

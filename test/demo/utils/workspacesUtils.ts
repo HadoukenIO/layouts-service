@@ -76,7 +76,7 @@ export async function createCloseAndRestoreLayout(t: TestContext|SaveRestoreTest
     assertIsLayoutObject(t, workspace);
     if (isSaveRestoreContext(t)) {
         // Close all apps that were created as part of restore
-        await Promise.all(t.context.testAppData.map(async (appData: TestAppData) => await appData.app.close(true)));
+        await Promise.all(t.context.testAppData.map(async (appData: TestAppData) => appData.app.close(true)));
         await assertAllAppsClosed(t);
     } else {
         // Close all apps
@@ -100,7 +100,11 @@ export interface TestCreationOptions {
     autoShow?: boolean;
 }
 
-export function createBasicSaveAndRestoreTest(numAppsToCreate: number, numberOfChildren: number, testOptions?: TestCreationOptions): BasicSaveRestoreTestOptions {
+export function createBasicSaveAndRestoreTest(
+    numAppsToCreate: number,
+    numberOfChildren: number,
+    testOptions?: TestCreationOptions
+): BasicSaveRestoreTestOptions {
     const appsArray = createAppsArray(numAppsToCreate, numberOfChildren, testOptions);
 
     return {apps: appsArray};

@@ -26,7 +26,13 @@ export async function getBounds(identityOrWindow: Win): Promise<NormalizedBounds
     if (!options.frame) {
         return bounds as NormalizedBounds;
     }
-    return Object.assign(bounds, {left: bounds.left + 7, right: bounds.right - 7, bottom: bounds.bottom - 7, height: bounds.height - 7, width: bounds.width - 14});
+    return Object.assign(bounds, {
+        left: bounds.left + 7,
+        right: bounds.right - 7,
+        bottom: bounds.bottom - 7,
+        height: bounds.height - 7,
+        width: bounds.width - 14
+    });
 }
 
 export async function getTabsetBounds(tabOrTabstrip: _Window): Promise<NormalizedBounds> {

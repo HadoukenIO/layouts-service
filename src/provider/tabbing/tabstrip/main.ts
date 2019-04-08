@@ -6,9 +6,7 @@ import {TabGroupMaximizedEvent, TabGroupRestoredEvent} from '../../../client/tab
 
 import {TabManager} from './TabManager';
 
-let tabManager: TabManager;
-
-tabManager = new TabManager();
+const tabManager: TabManager = new TabManager();
 
 interface TabstripElements {
     minimizeElem: HTMLElement;

@@ -81,7 +81,6 @@
   },
   "precommit": {
     "run": [
-      "check"
     ]
   }
 }

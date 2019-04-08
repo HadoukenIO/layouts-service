@@ -32,7 +32,10 @@ export async function teardown(t: TestContext): Promise<void> {
         const lengths = [m.windows.length, Object.keys(m['_windowLookup']).length, m.snapGroups.length, m.tabGroups.length];
 
         if (lengths.some(l => l > 0)) {
-            return `Clean-up may have failed. Debug info: ${lengths.join(' ')}\n${m.windows.map(w => w.id).join(', ')}\n${m.snapGroups.map(g => `${g.id}${g.entities.map(w => w.id).join(',')}`).join(', ')}\n${m.tabGroups.map(g => `${g.id}${g.tabs.map(w => w.id).join(',')}`).join(', ')}`;
+            return `Clean-up may have failed. Debug info: ${lengths.join(' ')}\n
+            ${m.windows.map(w => w.id).join(', ')}\n
+            ${m.snapGroups.map(g => `${g.id}${g.entities.map(w => w.id).join(',')}`).join(', ')}\n
+            ${m.tabGroups.map(g => `${g.id}${g.tabs.map(w => w.id).join(',')}`).join(', ')}`;
         } else {
             return null;
         }
@@ -140,7 +143,8 @@ async function resetProviderState(t: TestContext): Promise<void> {
                 const configInfo = rulesWithScope.map(rule => JSON.stringify(rule)).join(SEPARATOR_LINE);
                 msgs.push(`Expected ${expectedCount} rules with scope ${scope}, got:${configInfo ? SEPARATOR_LINE + configInfo: ' NONE'}`);
 
-                // Can't do a full clean-up without duplicating provider state here, but removing anything that was defined outside of the service (test windows, etc)
+                // Can't do a full clean-up without duplicating provider state here, but removing anything that
+                // was defined outside of the service (test windows, etc)
                 rules.set(scope, rulesWithScope.filter(config => config.source.level === 'service'));
             }
         });
@@ -157,7 +161,8 @@ async function resetProviderState(t: TestContext): Promise<void> {
         }
 
         if (msgs.length > 1) {
-            return `${msgs.length} issues detected in provider state:${SEPARATOR_LINE}${msgs.map(msg => msg.replace(/\n/g, SEPARATOR_LINE)).join(SEPARATOR_LINE)}`;
+            return `${msgs.length} issues detected in provider state:
+            ${SEPARATOR_LINE}${msgs.map(msg => msg.replace(/\n/g, SEPARATOR_LINE)).join(SEPARATOR_LINE)}`;
         } else if (msgs.length === 1) {
             return msgs[0];
         } else {

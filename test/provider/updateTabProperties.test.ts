@@ -45,9 +45,8 @@ test('Update Tab Properties - property changes reflected in service', async t =>
 
     function remoteFunc(this: ProviderWindow, identity: WindowIdentity) {
         const tabWindow = this.model.getWindow(identity as WindowIdentity);
-
         // @ts-ignore Accessing private variables in the name of testing.
-        return tabService.getTabProperties(tabWindow);
+        return tabService.getTabProperties(tabWindow); // eslint-disable-line
     }
 
     // Execute remote to fetch our windows tab properties from service.

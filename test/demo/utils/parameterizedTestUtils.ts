@@ -11,7 +11,11 @@ export interface TestMacro<T, C> {
     (t: GenericTestContext<Context<C>>, instance: T): void;
 }
 
-export function testParameterized<T, C extends {} = {}>(title: string|((data: T) => string), instanceData: Parameterized<T>[], testFunc: TestMacro<T, C>): void {
+export function testParameterized<T, C extends {} = {}>(
+    title: string|((data: T) => string),
+    instanceData: Parameterized<T>[],
+    testFunc: TestMacro<T, C>
+): void {
     instanceData.forEach((instance: T&InstanceData) => {
         const instanceTitle: string = typeof title === 'string' ? `${title} ${JSON.stringify(instance)}` : title(instance);
 

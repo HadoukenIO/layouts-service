@@ -153,7 +153,11 @@ function assertConstraintsMatch(expected: Constraints, actual: Constraints, t: T
     for (const key of Object.keys(defaultConstraints) as (keyof Constraints)[]) {
         if (actual.hasOwnProperty(key) && expected.hasOwnProperty(key)) {
             if (typeof actual[key] === 'object') {
-                t.deepEqual(expected[key], actual[key], `${key} does not match. Expected: ${JSON.stringify(expected[key])}. Received: ${JSON.stringify(actual[key])}`);
+                t.deepEqual(
+                    expected[key],
+                    actual[key],
+                    `${key} does not match. Expected: ${JSON.stringify(expected[key])}. Received: ${JSON.stringify(actual[key])}`
+                );
             } else {
                 t.is(expected[key], actual[key], `${key} does not match. Expected: ${expected[key]}. Received ${actual[key]}`);
             }

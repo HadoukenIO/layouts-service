@@ -25,7 +25,12 @@ export interface WindowContext {
     windowInitializer: WindowInitializer;
 }
 
-export function createWindowTest<T extends CreateWindowData, C extends WindowContext = WindowContext>(testFunc: TestMacro<T, C>, windowOptions?: fin.WindowOptions, customArrangements?: ArrangementsType, customWindowPositions?: WindowPosition[]):
+export function createWindowTest<T extends CreateWindowData, C extends WindowContext = WindowContext>(
+    testFunc: TestMacro<T, C>,
+    windowOptions?: fin.WindowOptions,
+    customArrangements?: ArrangementsType,
+    customWindowPositions?: WindowPosition[]
+):
     TestMacro<T, C> {
     const options: fin.WindowOptions = Object.assign({}, windowOptionsBase, windowOptions);
     const framedInitializer: WindowInitializer = new WindowInitializer(customArrangements, customWindowPositions, Object.assign({}, options, {frame: true}));

@@ -23,7 +23,7 @@ function createUuid(): string {
 }
 
 async function getWindowConfig(identity: Identity): Promise<ConfigurationObject> {
-    return await executeJavascriptOnService(function(this: ProviderWindow, identity: Identity): ConfigurationObject {
+    return executeJavascriptOnService(function(this: ProviderWindow, identity: Identity): ConfigurationObject {
         const scope: Scope = {level: 'window', uuid: identity.uuid, name: identity.name || identity.uuid};
         return this.config.query(scope);
     }, identity);

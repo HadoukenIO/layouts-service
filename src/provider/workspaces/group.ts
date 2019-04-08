@@ -8,7 +8,7 @@ import {promiseMap} from '../snapanddock/utils/async';
 export const getGroup = (identity: Identity): Promise<Identity[]> => {
     const {uuid, name} = identity;
     const ofWin = fin.desktop.Window.wrap(uuid, name!);
-    // v2api getgroup broken
+    // v2api getGroup broken
     return new Promise((res, rej) => {
         ofWin.getGroup((group: fin.OpenFinWindow[]) => {
             const groupIds = group

@@ -1,3 +1,4 @@
+import {numberLiteralTypeAnnotation} from '@babel/types';
 import {WindowEvent} from 'hadouken-js-adapter/out/types/src/api/events/base';
 import {WindowBoundsChange} from 'hadouken-js-adapter/out/types/src/api/events/window';
 import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/system/application';
@@ -12,7 +13,7 @@ import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {DesktopWindow, WindowIdentity} from './DesktopWindow';
 
 export interface ZIndex {
-    timestamp: number;
+    eventNum: number;
     id: string;
     identity: WindowIdentity;
     bounds: Rect;
@@ -35,6 +36,11 @@ export class ZIndexer {
      * The array of z-indexes of windows + IDs
      */
     private _stack: ZIndex[] = [];
+
+    /**
+     * Used to assign a strictly increasing number to each incoming window event, to track ordering
+     */
+    private _eventNum = 0;
 
     /**
      * Constructor of the ZIndexer class.
@@ -121,19 +127,17 @@ export class ZIndexer {
      * @param bounds Physical bounds of the window to update, if known. Will perform an async query if needed and not specified
      * @param timestamp The new timestamp for the stack entry. Will use the current time if not specified
      */
-    private update(identity: WindowIdentity, active?: boolean, bounds?: Rect, timestamp?: number) {
-        timestamp = timestamp !== undefined ? timestamp : Date.now();
-
+    private update(identity: WindowIdentity, eventNum: number, active?: boolean, bounds?: Rect) {
         const id: string = this._model.getId(identity);
         const entry: ZIndex|undefined = this._stack.find(i => i.id === id);
 
         if (entry) {
-            if (timestamp < entry.timestamp) {
+            if (eventNum < entry.eventNum) {
                 console.warn('Out of order update in ZIndexer');
             }
 
             // Update existing entry
-            entry.timestamp = timestamp;
+            entry.eventNum = eventNum;
 
             if (active !== undefined) {
                 entry.active = active;
@@ -145,11 +149,11 @@ export class ZIndexer {
             // Must request bounds before being able to add
             fin.Window.wrapSync(identity).getBounds().then(bounds => {
                 // Since this required an async operation, entry may now exist within stack, so recursively call update
-                this.update(identity, active, this.sanitizeBounds(bounds), timestamp);
+                this.update(identity, eventNum, active, this.sanitizeBounds(bounds));
             });
         } else {
             // Can create & add a new entry synchronously
-            this.addToStack({id, identity, timestamp, bounds, active: active !== undefined ? active : true});
+            this.addToStack({id, identity, eventNum, bounds, active: active !== undefined ? active : true});
         }
 
         this.sortStack();
@@ -167,11 +171,11 @@ export class ZIndexer {
                 const windowBounds = window.id === id ? bounds : undefined;
                 const windowActive = window.id === id ? active : undefined;
 
-                this.update(window.identity, windowActive, windowBounds);
+                this.update(window.identity, this.getNextEventNum(), windowActive, windowBounds);
             });
         } else {
             // Just modify single window
-            this.update(identity, active, bounds);
+            this.update(identity, this.getNextEventNum(), active, bounds);
         }
     }
 
@@ -224,7 +228,7 @@ export class ZIndexer {
         // If the window is showing, add the window to the stack ASAP, as there are rare cases where neither
         // 'shown' nor 'focused' will be called following the 'window-created' event. See SERVICE-380
         if (await win.isShowing()) {
-            this.update(identity);
+            this.update(identity, this.getNextEventNum());
         }
     }
 
@@ -239,7 +243,7 @@ export class ZIndexer {
             } else if (!a.active && b.active) {
                 return 1;
             } else {
-                return b.timestamp - a.timestamp;
+                return b.eventNum - a.eventNum;
             }
         });
     }
@@ -266,5 +270,9 @@ export class ZIndexer {
         const identity = item.identity;
 
         return identity.uuid === SERVICE_IDENTITY.uuid && !identity.name.startsWith('TABSET-');
+    }
+
+    private getNextEventNum(): number {
+        return this._eventNum++;
     }
 }

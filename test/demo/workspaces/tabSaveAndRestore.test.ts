@@ -54,8 +54,7 @@ testParameterized<CreateAppData, AppContext>(
             await assertPairTabbed(win1, win2, t);
             await assertGrouped(t, win1, win2);
         }
-    })
-);
+    }));
 
 
 test.afterEach.always(closeAllPreviews);

@@ -46,8 +46,7 @@ testParameterized(
         t.not(
             (await getBounds(windows[1])).left,
             (await getBounds(windows[0])).left,
-            'Window 1 resized when snapped - should be offset - snap/anchor distance may have changed'
-        );
+            'Window 1 resized when snapped - should be offset - snap/anchor distance may have changed');
 
         // Drag remaining window into the middle of the horshoe and check it snaps with no overlap
         await dragSideToSide(windows[4], 'bottom', windows[2], 'top', {x: 10, y: -5});
@@ -56,8 +55,7 @@ testParameterized(
         await assertGrouped(t, ...windows);
         await assertAllContiguous(t, windows);
         await assertNoOverlap(t, windows);
-    })
-);
+    }));
 
 testParameterized(
     (testOptions: CreateWindowData) => 'Cannot snap windows so they overlap - shape: O',
@@ -94,5 +92,4 @@ testParameterized(
         await assertGrouped(t, ...windows);
         await assertAllContiguous(t, windows);
         await assertNoOverlap(t, windows);
-    })
-);
+    }));

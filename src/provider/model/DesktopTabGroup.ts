@@ -241,7 +241,8 @@ export class DesktopTabGroup implements DesktopEntity {
 
             const currentMonitor = this._model.getMonitorByRect(this._groupState) || this._model.monitors[0];
 
-            await this._window.applyProperties({center: {x: currentMonitor.center.x, y: this._config.height / 2}, halfSize: {x: currentMonitor.halfSize.x, y: this._config.height / 2}});
+            await this._window.applyProperties(
+                {center: {x: currentMonitor.center.x, y: this._config.height / 2}, halfSize: {x: currentMonitor.halfSize.x, y: this._config.height / 2}});
             await this.activeTab.applyProperties({
                 center: {x: currentMonitor.center.x, y: currentMonitor.center.y + this._config.height / 2},
                 halfSize: {x: currentMonitor.halfSize.x, y: currentMonitor.halfSize.y - this._config.height / 2}
@@ -356,17 +357,17 @@ export class DesktopTabGroup implements DesktopEntity {
      */
     public reorderTabArray(orderReference: WindowIdentity[]): void {
         const newlyOrdered: DesktopWindow[] = orderReference
-            .map((ref: WindowIdentity) => {
-                // Look-up each given identity within list of tabs
-                const refId = this._model.getId(ref);
-                return this._tabs.find((tab: DesktopWindow) => {
-                    return tab.id === refId;
-                });
-            })
-            .filter((tab: DesktopWindow|undefined): tab is DesktopWindow => {
-                // Remove any invalid identities
-                return tab !== undefined;
-            });
+                                                  .map((ref: WindowIdentity) => {
+                                                      // Look-up each given identity within list of tabs
+                                                      const refId = this._model.getId(ref);
+                                                      return this._tabs.find((tab: DesktopWindow) => {
+                                                          return tab.id === refId;
+                                                      });
+                                                  })
+                                                  .filter((tab: DesktopWindow|undefined): tab is DesktopWindow => {
+                                                      // Remove any invalid identities
+                                                      return tab !== undefined;
+                                                  });
 
         if (newlyOrdered.length === this._tabs.length) {
             this._tabs = newlyOrdered;
@@ -739,7 +740,7 @@ export class DesktopTabGroup implements DesktopEntity {
                         minSize: this._config.height,
                         maxSize: this._config.height,
                         resizableMin: result.y.resizableMin,
-                        resizableMax: false
+                        resizableMax: false,
                     }
                 }
             });
@@ -759,8 +760,7 @@ export class DesktopTabGroup implements DesktopEntity {
     private async validateGroupInternal() {
         const tabStripOffset: Point<number> = PointUtils.difference(
             this._window.currentState.center,
-            {x: this.currentState.center.x, y: this.currentState.center.y - this.currentState.halfSize.y + this.config.height / 2}
-        );
+            {x: this.currentState.center.x, y: this.currentState.center.y - this.currentState.halfSize.y + this.config.height / 2});
 
         if (PointUtils.lengthSquared(tabStripOffset) > 0) {
             console.log('TabGroup disjointed. Moving tabstrip back to group.', this.id);

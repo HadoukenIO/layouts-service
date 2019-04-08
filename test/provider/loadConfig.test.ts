@@ -88,8 +88,7 @@ test('If an application creates a child application, the config of the parent ap
     const app = await createAppWithConfig(uuids[0], {enabled: false});
     const child = await createChildApp(
         {uuid: uuids[1], mainWindowOptions: {url: 'http://localhost:1337/test/saveRestoreTestingApp.html?deregistered=false', name: uuids[1]}},
-        app.identity.uuid
-    );
+        app.identity.uuid);
 
     // Config should disable main app, child app remains registered
     t.false((await getWindowConfig(app.identity)).enabled);
@@ -114,8 +113,7 @@ test('If an application creates a child application, the parent can apply rules 
         await createAppWithConfig(uuids[0], {enabled: false, rules: [{scope: {level: 'application', uuid: uuids[1]}, config: {features: {snap: false}}}]});
     const childApp = await createChildApp(
         {uuid: uuids[1], mainWindowOptions: {url: 'http://localhost:1337/test/saveRestoreTestingApp.html?deregistered=false', name: uuids[1]}},
-        app.identity.uuid
-    );
+        app.identity.uuid);
     const childWindow = await createChildWindow({name: 'childApp-win1'}, uuids[1]);
 
     // Close parent app, small delay to ensure loader captures events

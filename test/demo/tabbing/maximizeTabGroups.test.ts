@@ -11,10 +11,10 @@ interface MaximizeTabGroupsInstance extends CreateWindowData {
 
 
 testParameterized(
-    'Docked tabGroups undock when maximized',
+    `Docked tabGroups undock when maximized`,
     [
         {windowCount: 3, frame: false},
-        {windowCount: 4, frame: false}
+        {windowCount: 4, frame: false},
     ],
     createWindowTest(async(t, options: MaximizeTabGroupsInstance): Promise<void> => {
         const {windows} = t.context;
@@ -47,5 +47,4 @@ testParameterized(
         } else {
             await assertNotGrouped(windows[2], t);
         }
-    })
-);
+    }));

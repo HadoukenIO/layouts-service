@@ -1,7 +1,7 @@
 // Type definitions for OpenFin API 16.0, plus Services
 // Based upon DefinitelyTyped definitions for OpenFin
 
-/* tslint:disable:no-any*/
+/*tslint:disable:no-any*/
 
 /**
  * JavaScript API
@@ -341,7 +341,7 @@ declare namespace fin {
          * frameless window. (Default: 4)
          */
         bottomRightCorner?: number;
-
+        
         sides: {
             top?: boolean;
             bottom?: boolean;

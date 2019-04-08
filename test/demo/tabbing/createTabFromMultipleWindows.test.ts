@@ -45,7 +45,7 @@ test('Create tab group from 2 windows', async (assert) => {
         },
         tabs: [
             {uuid: app1.identity.uuid, name: win1.identity.name!},
-            {uuid: app2.identity.uuid, name: win2.identity.name!}
+            {uuid: app2.identity.uuid, name: win2.identity.name!},
         ]
     }];
 

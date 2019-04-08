@@ -15,7 +15,7 @@ import {tearoutToPoint} from '../utils/tabstripUtils';
 test.afterEach.always(teardown);
 
 testParameterized(
-    (testOptions: CreateWindowData): string => 'DragWindow matches virtualScreen size',
+    (testOptions: CreateWindowData): string => `DragWindow matches virtualScreen size`,
     [{frame: true, windowCount: 2}],
     createWindowTest(async (t, testOptions: CreateWindowData) => {
         const {windowCount} = testOptions;
@@ -34,5 +34,4 @@ testParameterized(
         robot.mouseToggle('up');
 
         t.deepEqual(virtualScreen, Object.assign(virtualScreen, dragWindowBounds));
-    }, {defaultCentered: true, defaultWidth: 250, defaultHeight: 150})
-);
+    }, {defaultCentered: true, defaultWidth: 250, defaultHeight: 150}));

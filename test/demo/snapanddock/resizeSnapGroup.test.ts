@@ -34,7 +34,7 @@ testParameterized(
         {frame: false, windowCount: 4, resizeType: ['inner', 'horizontal']},
         {frame: false, windowCount: 4, resizeType: ['inner', 'vertical']},
         {frame: false, windowCount: 4, resizeType: ['outer', 'horizontal']},
-        {frame: false, windowCount: 4, resizeType: ['outer', 'vertical']}
+        {frame: false, windowCount: 4, resizeType: ['outer', 'vertical']},
     ],
     createWindowTest(async (t, testOptions: ResizeGroupOptions) => {
         const {resizeType, windowCount} = testOptions;
@@ -90,5 +90,4 @@ testParameterized(
         // Assert still docked and adjacent
         await assertGrouped(t, ...windows);
         windowCount === 2 ? await assertAdjacent(t, windows[0], windows[1]) : await assertSquare(t, ...windows);
-    })
-);
+    }));

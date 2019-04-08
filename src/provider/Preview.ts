@@ -4,7 +4,7 @@ import {TabTarget} from './tabbing/TabService';
 import {eTargetType, Target} from './WindowHandler';
 
 const SUCCESS_PREVIEW_BACKGROUND_CSS = '#3D4059';
-const FAILURE_PREVIEW_BACKGROUND_CSS = 'repeating-linear-gradient(45deg, #3D4059, #3D4059 .25em, #C24629 0, #C24629 .5em)';
+const FAILURE_PREVIEW_BACKGROUND_CSS = `repeating-linear-gradient(45deg, #3D4059, #3D4059 .25em, #C24629 0, #C24629 .5em)`;
 
 export type PreviewableTarget = SnapTarget|TabTarget;
 
@@ -91,8 +91,7 @@ export class Preview {
             previewRect.center.x - previewRect.halfSize.x,
             previewRect.center.y - previewRect.halfSize.y,
             previewRect.halfSize.x * 2,
-            previewRect.halfSize.y * 2
-        );
+            previewRect.halfSize.y * 2);
     }
 
     private generatePreviewRect(target: PreviewableTarget): Rectangle {

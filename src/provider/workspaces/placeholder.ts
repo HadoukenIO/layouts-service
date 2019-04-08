@@ -97,7 +97,8 @@ export const createTabPlaceholder = async (win: WorkspaceWindow) => {
 
 export async function waitUntilAllPlaceholdersClosed() {
     if (functionToContinueRestorationWhenPlaceholdersClosed) {
-        throw new Error('waitUntilAllPlaceholdersClosed was called while already waiting for placeholders to close. Restore was called before another restoration had completed. Please close all remaining placeholder windows.');
+        throw new Error(
+            'waitUntilAllPlaceholdersClosed was called while already waiting for placeholders to close. Restore was called before another restoration had completed. Please close all remaining placeholder windows.');
     }
 
     // All placeholders are already closed, so no need to wait.
@@ -124,8 +125,7 @@ export async function closeCorrespondingPlaceholder(windowIdentity: Identity): P
     } else {
         console.warn(
             'No placeholder returned for given identity in closeCorrespondingPlaceholder. Either Placeholder is already closed, or identity given was invalid: ',
-            windowIdentity
-        );
+            windowIdentity);
     }
 }
 
@@ -175,6 +175,7 @@ export const positionWindow = async (win: WorkspaceWindow, replacingPlaceholder:
         } else if (win.state === 'maximized') {
             await ofWin.maximize();
         }
+
     } catch (e) {
         console.error('Position window error: ', e);
     }
@@ -204,7 +205,8 @@ export async function childWindowPlaceholderCheck(app: WorkspaceApp, tabbedWindo
 
 // Helper function to determine which placeholder windows to create for a running application's child windows.
 // This differs from childWindowPlaceholderCheck because we need to check if child windows are open before we create their placeholders.
-export async function childWindowPlaceholderCheckRunningApp(app: WorkspaceApp, tabbedWindows: WindowObject, tabbedPlaceholdersToWindows: TabbedPlaceholders, openWindows: WindowObject) {
+export async function childWindowPlaceholderCheckRunningApp(
+    app: WorkspaceApp, tabbedWindows: WindowObject, tabbedPlaceholdersToWindows: TabbedPlaceholders, openWindows: WindowObject) {
     if (app.confirmed) {
         for (const win of app.childWindows) {
             // Here we're checking if the incoming child window is already open or not.
@@ -366,7 +368,7 @@ async function closePlaceholderWindow(placeholderWindow: _Window) {
 }
 
 function continueRestorationIfReady() {
-    if (identityToPlaceholderMap.size === 0 && functionToContinueRestorationWhenPlaceholdersClosed) {
+    if (!!(identityToPlaceholderMap.size === 0 && functionToContinueRestorationWhenPlaceholdersClosed)) {
         clearTimeout(rejectTimeout);
         functionToContinueRestorationWhenPlaceholdersClosed();
     }

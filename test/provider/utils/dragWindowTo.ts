@@ -23,62 +23,62 @@ export type Corner = keyof typeof CornerEnum;
 
 export const dragWindowToOtherWindow =
     async (draggedWindow: Win, draggedCorner: Corner, targetWindow: Win, targetCorner: Corner, offset?: Point, dropWindow = true) => {
-        const draggedBounds = await getBounds(draggedWindow);
-        const targetBounds = await getBounds(targetWindow);
+    const draggedBounds = await getBounds(draggedWindow);
+    const targetBounds = await getBounds(targetWindow);
 
-        const draggedDimensions: Point = {x: draggedBounds.right - draggedBounds.left, y: draggedBounds.bottom - draggedBounds.top};
-        const targetDimensions: Point = {x: targetBounds.right - targetBounds.left, y: targetBounds.bottom - targetBounds.top};
+    const draggedDimensions: Point = {x: draggedBounds.right - draggedBounds.left, y: draggedBounds.bottom - draggedBounds.top};
+    const targetDimensions: Point = {x: targetBounds.right - targetBounds.left, y: targetBounds.bottom - targetBounds.top};
 
-        // Find adjustment to movement based on corner of dragged window
-        let draggedAdjustment: Point = {x: 0, y: 0};
-        switch (draggedCorner) {
-            case 'top-left':
+    // Find adjustment to movement based on corner of dragged window
+    let draggedAdjustment: Point = {x: 0, y: 0};
+    switch (draggedCorner) {
+        case 'top-left':
             // Since dragWindow uses the top-left as it's achor, no adjustment is
             // needed
-                break;
-            case 'top-right':
-                draggedAdjustment = {x: -draggedDimensions.x, y: 0};
-                break;
-            case 'bottom-left':
-                draggedAdjustment = {x: 0, y: -draggedDimensions.y};
-                break;
-            case 'bottom-right':
-                draggedAdjustment = {x: -draggedDimensions.x, y: -draggedDimensions.y};
-                break;
-            default:
-                break;
-        }
+            break;
+        case 'top-right':
+            draggedAdjustment = {x: -draggedDimensions.x, y: 0};
+            break;
+        case 'bottom-left':
+            draggedAdjustment = {x: 0, y: -draggedDimensions.y};
+            break;
+        case 'bottom-right':
+            draggedAdjustment = {x: -draggedDimensions.x, y: -draggedDimensions.y};
+            break;
+        default:
+            break;
+    }
 
-        let targetAdjustment: Point = {x: 0, y: 0};
-        switch (targetCorner) {
-            case 'top-left':
+    let targetAdjustment: Point = {x: 0, y: 0};
+    switch (targetCorner) {
+        case 'top-left':
             // Since dragWindow uses the top-left as it's achor, no adjustment is
             // needed
-                break;
-            case 'top-right':
-                targetAdjustment = {x: targetDimensions.x, y: 0};
-                break;
-            case 'bottom-left':
-                targetAdjustment = {x: 0, y: targetDimensions.y};
-                break;
-            case 'bottom-right':
-                targetAdjustment = {x: targetDimensions.x, y: targetDimensions.y};
-                break;
-            default:
-                break;
-        }
+            break;
+        case 'top-right':
+            targetAdjustment = {x: targetDimensions.x, y: 0};
+            break;
+        case 'bottom-left':
+            targetAdjustment = {x: 0, y: targetDimensions.y};
+            break;
+        case 'bottom-right':
+            targetAdjustment = {x: targetDimensions.x, y: targetDimensions.y};
+            break;
+        default:
+            break;
+    }
 
-        const finalAdjustment = {
-            x: draggedAdjustment.x + targetAdjustment.x + (offset ? offset.x : 0),
-            y: draggedAdjustment.y + targetAdjustment.y + (offset ? offset.y : 0)
-        };
-
-        if (dropWindow) {
-            await dragWindowTo(draggedWindow, targetBounds.left + finalAdjustment.x, targetBounds.top + finalAdjustment.y);
-        } else {
-            await dragWindowAndHover(draggedWindow, targetBounds.left + finalAdjustment.x, targetBounds.top + finalAdjustment.y);
-        }
+    const finalAdjustment = {
+        x: draggedAdjustment.x + targetAdjustment.x + (offset ? offset.x : 0),
+        y: draggedAdjustment.y + targetAdjustment.y + (offset ? offset.y : 0)
     };
+
+    if (dropWindow) {
+        await dragWindowTo(draggedWindow, targetBounds.left + finalAdjustment.x, targetBounds.top + finalAdjustment.y);
+    } else {
+        await dragWindowAndHover(draggedWindow, targetBounds.left + finalAdjustment.x, targetBounds.top + finalAdjustment.y);
+    }
+};
 
 export const dragSideToSide = async (draggedWindow: Win, draggedSide: Side, targetWindow: Win, targetSide: Side, offset?: Point, dropWindow = true) => {
     let draggedCorner: Corner, targetCorner: Corner;

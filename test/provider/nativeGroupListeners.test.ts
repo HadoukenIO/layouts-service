@@ -16,14 +16,14 @@ import {getBounds} from './utils/getBounds';
 // similar tests)
 const groupingFunctions = {
     'snap': snapWindows,
-    'native': groupWindows
+    'native': groupWindows,
 };
 
 // Valid ways of ungrouping two windows (used to parameterize large number of
 // similar tests)
 const ungroupingFunctions = {
     'unsnap': unsnapWindows,
-    'native': ungroupWindows
+    'native': ungroupWindows,
 };
 
 type GroupingType = keyof typeof groupingFunctions;
@@ -160,8 +160,7 @@ function runNativeGroupListenerTest(groupType: GroupingType, firstUngroupType: U
 
             // Ungroup the windows with the second method. Should never move.
             await ungroupingFunctions[secondUngroupType](windows[0], windows[ungroupedWindowIndex], false, t);
-        }
-    );
+        });
 }
 
 test('Native window group works the same as snapService grouping (native merge, undock, native, 1)', async t => {

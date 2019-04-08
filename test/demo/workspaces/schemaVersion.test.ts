@@ -23,7 +23,7 @@ testParameterized(
         {versionString: '2.0.0', shouldError: true},
         {versionString: '9.61.37.37', shouldError: true},
         {versionString: 'invalid string', shouldError: true},
-        {versionString: undefined, shouldError: true}
+        {versionString: undefined, shouldError: true},
     ],
     async (t, testOptions: SchemaVersionTestOptions) => {
         const layoutToRestore = {...layoutBase, schemaVersion: testOptions.versionString};
@@ -35,8 +35,7 @@ testParameterized(
         } else {
             await t.notThrows(restorePromise);
         }
-    }
-);
+    });
 
 const layoutBase: Workspace = {
     'apps': [],

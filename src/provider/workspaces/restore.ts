@@ -303,8 +303,7 @@ const processAppResponse = async(appResponse: WorkspaceApp, workspace: Workspace
                     `Application ${appResponse.uuid} did not restore its child window ${childWindow.name} 
                         (or the App's setGenerateHandler didn't return that child window). Placeholder will be closed: 
                     `,
-                    appResponse
-                );
+                    appResponse);
                 await closeCorrespondingPlaceholder(childWindow);
             }
         });
@@ -375,8 +374,7 @@ const setClientAppToRestoreWhenReady = (workspaceApp: WorkspaceApp, resolve: Fun
                 `App ${uuid} failed to call its ready function. 
                 App is either not launching, or didn't call ready. 
                 Application's child windows and confirmed status will be removed: `,
-                workspaceApp
-            );
+                workspaceApp);
             promiseForEach(workspaceApp.childWindows, closeCorrespondingPlaceholder);
             resolve(failedResponse);
         }
@@ -411,8 +409,7 @@ const instructClientAppToRestoreItself = async(workspaceApp: WorkspaceApp): Prom
             `Sent WorkspaceApp object to ${workspaceApp.uuid}'s restore handler, but it timed out. 
             Child window restoration may have failed. 
             Application's child windows and confirmed status will be removed: `,
-            workspaceApp
-        );
+            workspaceApp);
         promiseForEach(workspaceApp.childWindows, closeCorrespondingPlaceholder);
         resolve(failedResponse);
     }, CLIENT_APP_RESTORE_TIMEOUT));

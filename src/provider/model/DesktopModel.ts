@@ -62,8 +62,7 @@ export class DesktopModel {
         config.addRule(
             {level: 'service'},
             {level: 'window', uuid: serviceUUID, name: {expression: 'Placeholder-.*'}},
-            {enabled: true, features: {snap: false, dock: false}}
-        );
+            {enabled: true, features: {snap: false, dock: false}});
         config.addRule({level: 'service'}, {level: 'application', uuid: errorWindowSpec}, {enabled: false});
 
         // Add watch expressions for detecting config changes

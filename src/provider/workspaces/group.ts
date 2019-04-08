@@ -12,12 +12,12 @@ export const getGroup = (identity: Identity): Promise<Identity[]> => {
     return new Promise((res, rej) => {
         ofWin.getGroup((group: fin.OpenFinWindow[]) => {
             const groupIds = group
-                .map((win: fin.OpenFinWindow) => {
-                    return {uuid: win.uuid, name: win.name};
-                })
-                .filter((id: Identity) => {
-                    return id.uuid !== uuid || id.name !== name;
-                });
+                                 .map((win: fin.OpenFinWindow) => {
+                                     return {uuid: win.uuid, name: win.name};
+                                 })
+                                 .filter((id: Identity) => {
+                                     return id.uuid !== uuid || id.name !== name;
+                                 });
             res(groupIds);
             return;
         }, () => res([]));

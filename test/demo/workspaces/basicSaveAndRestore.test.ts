@@ -20,7 +20,8 @@ numberOfApps.forEach(appNumber => {
         const programmaticSaveAndRestoreTest = createBasicSaveAndRestoreTest(appNumber, childNumber);
         basicTestOptionsArray.push(programmaticSaveAndRestoreTest);
 
-        const manifestSaveAndRestoreTest = createBasicSaveAndRestoreTest(appNumber, childNumber, {manifest: true, url: 'http://localhost:1337/test/saveRestoreTestingApp.html?deregistered=false'});
+        const manifestSaveAndRestoreTest = createBasicSaveAndRestoreTest(
+            appNumber, childNumber, {manifest: true, url: 'http://localhost:1337/test/saveRestoreTestingApp.html?deregistered=false'});
         basicTestOptionsArray.push(manifestSaveAndRestoreTest);
     });
 });
@@ -40,8 +41,7 @@ testParameterized<CreateAppData, AppContext>(
                 await assertWindowRestored(t, applicationInfo.uuid, applicationChild.identity.name!);
             }
         }
-    })
-);
+    }));
 
 
 test.afterEach.always(closeAllPreviews);

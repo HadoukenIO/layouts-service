@@ -55,8 +55,7 @@ export class SnapService {
                             this.undock(focusedWindow);
                         }
                     });
-                }
-            )
+                })
             .catch(console.error);
     }
 

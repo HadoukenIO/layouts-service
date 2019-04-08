@@ -35,7 +35,7 @@ testParameterized(
         {windowCount: 3, arrangement: 'line', deregisteredIndex: 2, remainingGroups: [[0, 1]]},
         {windowCount: 3, arrangement: 'vertical-triangle', deregisteredIndex: 1, remainingGroups: [[0, 2]]},
         {windowCount: 3, arrangement: 'vertical-triangle', deregisteredIndex: 2, remainingGroups: [[0, 1]]},
-        {windowCount: 5, arrangement: 'hourglass', deregisteredIndex: 2, remainingGroups: [[0, 1], [3, 4]]}
+        {windowCount: 5, arrangement: 'hourglass', deregisteredIndex: 2, remainingGroups: [[0, 1], [3, 4]]},
     ],
     async (t, testOptions: ValidateOnRestoreOptions) => {
         const layoutsClient = await layoutsClientPromise;
@@ -97,5 +97,4 @@ testParameterized(
 
         await registeredApp.close(true).catch();
         await delay(300);
-    }
-);
+    });

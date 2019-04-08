@@ -61,13 +61,13 @@ function isSaveRestoreContext(t: TestContext|SaveRestoreTestContext): t is SaveR
 
 async function getTestApps(): Promise<Application[]> {
     return Promise.all((await fin.System.getAllApplications())
-        .filter((app: ApplicationInfo) => {
-            const uuid = app.uuid;
-            return uuid !== 'layouts-service' && uuid !== 'testApp';
-        })
-        .map((app: ApplicationInfo) => {
-            return fin.Application.wrapSync({uuid: app.uuid});
-        }));
+                           .filter((app: ApplicationInfo) => {
+                               const uuid = app.uuid;
+                               return uuid !== 'layouts-service' && uuid !== 'testApp';
+                           })
+                           .map((app: ApplicationInfo) => {
+                               return fin.Application.wrapSync({uuid: app.uuid});
+                           }));
 }
 
 export async function createCloseAndRestoreLayout(t: TestContext|SaveRestoreTestContext): Promise<Workspace> {
@@ -100,7 +100,8 @@ export interface TestCreationOptions {
     autoShow?: boolean;
 }
 
-export function createBasicSaveAndRestoreTest(numAppsToCreate: number, numberOfChildren: number, testOptions?: TestCreationOptions): BasicSaveRestoreTestOptions {
+export function createBasicSaveAndRestoreTest(
+    numAppsToCreate: number, numberOfChildren: number, testOptions?: TestCreationOptions): BasicSaveRestoreTestOptions {
     const appsArray = createAppsArray(numAppsToCreate, numberOfChildren, testOptions);
 
     return {apps: appsArray};

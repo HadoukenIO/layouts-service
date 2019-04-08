@@ -1,5 +1,4 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
-
 import {isAdjacentTo} from './isAdjacentTo';
 
 export async function isContiguousGroup(windows: _Window[]): Promise<boolean> {

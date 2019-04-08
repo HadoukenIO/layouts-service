@@ -26,7 +26,8 @@ test.afterEach.always(async t => {
 });
 
 test('Error windows are not registered with S&D or Tabbing', async t => {
-    crashApp = await fin.Application.create({uuid: 'crash-app-1', name: 'crash-app-1', url: 'http://localhost:1337/test/crash.html', mainWindowOptions: {autoShow: true}});
+    crashApp = await fin.Application.create(
+        {uuid: 'crash-app-1', name: 'crash-app-1', url: 'http://localhost:1337/test/crash.html', mainWindowOptions: {autoShow: true}});
 
     // We fire-and-forget since it will crash and may block the test if awaited
     crashApp.run();
@@ -55,7 +56,8 @@ test('Error windows are not registered with S&D or Tabbing', async t => {
 });
 
 test('Error windows are not included in generateLayout', async t => {
-    crashApp = await fin.Application.create({uuid: 'crash-app-1', name: 'crash-app-1', url: 'http://localhost:1337/test/crash.html', mainWindowOptions: {autoShow: true}});
+    crashApp = await fin.Application.create(
+        {uuid: 'crash-app-1', name: 'crash-app-1', url: 'http://localhost:1337/test/crash.html', mainWindowOptions: {autoShow: true}});
 
     // We fire-and-forget since it will crash and may block the test if awaited
     crashApp.run();

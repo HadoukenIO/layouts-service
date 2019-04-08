@@ -57,7 +57,8 @@ test.afterEach.always(teardown);
 test('Animate Basic Snap, top - should not snap', async t => {
     const win2Bounds = await getBounds(wins[1]);
 
-    await wins[0].animate({position: {left: win2Bounds.left + 50, top: win2Bounds.top - (win2Bounds.bottom - win2Bounds.top + 2), duration: 3000}}, {interrupt: false});
+    await wins[0].animate(
+        {position: {left: win2Bounds.left + 50, top: win2Bounds.top - (win2Bounds.bottom - win2Bounds.top + 2), duration: 3000}}, {interrupt: false});
 
     await wins[1].animate({position: {left: 500, top: 500, duration: 3000}}, {interrupt: false});
 
@@ -126,8 +127,7 @@ async function assertTabbed(win1: Window, win2: Window, t: GenericTestContext<An
         group1.find((win) => {
             return win.identity.name!.includes('TABSET-');
         }),
-        'No tabset window found in openfin group!'
-    );
+        'No tabset window found in openfin group!');
 
     // Both windows have the same bounds
     const [bounds1, bounds2] = [await getBounds(win1), await getBounds(win2)];

@@ -14,7 +14,7 @@ fin.desktop.main(() => {
         console.log('TABBED: ');
     });
 
-    // @ts-ignore
+    //@ts-ignore
     window.layouts = Layouts;
 
     Layouts.tabbing.addEventListener('tab-removed', () => {

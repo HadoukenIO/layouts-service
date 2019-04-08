@@ -98,11 +98,7 @@ test('When a tabbed window is de-registered, it is removed from its tab group', 
 test('When a tabbed window is de-registered, it is removed from its snapped tab group', async (t: TestContext) => {
     const windows = t.context.windows;
     for (let i = 0; i < 4; i++) {
-        windows.push(await createChildWindow({...DEFAULT_OPTIONS,
-            name: `testWindow${i + 1}`,
-            defaultLeft: (i % 2) * 320,
-            defaultTop: Math.floor(i / 2) * 220
-        }));
+        windows.push(await createChildWindow({...DEFAULT_OPTIONS, name: `testWindow${i + 1}`, defaultLeft: (i % 2) * 320, defaultTop: Math.floor(i / 2) * 220}));
     }
 
     // Setup tab/snap groups.

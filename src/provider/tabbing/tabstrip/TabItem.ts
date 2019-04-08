@@ -205,7 +205,6 @@ export class Tab {
                     that._ID,
                 );
             } catch (e) {
-                // Carry on in case of node removal error
             }
         }
 

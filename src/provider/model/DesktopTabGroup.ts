@@ -241,10 +241,7 @@ export class DesktopTabGroup implements DesktopEntity {
 
             const currentMonitor = this._model.getMonitorByRect(this._groupState) || this._model.monitors[0];
 
-            await this._window.applyProperties({
-                center: {x: currentMonitor.center.x, y: this._config.height / 2},
-                halfSize: {x: currentMonitor.halfSize.x, y: this._config.height / 2}
-            });
+            await this._window.applyProperties({center: {x: currentMonitor.center.x, y: this._config.height / 2}, halfSize: {x: currentMonitor.halfSize.x, y: this._config.height / 2}});
             await this.activeTab.applyProperties({
                 center: {x: currentMonitor.center.x, y: currentMonitor.center.y + this._config.height / 2},
                 halfSize: {x: currentMonitor.halfSize.x, y: currentMonitor.halfSize.y - this._config.height / 2}

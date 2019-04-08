@@ -15,24 +15,10 @@ const numberOfChildren = [0, 1, 2];
 
 numberOfApps.forEach(appNumber => {
     numberOfChildren.forEach(childNumber => {
-        const programmaticDeregisteredTest = createBasicSaveAndRestoreTest(
-            appNumber,
-            childNumber,
-            {
-                manifest: false,
-                url: 'http://localhost:1337/test/saveRestoreTestingApp.html?deregistered=true'
-            }
-        );
+        const programmaticDeregisteredTest = createBasicSaveAndRestoreTest(appNumber, childNumber, {manifest: false, url: 'http://localhost:1337/test/saveRestoreTestingApp.html?deregistered=true'});
         deregisteredTestOptionsArray.push(programmaticDeregisteredTest);
 
-        const manifestDeregisteredTest = createBasicSaveAndRestoreTest(
-            appNumber,
-            childNumber,
-            {
-                manifest: true,
-                url: 'http://localhost:1337/test/saveRestoreTestingApp.html?deregistered=true'
-            }
-        );
+        const manifestDeregisteredTest = createBasicSaveAndRestoreTest(appNumber, childNumber, {manifest: true, url: 'http://localhost:1337/test/saveRestoreTestingApp.html?deregistered=true'});
         deregisteredTestOptionsArray.push(manifestDeregisteredTest);
     });
 });

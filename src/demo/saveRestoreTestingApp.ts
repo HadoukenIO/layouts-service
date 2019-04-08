@@ -53,7 +53,7 @@ fin.desktop.main(async () => {
     }
 
     const channel = await fin.InterApplicationBus.Channel.create(`test-comms-${fin.Application.me.uuid}`);
-    channel.register('createAppFromManifest', async (manifest: string) => createChildAppFromManifest(manifest));
-    channel.register('createAppFromOptions', async (options: fin.ApplicationOptions) => createChildAppFromOptions(options));
-    channel.register('createWindow', async (options: fin.WindowOptions) => createChildWindow(options));
+    channel.register('createAppFromManifest', async (manifest: string) => await createChildAppFromManifest(manifest));
+    channel.register('createAppFromOptions', async (options: fin.ApplicationOptions) => await createChildAppFromOptions(options));
+    channel.register('createWindow', async (options: fin.WindowOptions) => await createChildWindow(options));
 });

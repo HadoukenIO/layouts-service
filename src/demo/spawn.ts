@@ -143,7 +143,7 @@ export async function createApp(options: AppData): Promise<Application> {
         return fin.Application.wrapSync(identity);
     } else {
         // Create the application ourselves
-        return createApplication(options);
+        return await createApplication(options);
     }
 }
 
@@ -157,7 +157,7 @@ export async function createWindow(options: WindowData): Promise<_Window> {
         return fin.Window.wrapSync(identity);
     } else {
         // Create the window ourselves
-        return createChildWindow(options);
+        return await createChildWindow(options);
     }
 }
 
@@ -183,7 +183,7 @@ async function createApplication(options: Omit<AppData, 'parent'>): Promise<Appl
                 defaultHeight: size.y
             }
         };
-        return startApp(fin.Application.create(data));
+        return await startApp(fin.Application.create(data));
     } else {
         const queryOptions: Dictionary<string|number|boolean> = {
             ...position as Required<typeof position>,
@@ -208,7 +208,7 @@ async function createApplication(options: Omit<AppData, 'parent'>): Promise<Appl
                 })
                 .join('&')}`;
 
-        return startApp(fin.Application.createFromManifest(manifest));
+        return await startApp(fin.Application.createFromManifest(manifest));
     }
 }
 
@@ -220,7 +220,7 @@ async function createChildWindow(data: Omit<WindowData, 'parent'>): Promise<_Win
 
     const options:
         fin.WindowOptions = {...position, name, url, frame: data.frame, autoShow: true, saveWindowState: false, defaultWidth: size.x, defaultHeight: size.y};
-    return fin.Window.create(options);
+    return await fin.Window.create(options);
 }
 
 async function startApp(appPromise: Promise<Application>): Promise<Application> {

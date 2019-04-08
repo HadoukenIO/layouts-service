@@ -18,12 +18,12 @@ class StubBase<I, O> {
 	private options: O;
 
 	constructor(identity: I, options?: O) {
-	    this.identity = identity; // eslint-disable-line
-	    this.options = options || {} as O; // eslint-disable-line
+	    this.identity = identity;
+	    this.options = options || {} as O;
 	}
 
 	public getOptions(): Promise<O> {
-	    return Promise.resolve(this.options); // eslint-disable-line
+	    return Promise.resolve(this.options);
 	}
 
 	public addListener(type: string, listener: Function) {
@@ -95,8 +95,8 @@ class StubWindowV1 {
 	public name: string;
 
 	constructor() {
-        this.uuid = uuid; // eslint-disable-line
-        this.name = name; // eslint-disable-line
+	    this.uuid = uuid;
+	    this.name = name;
 	}
 }
 
@@ -134,8 +134,7 @@ export const fin: any = {
         subscribe: (uuid: string, topic: string, callback: Function, ack: Function, nack: Function): Promise<void> => Promise.resolve(),
         Channel: {
             create: (channelName: string): Promise<ChannelProvider> => Promise.resolve(cast<ChannelProvider>(new StubChannelProvider(channelName))),
-            connect: (channelName: string, options?: ConnectOptions): Promise<ChannelClient> =>
-                Promise.resolve(cast<ChannelClient>(new StubChannelClient(channelName)))
+            connect: (channelName: string, options?: ConnectOptions): Promise<ChannelClient> => Promise.resolve(cast<ChannelClient>(new StubChannelClient(channelName)))
         }
     },
     Window: {

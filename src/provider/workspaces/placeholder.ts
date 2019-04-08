@@ -97,8 +97,7 @@ export const createTabPlaceholder = async (win: WorkspaceWindow) => {
 
 export async function waitUntilAllPlaceholdersClosed() {
     if (functionToContinueRestorationWhenPlaceholdersClosed) {
-        throw new Error(`waitUntilAllPlaceholdersClosed was called while already waiting for placeholders to close. 
-        Restore was called before another restoration had completed. Please close all remaining placeholder windows.`);
+        throw new Error('waitUntilAllPlaceholdersClosed was called while already waiting for placeholders to close. Restore was called before another restoration had completed. Please close all remaining placeholder windows.');
     }
 
     // All placeholders are already closed, so no need to wait.
@@ -110,8 +109,8 @@ export async function waitUntilAllPlaceholdersClosed() {
         // Set the restoration continuation function and wait. If placeholders are left open for 60 seconds, close them and attempt to group.
         functionToContinueRestorationWhenPlaceholdersClosed = res;
         rejectTimeout = window.setTimeout(async () => {
-            rej(new Error(`${identityToPlaceholderMap.size} Placeholder(s) Left Open after 60 seconds. ${
-                identityToPlaceholderMap.size} Window(s) did not come up. Attempting to group anyway.`));
+            rej(`${identityToPlaceholderMap.size} Placeholder(s) Left Open after 60 seconds. ${
+                identityToPlaceholderMap.size} Window(s) did not come up. Attempting to group anyway.`);
             await closeAllPlaceholders();
             cleanupPlaceholderObjects();
         }, 60000);
@@ -124,8 +123,7 @@ export async function closeCorrespondingPlaceholder(windowIdentity: Identity): P
         await closePlaceholderWindow(placeholderWindow);
     } else {
         console.warn(
-            `No placeholder returned for given identity in closeCorrespondingPlaceholder. 
-            Either Placeholder is already closed, or identity given was invalid: `,
+            'No placeholder returned for given identity in closeCorrespondingPlaceholder. Either Placeholder is already closed, or identity given was invalid: ',
             windowIdentity
         );
     }
@@ -206,12 +204,7 @@ export async function childWindowPlaceholderCheck(app: WorkspaceApp, tabbedWindo
 
 // Helper function to determine which placeholder windows to create for a running application's child windows.
 // This differs from childWindowPlaceholderCheck because we need to check if child windows are open before we create their placeholders.
-export async function childWindowPlaceholderCheckRunningApp(
-    app: WorkspaceApp,
-    tabbedWindows: WindowObject,
-    tabbedPlaceholdersToWindows: TabbedPlaceholders,
-    openWindows: WindowObject
-) {
+export async function childWindowPlaceholderCheckRunningApp(app: WorkspaceApp, tabbedWindows: WindowObject, tabbedPlaceholdersToWindows: TabbedPlaceholders, openWindows: WindowObject) {
     if (app.confirmed) {
         for (const win of app.childWindows) {
             // Here we're checking if the incoming child window is already open or not.

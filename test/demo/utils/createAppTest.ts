@@ -18,10 +18,7 @@ export interface AppContext {
     windows: _Window[];
 }
 
-export function createAppTest<T extends CreateAppData, C extends AppContext = AppContext>(
-    testFunc: TestMacro<T, C>,
-    apps?: AppInitializerParams[]
-): TestMacro<T, C> {
+export function createAppTest<T extends CreateAppData, C extends AppContext = AppContext>(testFunc: TestMacro<T, C>, apps?: AppInitializerParams[]): TestMacro<T, C> {
     const appInitializer: AppInitializer = new AppInitializer();
 
     return async (t: GenericTestContext<Context<C>>, data: T) => {
@@ -62,7 +59,7 @@ export function createAppTest<T extends CreateAppData, C extends AppContext = Ap
             await testFunc(t, data);
         } finally {
             // Close all windows
-            await Promise.all(testAppData.map(async appData => appData.app.close(true)));
+            await Promise.all(testAppData.map(async appData => await appData.app.close(true)));
             await delay(500);
         }
     };

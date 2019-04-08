@@ -88,8 +88,7 @@ export class WindowInitializer {
                 await dragWindowToOtherWindow(windows[w1], c1, windows[w2], c2, d);
             }
         } else {
-            throw new Error(`Invalid arrangment passed to arrangeWindows: ${num}:${arrangementName}. 
-            NOTE: Arrangement name must match the number of windows passed in`);
+            throw new Error(`Invalid arrangment passed to arrangeWindows: ${num}:${arrangementName}. NOTE: Arrangement name must match the number of windows passed in`);
         }
     }
 }

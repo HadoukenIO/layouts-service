@@ -235,10 +235,16 @@ export class DesktopTabGroup implements DesktopEntity {
                 await this.setSnapGroup(new DesktopSnapGroup());
             }
 
-            const {center, halfSize} = this._activeTab && this._activeTab.currentState || this._tabs[0].currentState;
 
-            this._beforeMaximizeBounds = beforeMaximizeBounds || {center: {...center}, halfSize: {...halfSize}};
+            if (beforeMaximizeBounds) {
+                const center = {x: beforeMaximizeBounds.center.x, y: beforeMaximizeBounds.center.y + (this._config.height / 2)};
+                const halfSize = {x: beforeMaximizeBounds.halfSize.x, y: beforeMaximizeBounds.halfSize.y - this._config.height / 2};
 
+                this._beforeMaximizeBounds = {center, halfSize};
+            } else {
+                const {center, halfSize} = this._activeTab && this._activeTab.currentState || this._tabs[0].currentState;
+                this._beforeMaximizeBounds = {center: {...center}, halfSize: {...halfSize}};
+            }
             const currentMonitor = this._model.getMonitorByRect(this._groupState) || this._model.monitors[0];
 
             await this._window.applyProperties(

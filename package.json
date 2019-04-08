@@ -20,8 +20,8 @@
     "prepare": "npm run generate",
     "posttest": "npm run check",
     "prepack": "npm run clean && npm run build && tsc -p src/client/tsconfig.types.json",
-    "build": "svc-tools build -- --mode production",
-    "build:dev": "svc-tools build -- --mode development",
+    "build": "svc-tools build --mode production",
+    "build:dev": "svc-tools build --mode development",
     "generate": "node scripts/generateCode.js",
     "zip": "svc-tools zip",
     "start": "svc-tools start"

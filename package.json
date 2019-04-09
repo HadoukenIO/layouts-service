@@ -24,7 +24,7 @@
     "build:dev": "svc-tools build -- --mode development",
     "generate": "node scripts/generateCode.js",
     "zip": "svc-tools zip",
-    "start": "svc-tools start"
+    "start": "svc-tools start -- -r 9.61.38.41"
   },
   "keywords": [],
   "license": "Apache-2.0",

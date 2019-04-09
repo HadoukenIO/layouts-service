@@ -4,19 +4,15 @@ import * as assert from 'power-assert';
 import {ApplicationUIConfig} from '../../../src/client/tabbing';
 import {TabGroup} from '../../../src/client/workspaces';
 import {DesktopTabGroup} from '../../../src/provider/model/DesktopTabGroup';
-import {getConnection} from '../../provider/utils/connect';
 import {getBounds, NormalizedBounds} from '../../provider/utils/getBounds';
 import {teardown} from '../../teardown';
+import {fin} from '../utils/fin';
 import {executeJavascriptOnService} from '../utils/serviceUtils';
 import {getId} from '../utils/tabServiceUtils';
 
 let win1: Window;
 let win2: Window;
-let fin: Fin;
 
-beforeAll(async () => {
-    fin = await getConnection();
-});
 afterEach(async () => {
     await win1.close();
     await win2.close();

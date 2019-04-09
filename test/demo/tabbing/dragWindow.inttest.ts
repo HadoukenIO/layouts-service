@@ -4,10 +4,10 @@ import robot from 'robotjs';
 
 import {CreateWindowData, createWindowTest} from '../../demo/utils/createWindowTest';
 import {itParameterized} from '../../demo/utils/parameterizedTestUtils';
-import {getConnection} from '../../provider/utils/connect';
 import {getBounds} from '../../provider/utils/getBounds';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 import {teardown} from '../../teardown';
+import {fin} from '../utils/fin';
 import {getTabstrip} from '../utils/tabServiceUtils';
 import {tearoutToPoint} from '../utils/tabstripUtils';
 
@@ -21,7 +21,6 @@ itParameterized(
     createWindowTest(async (context, testOptions: CreateWindowData) => {
         const {windows} = context;
 
-        const fin = await getConnection();
         const dragWindow: _Window = await fin.Window.wrap({name: 'TabbingDragWindow', uuid: 'layouts-service'});
 
         await tabWindowsTogether(windows[0], windows[1]);

@@ -5,18 +5,15 @@ import {WindowIdentity} from '../../src/client/main';
 import {explodeGroup} from '../demo/utils/snapServiceUtils';
 import {teardown} from '../teardown';
 
-import {getConnection} from './utils/connect';
 import {getBounds} from './utils/getBounds';
 import {isInGroup} from './utils/isInGroup';
 import {isOverlappedWith} from './utils/isOverlappedWith';
 import {defaultArrangements, WindowInitializer} from './utils/WindowInitializer';
 
 let windows: Window[] = new Array<Window>();
-let fin: Fin;
 let windowInitializer: WindowInitializer;
 
 beforeAll(async () => {
-    fin = await getConnection();
     windowInitializer = new WindowInitializer();
 });
 afterEach(async () => {

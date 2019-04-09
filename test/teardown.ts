@@ -3,10 +3,10 @@ import {Window} from 'hadouken-js-adapter';
 import {Scopes} from '../src/provider/config/Store';
 import {ScopePrecedence} from '../src/provider/config/ConfigUtil';
 
-import {getConnection, TESTSUITE_SANDBOX_PREFIX} from './provider/utils/connect';
 import {executeJavascriptOnService} from './demo/utils/serviceUtils';
 import {WindowInfo, WindowDetail} from 'hadouken-js-adapter/out/types/src/api/system/window';
 import {delay} from './provider/utils/delay';
+import {fin} from './demo/utils/fin';
 
 /**
  * Util function to completely reset the desktop in-between test runs.
@@ -17,8 +17,6 @@ import {delay} from './provider/utils/delay';
  * first. Either way, any invalid state will be cleaned-up so that it does not impact the next test to run.
  */
 export async function teardown(): Promise<void> {
-    const fin = await getConnection();
-
     await closeAllWindows();
     await resetProviderState();
     
@@ -40,8 +38,6 @@ export async function teardown(): Promise<void> {
 }
 
 async function closeAllWindows(): Promise<void> {
-    const fin = await getConnection();
-
     // Fetch all open windows
     const windowInfo: WindowInfo[] = await fin.System.getAllWindows();
     const windows: Window[] = windowInfo.reduce<Window[]>((windows: Window[], info: WindowInfo) => {
@@ -93,8 +89,8 @@ async function closeAllWindows(): Promise<void> {
 }
 
 async function resetProviderState(): Promise<void> {
-    const msg: string|null = await executeJavascriptOnService<{allScopes: Scopes[], testSuiteSandboxPrefix: string}, string|null>(function(this: ProviderWindow, params: {allScopes: Scopes[], testSuiteSandboxPrefix: string}): string|null {
-        const {allScopes, testSuiteSandboxPrefix} = params;
+    const msg: string|null = await executeJavascriptOnService<{allScopes: Scopes[]}, string|null>(function(this: ProviderWindow, params: {allScopes: Scopes[]}): string|null {
+        const {allScopes} = params;
         
         const SEPARATOR_LIST = ', ';
         const SEPARATOR_LINE = '\n    ';
@@ -148,7 +144,7 @@ async function resetProviderState(): Promise<void> {
             msgs.push(`Had ${watches.length} config watchers registered, expected ${expectedWatcherCount}`);
         }
 
-        const nonTestAppLoaderKeys = Object.keys(loaderApps).filter(uuid => !uuid.startsWith(testSuiteSandboxPrefix));
+        const nonTestAppLoaderKeys = Object.keys(loaderApps).filter(uuid => uuid !== 'TEST-jest-env');
         if (nonTestAppLoaderKeys.length > 0) {
             let loaderInfo: string|undefined;
 
@@ -158,9 +154,9 @@ async function resetProviderState(): Promise<void> {
             }
 
             if (loaderInfo) {
-                msgs.push(`Expected loader's appState cache to be empty (except for ${testSuiteSandboxPrefix}*), contains:${SEPARATOR_LINE}${loaderInfo}`);
+                msgs.push(`Expected loader's appState cache to be empty (except for TEST-jest-env), contains:${SEPARATOR_LINE}${loaderInfo}`);
             } else {
-                msgs.push(`Expected loader's appState cache to be empty (except for ${testSuiteSandboxPrefix}*) and unable to stringify appState, contains other uuids:${SEPARATOR_LINE}${nonTestAppLoaderKeys.join(', ')}`);
+                msgs.push(`Expected loader's appState cache to be empty (except for TEST-jest-env) and unable to stringify appState, contains other uuids:${SEPARATOR_LINE}${nonTestAppLoaderKeys.join(', ')}`);
             }
         }
         if (loaderWindows.length !== 1 || loaderWindows[0] !== 'window:testApp/testApp') {
@@ -175,7 +171,7 @@ async function resetProviderState(): Promise<void> {
         } else {
             return null;
         }
-    }, {allScopes:Object.keys(ScopePrecedence) as Scopes[], testSuiteSandboxPrefix: TESTSUITE_SANDBOX_PREFIX});
+    }, {allScopes:Object.keys(ScopePrecedence) as Scopes[]});
 
     if (msg) {
         // Pass-through debug info from provider

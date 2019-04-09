@@ -7,19 +7,13 @@ import {executeJavascriptOnService} from '../demo/utils/serviceUtils';
 import {updateTabProperties} from '../demo/utils/tabServiceUtils';
 import {teardown} from '../teardown';
 
-import {getConnection} from './utils/connect';
 import {tabWindowsTogether} from './utils/tabWindowsTogether';
 import {WindowInitializer} from './utils/WindowInitializer';
-
-let fin: Fin;
 
 let wins: _Window[] = [];
 
 const windowInitializer = new WindowInitializer();
 
-beforeAll(async () => {
-    fin = await getConnection();
-});
 beforeEach(async () => {
     wins = await windowInitializer.initWindows(2);
 });

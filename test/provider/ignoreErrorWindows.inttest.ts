@@ -4,19 +4,15 @@ import * as assert from 'power-assert';
 
 import {WorkspaceAPI} from '../../src/client/internal';
 import {Workspace} from '../../src/client/workspaces';
+import {fin} from '../demo/utils/fin';
 import {sendServiceMessage} from '../demo/utils/serviceUtils';
 import {isWindowRegistered} from '../demo/utils/snapServiceUtils';
 import {teardown} from '../teardown';
 
-import {getConnection} from './utils/connect';
 import {delay} from './utils/delay';
 
-let fin: Fin;
 let crashApp: Application|undefined = undefined;
 
-beforeAll(async () => {
-    fin = await getConnection();
-});
 afterEach(async () => {
     if (crashApp) {
         crashApp.close(true);

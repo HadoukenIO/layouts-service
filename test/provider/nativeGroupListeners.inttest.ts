@@ -5,7 +5,6 @@ import {undockWindow} from '../demo/utils/snapServiceUtils';
 import {teardown} from '../teardown';
 
 import {assertGrouped, assertMoved, assertNotGrouped, assertNotMoved} from './utils/assertions';
-import {getConnection} from './utils/connect';
 import {createChildWindow} from './utils/createChildWindow';
 import {delay} from './utils/delay';
 import {dragSideToSide} from './utils/dragWindowTo';
@@ -30,13 +29,9 @@ type UngroupingType = keyof typeof ungroupingFunctions;
 
 let win1: Window, win2: Window;
 let windows: Window[];
-let fin: Fin;
 
 /* ====== Setup/Teardown ====== */
 
-beforeAll(async () => {
-    fin = await getConnection();
-});
 beforeEach(async () => {
     // Spawn two windows - win1 un-tabbed, win2 tabbed
     win1 = await createChildWindow({

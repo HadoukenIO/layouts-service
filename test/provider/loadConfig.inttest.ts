@@ -3,17 +3,16 @@ import * as assert from 'power-assert';
 
 import {ConfigurationObject, Scope} from '../../gen/provider/config/layouts-config';
 import {ConfigWithRules} from '../../src/provider/config/Store';
+import {fin} from '../demo/utils/fin';
 import {executeJavascriptOnService} from '../demo/utils/serviceUtils';
 import {isWindowRegistered} from '../demo/utils/snapServiceUtils';
 import {teardown} from '../teardown';
 
 import {assertNotGrouped} from './utils/assertions';
-import {getConnection} from './utils/connect';
 import {createChildApp, createChildWindow} from './utils/createChildWindow';
 import {delay} from './utils/delay';
 import {dragSideToSide} from './utils/dragWindowTo';
 
-let fin: Fin;
 let app: Application;
 
 // Each test must have a unique app UUID, as otherwise calls to getManifest within the provider can return the manifest of a previous test run.
@@ -29,9 +28,6 @@ async function getWindowConfig(identity: Identity): Promise<ConfigurationObject>
     }, identity);
 }
 
-beforeAll(async () => {
-    fin = await getConnection();
-});
 afterEach(teardown);
 
 async function createAppWithConfig(uuid: string, config: ConfigWithRules<ConfigurationObject>, parentUuid?: string): Promise<Application> {

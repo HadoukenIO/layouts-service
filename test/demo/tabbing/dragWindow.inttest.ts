@@ -34,4 +34,5 @@ itParameterized(
         robot.mouseToggle('up');
 
         assert.deepEqual(virtualScreen, Object.assign(virtualScreen, dragWindowBounds));
-    }, {defaultCentered: true, defaultWidth: 250, defaultHeight: 150}));
+    }, {defaultCentered: true, defaultWidth: 250, defaultHeight: 150})
+);

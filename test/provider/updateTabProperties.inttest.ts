@@ -46,7 +46,7 @@ it('When calling updateTabProperties, property changes reflected in service', as
     function remoteFunc(this: ProviderWindow, identity: WindowIdentity) {
         const tabWindow = this.model.getWindow(identity as WindowIdentity);
 
-        //@ts-ignore Accessing private variables in the name of testing.
+        // @ts-ignore Accessing private variables in the name of testing.
         return tabService.getTabProperties(tabWindow);
     }
 
@@ -75,7 +75,7 @@ it.skip('When calling updateTabProperties, property changes reflected in tabstri
         const tabGroup = this.model.getWindow(identity as WindowIdentity)!.tabGroup;
 
         if (tabGroup) {
-            //@ts-ignore Accessing private variables in the name of testing.
+            // @ts-ignore Accessing private variables in the name of testing.
             const tabDOM: Document = tabGroup._window.window.nativeWindow.document;
 
             return Array.from(tabDOM.getElementsByClassName('tab-content-wrap')).map((el) => {

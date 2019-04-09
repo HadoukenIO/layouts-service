@@ -49,7 +49,8 @@ itParameterized(
 
         assert.strictEqual(windowBounds[1].width, previewBounds.width);
         assert.strictEqual(windowBounds[1].height, previewBounds.height);
-    }, {defaultCentered: true, defaultWidth: 250, defaultHeight: 150}));
+    }, {defaultCentered: true, defaultWidth: 250, defaultHeight: 150})
+);
 
 
 
@@ -66,7 +67,7 @@ itParameterized(
         {frame: true, dimension: 'height', direction: ['bigger', 'smaller'], windowCount: 2},
         {frame: true, dimension: 'height', direction: ['smaller', 'bigger'], windowCount: 2},
         {frame: true, dimension: 'width', direction: ['bigger', 'smaller'], windowCount: 2},
-        {frame: true, dimension: 'width', direction: ['smaller', 'bigger'], windowCount: 2},
+        {frame: true, dimension: 'width', direction: ['smaller', 'bigger'], windowCount: 2}
     ],
     createWindowTest(async (context, testOptions: PreviewResizeTestOptions) => {
         const {dimension, direction} = testOptions;
@@ -79,24 +80,26 @@ itParameterized(
         await windows[1].resizeBy(
             dimension === 'width' ? (direction[0] === 'smaller' ? -50 : 50) : 0,
             dimension === 'height' ? (direction[1] === 'smaller' ? -50 : 50) : 0,
-            'top-left');
+            'top-left'
+        );
 
         dimension === 'height' ? await dragWindowAndHover(windows[1], windowBounds[0].right, windowBounds[0].top) :
-                                 await dragWindowAndHover(windows[1], windowBounds[0].left, windowBounds[0].bottom);
+            await dragWindowAndHover(windows[1], windowBounds[0].left, windowBounds[0].bottom);
 
         const previewBounds = await getBounds(previewWin);
 
         robot.mouseToggle('up');
 
         assert.strictEqual(previewBounds[dimension], windowBounds[0][dimension]);
-    }, {defaultCentered: true, defaultWidth: 250, defaultHeight: 150}));
+    }, {defaultCentered: true, defaultWidth: 250, defaultHeight: 150})
+);
 
 itParameterized(
     'When tabbing a window, preview window appears correct size and position',
     (testOptions: CreateWindowData): string => `Preview tab - ${testOptions.windowCount > 2 ? 'tabbed' : 'single'} window`,
     [
         {frame: true, windowCount: 2},
-        {frame: true, windowCount: 3},
+        {frame: true, windowCount: 3}
     ],
     createWindowTest(async (context, testOptions: CreateWindowData) => {
         const {windowCount} = testOptions;
@@ -121,7 +124,8 @@ itParameterized(
         robot.mouseToggle('up');
 
         assert.deepEqual(previewBounds, {...windowBounds[0], height: 60, bottom: windowBounds[0].top + previewBounds.height});
-    }, {defaultCentered: true, defaultWidth: 250, defaultHeight: 150}));
+    }, {defaultCentered: true, defaultWidth: 250, defaultHeight: 150})
+);
 
 itParameterized(
     'When dragging a tab from one window to another, preview window appears correct size and position',
@@ -152,4 +156,5 @@ itParameterized(
         robot.mouseToggle('up');
 
         assert.deepEqual(previewBounds, {...windowBounds[0], height: 60, bottom: windowBounds[0].top + previewBounds.height});
-    }, {defaultCentered: true, defaultWidth: 250, defaultHeight: 150}));
+    }, {defaultCentered: true, defaultWidth: 250, defaultHeight: 150})
+);

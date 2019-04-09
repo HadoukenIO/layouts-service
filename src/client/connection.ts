@@ -12,6 +12,7 @@
  * This file is excluded from the public-facing TypeScript documentation.
  */
 import {EventEmitter} from 'events';
+
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
 import {SnapAndDockEvent} from '../client/snapanddock';

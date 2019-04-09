@@ -60,8 +60,6 @@
     "sortablejs": "^1.7.0"
   },
   "precommit": {
-    "run": [
-      "check"
-    ]
+    "run": []
   }
 }

@@ -12,8 +12,7 @@ export interface ContextTestMacro<T, C> {
     (context: C, instance: T): void;
 }
 
-export function itParameterized<T>(
-    descriptionName: string, instanceName: ((data: T) => string)|undefined, instanceData: Parameterized<T>[], testFunc: TestMacro<T>): void {
+export function itParameterized<T>(descriptionName: string, instanceName: ((data: T) => string)|undefined, instanceData: Parameterized<T>[], testFunc: TestMacro<T>): void {
     describe(descriptionName, () => {
         instanceData.forEach((instance: T&InstanceData) => {
             const instanceTitle: string = instanceName !== undefined ? instanceName(instance) : JSON.stringify(instanceData);

@@ -58,4 +58,5 @@ itParameterized<CreateAppData>(
             await assertAdjacent(win1, win2);
             await assertGrouped(win1, win2);
         }
-    }));
+    })
+);

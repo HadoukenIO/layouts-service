@@ -20,7 +20,7 @@ interface TabConstraintsOptions extends CreateWindowData {
 afterEach(teardown);
 
 itParameterized(
-    `When windows are tabbed together, constraints are applied correctly`,
+    'When windows are tabbed together, constraints are applied correctly',
     (testOptions) => `${JSON.stringify(testOptions)}`,
     [
         {frame: true, windowCount: 2, windowConstraints: [{resizable: false}, {}]},
@@ -38,7 +38,7 @@ itParameterized(
             frame: true,
             windowCount: 3,
             windowConstraints: [{resizeRegion: {sides: {top: false, left: false, bottom: true, right: true}}}, {resizable: false}, {}]
-        },
+        }
     ],
     createWindowTest(async (context, testOptions: TabConstraintsOptions) => {
         const {windows} = context;
@@ -79,7 +79,8 @@ itParameterized(
 
             assertConstraintsMatch(startingState[i], finalState);
         }
-    }));
+    })
+);
 
 itParameterized(
     'When attempting to tab together windows with incompatible constraints, windows are not tabbed',
@@ -89,7 +90,7 @@ itParameterized(
         {frame: true, windowCount: 2, windowConstraints: [{maxHeight: 300, minWidth: 250}, {}], shouldTab: false},
         {frame: true, windowCount: 2, windowConstraints: [{maxHeight: 300, minWidth: 200}, {}], shouldTab: true},
         // Checks edge case where the target is large enough when un-tabbed but would not be once resized for tabbing
-        {frame: true, windowCount: 2, windowConstraints: [{}, {minHeight: 200}], shouldTab: false},
+        {frame: true, windowCount: 2, windowConstraints: [{}, {minHeight: 200}], shouldTab: false}
     ],
     createWindowTest(async (context, testOptions: TabConstraintsOptions&{shouldTab: boolean}) => {
         const {windows} = context;
@@ -108,7 +109,8 @@ itParameterized(
             await assertNotTabbed(windows[0]);
             await assertNotTabbed(windows[1]);
         }
-    }));
+    })
+);
 
 const defaultConstraints: Required<Constraints> = {
     maxHeight: -1,
@@ -121,7 +123,7 @@ const defaultConstraints: Required<Constraints> = {
             top: true,
             bottom: true,
             left: true,
-            right: true,
+            right: true
         }
     }
 };
@@ -132,7 +134,7 @@ itParameterized(
     [
         {frame: true, windowCount: 2, windowConstraints: [{}, {}]},
         {frame: true, windowCount: 2, windowConstraints: [{}, {maxHeight: 500}]},
-        {frame: true, windowCount: 2, windowConstraints: [{}, {maxWidth: 500}]},
+        {frame: true, windowCount: 2, windowConstraints: [{}, {maxWidth: 500}]}
     ],
     createWindowTest(async (context, testOptions: TabConstraintsOptions) => {
         const {windows} = context;
@@ -150,14 +152,14 @@ itParameterized(
             await assertDoesNotReject(tabbing.maximizeTabGroup(windows[0].identity));
             assert.strictEqual(await getTabGroupState(windows[0].identity), 'maximized');
         }
-    }));
+    })
+);
 
 function assertConstraintsMatch(expected: Constraints, actual: Constraints): void {
     for (const key of Object.keys(defaultConstraints) as (keyof Constraints)[]) {
         if (actual.hasOwnProperty(key) && expected.hasOwnProperty(key)) {
             if (typeof actual[key] === 'object') {
-                assert.deepStrictEqual(
-                    expected[key], actual[key], `${key} does not match. Expected: ${JSON.stringify(expected[key])}. Received: ${JSON.stringify(actual[key])}`);
+                assert.deepStrictEqual(expected[key], actual[key], `${key} does not match. Expected: ${JSON.stringify(expected[key])}. Received: ${JSON.stringify(actual[key])}`);
             } else {
                 assert.strictEqual(expected[key], actual[key], `${key} does not match. Expected: ${expected[key]}. Received ${actual[key]}`);
             }

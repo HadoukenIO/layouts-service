@@ -25,7 +25,7 @@ itParameterized(
         {frame: true, windowCount: 2, tabTo: 'restored'},
         {frame: true, windowCount: 2, tabTo: 'maximized'},
         {frame: false, windowCount: 2, tabTo: 'restored'},
-        {frame: false, windowCount: 2, tabTo: 'maximized'},
+        {frame: false, windowCount: 2, tabTo: 'maximized'}
     ],
     createWindowTest(async (context, testOptions: TabToMaximizedWindowTestOptions) => {
         const fin = await getConnection();
@@ -53,7 +53,8 @@ itParameterized(
             // Windows should not have tabbed
             await Promise.all(windows.map(win => assertNotTabbed(win)));
         }
-    }));
+    })
+);
 
 
 itParameterized(
@@ -61,7 +62,7 @@ itParameterized(
     (testOptions) => `frame: ${testOptions.frame}`,
     [
         {frame: true, windowCount: 3},
-        {frame: false, windowCount: 3},
+        {frame: false, windowCount: 3}
     ],
     createWindowTest(async context => {
         const {windows} = context;
@@ -78,4 +79,5 @@ itParameterized(
 
         // None of the windows should be tabbed
         await Promise.all(windows.map(win => assertNotTabbed(win)));
-    }));
+    })
+);

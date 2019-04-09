@@ -1,4 +1,3 @@
-import {Fin} from 'hadouken-js-adapter';
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
 import {APITopic, SERVICE_CHANNEL} from '../../../src/client/internal';
@@ -48,8 +47,5 @@ async function getChannelClient() {
     return fin.InterApplicationBus.Channel.connect(SERVICE_CHANNEL);
 }
 
-export const layoutsClientPromise = new Promise<typeof import('../../../src/client/main')>(res => {
-    (global as NodeJS.Global & {fin: Fin}).fin = fin;
-    (global as NodeJS.Global & {PACKAGE_VERSION: string}).PACKAGE_VERSION = 'TEST-CLIENT';
-    res(import('../../../src/client/main'));
-});
+Object.assign(global, {fin, PACKAGE_VERSION: 'TEST-CLIENT'})
+export const layoutsClientPromise = import('../../../src/client/main');

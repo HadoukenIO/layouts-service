@@ -912,6 +912,9 @@ export class DesktopWindow implements DesktopEntity {
                 }
 
                 const bounds = {left: newCenter.x - newHalfSize.x, top: newCenter.y - newHalfSize.y, width: newHalfSize.x * 2, height: newHalfSize.y * 2};
+
+                // Logging just to be sure nothing else is interfering with window bounds
+                console.log('Should not be here');
                 actions.push(window.setBounds(bounds));
             }
 
@@ -1023,7 +1026,11 @@ export class DesktopWindow implements DesktopEntity {
         const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
         const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
 
-        this.updateState({center, halfSize}, ActionOrigin.APPLICATION);
+        // Attempt resize at end of bounds changing
+        this.resizeWindowOnDrag();
+
+        // Commented out for the purpose of eliminating anything else interfering with resize
+        // this.updateState({center, halfSize}, ActionOrigin.APPLICATION);
 
         if (this._userInitiatedBoundsChange) {
             this.onCommit.emit(this, this.getTransformType(event));
@@ -1044,7 +1051,11 @@ export class DesktopWindow implements DesktopEntity {
         const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
         const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
 
-        this.updateState({center, halfSize}, ActionOrigin.APPLICATION);
+        // Commented out for the purpose of eliminating anything else interfering with resize
+        // this.updateState({center, halfSize}, ActionOrigin.APPLICATION);
+
+        // Attempt resize at start of bounds changing
+        this.resizeWindowOnDrag();
 
         if (this._userInitiatedBoundsChange) {
             this.onTransform.emit(this, this.getTransformType(event));
@@ -1058,6 +1069,40 @@ export class DesktopWindow implements DesktopEntity {
 
     private handleBeginUserBoundsChanging(event: fin.WindowBoundsEvent) {
         this._userInitiatedBoundsChange = true;
+
+        // Attempt resize at beginning of drag
+        this.resizeWindowOnDrag();
+    }
+
+    private async resizeWindowOnDrag() {
+        // Approach 1
+        this._window.resizeTo(550, 550, 'top-left');
+
+        // Approach 2
+        const bounds = await this._window.getBounds();
+
+        bounds.width = 550;
+        bounds.height = 550;
+        bounds.right = bounds.left + 550;
+        bounds.bottom = bounds.top + 550;
+
+        this._window.setBounds(bounds);
+
+        // Approach 3
+        setImmediate(async () => {
+            // Approach 3-1
+            this._window.resizeTo(550, 550, 'top-left');
+
+            // Approach 3-2
+            const bounds = await this._window.getBounds();
+
+            bounds.width = 550;
+            bounds.height = 550;
+            bounds.right = bounds.left + 550;
+            bounds.bottom = bounds.top + 550;
+
+            this._window.setBounds(bounds);
+        });
     }
 
     private handleClosing(): void {

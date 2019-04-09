@@ -1,10 +1,10 @@
 // Had problems with this as a typescript file, so leaving as js for now
-const JSDomEnvironment = require('jest-environment-jsdom');
+const NodeEnvironment = require('jest-environment-node');
 const jsAdapter = require('hadouken-js-adapter');
 
 const finPromise = jsAdapter.connect({address: `ws://localhost:${process.env.OF_PORT}`, uuid: 'TEST-jest-env'});
 
-class LayoutsEnvironment extends JSDomEnvironment {
+class LayoutsEnvironment extends NodeEnvironment {
     constructor(config) {
         super(config);
     }

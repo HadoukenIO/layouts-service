@@ -92,7 +92,11 @@ export class Projector {
             const snapOffset: Point = {x: 0, y: 0};
             const halfSize: Point = PointUtils.clone(activeState.halfSize);
             const validDirections: BorderProjection[] = borders.filter((border: BorderProjection) => {
-                return border.distance < Number.MAX_SAFE_INTEGER && border.getOverlap(activeState) >= MIN_OVERLAP && border.distance <= SNAP_DISTANCE;
+                const overlap = border.getOverlap(activeState);
+                const minOverlap = overlap >= MIN_OVERLAP;
+                const safeDistance = border.distance < Number.MAX_SAFE_INTEGER;
+                const snapDistance = border.distance <= SNAP_DISTANCE;
+                return minOverlap && safeDistance && snapDistance;
             });
 
             if (validDirections.length > 0) {

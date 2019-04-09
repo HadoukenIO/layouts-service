@@ -22,7 +22,7 @@ const context: TestContext = {
 };
 
 beforeAll(async () => {
-    Object.assign(global, {fin})
+    Object.assign(global, {fin});
 });
 
 beforeEach(async () => {

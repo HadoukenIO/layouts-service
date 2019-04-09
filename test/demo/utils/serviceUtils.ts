@@ -47,5 +47,5 @@ async function getChannelClient() {
     return fin.InterApplicationBus.Channel.connect(SERVICE_CHANNEL);
 }
 
-Object.assign(global, {fin, PACKAGE_VERSION: 'TEST-CLIENT'})
+Object.assign(global, {fin, PACKAGE_VERSION: 'TEST-CLIENT'});
 export const layoutsClientPromise = import('../../../src/client/main');

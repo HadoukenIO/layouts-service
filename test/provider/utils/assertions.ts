@@ -153,7 +153,7 @@ export async function assertPairTabbed(win1: Window, win2: Window): Promise<void
         await assertAdjacent(tabStripWindow, win1, 'bottom');
     } else {
         assert.fail('Windows are not native grouped to the tabStrip A');
-        return Promise.reject('Windows are not native grouped to the tabStrip B');
+        return Promise.reject(new Error('Windows are not native grouped to the tabStrip B'));
     }
 
     // Windows are shown/hidden correctly if active/inactive tab

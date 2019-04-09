@@ -106,7 +106,7 @@ export class TabService {
                 throw new Error('Must have at least two valid tab identities to create a tab group: ' +
                     tabIdentities.map(identity => `${identity.uuid}/${identity.name}`).join('\n'));
             } else {
-                console.warn('Tab list contained ' + (tabIdentities.length - tabs.length) + ' invalid identities', tabIdentities, tabs.map(tab => tab.identity));
+                console.warn(`Tab list contained ${tabIdentities.length - tabs.length} invalid identities`, tabIdentities, tabs.map(tab => tab.identity));
             }
         }
 

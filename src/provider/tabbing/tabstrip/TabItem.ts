@@ -205,6 +205,7 @@ export class Tab {
                     that._ID,
                 );
             } catch (e) {
+                // Catch and continue on input removal
             }
         }
 

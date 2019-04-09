@@ -20,7 +20,7 @@ export async function openChild(name: string, i: number, frame = true, state = '
     numChildren++;
 
     if (bounds) {
-        return await fin.Window.create({
+        return fin.Window.create({
             url: url || `${launchDir}/child.html`,
             autoShow: true,
             defaultHeight: bounds.height,
@@ -33,7 +33,7 @@ export async function openChild(name: string, i: number, frame = true, state = '
             name
         });
     } else {
-        return await fin.Window.create({
+        return fin.Window.create({
             url: url || `${launchDir}/child.html`,
             autoShow: true,
             defaultHeight: 250 + 50 * i,

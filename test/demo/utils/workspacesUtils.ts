@@ -81,7 +81,11 @@ export interface TestCreationOptions {
     autoShow?: boolean;
 }
 
-export function createBasicSaveAndRestoreTest(numAppsToCreate: number, numberOfChildren: number, testOptions?: TestCreationOptions): BasicSaveRestoreTestOptions {
+export function createBasicSaveAndRestoreTest(
+    numAppsToCreate: number,
+    numberOfChildren: number,
+    testOptions?: TestCreationOptions
+): BasicSaveRestoreTestOptions {
     const appsArray = createAppsArray(numAppsToCreate, numberOfChildren, testOptions);
 
     return {apps: appsArray};

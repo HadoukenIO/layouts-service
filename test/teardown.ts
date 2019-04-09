@@ -29,7 +29,8 @@ export async function teardown(): Promise<void> {
         const lengths = [m.windows.length, Object.keys(m['_windowLookup']).length, m.snapGroups.length, m.tabGroups.length];
 
         if (lengths.some(l => l > 0)) {
-            return `Clean-up may have failed. Debug info: ${lengths.join(' ')}\n${m.windows.map(w => w.id).join(', ')}\n${m.snapGroups.map(g => `${g.id}${g.entities.map(w => w.id).join(',')}`).join(', ')}\n${m.tabGroups.map(g => `${g.id}${g.tabs.map(w => w.id).join(',')}`).join(', ')}`;
+            return `Clean-up may have failed. Debug info: ${lengths.join(' ')}\n${m.windows.map(w => w.id).join(', ')}\n${m.snapGroups.map(g => `${g.id}
+            ${g.entities.map(w => w.id).join(',')}`).join(', ')}\n${m.tabGroups.map(g => `${g.id}${g.tabs.map(w => w.id).join(',')}`).join(', ')}`;
         } else {
             return null;
         }
@@ -92,7 +93,13 @@ async function closeAllWindows(): Promise<void> {
 }
 
 async function resetProviderState(): Promise<void> {
-    const msg: string|null = await executeJavascriptOnService<{allScopes: Scopes[], testSuiteSandboxPrefix: string}, string|null>(function(this: ProviderWindow, params: {allScopes: Scopes[], testSuiteSandboxPrefix: string}): string|null {
+    const msg: string|null = await executeJavascriptOnService<{allScopes: Scopes[], testSuiteSandboxPrefix: string}, string|null>(function(
+        this: ProviderWindow,
+        params: {
+                allScopes: Scopes[],
+                testSuiteSandboxPrefix: string
+            }
+    ): string|null {
         const {allScopes, testSuiteSandboxPrefix} = params;
 
         const SEPARATOR_LIST = ', ';
@@ -139,7 +146,8 @@ async function resetProviderState(): Promise<void> {
                 const configInfo = rulesWithScope.map(rule => JSON.stringify(rule)).join(SEPARATOR_LINE);
                 msgs.push(`Expected ${expectedCount} rules with scope ${scope}, got:${configInfo ? SEPARATOR_LINE + configInfo: ' NONE'}`);
 
-                // Can't do a full clean-up without duplicating provider state here, but removing anything that was defined outside of the service (test windows, etc)
+                // Can't do a full clean-up without duplicating provider state here,
+                // but removing anything that was defined outside of the service (test windows, etc)
                 rules.set(scope, rulesWithScope.filter(config => config.source.level === 'service'));
             }
         });
@@ -154,12 +162,14 @@ async function resetProviderState(): Promise<void> {
             try {
                 loaderInfo = JSON.stringify(loaderApps, null, 4).replace(/\n/g, SEPARATOR_LINE);
             } catch (e) {
+                 // eslint-disable-line
             }
 
             if (loaderInfo) {
                 msgs.push(`Expected loader's appState cache to be empty (except for ${testSuiteSandboxPrefix}*), contains:${SEPARATOR_LINE}${loaderInfo}`);
             } else {
-                msgs.push(`Expected loader's appState cache to be empty (except for ${testSuiteSandboxPrefix}*) and unable to stringify appState, contains other uuids:${SEPARATOR_LINE}${nonTestAppLoaderKeys.join(', ')}`);
+                msgs.push(`Expected loader's appState cache to be empty (except for ${testSuiteSandboxPrefix}*) 
+                and unable to stringify appState, contains other uuids:${SEPARATOR_LINE}${nonTestAppLoaderKeys.join(', ')}`);
             }
         }
         if (loaderWindows.length !== 1 || loaderWindows[0] !== 'window:testApp/testApp') {
@@ -168,7 +178,8 @@ async function resetProviderState(): Promise<void> {
         }
 
         if (msgs.length > 1) {
-            return `${msgs.length} issues detected in provider state:${SEPARATOR_LINE}${msgs.map(msg => msg.replace(/\n/g, SEPARATOR_LINE)).join(SEPARATOR_LINE)}`;
+            return `${msgs.length} issues detected in provider state:
+            ${SEPARATOR_LINE}${msgs.map(msg => msg.replace(/\n/g, SEPARATOR_LINE)).join(SEPARATOR_LINE)}`;
         } else if (msgs.length === 1) {
             return msgs[0];
         } else {

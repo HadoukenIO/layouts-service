@@ -1,9 +1,9 @@
 import console from 'console';
 
 export interface ConsoleSpy {
-    log: jest.SpyInstance<typeof console.log>;
-    warn?: jest.SpyInstance<typeof console.warn>;
-    error?: jest.SpyInstance<typeof console.error>;
+    log: jest.SpyInstance<void, []>;
+    warn?: jest.SpyInstance<void, []>;
+    error?: jest.SpyInstance<void, []>;
 }
 
 const fake = {

@@ -59,7 +59,10 @@ export class DesktopModel {
         // Set built-in rules for determining if a window should be registered
         const errorWindowSpec: RegEx = {expression: 'error-app-[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}', flags: 'g'};
         config.addRule({level: 'service'}, {level: 'application', uuid: serviceUUID}, {enabled: false});
-        config.addRule({level: 'service'}, {level: 'window', uuid: serviceUUID, name: {expression: 'Placeholder-.*'}}, {enabled: true});
+        config.addRule(
+            {level: 'service'},
+            {level: 'window', uuid: serviceUUID, name: {expression: 'Placeholder-.*'}},
+            {enabled: true, features: {snap: false, dock: false}});
         config.addRule({level: 'service'}, {level: 'application', uuid: errorWindowSpec}, {enabled: false});
 
         // Add watch expressions for detecting config changes

@@ -11,10 +11,10 @@ import {EVENT_CHANNEL_TOPIC} from '../APIMessages';
 import {apiHandler, loader, model, tabService} from '../main';
 import {WindowIdentity} from '../model/DesktopWindow';
 import {promiseMap} from '../snapanddock/utils/async';
-
 import {getGroup} from './group';
+import {addToWindowObject, adjustSizeOfFormerlyTabbedWindows, inWindowObject, WindowObject} from './placeholder';
 import {appCanRestore} from './restore';
-import {addToWindowObject, adjustSizeOfFormerlyTabbedWindows, canRestoreProgrammatically, inWindowObject, parseVersionString, wasCreatedFromManifest, WindowObject} from './utils';
+import {canRestoreProgrammatically, parseVersionString, wasCreatedFromManifest} from './utils';
 
 // This value should be updated any time changes are made to the Workspace schema.
 // Major version indicates breaking changes.

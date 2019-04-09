@@ -49,7 +49,7 @@ export class TabManager {
             }
         });
 
-        // Initialzes sortables library to allow tab reordering
+        // Initializes sortables library to allow tab reordering
         Sortable.create(TabManager.tabContainer, {
             sort: true,
             animation: 200,
@@ -100,7 +100,7 @@ export class TabManager {
     }
 
     /**
-     * Unsets the active tab
+     * Un-sets the active tab
      * @method unsetActiveTab Removes the active status from the current active Tab.
      */
     public unsetActiveTab(): void {

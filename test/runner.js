@@ -5,19 +5,15 @@
  * passed-through to the invoked application. For example: 'npm test -- --help'
  * 
  * Any additional command line parameters (arguments that are not described within the help text) will be passed through to ava as-is.
- *     A list of valid command line parameters can be found in the ava documentation: https://github.com/avajs/ava#cli
- *     NOTE: --match is not supported, use --filter instead
+ *     A list of valid command line parameters can be found in the Jest documentation: https://jestjs.io/docs/en/cli
+ *     NOTE: --testNamePattern is not supported, use --filter instead
  */
 
 const execa = require('execa');
 const os = require('os');
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
-
 const {launch} = require('hadouken-js-adapter');
-
-const {createCustomManifestMiddleware} = require('../scripts/server/spawn');
+const tooling = require('openfin-service-tooling');
 
 let port;
 
@@ -60,6 +56,7 @@ const showHelp = getArg('--help') || getArg('-h');
 const skipBuild = getArg('--run') || getArg('-r');
 const debugMode = getArg('--debug') || getArg('-d');
 const runtimeVersion = getArg('--runtime-version', true);
+const color = getArg('--color', true, true);
 
 let testFileName;
 while(testFileName = getArg('--file-name', true)) {
@@ -82,8 +79,12 @@ Options:
     process.exit();
 }
 
-const fileNamesArg = testFileNames.slice(testFileNames.length > 1 ? 1 : 0).map(testFileName => `dist/test/**/${testFileName}.test.js`).join(" ");
-const testCommand = `ava --serial ${fileNamesArg} ${testNameFilter ? '--match ' + testNameFilter: ''} ${unusedArgs.join(' ')}`;
+const fileNamesArg = testFileNames.length > 1 ? testFileNames.slice(1).map(testFileName => `${testFileName}.inttest.ts`).join(" ") : '';
+const testCommand = `jest ` +
+    `--color=${color} ` +
+    `--no-cache --config=jest-int.config.js --forceExit --runInBand ` +
+    `${fileNamesArg} ${testNameFilter ? '--testNamePattern=' + testNameFilter: ''} ` +
+    `${unusedArgs.join(' ')}`;
 
 const cleanup = async res => {
     if (os.platform().match(/^win/)) {
@@ -123,22 +124,13 @@ async function build() {
 async function serve() {
     return new Promise((resolve, reject) => {
         const app = express();
-        
-        // Intercepts requests for app manifests and replaces the runtime version with the one
-        // given as a command line parameter.
-        app.get('/*/*.json', (req, res) => {
-            let configData = JSON.parse(fs.readFileSync(path.join('res', req.path.substr(1))));
-            if (runtimeVersion && configData.runtime && configData.runtime.version) {
-                configData.runtime.version = runtimeVersion;
-            }
-            res.json(configData);
-        });
 
+        app.use(/\/?(.*(app|provider)\.json)/, tooling.middleware.createAppJsonMiddleware("testing", runtimeVersion));
         app.use(express.static('dist'));
         app.use(express.static('res'));
 
         // Add route to dynamically generate app manifests
-        app.use('/manifest', createCustomManifestMiddleware());
+        app.use('/manifest', tooling.middleware.createCustomManifestMiddleware());
         app.use('/create-manifest', (req, res) => {
             const {uuid, url, defaultTop, config, autoShow} = req.query;
             const additionalServiceProperties = config ? {config: JSON.parse(config)} : {};

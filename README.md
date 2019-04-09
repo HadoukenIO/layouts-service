@@ -10,8 +10,8 @@ This project consist of 3 parts:
 3. Layout Service Demo app, demonstrating the different features of OpenFin Layout
 
 ### Dependencies
-- OpenFin version for applications using Layouts = 9.61.38.40
-- OpenFin version used in the Layouts Service = 9.61.38.40
+- OpenFin version for applications using Layouts = 9.61.38.41
+- OpenFin version used in the Layouts Service = 9.61.38.41
 - RVM >= 4.7
 
 ### Features
@@ -75,9 +75,9 @@ The client library is also available as a resource which can be included via `<s
 ```
    <script src="https://cdn.openfin/services/openfin/layouts/<VERSION>/openfin-layouts.js"></script>
 ```
-This will expose the global variable `OpenFinLayouts` with the API methods documented in the link below.  Example:
+This will expose the global variable `layouts` with the API methods documented in the link below.  Example:
 ```
-   OpenFinLayouts.snapAndDock.undockWindow();
+   layouts.snapAndDock.undockWindow();
 ```
 
 The client module exports a set of functions - [API docs available here](https://cdn.openfin.co/docs/services/layouts/stable/api/).
@@ -102,9 +102,9 @@ After checkout, install project dependencies using `npm install`. The integratio
 To setup the project whilst avoiding the above dependencies, can instead be installed with `npm install --ignore-scripts`.
 
 ### Startup
-Once dependencies are installed, start the "built-in" sample application with `npm start`. This uses `webpack-dev-middleware` to both build and host the application; a custom `server.js` script will start the OpenFin application once the server is up and running.
+Once dependencies are installed, start the "built-in" sample application with `npm start`. This uses `webpack-dev-middleware` to both build and host the application; a custom server script will start the OpenFin application once the server is up and running.
 
-The startup script has optional arguments which can be used to tweak the behavior of the build and the test server. See the constants at the top of `server.js` for details on the available parameters and their effects.
+The startup script has optional arguments which can be used to tweak the behavior of the build and the test server. Use `npm start -- -h` for details on the available parameters and their effects.
 
 ### Build Process
 The service consists of several different components unified into a single project. The `package.json` defines the combined dependencies of all components; anything required for the pre-built client to work within an application is included in the `"dependencies"` section, and the remaining dependencies - used to build the client, and to both build & run the provider and demo application - are included under `"devDependencies"`.
@@ -131,10 +131,10 @@ The service provider is a standard OpenFin application, only its lifecycle is co
 - If using Parallels Desktop, you have to be in a mode where Parallels can control the mouse. Set `Settings>Hardware>Mouse&Keyboard>Mouse` to `Optimize for Games`
 
 ## Known Issues
-A list of known issues can be found on our [Versions page.]https://developer.openfin.co/versions/?product=Services
+A list of known issues can be found on our [Versions page](https://developer.openfin.co/versions/?product=Services).
 
 ## License
-This project uses the [Apache2 license.](https://www.apache.org/licenses/LICENSE-2.0)
+This project uses the [Apache2 license](https://www.apache.org/licenses/LICENSE-2.0).
 
 However, if you run this code, it may call on the OpenFin RVM or OpenFin Runtime, which are covered by OpenFin's Developer, Community, and Enterprise licenses. You can learn more about OpenFin licensing at the links listed below or just email us at support@openfin.co with questions.
 

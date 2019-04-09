@@ -31,7 +31,7 @@ export class Debounced<C extends Function, S, A extends any[]> {  // tslint:disa
      *
      * Any subsequent calls to call or postpone before the timeout period will reset the timer.
      *
-     * In the event of multiple calls to this function with different arguments, the most recent arguemnts will be
+     * In the event of multiple calls to this function with different arguments, the most recent arguments will be
      * used for the "actual" function call.
      *
      * @param args Arguments to hit the callback with

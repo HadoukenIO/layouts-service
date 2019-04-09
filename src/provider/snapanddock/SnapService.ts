@@ -62,7 +62,6 @@ export class SnapService {
     public async undock(target: WindowIdentity): Promise<void> {
         const window: DesktopWindow|null = this._model.getWindow(target);
 
-        // Do nothing for tabbed windows until tab/snap is properly integrated
         if (window && window.snapGroup.isNonTrivial()) {
             const entity: DesktopEntity = window.tabGroup || window;
 

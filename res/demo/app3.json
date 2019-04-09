@@ -1,5 +1,6 @@
 {
     "devtools_port": 9090,
+    "licenseKey": "64605fac-add3-48a0-8710-64b38e96a2dd",
     "startup_app": {
         "name": "App-3",
         "url": "http://localhost:1337/demo/app3.html",
@@ -13,7 +14,7 @@
     },
     "runtime": {
         "arguments": "--v=1 --enable-crash-reporting --security-realm=APP_1 --enable-mesh",
-        "version": "9.61.38.40"
+        "version": "9.61.38.41"
     },
     "services": [{"name": "layouts", "manifestUrl": "http://localhost:1337/provider/app.json"}]
 }

@@ -1,7 +1,6 @@
 import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
 
 import {ConfigurationObject} from '../gen/provider/config/layouts-config';
-
 import {Loader} from '../src/provider/config/Loader';
 import {DesktopModel} from '../src/provider/model/DesktopModel';
 import {SnapService} from '../src/provider/snapanddock/SnapService';

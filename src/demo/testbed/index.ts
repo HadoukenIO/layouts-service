@@ -2,7 +2,7 @@ import * as Layouts from '../../client/main';
 
 import {App} from './App';
 
-declare var window: Window&{
+declare var window: Window&{ // eslint-disable-line
     app: App;
     Layouts: typeof Layouts;
 };

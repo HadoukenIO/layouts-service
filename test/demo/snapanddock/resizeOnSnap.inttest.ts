@@ -47,20 +47,20 @@ itParameterized(
     'When a window is dragged adjacent to a similarly sized window, the windows form a snapgroup, and the window is resized as expected respecting constraints',
     (testOptions: ResizeWithConstrainsOptions):
         string => {
-            const frameString = testOptions.frame ? 'framed' : 'frameless';
-            const resizeDirectionString = testOptions.resizeDirection.split('-').join(' ');
-            let constraintsString;
-            if (Object.keys(testOptions.constraints).length === 0) {
-                constraintsString = 'No Constraints';
-            } else if (!!testOptions.constraints.resizeRegion) {
-                const sides = testOptions.constraints.resizeRegion.sides;
-                constraintsString = `Resize regions: ${(Object.keys(sides) as (keyof fin.ResizeRegion['sides'])[]).filter((side) => sides[side]).join(', ')}`;
-            } else {
-                constraintsString = `Constraints: ${JSON.stringify(testOptions.constraints).slice(1, -1)}`;
-            }
+        const frameString = testOptions.frame ? 'framed' : 'frameless';
+        const resizeDirectionString = testOptions.resizeDirection.split('-').join(' ');
+        let constraintsString;
+        if (Object.keys(testOptions.constraints).length === 0) {
+            constraintsString = 'No Constraints';
+        } else if (testOptions.constraints.resizeRegion) {
+            const sides = testOptions.constraints.resizeRegion.sides;
+            constraintsString = `Resize regions: ${(Object.keys(sides) as (keyof fin.ResizeRegion['sides'])[]).filter((side) => sides[side]).join(', ')}`;
+        } else {
+            constraintsString = `Constraints: ${JSON.stringify(testOptions.constraints).slice(1, -1)}`;
+        }
 
-            return `${frameString} - ${testOptions.side} - ${resizeDirectionString} - ${constraintsString}`;
-        },
+        return `${frameString} - ${testOptions.side} - ${resizeDirectionString} - ${constraintsString}`;
+    },
     [
         // No constraints. Normal resizing behaviour expected
         {frame: true, windowCount: 2, resizeDirection: 'big-to-small', side: 'right', constraints: {}, shouldResize: true},
@@ -154,7 +154,7 @@ itParameterized(
             side: 'bottom',
             constraints: {minWidth: WINDOW_SIZE - RESIZE_AMOUNT / 2},
             shouldResize: true
-        },
+        }
     ],
     createWindowTest(async (context, testOptions: ResizeWithConstrainsOptions) => {
         const {windows} = context;
@@ -187,21 +187,25 @@ itParameterized(
         assert.strictEqual(
             (boundsBefore.height !== bounds[1].height || boundsBefore.width !== bounds[1].width) === shouldResize,
             true,
-            `Window${shouldResize ? ' not' : ''} resized when it should${shouldResize ? '' : 'n\'t'}`);
+            `Window${shouldResize ? ' not' : ''} resized when it should${shouldResize ? '' : 'n\'t'}`
+        );
 
         // Check that the windows are (not) aligned (depending on constraints)
         if (side === 'top' || side === 'bottom') {
             assert.strictEqual(
                 (bounds[0].left === bounds[1].left && bounds[0].right === bounds[1].right) === shouldResize,
                 true,
-                `Windows${shouldResize ? ' not' : ''} aligned when they should${shouldResize ? '' : 'n\'t'} be`);
+                `Windows${shouldResize ? ' not' : ''} aligned when they should${shouldResize ? '' : 'n\'t'} be`
+            );
         } else {
             assert.strictEqual(
                 (bounds[0].top === bounds[1].top && bounds[0].bottom === bounds[1].bottom) === shouldResize,
                 true,
-                `Windows${shouldResize ? ' not' : ''} aligned when they should${shouldResize ? '' : 'n\'t'} be`);
+                `Windows${shouldResize ? ' not' : ''} aligned when they should${shouldResize ? '' : 'n\'t'} be`
+            );
         }
-    }, {defaultHeight: WINDOW_SIZE, defaultWidth: WINDOW_SIZE}));
+    }, {defaultHeight: WINDOW_SIZE, defaultWidth: WINDOW_SIZE})
+);
 
 
 // With tabsets
@@ -209,10 +213,10 @@ itParameterized(
     'When a tabbed window is dragged adjacent to a similarly sized tabbed window, the windows form a snapgroup, and the window is resized as expected',
     (testOptions: ResizeOnSnapOptions):
         string => {
-            const resizeDirectionString = testOptions.resizeDirection.split('-').join(' ');
+        const resizeDirectionString = testOptions.resizeDirection.split('-').join(' ');
 
-            return `${testOptions.side} - ${resizeDirectionString}`;
-        },
+        return `${testOptions.side} - ${resizeDirectionString}`;
+    },
     [
         // No constraints. Normal resizing behaviour expected
         {frame: true, windowCount: 4, resizeDirection: 'big-to-small', side: 'right'},
@@ -257,12 +261,13 @@ itParameterized(
 
         const bounds = [await getTabsetBounds(activeTabs[0]), await getTabsetBounds(activeTabs[1])];
 
-        assert.strictEqual(boundsBefore.height !== bounds[1].height || boundsBefore.width !== bounds[1].width, true, `Window not resized when it should`);
+        assert.strictEqual(boundsBefore.height !== bounds[1].height || boundsBefore.width !== bounds[1].width, true, 'Window not resized when it should');
 
         // Check that the windows are (not) aligned (depending on constraints)
         if (side === 'top' || side === 'bottom') {
-            assert.strictEqual((bounds[0].left === bounds[1].left && bounds[0].right === bounds[1].right), true, `Windows not aligned when they should be`);
+            assert.strictEqual((bounds[0].left === bounds[1].left && bounds[0].right === bounds[1].right), true, 'Windows not aligned when they should be');
         } else {
-            assert.strictEqual((bounds[0].top === bounds[1].top && bounds[0].bottom === bounds[1].bottom), true, `Windows not aligned when they should be`);
+            assert.strictEqual((bounds[0].top === bounds[1].top && bounds[0].bottom === bounds[1].bottom), true, 'Windows not aligned when they should be');
         }
-    }, {defaultHeight: WINDOW_SIZE, defaultWidth: WINDOW_SIZE}));
+    }, {defaultHeight: WINDOW_SIZE, defaultWidth: WINDOW_SIZE})
+);

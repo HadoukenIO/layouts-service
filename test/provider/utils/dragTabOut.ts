@@ -1,4 +1,5 @@
 import * as robot from 'robotjs';
+
 import {delay} from './delay';
 import {getBounds} from './getBounds';
 import {getWindow, Win} from './getWindow';

@@ -41,20 +41,21 @@ export class EventsUI {
         this.addItem(
             `Calling ${api.name}(${
                 args.map((arg) => {
-                        if (typeof arg === 'object') {
-                            try {
-                                return JSON.stringify(arg);
-                            } catch (e) {
-                                return arg && arg.toString();
-                            }
-                        } else {
+                    if (typeof arg === 'object') {
+                        try {
+                            return JSON.stringify(arg);
+                        } catch (e) {
                             return arg && arg.toString();
                         }
-                    })
+                    } else {
+                        return arg && arg.toString();
+                    }
+                })
                     .join(', ')})`,
             eLogStatus.PENDING,
             'chevron-right',
-            promise);
+            promise
+        );
     }
 
     public addEvent(event: LayoutsEvent): void {
@@ -91,7 +92,8 @@ export class EventsUI {
                     if (atEnd) {
                         this.scrollToEnd();
                     }
-                });
+                }
+            );
         }
 
         if (atEnd) {

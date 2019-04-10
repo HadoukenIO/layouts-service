@@ -37,7 +37,7 @@ const windowPositions = [
     {defaultTop: 650, defaultLeft: 100},
     {defaultTop: 650, defaultLeft: 375},
     {defaultTop: 650, defaultLeft: 650},
-    {defaultTop: 650, defaultLeft: 925},
+    {defaultTop: 650, defaultLeft: 925}
 ];
 
 afterEach(teardown);
@@ -169,7 +169,8 @@ itParameterized<CreateTabGroupFromTabsOptions>(
         await Promise.all(windows.filter(window => !newTabs.includes(window)).map(window => {
             return assertNotMoved(oldBounds.get(window)!, newBounds.get(window)!);
         }));
-    }, undefined, undefined, windowPositions));
+    }, undefined, undefined, windowPositions)
+);
 
 // Takes the high level test representation of CreateTabGroupFromTabsOptionsConfig and outputs a CreateTabGroupFromTabsOptions that we can use directly in the
 // test

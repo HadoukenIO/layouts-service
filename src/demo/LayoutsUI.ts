@@ -1,10 +1,10 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {register, deregister, snapAndDock, tabbing, tabstrip, workspaces} from '../client/main';
+import {Workspace} from '../client/workspaces';
 
 import * as Storage from './storage';
 import {addSpawnListeners, AppData, createApp, WindowData, createWindow} from './spawn';
-import {Workspace} from '../client/workspaces';
 
 export interface SavedWorkspace {
     id: string;

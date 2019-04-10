@@ -1,9 +1,10 @@
 {
-    "extends": "../node_modules/gts/tsconfig-google.json",
+    "extends": "../node_modules/openfin-service-tooling/tsconfig-services.json",
     "compilerOptions": {
       "rootDir": "..",
       "outDir": "../dist/test",
       "target": "es2017",
+      "types": ["node", "jest"],
       "module": "commonjs",
       "lib": [
         "dom",

@@ -1,18 +1,18 @@
 import {Window} from 'hadouken-js-adapter';
+import {WindowInfo, WindowDetail} from 'hadouken-js-adapter/out/types/src/api/system/window';
 
 import {Scopes} from '../src/provider/config/Store';
 import {ScopePrecedence} from '../src/provider/config/ConfigUtil';
 
 import {getConnection, TESTSUITE_SANDBOX_PREFIX} from './provider/utils/connect';
 import {executeJavascriptOnService} from './demo/utils/serviceUtils';
-import {WindowInfo, WindowDetail} from 'hadouken-js-adapter/out/types/src/api/system/window';
 import {delay} from './provider/utils/delay';
 
 /**
  * Util function to completely reset the desktop in-between test runs.
- * 
+ *
  * This should be added as a `afterEach` hook in EVERY inttest file.
- * 
+ *
  * Any left-over state will ultimately cause the previous test to fail, but some additional hardening work is required
  * first. Either way, any invalid state will be cleaned-up so that it does not impact the next test to run.
  */
@@ -21,15 +21,16 @@ export async function teardown(): Promise<void> {
 
     await closeAllWindows();
     await resetProviderState();
-    
+
     fin.InterApplicationBus.removeAllListeners();
-    
+
     const msg = await executeJavascriptOnService(function(this: ProviderWindow) {
         const m = this.model;
         const lengths = [m.windows.length, Object.keys(m['_windowLookup']).length, m.snapGroups.length, m.tabGroups.length];
 
         if (lengths.some(l => l > 0)) {
-            return `Clean-up may have failed. Debug info: ${lengths.join(" ")}\n${m.windows.map(w => w.id).join(', ')}\n${m.snapGroups.map(g => `${g.id}${g.entities.map(w => w.id).join(',')}`).join(', ')}\n${m.tabGroups.map(g => `${g.id}${g.tabs.map(w => w.id).join(',')}`).join(', ')}`;
+            return `Clean-up may have failed. Debug info: ${lengths.join(' ')}\n${m.windows.map(w => w.id).join(', ')}\n${m.snapGroups.map(g => `${g.id}
+            ${g.entities.map(w => w.id).join(',')}`).join(', ')}\n${m.tabGroups.map(g => `${g.id}${g.tabs.map(w => w.id).join(',')}`).join(', ')}`;
         } else {
             return null;
         }
@@ -64,7 +65,7 @@ async function closeAllWindows(): Promise<void> {
         if (uuid === 'testApp') {
             // Main window persists, but close any child windows
             return name !== uuid;
-        } else if(uuid === 'layouts-service') {
+        } else if (uuid === 'layouts-service') {
             if (name === uuid || name === 'successPreview' || name === 'failurePreview') {
                 // Main window and preview windows persist
                 return false;
@@ -87,15 +88,20 @@ async function closeAllWindows(): Promise<void> {
             console.warn(`Window close failed (ignoring) ${w.identity.uuid}/${w.identity.name}:`, e);
         })));
 
-        console.warn(`${invalidWindows.length} window(s) left over after test: ${invalidWindows.map(w => `${w.identity.uuid}/${w.identity.name}`).join(", ")}`);
-
+        console.warn(`${invalidWindows.length} window(s) left over after test: ${invalidWindows.map(w => `${w.identity.uuid}/${w.identity.name}`).join(', ')}`);
     }
 }
 
 async function resetProviderState(): Promise<void> {
-    const msg: string|null = await executeJavascriptOnService<{allScopes: Scopes[], testSuiteSandboxPrefix: string}, string|null>(function(this: ProviderWindow, params: {allScopes: Scopes[], testSuiteSandboxPrefix: string}): string|null {
+    const msg: string|null = await executeJavascriptOnService<{allScopes: Scopes[], testSuiteSandboxPrefix: string}, string|null>(function(
+        this: ProviderWindow,
+        params: {
+                allScopes: Scopes[],
+                testSuiteSandboxPrefix: string
+            }
+    ): string|null {
         const {allScopes, testSuiteSandboxPrefix} = params;
-        
+
         const SEPARATOR_LIST = ', ';
         const SEPARATOR_LINE = '\n    ';
 
@@ -110,7 +116,7 @@ async function resetProviderState(): Promise<void> {
         }
         if (snapGroups.length > 0) {
             const groupInfo = snapGroups.map((s, i) => `${i+1}: ${s.id} (${s.entities.map(e => e.id).join(SEPARATOR_LIST)})`).join(SEPARATOR_LINE);
-            
+
             msgs.push(`Provider still had ${snapGroups.length} snapGroups registered:${SEPARATOR_LINE}${groupInfo}`);
             this.model['_snapGroups'].length = 0;
         }
@@ -122,14 +128,14 @@ async function resetProviderState(): Promise<void> {
         }
 
         // Check config state
-        const rules = this.config["_items"];
-        const watches = this.config["_watches"];
-        const loaderApps = this.loader["_appState"];
-        const loaderWindows = this.loader["_windowsWithConfig"];
+        const rules = this.config['_items'];
+        const watches = this.config['_watches'];
+        const loaderApps = this.loader['_appState'];
+        const loaderWindows = this.loader['_windowsWithConfig'];
         const expectedRuleCounts: Map<Scopes, number> = new Map<Scopes, number>([
-            ["service", 1],
-            ["application", 2],
-            ["window", 2]
+            ['service', 1],
+            ['application', 2],
+            ['window', 2]
         ]);
         const expectedWatcherCount = 3;
         allScopes.forEach((scope: Scopes) => {
@@ -138,9 +144,10 @@ async function resetProviderState(): Promise<void> {
 
             if (rulesWithScope.length !== expectedCount) {
                 const configInfo = rulesWithScope.map(rule => JSON.stringify(rule)).join(SEPARATOR_LINE);
-                msgs.push(`Expected ${expectedCount} rules with scope ${scope}, got:${configInfo ? SEPARATOR_LINE + configInfo: " NONE"}`);
+                msgs.push(`Expected ${expectedCount} rules with scope ${scope}, got:${configInfo ? SEPARATOR_LINE + configInfo: ' NONE'}`);
 
-                // Can't do a full clean-up without duplicating provider state here, but removing anything that was defined outside of the service (test windows, etc)
+                // Can't do a full clean-up without duplicating provider state here,
+                // but removing anything that was defined outside of the service (test windows, etc)
                 rules.set(scope, rulesWithScope.filter(config => config.source.level === 'service'));
             }
         });
@@ -155,12 +162,14 @@ async function resetProviderState(): Promise<void> {
             try {
                 loaderInfo = JSON.stringify(loaderApps, null, 4).replace(/\n/g, SEPARATOR_LINE);
             } catch (e) {
+                 // eslint-disable-line
             }
 
             if (loaderInfo) {
                 msgs.push(`Expected loader's appState cache to be empty (except for ${testSuiteSandboxPrefix}*), contains:${SEPARATOR_LINE}${loaderInfo}`);
             } else {
-                msgs.push(`Expected loader's appState cache to be empty (except for ${testSuiteSandboxPrefix}*) and unable to stringify appState, contains other uuids:${SEPARATOR_LINE}${nonTestAppLoaderKeys.join(', ')}`);
+                msgs.push(`Expected loader's appState cache to be empty (except for ${testSuiteSandboxPrefix}*) 
+                and unable to stringify appState, contains other uuids:${SEPARATOR_LINE}${nonTestAppLoaderKeys.join(', ')}`);
             }
         }
         if (loaderWindows.length !== 1 || loaderWindows[0] !== 'window:testApp/testApp') {
@@ -169,13 +178,14 @@ async function resetProviderState(): Promise<void> {
         }
 
         if (msgs.length > 1) {
-            return `${msgs.length} issues detected in provider state:${SEPARATOR_LINE}${msgs.map(msg => msg.replace(/\n/g, SEPARATOR_LINE)).join(SEPARATOR_LINE)}`;
+            return `${msgs.length} issues detected in provider state:
+            ${SEPARATOR_LINE}${msgs.map(msg => msg.replace(/\n/g, SEPARATOR_LINE)).join(SEPARATOR_LINE)}`;
         } else if (msgs.length === 1) {
             return msgs[0];
         } else {
             return null;
         }
-    }, {allScopes:Object.keys(ScopePrecedence) as Scopes[], testSuiteSandboxPrefix: TESTSUITE_SANDBOX_PREFIX});
+    }, {allScopes: Object.keys(ScopePrecedence) as Scopes[], testSuiteSandboxPrefix: TESTSUITE_SANDBOX_PREFIX});
 
     if (msg) {
         // Pass-through debug info from provider

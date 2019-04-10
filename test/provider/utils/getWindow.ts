@@ -6,7 +6,7 @@ export type Win = Window|Identity;
 
 export const getWindow = async (identityOrWindow: Win) => {
     // We check constructor name as `instanceof Window` cannot be relied on in the Jest environment
-    if ((identityOrWindow as any).constructor.name === '_Window') {  // tslint:disable-line:no-any
+    if ((identityOrWindow as any).constructor.name === '_Window') {
         return identityOrWindow as Window;
     }
     const identity = identityOrWindow as Identity;

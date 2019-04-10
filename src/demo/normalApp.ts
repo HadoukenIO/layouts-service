@@ -1,5 +1,6 @@
 import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
+
 import * as Layouts from '../client/main';
 import {Workspace, WorkspaceApp, WorkspaceWindow} from '../client/workspaces';
 
@@ -19,7 +20,7 @@ export async function openChild(name: string, i: number, frame = true, state = '
     numChildren++;
 
     if (bounds) {
-        return await fin.Window.create({
+        return fin.Window.create({
             url: url || `${launchDir}/child.html`,
             autoShow: true,
             defaultHeight: bounds.height,
@@ -32,7 +33,7 @@ export async function openChild(name: string, i: number, frame = true, state = '
             name
         });
     } else {
-        return await fin.Window.create({
+        return fin.Window.create({
             url: url || `${launchDir}/child.html`,
             autoShow: true,
             defaultHeight: 250 + 50 * i,
@@ -92,7 +93,6 @@ const positionWindow = async (win: WorkspaceWindow) => {
         } else if (win.state === 'maximized') {
             await ofWin.maximize();
         }
-
     } catch (e) {
         console.error('position window error', e);
     }

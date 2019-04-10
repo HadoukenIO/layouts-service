@@ -32,7 +32,10 @@ async function getTabTitle(identity: Identity) {
 
             const tabstrip = fin.desktop.Window.wrap(tabstripIdentity.uuid, tabstripIdentity.name!);
             tabstrip.executeJavaScript(
-                `document.getElementsByClassName("tab")[${tabIndex}].getElementsByClassName("tab-content")[0].innerText`, resolve, reject);
+                `document.getElementsByClassName("tab")[${tabIndex}].getElementsByClassName("tab-content")[0].innerText`,
+                resolve,
+                reject
+            );
         });
     }, identity as WindowIdentity);
 }

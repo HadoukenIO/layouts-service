@@ -1,6 +1,7 @@
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
 import {APITopic, SERVICE_CHANNEL} from '../../../src/client/internal';
+
 import {fin} from './fin';
 
 interface RemoteExecSuccess<R> {

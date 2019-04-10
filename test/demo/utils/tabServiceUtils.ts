@@ -103,11 +103,9 @@ export async function getActiveTab(identity: Identity): Promise<Identity> {
 
             if (tabGroup) {
                 return tabGroup.activeTab.identity;
-
             } else {
                 throw new Error(`Error when getting active tab: window ${desktopWindow.id} is not in a tab group`);
             }
-
         } else {
             throw new Error(`Attempted to get the tabGroup of non-existent or deregistered window: ${identity.uuid}/${identity.name}`);
         }
@@ -132,11 +130,9 @@ export async function getTabGroupState(identity: Identity): Promise<WindowState>
 
             if (tabGroup) {
                 return tabGroup.state;
-
             } else {
                 throw new Error(`Error when determining tabGroup state: window ${desktopWindow.id} is not in a tab group`);
             }
-
         } else {
             throw new Error(`Attempted to get the tabGroup of non-existent or deregistered window: ${identity.uuid}/${identity.name}`);
         }

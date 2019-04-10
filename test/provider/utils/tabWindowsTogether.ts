@@ -15,7 +15,7 @@ export async function tabWindowsTogether(target: _Window, windowToTab: _Window, 
         const targetTabGroupID = await getTabGroupID(target.identity);
         const windowToTabTabGroupID = await getTabGroupID(windowToTab.identity);
 
-        if (targetTabGroupID === null || windowToTabTabGroupID == null || (targetTabGroupID !== windowToTabTabGroupID)) {
+        if (targetTabGroupID === null || windowToTabTabGroupID === null || (targetTabGroupID !== windowToTabTabGroupID)) {
             console.warn(`Windows not tabbed following tabWindowsTogether. Target window: ${target.identity.uuid}/${target.identity.name}, ${
                 targetTabGroupID}. Window to tab: ${windowToTab.identity.uuid}/${windowToTab.identity.name}, ${windowToTabTabGroupID}`);
         }

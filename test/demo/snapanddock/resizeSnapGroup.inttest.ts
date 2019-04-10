@@ -34,7 +34,7 @@ itParameterized(
         {frame: false, windowCount: 4, resizeType: ['inner', 'horizontal']},
         {frame: false, windowCount: 4, resizeType: ['inner', 'vertical']},
         {frame: false, windowCount: 4, resizeType: ['outer', 'horizontal']},
-        {frame: false, windowCount: 4, resizeType: ['outer', 'vertical']},
+        {frame: false, windowCount: 4, resizeType: ['outer', 'vertical']}
     ],
     createWindowTest(async (context, testOptions: ResizeGroupOptions) => {
         const {resizeType, windowCount} = testOptions;
@@ -72,7 +72,7 @@ itParameterized(
                 robot.moveMouseSmooth(bounds[0].left + bounds[0].width / 2, bounds[0].top + bounds[0].height / 2);
                 robot.mouseToggle('up');
                 break;
-            case 'outer':
+            case 'outer': {
                 const startPoint: [number, number] = [combinedCenter.x + bounds[1].width / 2, combinedCenter.y + bounds[1].height / 2];
                 robot.mouseToggle('up');
                 robot.moveMouseSmooth(startPoint[0], startPoint[1]);
@@ -81,6 +81,7 @@ itParameterized(
                 robot.moveMouseSmooth(startPoint[0] * 2 - bounds[1].left - bounds[1].width / 2, startPoint[1] * 2 - bounds[1].top - bounds[1].height / 2);
                 robot.mouseToggle('up');
                 break;
+            }
             default:
                 throw new Error(`Invalid resize type: ${resizeType}. Valid options are of type ['inner | outer', 'vertical' | 'horizontal']`);
         }
@@ -90,4 +91,5 @@ itParameterized(
         // Assert still docked and adjacent
         await assertGrouped(...windows);
         windowCount === 2 ? await assertAdjacent(windows[0], windows[1]) : await assertSquare(...windows);
-    }));
+    })
+);

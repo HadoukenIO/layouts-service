@@ -148,13 +148,13 @@ export class DesktopWindow implements DesktopEntity {
                         resizableMin: !!options.resizable && (options.resizeRegion.sides.left !== false),
                         resizableMax: !!options.resizable && (options.resizeRegion.sides.right !== false),
                         minSize: options.minWidth || 0,
-                        maxSize: options.maxWidth && options.maxWidth > 0 ? options.maxWidth : Number.MAX_SAFE_INTEGER,
+                        maxSize: options.maxWidth && options.maxWidth > 0 ? options.maxWidth : Number.MAX_SAFE_INTEGER
                     },
                     y: {
                         resizableMin: !!options.resizable && (options.resizeRegion.sides.top !== false),
                         resizableMax: !!options.resizable && (options.resizeRegion.sides.bottom !== false),
                         minSize: options.minHeight || 0,
-                        maxSize: options.maxHeight && options.maxHeight > 0 ? options.maxHeight : Number.MAX_SAFE_INTEGER,
+                        maxSize: options.maxHeight && options.maxHeight > 0 ? options.maxHeight : Number.MAX_SAFE_INTEGER
                     }
                 };
 
@@ -223,7 +223,8 @@ export class DesktopWindow implements DesktopEntity {
                         this.activeTransactions.splice(indexToRemove, 1);
                     }
                 },
-                this)
+                this
+            )
         };
         this.activeTransactions.push(transaction);
         try {
@@ -448,7 +449,7 @@ export class DesktopWindow implements DesktopEntity {
         };
     }
 
-    public get[Symbol.toStringTag]() {
+    public get [Symbol.toStringTag]() {
         return this._id;
     }
 
@@ -598,7 +599,7 @@ export class DesktopWindow implements DesktopEntity {
                 await Promise.all(this._pendingActions);
             } else {
                 // If we've looped this many times, we're probably in some kind of deadlock scenario
-                return Promise.reject(`Couldn't sync ${this._id} after ${awaitCount} attempts`);
+                return Promise.reject(new Error(`Couldn't sync ${this._id} after ${awaitCount} attempts`));
             }
         }
     }
@@ -670,6 +671,7 @@ export class DesktopWindow implements DesktopEntity {
             return this.updateState({[property]: value}, ActionOrigin.SERVICE);  // TODO: Is this the right origin type?
         }
     }
+
     public async sendEvent<T extends LayoutsEvent>(event: T): Promise<void> {
         if (this._lifecycleStage === LifecycleStage.STARTING) {
             await this.sync();
@@ -787,9 +789,9 @@ export class DesktopWindow implements DesktopEntity {
                 return this.addPendingActions('snap - joinGroup', joinGroupPromise);
             });
         } else if (index === -1) {
-            return Promise.reject('Attempting to snap, but window isn\'t in the target group');
+            return Promise.reject(new Error('Attempting to snap, but window isn\'t in the target group'));
         } else {
-            return Promise.reject('Need at least 2 windows in group to snap');
+            return Promise.reject(new Error('Need at least 2 windows in group to snap'));
         }
     }
 
@@ -933,7 +935,7 @@ export class DesktopWindow implements DesktopEntity {
                             left: resizeConstraints.x.resizableMin,
                             right: resizeConstraints.x.resizableMax,
                             top: resizeConstraints.y.resizableMin,
-                            bottom: resizeConstraints.y.resizableMax,
+                            bottom: resizeConstraints.y.resizableMax
                         }
                     },
                     minWidth: resizeConstraints.x.minSize,
@@ -1105,13 +1107,14 @@ export class DesktopWindow implements DesktopEntity {
         console.log('Received window group changed event: ', event);
 
         switch (event.reason) {
-            case 'leave':
+            case 'leave': {
                 const modifiedSourceGroup = event.sourceGroup.concat({appUuid: this._identity.uuid, windowName: this._identity.name});
                 if (this._snapGroup.length > 1 && compareSnapAndEventWindowArrays(this._snapGroup.windows, modifiedSourceGroup)) {
                     return this.setSnapGroup(new DesktopSnapGroup());
                 } else {
                     return Promise.resolve();
                 }
+            }
             case 'join':
                 if (targetWindow && targetGroup) {
                     return compareSnapAndEventWindowArrays(this._snapGroup.windows, event.targetGroup) ? Promise.resolve() : this.addToSnapGroup(targetGroup);
@@ -1139,7 +1142,8 @@ export class DesktopWindow implements DesktopEntity {
             return deepEqual(
                 snapWindows.map(w => w.identity).sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid)),
                 eventWindows.map(w => ({uuid: w.appUuid, name: w.windowName}))
-                    .sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid)));
+                    .sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid))
+            );
         }
     }
 

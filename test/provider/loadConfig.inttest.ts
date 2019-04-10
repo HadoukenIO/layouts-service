@@ -22,7 +22,7 @@ function createUuid(): string {
 }
 
 async function getWindowConfig(identity: Identity): Promise<ConfigurationObject> {
-    return await executeJavascriptOnService(function(this: ProviderWindow, identity: Identity): ConfigurationObject {
+    return executeJavascriptOnService(function(this: ProviderWindow, identity: Identity): ConfigurationObject {
         const scope: Scope = {level: 'window', uuid: identity.uuid, name: identity.name || identity.uuid};
         return this.config.query(scope);
     }, identity);
@@ -84,7 +84,8 @@ it('If an application creates a child application, the config of the parent appl
     const app = await createAppWithConfig(uuids[0], {enabled: false});
     const child = await createChildApp(
         {uuid: uuids[1], mainWindowOptions: {url: 'http://localhost:1337/test/saveRestoreTestingApp.html?deregistered=false', name: uuids[1]}},
-        app.identity.uuid);
+        app.identity.uuid
+    );
 
     // Config should disable main app, child app remains registered
     assert.strictEqual((await getWindowConfig(app.identity)).enabled, false);
@@ -109,7 +110,8 @@ it('If an application creates a child application, the parent can apply rules to
         await createAppWithConfig(uuids[0], {enabled: false, rules: [{scope: {level: 'application', uuid: uuids[1]}, config: {features: {snap: false}}}]});
     const childApp = await createChildApp(
         {uuid: uuids[1], mainWindowOptions: {url: 'http://localhost:1337/test/saveRestoreTestingApp.html?deregistered=false', name: uuids[1]}},
-        app.identity.uuid);
+        app.identity.uuid
+    );
     const childWindow = await createChildWindow({name: 'childApp-win1'}, uuids[1]);
 
     // Close parent app, small delay to ensure loader captures events

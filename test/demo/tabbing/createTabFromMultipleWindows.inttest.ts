@@ -41,7 +41,7 @@ it('When calling createTabGroupsFromWorkspace, tabgroup is created as expected',
         },
         tabs: [
             {uuid: app1.identity.uuid, name: win1.identity.name!},
-            {uuid: app2.identity.uuid, name: win2.identity.name!},
+            {uuid: app2.identity.uuid, name: win2.identity.name!}
         ]
     }];
 

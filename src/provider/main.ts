@@ -43,7 +43,8 @@ export async function main() {
         console.error('Desktop has non-standard display scaling. Notifying user and disabling all layouts functionality.');
 
         const errorMessage =
-            'OpenFin Layouts will only work with monitors that are set to a scaling ratio of 100%. This can be changed in monitor or display settings. \n\nPlease contact support@openfin.co with any further questions.';
+            `OpenFin Layouts will only work with monitors that are set to a scaling ratio of 100%. This can be changed in monitor or display settings.
+            \n\nPlease contact support@openfin.co with any further questions.`;
 
         const providerChannel: ChannelProvider = await fin.InterApplicationBus.Channel.create(SERVICE_CHANNEL);
         providerChannel.onConnection((app: Identity) => {

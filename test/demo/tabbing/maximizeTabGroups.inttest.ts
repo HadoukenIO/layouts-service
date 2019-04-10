@@ -17,7 +17,7 @@ itParameterized(
     (testOptions) => `windowCount: ${testOptions.windowCount}`,
     [
         {windowCount: 3, frame: false},
-        {windowCount: 4, frame: false},
+        {windowCount: 4, frame: false}
     ],
     createWindowTest(async(context, testOptions: MaximizeTabGroupsInstance): Promise<void> => {
         const {windows} = context;
@@ -50,4 +50,5 @@ itParameterized(
         } else {
             await assertNotGrouped(windows[2]);
         }
-    }));
+    })
+);

@@ -1,0 +1,12 @@
+{
+    "eslint.run": "onSave",
+    "eslint.validate": [
+        "javascript",
+        "javascriptreact",
+        "typescript",
+        "typescriptreact"
+    ],
+    "eslint.options": {
+        "configFile": "./node_modules/openfin-service-tooling/.eslintrc.json"
+    }
+}

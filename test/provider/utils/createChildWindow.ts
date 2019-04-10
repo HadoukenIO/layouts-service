@@ -1,5 +1,6 @@
 import {Application, Identity} from 'hadouken-js-adapter';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
+
 import {fin} from '../../demo/utils/fin';
 
 let childWindowCount = 1;

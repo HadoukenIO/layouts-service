@@ -54,4 +54,5 @@ itParameterized<CreateAppData>(
             await assertPairTabbed(win1, win2);
             await assertGrouped(win1, win2);
         }
-    }));
+    })
+);

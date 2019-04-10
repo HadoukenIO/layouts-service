@@ -1,6 +1,7 @@
+import * as os from 'os';
+
 import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
-import * as os from 'os';
 
 import {getActiveTab, getTabGroupID, getTabstrip} from '../../demo/utils/tabServiceUtils';
 
@@ -26,7 +27,15 @@ export async function getBounds(identityOrWindow: Win): Promise<NormalizedBounds
         return bounds as NormalizedBounds;
     }
     return Object.assign(
-        bounds, {left: bounds.left + 7, right: bounds.right - 7, bottom: bounds.bottom - 7, height: bounds.height - 7, width: bounds.width - 14});
+        bounds,
+        {
+            left: bounds.left + 7,
+            right: bounds.right - 7,
+            bottom: bounds.bottom - 7,
+            height: bounds.height - 7,
+            width: bounds.width - 14
+        }
+    );
 }
 
 export async function getTabsetBounds(tabOrTabstrip: _Window): Promise<NormalizedBounds> {
@@ -49,9 +58,8 @@ export async function getTabsetBounds(tabOrTabstrip: _Window): Promise<Normalize
         return {
             ...tabBounds,
             top: tabstripBounds.top,
-            height: tabstripBounds.height + tabBounds.height,
+            height: tabstripBounds.height + tabBounds.height
         };
-
     } else {
         throw new Error('Attempted to get tabstrip bounds of un-tabbed window.');
     }

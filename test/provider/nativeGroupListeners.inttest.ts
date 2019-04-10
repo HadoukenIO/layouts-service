@@ -14,14 +14,14 @@ import {getBounds} from './utils/getBounds';
 // similar tests)
 const groupingFunctions = {
     'snap': snapWindows,
-    'native': groupWindows,
+    'native': groupWindows
 };
 
 // Valid ways of ungrouping two windows (used to parameterize large number of
 // similar tests)
 const ungroupingFunctions = {
     'unsnap': unsnapWindows,
-    'native': ungroupWindows,
+    'native': ungroupWindows
 };
 
 type GroupingType = keyof typeof groupingFunctions;

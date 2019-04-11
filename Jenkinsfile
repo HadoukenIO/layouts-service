@@ -40,25 +40,31 @@ pipeline {
             when { branch "develop" }
             steps {
                 script {
-                    setEnvironmentVars("layouts", PKG_VERSION + "-alpha." + env.BUILD_NUMBER, "staging", "app.staging.json")
-                }
+                    GIT_SHORT_SHA = sh ( script: "git rev-parse --short HEAD", returnStdout: true ).trim()
+                    PKG_VERSION = sh ( script: "node -pe \"require('./package.json').version\"", returnStdout: true ).trim()
 
+                    BUILD_VERSION = PKG_VERSION + "-alpha." + env.BUILD_NUMBER
+                    CHANNEL = "staging"
+                    MANIFEST_NAME = "app.staging.json"
+
+                    S3_LOC = env.DSERVICE_S3_ROOT + "layouts/" + BUILD_VERSION
+                    DOCS_CHANNEL_LOC = env.DSERVICE_S3_ROOT_DOCS + "layouts/" + CHANNEL
+                    DOCS_VERSIONED_LOC = env.DSERVICE_S3_ROOT_DOCS + "layouts/" + BUILD_VERSION
+                    MANIFEST_LOC = env.DSERVICE_S3_ROOT + "layouts/" + MANIFEST_NAME
+                }
                 sh "npm i --ignore-scripts"
                 sh "SERVICE_VERSION=${BUILD_VERSION} npm run build"
                 sh "echo ${GIT_SHORT_SHA} > ./dist/SHA.txt"
-
                 sh "npm run zip"
                 sh "npm install bootprint@2.0.1 bootprint-json-schema@2.0.0-rc.3 --no-save"
                 sh "npm run docs"
+                sh "aws s3 cp ./res/provider ${S3_LOC}/ --recursive"
+                sh "aws s3 cp ./dist/provider ${S3_LOC}/ --recursive"
+                sh "aws s3 cp ./dist/client/openfin-layouts.js ${S3_LOC}/"
 
-                sh "aws s3 cp ./res/provider ${DIR_BUILD_VERSION}/ --recursive"
-                sh "aws s3 cp ./dist/provider ${DIR_BUILD_VERSION}/ --recursive"
-                sh "aws s3 cp ./dist/client/openfin-${SERVICE_NAME}.js ${DIR_BUILD_VERSION}/"
-
-                sh "aws s3 cp ./dist/docs ${DIR_DOCS_CHANNEL} --recursive"
-                sh "aws s3 cp ./dist/docs ${DIR_DOCS_VERSION} --recursive"
-
-                sh "aws s3 cp ./dist/provider/app.json ${DIR_BUILD_ROOT}${MANIFEST_NAME}"
+                sh "aws s3 cp ./dist/docs ${DOCS_CHANNEL_LOC} --recursive"
+                sh "aws s3 cp ./dist/docs ${DOCS_VERSIONED_LOC} --recursive"
+                sh "aws s3 cp ./dist/provider/app.json ${MANIFEST_LOC}"
 
                 withCredentials([string(credentialsId: "NPM_TOKEN_WRITE", variable: 'NPM_TOKEN')]) {
                     sh "echo //registry.npmjs.org/:_authToken=$NPM_TOKEN > $WORKSPACE/.npmrc"
@@ -81,34 +87,25 @@ pipeline {
                     BUILD_VERSION = PKG_VERSION
                     CHANNEL = "stable"
                     MANIFEST_NAME = "app.json"
-                    SERVICE_NAME = "layouts"
 
-                    DIR_BUILD_ROOT = env.DSERVICE_S3_ROOT + SERVICE_NAME + "/"
-                    DIR_BUILD_VERSION = DIR_BUILD_ROOT + BUILD_VERSION
-
-                    DIR_DOCS_ROOT = env.DSERVICE_S3_ROOT_DOCS + SERVICE_NAME + "/"
-                    DIR_DOCS_CHANNEL = DIR_DOCS_ROOT + CHANNEL
-                    DIR_DOCS_VERSION = DIR_DOCS_ROOT + BUILD_VERSION
+                    S3_LOC = env.DSERVICE_S3_ROOT + "layouts/" + BUILD_VERSION
+                    DOCS_CHANNEL_LOC = env.DSERVICE_S3_ROOT_DOCS + "layouts/" + CHANNEL
+                    DOCS_VERSIONED_LOC = env.DSERVICE_S3_ROOT_DOCS + "layouts/" + BUILD_VERSION
+                    MANIFEST_LOC = env.DSERVICE_S3_ROOT + "layouts/" + MANIFEST_NAME
                 }
-
                 sh "npm i --ignore-scripts"
                 sh "SERVICE_VERSION=${BUILD_VERSION} npm run build"
                 sh "echo ${GIT_SHORT_SHA} > ./dist/SHA.txt"
-
                 sh "npm run zip"
                 sh "npm install bootprint@2.0.1 bootprint-json-schema@2.0.0-rc.3 --no-save"
                 sh "npm run docs"
-                sh "npm run channels"
+                sh "aws s3 cp ./res/provider ${S3_LOC}/ --recursive"
+                sh "aws s3 cp ./dist/provider ${S3_LOC}/ --recursive"
+                sh "aws s3 cp ./dist/client/openfin-layouts.js ${S3_LOC}/"
 
-                sh "aws s3 cp ./res/provider ${DIR_BUILD_VERSION}/ --recursive"
-                sh "aws s3 cp ./dist/provider ${DIR_BUILD_VERSION}/ --recursive"
-                sh "aws s3 cp ./dist/client/openfin-${SERVICE_NAME}.js ${DIR_BUILD_VERSION}/"
-
-                sh "aws s3 cp ./dist/docs ${DIR_DOCS_CHANNEL} --recursive"
-                sh "aws s3 cp ./dist/docs ${DIR_DOCS_VERSION} --recursive"
-
-                sh "aws s3 cp ./dist/provider/app.json ${DIR_BUILD_ROOT}${MANIFEST_NAME}"
-                sh "aws s3 cp ./dist/provider --exclude * --include app.runtime-*.json ${DIR_BUILD_ROOT}"
+                sh "aws s3 cp ./dist/docs ${DOCS_CHANNEL_LOC} --recursive"
+                sh "aws s3 cp ./dist/docs ${DOCS_VERSIONED_LOC} --recursive"
+                sh "aws s3 cp ./dist/provider/app.json ${MANIFEST_LOC}"
 
                 withCredentials([string(credentialsId: "NPM_TOKEN_WRITE", variable: 'NPM_TOKEN')]) {
                     sh "echo //registry.npmjs.org/:_authToken=$NPM_TOKEN > $WORKSPACE/.npmrc"
@@ -118,21 +115,4 @@ pipeline {
             }
         }
     }
-}
-
-def setEnvironmentVars(serviceName, version, channel, manifestName) {
-    env.GIT_SHORT_SHA = sh ( script: "git rev-parse --short HEAD", returnStdout: true ).trim()
-    env.PKG_VERSION = sh ( script: "node -pe \"require('./package.json').version\"", returnStdout: true ).trim()
-
-    env.BUILD_VERSION = env.PKG_VERSION
-    env.CHANNEL = "stable"
-    env.MANIFEST_NAME = "app.json"
-    env.SERVICE_NAME = "layouts"
-
-    env.DIR_BUILD_ROOT = env.DSERVICE_S3_ROOT + env.SERVICE_NAME + "/"
-    env.DIR_BUILD_VERSION = DIR_BUILD_ROOT + env.BUILD_VERSION
-
-    env.DIR_DOCS_ROOT = env.DSERVICE_S3_ROOT_DOCS + env.SERVICE_NAME + "/"
-    env.DIR_DOCS_CHANNEL = env.DIR_DOCS_ROOT + env.CHANNEL
-    env.DIR_DOCS_VERSION = env.DIR_DOCS_ROOT + env.BUILD_VERSION
 }

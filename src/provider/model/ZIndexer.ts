@@ -53,6 +53,20 @@ export class ZIndexer {
             const ofWin = fin.Window.wrapSync(evt);
             this._addEventListeners(ofWin);
         });
+        
+        // Add event listeners to newly created external windows.
+        // Using "...shown" event here instead of "...created" because most external
+        // windows are hidden at first when created, shown afterwards.
+        fin.System.addListener('external-window-shown', (evt: WindowEvent<'system', 'external-window-shown'>) => {
+            const { uuid } = evt;
+            const identity = { uuid, name: uuid, isExternalWindow: true };
+            const foundExternalWindow = this._model.getWindow(identity);
+            
+            if (!foundExternalWindow) {
+                const wrappedExternalWindow = fin.ExternalWindow.wrapSync(identity);
+                this._addEventListeners(wrappedExternalWindow);
+            }
+        });
 
         // Register all existing applications
         fin.System.getAllApplications().then((apps: ApplicationInfo[]) => {
@@ -67,6 +81,20 @@ export class ZIndexer {
                         this._addEventListeners(child);
                     });
                 });
+            });
+        });
+
+        // Register all UI-friendly external windows that were created 
+        // before the service started
+        (<any>fin.System).getAllExternalWindows().then((externalWindows: any) => {
+            externalWindows.forEach((e: any) => {
+                const { uuid, visible } = e;
+                const identity = { uuid, name: uuid, isExternalWindow: true };
+
+                if (visible) {
+                    const wrappedExternalWindow = fin.ExternalWindow.wrapSync(identity);
+                    this._addEventListeners(wrappedExternalWindow);
+                }
             });
         });
     }

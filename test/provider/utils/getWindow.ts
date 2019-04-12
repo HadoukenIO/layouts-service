@@ -1,13 +1,17 @@
 import {Identity, Window} from 'hadouken-js-adapter';
 
-import {getConnection} from './connect';
+import {fin} from '../../demo/utils/fin';
 
 export type Win = Window|Identity;
 
 export const getWindow = async (identityOrWindow: Win) => {
-    if (identityOrWindow instanceof Window) {
-        return identityOrWindow;
+    // We check constructor name as `instanceof Window` cannot be relied on in the Jest environment
+    if ((identityOrWindow as any).constructor.name === '_Window') {
+        return identityOrWindow as Window;
     }
-    const fin = await getConnection();
-    return fin.Window.wrap(identityOrWindow);
+    const identity = identityOrWindow as Identity;
+
+    // We extract fields from identity here as an extra guard against passing a full window into wrap,
+    // which can cause serialization problems later
+    return fin.Window.wrap({uuid: identity.uuid, name: identity.name});
 };

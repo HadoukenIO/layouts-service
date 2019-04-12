@@ -1,12 +1,12 @@
 import {Application} from 'hadouken-js-adapter';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import {getConnection} from '../../provider/utils/connect';
 import {createChildWindow} from '../../provider/utils/createChildWindow';
 import {delay} from '../../provider/utils/delay';
 import {dragSideToSide} from '../../provider/utils/dragWindowTo';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 
+import {fin} from './fin';
 import {TestCreationOptions} from './workspacesUtils';
 
 interface TestParamBase {
@@ -159,7 +159,6 @@ export class AppInitializer {
     constructor() {}
 
     public async initApps(params: AppInitializerParams[]): Promise<TestAppData[]> {
-        const fin = await getConnection();
         const result: TestAppData[] = [];
 
         for (let appIdx = 0; appIdx < params.length; appIdx++) {

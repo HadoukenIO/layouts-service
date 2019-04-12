@@ -2,12 +2,12 @@ import {Rect} from 'hadouken-js-adapter/out/types/src/api/system/monitor';
 import * as assert from 'power-assert';
 
 import {assertNotTabbed, assertPairTabbed} from '../../provider/utils/assertions';
-import {getConnection} from '../../provider/utils/connect';
 import {dragWindowTo} from '../../provider/utils/dragWindowTo';
 import {getBounds, getTabsetBounds, NormalizedBounds} from '../../provider/utils/getBounds';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 import {teardown} from '../../teardown';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
+import {fin} from '../utils/fin';
 import {itParameterized} from '../utils/parameterizedTestUtils';
 import {getTabGroupState} from '../utils/tabServiceUtils';
 
@@ -28,7 +28,6 @@ itParameterized(
         {frame: false, windowCount: 2, tabTo: 'maximized'}
     ],
     createWindowTest(async (context, testOptions: TabToMaximizedWindowTestOptions) => {
-        const fin = await getConnection();
         const {windows} = context;
 
         await windows[1].maximize();

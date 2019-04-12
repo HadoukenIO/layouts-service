@@ -4,17 +4,16 @@ import * as assert from 'power-assert';
 
 import {SERVICE_IDENTITY, WorkspaceAPI} from '../../../src/client/internal';
 import {Workspace} from '../../../src/client/workspaces';
-import {getConnection} from '../../provider/utils/connect';
 import {BasicSaveRestoreTestOptions} from '../workspaces/basicSaveAndRestore.inttest';
 import {SnapSaveRestoreTestOptions} from '../workspaces/snapSaveAndRestore.inttest';
 import {TabSaveRestoreTestOptions} from '../workspaces/tabSaveAndRestore.inttest';
 
 import {createAppsArray, createWindowGroupings, TestAppData} from './AppInitializer';
 import {AppContext} from './createAppTest';
+import {fin} from './fin';
 import {sendServiceMessage} from './serviceUtils';
 
 async function isWindowActive(uuid: string, name: string) {
-    const fin = await getConnection();
     const allWindows = await fin.System.getAllWindows();
 
     return allWindows.some(win => {

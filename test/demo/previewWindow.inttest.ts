@@ -5,7 +5,6 @@ import robot from 'robotjs';
 import {CreateWindowData, createWindowTest} from '../demo/utils/createWindowTest';
 import {itParameterized} from '../demo/utils/parameterizedTestUtils';
 import {assertAdjacent} from '../provider/utils/assertions';
-import {getConnection} from '../provider/utils/connect';
 import {delay} from '../provider/utils/delay';
 import {dragWindowAndHover} from '../provider/utils/dragWindowAndHover';
 import {dragSideToSide} from '../provider/utils/dragWindowTo';
@@ -14,6 +13,7 @@ import {opposite, Side} from '../provider/utils/SideUtils';
 import {tabWindowsTogether} from '../provider/utils/tabWindowsTogether';
 import {teardown} from '../teardown';
 
+import {fin} from './utils/fin';
 import {getTabstrip} from './utils/tabServiceUtils';
 import {tearoutToOtherTabstrip, tearoutToPoint} from './utils/tabstripUtils';
 
@@ -37,7 +37,6 @@ itParameterized(
         const {windows} = context;
         const {side} = testOptions;
 
-        const fin = await getConnection();
         const previewWin: _Window = await fin.Window.wrap({name: 'successPreview', uuid: 'layouts-service'});
         const windowBounds = await Promise.all([getBounds(windows[0]), getBounds(windows[1])]);
 
@@ -73,7 +72,6 @@ itParameterized(
         const {dimension, direction} = testOptions;
         const {windows} = context;
 
-        const fin = await getConnection();
         const previewWin: _Window = await fin.Window.wrap({name: 'successPreview', uuid: 'layouts-service'});
         const windowBounds = await Promise.all([getBounds(windows[0]), getBounds(windows[1])]);
 
@@ -105,7 +103,6 @@ itParameterized(
         const {windowCount} = testOptions;
         const {windows} = context;
 
-        const fin = await getConnection();
         const previewWin: _Window = await fin.Window.wrap({name: 'successPreview', uuid: 'layouts-service'});
         const windowBounds = await Promise.all([getBounds(windows[0]), getBounds(windows[1])]);
 
@@ -135,7 +132,6 @@ itParameterized(
         const {windowCount} = testOptions;
         const {windows} = context;
 
-        const fin = await getConnection();
         const previewWin: _Window = await fin.Window.wrap({name: 'successPreview', uuid: 'layouts-service'});
 
         await windows[0].moveTo(40, 40);

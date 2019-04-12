@@ -3,12 +3,12 @@ import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import * as assert from 'power-assert';
 
 import {createApp} from '../../src/demo/spawn';
+import {fin} from '../demo/utils/fin';
 import {isWindowRegistered} from '../demo/utils/snapServiceUtils';
 import {createCloseAndRestoreLayout} from '../demo/utils/workspacesUtils';
 import {teardown} from '../teardown';
 
 import {assertGrouped, assertNotGrouped} from './utils/assertions';
-import {getConnection} from './utils/connect';
 import {dragSideToSide} from './utils/dragWindowTo';
 
 type TestContext = {
@@ -22,7 +22,7 @@ const context: TestContext = {
 };
 
 beforeAll(async () => {
-    (global as NodeJS.Global & {fin: Fin}).fin = await getConnection();
+    Object.assign(global, {fin});
 });
 
 beforeEach(async () => {

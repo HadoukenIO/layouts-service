@@ -7,7 +7,7 @@ OpenFin Layouts delivers window management and layout user experience across the
 This project consist of 3 parts:
 1. The Layouts Service, which manages the state of windows, tabs and layouts
 2. The Layouts Client, which exposes calls to programmatically control snap/dock, tabbing and save/restore
-3. Layout Service Demo app, demonstrating the different features of OpenFin Layout
+3. The Layouts Demo App, demonstrating the different features of OpenFin Layouts
 
 ### Dependencies
 - OpenFin version for applications using Layouts = 9.61.38.41
@@ -31,7 +31,7 @@ This project consist of 3 parts:
    - The service comes with a Chrome-like default tabstrip that will be used if no custom tabstrip is defined
 - Save & Restore
    - The service has APIs for generating and restoring workspaces
-   - The provided demo showcases how a layout manager application could use the APIs to manage layouts
+   - The provided demo showcases how a layout manager application could use the APIs to manage workspaces
 - APIs
    - APIs available to undock, ungroup, tab/un-tab, save/restore workspaces, and opt-out of service functionality
 - Hosting
@@ -73,11 +73,11 @@ npm install openfin-layouts
 
 The client library is also available as a resource which can be included via `<script>` tag:
 ```
-   <script src="https://cdn.openfin/services/openfin/layouts/<VERSION>/openfin-layouts.js"></script>
+<script src="https://cdn.openfin.co/services/openfin/layouts/<VERSION>/openfin-layouts.js"></script>
 ```
 This will expose the global variable `layouts` with the API methods documented in the link below.  Example:
 ```
-   layouts.snapAndDock.undockWindow();
+layouts.snapAndDock.undockWindow();
 ```
 
 The client module exports a set of functions - [API docs available here](https://cdn.openfin.co/docs/services/layouts/stable/api/).
@@ -99,7 +99,7 @@ After checkout, install project dependencies using `npm install`. The integratio
 - Installing the [pre-requisites](http://robotjs.io/docs/) of robotjs.
   - A simple one-liner alternative is to use [windows-build-tools](https://www.npmjs.com/package/windows-build-tools), by running `npm install -g windows-build-tools` with Administrator privileges.
 
-To setup the project whilst avoiding the above dependencies, can instead be installed with `npm install --ignore-scripts`.
+To setup the project whilst avoiding the above dependencies, install using `npm install --ignore-scripts`.
 
 ### Startup
 Once dependencies are installed, start the "built-in" sample application with `npm start`. This uses `webpack-dev-middleware` to both build and host the application; a custom server script will start the OpenFin application once the server is up and running.
@@ -121,7 +121,7 @@ npm test
 This will run unit tests followed by the integration tests. These steps can also be ran individually via `npm run test:unit` and `npm run test:int`. When running the tests separately in this way, both test runners support some optional arguments. Append `--help` to either of the above `npm run` commands to see the available options.
 
 ### Deployment
-Staging and production builds are managed via the Jenkinsfile build script. This will build the project as usual (except with the `--production` argument) and then deploy the client and provider to their respective locations. The demo application exists only within this repo and is not deployed.
+Staging and production builds are managed via the Jenkinsfile build script. This will build the project as usual (except with the `--mode production` argument) and then deploy the client and provider to their respective locations. The demo application exists only within this repo and is not deployed.
 
 The service client is deployed as an NPM module, so that it can be included as a dependency in any application that wishes to integrate with the service.
 
@@ -131,14 +131,14 @@ The service provider is a standard OpenFin application, only its lifecycle is co
 - If using Parallels Desktop, you have to be in a mode where Parallels can control the mouse. Set `Settings>Hardware>Mouse&Keyboard>Mouse` to `Optimize for Games`
 
 ## Known Issues
-A list of known issues can be found on our [Versions page](https://developer.openfin.co/versions/?product=Services).
+A list of known issues can be found on our [versions page](https://developer.openfin.co/versions/?product=Services).
 
 ## License
 This project uses the [Apache2 license](https://www.apache.org/licenses/LICENSE-2.0).
 
 However, if you run this code, it may call on the OpenFin RVM or OpenFin Runtime, which are covered by OpenFin's Developer, Community, and Enterprise licenses. You can learn more about OpenFin licensing at the links listed below or just email us at support@openfin.co with questions.
 
-https://openfin.co/developer-agreement/
+https://openfin.co/developer-agreement/  
 https://openfin.co/licensing/
 
 ## Support

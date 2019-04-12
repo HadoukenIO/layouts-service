@@ -46,7 +46,7 @@ pipeline {
                     configure("layouts", PKG_VERSION + "-alpha." + env.BUILD_NUMBER, "staging", "app.staging.json")
                 }
 
-                build();
+                buildProject();
                 deployToS3();
                 deployToNPM();
             }
@@ -63,7 +63,7 @@ pipeline {
                     configure("layouts", PKG_VERSION, "stable", "app.json")
                 }
 
-                build();
+                buildProject();
                 addReleaseChannels();
                 deployToS3();
                 deployToNPM();
@@ -86,7 +86,7 @@ def configure(serviceName, version, channel, manifestName) {
     DIR_DOCS_VERSION = DIR_DOCS_ROOT + BUILD_VERSION
 }
 
-def build() {
+def buildProject() {
     sh "npm run clean"
     sh "SERVICE_VERSION=${BUILD_VERSION} npm run build"
     sh "echo ${GIT_SHORT_SHA} > ./dist/SHA.txt"

@@ -417,7 +417,7 @@ export async function setRestoreHandler(listener: (workspaceApp: WorkspaceApp) =
  * import {workspaces} from 'openfin-layouts';
  * import {Workspace} from 'openfin-layouts/dist/client/workspaces';
  *
- * async function saveCurrentWorkspace {
+ * async function saveCurrentWorkspace() {
  *    const workspaceObject: Workspace = await workspaces.generate();
  *    // Persist the workspaceObject in a location of your choosing
  *    saveWorkspace(workspaceObject);

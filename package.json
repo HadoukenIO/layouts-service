@@ -41,10 +41,9 @@
     "json-schema-defaults": "^0.4.0",
     "json-schema-to-typescript": "^6.1.0",
     "mkdirp": "^0.5.1",
-    "openfin-service-tooling": "^1.0.6",
+    "openfin-service-tooling": "^1.0.7",
     "power-assert": "^1.6.1",
     "pre-commit": "^1.2.2",
-    "rimraf": "^2.6.2",
     "robotjs": "^0.5.1",
     "ts-jest": "^24.0.0",
     "typescript": "~3.3.4000"

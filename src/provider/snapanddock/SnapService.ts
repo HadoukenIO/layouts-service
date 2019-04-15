@@ -45,19 +45,24 @@ export class SnapService {
         this._resolver = new Resolver(config);
 
         // Register global undock hotkey listener
-        fin.GlobalHotkey
-            .register(
-                'CommandOrControl+Shift+U',
-                () => {
-                    fin.desktop.System.getFocusedWindow(focusedWindow => {
-                        if (focusedWindow !== null && model.getWindow(focusedWindow)) {
-                            console.log('Global hotkey invoked on window', focusedWindow);
-                            this.undock(focusedWindow);
-                        }
-                    });
+        fin.GlobalHotkey.register('CommandOrControl+Shift+U', async () => {
+            let focusedWindow = await (<any>fin.System).getFocusedWindow();
+            
+            // If none of the OpenFin windows is focused, check external windows.
+            if (!focusedWindow) {
+                focusedWindow = await (<any>fin.System).getFocusedExternalWindow();
+
+                if (focusedWindow) {
+                    focusedWindow.name = focusedWindow.uuid;
+                    focusedWindow.isExternalWindow = true;
                 }
-            )
-            .catch(console.error);
+            }
+
+            if (focusedWindow !== null && model.getWindow(focusedWindow)) {
+                console.log('Global hotkey invoked on window', focusedWindow);
+                this.undock(focusedWindow);
+            }
+        }).catch(console.error);
     }
 
     public async undock(target: WindowIdentity): Promise<void> {

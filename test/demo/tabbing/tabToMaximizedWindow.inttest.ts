@@ -61,10 +61,9 @@ itParameterized(
     (testOptions) => `frame: ${testOptions.frame}`,
     [
         {frame: true, windowCount: 2},
-        {frame: false, windowCount: 2},
+        {frame: false, windowCount: 2}
     ],
     createWindowTest(async (context: WindowContext, testOptions: CreateWindowData) => {
-        const fin = await getConnection();
         const {windows} = context;
 
         // Record pre-maximized bounds
@@ -88,7 +87,8 @@ itParameterized(
 
         // Check restored bounds equal bounds before maximizing
         assert.deepEqual(beforeTabbingBounds, afterTabbingBounds);
-    }));
+    })
+);
 
 itParameterized(
     'When dragging a window on-top another window hidden by a maximized window, windows do not become tabbed',

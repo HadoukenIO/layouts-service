@@ -209,7 +209,7 @@ export class ConfigUtil {
             return false;
         } else {
             switch (rule.level) {
-                case 'window':
+                case 'window': {
                     const winScope = scope as WindowScope;
 
                     if (!this.checkPattern(rule.name, winScope.name)) {
@@ -219,13 +219,15 @@ export class ConfigUtil {
                     }
 
                     return true;
-                case 'application':
+                }
+                case 'application': {
                     const appScope = scope as ApplicationScope;
                     if (rule.uuid && !this.checkPattern(rule.uuid, appScope.uuid)) {
                         return false;
                     }
 
                     return true;
+                }
                 default:
                     return true;
             }

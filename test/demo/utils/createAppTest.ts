@@ -56,7 +56,7 @@ export function createAppTest<T extends CreateAppData>(testFunc: ContextTestMacr
             await testFunc(context, data);
         } finally {
             // Close all windows
-            await Promise.all(testAppData.map(async appData => await appData.app.close(true)));
+            await Promise.all(testAppData.map(async appData => appData.app.close(true)));
             await delay(500);
         }
     };

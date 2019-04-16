@@ -4,17 +4,16 @@ import * as assert from 'power-assert';
 
 import {SERVICE_IDENTITY, WorkspaceAPI} from '../../../src/client/internal';
 import {Workspace} from '../../../src/client/workspaces';
-import {getConnection} from '../../provider/utils/connect';
 import {BasicSaveRestoreTestOptions} from '../workspaces/basicSaveAndRestore.inttest';
 import {SnapSaveRestoreTestOptions} from '../workspaces/snapSaveAndRestore.inttest';
 import {TabSaveRestoreTestOptions} from '../workspaces/tabSaveAndRestore.inttest';
 
 import {createAppsArray, createWindowGroupings, TestAppData} from './AppInitializer';
 import {AppContext} from './createAppTest';
+import {fin} from './fin';
 import {sendServiceMessage} from './serviceUtils';
 
 async function isWindowActive(uuid: string, name: string) {
-    const fin = await getConnection();
     const allWindows = await fin.System.getAllWindows();
 
     return allWindows.some(win => {
@@ -42,13 +41,13 @@ function assertIsLayoutObject(layout: Workspace) {
 
 async function getTestApps(): Promise<Application[]> {
     return Promise.all((await fin.System.getAllApplications())
-                           .filter((app: ApplicationInfo) => {
-                               const uuid = app.uuid;
-                               return uuid !== 'layouts-service' && uuid !== 'testApp';
-                           })
-                           .map((app: ApplicationInfo) => {
-                               return fin.Application.wrapSync({uuid: app.uuid});
-                           }));
+        .filter((app: ApplicationInfo) => {
+            const uuid = app.uuid;
+            return uuid !== 'layouts-service' && uuid !== 'testApp';
+        })
+        .map((app: ApplicationInfo) => {
+            return fin.Application.wrapSync({uuid: app.uuid});
+        }));
 }
 
 export async function createCloseAndRestoreLayout(context?: AppContext): Promise<Workspace> {
@@ -82,7 +81,10 @@ export interface TestCreationOptions {
 }
 
 export function createBasicSaveAndRestoreTest(
-    numAppsToCreate: number, numberOfChildren: number, testOptions?: TestCreationOptions): BasicSaveRestoreTestOptions {
+    numAppsToCreate: number,
+    numberOfChildren: number,
+    testOptions?: TestCreationOptions
+): BasicSaveRestoreTestOptions {
     const appsArray = createAppsArray(numAppsToCreate, numberOfChildren, testOptions);
 
     return {apps: appsArray};

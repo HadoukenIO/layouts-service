@@ -85,6 +85,7 @@ export class Tab {
 
         this._properties.title = text;
     }
+
     /**
      * Handles the HTML5 DragEvent onStart
      * @param {DragEvent} e DragEvent
@@ -204,6 +205,7 @@ export class Tab {
                     that._ID,
                 );
             } catch (e) {
+                // Catch and continue on input removal
             }
         }
 

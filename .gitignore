@@ -1,9 +1,7 @@
 .vs
-.vscode
 .DS_STORE
 npm-debug.log
 openfin-layouts-*.tgz
-
 dist
 gen
 node_modules

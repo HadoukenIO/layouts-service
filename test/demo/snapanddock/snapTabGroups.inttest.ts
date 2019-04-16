@@ -59,7 +59,8 @@ itParameterized<SnapTabInstanceData&CreateWindowData>(
         await assertPairTabbed(windows[0], windows[1]);
         await assertPairTabbed(windows[2], windows[3]);
         await assertGrouped(...windows);
-    }));
+    })
+);
 
 itParameterized<SnapTabInstanceData&CreateWindowData>(
     'When a tabbed window is in a snapgroup, tabs work as expected',
@@ -85,7 +86,8 @@ itParameterized<SnapTabInstanceData&CreateWindowData>(
         await assertPairTabbed(windows[0], windows[1]);
         await assertPairTabbed(windows[2], windows[3]);
         await assertGrouped(...windows);
-    }));
+    })
+);
 
 itParameterized<SnapTabInstanceData&CreateWindowData>(
     'When a tabbed window is in a snapgroup, can tearout tabs',
@@ -103,7 +105,8 @@ itParameterized<SnapTabInstanceData&CreateWindowData>(
 
         await assertPairTabbed(windows[2], windows[3]);
         await assertGrouped(...windows.slice(1));
-    }));
+    })
+);
 
 itParameterized<SnapTabInstanceData&CreateWindowData>(
     'When a tabbed window is in a snapgroup, can drag a new window into the tabgroup',
@@ -126,7 +129,8 @@ itParameterized<SnapTabInstanceData&CreateWindowData>(
         await assertPairTabbed(windows[0], windows[1]);
         await assertPairTabbed(windows[2], windows[3]);
         await assertGrouped(...windows);
-    }));
+    })
+);
 
 itParameterized<SnapTabInstanceData&CreateWindowData>(
     'When two tabbed windows share a snapgroup, can drag a tab from one tabgroup to another',
@@ -154,7 +158,8 @@ itParameterized<SnapTabInstanceData&CreateWindowData>(
         await assertPairTabbed(windows[0], windows[1]);
         await assertPairTabbed(windows[2], windows[3]);
         await assertGrouped(...windows);
-    }));
+    })
+);
 
 itParameterized<SnapTabInstanceData&CreateWindowData>(
     'When two tabbed windows share a snapgroup, can drag a tab to form a tabgroup in a different snapgroup',
@@ -178,4 +183,5 @@ itParameterized<SnapTabInstanceData&CreateWindowData>(
         await assertPairTabbed(windows[0], windows[1]);
         await assertPairTabbed(windows[2], windows[3]);
         await assertGrouped(...windows.slice(2));
-    }));
+    })
+);

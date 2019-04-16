@@ -2,12 +2,12 @@ import {Rect} from 'hadouken-js-adapter/out/types/src/api/system/monitor';
 import * as assert from 'power-assert';
 
 import {assertNotTabbed, assertPairTabbed} from '../../provider/utils/assertions';
-import {getConnection} from '../../provider/utils/connect';
 import {dragWindowTo} from '../../provider/utils/dragWindowTo';
 import {getBounds, getTabsetBounds, NormalizedBounds} from '../../provider/utils/getBounds';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 import {teardown} from '../../teardown';
 import {CreateWindowData, createWindowTest, WindowContext} from '../utils/createWindowTest';
+import {fin} from '../utils/fin';
 import {itParameterized} from '../utils/parameterizedTestUtils';
 import {layoutsClientPromise} from '../utils/serviceUtils';
 import {getTabGroupIdentity, getTabGroupState} from '../utils/tabServiceUtils';
@@ -26,10 +26,9 @@ itParameterized(
         {frame: true, windowCount: 2, tabTo: 'restored'},
         {frame: true, windowCount: 2, tabTo: 'maximized'},
         {frame: false, windowCount: 2, tabTo: 'restored'},
-        {frame: false, windowCount: 2, tabTo: 'maximized'},
+        {frame: false, windowCount: 2, tabTo: 'maximized'}
     ],
     createWindowTest(async (context, testOptions: TabToMaximizedWindowTestOptions) => {
-        const fin = await getConnection();
         const {windows} = context;
 
         await windows[1].maximize();
@@ -54,7 +53,8 @@ itParameterized(
             // Windows should not have tabbed
             await Promise.all(windows.map(win => assertNotTabbed(win)));
         }
-    }));
+    })
+);
 
 itParameterized(
     'When dragging a window on-top another window, restore bounds are preserved',
@@ -95,7 +95,7 @@ itParameterized(
     (testOptions) => `frame: ${testOptions.frame}`,
     [
         {frame: true, windowCount: 3},
-        {frame: false, windowCount: 3},
+        {frame: false, windowCount: 3}
     ],
     createWindowTest(async context => {
         const {windows} = context;
@@ -112,4 +112,5 @@ itParameterized(
 
         // None of the windows should be tabbed
         await Promise.all(windows.map(win => assertNotTabbed(win)));
-    }));
+    })
+);

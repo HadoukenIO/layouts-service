@@ -12,6 +12,7 @@
  * This file is excluded from the public-facing TypeScript documentation.
  */
 import {EventEmitter} from 'events';
+
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
 import {SnapAndDockEvent} from '../client/snapanddock';
@@ -50,7 +51,7 @@ if (typeof fin !== 'undefined') {
 export function getServicePromise(): Promise<ChannelClient> {
     if (!channelPromise) {
         channelPromise = typeof fin === 'undefined' ?
-            Promise.reject('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.') :
+            Promise.reject(new Error('fin is not defined. The openfin-layouts module is only intended for use in an OpenFin application.')) :
             fin.InterApplicationBus.Channel.connect(SERVICE_CHANNEL, {payload: {version: PACKAGE_VERSION}}).then((channel: ChannelClient) => {
                 // Register service listeners
                 channel.register('WARN', (payload: any) => console.warn(payload));  // tslint:disable-line:no-any

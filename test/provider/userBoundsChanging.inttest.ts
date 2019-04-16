@@ -1,20 +1,14 @@
-import {Fin, Window} from 'hadouken-js-adapter';
+import {Window} from 'hadouken-js-adapter';
 import * as assert from 'power-assert';
 
 import {teardown} from '../teardown';
 
-import {getConnection} from './utils/connect';
 import {createChildWindow} from './utils/createChildWindow';
 import {delay} from './utils/delay';
 import {getBounds} from './utils/getBounds';
 
-let fin: Fin;
-
 let wins: Window[] = [];
 
-beforeAll(async () => {
-    fin = await getConnection();
-});
 beforeEach(async () => {
     // Spawn two windows - wins[0] un-tabbed, wins[1] tabbed.  Any additional windows needed should be created in the test.
     wins[0] = await createChildWindow({
@@ -57,8 +51,12 @@ afterEach(teardown);
 it('When animating window movement, windows should not snap', async () => {
     const win2Bounds = await getBounds(wins[1]);
 
-    await wins[0].animate(
-        {position: {left: win2Bounds.left + 50, top: win2Bounds.top - (win2Bounds.bottom - win2Bounds.top + 2), duration: 3000}}, {interrupt: false});
+    await wins[0].animate({
+        position: {
+            left: win2Bounds.left + 50,
+            top: win2Bounds.top - (win2Bounds.bottom - win2Bounds.top + 2),
+            duration: 3000}
+    }, {interrupt: false});
 
     await wins[1].animate({position: {left: 500, top: 500, duration: 3000}}, {interrupt: false});
 

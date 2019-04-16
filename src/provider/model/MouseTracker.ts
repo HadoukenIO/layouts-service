@@ -1,5 +1,7 @@
 import {Point, PointTopLeft} from 'hadouken-js-adapter/out/types/src/api/system/point';
+
 import {DragWindowManager} from '../tabbing/DragWindowManager';
+
 import {DesktopWindow, EntityState, eTransformType, Mask} from './DesktopWindow';
 
 /**

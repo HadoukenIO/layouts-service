@@ -77,7 +77,6 @@ export class WindowHandler {
         if (target && target.valid) {
             if (target.type === eTargetType.TAB) {
                 tabService.applyTabTarget(target);
-
             } else if (target.type === eTargetType.SNAP) {
                 snapService.applySnapTarget(target);
             }

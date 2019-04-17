@@ -1,12 +1,12 @@
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
-import {stub} from './utils/FinMock';
 import {ErrorMsgs} from '../../src/client/internal';
-
 import {getServicePromise} from '../../src/client/connection';
 import {TabAPI, UpdateTabPropertiesPayload} from '../../src/client/internal';
 import {tabbing, tabstrip, WindowIdentity} from '../../src/client/main';
-import {TabProperties} from "../../src/client/tabbing";
+import {TabProperties} from '../../src/client/tabbing';
+
+import {stub} from './utils/FinMock';
 
 
 stub();

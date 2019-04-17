@@ -24,7 +24,7 @@ itParameterized<TwoWindowTestOptions>(
         {frame: false, windowCount: 2, side: 'top'},
         {frame: false, windowCount: 2, side: 'bottom'},
         {frame: false, windowCount: 2, side: 'left'},
-        {frame: false, windowCount: 2, side: 'right'},
+        {frame: false, windowCount: 2, side: 'right'}
     ],
     createWindowTest(async (context, testOptions: TwoWindowTestOptions) => {
         const windows = context.windows;
@@ -44,7 +44,8 @@ itParameterized<TwoWindowTestOptions>(
         // Assert still docked and adjacent
         await assertAdjacent(windows[0], windows[1], side);
         await assertGrouped(windows[0], windows[1]);
-    }));
+    })
+);
 
 
 itParameterized<CreateWindowData>(
@@ -52,7 +53,7 @@ itParameterized<CreateWindowData>(
     (testOptions: CreateWindowData): string => `${testOptions.windowCount} windows - ${testOptions.frame}}`,
     [
         {frame: true, windowCount: 4},
-        {frame: false, windowCount: 4},
+        {frame: false, windowCount: 4}
     ],
     createWindowTest(async context => {
         const {windows} = context;
@@ -74,4 +75,5 @@ itParameterized<CreateWindowData>(
         // Assert still docked and adjacent
         await assertGrouped(...windows);
         await assertSquare(...windows);
-    }));
+    })
+);

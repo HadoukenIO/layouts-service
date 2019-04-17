@@ -1,11 +1,11 @@
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
-import {stub} from './utils/FinMock';
 import {ErrorMsgs} from '../../src/client/internal';
-
 import {getServicePromise} from '../../src/client/connection';
 import {TabAPI} from '../../src/client/internal';
 import {tabbing, WindowIdentity} from '../../src/client/main';
+
+import {stub} from './utils/FinMock';
 
 stub();
 
@@ -53,7 +53,7 @@ describe('When calling removeTab', () => {
 
     it('Calling with invalid name rejects with error message', async () => {
         // @ts-ignore Intentional bad parameters
-        const promise = tabbing.removeTab({uuid: 'somerandomuuid', name: 1}); 
+        const promise = tabbing.removeTab({uuid: 'somerandomuuid', name: 1});
         await expect(promise).rejects.toThrowError(ErrorMsgs.INVALID_IDENTITY_NAME);
     });
 
@@ -121,7 +121,7 @@ describe('When calling closeTab', () => {
     it('Calling with invalid uuid rejects with error message', async () => {
         const uuid: string = null!;
         const name = 'somename';
-        
+
         const promise = tabbing.closeTab({uuid, name});
         await expect(promise).rejects.toThrowError(ErrorMsgs.INVALID_IDENTITY_UUID);
     });
@@ -130,7 +130,7 @@ describe('When calling closeTab', () => {
         const uuid = 'testuuid';
         const name: string = null!;
         const expectedPayload: WindowIdentity = {uuid, name: uuid};
-        
+
         await tabbing.closeTab({uuid, name});
         await expect(channelDispatch).toBeCalledWith(TabAPI.CLOSETAB, expectedPayload);
     });

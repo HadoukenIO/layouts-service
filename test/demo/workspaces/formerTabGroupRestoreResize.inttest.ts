@@ -54,4 +54,5 @@ itParameterized<CreateAppData>(
         } else {
             assert.fail('Improper test options passed in. Test options must include tabWindowGroupings in order to test');
         }
-    }));
+    })
+);

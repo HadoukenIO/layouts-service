@@ -1,10 +1,12 @@
 import {Application} from 'hadouken-js-adapter';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
-import {getConnection} from '../../provider/utils/connect';
+
 import {createChildWindow} from '../../provider/utils/createChildWindow';
 import {delay} from '../../provider/utils/delay';
 import {dragSideToSide} from '../../provider/utils/dragWindowTo';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
+
+import {fin} from './fin';
 import {TestCreationOptions} from './workspacesUtils';
 
 interface TestParamBase {
@@ -31,7 +33,7 @@ export interface TestAppData {
 }
 
 const CHILD_WINDOW_BASE = {
-    url: `http://localhost:1337/test/demo-window.html`,
+    url: 'http://localhost:1337/test/demo-window.html',
     autoShow: true,
     defaultHeight: 225,
     defaultWidth: 225,
@@ -100,7 +102,7 @@ export function createAppsArray(numAppsToCreate: number, numberOfChildren: numbe
                 appInitializerOptions.manifestUrl =
                     `http://localhost:1337/create-manifest?defaultTop=${defaultTop}&uuid=${id}&url=${encodeURIComponent(`${testOptions.url}`)}`;
                 if (testOptions.autoShow === false) {
-                    appInitializerOptions.manifestUrl += `&autoShow=false`;
+                    appInitializerOptions.manifestUrl += '&autoShow=false';
                 }
             }
         }
@@ -157,7 +159,6 @@ export class AppInitializer {
     constructor() {}
 
     public async initApps(params: AppInitializerParams[]): Promise<TestAppData[]> {
-        const fin = await getConnection();
         const result: TestAppData[] = [];
 
         for (let appIdx = 0; appIdx < params.length; appIdx++) {
@@ -193,7 +194,7 @@ export class AppInitializer {
                 uuid: createdApp.identity.uuid,
                 app: createdApp,
                 mainWindow: await createdApp.getWindow(),
-                children: childWindows,
+                children: childWindows
             });
         }
 

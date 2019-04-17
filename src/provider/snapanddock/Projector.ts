@@ -212,12 +212,12 @@ class BorderProjection implements Range {
      */
     public opposite: Orientation;
 
-    public distance: number;  //< Distance between the edge of the active window and the closest candidate window in this direction
-    public limit: number;     //< Absolute pixel co-ordinate of the closest candidate window in this direction. (for the 'orientation' axis)
-    public min: number;  //< Minimum extent of this border. Initialised to very large positive number, so that any 'less than' check for the first window to
-                         // find will always pass.
-    public max: number;  //< Maximum extend of this border. Initialised to very large negative number, so that any 'greater than' check for the first window to
-                         // find will always pass.
+    public distance: number;  // < Distance between the edge of the active window and the closest candidate window in this direction
+    public limit: number;     // < Absolute pixel co-ordinate of the closest candidate window in this direction. (for the 'orientation' axis)
+    public min: number;  // < Minimum extent of this border. Initialised to very large positive number, so that any 'less than' check for the first window to
+    // find will always pass.
+    public max: number;  // < Maximum extend of this border. Initialised to very large negative number, so that any 'greater than' check for the first window to
+    // find will always pass.
 
     constructor(direction: eDirection) {
         this.direction = direction;

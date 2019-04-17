@@ -1,14 +1,14 @@
 import {Identity} from 'hadouken-js-adapter';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
-import {SERVICE_IDENTITY, TabAPI, UpdateTabPropertiesPayload} from '../../../src/client/internal';
+
+import {TabAPI, UpdateTabPropertiesPayload} from '../../../src/client/internal';
 import {WindowIdentity} from '../../../src/client/main';
 import {TabProperties} from '../../../src/client/tabbing';
 import {WindowState} from '../../../src/client/workspaces';
-
 import {DesktopTabGroup} from '../../../src/provider/model/DesktopTabGroup';
 import {DesktopWindow} from '../../../src/provider/model/DesktopWindow';
-import {getConnection} from '../../provider/utils/connect';
 
+import {fin} from './fin';
 import {executeJavascriptOnService, sendServiceMessage} from './serviceUtils';
 
 /**
@@ -69,7 +69,6 @@ export async function getTabstrip(identity: Identity): Promise<_Window> {
     const tabGroupIdentity: WindowIdentity|null = await getTabGroupIdentity(identity);
 
     if (tabGroupIdentity) {
-        const fin = await getConnection();
         return fin.Window.wrapSync(tabGroupIdentity);
     } else {
         throw new Error(`Window ${identity.uuid}/${identity.name} either doesn't exist or isn't tabbed`);
@@ -104,11 +103,9 @@ export async function getActiveTab(identity: Identity): Promise<Identity> {
 
             if (tabGroup) {
                 return tabGroup.activeTab.identity;
-
             } else {
                 throw new Error(`Error when getting active tab: window ${desktopWindow.id} is not in a tab group`);
             }
-
         } else {
             throw new Error(`Attempted to get the tabGroup of non-existent or deregistered window: ${identity.uuid}/${identity.name}`);
         }
@@ -133,11 +130,9 @@ export async function getTabGroupState(identity: Identity): Promise<WindowState>
 
             if (tabGroup) {
                 return tabGroup.state;
-
             } else {
                 throw new Error(`Error when determining tabGroup state: window ${desktopWindow.id} is not in a tab group`);
             }
-
         } else {
             throw new Error(`Attempted to get the tabGroup of non-existent or deregistered window: ${identity.uuid}/${identity.name}`);
         }

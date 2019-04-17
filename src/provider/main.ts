@@ -1,3 +1,4 @@
+import {Identity} from 'hadouken-js-adapter';
 import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
 
 import {ConfigurationObject} from '../../gen/provider/config/layouts-config';
@@ -11,7 +12,6 @@ import {DesktopTabGroup} from './model/DesktopTabGroup';
 import {SnapService} from './snapanddock/SnapService';
 import {win10Check} from './snapanddock/utils/platform';
 import {TabService} from './tabbing/TabService';
-import {createErrorBox} from './utils/error';
 import {WindowHandler} from './WindowHandler';
 
 export type ConfigStore = Store<ConfigurationObject>;
@@ -43,14 +43,15 @@ export async function main() {
         console.error('Desktop has non-standard display scaling. Notifying user and disabling all layouts functionality.');
 
         const errorMessage =
-            'OpenFin Layouts will only work with monitors that are set to a scaling ratio of 100%. This can be changed in monitor or display settings. \n\nPlease contact <a href="mailto:support@openfin.co">support@openfin.co</a> with any further questions.';
-        const title = 'OpenFin Layouts Notice';
-        await createErrorBox(title, errorMessage);
+            `OpenFin Layouts will only work with monitors that are set to a scaling ratio of 100%. This can be changed in monitor or display settings.
+            \n\nPlease contact support@openfin.co with any further questions.`;
 
         const providerChannel: ChannelProvider = await fin.InterApplicationBus.Channel.create(SERVICE_CHANNEL);
+        providerChannel.onConnection((app: Identity) => {
+            providerChannel.dispatch(app, 'WARN', errorMessage);
+        });
         providerChannel.setDefaultAction(() => {
-            throw Error(
-                'OpenFin Layouts will only work with monitors that are set to a scaling ratio of 100%. This can be changed in monitor or display settings. \n\nPlease contact support@openfin.co with any further questions. \n');
+            throw Error(errorMessage);
         });
 
         return;  // NOTE: Service will still be running, but will not function.

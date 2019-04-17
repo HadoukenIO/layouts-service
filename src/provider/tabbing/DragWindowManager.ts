@@ -109,7 +109,8 @@ export class DragWindowManager {
                 },
                 () => {
                     resolve();
-                });
+                }
+            );
         });
 
         this.setWindowBounds();
@@ -157,7 +158,8 @@ export class DragWindowManager {
             this._virtualScreen.left,
             this._virtualScreen.top,
             this._virtualScreen.right - this._virtualScreen.left,
-            this._virtualScreen.bottom - this._virtualScreen.top);
+            this._virtualScreen.bottom - this._virtualScreen.top
+        );
         this._window.hide();
     }
 }

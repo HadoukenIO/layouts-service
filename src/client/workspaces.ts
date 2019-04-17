@@ -334,16 +334,16 @@ export function removeEventListener<K extends WorkspacesEvent>(eventType: K['typ
  *
  * The callback will be invoked on each call to {@link generate}, and the return value (if anything is returned)
  * will be saved as the workspace's `customData` property for this app within the generated {@link Workspace}.
- * 
+ *
  * ``` ts
  * import {workspaces} from 'openfin-layouts';
- * 
+ *
  * workspaces.setGenerateHandler(() => {
  *     // Return custom data
  *     return {currentStockSymbol: this._currentStockSymbol};
  * });
  * ```
- * 
+ *
  */
 export async function setGenerateHandler(customDataDecorator: () => CustomData): Promise<boolean> {
     const channel: ChannelClient = await getServicePromise();
@@ -370,7 +370,7 @@ export async function setGenerateHandler(customDataDecorator: () => CustomData):
  * ``` ts
  * import {workspaces} from 'openfin-layouts';
  * import {WorkspaceApp, WorkspaceWindow} from 'openfin-layouts/dist/client/workspaces';
- * 
+ *
  * async function appRestoreHandler(workspaceApp: Workspace) {
  *     const ofApp = await fin.Application.getCurrent();
  *     const openWindows = await ofApp.getChildWindows();
@@ -386,12 +386,12 @@ export async function setGenerateHandler(customDataDecorator: () => CustomData):
  *         // The user provides this positioning function
  *         await positionWindow(childWinInfo, openChildWin);
  *     });
- * 
+ *
  *     // Wait for all windows to open and be positioned before returning
  *     await Promise.all(opened);
  *     return layoutApp;
  * }
- * 
+ *
  * workspaces.setRestoreHandler(appRestoreHandler);
  * ```
  */
@@ -412,7 +412,7 @@ export async function setRestoreHandler(listener: (workspaceApp: WorkspaceApp) =
  * If an application wishes to restore its child windows and store custom data, it must properly integrate with the
  * layouts service by both registering {@link setGenerateHandler|generate} and {@link setRestoreHandler|restore} callbacks, and
  * calling the {@link ready} function. If this is not done properly, workspace restoration may be disrupted.
- * 
+ *
  * ``` ts
  * import {workspaces} from 'openfin-layouts';
  * import {Workspace} from 'openfin-layouts/dist/client/workspaces';
@@ -424,7 +424,7 @@ export async function setRestoreHandler(listener: (workspaceApp: WorkspaceApp) =
  *    return workspaceObject;
  * }
  * ```
- * 
+ *
  */
 export async function generate(): Promise<Workspace> {
     return tryServiceDispatch<undefined, Workspace>(WorkspaceAPI.GENERATE_LAYOUT);
@@ -460,16 +460,16 @@ export async function generate(): Promise<Workspace> {
  * service will then group all windows that were formerly snapped together.
  *
  * Finally, the layouts service will send a 'workspace-restored' event to all windows, and complete restoration.
- * 
+ *
  * ``` ts
  * import {workspaces} from 'openfin-layouts';
- * 
+ *
  * workspaces.restore(workspaceObject).then(result => {
  *    // Promise resolves with result once the layout has been restored
  *    handleResult(result);
  * });
  * ```
- * 
+ *
  */
 export async function restore(payload: Workspace): Promise<Workspace> {
     return tryServiceDispatch<Workspace, Workspace>(WorkspaceAPI.RESTORE_LAYOUT, payload);
@@ -483,7 +483,7 @@ export async function restore(payload: Workspace): Promise<Workspace> {
  *
  * Note that by not calling this function, and workspace {@link restore} operation will hang
  * indefinitely.
- * 
+ *
  * ``` ts
  * import {workspaces} from 'openfin-layouts';
  *
@@ -491,7 +491,7 @@ export async function restore(payload: Workspace): Promise<Workspace> {
  * workspaces.setGenerateHandler(someGenerateFunction);
  * workspaces.ready();
  * ```
- * 
+ *
  */
 export async function ready(): Promise<Workspace> {
     return tryServiceDispatch<undefined, Workspace>(WorkspaceAPI.APPLICATION_READY);

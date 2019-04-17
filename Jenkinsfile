@@ -6,7 +6,6 @@ pipeline {
         stage('Run Tests') {
             parallel {
                 stage('Unit Tests') {
-                    agent { label 'linux-slave' }
                     steps {
                         sh "npm i --ignore-scripts"
                         sh "npm run generate"
@@ -36,7 +35,6 @@ pipeline {
         }
 
         stage('Build & Deploy (Staging)') {
-            agent { label 'linux-slave' }
             when { branch "develop" }
             steps {
                 script {
@@ -77,7 +75,6 @@ pipeline {
         }
 
         stage('Build & Deploy (Production)') {
-            agent { label 'linux-slave' }
             when { branch "master" }
             steps {
                 script {

@@ -9,7 +9,7 @@ import {RectUtils} from '../snapanddock/utils/RectUtils';
 
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopTabGroup} from './DesktopTabGroup';
-import {DesktopWindow, EntityState, eTransformType, Mask} from './DesktopWindow';
+import {DesktopWindow, EntityState, eTransformType, Mask, ResizeConstraint} from './DesktopWindow';
 
 export class DesktopSnapGroup {
     private static _nextId = 1;
@@ -78,11 +78,14 @@ export class DesktopSnapGroup {
 
     private _validateGroup: Debounced<() => void, DesktopSnapGroup, []>;
 
+    private _storedResizeConstraints: Map<string, Point<ResizeConstraint>>|null;
+
     constructor() {
         this._id = DesktopSnapGroup._nextId++;
         this._entities = [];
         this._windows = [];
         this.rootWindow = null;
+        this._storedResizeConstraints = null;
 
         const refreshFunc = this.calculateProperties.bind(this);
         this._localBounds = new CalculatedProperty<Rectangle>(refreshFunc);
@@ -179,6 +182,38 @@ export class DesktopSnapGroup {
 
     public isNonTrivial(): boolean {
         return this._entities.length >= 2;
+    }
+
+    /**
+     * This allows us to temporarily remove resize constraints, which causes problems when moving a snap group when display
+     * scaling is enabled
+     */
+    public suspendResizeConstraints(): void {
+        if (this._windows.length > 2) {
+            const nullConstraint: ResizeConstraint = {resizableMin: true, resizableMax: true, minSize: 0, maxSize: Number.MAX_SAFE_INTEGER};
+            const nullConstraints: Point<ResizeConstraint> = {x: nullConstraint, y: nullConstraint};
+
+            this._storedResizeConstraints = new Map<string, Point<ResizeConstraint>>();
+
+            for (const window of this._windows) {
+                this._storedResizeConstraints.set(window.id, window.currentState.resizeConstraints);
+
+                window.applyProperties({resizeConstraints: nullConstraints});
+            }
+        }
+    }
+
+    public restoreResizeConstraints(): void {
+        if (this._storedResizeConstraints) {
+            for (const window of this._windows) {
+                if (this._storedResizeConstraints.has(window.id)) {
+                    const constraints = this._storedResizeConstraints.get(window.id)!;
+                    window.applyProperties({resizeConstraints: constraints});
+                }
+            }
+
+            this._storedResizeConstraints = null;
+        }
     }
 
     private validateGroupInternal(): void {

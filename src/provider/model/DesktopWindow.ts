@@ -1043,11 +1043,20 @@ export class DesktopWindow implements DesktopEntity {
         const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
         const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
 
+        let transformType: Mask<eTransformType>;
+
+        if (this._userInitiatedBoundsChange) {
+            transformType = this.updateTransformType(event, this._userInitiatedBoundsChange);
+        }
+
         this.updateState({center, halfSize}, ActionOrigin.APPLICATION);
 
         if (this._userInitiatedBoundsChange) {
-            this.onCommit.emit(this, this.getTransformType(event, this._userInitiatedBoundsChange));
+            this.onCommit.emit(this, transformType!);
 
+            if (this._model.displayScaling) {
+                this._snapGroup.restoreResizeConstraints();
+            }
             // Setting this here instead of in 'end-user-bounds-changing' event to ensure we are still synced when this method is called.
             this._userInitiatedBoundsChange = null;
         } else {
@@ -1064,16 +1073,24 @@ export class DesktopWindow implements DesktopEntity {
         const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
         const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
 
+        let transformType: Mask<eTransformType>;
+
+        if (this._userInitiatedBoundsChange) {
+            transformType = this.updateTransformType(event, this._userInitiatedBoundsChange);
+        }
+
         this.updateState({center, halfSize}, ActionOrigin.APPLICATION);
 
         if (this._userInitiatedBoundsChange) {
-            this.onTransform.emit(this, this.getTransformType(event, this._userInitiatedBoundsChange));
+            this.onTransform.emit(this, transformType!);
         }
     }
 
-    private getTransformType(event: fin.WindowBoundsEvent, boundsChange: BoundsChange): Mask<eTransformType> {
+    private updateTransformType(event: fin.WindowBoundsEvent, boundsChange: BoundsChange): Mask<eTransformType> {
         // If display scaling is enabled, distrust the changeType given by the runtime
         if (this._model.displayScaling) {
+            const prevTransformType = boundsChange.confirmedTransformType || eTransformType.MOVE;
+
             const startBounds = boundsChange.startBounds;
 
             const bounds = this.checkBounds(event);
@@ -1112,12 +1129,15 @@ export class DesktopWindow implements DesktopEntity {
             evaluateAxis('x');
             evaluateAxis('y');
 
-            if (boundsChange.confirmedTransformType !== 0) {
-                return boundsChange.confirmedTransformType;
-            } else {
-                // Regard every transform as a move until proven overwise, so as to not disrupt tabbing
-                return eTransformType.MOVE;
+            const newTransformType = boundsChange.confirmedTransformType | eTransformType.MOVE;
+
+            if (newTransformType === eTransformType.MOVE && prevTransformType !== eTransformType.MOVE) {
+                this._snapGroup.restoreResizeConstraints();
+            } else if (newTransformType !== eTransformType.MOVE && prevTransformType === eTransformType.MOVE) {
+                this._snapGroup.suspendResizeConstraints();
             }
+
+            return newTransformType;
         } else {
             // Convert 'changeType' into our enum type
             return event.changeType + 1;
@@ -1128,6 +1148,12 @@ export class DesktopWindow implements DesktopEntity {
         const startBounds = {center: {...this.currentState.center}, halfSize: {...this.currentState.halfSize}};
 
         this._userInitiatedBoundsChange = {startBounds, confirmedTransformType: 0};
+
+        const transformType = this.updateTransformType(event, this._userInitiatedBoundsChange);
+
+        if (this._model.displayScaling && transformType === eTransformType.MOVE) {
+            this._snapGroup.suspendResizeConstraints();
+        }
     }
 
     private handleClosing(): void {

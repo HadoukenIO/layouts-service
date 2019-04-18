@@ -189,7 +189,7 @@ export class DesktopSnapGroup {
      * scaling is enabled
      */
     public suspendResizeConstraints(): void {
-        if (this._windows.length > 2) {
+        if (this._windows.length > 2 && !this._storedResizeConstraints) {
             const nullConstraint: ResizeConstraint = {resizableMin: true, resizableMax: true, minSize: 0, maxSize: Number.MAX_SAFE_INTEGER};
             const nullConstraints: Point<ResizeConstraint> = {x: nullConstraint, y: nullConstraint};
 
@@ -208,6 +208,7 @@ export class DesktopSnapGroup {
             for (const window of this._windows) {
                 if (this._storedResizeConstraints.has(window.id)) {
                     const constraints = this._storedResizeConstraints.get(window.id)!;
+
                     window.applyProperties({resizeConstraints: constraints});
                 }
             }

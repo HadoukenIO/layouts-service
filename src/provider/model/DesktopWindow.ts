@@ -118,7 +118,7 @@ interface Transaction {
  * The minimum change needed for a user initiated bounds change to be confirmed as a move or a resize. This will only be used
  * when display scaling is non-1, as in this case we can trust the transform type returned by the runtime
  */
-const MINIMUM_RESIZE_CHANGE = 1;
+const MINIMUM_RESIZE_CHANGE = 2;
 const MINIMUM_MOVE_CHANGE = 1;
 
 export class DesktopWindow implements DesktopEntity {
@@ -1074,21 +1074,43 @@ export class DesktopWindow implements DesktopEntity {
     private getTransformType(event: fin.WindowBoundsEvent, boundsChange: BoundsChange): Mask<eTransformType> {
         // If display scaling is enabled, distrust the changeType given by the runtime
         if (this._model.displayScaling) {
+            const startBounds = boundsChange.startBounds;
+
             const bounds = this.checkBounds(event);
             const halfSize = {x: bounds.width / 2, y: bounds.height / 2};
             const center = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
 
-            const startBounds = boundsChange.startBounds;
+            const evaluateAxis = (axis: 'x'|'y') => {
+                const resize = Math.abs(startBounds.halfSize[axis] - halfSize[axis]) * 2 > MINIMUM_RESIZE_CHANGE;
+                let move = false;
+                if (!resize) {
+                    if (Math.abs(startBounds.center[axis] - center[axis]) > MINIMUM_MOVE_CHANGE) {
+                        move = true;
+                    }
+                } else {
+                    // Test that we're not resizing from the min or max edge, or symmetrically
+                    const possibleCentersGivenResize = [
+                        startBounds.center[axis],
+                        (startBounds.center[axis] - startBounds.halfSize[axis]) + halfSize[axis],
+                        (startBounds.center[axis] + startBounds.halfSize[axis]) - halfSize[axis]
+                    ];
 
-            if (Math.abs(startBounds.halfSize.x - halfSize.x) > MINIMUM_RESIZE_CHANGE ||
-                Math.abs(startBounds.halfSize.y - halfSize.y) > MINIMUM_RESIZE_CHANGE) {
-                boundsChange.confirmedTransformType |= eTransformType.RESIZE;
-            }
+                    if (!possibleCentersGivenResize.some(possibleCenter => Math.abs(possibleCenter - center[axis]) <= MINIMUM_MOVE_CHANGE)) {
+                        move = true;
+                    }
+                }
 
-            if (Math.abs(startBounds.center.x - center.x) > MINIMUM_MOVE_CHANGE ||
-                Math.abs(startBounds.center.y - center.y) > MINIMUM_MOVE_CHANGE) {
-                boundsChange.confirmedTransformType |= eTransformType.MOVE;
-            }
+                if (move) {
+                    boundsChange.confirmedTransformType |= eTransformType.MOVE;
+                }
+
+                if (resize) {
+                    boundsChange.confirmedTransformType |= eTransformType.RESIZE;
+                }
+            };
+
+            evaluateAxis('x');
+            evaluateAxis('y');
 
             if (boundsChange.confirmedTransformType !== 0) {
                 return boundsChange.confirmedTransformType;

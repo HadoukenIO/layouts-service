@@ -1129,7 +1129,7 @@ export class DesktopWindow implements DesktopEntity {
             evaluateAxis('x');
             evaluateAxis('y');
 
-            const newTransformType = boundsChange.confirmedTransformType | eTransformType.MOVE;
+            const newTransformType = boundsChange.confirmedTransformType;
 
             if (newTransformType === eTransformType.MOVE && prevTransformType !== eTransformType.MOVE) {
                 this._snapGroup.restoreResizeConstraints();

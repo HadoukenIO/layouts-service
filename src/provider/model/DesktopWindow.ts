@@ -1085,7 +1085,8 @@ export class DesktopWindow implements DesktopEntity {
                 boundsChange.confirmedTransformType |= eTransformType.RESIZE;
             }
 
-            if (Math.abs(startBounds.center.x - center.x) > MINIMUM_MOVE_CHANGE || Math.abs(startBounds.center.y - center.y) > MINIMUM_MOVE_CHANGE) {
+            if (Math.abs(startBounds.center.x - center.x) > MINIMUM_MOVE_CHANGE ||
+                Math.abs(startBounds.center.y - center.y) > MINIMUM_MOVE_CHANGE) {
                 boundsChange.confirmedTransformType |= eTransformType.MOVE;
             }
 

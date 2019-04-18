@@ -1080,14 +1080,21 @@ export class DesktopWindow implements DesktopEntity {
 
             const startBounds = boundsChange.startBounds;
 
-            if (Math.abs(startBounds.halfSize.x - halfSize.x) > MINIMUM_RESIZE_CHANGE ||
-                Math.abs(startBounds.halfSize.y - halfSize.y) > MINIMUM_RESIZE_CHANGE) {
-                boundsChange.confirmedTransformType |= eTransformType.RESIZE;
-            }
+            const leftEdgeChanged = Math.abs((center.x - halfSize.x) - (startBounds.center.x - startBounds.halfSize.x)) > MINIMUM_RESIZE_CHANGE;
+            const rightEdgeChanged = Math.abs((center.x + halfSize.x) - (startBounds.center.x + startBounds.halfSize.x)) > MINIMUM_RESIZE_CHANGE;
+            const topEdgeChanged = Math.abs((center.y - halfSize.y) - (startBounds.center.y - startBounds.halfSize.y)) > MINIMUM_RESIZE_CHANGE;
+            const bottomEdgeChanged = Math.abs((center.y + halfSize.y) - (startBounds.center.y + startBounds.halfSize.y)) > MINIMUM_RESIZE_CHANGE;
 
-            if (Math.abs(startBounds.center.x - center.x) > MINIMUM_MOVE_CHANGE ||
-                Math.abs(startBounds.center.y - center.y) > MINIMUM_MOVE_CHANGE) {
-                boundsChange.confirmedTransformType |= eTransformType.MOVE;
+            const allEdgesChanged = leftEdgeChanged && rightEdgeChanged && topEdgeChanged && bottomEdgeChanged;
+            const anyEdgesChanged = leftEdgeChanged || rightEdgeChanged || topEdgeChanged || bottomEdgeChanged;
+
+            if (anyEdgesChanged) {
+                if ((Math.abs(center.x - startBounds.center.x) > MINIMUM_MOVE_CHANGE ||
+                     Math.abs(center.y - startBounds.center.y) > MINIMUM_MOVE_CHANGE) && allEdgesChanged) {
+                    boundsChange.confirmedTransformType |= eTransformType.MOVE;
+                } else {
+                    boundsChange.confirmedTransformType |= eTransformType.RESIZE;
+                }
             }
 
             if (boundsChange.confirmedTransformType !== 0) {

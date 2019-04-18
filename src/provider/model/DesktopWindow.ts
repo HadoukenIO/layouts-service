@@ -1,6 +1,7 @@
 import deepEqual from 'fast-deep-equal';
 import {Identity, Window} from 'hadouken-js-adapter';
 import {WindowInfo} from 'hadouken-js-adapter/out/types/src/api/window/window';
+import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
 
 import {WindowScope} from '../../../gen/provider/config/layouts-config';
 import {LayoutsEvent} from '../../client/connection';
@@ -67,6 +68,10 @@ export enum eTransformType {
     RESIZE = 1 << 1
 }
 
+interface BoundsChange {
+    confirmedTransformType: Mask<eTransformType>;
+    startBounds: Rectangle;
+}
 
 enum ActionOrigin {
     /**
@@ -108,6 +113,13 @@ interface Transaction {
     windows: DesktopWindow[];
     remove: Debounced<() => void, typeof DesktopWindow, []>;
 }
+
+/**
+ * The minimum change needed for a user initiated bounds change to be confirmed as a move or a resize. This will only be used
+ * when display scaling is non-1, as in this case we can trust the transform type returned by the runtime
+ */
+const MINIMUM_RESIZE_CHANGE = 1;
+const MINIMUM_MOVE_CHANGE = 1;
 
 export class DesktopWindow implements DesktopEntity {
     public static readonly onCreated: Signal1<DesktopWindow> = new Signal1();
@@ -342,7 +354,7 @@ export class DesktopWindow implements DesktopEntity {
     private _registeredListeners: Map<OpenFinWindowEvent, (event: fin.OpenFinWindowEventMap[OpenFinWindowEvent]) => void> = new Map();
 
     private _moveInProgress = false;
-    private _userInitiatedBoundsChange = false;
+    private _userInitiatedBoundsChange: BoundsChange|null;
 
     constructor(model: DesktopModel, window: fin.WindowOptions|Window, initialState?: EntityState) {
         const identity = DesktopWindow.getIdentity(window);
@@ -391,6 +403,8 @@ export class DesktopWindow implements DesktopEntity {
         this._tabGroup = null;
         this._prevGroup = null;
         this._snapGroup.addWindow(this);
+
+        this._userInitiatedBoundsChange = null;
 
         if (this.isReady) {
             this.addListeners();
@@ -1032,10 +1046,10 @@ export class DesktopWindow implements DesktopEntity {
         this.updateState({center, halfSize}, ActionOrigin.APPLICATION);
 
         if (this._userInitiatedBoundsChange) {
-            this.onCommit.emit(this, this.getTransformType(event));
+            this.onCommit.emit(this, this.getTransformType(event, this._userInitiatedBoundsChange));
 
             // Setting this here instead of in 'end-user-bounds-changing' event to ensure we are still synced when this method is called.
-            this._userInitiatedBoundsChange = false;
+            this._userInitiatedBoundsChange = null;
         } else {
             this.onModified.emit(this);
         }
@@ -1053,17 +1067,44 @@ export class DesktopWindow implements DesktopEntity {
         this.updateState({center, halfSize}, ActionOrigin.APPLICATION);
 
         if (this._userInitiatedBoundsChange) {
-            this.onTransform.emit(this, this.getTransformType(event));
+            this.onTransform.emit(this, this.getTransformType(event, this._userInitiatedBoundsChange));
         }
     }
 
-    private getTransformType(event: fin.WindowBoundsEvent): Mask<eTransformType> {
-        // Convert 'changeType' into our enum type
-        return event.changeType + 1;
+    private getTransformType(event: fin.WindowBoundsEvent, boundsChange: BoundsChange): Mask<eTransformType> {
+        // If display scaling is enabled, distrust the changeType given by the runtime
+        if (this._model.displayScaling) {
+            const bounds = this.checkBounds(event);
+            const halfSize = {x: bounds.width / 2, y: bounds.height / 2};
+            const center = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
+
+            const startBounds = boundsChange.startBounds;
+
+            if (Math.abs(startBounds.halfSize.x - halfSize.x) > MINIMUM_RESIZE_CHANGE ||
+                Math.abs(startBounds.halfSize.y - halfSize.y) > MINIMUM_RESIZE_CHANGE) {
+                boundsChange.confirmedTransformType |= eTransformType.RESIZE;
+            }
+
+            if (Math.abs(startBounds.center.x - center.x) > MINIMUM_MOVE_CHANGE || Math.abs(startBounds.center.y - center.y) > MINIMUM_MOVE_CHANGE) {
+                boundsChange.confirmedTransformType |= eTransformType.MOVE;
+            }
+
+            if (boundsChange.confirmedTransformType !== 0) {
+                return boundsChange.confirmedTransformType;
+            } else {
+                // Regard every transform as a move until proven overwise, so as to not disrupt tabbing
+                return eTransformType.MOVE;
+            }
+        } else {
+            // Convert 'changeType' into our enum type
+            return event.changeType + 1;
+        }
     }
 
     private handleBeginUserBoundsChanging(event: fin.WindowBoundsEvent) {
-        this._userInitiatedBoundsChange = true;
+        const startBounds = {center: {...this.currentState.center}, halfSize: {...this.currentState.halfSize}};
+
+        this._userInitiatedBoundsChange = {startBounds, confirmedTransformType: 0};
     }
 
     private handleClosing(): void {

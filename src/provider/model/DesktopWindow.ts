@@ -1,7 +1,6 @@
 import deepEqual from 'fast-deep-equal';
 import {Identity, Window} from 'hadouken-js-adapter';
 import {WindowInfo} from 'hadouken-js-adapter/out/types/src/api/window/window';
-import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
 
 import {WindowScope} from '../../../gen/provider/config/layouts-config';
 import {LayoutsEvent} from '../../client/connection';
@@ -119,7 +118,7 @@ interface Transaction {
  * when display scaling is non-1, as in this case we can trust the transform type returned by the runtime
  */
 const MINIMUM_RESIZE_CHANGE = 2;
-const MINIMUM_MOVE_CHANGE = 1;
+const MINIMUM_MOVE_CHANGE = 2;
 
 export class DesktopWindow implements DesktopEntity {
     public static readonly onCreated: Signal1<DesktopWindow> = new Signal1();
@@ -1086,7 +1085,7 @@ export class DesktopWindow implements DesktopEntity {
     private updateTransformType(event: fin.WindowBoundsEvent, boundsChange: BoundsChange): Mask<eTransformType> {
         // If display scaling is enabled, distrust the changeType given by the runtime
         if (this._model.displayScaling) {
-            const prevTransformType = boundsChange.transformType || eTransformType.MOVE;
+            const prevTransformType = boundsChange.transformType;
 
             const startBounds = boundsChange.startBounds;
 
@@ -1097,14 +1096,14 @@ export class DesktopWindow implements DesktopEntity {
             const evaluateAxis = (axis: 'x'|'y') => {
                 const resize = Math.abs(startBounds.halfSize[axis] - halfSize[axis]) * 2 > MINIMUM_RESIZE_CHANGE;
                 let move = false;
+
                 if (!resize) {
                     if (Math.abs(startBounds.center[axis] - center[axis]) > MINIMUM_MOVE_CHANGE) {
                         move = true;
                     }
                 } else {
-                    // Test that we're not resizing from the min or max edge, or symmetrically
+                    // Test that we're resizing from the min or max edge, otherwise we have a move rather than purely a resize
                     const possibleCentersGivenResize = [
-                        startBounds.center[axis],
                         (startBounds.center[axis] - startBounds.halfSize[axis]) + halfSize[axis],
                         (startBounds.center[axis] + startBounds.halfSize[axis]) - halfSize[axis]
                     ];
@@ -1114,24 +1113,22 @@ export class DesktopWindow implements DesktopEntity {
                     }
                 }
 
-                if (move) {
-                    boundsChange.transformType |= eTransformType.MOVE;
-                }
-
-                if (resize) {
-                    boundsChange.transformType |= eTransformType.RESIZE;
-                }
+                return (move ? eTransformType.MOVE : 0) | (resize ? eTransformType.RESIZE : 0);
             };
 
-            evaluateAxis('x');
-            evaluateAxis('y');
+            boundsChange.transformType |= evaluateAxis('x');
+            boundsChange.transformType |= evaluateAxis('y');
+
+            if ((boundsChange.transformType & eTransformType.MOVE)) {
+                boundsChange.transformType = eTransformType.MOVE;
+            }
 
             const newTransformType = boundsChange.transformType;
 
             if (newTransformType === eTransformType.MOVE && prevTransformType !== eTransformType.MOVE) {
-                this._snapGroup.restoreResizeConstraints();
-            } else if (newTransformType !== eTransformType.MOVE && prevTransformType === eTransformType.MOVE) {
                 this._snapGroup.suspendResizeConstraints();
+            } else if (newTransformType !== eTransformType.MOVE && prevTransformType === eTransformType.MOVE) {
+                this._snapGroup.restoreResizeConstraints();
             }
 
             return newTransformType;
@@ -1146,11 +1143,7 @@ export class DesktopWindow implements DesktopEntity {
 
         this._userInitiatedBoundsChange = {startBounds, transformType: 0};
 
-        const transformType = this.updateTransformType(event, this._userInitiatedBoundsChange);
-
-        if (this._model.displayScaling && transformType === eTransformType.MOVE) {
-            this._snapGroup.suspendResizeConstraints();
-        }
+        this.updateTransformType(event, this._userInitiatedBoundsChange);
     }
 
     private handleClosing(): void {

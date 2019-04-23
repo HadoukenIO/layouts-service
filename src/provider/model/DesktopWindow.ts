@@ -69,7 +69,7 @@ export enum eTransformType {
 }
 
 interface BoundsChange {
-    confirmedTransformType: Mask<eTransformType>;
+    transformType: Mask<eTransformType>;
     startBounds: Rectangle;
 }
 
@@ -1086,7 +1086,7 @@ export class DesktopWindow implements DesktopEntity {
     private updateTransformType(event: fin.WindowBoundsEvent, boundsChange: BoundsChange): Mask<eTransformType> {
         // If display scaling is enabled, distrust the changeType given by the runtime
         if (this._model.displayScaling) {
-            const prevTransformType = boundsChange.confirmedTransformType || eTransformType.MOVE;
+            const prevTransformType = boundsChange.transformType || eTransformType.MOVE;
 
             const startBounds = boundsChange.startBounds;
 
@@ -1115,18 +1115,18 @@ export class DesktopWindow implements DesktopEntity {
                 }
 
                 if (move) {
-                    boundsChange.confirmedTransformType |= eTransformType.MOVE;
+                    boundsChange.transformType |= eTransformType.MOVE;
                 }
 
                 if (resize) {
-                    boundsChange.confirmedTransformType |= eTransformType.RESIZE;
+                    boundsChange.transformType |= eTransformType.RESIZE;
                 }
             };
 
             evaluateAxis('x');
             evaluateAxis('y');
 
-            const newTransformType = boundsChange.confirmedTransformType;
+            const newTransformType = boundsChange.transformType;
 
             if (newTransformType === eTransformType.MOVE && prevTransformType !== eTransformType.MOVE) {
                 this._snapGroup.restoreResizeConstraints();
@@ -1144,7 +1144,7 @@ export class DesktopWindow implements DesktopEntity {
     private handleBeginUserBoundsChanging(event: fin.WindowBoundsEvent) {
         const startBounds = {center: {...this.currentState.center}, halfSize: {...this.currentState.halfSize}};
 
-        this._userInitiatedBoundsChange = {startBounds, confirmedTransformType: 0};
+        this._userInitiatedBoundsChange = {startBounds, transformType: 0};
 
         const transformType = this.updateTransformType(event, this._userInitiatedBoundsChange);
 

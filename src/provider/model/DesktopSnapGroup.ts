@@ -78,14 +78,14 @@ export class DesktopSnapGroup {
 
     private _validateGroup: Debounced<() => void, DesktopSnapGroup, []>;
 
-    private _storedResizeConstraints: Map<string, Point<ResizeConstraint>>|null;
+    private _resizeConstraintsOverridden: boolean;
 
     constructor() {
         this._id = DesktopSnapGroup._nextId++;
         this._entities = [];
         this._windows = [];
         this.rootWindow = null;
-        this._storedResizeConstraints = null;
+        this._resizeConstraintsOverridden = false;
 
         const refreshFunc = this.calculateProperties.bind(this);
         this._localBounds = new CalculatedProperty<Rectangle>(refreshFunc);
@@ -189,31 +189,25 @@ export class DesktopSnapGroup {
      * scaling is enabled
      */
     public suspendResizeConstraints(): void {
-        if (this._windows.length > 2 && !this._storedResizeConstraints) {
+        if (this._windows.length > 2 && !this._resizeConstraintsOverridden) {
             const nullConstraint: ResizeConstraint = {resizableMin: true, resizableMax: true, minSize: 0, maxSize: Number.MAX_SAFE_INTEGER};
             const nullConstraints: Point<ResizeConstraint> = {x: nullConstraint, y: nullConstraint};
 
-            this._storedResizeConstraints = new Map<string, Point<ResizeConstraint>>();
-
             for (const window of this._windows) {
-                this._storedResizeConstraints.set(window.id, window.currentState.resizeConstraints);
-
-                window.applyProperties({resizeConstraints: nullConstraints});
+                window.applyOverride('resizeConstraints', nullConstraints);
             }
+
+            this._resizeConstraintsOverridden = true;
         }
     }
 
     public restoreResizeConstraints(): void {
-        if (this._storedResizeConstraints) {
+        if (this._resizeConstraintsOverridden) {
             for (const window of this._windows) {
-                if (this._storedResizeConstraints.has(window.id)) {
-                    const constraints = this._storedResizeConstraints.get(window.id)!;
-
-                    window.applyProperties({resizeConstraints: constraints});
-                }
+                window.resetOverride('resizeConstraints');
             }
 
-            this._storedResizeConstraints = null;
+            this._resizeConstraintsOverridden = false;
         }
     }
 

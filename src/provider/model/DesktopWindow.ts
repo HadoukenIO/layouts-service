@@ -675,9 +675,6 @@ export class DesktopWindow implements DesktopEntity {
 
     public async applyOverride<K extends keyof EntityState>(property: K, value: EntityState[K]): Promise<void> {
         if (value !== this._currentState[property]) {
-            this._temporaryState[property] = this._temporaryState[property] || this._currentState[property];
-            this._currentState[property] = value;
-
             return this.updateState({[property]: value}, ActionOrigin.SERVICE_TEMPORARY);
         }
     }

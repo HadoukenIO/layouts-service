@@ -1119,6 +1119,7 @@ export class DesktopWindow implements DesktopEntity {
             boundsChange.transformType |= evaluateAxis('x');
             boundsChange.transformType |= evaluateAxis('y');
 
+            // Err on the side of regarding transforms as purely moves
             if ((boundsChange.transformType & eTransformType.MOVE)) {
                 boundsChange.transformType = eTransformType.MOVE;
             }

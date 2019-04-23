@@ -189,15 +189,21 @@ export class DesktopSnapGroup {
      * scaling is enabled
      */
     public suspendResizeConstraints(): void {
-        if (this._windows.length > 2 && !this._resizeConstraintsOverridden) {
+        if (this._windows.length > 1 && !this._resizeConstraintsOverridden) {
             const nullConstraint: ResizeConstraint = {resizableMin: true, resizableMax: true, minSize: 0, maxSize: Number.MAX_SAFE_INTEGER};
             const nullConstraints: Point<ResizeConstraint> = {x: nullConstraint, y: nullConstraint};
 
-            for (const window of this._windows) {
-                window.applyOverride('resizeConstraints', nullConstraints);
-            }
-
             this._resizeConstraintsOverridden = true;
+
+            for (const window of this._windows) {
+                // We refresh here, otherwise we may not know about constraint changes made by the app via the runtime API, which
+                // would prevent applyOverride properly unsetting them
+                window.refresh().then(() => {
+                    if (this._resizeConstraintsOverridden) {
+                        window.applyOverride('resizeConstraints', nullConstraints);
+                    }
+                });
+            }
         }
     }
 
@@ -271,7 +277,7 @@ export class DesktopSnapGroup {
                 // If a window is not visible it cannot be adjacent to anything. This also allows us
                 // to avoid the questionable position tracking for hidden windows.
                 return false;
-            } else if (distance.border(0) && Math.abs(distance.maxAbs) > MIN_OVERLAP) {
+            } else if (distance.border(2) && Math.abs(distance.maxAbs) > MIN_OVERLAP) {
                 // The overlap check ensures that only valid snap configurations are counted
                 return true;
             }

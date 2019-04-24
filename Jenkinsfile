@@ -1,16 +1,28 @@
 pipeline {
-
-    agent { label 'linux-slave' }
+    agent none
 
     stages {
-        stage('Run Tests') {
+        stage('Input') {
+            when {
+                branch 'master'
+                beforeInput true
+            }
+            steps {
+                script {
+                    env.DEPLOY_CLIENT = input \
+                        message: 'Would you like to deploy the client to NPM?', \
+                        parameters: [choice(name: 'DEPLOY_CLIENT', choices: ['Yes', 'No'], description: '')]
+                }
+            }
+        }
+
+        stage('Test') {
             parallel {
                 stage('Unit Tests') {
                     agent { label 'linux-slave' }
                     steps {
-                        sh "npm i --ignore-scripts"
-                        sh "npm run generate"
-                        sh "npm run test:unit -- --color=false"
+                        sh "npm install --ignore-scripts"
+                        sh "npm run test:unit -- --color=false --no-cache --verbose"
                         sh "npm run check"
                     }
                     post {
@@ -23,8 +35,8 @@ pipeline {
                 stage('Integration Tests') {
                     agent { label 'win10-dservices' }
                     steps {
-                        bat "npm i"
-                        bat "npm run test:int -- --color=false --verbose"
+                        bat "npm install"
+                        bat "npm run test:int -- --color=false --no-cache --verbose"
                     }
                     post {
                         always {
@@ -35,53 +47,46 @@ pipeline {
             }
         }
 
-        stage('Build & Deploy (Staging)') {
+        stage('Build') {
             agent { label 'linux-slave' }
-            when { branch "develop" }
             steps {
-                script {
-                    GIT_SHORT_SHA = sh ( script: "git rev-parse --short HEAD", returnStdout: true ).trim()
-                    PKG_VERSION = sh ( script: "node -pe \"require('./package.json').version\"", returnStdout: true ).trim()
+                configure('layouts')
 
-                    configure("layouts", PKG_VERSION + "-alpha." + env.BUILD_NUMBER, "staging", "app.staging.json")
-                }
-
-                buildProject();
-                deployToS3();
-                deployToNPM();
+                buildProject()
+                addReleaseChannels()
             }
         }
 
-        stage('Build & Deploy (Production)') {
+        stage('Deploy') {
             agent { label 'linux-slave' }
-            when { branch "master" }
+            when { anyOf { branch 'develop' ; branch 'master' } }
             steps {
-                script {
-                    GIT_SHORT_SHA = sh ( script: "git rev-parse --short HEAD", returnStdout: true ).trim()
-                    PKG_VERSION = sh ( script: "node -pe \"require('./package.json').version\"", returnStdout: true ).trim()
-
-                    configure("layouts", PKG_VERSION, "stable", "app.json")
-                }
-
-                buildProject();
-                addReleaseChannels();
-                deployToS3();
-                deployToNPM();
+                deployToS3()
+                deployToNPM()
             }
         }
     }
 }
 
-def configure(serviceName, version, channel, manifestName) {
-    BUILD_VERSION = version
-    CHANNEL = channel
-    MANIFEST_NAME = manifestName
+def configure(serviceName) {
+    GIT_SHORT_SHA = GIT_COMMIT.substring(0, 7)
+    PKG_VERSION = sh ( script: "node -pe \"require('./package.json').version\"", returnStdout: true ).trim()
     SERVICE_NAME = serviceName
 
-    DIR_BUILD_ROOT = env.DSERVICE_S3_ROOT + SERVICE_NAME + "/"
+    if (env.BRANCH_NAME == 'master') {
+        BUILD_VERSION = PKG_VERSION
+        CHANNEL = 'stable'
+        MANIFEST_NAME = 'app.json'
+    } else {
+        BUILD_VERSION = PKG_VERSION + '-alpha.' + env.BUILD_NUMBER
+        CHANNEL = 'staging'
+        MANIFEST_NAME = 'app.staging.json'
+    }
+
+    DIR_BUILD_ROOT = env.DSERVICE_S3_ROOT + SERVICE_NAME + '/'
     DIR_BUILD_VERSION = DIR_BUILD_ROOT + BUILD_VERSION
 
-    DIR_DOCS_ROOT = env.DSERVICE_S3_ROOT_DOCS + SERVICE_NAME + "/"
+    DIR_DOCS_ROOT = env.DSERVICE_S3_ROOT_DOCS + SERVICE_NAME + '/'
     DIR_DOCS_CHANNEL = DIR_DOCS_ROOT + CHANNEL
     DIR_DOCS_VERSION = DIR_DOCS_ROOT + BUILD_VERSION
 }
@@ -97,7 +102,9 @@ def buildProject() {
 }
 
 def addReleaseChannels() {
-    sh "npm run channels"
+    if (env.BRANCH_NAME == 'master') {
+        sh "npm run channels"
+    }
 }
 
 def deployToS3() {
@@ -113,19 +120,21 @@ def deployToS3() {
 }
 
 def deployToNPM() {
-    withCredentials([string(credentialsId: "NPM_TOKEN_WRITE", variable: 'NPM_TOKEN')]) {
-        sh "echo //registry.npmjs.org/:_authToken=$NPM_TOKEN > $WORKSPACE/.npmrc"
-    }
+    if (DEPLOY_CLIENT != 'No') {
+        withCredentials([string(credentialsId: 'NPM_TOKEN_WRITE', variable: 'NPM_TOKEN')]) {
+            sh "echo //registry.npmjs.org/:_authToken=$NPM_TOKEN > $WORKSPACE/.npmrc"
+        }
 
-    if (BUILD_VERSION == PKG_VERSION) {
-        // Assume production release
-        echo "publishing to npm, version: " + BUILD_VERSION
-        sh "npm publish"
-    } else {
-        // Assume staging release, and tag as 'alpha'
-        echo "publishing pre-release version to npm: " + BUILD_VERSION
-        sh "npm version --no-git-tag-version " + BUILD_VERSION
-        sh "npm publish --tag alpha"
-        sh "npm version --no-git-tag-version " + PKG_VERSION
+        if (BUILD_VERSION == PKG_VERSION) {
+            // Assume production release
+            echo "publishing to npm, version: ${BUILD_VERSION}"
+            sh "npm publish"
+        } else {
+            // Assume staging release, and tag as 'alpha'
+            echo "publishing pre-release version to npm: ${BUILD_VERSION}"
+            sh "npm version --no-git-tag-version ${BUILD_VERSION}"
+            sh "npm publish --tag alpha"
+            sh "npm version --no-git-tag-version ${PKG_VERSION}"
+        }
     }
 }

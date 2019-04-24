@@ -1102,7 +1102,7 @@ export class DesktopWindow implements DesktopEntity {
                 } else {
                     const sizeChangeSign = Math.sign(halfSize[axis] - startBounds.halfSize[axis]);
                     // If start and new centers are equal, arbitrarily pick a sign, so as to not
-                    // accidentally support 'symmetrical' resize
+                    // accidentally support 'symmetrical' resize from both edges
                     const centerChangeSign = Math.sign(center[axis] - startBounds.center[axis]) || 1;
 
                     const expectedEdgeChanged = sizeChangeSign * centerChangeSign;

@@ -1094,24 +1094,23 @@ export class DesktopWindow implements DesktopEntity {
             const center = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
 
             const evaluateAxis = (axis: 'x'|'y') => {
-                const resize = Math.abs(startBounds.halfSize[axis] - halfSize[axis]) * 2 > MINIMUM_RESIZE_CHANGE;
-                let move = false;
+                const resize = Math.abs(halfSize[axis] - startBounds.halfSize[axis]) * 2 > MINIMUM_RESIZE_CHANGE;
+                let expectedCenter: number;
 
                 if (!resize) {
-                    if (Math.abs(startBounds.center[axis] - center[axis]) > MINIMUM_MOVE_CHANGE) {
-                        move = true;
-                    }
+                    expectedCenter = startBounds.center[axis];
                 } else {
-                    // Test that we're resizing from the min or max edge, otherwise we have a move rather than purely a resize
-                    const possibleCentersGivenResize = [
-                        (startBounds.center[axis] - startBounds.halfSize[axis]) + halfSize[axis],
-                        (startBounds.center[axis] + startBounds.halfSize[axis]) - halfSize[axis]
-                    ];
+                    const sizeChangeSign = Math.sign(halfSize[axis] - startBounds.halfSize[axis]);
+                    // If start and new centers are equal, arbitrarily pick a sign, so as to not
+                    // accidentally support 'symmetrical' resize
+                    const centerChangeSign = Math.sign(center[axis] - startBounds.center[axis]) || 1;
 
-                    if (!possibleCentersGivenResize.some(possibleCenter => Math.abs(possibleCenter - center[axis]) <= MINIMUM_MOVE_CHANGE)) {
-                        move = true;
-                    }
+                    const expectedEdgeChanged = sizeChangeSign * centerChangeSign;
+
+                    expectedCenter = startBounds.center[axis] + expectedEdgeChanged * (startBounds.halfSize[axis] - halfSize[axis]);
                 }
+
+                const move = Math.abs(expectedCenter - center[axis]) > MINIMUM_MOVE_CHANGE;
 
                 return (move ? eTransformType.MOVE : 0) | (resize ? eTransformType.RESIZE : 0);
             };

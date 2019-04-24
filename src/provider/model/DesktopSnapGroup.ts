@@ -277,7 +277,7 @@ export class DesktopSnapGroup {
                 // If a window is not visible it cannot be adjacent to anything. This also allows us
                 // to avoid the questionable position tracking for hidden windows.
                 return false;
-            } else if (distance.border(2) && Math.abs(distance.maxAbs) > MIN_OVERLAP) {
+            } else if (distance.border(0) && Math.abs(distance.maxAbs) > MIN_OVERLAP) {
                 // The overlap check ensures that only valid snap configurations are counted
                 return true;
             }

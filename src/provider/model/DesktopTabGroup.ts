@@ -194,18 +194,23 @@ export class DesktopTabGroup implements DesktopEntity {
         const tabstripHalfHeight: number = this._config.height / 2;
 
         const activeTabHalfSize: Point|undefined = halfSize && {x: halfSize.x, y: halfSize.y - tabstripHalfHeight};
-        const tabstripHalfSize: Point|undefined = halfSize && {x: halfSize.x, y: tabstripHalfHeight};
 
-        /**
-         * We can't depend on the tabstrip having the appropriate resize constraints at this point, due to a race condition with our
-         * mitigations for display scaling issues in DesktopSnapGroup, so we manually move both the active tab, and the tabstrip itself,
-         * rather than taking the earlier approach of just moving the active tab and relying on grouping and resize constraints to make
-         * everything work as expected. We particularly run into this race condition when snapping a tabgroup to another window
-         */
-        await DesktopWindow.transaction([this.activeTab, this._window], async (windows) => {
-            await windows[0].applyOffset(offset, activeTabHalfSize);
-            await windows[1].applyOffset(offset, tabstripHalfSize);
-        });
+        if (this._model.displayScaling) {
+            const tabstripHalfSize: Point|undefined = halfSize && {x: halfSize.x, y: tabstripHalfHeight};
+
+            /**
+             * We can't depend on the tabstrip having the appropriate resize constraints at this point, due to a race condition with our
+             * mitigations for display scaling issues in DesktopSnapGroup, so we manually move both the active tab, and the tabstrip itself,
+             * rather than taking the earlier approach of just moving the active tab and relying on grouping and resize constraints to make
+             * everything work as expected. We particularly run into this race condition when snapping a tabgroup to another window
+             */
+            return DesktopWindow.transaction([this.activeTab, this._window], async (windows) => {
+                await windows[0].applyOffset(offset, activeTabHalfSize);
+                await windows[1].applyOffset(offset, tabstripHalfSize);
+            });
+        } else {
+            return this.activeTab.applyOffset(offset, activeTabHalfSize);
+        }
     }
 
     /**

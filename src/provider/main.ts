@@ -40,7 +40,7 @@ const supportedScaleFactors = [1, 1.5, 2];
 export async function main() {
     const monitorInfo = await fin.System.getMonitorInfo();
 
-    // Disable the service if display scaling is not a supported scale factor%
+    // Disable the service if display scaling is not a supported scale factor
     if (!supportedScaleFactors.some(scaleFactor => scaleFactor === monitorInfo.deviceScaleFactor)) {
         console.error('Desktop has non-standard display scaling. Notifying user and disabling all layouts functionality.');
 

@@ -232,7 +232,7 @@ export class DesktopSnapGroup {
         }
 
         /**
-         * Are the two DesktopEntitys adjacent? True if they are windows in the same tab group, false 
+         * Are the two DesktopEntitys adjacent? True if they are windows in the same tab group, false
          * if they are not both visible, true if they are both visible and within the fuzz distance.
          * @param win1 one DesktopEntity
          * @param win2 the other DesktopEntity

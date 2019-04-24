@@ -1,6 +1,6 @@
 import {WindowDockedEvent, WindowUndockedEvent} from '../../client/snapanddock';
 import {Signal1, Signal2} from '../Signal';
-import {MIN_OVERLAP} from '../snapanddock/Constants';
+import {MIN_OVERLAP, ADJACENCY_FUZZ_DISTANCE} from '../snapanddock/Constants';
 import {CalculatedProperty} from '../snapanddock/utils/CalculatedProperty';
 import {Debounced} from '../snapanddock/utils/Debounced';
 import {Point, PointUtils} from '../snapanddock/utils/PointUtils';
@@ -231,6 +231,13 @@ export class DesktopSnapGroup {
             }
         }
 
+        /**
+         * Are the two DesktopEntitys adjacent? True if they are windows in the same tab group, false
+         * if they are not both visible, true if they are both visible and within the fuzz distance.
+         * @param win1 one DesktopEntity
+         * @param win2 the other DesktopEntity
+         * @returns true if they are adjacent
+         */
         function isAdjacent(win1: DesktopEntity, win2: DesktopEntity) {
             const distance = RectUtils.distance(win1.currentState, win2.currentState);
             if (win1.tabGroup && win1.tabGroup === win2.tabGroup) {
@@ -241,8 +248,9 @@ export class DesktopSnapGroup {
                 // If a window is not visible it cannot be adjacent to anything. This also allows us
                 // to avoid the questionable position tracking for hidden windows.
                 return false;
-            } else if (distance.border(0) && Math.abs(distance.maxAbs) > MIN_OVERLAP) {
-                // The overlap check ensures that only valid snap configurations are counted
+            } else if (distance.border(ADJACENCY_FUZZ_DISTANCE) && Math.abs(distance.maxAbs) > MIN_OVERLAP) {
+                // The overlap check ensures that only valid snap configurations are counted.
+                // We make it a small number to account for sub-pixel distances on > 100% scale monitors
                 return true;
             }
             return false;

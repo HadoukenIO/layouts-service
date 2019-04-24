@@ -78,14 +78,14 @@ export class DesktopSnapGroup {
 
     private _validateGroup: Debounced<() => void, DesktopSnapGroup, []>;
 
-    private _resizeConstraintsOverridden: boolean;
+    private _resizeConstraintsSuspended: boolean;
 
     constructor() {
         this._id = DesktopSnapGroup._nextId++;
         this._entities = [];
         this._windows = [];
         this.rootWindow = null;
-        this._resizeConstraintsOverridden = false;
+        this._resizeConstraintsSuspended = false;
 
         const refreshFunc = this.calculateProperties.bind(this);
         this._localBounds = new CalculatedProperty<Rectangle>(refreshFunc);
@@ -189,17 +189,17 @@ export class DesktopSnapGroup {
      * scaling is enabled
      */
     public suspendResizeConstraints(): void {
-        if (this._windows.length > 1 && !this._resizeConstraintsOverridden) {
+        if (this._windows.length > 1 && !this._resizeConstraintsSuspended) {
             const nullConstraint: ResizeConstraint = {resizableMin: true, resizableMax: true, minSize: 0, maxSize: Number.MAX_SAFE_INTEGER};
             const nullConstraints: Point<ResizeConstraint> = {x: nullConstraint, y: nullConstraint};
 
-            this._resizeConstraintsOverridden = true;
+            this._resizeConstraintsSuspended = true;
 
             for (const window of this._windows) {
                 // We refresh here, otherwise we may not know about constraint changes made by the app via the runtime API, which
                 // would prevent applyOverride properly unsetting them
                 window.refresh().then(() => {
-                    if (this._resizeConstraintsOverridden) {
+                    if (this._resizeConstraintsSuspended) {
                         window.applyOverride('resizeConstraints', nullConstraints);
                     }
                 });
@@ -208,12 +208,12 @@ export class DesktopSnapGroup {
     }
 
     public restoreResizeConstraints(): void {
-        if (this._resizeConstraintsOverridden) {
+        if (this._resizeConstraintsSuspended) {
             for (const window of this._windows) {
                 window.resetOverride('resizeConstraints');
             }
 
-            this._resizeConstraintsOverridden = false;
+            this._resizeConstraintsSuspended = false;
         }
     }
 

@@ -1081,6 +1081,10 @@ export class DesktopWindow implements DesktopEntity {
             this._snapGroup.windows
                 .filter(snapGroupWindow => snapGroupWindow !== this && !snapGroupWindow.isMaximizedOrInMaximizedTab() && !snapGroupWindow.currentState.hidden)
                 .forEach(snapGroupWindow => snapGroupWindow.bringToFront());
+        } else if (this._tabGroup && this._tabGroup.state === 'maximized') {
+            this._snapGroup.windows
+                .filter(snapGroupWindow => snapGroupWindow !== this && snapGroupWindow._tabGroup === this._tabGroup)
+                .forEach(snapGroupWindow => snapGroupWindow.bringToFront());
         }
     }
 

@@ -833,46 +833,62 @@ export class DesktopWindow implements DesktopEntity {
             if (!this.isReady) {
                 throw new Error('Cannot modify window, window not in ready state ' + this._id);
             }
-        } else {
+        }
+
+        const updateApplicationProperty = (property: keyof EntityState) => {
             // Find changes from the application that weren't already known to the service
-            Object.keys(delta).forEach((key: string) => {
-                const property: keyof EntityState = key as keyof EntityState;
-                if (this.isModified(property, delta, this._currentState)) {
-                    if (typeof delta[property] === 'object') {
-                        Object.assign(this._applicationState[property], delta[property]);
-                    } else {
-                        this._applicationState[property] = delta[property]!;
-                    }
-                }
-            });
-        }
-
-        // Update state caches
-        if (origin === ActionOrigin.SERVICE_TEMPORARY) {
-            // Back-up existing values, so they can be restored later
-            Object.keys(delta).forEach((key: string) => {
-                const property: keyof EntityState = key as keyof EntityState;
-                if (!this._temporaryState.hasOwnProperty(property)) {
-                    this._temporaryState[property] = this._currentState[property];
-                }
-            });
-        } else {
-            Object.keys(delta).forEach((key: string) => {
-                const property: keyof EntityState = key as keyof EntityState;
-
-                // These changes will undo any temporary changes that have been applied
-                if (this._temporaryState.hasOwnProperty(property)) {
-                    delete this._temporaryState[property];
-                }
-
-                // Track which properties have been modified by the service
-                if (this.isModified(property, delta, this._applicationState)) {
-                    this._modifiedState[property] = delta[property];
+            if (this.isModified(property, delta, this._currentState)) {
+                if (typeof delta[property] === 'object') {
+                    Object.assign(this._applicationState[property], delta[property]);
                 } else {
-                    delete this._modifiedState[property];
+                    this._applicationState[property] = delta[property]!;
                 }
-            });
-        }
+            }
+        };
+
+        const setTempProperty = (property: keyof EntityState) => {
+            // Back-up existing values, so they can be restored later
+            if (!this._temporaryState.hasOwnProperty(property)) {
+                this._temporaryState[property] = this._currentState[property];
+            }
+        };
+
+        const unsetTempProperty = (property: keyof EntityState) => {
+            // These changes will undo any temporary changes that have been applied
+            if (this._temporaryState.hasOwnProperty(property)) {
+                delete this._temporaryState[property];
+            }
+        };
+
+        const trackModifiedProperty = (property: keyof EntityState) => {
+            // Track which properties have been modified by the service
+            if (this.isModified(property, delta, this._applicationState)) {
+                this._modifiedState[property] = delta[property];
+            } else {
+                delete this._modifiedState[property];
+            }
+        };
+
+        const processProperty: (property: keyof EntityState) => void =
+            origin === ActionOrigin.APPLICATION ?
+                (property) => {
+                    unsetTempProperty(property);
+                    updateApplicationProperty(property);
+                } :
+                origin === ActionOrigin.SERVICE_TEMPORARY ?
+                    (property) => {
+                        setTempProperty(property);
+                        trackModifiedProperty(property);
+                    } :
+                    (property) => {
+                        unsetTempProperty(property);
+                        trackModifiedProperty(property);
+                    };
+
+        Object.keys(delta).forEach((key: string) => {
+            processProperty(key as keyof EntityState);
+        });
+
         // Keep a copy of the previous state around temporarily to compare and avoid event loops.
         const prevState = this._currentState.state;
         const prevConstraints = this._currentState.resizeConstraints;

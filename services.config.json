@@ -1,5 +1,6 @@
 {
     "PORT": 1337,
     "SERVICE_NAME": "layouts",
+    "SERVICE_TITLE": "Layouts",
     "CDN_LOCATION": "https://cdn.openfin.co/services/openfin/layouts"
  }

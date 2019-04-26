@@ -13,6 +13,7 @@ import {Debounced} from '../snapanddock/utils/Debounced';
 import {isWin10} from '../snapanddock/utils/platform';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle} from '../snapanddock/utils/RectUtils';
+import {forEachProperty} from '../utils/iteration';
 
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
@@ -617,17 +618,13 @@ export class DesktopWindow implements DesktopEntity {
                 const modifications: Partial<EntityState> = {};
                 let hasChanges = false;
 
-                for (const iter in state) {
-                    if (state.hasOwnProperty(iter)) {
-                        const key = iter as keyof EntityState;
-
-                        if (this.isModified(key, appState, state) &&
-                            (!this._modifiedState.hasOwnProperty(key) || this.isModified(key, this._modifiedState, state))) {
-                            modifications[key] = state[key];
-                            hasChanges = true;
-                        }
+                forEachProperty(state, (property) => {
+                    if (this.isModified(property, appState, state) &&
+                        (!this._modifiedState.hasOwnProperty(property) || this.isModified(property, this._modifiedState, state))) {
+                        modifications[property] = state[property];
+                        hasChanges = true;
                     }
-                }
+                });
 
                 if (hasChanges) {
                     console.log('Window refresh found changes: ', this._id, modifications);
@@ -833,10 +830,12 @@ export class DesktopWindow implements DesktopEntity {
             if (!this.isReady) {
                 throw new Error('Cannot modify window, window not in ready state ' + this._id);
             }
-        } else {
+        }
+
+        // Update application state and modifications in comparison to application state
+        if (origin === ActionOrigin.APPLICATION){
             // Find changes from the application that weren't already known to the service
-            Object.keys(delta).forEach((key: string) => {
-                const property: keyof EntityState = key as keyof EntityState;
+            forEachProperty(delta, (property) => {
                 if (this.isModified(property, delta, this._currentState)) {
                     if (typeof delta[property] === 'object') {
                         Object.assign(this._applicationState[property], delta[property]);
@@ -845,27 +844,9 @@ export class DesktopWindow implements DesktopEntity {
                     }
                 }
             });
-        }
-
-        // Update state caches
-        if (origin === ActionOrigin.SERVICE_TEMPORARY) {
-            // Back-up existing values, so they can be restored later
-            Object.keys(delta).forEach((key: string) => {
-                const property: keyof EntityState = key as keyof EntityState;
-                if (!this._temporaryState.hasOwnProperty(property)) {
-                    this._temporaryState[property] = this._currentState[property];
-                }
-            });
         } else {
-            Object.keys(delta).forEach((key: string) => {
-                const property: keyof EntityState = key as keyof EntityState;
-
-                // These changes will undo any temporary changes that have been applied
-                if (this._temporaryState.hasOwnProperty(property)) {
-                    delete this._temporaryState[property];
-                }
-
-                // Track which properties have been modified by the service
+            // Track which properties have been modified by the service
+            forEachProperty(delta, (property) => {
                 if (this.isModified(property, delta, this._applicationState)) {
                     this._modifiedState[property] = delta[property];
                 } else {
@@ -873,6 +854,24 @@ export class DesktopWindow implements DesktopEntity {
                 }
             });
         }
+
+        // Update temporary values
+        if (origin === ActionOrigin.SERVICE_TEMPORARY) {
+            // Back-up existing values, so they can be restored later
+            forEachProperty(delta, (property) => {
+                if (!this._temporaryState.hasOwnProperty(property)) {
+                    this._temporaryState[property] = this._currentState[property];
+                }
+            });
+        } else {
+            // Delete temporary values, as they've now been superceeded
+            forEachProperty(delta, (property) => {
+                if (this._temporaryState.hasOwnProperty(property)) {
+                    delete this._temporaryState[property];
+                }
+            });
+        }
+
         // Keep a copy of the previous state around temporarily to compare and avoid event loops.
         const prevState = this._currentState.state;
         const prevConstraints = this._currentState.resizeConstraints;

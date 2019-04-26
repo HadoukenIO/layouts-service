@@ -229,6 +229,7 @@ export class DesktopTabGroup implements DesktopEntity {
                 throw new Error('Unable to maximize tabGroup: Group is not maximizable');
             }
         }
+
         if (!this._isMaximized) {
             // Before doing anything else we will undock the tabGroup (mitigation for SERVICE-314)
             if (this.snapGroup.isNonTrivial()) {
@@ -328,6 +329,17 @@ export class DesktopTabGroup implements DesktopEntity {
         const firstTab: DesktopWindow = tabs.shift()!;
         const activeTab: DesktopWindow = (activeTabId && this._model.getWindow(activeTabId)) || firstTab;
 
+        // If we're forming this tabgroup from a maximized tab, we'll want to maximize this tabgroup, and inherit the tab window's restore bounds
+        let beforeMaximizeBounds: Rectangle|undefined;
+        if (this.tabs.length === 0 && firstTab.currentState.state === 'maximized') {
+            const tabBounds = firstTab.beforeMaximizeBounds;
+
+            const center = {x: tabBounds.center.x, y: tabBounds.center.y + (this._config.height / 2)};
+            const halfSize = {x: tabBounds.halfSize.x, y: tabBounds.halfSize.y - this._config.height / 2};
+
+            beforeMaximizeBounds = {center, halfSize};
+        }
+
         await DesktopWindow.transaction(allWindows, async () => {
             await this.addTabInternal(firstTab, false);
             await Promise.all([firstTab.sync(), this._window.sync()]);
@@ -338,6 +350,12 @@ export class DesktopTabGroup implements DesktopEntity {
         });
 
         await this.switchTab(activeTab);
+
+        if (beforeMaximizeBounds) {
+            await this.maximize().then(() => {
+                this._beforeMaximizeBounds = beforeMaximizeBounds;
+            }, () => {});
+        }
     }
 
     public async swapTab(tabToRemove: DesktopWindow, tabToAdd: DesktopWindow): Promise<void> {

@@ -6,10 +6,11 @@ import {dragWindowTo} from '../../provider/utils/dragWindowTo';
 import {getBounds, getTabsetBounds, NormalizedBounds} from '../../provider/utils/getBounds';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 import {teardown} from '../../teardown';
-import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
+import {CreateWindowData, createWindowTest, WindowContext} from '../utils/createWindowTest';
 import {fin} from '../utils/fin';
 import {itParameterized} from '../utils/parameterizedTestUtils';
-import {getTabGroupState} from '../utils/tabServiceUtils';
+import {layoutsClientPromise} from '../utils/serviceUtils';
+import {getTabGroupIdentity, getTabGroupState} from '../utils/tabServiceUtils';
 
 interface TabToMaximizedWindowTestOptions extends CreateWindowData {
     windowCount: 2;
@@ -55,6 +56,39 @@ itParameterized(
     })
 );
 
+itParameterized(
+    'When dragging a window on-top another window, restore bounds are preserved',
+    (testOptions) => `frame: ${testOptions.frame}`,
+    [
+        {frame: true, windowCount: 2},
+        {frame: false, windowCount: 2}
+    ],
+    createWindowTest(async (context: WindowContext, testOptions: CreateWindowData) => {
+        const {windows} = context;
+
+        // Record pre-maximized bounds
+        const beforeTabbingBounds = await getBounds(windows[1]);
+
+        // Maximize the window
+        await windows[1].maximize();
+
+        // Create tabgroup from maximized window
+        const maximizedBounds: Rect = (await fin.System.getMonitorInfo()).primaryMonitor.availableRect;
+        await dragWindowTo(windows[0], maximizedBounds.left + 50, maximizedBounds.top + 30);
+        await assertPairTabbed(windows[0], windows[1]);
+
+        // Restore the tabgroup
+        const {tabbing} = await layoutsClientPromise;
+        const tabGroupIdentity = await getTabGroupIdentity(windows[1].identity);
+        await tabbing.restoreTabGroup(tabGroupIdentity!);
+
+        // Record restored bounds
+        const afterTabbingBounds = await getTabsetBounds(windows[1]);
+
+        // Check restored bounds equal bounds before maximizing
+        assert.deepEqual(beforeTabbingBounds, afterTabbingBounds);
+    })
+);
 
 itParameterized(
     'When dragging a window on-top another window hidden by a maximized window, windows do not become tabbed',

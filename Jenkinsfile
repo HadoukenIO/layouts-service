@@ -1,5 +1,6 @@
 pipeline {
     agent none
+    options { timestamps() }
 
     stages {
         stage('Input') {
@@ -50,7 +51,7 @@ pipeline {
         stage('Build') {
             agent { label 'linux-slave' }
             steps {
-                configure('layouts')
+                configure()
 
                 buildProject()
                 addReleaseChannels()
@@ -68,10 +69,13 @@ pipeline {
     }
 }
 
-def configure(serviceName) {
+def configure() {
+    def config = readJSON file: './config.json'
+    def manifest = readJSON file: './package.json'
+
     GIT_SHORT_SHA = GIT_COMMIT.substring(0, 7)
-    PKG_VERSION = sh ( script: "node -pe \"require('./package.json').version\"", returnStdout: true ).trim()
-    SERVICE_NAME = serviceName
+    PKG_VERSION = manifest.version
+    SERVICE_NAME = config.SERVICE_NAME
 
     if (env.BRANCH_NAME == 'master') {
         BUILD_VERSION = PKG_VERSION
@@ -92,6 +96,7 @@ def configure(serviceName) {
 }
 
 def buildProject() {
+    sh "npm install"
     sh "npm run clean"
     sh "SERVICE_VERSION=${BUILD_VERSION} npm run build"
     sh "echo ${GIT_SHORT_SHA} > ./dist/SHA.txt"

@@ -204,9 +204,12 @@ export class DesktopTabGroup implements DesktopEntity {
              * rather than taking the earlier approach of just moving the active tab and relying on grouping and resize constraints to make
              * everything work as expected. We particularly run into this race condition when snapping a tabgroup to another window
              */
-            return DesktopWindow.transaction([this.activeTab, this._window], async (windows) => {
-                await windows[0].applyOffset(offset, activeTabHalfSize);
-                await windows[1].applyOffset(offset, tabstripHalfSize);
+            return DesktopWindow.transaction([this._window, ...this.tabs], async (windows) => {
+                await this._window.applyOffset(offset, tabstripHalfSize);
+
+                for (const tab of this.tabs) {
+                    await tab.applyOffset(offset, activeTabHalfSize);
+                }
             });
         } else {
             return this.activeTab.applyOffset(offset, activeTabHalfSize);

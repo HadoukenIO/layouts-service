@@ -118,7 +118,11 @@ export class DragWindowManager {
         const nativeWin = this._window.getNativeWindow();
 
         nativeWin.document.body.addEventListener('dragover', (ev: DragEvent) => {
-            DragWindowManager.onDragOver.emit(this._sourceWindow!, {x: ev.screenX + this._virtualScreen.left, y: ev.screenY + this._virtualScreen.top});
+            // We call fin.System.getMousePosition(), as the coordinates given by the dragover event are unreliable when we have a mix of display scales
+            // and we're dragging over a non-primary monitor
+            fin.System.getMousePosition().then(position => {
+                DragWindowManager.onDragOver.emit(this._sourceWindow!, {x: position.left, y: position.top});
+            });
 
             ev.preventDefault();
             ev.stopPropagation();

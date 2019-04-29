@@ -147,7 +147,7 @@ export class APIHandler {
             throw new Error(getErrorMessage(ErrorType.NO_WINDOW, identity));
         }
 
-        if (targetWindow.snapGroup.length === 1) {
+        if (targetWindow.snapGroup.entities.length === 1) {
             // Window is not docked
             return null;
         }

@@ -163,14 +163,17 @@ type DockGroup = (Identity | Identity[])[]
  * import {snapAndDock} from 'openfin-layouts';
  *
  * // Gets all tabs for the current window context.
- * snapAndDock.getDockedWindows();
+ * const myGroup: DockGroup | null = snapAndDock.getDockedWindows();
  *
  * // Get all tabs for another window context.
- * snapAndDock.getDockedWindows({uuid: "sample-window-uuid", name: "sample-window-name"});
+ * const otherWindow: Identity = {uuid: "sample-window-uuid", name: "sample-window-name"}
+ * const otherWindowGroup: DockGroup | null = snapAndDock.getDockedWindows(otherWindow);
  * ```
  *
  * @param identity The window context, defaults to the current window.
  * @throws `Error`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
+ * @throws `Error`: If the window specified by `identity` does not exist
+ * @throws `Error`: If the window specified by `identity` has been de-registered
  */
 export async function getDockedWindows(identity: Identity = getId()): Promise<DockGroup | null> {
     return tryServiceDispatch<Identity, DockGroup | null>(SnapAndDockAPI.GET_DOCKED_WINDOWS, parseIdentity(identity));

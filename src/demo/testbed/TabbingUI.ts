@@ -139,6 +139,19 @@ export class TabbingUI {
         tabbing.addEventListener('tab-removed', this.onTabEvent);
         tabbing.addEventListener('tab-activated', event => this._log.addEvent(event));
         tabbing.addEventListener('tab-properties-updated', event => this._log.addEvent(event));
+
+        tabbing.getTabs().then(tabs => {
+            if (tabs !== null) {
+                document.body.classList.toggle('tabbed', true);
+                document.getElementById('tab-status')!.innerText = Messages.STATUS_TABBED;
+
+                // Show which buttons are useful in this state
+                this._buttons.forEach(button => {
+                    button.classList.toggle('btn-primary', true);
+                    button.classList.toggle('btn-secondary', false);
+                });
+            }
+        });
     }
 
     private async onTabEvent(event: TabAddedEvent|TabRemovedEvent): Promise<void> {

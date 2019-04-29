@@ -142,20 +142,20 @@ export class TabbingUI {
 
         tabbing.getTabs().then(tabs => {
             if (tabs !== null) {
-                document.body.classList.toggle('tabbed', true);
-                document.getElementById('tab-status')!.innerText = Messages.STATUS_TABBED;
-
-                // Show which buttons are useful in this state
-                this._buttons.forEach(button => {
-                    button.classList.toggle('btn-primary', true);
-                    button.classList.toggle('btn-secondary', false);
-                });
+                this.toggleTabbed(true);
             }
         });
     }
 
     private async onTabEvent(event: TabAddedEvent|TabRemovedEvent): Promise<void> {
         const isTabbed: boolean = (event.type === 'tab-added');
+
+        this.toggleTabbed(isTabbed);
+
+        this._log.addEvent(event);
+    }
+
+    private toggleTabbed(isTabbed: boolean) {
         const message: string = isTabbed ? Messages.STATUS_TABBED : Messages.STATUS_UNTABBED;
 
         document.body.classList.toggle('tabbed', isTabbed);
@@ -166,8 +166,6 @@ export class TabbingUI {
             button.classList.toggle('btn-primary', isTabbed);
             button.classList.toggle('btn-secondary', !isTabbed);
         });
-
-        this._log.addEvent(event);
     }
 
     private async getWindowsMatching(filter: (identity: WindowIdentity) => Promise<boolean>): Promise<WindowIdentity[]> {

@@ -26,13 +26,7 @@ export class SnapAndDockUI {
         // Query the docked state on load and update the UI accordingly. This covers the case of being reloaded while docked.
         snapAndDock.getDockedWindows().then(dockGroup => {
             if (dockGroup !== null) {
-                document.body.classList.toggle('docked', true);
-                document.getElementById('dock-status')!.innerText = Messages.STATUS_DOCKED;
-
-                this._buttons.forEach(button => {
-                    button.classList.toggle('btn-primary', true);
-                    button.classList.toggle('btn-secondary', false);
-                });
+                this.toggleDocked(true);
             }
         });
 
@@ -42,6 +36,13 @@ export class SnapAndDockUI {
 
     private onDockEvent(event: WindowDockedEvent|WindowUndockedEvent): void {
         const isDocked = (event.type === 'window-docked');
+
+        this.toggleDocked(isDocked);
+
+        this._log.addEvent(event);
+    }
+
+    private toggleDocked(isDocked: boolean) {
         const message = isDocked ? Messages.STATUS_DOCKED : Messages.STATUS_UNDOCKED;
 
         document.body.classList.toggle('docked', isDocked);
@@ -52,7 +53,5 @@ export class SnapAndDockUI {
             button.classList.toggle('btn-primary', isDocked);
             button.classList.toggle('btn-secondary', !isDocked);
         });
-
-        this._log.addEvent(event);
     }
 }

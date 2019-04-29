@@ -153,7 +153,24 @@ export async function undockGroup(identity: Identity = getId()): Promise<void> {
 type DockGroup = (Identity | Identity[])[]
 
 /**
- * TODO: Write this doc comment
+ * Resolves to an array representing the entities belonging to the dock group of the provided window.
+ *  - An array entry of type `Identity` represents a single window that is docked to the provided window.
+ *  - An array entry of type `Identity[]` represents a tab group that is docked to the provided window. \
+The elements of this sub-array are the identities of the tabs that form the tab group.
+ *
+ * If there is no dock group associated with the window context, will resolve to null.
+ * ```ts
+ * import {snapAndDock} from 'openfin-layouts';
+ *
+ * // Gets all tabs for the current window context.
+ * snapAndDock.getDockedWindows();
+ *
+ * // Get all tabs for another window context.
+ * snapAndDock.getDockedWindows({uuid: "sample-window-uuid", name: "sample-window-name"});
+ * ```
+ *
+ * @param identity The window context, defaults to the current window.
+ * @throws `Error`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
  */
 export async function getDockedWindows(identity: Identity = getId()): Promise<DockGroup | null> {
     return tryServiceDispatch<Identity, DockGroup | null>(SnapAndDockAPI.GET_DOCKED_WINDOWS, parseIdentity(identity));

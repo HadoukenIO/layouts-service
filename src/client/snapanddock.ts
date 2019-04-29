@@ -153,7 +153,7 @@ export async function undockGroup(identity: Identity = getId()): Promise<void> {
 type DockGroup = (Identity | Identity[])[]
 
 /**
- * Resolves to an array representing the entities belonging to the dock group of the provided window.
+ * Returns an array representing the entities belonging to the dock group of the provided window.
  *  - An array entry of type `Identity` represents a single window that is docked to the provided window.
  *  - An array entry of type `Identity[]` represents a tab group that is docked to the provided window.
  *      The elements of this sub-array are the identities of the tabs that form the tab group.

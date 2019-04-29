@@ -155,8 +155,8 @@ type DockGroup = (Identity | Identity[])[]
 /**
  * Resolves to an array representing the entities belonging to the dock group of the provided window.
  *  - An array entry of type `Identity` represents a single window that is docked to the provided window.
- *  - An array entry of type `Identity[]` represents a tab group that is docked to the provided window. \
-The elements of this sub-array are the identities of the tabs that form the tab group.
+ *  - An array entry of type `Identity[]` represents a tab group that is docked to the provided window.
+ *      The elements of this sub-array are the identities of the tabs that form the tab group.
  *
  * If there is no dock group associated with the window context, will resolve to null.
  * ```ts

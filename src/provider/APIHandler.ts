@@ -72,6 +72,7 @@ export class APIHandler {
         // Snap & Dock
         this.registerListener(SnapAndDockAPI.UNDOCK_WINDOW, this.undockWindow);
         this.registerListener(SnapAndDockAPI.UNDOCK_GROUP, this.undockGroup);
+        this.registerListener(SnapAndDockAPI.GET_DOCKED_WINDOWS, this.getDockedWindows);
 
         // Workspaces
         this.registerListener(WorkspaceAPI.GENERATE_LAYOUT, generateWorkspace);
@@ -137,6 +138,28 @@ export class APIHandler {
 
     private async undockGroup(identity: WindowIdentity): Promise<void> {
         return this._snapService.explodeGroup(identity);
+    }
+
+    private async getDockedWindows(identity: WindowIdentity) {
+        const targetWindow: DesktopWindow | null = this._model.getWindow(identity);
+
+        if (!targetWindow) {
+            throw new Error(getErrorMessage(ErrorType.NO_WINDOW, identity));
+        }
+
+        if (targetWindow.snapGroup.length === 1) {
+            // Window is not docked
+            return null;
+        }
+
+        return targetWindow.snapGroup.entities.map(entity => {
+            if (entity instanceof DesktopTabGroup) {
+                // Tabgroups are represented as an array of identities
+                return entity.tabs.map(tab => tab.identity);
+            } else {
+                return entity.identity;
+            }
+        });
     }
 
     private appReady(payload: void, identity: Identity): void {

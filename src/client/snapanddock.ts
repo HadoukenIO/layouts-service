@@ -6,7 +6,6 @@ import {Identity} from 'hadouken-js-adapter';
 import {eventEmitter, tryServiceDispatch} from './connection';
 import {getId, parseIdentity, SnapAndDockAPI} from './internal';
 
-
 /**
  * Event fired when one window is docked to another.  See {@link addEventListener}.
  *
@@ -149,4 +148,13 @@ export async function undockWindow(identity: Identity = getId()): Promise<void> 
  */
 export async function undockGroup(identity: Identity = getId()): Promise<void> {
     return tryServiceDispatch<Identity, void>(SnapAndDockAPI.UNDOCK_GROUP, parseIdentity(identity));
+}
+
+type DockGroup = (Identity | Identity[])[]
+
+/**
+ * TODO: Write this doc comment
+ */
+export async function getDockedWindows(identity: Identity = getId()): Promise<DockGroup | null> {
+    return tryServiceDispatch<Identity, DockGroup | null>(SnapAndDockAPI.GET_DOCKED_WINDOWS, parseIdentity(identity));
 }

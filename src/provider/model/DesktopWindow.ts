@@ -1107,7 +1107,7 @@ export class DesktopWindow implements DesktopEntity {
 
                     const expectedEdgeChanged = sizeChangeSign * centerChangeSign;
 
-                    expectedCenter = startBounds.center[axis] + expectedEdgeChanged * (startBounds.halfSize[axis] - halfSize[axis]);
+                    expectedCenter = startBounds.center[axis] + expectedEdgeChanged * (halfSize[axis] - startBounds.halfSize[axis]);
                 }
 
                 const move = Math.abs(expectedCenter - center[axis]) > MINIMUM_MOVE_CHANGE;

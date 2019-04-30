@@ -23,6 +23,7 @@ pipeline {
                     agent { label 'linux-slave' }
                     steps {
                         sh "npm install --ignore-scripts"
+                        sh "npm run generate"
                         sh "npm run test:unit -- --color=false --no-cache --verbose"
                         sh "npm run check"
                     }
@@ -96,7 +97,7 @@ def configure() {
 }
 
 def buildProject() {
-    sh "npm install"
+    sh "npm install --ignore-scripts"
     sh "npm run clean"
     sh "SERVICE_VERSION=${BUILD_VERSION} npm run build"
     sh "echo ${GIT_SHORT_SHA} > ./dist/SHA.txt"

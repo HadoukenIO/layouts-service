@@ -150,7 +150,14 @@ export async function undockGroup(identity: Identity = getId()): Promise<void> {
     return tryServiceDispatch<Identity, void>(SnapAndDockAPI.UNDOCK_GROUP, parseIdentity(identity));
 }
 
-type DockGroup = (Identity | Identity[])[]
+/**
+ * Represents a group of docked entities (windows and/or tab groups)
+ *
+ * An array entry of type `Identity` represents a single window
+ *
+ * An array entry of type `Identity[]` represents a tab group. The elements of this sub-array are the identities of the tabs that form the tab group.
+ */
+export type DockGroup = (Identity | Identity[])[]
 
 /**
  * If the window is not docked returns null.

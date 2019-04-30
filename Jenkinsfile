@@ -71,7 +71,7 @@ pipeline {
 }
 
 def configure() {
-    def config = readJSON file: './config.json'
+    def config = readJSON file: './services.config.json'
     def manifest = readJSON file: './package.json'
 
     GIT_SHORT_SHA = GIT_COMMIT.substring(0, 7)

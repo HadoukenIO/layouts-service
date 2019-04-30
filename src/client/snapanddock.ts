@@ -160,11 +160,9 @@ export async function undockGroup(identity: Identity = getId()): Promise<void> {
 export type DockGroup = (Identity | Identity[])[]
 
 /**
- * If the window is not docked returns null.
+ * Returns an array representing the entities docked with the provided window (see {@link DockGroup} for more details).
  *
- * Otherwise returns an array representing the entities docked with the provided window:
- *  - An array entry of type `Identity` represents a single window
- *  - An array entry of type `Identity[]` represents a tab group. The elements of this sub-array are the identities of the tabs that form the tab group.
+ * If the window is not docked returns null.
  *
  * ```ts
  * import {snapAndDock} from 'openfin-layouts';

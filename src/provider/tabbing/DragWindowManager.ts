@@ -121,7 +121,10 @@ export class DragWindowManager {
             // We call fin.System.getMousePosition(), as the coordinates given by the dragover event are unreliable when we have a mix of display scales
             // and we're dragging over a non-primary monitor
             fin.System.getMousePosition().then(position => {
-                DragWindowManager.onDragOver.emit(this._sourceWindow!, {x: position.left, y: position.top});
+                // By the time getMousePosition resolves, we may have received a 'drop' event or otherwise have been hidden, so check we are still active
+                if (this._active) {
+                    DragWindowManager.onDragOver.emit(this._sourceWindow!, {x: position.left, y: position.top});
+                }
             });
 
             ev.preventDefault();

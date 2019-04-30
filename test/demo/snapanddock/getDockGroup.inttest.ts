@@ -1,10 +1,10 @@
-import {createWindowTest, CreateWindowData} from '../utils/createWindowTest';
+import {createWindowTest} from '../utils/createWindowTest';
 import {dragSideToSide} from '../../provider/utils/dragWindowTo';
 import {layoutsClientPromise} from '../utils/serviceUtils';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 
-describe('When calling getDockGroup the correct data is returned', () => {
-    it('Two single undocked windows', async () => createWindowTest(async (context, testOptions: CreateWindowData) => {
+describe('When calling getDockGroup, the data returned accurately represents the group state of the target window', () => {
+    it('Two single undocked windows', async () => createWindowTest(async context => {
         const {windows} = context;
         const layouts = await layoutsClientPromise;
 
@@ -13,7 +13,7 @@ describe('When calling getDockGroup the correct data is returned', () => {
         expect(groups).toEqual([null, null]);
     })({windowCount: 2, frame: true}));
 
-    it('Two docked windows and a single undocked window', async () => createWindowTest(async (context, testOptions: CreateWindowData) => {
+    it('Two docked windows and a single undocked window', async () => createWindowTest(async context => {
         const {windows} = context;
         const layouts = await layoutsClientPromise;
 
@@ -29,7 +29,7 @@ describe('When calling getDockGroup the correct data is returned', () => {
         expect(groups).toEqual([expectedGroup, expectedGroup, null]);
     })({windowCount: 3, frame: true}));
 
-    it('One tabgroup and one window both undocked', async () => createWindowTest(async (context, testOptions: CreateWindowData) => {
+    it('One tabgroup and one window both undocked', async () => createWindowTest(async context => {
         const {windows} = context;
         const layouts = await layoutsClientPromise;
 
@@ -40,7 +40,7 @@ describe('When calling getDockGroup the correct data is returned', () => {
         expect(groups).toEqual([null, null, null]);
     })({windowCount: 3, frame: true}));
 
-    it('One tabgroup docked to a window', async () => createWindowTest(async (context, testOptions: CreateWindowData) => {
+    it('One tabgroup docked to a window', async () => createWindowTest(async context => {
         const {windows} = context;
         const layouts = await layoutsClientPromise;
 
@@ -57,7 +57,7 @@ describe('When calling getDockGroup the correct data is returned', () => {
         expect(groups).toEqual([expectedGroup, expectedGroup, expectedGroup]);
     })({windowCount: 3, frame: true}));
 
-    it('Two docked tabgroups', async () => createWindowTest(async (context, testOptions: CreateWindowData) => {
+    it('Two docked tabgroups', async () => createWindowTest(async context => {
         const {windows} = context;
         const layouts = await layoutsClientPromise;
 

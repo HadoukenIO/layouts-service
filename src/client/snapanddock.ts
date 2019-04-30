@@ -153,12 +153,12 @@ export async function undockGroup(identity: Identity = getId()): Promise<void> {
 type DockGroup = (Identity | Identity[])[]
 
 /**
- * Returns an array representing the entities belonging to the dock group of the provided window.
- *  - An array entry of type `Identity` represents a single window that is docked to the provided window.
- *  - An array entry of type `Identity[]` represents a tab group that is docked to the provided window.
- *      The elements of this sub-array are the identities of the tabs that form the tab group.
+ * If the window is not docked returns null.
  *
- * If there is no dock group associated with the window context, will resolve to null.
+ * Otherwise returns an array representing the entities docked with the provided window:
+ *  - An array entry of type `Identity` represents a single window
+ *  - An array entry of type `Identity[]` represents a tab group. The elements of this sub-array are the identities of the tabs that form the tab group.
+ *
  * ```ts
  * import {snapAndDock} from 'openfin-layouts';
  *
@@ -174,7 +174,17 @@ type DockGroup = (Identity | Identity[])[]
  * @throws `Error`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
  * @throws `Error`: If the window specified by `identity` does not exist
  * @throws `Error`: If the window specified by `identity` has been de-registered
+ * @throws `Error`: If the provider is running an incompatible version
+ *
+ * @since 1.0.3
  */
 export async function getDockedWindows(identity: Identity = getId()): Promise<DockGroup | null> {
-    return tryServiceDispatch<Identity, DockGroup | null>(SnapAndDockAPI.GET_DOCKED_WINDOWS, parseIdentity(identity));
+    const response = await tryServiceDispatch<Identity, DockGroup | null>(SnapAndDockAPI.GET_DOCKED_WINDOWS, parseIdentity(identity));
+    // @ts-ignore Compatability check. Provider will return false on unregistered actions.
+    if (response === false) {
+        console.warn('Warning: The currently running layouts service does not support the "getDockedWindows" method.');
+        return null;
+    }
+
+    return response;
 }

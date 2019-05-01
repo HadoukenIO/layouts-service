@@ -5,6 +5,7 @@ import {Identity} from 'hadouken-js-adapter';
 
 import {eventEmitter, tryServiceDispatch} from './connection';
 import {getId, parseIdentity, SnapAndDockAPI} from './internal';
+import {WindowIdentity} from './main';
 
 /**
  * Event fired when one window is docked to another.  See {@link addEventListener}.
@@ -153,11 +154,11 @@ export async function undockGroup(identity: Identity = getId()): Promise<void> {
 /**
  * Represents a group of docked entities (windows and/or tab groups)
  *
- * An array entry of type `Identity` represents a single window
+ * An array entry of type `WindowIdentity` represents a single window
  *
- * An array entry of type `Identity[]` represents a tab group. The elements of this sub-array are the identities of the tabs that form the tab group.
+ * An array entry of type `WindowIdentity[]` represents a tab group. The elements of this sub-array are the identities of the tabs that form the tab group.
  */
-export type DockGroup = (Identity | Identity[])[]
+export type DockGroup = (WindowIdentity | WindowIdentity[])[]
 
 /**
  * Returns an array representing the entities docked with the provided window (see {@link DockGroup} for more details).

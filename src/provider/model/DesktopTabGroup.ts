@@ -192,8 +192,28 @@ export class DesktopTabGroup implements DesktopEntity {
 
     public async applyOffset(offset: Point, halfSize?: Point): Promise<void> {
         const tabstripHalfHeight: number = this._config.height / 2;
-        const adjustedHalfSize: Point|undefined = halfSize && {x: halfSize.x, y: halfSize.y - tabstripHalfHeight};
-        return this.activeTab.applyOffset(offset, adjustedHalfSize);
+
+        const activeTabHalfSize: Point|undefined = halfSize && {x: halfSize.x, y: halfSize.y - tabstripHalfHeight};
+
+        if (this._model.displayScaling) {
+            const tabstripHalfSize: Point|undefined = halfSize && {x: halfSize.x, y: tabstripHalfHeight};
+
+            /**
+             * We can't depend on the tabstrip having the appropriate resize constraints at this point, due to a race condition with our
+             * mitigations for display scaling issues in DesktopSnapGroup, so we manually move both the active tab, and the tabstrip itself,
+             * rather than taking the earlier approach of just moving the active tab and relying on grouping and resize constraints to make
+             * everything work as expected. We particularly run into this race condition when snapping a tabgroup to another window
+             */
+            return DesktopWindow.transaction([this._window, ...this.tabs], async (windows) => {
+                await this._window.applyOffset(offset, tabstripHalfSize);
+
+                for (const tab of this.tabs) {
+                    await tab.applyOffset(offset, activeTabHalfSize);
+                }
+            });
+        } else {
+            return this.activeTab.applyOffset(offset, activeTabHalfSize);
+        }
     }
 
     /**
@@ -229,6 +249,7 @@ export class DesktopTabGroup implements DesktopEntity {
                 throw new Error('Unable to maximize tabGroup: Group is not maximizable');
             }
         }
+
         if (!this._isMaximized) {
             // Before doing anything else we will undock the tabGroup (mitigation for SERVICE-314)
             if (this.snapGroup.isNonTrivial()) {
@@ -241,8 +262,15 @@ export class DesktopTabGroup implements DesktopEntity {
 
             const currentMonitor = this._model.getMonitorByRect(this._groupState) || this._model.monitors[0];
 
-            await this._window.applyProperties(
-                {center: {x: currentMonitor.center.x, y: this._config.height / 2}, halfSize: {x: currentMonitor.halfSize.x, y: this._config.height / 2}});
+            await this._window.applyProperties({
+                center: {
+                    x: currentMonitor.center.x,
+                    y: this._config.height / 2
+                },
+                halfSize: {
+                    x: currentMonitor.halfSize.x,
+                    y: this._config.height / 2
+                }});
             await this.activeTab.applyProperties({
                 center: {x: currentMonitor.center.x, y: currentMonitor.center.y + this._config.height / 2},
                 halfSize: {x: currentMonitor.halfSize.x, y: currentMonitor.halfSize.y - this._config.height / 2}
@@ -321,6 +349,17 @@ export class DesktopTabGroup implements DesktopEntity {
         const firstTab: DesktopWindow = tabs.shift()!;
         const activeTab: DesktopWindow = (activeTabId && this._model.getWindow(activeTabId)) || firstTab;
 
+        // If we're forming this tabgroup from a maximized tab, we'll want to maximize this tabgroup, and inherit the tab window's restore bounds
+        let beforeMaximizeBounds: Rectangle|undefined;
+        if (this.tabs.length === 0 && firstTab.currentState.state === 'maximized') {
+            const tabBounds = firstTab.beforeMaximizeBounds;
+
+            const center = {x: tabBounds.center.x, y: tabBounds.center.y + (this._config.height / 2)};
+            const halfSize = {x: tabBounds.halfSize.x, y: tabBounds.halfSize.y - this._config.height / 2};
+
+            beforeMaximizeBounds = {center, halfSize};
+        }
+
         await DesktopWindow.transaction(allWindows, async () => {
             await this.addTabInternal(firstTab, false);
             await Promise.all([firstTab.sync(), this._window.sync()]);
@@ -331,6 +370,12 @@ export class DesktopTabGroup implements DesktopEntity {
         });
 
         await this.switchTab(activeTab);
+
+        if (beforeMaximizeBounds) {
+            await this.maximize().then(() => {
+                this._beforeMaximizeBounds = beforeMaximizeBounds;
+            }, () => {});
+        }
     }
 
     public async swapTab(tabToRemove: DesktopWindow, tabToAdd: DesktopWindow): Promise<void> {
@@ -357,17 +402,17 @@ export class DesktopTabGroup implements DesktopEntity {
      */
     public reorderTabArray(orderReference: WindowIdentity[]): void {
         const newlyOrdered: DesktopWindow[] = orderReference
-                                                  .map((ref: WindowIdentity) => {
-                                                      // Look-up each given identity within list of tabs
-                                                      const refId = this._model.getId(ref);
-                                                      return this._tabs.find((tab: DesktopWindow) => {
-                                                          return tab.id === refId;
-                                                      });
-                                                  })
-                                                  .filter((tab: DesktopWindow|undefined): tab is DesktopWindow => {
-                                                      // Remove any invalid identities
-                                                      return tab !== undefined;
-                                                  });
+            .map((ref: WindowIdentity) => {
+                // Look-up each given identity within list of tabs
+                const refId = this._model.getId(ref);
+                return this._tabs.find((tab: DesktopWindow) => {
+                    return tab.id === refId;
+                });
+            })
+            .filter((tab: DesktopWindow|undefined): tab is DesktopWindow => {
+                // Remove any invalid identities
+                return tab !== undefined;
+            });
 
         if (newlyOrdered.length === this._tabs.length) {
             this._tabs = newlyOrdered;
@@ -740,7 +785,7 @@ export class DesktopTabGroup implements DesktopEntity {
                         minSize: this._config.height,
                         maxSize: this._config.height,
                         resizableMin: result.y.resizableMin,
-                        resizableMax: false,
+                        resizableMax: false
                     }
                 }
             });
@@ -760,7 +805,8 @@ export class DesktopTabGroup implements DesktopEntity {
     private async validateGroupInternal() {
         const tabStripOffset: Point<number> = PointUtils.difference(
             this._window.currentState.center,
-            {x: this.currentState.center.x, y: this.currentState.center.y - this.currentState.halfSize.y + this.config.height / 2});
+            {x: this.currentState.center.x, y: this.currentState.center.y - this.currentState.halfSize.y + this.config.height / 2}
+        );
 
         if (PointUtils.lengthSquared(tabStripOffset) > 0) {
             console.log('TabGroup disjointed. Moving tabstrip back to group.', this.id);

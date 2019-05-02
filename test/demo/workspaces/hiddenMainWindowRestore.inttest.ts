@@ -51,4 +51,5 @@ itParameterized<CreateAppData>(
                 await assertWindowRestored(applicationInfo.uuid, applicationChild.identity.name!);
             }
         }
-    }));
+    })
+);

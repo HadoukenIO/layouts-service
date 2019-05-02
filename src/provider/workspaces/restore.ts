@@ -74,7 +74,7 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
 
     // Go through all of the app responses and check them for failures. Exclude any apps that didn't come up from returned Workspace.
     const processedAppResponses: WorkspaceApp[] = await promiseFilter(allAppResponses, async (appResponse) => {
-        return await processAppResponse(appResponse, workspace);
+        return processAppResponse(appResponse, workspace);
     });
 
     workspace.apps = processedAppResponses;
@@ -303,7 +303,8 @@ const processAppResponse = async(appResponse: WorkspaceApp, workspace: Workspace
                     `Application ${appResponse.uuid} did not restore its child window ${childWindow.name} 
                         (or the App's setGenerateHandler didn't return that child window). Placeholder will be closed: 
                     `,
-                    appResponse);
+                    appResponse
+                );
                 await closeCorrespondingPlaceholder(childWindow);
             }
         });
@@ -339,7 +340,7 @@ const restoreTabGroupsWithManuallyClosedPlaceholders = async (workspace: Workspa
         // We've found our TabGroup! Let's add all these windows to it.
         if (existingTabGroup) {
             // Re-add the ungrouped tabs back into the existing tab group if it exists
-            const tabWindows = await promiseMap(manuallyClosedWindowsInTabGroup, async (tab) => await model.expect(tab));
+            const tabWindows = await promiseMap(manuallyClosedWindowsInTabGroup, async (tab) => model.expect(tab));
             await existingTabGroup.addTabs(tabWindows.filter(tabWindow => tabWindow.isReady));
             const activeTab = await model.expect(tabGroup.groupInfo.active);
             if (activeTab && activeTab.isReady) {
@@ -374,7 +375,8 @@ const setClientAppToRestoreWhenReady = (workspaceApp: WorkspaceApp, resolve: Fun
                 `App ${uuid} failed to call its ready function. 
                 App is either not launching, or didn't call ready. 
                 Application's child windows and confirmed status will be removed: `,
-                workspaceApp);
+                workspaceApp
+            );
             promiseForEach(workspaceApp.childWindows, closeCorrespondingPlaceholder);
             resolve(failedResponse);
         }
@@ -409,7 +411,8 @@ const instructClientAppToRestoreItself = async(workspaceApp: WorkspaceApp): Prom
             `Sent WorkspaceApp object to ${workspaceApp.uuid}'s restore handler, but it timed out. 
             Child window restoration may have failed. 
             Application's child windows and confirmed status will be removed: `,
-            workspaceApp);
+            workspaceApp
+        );
         promiseForEach(workspaceApp.childWindows, closeCorrespondingPlaceholder);
         resolve(failedResponse);
     }, CLIENT_APP_RESTORE_TIMEOUT));
@@ -426,7 +429,7 @@ const instructClientAppToRestoreItself = async(workspaceApp: WorkspaceApp): Prom
 const attemptToRunCreatedApp = async (ofAppNotRunning: Application) => {
     let timeout;
     const timeoutPromise = new Promise<void>((resolve, reject) => timeout = window.setTimeout(() => {
-        reject(`Run was called on Application ${ofAppNotRunning.identity.uuid}, but it seems to be hanging. Continuing restoration.`);
+        reject(new Error(`Run was called on Application ${ofAppNotRunning.identity.uuid}, but it seems to be hanging. Continuing restoration.`));
     }, CLIENT_APP_RUN_TIMEOUT));
     const runCall = ofAppNotRunning.run();
 

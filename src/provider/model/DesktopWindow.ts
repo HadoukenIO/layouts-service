@@ -13,6 +13,7 @@ import {Debounced} from '../snapanddock/utils/Debounced';
 import {isWin10} from '../snapanddock/utils/platform';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle} from '../snapanddock/utils/RectUtils';
+import {forEachProperty} from '../utils/iteration';
 
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
@@ -67,6 +68,10 @@ export enum eTransformType {
     RESIZE = 1 << 1
 }
 
+interface BoundsChange {
+    transformType: Mask<eTransformType>;
+    startBounds: Rectangle;
+}
 
 enum ActionOrigin {
     /**
@@ -109,6 +114,13 @@ interface Transaction {
     remove: Debounced<() => void, typeof DesktopWindow, []>;
 }
 
+/**
+ * The minimum change needed for a user initiated bounds change to be confirmed as a move or a resize. This will only be used
+ * when display scaling is non-1, as in this case we can trust the transform type returned by the runtime
+ */
+const MINIMUM_RESIZE_CHANGE = 2;
+const MINIMUM_MOVE_CHANGE = 2;
+
 export class DesktopWindow implements DesktopEntity {
     public static readonly onCreated: Signal1<DesktopWindow> = new Signal1();
     public static readonly onDestroyed: Signal1<DesktopWindow> = new Signal1();
@@ -148,13 +160,13 @@ export class DesktopWindow implements DesktopEntity {
                         resizableMin: !!options.resizable && (options.resizeRegion.sides.left !== false),
                         resizableMax: !!options.resizable && (options.resizeRegion.sides.right !== false),
                         minSize: options.minWidth || 0,
-                        maxSize: options.maxWidth && options.maxWidth > 0 ? options.maxWidth : Number.MAX_SAFE_INTEGER,
+                        maxSize: options.maxWidth && options.maxWidth > 0 ? options.maxWidth : Number.MAX_SAFE_INTEGER
                     },
                     y: {
                         resizableMin: !!options.resizable && (options.resizeRegion.sides.top !== false),
                         resizableMax: !!options.resizable && (options.resizeRegion.sides.bottom !== false),
                         minSize: options.minHeight || 0,
-                        maxSize: options.maxHeight && options.maxHeight > 0 ? options.maxHeight : Number.MAX_SAFE_INTEGER,
+                        maxSize: options.maxHeight && options.maxHeight > 0 ? options.maxHeight : Number.MAX_SAFE_INTEGER
                     }
                 };
 
@@ -223,7 +235,8 @@ export class DesktopWindow implements DesktopEntity {
                         this.activeTransactions.splice(indexToRemove, 1);
                     }
                 },
-                this)
+                this
+            )
         };
         this.activeTransactions.push(transaction);
         try {
@@ -341,7 +354,7 @@ export class DesktopWindow implements DesktopEntity {
     private _registeredListeners: Map<OpenFinWindowEvent, (event: fin.OpenFinWindowEventMap[OpenFinWindowEvent]) => void> = new Map();
 
     private _moveInProgress = false;
-    private _userInitiatedBoundsChange = false;
+    private _userInitiatedBoundsChange: BoundsChange|null;
 
     constructor(model: DesktopModel, window: fin.WindowOptions|Window, initialState?: EntityState) {
         const identity = DesktopWindow.getIdentity(window);
@@ -390,6 +403,8 @@ export class DesktopWindow implements DesktopEntity {
         this._tabGroup = null;
         this._prevGroup = null;
         this._snapGroup.addWindow(this);
+
+        this._userInitiatedBoundsChange = null;
 
         if (this.isReady) {
             this.addListeners();
@@ -448,7 +463,7 @@ export class DesktopWindow implements DesktopEntity {
         };
     }
 
-    public get[Symbol.toStringTag]() {
+    public get [Symbol.toStringTag]() {
         return this._id;
     }
 
@@ -498,6 +513,10 @@ export class DesktopWindow implements DesktopEntity {
             return {...this._currentState, ...currentMonitor};
         }
         return this._currentState;
+    }
+
+    public get beforeMaximizeBounds(): Rectangle {
+        return {center: this._currentState.center, halfSize: this._currentState.halfSize};
     }
 
     public get applicationState(): EntityState {
@@ -598,7 +617,7 @@ export class DesktopWindow implements DesktopEntity {
                 await Promise.all(this._pendingActions);
             } else {
                 // If we've looped this many times, we're probably in some kind of deadlock scenario
-                return Promise.reject(`Couldn't sync ${this._id} after ${awaitCount} attempts`);
+                return Promise.reject(new Error(`Couldn't sync ${this._id} after ${awaitCount} attempts`));
             }
         }
     }
@@ -612,17 +631,13 @@ export class DesktopWindow implements DesktopEntity {
                 const modifications: Partial<EntityState> = {};
                 let hasChanges = false;
 
-                for (const iter in state) {
-                    if (state.hasOwnProperty(iter)) {
-                        const key = iter as keyof EntityState;
-
-                        if (this.isModified(key, appState, state) &&
-                            (!this._modifiedState.hasOwnProperty(key) || this.isModified(key, this._modifiedState, state))) {
-                            modifications[key] = state[key];
-                            hasChanges = true;
-                        }
+                forEachProperty(state, (property) => {
+                    if (this.isModified(property, appState, state) &&
+                        (!this._modifiedState.hasOwnProperty(property) || this.isModified(property, this._modifiedState, state))) {
+                        modifications[property] = state[property];
+                        hasChanges = true;
                     }
-                }
+                });
 
                 if (hasChanges) {
                     console.log('Window refresh found changes: ', this._id, modifications);
@@ -656,9 +671,6 @@ export class DesktopWindow implements DesktopEntity {
 
     public async applyOverride<K extends keyof EntityState>(property: K, value: EntityState[K]): Promise<void> {
         if (value !== this._currentState[property]) {
-            this._temporaryState[property] = this._temporaryState[property] || this._currentState[property];
-            this._currentState[property] = value;
-
             return this.updateState({[property]: value}, ActionOrigin.SERVICE_TEMPORARY);
         }
     }
@@ -670,6 +682,7 @@ export class DesktopWindow implements DesktopEntity {
             return this.updateState({[property]: value}, ActionOrigin.SERVICE);  // TODO: Is this the right origin type?
         }
     }
+
     public async sendEvent<T extends LayoutsEvent>(event: T): Promise<void> {
         if (this._lifecycleStage === LifecycleStage.STARTING) {
             await this.sync();
@@ -787,9 +800,9 @@ export class DesktopWindow implements DesktopEntity {
                 return this.addPendingActions('snap - joinGroup', joinGroupPromise);
             });
         } else if (index === -1) {
-            return Promise.reject('Attempting to snap, but window isn\'t in the target group');
+            return Promise.reject(new Error('Attempting to snap, but window isn\'t in the target group'));
         } else {
-            return Promise.reject('Need at least 2 windows in group to snap');
+            return Promise.reject(new Error('Need at least 2 windows in group to snap'));
         }
     }
 
@@ -827,10 +840,12 @@ export class DesktopWindow implements DesktopEntity {
             if (!this.isReady) {
                 throw new Error('Cannot modify window, window not in ready state ' + this._id);
             }
-        } else {
+        }
+
+        // Update application state and modifications in comparison to application state
+        if (origin === ActionOrigin.APPLICATION){
             // Find changes from the application that weren't already known to the service
-            Object.keys(delta).forEach((key: string) => {
-                const property: keyof EntityState = key as keyof EntityState;
+            forEachProperty(delta, (property) => {
                 if (this.isModified(property, delta, this._currentState)) {
                     if (typeof delta[property] === 'object') {
                         Object.assign(this._applicationState[property], delta[property]);
@@ -839,27 +854,9 @@ export class DesktopWindow implements DesktopEntity {
                     }
                 }
             });
-        }
-
-        // Update state caches
-        if (origin === ActionOrigin.SERVICE_TEMPORARY) {
-            // Back-up existing values, so they can be restored later
-            Object.keys(delta).forEach((key: string) => {
-                const property: keyof EntityState = key as keyof EntityState;
-                if (!this._temporaryState.hasOwnProperty(property)) {
-                    this._temporaryState[property] = this._currentState[property];
-                }
-            });
         } else {
-            Object.keys(delta).forEach((key: string) => {
-                const property: keyof EntityState = key as keyof EntityState;
-
-                // These changes will undo any temporary changes that have been applied
-                if (this._temporaryState.hasOwnProperty(property)) {
-                    delete this._temporaryState[property];
-                }
-
-                // Track which properties have been modified by the service
+            // Track which properties have been modified by the service
+            forEachProperty(delta, (property) => {
                 if (this.isModified(property, delta, this._applicationState)) {
                     this._modifiedState[property] = delta[property];
                 } else {
@@ -867,6 +864,24 @@ export class DesktopWindow implements DesktopEntity {
                 }
             });
         }
+
+        // Update temporary values
+        if (origin === ActionOrigin.SERVICE_TEMPORARY) {
+            // Back-up existing values, so they can be restored later
+            forEachProperty(delta, (property) => {
+                if (!this._temporaryState.hasOwnProperty(property)) {
+                    this._temporaryState[property] = this._currentState[property];
+                }
+            });
+        } else {
+            // Delete temporary values, as they've now been superceeded
+            forEachProperty(delta, (property) => {
+                if (this._temporaryState.hasOwnProperty(property)) {
+                    delete this._temporaryState[property];
+                }
+            });
+        }
+
         // Keep a copy of the previous state around temporarily to compare and avoid event loops.
         const prevState = this._currentState.state;
         const prevConstraints = this._currentState.resizeConstraints;
@@ -933,7 +948,7 @@ export class DesktopWindow implements DesktopEntity {
                             left: resizeConstraints.x.resizableMin,
                             right: resizeConstraints.x.resizableMax,
                             top: resizeConstraints.y.resizableMin,
-                            bottom: resizeConstraints.y.resizableMax,
+                            bottom: resizeConstraints.y.resizableMax
                         }
                     },
                     minWidth: resizeConstraints.x.minSize,
@@ -1023,13 +1038,22 @@ export class DesktopWindow implements DesktopEntity {
         const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
         const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
 
+        let transformType: Mask<eTransformType>;
+
+        if (this._userInitiatedBoundsChange) {
+            transformType = this.updateTransformType(event, this._userInitiatedBoundsChange);
+        }
+
         this.updateState({center, halfSize}, ActionOrigin.APPLICATION);
 
         if (this._userInitiatedBoundsChange) {
-            this.onCommit.emit(this, this.getTransformType(event));
+            this.onCommit.emit(this, transformType!);
 
+            if (this._model.displayScaling) {
+                this._snapGroup.restoreResizeConstraints();
+            }
             // Setting this here instead of in 'end-user-bounds-changing' event to ensure we are still synced when this method is called.
-            this._userInitiatedBoundsChange = false;
+            this._userInitiatedBoundsChange = null;
         } else {
             this.onModified.emit(this);
         }
@@ -1044,20 +1068,81 @@ export class DesktopWindow implements DesktopEntity {
         const halfSize: Point = {x: bounds.width / 2, y: bounds.height / 2};
         const center: Point = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
 
+        let transformType: Mask<eTransformType>;
+
+        if (this._userInitiatedBoundsChange) {
+            transformType = this.updateTransformType(event, this._userInitiatedBoundsChange);
+        }
+
         this.updateState({center, halfSize}, ActionOrigin.APPLICATION);
 
         if (this._userInitiatedBoundsChange) {
-            this.onTransform.emit(this, this.getTransformType(event));
+            this.onTransform.emit(this, transformType!);
         }
     }
 
-    private getTransformType(event: fin.WindowBoundsEvent): Mask<eTransformType> {
-        // Convert 'changeType' into our enum type
-        return event.changeType + 1;
+    private updateTransformType(event: fin.WindowBoundsEvent, boundsChange: BoundsChange): Mask<eTransformType> {
+        // If display scaling is enabled, distrust the changeType given by the runtime
+        if (this._model.displayScaling) {
+            const prevTransformType = boundsChange.transformType;
+
+            const startBounds = boundsChange.startBounds;
+
+            const bounds = this.checkBounds(event);
+            const halfSize = {x: bounds.width / 2, y: bounds.height / 2};
+            const center = {x: bounds.left + halfSize.x, y: bounds.top + halfSize.y};
+
+            const evaluateAxis = (axis: 'x'|'y') => {
+                const resize = Math.abs(halfSize[axis] - startBounds.halfSize[axis]) * 2 > MINIMUM_RESIZE_CHANGE;
+                let expectedCenter: number;
+
+                if (!resize) {
+                    expectedCenter = startBounds.center[axis];
+                } else {
+                    const sizeChangeSign = Math.sign(halfSize[axis] - startBounds.halfSize[axis]);
+                    // If start and new centers are equal, arbitrarily pick a sign, so as to not
+                    // accidentally support 'symmetrical' resize from both edges
+                    const centerChangeSign = Math.sign(center[axis] - startBounds.center[axis]) || 1;
+
+                    const expectedEdgeChanged = sizeChangeSign * centerChangeSign;
+
+                    expectedCenter = startBounds.center[axis] + expectedEdgeChanged * (halfSize[axis] - startBounds.halfSize[axis]);
+                }
+
+                const move = Math.abs(expectedCenter - center[axis]) > MINIMUM_MOVE_CHANGE;
+
+                return (move ? eTransformType.MOVE : 0) | (resize ? eTransformType.RESIZE : 0);
+            };
+
+            boundsChange.transformType |= evaluateAxis('x');
+            boundsChange.transformType |= evaluateAxis('y');
+
+            // Err on the side of regarding transforms as purely moves
+            if ((boundsChange.transformType & eTransformType.MOVE)) {
+                boundsChange.transformType = eTransformType.MOVE;
+            }
+
+            const newTransformType = boundsChange.transformType;
+
+            if (newTransformType === eTransformType.MOVE && prevTransformType !== eTransformType.MOVE) {
+                this._snapGroup.suspendResizeConstraints();
+            } else if (newTransformType !== eTransformType.MOVE && prevTransformType === eTransformType.MOVE) {
+                this._snapGroup.restoreResizeConstraints();
+            }
+
+            return newTransformType;
+        } else {
+            // Convert 'changeType' into our enum type
+            return event.changeType + 1;
+        }
     }
 
     private handleBeginUserBoundsChanging(event: fin.WindowBoundsEvent) {
-        this._userInitiatedBoundsChange = true;
+        const startBounds = {center: {...this.currentState.center}, halfSize: {...this.currentState.halfSize}};
+
+        this._userInitiatedBoundsChange = {startBounds, transformType: 0};
+
+        this.updateTransformType(event, this._userInitiatedBoundsChange);
     }
 
     private handleClosing(): void {
@@ -1074,6 +1159,10 @@ export class DesktopWindow implements DesktopEntity {
         if (!this.isMaximizedOrInMaximizedTab()) {
             this._snapGroup.windows
                 .filter(snapGroupWindow => snapGroupWindow !== this && !snapGroupWindow.isMaximizedOrInMaximizedTab() && !snapGroupWindow.currentState.hidden)
+                .forEach(snapGroupWindow => snapGroupWindow.bringToFront());
+        } else if (this._tabGroup && this._tabGroup.state === 'maximized') {
+            this._snapGroup.windows
+                .filter(snapGroupWindow => snapGroupWindow !== this && snapGroupWindow._tabGroup === this._tabGroup)
                 .forEach(snapGroupWindow => snapGroupWindow.bringToFront());
         }
     }
@@ -1105,13 +1194,14 @@ export class DesktopWindow implements DesktopEntity {
         console.log('Received window group changed event: ', event);
 
         switch (event.reason) {
-            case 'leave':
+            case 'leave': {
                 const modifiedSourceGroup = event.sourceGroup.concat({appUuid: this._identity.uuid, windowName: this._identity.name});
                 if (this._snapGroup.length > 1 && compareSnapAndEventWindowArrays(this._snapGroup.windows, modifiedSourceGroup)) {
                     return this.setSnapGroup(new DesktopSnapGroup());
                 } else {
                     return Promise.resolve();
                 }
+            }
             case 'join':
                 if (targetWindow && targetGroup) {
                     return compareSnapAndEventWindowArrays(this._snapGroup.windows, event.targetGroup) ? Promise.resolve() : this.addToSnapGroup(targetGroup);
@@ -1139,7 +1229,8 @@ export class DesktopWindow implements DesktopEntity {
             return deepEqual(
                 snapWindows.map(w => w.identity).sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid)),
                 eventWindows.map(w => ({uuid: w.appUuid, name: w.windowName}))
-                    .sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid)));
+                    .sort((a, b) => a.uuid === b.uuid ? a.name.localeCompare(b.name) : a.uuid.localeCompare(b.uuid))
+            );
         }
     }
 

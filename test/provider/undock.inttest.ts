@@ -7,7 +7,6 @@ import {undockWindow} from '../demo/utils/snapServiceUtils';
 import {teardown} from '../teardown';
 
 import {assertNotGrouped} from './utils/assertions';
-import {getConnection} from './utils/connect';
 import {createChildWindow} from './utils/createChildWindow';
 import {Corner, dragSideToSide, dragWindowToOtherWindow} from './utils/dragWindowTo';
 import {getBounds} from './utils/getBounds';
@@ -16,7 +15,6 @@ import {isAdjacentTo} from './utils/isAdjacentTo';
 import {opposite, perpendicular, Side} from './utils/SideUtils';
 
 let windows: Window[] = new Array<Window>();
-let fin: Fin;
 
 const windowPositions =
     [{defaultTop: 300, defaultLeft: 300}, {defaultTop: 300, defaultLeft: 600}, {defaultTop: 600, defaultLeft: 300}, {defaultTop: 600, defaultLeft: 600}];
@@ -29,9 +27,6 @@ const windowOptions = {
     frame: false
 };
 
-beforeAll(async () => {
-    fin = await getConnection();
-});
 afterEach(async () => {
     for (const win of windows) {
         if (win) {
@@ -114,7 +109,7 @@ function fourWindowTest(corner: Corner) {
         'top-left': 0,
         'top-right': 1,
         'bottom-left': 2,
-        'bottom-right': 3,
+        'bottom-right': 3
     };
 
     // Map to get the offset from a window index to the window in the direction

@@ -37,6 +37,7 @@ export class DesktopModel {
     private _zIndexer: ZIndexer;
     private _mouseTracker: MouseTracker;
     private _monitors: Rectangle[];
+    private _displayScaling: boolean;
 
     constructor(config: ConfigStore) {
         this._windows = [];
@@ -46,6 +47,7 @@ export class DesktopModel {
         this._zIndexer = new ZIndexer(this);
         this._mouseTracker = new MouseTracker();
         this._monitors = [];
+        this._displayScaling = false;
 
         DesktopWindow.onCreated.add(this.onWindowCreated, this);
         DesktopWindow.onDestroyed.add(this.onWindowDestroyed, this);
@@ -62,7 +64,8 @@ export class DesktopModel {
         config.addRule(
             {level: 'service'},
             {level: 'window', uuid: serviceUUID, name: {expression: 'Placeholder-.*'}},
-            {enabled: true, features: {snap: false, dock: false}});
+            {enabled: true, features: {snap: false, dock: false}}
+        );
         config.addRule({level: 'service'}, {level: 'application', uuid: errorWindowSpec}, {enabled: false});
 
         // Add watch expressions for detecting config changes
@@ -92,6 +95,7 @@ export class DesktopModel {
         // Validate everything on monitor change, as groups may become disjointed
         fin.System.addListener('monitor-info-changed', async (evt: MonitorEvent<'system', 'monitor-info-changed'>) => {
             this._monitors = [evt.primaryMonitor, ...evt.nonPrimaryMonitors].map(mon => RectUtils.convertToCenterHalfSize(mon.monitorRect));
+            this._displayScaling = evt.deviceScaleFactor !== 1;
 
             // Validate all tabgroups
             this.tabGroups.map(g => g.validate());
@@ -103,6 +107,7 @@ export class DesktopModel {
         // Get and store the current monitors
         fin.System.getMonitorInfo().then((monitorInfo: MonitorInfo) => {
             this._monitors = [monitorInfo.primaryMonitor, ...monitorInfo.nonPrimaryMonitors].map(mon => RectUtils.convertToCenterHalfSize(mon.availableRect));
+            this._displayScaling = monitorInfo.deviceScaleFactor !== 1;
         });
     }
 
@@ -128,6 +133,10 @@ export class DesktopModel {
 
     public get monitors(): ReadonlyArray<Rectangle> {
         return this._monitors;
+    }
+
+    public get displayScaling(): boolean {
+        return this._displayScaling;
     }
 
     /**

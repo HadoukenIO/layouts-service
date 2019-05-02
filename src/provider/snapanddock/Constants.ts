@@ -18,6 +18,11 @@ export const ANCHOR_DISTANCE = 100;
 export const MIN_OVERLAP = 50;
 
 /**
+ * To calculate window adjacency, we use a tiny fuzz distance to deal with sub-pixel window drift
+ */
+export const ADJACENCY_FUZZ_DISTANCE = 2;
+
+/**
  * Defines the distance windows will be moved when undocked.
  */
 export const UNDOCK_MOVE_DISTANCE = 30;

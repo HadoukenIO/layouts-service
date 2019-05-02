@@ -45,12 +45,20 @@ export class DragWindowManager {
      */
     private _active: boolean;
 
+    /**
+     * Flag to keep track of if we are waiting for a result from fin.System.getMousePosition(), so we can
+     * avoid calling it multiple times before it has returned
+     */
+    private _pendingGetMousePositionResult: boolean;
+
     private _model: DesktopModel;
 
     constructor(model: DesktopModel) {
         this._model = model;
         this._sourceWindow = null;
         this._active = false;
+        this._active = false;
+        this._pendingGetMousePositionResult = false;
 
         this.createDragWindow();
 
@@ -109,7 +117,8 @@ export class DragWindowManager {
                 },
                 () => {
                     resolve();
-                });
+                }
+            );
         });
 
         this.setWindowBounds();
@@ -117,7 +126,19 @@ export class DragWindowManager {
         const nativeWin = this._window.getNativeWindow();
 
         nativeWin.document.body.addEventListener('dragover', (ev: DragEvent) => {
-            DragWindowManager.onDragOver.emit(this._sourceWindow!, {x: ev.screenX + this._virtualScreen.left, y: ev.screenY + this._virtualScreen.top});
+            // We call fin.System.getMousePosition(), as the coordinates given by the dragover event are unreliable when we have a mix of display scales
+            // and we're dragging over a non-primary monitor
+            if (!this._pendingGetMousePositionResult) {
+                fin.System.getMousePosition().then(position => {
+                    this._pendingGetMousePositionResult = false;
+                    // By the time getMousePosition resolves, we may have received a 'drop' event or otherwise have been hidden, so check we are still active
+                    if (this._active) {
+                        DragWindowManager.onDragOver.emit(this._sourceWindow!, {x: position.left, y: position.top});
+                    }
+                }, () => {
+                    this._pendingGetMousePositionResult = false;
+                });
+            }
 
             ev.preventDefault();
             ev.stopPropagation();
@@ -157,7 +178,8 @@ export class DragWindowManager {
             this._virtualScreen.left,
             this._virtualScreen.top,
             this._virtualScreen.right - this._virtualScreen.left,
-            this._virtualScreen.bottom - this._virtualScreen.top);
+            this._virtualScreen.bottom - this._virtualScreen.top
+        );
         this._window.hide();
     }
 }

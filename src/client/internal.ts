@@ -121,7 +121,8 @@ export enum WorkspaceAPI {
 
 export enum SnapAndDockAPI {
     UNDOCK_WINDOW = 'UNDOCK-WINDOW',
-    UNDOCK_GROUP = 'UNDOCK-GROUP'
+    UNDOCK_GROUP = 'UNDOCK-GROUP',
+    GET_DOCKED_WINDOWS = 'GET-DOCKED-WINDOWS'
 }
 
 export enum RegisterAPI {

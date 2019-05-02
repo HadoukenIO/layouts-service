@@ -1,6 +1,6 @@
 {
   "name": "openfin-layouts",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Client library for the OpenFin Layouts service",
   "types": "dist/client/main.d.ts",
   "main": "dist/client/main-bundle.js",

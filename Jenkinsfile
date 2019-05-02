@@ -122,11 +122,11 @@ def deployToS3() {
     sh "aws s3 cp ./dist/docs ${DIR_DOCS_VERSION} --recursive"
 
     sh "aws s3 cp ./dist/provider/app.json ${DIR_BUILD_ROOT}${MANIFEST_NAME}"
-    sh "aws s3 cp ./dist/provider --exclude * --include app.runtime-*.json ${DIR_BUILD_ROOT}"
+    sh "aws s3 cp ./dist/provider/ ${DIR_BUILD_ROOT} --exclude \"*\" --include \"app.runtime-*.json\""
 }
 
 def deployToNPM() {
-    if (DEPLOY_CLIENT != 'No') {
+    if (env.DEPLOY_CLIENT != 'No') {
         withCredentials([string(credentialsId: 'NPM_TOKEN_WRITE', variable: 'NPM_TOKEN')]) {
             sh "echo //registry.npmjs.org/:_authToken=$NPM_TOKEN > $WORKSPACE/.npmrc"
         }

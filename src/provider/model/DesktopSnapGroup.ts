@@ -1,6 +1,6 @@
 import {WindowDockedEvent, WindowUndockedEvent} from '../../client/snapanddock';
 import {Signal1, Signal2} from '../Signal';
-import {MIN_OVERLAP} from '../snapanddock/Constants';
+import {MIN_OVERLAP, ADJACENCY_FUZZ_DISTANCE} from '../snapanddock/Constants';
 import {CalculatedProperty} from '../snapanddock/utils/CalculatedProperty';
 import {Debounced} from '../snapanddock/utils/Debounced';
 import {Point, PointUtils} from '../snapanddock/utils/PointUtils';
@@ -9,7 +9,7 @@ import {RectUtils} from '../snapanddock/utils/RectUtils';
 
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopTabGroup} from './DesktopTabGroup';
-import {DesktopWindow, EntityState, eTransformType, Mask} from './DesktopWindow';
+import {DesktopWindow, EntityState, eTransformType, Mask, ResizeConstraint} from './DesktopWindow';
 
 export class DesktopSnapGroup {
     private static _nextId = 1;
@@ -78,11 +78,14 @@ export class DesktopSnapGroup {
 
     private _validateGroup: Debounced<() => void, DesktopSnapGroup, []>;
 
+    private _resizeConstraintsSuspended: boolean;
+
     constructor() {
         this._id = DesktopSnapGroup._nextId++;
         this._entities = [];
         this._windows = [];
         this.rootWindow = null;
+        this._resizeConstraintsSuspended = false;
 
         const refreshFunc = this.calculateProperties.bind(this);
         this._localBounds = new CalculatedProperty<Rectangle>(refreshFunc);
@@ -181,6 +184,39 @@ export class DesktopSnapGroup {
         return this._entities.length >= 2;
     }
 
+    /**
+     * This allows us to temporarily remove resize constraints, which causes problems when moving a snap group when display
+     * scaling is enabled
+     */
+    public suspendResizeConstraints(): void {
+        if (this._windows.length > 1 && !this._resizeConstraintsSuspended) {
+            const nullConstraint: ResizeConstraint = {resizableMin: true, resizableMax: true, minSize: 0, maxSize: Number.MAX_SAFE_INTEGER};
+            const nullConstraints: Point<ResizeConstraint> = {x: nullConstraint, y: nullConstraint};
+
+            this._resizeConstraintsSuspended = true;
+
+            for (const window of this._windows) {
+                // We refresh here, otherwise we may not know about constraint changes made by the app via the runtime API, which
+                // would prevent applyOverride properly unsetting them
+                window.refresh().then(() => {
+                    if (this._resizeConstraintsSuspended) {
+                        window.applyOverride('resizeConstraints', nullConstraints);
+                    }
+                });
+            }
+        }
+    }
+
+    public restoreResizeConstraints(): void {
+        if (this._resizeConstraintsSuspended) {
+            for (const window of this._windows) {
+                window.resetOverride('resizeConstraints');
+            }
+
+            this._resizeConstraintsSuspended = false;
+        }
+    }
+
     private validateGroupInternal(): void {
         // Ensure 'group' is still a valid, contiguous group.
         const contiguousWindowSets = this.getContiguousEntities(this.entities);
@@ -231,6 +267,13 @@ export class DesktopSnapGroup {
             }
         }
 
+        /**
+         * Are the two DesktopEntitys adjacent? True if they are windows in the same tab group, false
+         * if they are not both visible, true if they are both visible and within the fuzz distance.
+         * @param win1 one DesktopEntity
+         * @param win2 the other DesktopEntity
+         * @returns true if they are adjacent
+         */
         function isAdjacent(win1: DesktopEntity, win2: DesktopEntity) {
             const distance = RectUtils.distance(win1.currentState, win2.currentState);
             if (win1.tabGroup && win1.tabGroup === win2.tabGroup) {
@@ -241,8 +284,9 @@ export class DesktopSnapGroup {
                 // If a window is not visible it cannot be adjacent to anything. This also allows us
                 // to avoid the questionable position tracking for hidden windows.
                 return false;
-            } else if (distance.border(0) && Math.abs(distance.maxAbs) > MIN_OVERLAP) {
-                // The overlap check ensures that only valid snap configurations are counted
+            } else if (distance.border(ADJACENCY_FUZZ_DISTANCE) && Math.abs(distance.maxAbs) > MIN_OVERLAP) {
+                // The overlap check ensures that only valid snap configurations are counted.
+                // We make it a small number to account for sub-pixel distances on > 100% scale monitors
                 return true;
             }
             return false;

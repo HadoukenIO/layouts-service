@@ -5,7 +5,7 @@ import {Identity} from 'hadouken-js-adapter';
 
 import {eventEmitter, tryServiceDispatch} from './connection';
 import {getId, parseIdentity, SnapAndDockAPI} from './internal';
-
+import {WindowIdentity} from './main';
 
 /**
  * Event fired when one window is docked to another.  See {@link addEventListener}.
@@ -149,4 +149,48 @@ export async function undockWindow(identity: Identity = getId()): Promise<void> 
  */
 export async function undockGroup(identity: Identity = getId()): Promise<void> {
     return tryServiceDispatch<Identity, void>(SnapAndDockAPI.UNDOCK_GROUP, parseIdentity(identity));
+}
+
+/**
+ * Represents a group of docked entities (windows and/or tab groups)
+ *
+ * An array entry of type `WindowIdentity` represents a single window
+ *
+ * An array entry of type `WindowIdentity[]` represents a tab group. The elements of this sub-array are the identities of the tabs that form the tab group.
+ */
+export type DockGroup = (WindowIdentity | WindowIdentity[])[]
+
+/**
+ * Returns an array representing the entities docked with the provided window (see {@link DockGroup} for more details).
+ *
+ * If the window is not docked returns null.
+ *
+ * ```ts
+ * import {snapAndDock} from 'openfin-layouts';
+ *
+ * // Gets all tabs for the current window context.
+ * const myGroup: DockGroup | null = snapAndDock.getDockedWindows();
+ *
+ * // Get all tabs for another window context.
+ * const otherWindow: Identity = {uuid: "sample-window-uuid", name: "sample-window-name"}
+ * const otherWindowGroup: DockGroup | null = snapAndDock.getDockedWindows(otherWindow);
+ * ```
+ *
+ * @param identity The window context, defaults to the current window.
+ * @throws `Error`: If `identity` is not a valid {@link https://developer.openfin.co/docs/javascript/stable/global.html#Identity | Identity}.
+ * @throws `Error`: If the window specified by `identity` does not exist
+ * @throws `Error`: If the window specified by `identity` has been de-registered
+ * @throws `Error`: If the provider is running an incompatible version
+ *
+ * @since 1.0.3
+ */
+export async function getDockedWindows(identity: Identity = getId()): Promise<DockGroup | null> {
+    const response = await tryServiceDispatch<Identity, DockGroup | null>(SnapAndDockAPI.GET_DOCKED_WINDOWS, parseIdentity(identity));
+    // @ts-ignore Compatability check. Provider will return false on unregistered actions.
+    if (response === false) {
+        console.warn('Warning: The currently running layouts service does not support the "getDockedWindows" method.');
+        return null;
+    }
+
+    return response;
 }

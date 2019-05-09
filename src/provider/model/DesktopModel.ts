@@ -13,6 +13,7 @@ import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {SignalSlot} from '../Signal';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
+import {wrapWindow} from '../utils/main';
 
 import {DesktopTabGroup} from './DesktopTabGroup';
 import {DesktopWindow, EntityState, WindowIdentity} from './DesktopWindow';
@@ -34,10 +35,10 @@ export class DesktopModel {
     private _tabGroups: DesktopTabGroup[];
     private _snapGroups: DesktopSnapGroup[];
     private _windowLookup: {[key: string]: DesktopWindow};
-    private _zIndexer: ZIndexer;
     private _mouseTracker: MouseTracker;
     private _monitors: Rectangle[];
     private _displayScaling: boolean;
+    public _zIndexer: ZIndexer;
 
     constructor(config: ConfigStore) {
         this._windows = [];
@@ -284,7 +285,7 @@ export class DesktopModel {
         return promiseWithTimeout.then(removeSlot, removeSlot);
     }
 
-    private async addIfEnabled(identity: WindowIdentity): Promise<void> {
+    public async addIfEnabled(identity: WindowIdentity): Promise<void> {
         const result: Masked<ConfigurationObject, EnabledMask> =
             this._config.queryPartial({level: 'window', uuid: identity.uuid, name: identity.name}, enabledMask);
 
@@ -304,7 +305,7 @@ export class DesktopModel {
             existingWindow.teardown();
         }
 
-        const window: Window = fin.Window.wrapSync(identity);
+        const window: Window = wrapWindow(identity);
         return DesktopWindow.getWindowState(window).then<DesktopWindow|null>((state: EntityState): DesktopWindow|null => {
             if (!this._config.queryPartial({level: 'window', ...identity}, enabledMask).enabled) {
                 // An 'enabled: false' rule was added to the store whilst we were in the process of setting-up the

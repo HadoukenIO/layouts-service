@@ -13,6 +13,7 @@ import {SnapService} from './snapanddock/SnapService';
 import {win10Check} from './snapanddock/utils/platform';
 import {TabService} from './tabbing/TabService';
 import {WindowHandler} from './WindowHandler';
+import {NativeWindowService} from './nativeWindows/NativeWindowService';
 
 export type ConfigStore = Store<ConfigurationObject>;
 
@@ -23,6 +24,7 @@ export let snapService: SnapService;
 export let tabService: TabService;
 export let apiHandler: APIHandler;
 export let windowHandler: WindowHandler;
+export let nativeWindowService: NativeWindowService;
 
 declare const window: Window&{
     config: ConfigStore;
@@ -31,6 +33,7 @@ declare const window: Window&{
     snapService: SnapService;
     tabService: TabService;
     apiHandler: APIHandler;
+    nativeWindowService: NativeWindowService;
 };
 
 fin.desktop.main(main);
@@ -68,6 +71,7 @@ Please contact support@openfin.co with any further questions.`;
     snapService = window.snapService = new SnapService(model, config);
     tabService = window.tabService = new TabService(model, config);
     apiHandler = window.apiHandler = new APIHandler(model, config, snapService, tabService);
+    nativeWindowService = window.nativeWindowService = new NativeWindowService(config, model, snapService);
 
     // Need to ensure that `DesktopTabstripFactory` is created synchronously at service startup.
     // This ensures that it's watch listeners are active at the point where any application-specific tabstrips are configured.

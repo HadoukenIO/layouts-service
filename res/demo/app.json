@@ -22,6 +22,9 @@
             "rules": [{
                 "scope": {"level": "window", "uuid": "Layouts-Manager", "name": "Layouts-Manager"},
                 "config": {"enabled": false}
+            }, {
+                "scope": {"level": "application", "uuid": "layouts-service"},
+                "config": {"features": {"externalWindows": true}}
             }]
         }
     }],

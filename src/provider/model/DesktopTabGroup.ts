@@ -663,7 +663,10 @@ export class DesktopTabGroup implements DesktopEntity {
             const {center, halfSize} = existingTabState;
 
             // Align tab with existing tab
-            await tab.applyProperties({center, halfSize, frame: false});
+            // Note: An external window can't remove its frame, so setting
+            // frame property to true.
+            const frame = tab.identity.isExternalWindow ? true : false;
+            await tab.applyProperties({center, halfSize, frame});
         }
 
         await tab.setTabGroup(this);

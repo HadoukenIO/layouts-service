@@ -170,12 +170,17 @@
                         "tab": {
                             "type": "boolean",
                             "description": "Toggles the ability to tab windows by drag-and-drop. Windows can still be tabbed programmatically using the layouts client api."
+                        },
+                        "externalWindows": {
+                            "type": "boolean",
+                            "description": "Toggles the support for external windows."
                         }
                     },
                     "default": {
                         "snap": true,
                         "dock": true,
-                        "tab": true
+                        "tab": true,
+                        "externalWindows": true
                     },
                     "additionalProperties": false
                 },
@@ -257,6 +262,9 @@
                 },
                 "name": {
                     "type": "string"
+                },
+                "isExternalWindow": {
+                    "type": "boolean"
                 }
             },
             "required": [

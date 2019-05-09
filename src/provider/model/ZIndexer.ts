@@ -7,6 +7,7 @@ import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {SERVICE_IDENTITY} from '../../client/internal';
+import {wrapWindow} from '../utils/main';
 
 import {DesktopModel} from './DesktopModel';
 import {DesktopSnapGroup} from './DesktopSnapGroup';
@@ -147,7 +148,7 @@ export class ZIndexer {
             }
         } else if (!bounds) {
             // Must request bounds before being able to add
-            fin.Window.wrapSync(identity).getBounds().then(bounds => {
+            wrapWindow(identity).getBounds().then((bounds: Bounds) => {
                 // Since this required an async operation, entry may now exist within stack, so recursively call update
                 this.update(identity, eventNum, active, this.sanitizeBounds(bounds));
             });
@@ -183,7 +184,7 @@ export class ZIndexer {
      * Creates window event listeners on a specified window.
      * @param win Window to add the event listeners to.
      */
-    private async _addEventListeners(win: _Window) {
+    public async _addEventListeners(win: _Window) {
         const identity = win.identity as WindowIdentity;  // A window identity will always have a name, so it is safe to cast
 
         const bringToFront = () => {

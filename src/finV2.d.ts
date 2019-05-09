@@ -21,5 +21,6 @@ declare global {
         const ExternalApplication: ExternalApplication;
         const Frame: _FrameModule;
         const GlobalHotkey: GlobalHotkey;
+        const ExternalWindow: any; // TODO: waiting for js-adapter changes
     }
 }

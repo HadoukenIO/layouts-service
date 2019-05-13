@@ -1,6 +1,6 @@
 
 
-exports.default = (app) => {
+module.exports = (app) => {
     app.use('/create-manifest', (req, res) => {
         const {uuid, url, defaultTop, config, autoShow} = req.query;
         const additionalServiceProperties = config ? {config: JSON.parse(config)} : {};

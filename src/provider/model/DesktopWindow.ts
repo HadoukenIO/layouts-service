@@ -1143,6 +1143,24 @@ export class DesktopWindow implements DesktopEntity {
         this._userInitiatedBoundsChange = {startBounds, transformType: 0};
 
         this.updateTransformType(event, this._userInitiatedBoundsChange);
+
+        // Temporary extra validation to workaround runtime issues with windows right-click move
+        // TODO: Removed once runtime has better handling of this edge case ([JIRA Ref])
+        let disabled = false;
+        const disabledListener = () => {
+            disabled = true;
+        };
+        this._window.once('disabled-frame-bounds-changing', disabledListener);
+        this._window.once('bounds-changed', () => {
+            if (!disabled && this._snapGroup.length > 1) {
+                if (this._tabGroup) {
+                    this._tabGroup.validate();
+                } else if (this._snapGroup.length > 1) {
+                    this._snapGroup.validate();
+                }
+            }
+            this._window.removeListener('disabled-frame-bounds-changing', disabledListener);
+        });
     }
 
     private handleClosing(): void {

@@ -1145,7 +1145,7 @@ export class DesktopWindow implements DesktopEntity {
         this.updateTransformType(event, this._userInitiatedBoundsChange);
 
         // Temporary extra validation to workaround runtime issues with windows right-click move
-        // TODO: Removed once runtime has better handling of this edge case ([JIRA Ref])
+        // TODO: Removed once runtime has better handling of this edge case (RUN-5074?)
         let disabled = false;
         const disabledListener = () => {
             disabled = true;

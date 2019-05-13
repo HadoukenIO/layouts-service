@@ -1155,7 +1155,7 @@ export class DesktopWindow implements DesktopEntity {
             if (!disabled && this._snapGroup.length > 1) {
                 if (this._tabGroup) {
                     this._tabGroup.validate();
-                } else if (this._snapGroup.length > 1) {
+                } else {
                     this._snapGroup.validate();
                 }
             }

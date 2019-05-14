@@ -45,8 +45,9 @@ afterEach(async () => {
     }));
 
     wins = [];
+
+    await teardown();
 });
-afterEach(teardown);
 
 it('When animating window movement, windows should not snap', async () => {
     const win2Bounds = await getBounds(wins[1]);

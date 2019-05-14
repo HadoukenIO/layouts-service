@@ -81,8 +81,9 @@ afterEach(async () => {
     }));
 
     wins = [];
+
+    await teardown();
 });
-afterEach(teardown);
 
 it('When dragging a window on-top a window, a tabgroup is created', async () => {
     // Drag wins[0] over wins[1] to make a tabset (in valid drop region)

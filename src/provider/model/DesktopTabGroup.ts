@@ -10,6 +10,7 @@ import {Signal1} from '../Signal';
 import {Debounced} from '../snapanddock/utils/Debounced';
 import {Point, PointUtils} from '../snapanddock/utils/PointUtils';
 import {Rectangle} from '../snapanddock/utils/RectUtils';
+import {promiseForEach} from '../snapanddock/utils/async';
 
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
@@ -262,18 +263,19 @@ export class DesktopTabGroup implements DesktopEntity {
 
             const currentMonitor = this._model.getMonitorByRect(this._groupState) || this._model.monitors[0];
 
-            await this._window.applyProperties({
-                center: {
-                    x: currentMonitor.center.x,
-                    y: this._config.height / 2
-                },
-                halfSize: {
-                    x: currentMonitor.halfSize.x,
-                    y: this._config.height / 2
-                }});
-            await this.activeTab.applyProperties({
+            const tabstripBounds = {
+                center: {x: currentMonitor.center.x, y: this._config.height / 2},
+                halfSize: {x: currentMonitor.halfSize.x, y: this._config.height / 2}
+            };
+
+            const tabBounds = {
                 center: {x: currentMonitor.center.x, y: currentMonitor.center.y + this._config.height / 2},
                 halfSize: {x: currentMonitor.halfSize.x, y: currentMonitor.halfSize.y - this._config.height / 2}
+            };
+
+            await DesktopWindow.transaction([this._window, ...this.tabs], async (windows) => {
+                await this._window.applyProperties(tabstripBounds);
+                await promiseForEach(this.tabs, async tab => tab.applyProperties(tabBounds));
             });
 
             this._isMaximized = true;
@@ -301,12 +303,16 @@ export class DesktopTabGroup implements DesktopEntity {
                 } else if (this._beforeMaximizeBounds) {
                     this._isMaximized = false;
 
-                    const bounds: Rectangle = this._beforeMaximizeBounds;
-                    await this._window.applyProperties({
-                        center: {x: bounds.center.x, y: bounds.center.y - bounds.halfSize.y - (this._config.height / 2)},
-                        halfSize: {x: bounds.halfSize.x, y: this._config.height / 2}
+                    const tabBounds: Rectangle = this._beforeMaximizeBounds;
+                    const tabstripBounds = {
+                        center: {x: tabBounds.center.x, y: tabBounds.center.y - tabBounds.halfSize.y - (this._config.height / 2)},
+                        halfSize: {x: tabBounds.halfSize.x, y: this._config.height / 2}
+                    };
+
+                    await DesktopWindow.transaction([this._window, ...this.tabs], async (windows) => {
+                        await this._window.applyProperties(tabstripBounds);
+                        await promiseForEach(this.tabs, async tab => tab.applyProperties(tabBounds));
                     });
-                    await this.activeTab.applyProperties(bounds);
                 }
             } else {
                 await Promise.all(this._tabs.map(tab => tab.applyProperties({state: 'normal'})));

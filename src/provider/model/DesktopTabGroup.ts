@@ -8,8 +8,8 @@ import {TabGroupDimensions, WindowState} from '../../client/workspaces';
 import {tabService} from '../main';
 import {Signal1} from '../Signal';
 import {Debounced} from '../snapanddock/utils/Debounced';
-import {Point, PointUtils} from '../snapanddock/utils/PointUtils';
-import {Rectangle} from '../snapanddock/utils/RectUtils';
+import {Point} from '../snapanddock/utils/PointUtils';
+import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 import {promiseForEach} from '../snapanddock/utils/async';
 
 import {DesktopEntity} from './DesktopEntity';
@@ -809,15 +809,18 @@ export class DesktopTabGroup implements DesktopEntity {
     // Will check that all of the tabs and the tabstrip are still in the correct relative positions, and if not
     // moves them so that they are
     private async validateGroupInternal() {
-        const tabStripOffset: Point<number> = PointUtils.difference(
-            this._window.currentState.center,
-            {x: this.currentState.center.x, y: this.currentState.center.y - this.currentState.halfSize.y + this.config.height / 2}
-        );
+        const expectedTabstripPosition = {
+            center: {
+                x: this.activeTab.currentState.center.x,
+                y: this.activeTab.currentState.center.y - this.activeTab.currentState.halfSize.y - this.config.height / 2
+            },
+            halfSize: {x: this.activeTab.currentState.halfSize.x, y: this._config.height / 2}
+        };
 
-        if (PointUtils.lengthSquared(tabStripOffset) > 0) {
+        if (!RectUtils.isEqual(expectedTabstripPosition, this._window.currentState)) {
             console.log('TabGroup disjointed. Moving tabstrip back to group.', this.id);
             await DesktopWindow.transaction([this._window], async (wins: DesktopWindow[]) => {
-                await wins[0].applyOffset(tabStripOffset);
+                await wins[0].applyProperties(expectedTabstripPosition);
             });
         }
     }

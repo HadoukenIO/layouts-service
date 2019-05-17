@@ -74,6 +74,10 @@ export interface Elements {
     configTab: HTMLSelectElement;
     configTabstripUrl: HTMLInputElement;
     configTabstripHeight: HTMLInputElement;
+    activeOpacitySnap: HTMLSelectElement;
+    targetOpacitySnap: HTMLSelectElement;
+    activeOpacityTab: HTMLSelectElement;
+    targetOpacityTab: HTMLSelectElement;
 
     // Other
     container: HTMLDivElement;
@@ -147,6 +151,10 @@ export class View {
             configTab: document.getElementById('configTab') as HTMLSelectElement,
             configTabstripUrl: document.getElementById('configTabstripUrl') as HTMLInputElement,
             configTabstripHeight: document.getElementById('configTabstripHeight') as HTMLInputElement,
+            activeOpacitySnap: document.getElementById('activeOpacitySnap') as HTMLSelectElement,
+            targetOpacitySnap: document.getElementById('targetOpacitySnap') as HTMLSelectElement,
+            activeOpacityTab: document.getElementById('activeOpacityTab') as HTMLSelectElement,
+            targetOpacityTab: document.getElementById('targetOpacityTab') as HTMLSelectElement,
             container: document.getElementById('container') as HTMLDivElement,
             modal: document.getElementById('modalCreate') as HTMLDivElement,
             eventList: document.getElementById('eventList') as HTMLUListElement

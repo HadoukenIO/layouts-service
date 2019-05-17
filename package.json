@@ -22,7 +22,7 @@
     "prepack": "npm run clean && npm run build && tsc -p src/client/tsconfig.types.json",
     "prepare": "npm run generate",
     "test:unit": "jest --colors --no-cache --config=jest-unit.config.js",
-    "test:int": "svc-tools test:int -m ./test/runner.js",
+    "test:int": "svc-tools test:int -m ./test/middleware.js",
     "test": "npm run test:unit && npm run test:int",
     "zip": "svc-tools zip",
     "start": "svc-tools start"

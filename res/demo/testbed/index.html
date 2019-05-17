@@ -16,8 +16,11 @@
                     <h5 class="card-title">Snap & Dock</h5>
                     <h6 id="dock-status" class="card-subtitle mb-2 text-muted">Window currently undocked</h6>
                     <div class="btn-group">
-                        <button id="undockWindow" class="btn btn-secondary border-dark">Undock Window</button>
-                        <button id="undockGroup" class="btn btn-secondary border-dark">Undock Group</button>
+                        <button id="undockWindow" class="btn btn-secondary border-dark mb-2">Undock Window</button>
+                        <button id="undockGroup" class="btn btn-secondary border-dark mb-2">Undock Group</button>
+                    </div>
+                    <div class="btn-group">
+                        <button id="getDockGroup" class="btn btn-primary border-dark mb-2 d-none d-md-block">Get Group</button>
                     </div>
                 </div>
             </div>
@@ -47,6 +50,9 @@
                     <div class="btn-group">
                         <button id="removeTab" class="btn btn-primary border-dark mb-2">Remove Tab</button>
                         <button id="closeTab" class="btn btn-primary border-dark mb-2">Close Tab</button>
+                    </div>
+                    <div class="btn-group">
+                        <button id="getTabGroup" class="btn btn-primary border-dark mb-2 d-none d-md-block">Get Group</button>
                     </div>
                 </div>
             </div>
@@ -206,7 +212,9 @@
                                 <label for="inputRuntime" class="col-sm-3 col-form-label">Runtime</label>
                                 <div class="col-sm-9">
                                     <select id="inputRuntime" class="form-control-sm">
-                                        <option selected>stable</option>
+                                        <option value="current" selected>Use Current (stable)</option>
+                                        <option value="" disabled>------</option>
+                                        <option>stable</option>
                                         <option>alpha</option>
                                         <option>beta</option>
                                         <option>canary</option>

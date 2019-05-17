@@ -61,12 +61,21 @@ export class WindowsUI {
     private _rules: ConfigRule[];
 
     private _selectedRule: ConfigRule|null;
+    private _currentRuntime: string;
 
     constructor(elements: Elements) {
         this._elements = elements;
         this._defaultConfig = {};
         this._selectedRule = null;
         this._rules = [];
+
+        // Find current runtime version
+        this._currentRuntime = 'stable';
+        fin.Application.getCurrentSync().getInfo().then(info => {
+            // Type definitions do not properly define 'runtime'
+            this._currentRuntime = info.runtime['version' as keyof object];
+            this._elements.inputRuntime.options.item(0)!.innerText = `Use Current (${this._currentRuntime})`;
+        });
 
         // Initialise plugins
         $('[data-toggle="tooltip"]').tooltip();
@@ -512,6 +521,11 @@ export class WindowsUI {
                     // Convert `${width}x${height}` into Point
                     const dimensions = value.toString().split('x');
                     value = {x: Number.parseInt(dimensions[0], 10), y: Number.parseInt(dimensions[1], 10)};
+                } else if (input === elements.inputRuntime) {
+                    // Convert 'current' into the runtime of the current window
+                    if (value === 'current') {
+                        value = this._currentRuntime;
+                    }
                 } else if (input === elements.inputParent) {
                     // Convert app UUID into Identity
                     value = {uuid: value};

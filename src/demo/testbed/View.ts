@@ -14,11 +14,13 @@ export interface Elements {
     // API buttons
     undockGroup: HTMLButtonElement;
     undockWindow: HTMLButtonElement;
+    getDockGroup: HTMLButtonElement;
     tabToSelf: HTMLButtonElement;
     tabSelfTo: HTMLButtonElement;
     createTabGroup: HTMLButtonElement;
     removeTab: HTMLButtonElement;
     closeTab: HTMLButtonElement;
+    getTabGroup: HTMLButtonElement;
     maximizeTabGroup: HTMLButtonElement;
     minimizeTabGroup: HTMLButtonElement;
     restoreTabGroup: HTMLButtonElement;
@@ -101,11 +103,13 @@ export class View {
         return {
             undockGroup: document.getElementById('undockGroup') as HTMLButtonElement,
             undockWindow: document.getElementById('undockWindow') as HTMLButtonElement,
+            getDockGroup: document.getElementById('getDockGroup') as HTMLButtonElement,
             tabToSelf: document.getElementById('tabToSelf') as HTMLButtonElement,
             tabSelfTo: document.getElementById('tabSelfTo') as HTMLButtonElement,
             createTabGroup: document.getElementById('createTabGroup') as HTMLButtonElement,
             removeTab: document.getElementById('removeTab') as HTMLButtonElement,
             closeTab: document.getElementById('closeTab') as HTMLButtonElement,
+            getTabGroup: document.getElementById('getTabGroup') as HTMLButtonElement,
             maximizeTabGroup: document.getElementById('maximizeTabGroup') as HTMLButtonElement,
             minimizeTabGroup: document.getElementById('minimizeTabGroup') as HTMLButtonElement,
             restoreTabGroup: document.getElementById('restoreTabGroup') as HTMLButtonElement,

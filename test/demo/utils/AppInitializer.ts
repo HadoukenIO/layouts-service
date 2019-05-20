@@ -100,7 +100,8 @@ export function createAppsArray(numAppsToCreate: number, numberOfChildren: numbe
             if (testOptions.manifest && testOptions.url) {
                 appInitializerOptions = {...APP_INITIALIZER_BASE_MANIFEST, childWindows};
                 appInitializerOptions.manifestUrl =
-                    `http://localhost:1337/create-manifest?defaultTop=${defaultTop}&uuid=${id}&url=${encodeURIComponent(`${testOptions.url}`)}`;
+                    `http://localhost:1337/create-manifest?defaultTop=${defaultTop}&defaultLeft=100&defaultHeight=225&defaultWidth=225` +
+                    `&uuid=${id}&url=${encodeURIComponent(`${testOptions.url}`)}`;
                 if (testOptions.autoShow === false) {
                     appInitializerOptions.manifestUrl += '&autoShow=false';
                 }

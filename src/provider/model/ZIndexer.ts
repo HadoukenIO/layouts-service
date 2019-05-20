@@ -76,7 +76,7 @@ export class ZIndexer {
      * NOTE: Implementation will not return any item within the input that does not exist within the ZIndexer util.
      *
      * @param items Array of window or identity objects
-     * @return The top-most of the input items, when sorted by z-index
+     * @returns The top-most of the input items, when sorted by z-index
      */
     public getTopMost<T extends Identifiable>(items: T[]): T|null {
         const ids: string[] = this.getIds(items);

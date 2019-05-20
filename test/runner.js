@@ -131,8 +131,8 @@ async function serve() {
 
         // Add route to dynamically generate app manifests
         app.use('/manifest', tooling.middleware.createCustomManifestMiddleware());
-        app.use('/create-manifest', (req, res) => {
-            const {uuid, url, defaultTop, config, autoShow} = req.query;
+        app.use('/create-manifest', (req, res, next) => {
+            const {uuid, url, defaultTop, defaultLeft, defaultHeight, defaultWidth, config, autoShow} = req.query;
             const additionalServiceProperties = config ? {config: JSON.parse(config)} : {};
 
             // Create manifest (based upon demo app manifest)
@@ -140,14 +140,14 @@ async function serve() {
             const manifest = {
                 ...baseManifest,
                 startup_app: {
-                    uuid: uuid || 'save-restore-test-app-' + Math.random().toString(36).substring(2),
-                    url: url || 'http://localhost:1337/test/saveRestoreTestingApp.html?deregistered=false',
+                    uuid: uuid,
+                    url: url,
                     autoShow: autoShow || true,
                     saveWindowState: false,
-                    defaultTop: defaultTop ? JSON.parse(defaultTop): 100,
-                    defaultLeft: 100,
-                    defaultHeight: 225,
-                    defaultWidth: 225
+                    defaultTop: defaultTop ? JSON.parse(defaultTop): 605,
+                    defaultLeft: defaultLeft? JSON.parse(defaultLeft) : 860,
+                    defaultHeight: defaultHeight? JSON.parse(defaultHeight) : 605,
+                    defaultWidth: defaultWidth? JSON.parse(defaultWidth) : 860
                 },
                 services: [{
                     name: 'layouts',

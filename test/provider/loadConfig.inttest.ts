@@ -31,7 +31,9 @@ async function getWindowConfig(identity: Identity): Promise<ConfigurationObject>
 afterEach(teardown);
 
 async function createAppWithConfig(uuid: string, config: ConfigWithRules<ConfigurationObject>, parentUuid?: string): Promise<Application> {
-    const url = `http://localhost:1337/create-manifest?uuid=${uuid}&config=${encodeURIComponent(JSON.stringify(config))}`;
+    const url = `http://localhost:1337/create-manifest?uuid=${uuid}&config=${encodeURIComponent(JSON.stringify(config))}` +
+        `&url=${encodeURIComponent('http://localhost:1337/test/saveRestoreTestingApp.html?deregistered=false')}` +
+        '&defaultTop=100&defaultLeft=100&defaultHeight=225&defaultWidth=225';
 
     if (!parentUuid) {
         // Create a new application directly

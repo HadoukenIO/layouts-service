@@ -101,7 +101,7 @@ export class TabManager {
 
     /**
      * Un-sets the active tab
-     * @method unsetActiveTab Removes the active status from the current active Tab.
+     * @function unsetActiveTab Removes the active status from the current active Tab.
      */
     public unsetActiveTab(): void {
         if (!this.activeTab) {

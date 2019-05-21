@@ -9,7 +9,7 @@ const cacheFiles = [
     './tabbing/tabstrip/tabstrip.html',
     './tabbing/tabstrip/css/tabs.css',
     './tabbing/tabstrip/css/image/close.png',
-    './tabbing/tabstrip/css/image/maximise.png',
+    './tabbing/tabstrip/css/image/maximize.png',
     './tabbing/tabstrip/css/image/minimize.png',
     './tabbing/tabstrip/css/image/restore.png',
     './errors/error.html',

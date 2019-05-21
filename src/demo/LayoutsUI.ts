@@ -68,7 +68,7 @@ export function createSnapWindows(): void {
     for (let i = 0; i < 6; i++) {
         fin.Window
             .create({
-                url: `${launchDir}/testbed/index.html?theme=${colors[i % colors.length]}`,
+                url: `${launchDir}/testbed/index.html?theme="${encodeURIComponent(colors[i % colors.length])}"`,
                 autoShow: true,
                 defaultHeight: i > 2 ? 275 : 200,
                 defaultWidth: i > 4 ? 400 : 300,

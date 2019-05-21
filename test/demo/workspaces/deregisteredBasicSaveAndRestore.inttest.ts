@@ -29,7 +29,7 @@ numberOfApps.forEach(appNumber => {
     });
 });
 
-afterEach(async ()=>{
+afterEach(async () => {
     await closeAllPreviews();
     await teardown();
 });

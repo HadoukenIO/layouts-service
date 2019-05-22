@@ -211,7 +211,7 @@ it('When a torn-out tab is dragged into a singleton window, a tabgroup is create
     robot.moveMouseSmooth(bounds2.left + 20, bounds2.top + 20);
     robot.mouseToggle('up');
 
-    await delay(1000);
+    await delay(2000);
 
     // Assert win1 not tabbed, win2&3 are tabbed
     await Promise.all([assertNotTabbed(wins[0]), assertPairTabbed(wins[1], win3)]);
@@ -292,7 +292,7 @@ it('When a torn-out tab is dragged into a tabgroup, the tab is added to the tabg
     robot.moveMouseSmooth(bounds2.left + 20, bounds2.top - 20);
     robot.mouseToggle('up');
 
-    await delay(500);
+    await delay(2000);
 
     // Assert win1 not tabbed, win2&3 are tabbed
     await Promise.all([assertNotTabbed(wins[0]), assertPairTabbed(wins[1], win3)]);

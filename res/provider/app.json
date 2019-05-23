@@ -15,7 +15,7 @@
     },
     "runtime": {
         "arguments": "--enable-aggressive-domstorage-flushing",
-        "version": "9.61.38.41"
+        "version": "11.69.42.17"
     },
     "appAssets": [
         {

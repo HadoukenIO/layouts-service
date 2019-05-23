@@ -71,9 +71,8 @@ export class WindowsUI {
 
         // Find current runtime version
         this._currentRuntime = 'stable';
-        fin.Application.getCurrentSync().getInfo().then(info => {
-            // Type definitions do not properly define 'runtime'
-            this._currentRuntime = info.runtime['version' as keyof object];
+        fin.System.getVersion().then(version => {
+            this._currentRuntime = version;
             this._elements.inputRuntime.options.item(0)!.innerText = `Use Current (${this._currentRuntime})`;
         });
 

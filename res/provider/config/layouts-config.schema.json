@@ -128,7 +128,7 @@
         "preview": {
             "type": "object",
             "title": "Preview Config",
-            "description": "Options for customising visual previews shown for snap and tab actions",
+            "description": "Options for customizing visual previews shown for snap and tab actions",
             "properties": {
                 "activeOpacity": {
                     "type": ["number", "null"],

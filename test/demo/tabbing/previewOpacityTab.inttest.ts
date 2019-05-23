@@ -3,7 +3,6 @@ import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {PreviewConfig} from '../../../gen/provider/config/layouts-config';
 import {teardown} from '../../teardown';
-import {tabWindowsHover} from '../../provider/utils/tabWindowsHover';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 import {delay} from '../../provider/utils/delay';
 import {tearoutToOtherTabstrip} from '../utils/tabstripUtils';
@@ -32,7 +31,7 @@ describe('When two windows are moved within tabbing distance', () => {
         windows = await createWindowsWithConfig(config1, config2);
 
         const targetIndex: number = (activeIndex + 1) % 2;
-        await tabWindowsHover(windows[targetIndex], windows[activeIndex]);
+        await tabWindowsTogether(windows[targetIndex], windows[activeIndex], false, false);
     }
 
 
@@ -110,7 +109,7 @@ describe('When two windows are moved within tabbing distance', () => {
 
             await windows[0].updateOptions({opacity: 0.5});
 
-            await tabWindowsHover(windows[0], windows[1]);
+            await tabWindowsTogether(windows[0], windows[1], false, false);
 
             expect(await windows[0].getOptions()).toHaveProperty('opacity', 0.5);
             expect(await windows[1].getOptions()).toHaveProperty('opacity', 0.8);
@@ -120,7 +119,7 @@ describe('When two windows are moved within tabbing distance', () => {
             windows = await createWindowsWithConfig({targetOpacity: null}, undefined);
             await windows[0].updateOptions({opacity: 0.5});
 
-            await tabWindowsHover(windows[1], windows[0]);
+            await tabWindowsTogether(windows[1], windows[0], false, false);
 
             expect(await windows[0].getOptions()).toHaveProperty('opacity', 0.8);
             expect(await windows[1].getOptions()).toHaveProperty('opacity', 0.8);
@@ -133,7 +132,7 @@ describe('When two windows are moved within tabbing distance', () => {
 
             await windows[0].updateOptions({opacity: 0.5});
 
-            await tabWindowsHover(windows[1], windows[0]);
+            await tabWindowsTogether(windows[1], windows[0], false, false);
 
             expect(await windows[0].getOptions()).toHaveProperty('opacity', 0.5);
             expect(await windows[1].getOptions()).toHaveProperty('opacity', 0.8);
@@ -143,7 +142,7 @@ describe('When two windows are moved within tabbing distance', () => {
             windows = await createWindowsWithConfig({activeOpacity: null}, undefined);
             await windows[0].updateOptions({opacity: 0.5});
 
-            await tabWindowsHover(windows[0], windows[1]);
+            await tabWindowsTogether(windows[0], windows[1], false, false);
 
             expect(await windows[0].getOptions()).toHaveProperty('opacity', 0.8);
             expect(await windows[1].getOptions()).toHaveProperty('opacity', 0.8);
@@ -156,7 +155,7 @@ describe('When two windows are moved within tabbing distance', () => {
 
             await windows[0].updateOptions({opacity: 0.5});
 
-            await tabWindowsHover(windows[1], windows[0]);
+            await tabWindowsTogether(windows[1], windows[0], false, false);
 
             expect(await windows[0].getOptions()).toHaveProperty('opacity', 0.5);
             expect(await windows[1].getOptions()).toHaveProperty('opacity', 0.8);
@@ -167,7 +166,7 @@ describe('When two windows are moved within tabbing distance', () => {
 
             await windows[0].updateOptions({opacity: 0.5});
 
-            await tabWindowsHover(windows[0], windows[1]);
+            await tabWindowsTogether(windows[0], windows[1], false, false);
 
             expect(await windows[0].getOptions()).toHaveProperty('opacity', 0.5);
             expect(await windows[1].getOptions()).toHaveProperty('opacity', 0.8);
@@ -184,7 +183,7 @@ describe('When adding a window to an existing tab group', () => {
         }));
 
         await tabWindowsTogether(windows[1], windows[2]);
-        await tabWindowsHover(windows[1], windows[0]);
+        await tabWindowsTogether(windows[1], windows[0], false, false);
     }
 
     describe('Window has custom activeOpacity', () => {

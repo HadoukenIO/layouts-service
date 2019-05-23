@@ -22,11 +22,13 @@ afterEach(async () => {
     await Promise.all(windows.map(window => window.close()));
     windows.length = 0;
 
-    await delay(1000);
     await teardown();
 });
 
 describe('When two windows are about to be tabbed together', () => {
+    /**
+     * Creates two windows and hovers one over the tab area of the other to generate a preview window response.
+     */
     async function init(config1?: PreviewConfig, config2?: PreviewConfig, activeIndex: number = 1) {
         windows = await createWindowsWithConfig(config1, config2);
 
@@ -174,6 +176,9 @@ describe('When two windows are about to be tabbed together', () => {
 });
 
 describe('When adding a window to an existing tab group', () => {
+    /**
+     * Creates a tab group of 2 windows, then moves the third window over the tab area to generate a preview window response.
+     */
     async function init(config1?: PreviewOptions, config2?: PreviewOptions, config3?: PreviewOptions) {
         windows = await createWindowsWithConfig(config1, config2, config3);
 
@@ -225,6 +230,9 @@ describe('When adding a window to an existing tab group', () => {
 
 
 describe('When tearing a tab out into a new group', () => {
+    /**
+     * Creates two tab groups and tears out a tab from the first group into the second with hover, generating a preview window response.
+     */
     async function init(config1?: PreviewOptions, config2?: PreviewOptions, config3?: PreviewOptions, config4?: PreviewOptions) {
         windows = await createWindowsWithConfig(config1, config2, config3, config4);
 

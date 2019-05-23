@@ -7,6 +7,11 @@ import {teardown} from '../../teardown';
 import {dragSideToSide} from '../../provider/utils/dragWindowTo';
 import {createWindowsWithConfig} from '../utils/createWindowsWithConfig';
 
+/**
+ * Combines the default preview config with the option to set an initial opacity on a window.
+ */
+type PreviewOptions = PreviewConfig & {defaultOpacity?: Number};
+
 let windows: _Window[];
 
 afterEach(async () => {
@@ -19,10 +24,15 @@ afterEach(async () => {
 });
 
 describe('When two windows are moved within snapping distance', () => {
-    async function init(config1?: PreviewConfig, config2?: PreviewConfig, activeIndex: number = 1) {
-        windows = await createWindowsWithConfig(config1, config2);
+    async function init(config1?: PreviewOptions, config2?: PreviewOptions, activeIndex: number = 1) {
+        windows = await createWindowsWithConfig('snap', config1, config2);
 
         const targetIndex: number = (activeIndex + 1) % 2;
+
+        await Promise.all([config1, config2].map((config, i) => {
+            return config && config.defaultOpacity ? windows[i].updateOptions({opacity: config.defaultOpacity}) : undefined;
+        }));
+
         const bounds = await windows[targetIndex].getBounds();
 
         await dragWindowAndHover(windows[activeIndex], bounds.right! + 15, bounds.top);
@@ -98,22 +108,14 @@ describe('When two windows are moved within snapping distance', () => {
 
     describe('When a window declares custom targetOpacity of null', () => {
         it('Keeps its preset opacity when target', async () => {
-            windows = await createWindowsWithConfig({targetOpacity: null}, undefined);
-
-            await windows[0].updateOptions({opacity: 0.5});
-
-            await dragSideToSide(windows[1], 'left', windows[0], 'right', undefined, false);
+            await init({targetOpacity: null, defaultOpacity: 0.5}, undefined, 1);
 
             expect(await windows[0].getOptions()).toHaveProperty('opacity', 0.5);
             expect(await windows[1].getOptions()).toHaveProperty('opacity', 0.8);
         });
 
         it('Default 80% opacity applied when active', async () => {
-            windows = await createWindowsWithConfig({targetOpacity: null}, undefined);
-            await windows[0].updateOptions({opacity: 0.5});
-
-            const bounds = await windows[1].getBounds();
-            await dragWindowAndHover(windows[0], bounds.left, bounds.bottom! + 15);
+            await init({targetOpacity: null, defaultOpacity: 0.5}, undefined, 0);
 
             expect(await windows[0].getOptions()).toHaveProperty('opacity', 0.8);
             expect(await windows[1].getOptions()).toHaveProperty('opacity', 0.8);
@@ -122,21 +124,14 @@ describe('When two windows are moved within snapping distance', () => {
 
     describe('When a window declares custom activeOpacity of null', () => {
         it('Keeps its preset opacity when active', async () => {
-            windows = await createWindowsWithConfig({activeOpacity: null}, undefined);
-
-            await windows[0].updateOptions({opacity: 0.5});
-
-            await dragSideToSide(windows[0], 'right', windows[1], 'left', undefined, false);
+            await init({activeOpacity: null, defaultOpacity: 0.5}, undefined, 0);
 
             expect(await windows[0].getOptions()).toHaveProperty('opacity', 0.5);
             expect(await windows[1].getOptions()).toHaveProperty('opacity', 0.8);
         });
 
         it('Default 80% opacity applied when target', async () => {
-            windows = await createWindowsWithConfig({activeOpacity: null}, undefined);
-            await windows[0].updateOptions({opacity: 0.5});
-
-            await dragSideToSide(windows[1], 'left', windows[0], 'right', undefined, false);
+            await init({activeOpacity: null, defaultOpacity: 0.5}, undefined, 1);
 
             expect(await windows[0].getOptions()).toHaveProperty('opacity', 0.8);
             expect(await windows[1].getOptions()).toHaveProperty('opacity', 0.8);
@@ -145,22 +140,14 @@ describe('When two windows are moved within snapping distance', () => {
 
     describe('When a window declares custom activeOpacity and targetOpacity of null', () => {
         it('Keeps its preset opacity when active', async () => {
-            windows = await createWindowsWithConfig({activeOpacity: null, targetOpacity: null}, undefined);
-
-            await windows[0].updateOptions({opacity: 0.5});
-
-            await dragSideToSide(windows[0], 'right', windows[1], 'left', undefined, false);
+            await init({activeOpacity: null, targetOpacity: null, defaultOpacity: 0.5}, undefined, 0);
 
             expect(await windows[0].getOptions()).toHaveProperty('opacity', 0.5);
             expect(await windows[1].getOptions()).toHaveProperty('opacity', 0.8);
         });
 
         it('Keeps its preset opacity when target', async () => {
-            windows = await createWindowsWithConfig({activeOpacity: null, targetOpacity: null}, undefined);
-
-            await windows[0].updateOptions({opacity: 0.5});
-
-            await dragSideToSide(windows[1], 'left', windows[0], 'right', undefined, false);
+            await init({activeOpacity: null, targetOpacity: null, defaultOpacity: 0.5}, undefined, 1);
 
             expect(await windows[0].getOptions()).toHaveProperty('opacity', 0.5);
             expect(await windows[1].getOptions()).toHaveProperty('opacity', 0.8);
@@ -170,11 +157,15 @@ describe('When two windows are moved within snapping distance', () => {
 
 
 describe('When a window is moved with snapping distance of a group', () => {
-    async function init(config1?: PreviewConfig, config2?: PreviewConfig, config3?: PreviewConfig) {
-        windows = await createWindowsWithConfig(config1, config2, config3);
+    async function init(config1?: PreviewOptions, config2?: PreviewOptions, config3?: PreviewOptions) {
+        windows = await createWindowsWithConfig('snap', config1, config2, config3);
 
         // create group of 2 windows
         await dragSideToSide(windows[0], 'right', windows[1], 'left');
+
+        await Promise.all([config1, config2, config3].map((config, i) => {
+            return config && config.defaultOpacity ? windows[i].updateOptions({opacity: config.defaultOpacity}) : undefined;
+        }));
 
         // make preview window state
         await dragSideToSide(windows[2], 'top', windows[1], 'bottom', undefined, false);
@@ -222,12 +213,7 @@ describe('When a window is moved with snapping distance of a group', () => {
 
     describe('When active window has activeOpacity of null', () => {
         it('Keeps its preset opacity.', async () => {
-            windows = await createWindowsWithConfig(undefined, undefined, {activeOpacity: null});
-
-            // create group of 2 windows
-            await dragSideToSide(windows[0], 'right', windows[1], 'left');
-
-            await windows[2].updateOptions({opacity: 0.5});
+            await init(undefined, undefined, {activeOpacity: null, defaultOpacity: 0.5});
 
             await dragSideToSide(windows[2], 'left', windows[1], 'right', undefined, false);
 
@@ -237,22 +223,21 @@ describe('When a window is moved with snapping distance of a group', () => {
 });
 
 describe('When moving a group of windows', () => {
-    async function init(config1?: PreviewConfig, config2?: PreviewConfig, config3?: PreviewConfig) {
-        windows = await createWindowsWithConfig(config1, config2, config3);
+    async function init(config1?: PreviewOptions, config2?: PreviewOptions, config3?: PreviewOptions) {
+        windows = await createWindowsWithConfig('snap', config1, config2, config3);
 
         // create group of 2 windows
         await dragSideToSide(windows[0], 'right', windows[1], 'left');
 
-        // make preview window state
+        // group 3 windows
         await dragSideToSide(windows[2], 'top', windows[1], 'bottom');
     }
 
     describe('All windows have custom activeOpacity and targetOpacity', () => {
         it('Windows remain at 100% opacity during move.', async () => {
-            await init(undefined, undefined, undefined);
+            await init({activeOpacity: 0.5, targetOpacity: 0.6}, {activeOpacity: 0.5, targetOpacity: 0.6}, {activeOpacity: 0.5, targetOpacity: 0.6});
 
             const bounds = await windows[0].getBounds();
-
             await dragWindowAndHover(windows[0], bounds.left + 50, bounds.top + 50);
 
             expect(await windows[0].getOptions()).toHaveProperty('opacity', 1);

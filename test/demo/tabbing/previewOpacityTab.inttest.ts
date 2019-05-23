@@ -29,10 +29,15 @@ describe('When two windows are about to be tabbed together', () => {
     /**
      * Creates two windows and hovers one over the tab area of the other to generate a preview window response.
      */
-    async function init(config1?: PreviewConfig, config2?: PreviewConfig, activeIndex: number = 1) {
-        windows = await createWindowsWithConfig(config1, config2);
+    async function init(config1?: PreviewOptions, config2?: PreviewOptions, activeIndex: number = 1) {
+        windows = await createWindowsWithConfig('tab', config1, config2);
 
         const targetIndex: number = (activeIndex + 1) % 2;
+
+        await Promise.all([config1, config2].map((config, i) => {
+            return config && config.defaultOpacity ? windows[i].updateOptions({opacity: config.defaultOpacity}) : undefined;
+        }));
+
         await tabWindowsTogether(windows[targetIndex], windows[activeIndex], false, false);
     }
 
@@ -106,21 +111,14 @@ describe('When two windows are about to be tabbed together', () => {
 
     describe('When a window declares custom targetOpacity of null', () => {
         it('Keeps its preset opacity when target', async () => {
-            windows = await createWindowsWithConfig({targetOpacity: null}, undefined);
-
-            await windows[0].updateOptions({opacity: 0.5});
-
-            await tabWindowsTogether(windows[0], windows[1], false, false);
+            await init({targetOpacity: null, defaultOpacity: 0.5}, undefined, 1);
 
             expect(await windows[0].getOptions()).toHaveProperty('opacity', 0.5);
             expect(await windows[1].getOptions()).toHaveProperty('opacity', 0.8);
         });
 
         it('Default 80% opacity applied when active', async () => {
-            windows = await createWindowsWithConfig({targetOpacity: null}, undefined);
-            await windows[0].updateOptions({opacity: 0.5});
-
-            await tabWindowsTogether(windows[1], windows[0], false, false);
+            await init({targetOpacity: null, defaultOpacity: 0.5}, undefined, 0);
 
             expect(await windows[0].getOptions()).toHaveProperty('opacity', 0.8);
             expect(await windows[1].getOptions()).toHaveProperty('opacity', 0.8);
@@ -129,21 +127,14 @@ describe('When two windows are about to be tabbed together', () => {
 
     describe('When a window declares custom activeOpacity of null', () => {
         it('Keeps its preset opacity when active', async () => {
-            windows = await createWindowsWithConfig({activeOpacity: null}, undefined);
-
-            await windows[0].updateOptions({opacity: 0.5});
-
-            await tabWindowsTogether(windows[1], windows[0], false, false);
+            await init({activeOpacity: null, defaultOpacity: 0.5}, undefined, 0);
 
             expect(await windows[0].getOptions()).toHaveProperty('opacity', 0.5);
             expect(await windows[1].getOptions()).toHaveProperty('opacity', 0.8);
         });
 
         it('Default 80% opacity applied when target', async () => {
-            windows = await createWindowsWithConfig({activeOpacity: null}, undefined);
-            await windows[0].updateOptions({opacity: 0.5});
-
-            await tabWindowsTogether(windows[0], windows[1], false, false);
+            await init({activeOpacity: null, defaultOpacity: 0.5}, undefined, 1);
 
             expect(await windows[0].getOptions()).toHaveProperty('opacity', 0.8);
             expect(await windows[1].getOptions()).toHaveProperty('opacity', 0.8);
@@ -152,22 +143,14 @@ describe('When two windows are about to be tabbed together', () => {
 
     describe('When a window declares custom activeOpacity and targetOpacity of null', () => {
         it('Keeps its preset opacity when active', async () => {
-            windows = await createWindowsWithConfig({activeOpacity: null, targetOpacity: null}, undefined);
-
-            await windows[0].updateOptions({opacity: 0.5});
-
-            await tabWindowsTogether(windows[1], windows[0], false, false);
+            await init({activeOpacity: null, targetOpacity: null, defaultOpacity: 0.5}, undefined, 0);
 
             expect(await windows[0].getOptions()).toHaveProperty('opacity', 0.5);
             expect(await windows[1].getOptions()).toHaveProperty('opacity', 0.8);
         });
 
         it('Keeps its preset opacity when target', async () => {
-            windows = await createWindowsWithConfig({activeOpacity: null, targetOpacity: null}, undefined);
-
-            await windows[0].updateOptions({opacity: 0.5});
-
-            await tabWindowsTogether(windows[0], windows[1], false, false);
+            await init({activeOpacity: null, targetOpacity: null, defaultOpacity: 0.5}, undefined, 1);
 
             expect(await windows[0].getOptions()).toHaveProperty('opacity', 0.5);
             expect(await windows[1].getOptions()).toHaveProperty('opacity', 0.8);
@@ -180,7 +163,7 @@ describe('When adding a window to an existing tab group', () => {
      * Creates a tab group of 2 windows, then moves the third window over the tab area to generate a preview window response.
      */
     async function init(config1?: PreviewOptions, config2?: PreviewOptions, config3?: PreviewOptions) {
-        windows = await createWindowsWithConfig(config1, config2, config3);
+        windows = await createWindowsWithConfig('tab', config1, config2, config3);
 
         await Promise.all([config1, config2, config3].map((config, i) => {
             return config && config.defaultOpacity ? windows[i].updateOptions({opacity: config.defaultOpacity}) : undefined;
@@ -193,7 +176,6 @@ describe('When adding a window to an existing tab group', () => {
     describe('Window has custom activeOpacity', () => {
         it('Has custom opacity applied when active', async () => {
             await init({activeOpacity: 0.2}, undefined, undefined);
-
             expect(await windows[0].getOptions()).toHaveProperty('opacity', 0.2);
         });
 
@@ -204,7 +186,6 @@ describe('When adding a window to an existing tab group', () => {
 
         it('Keeps preset opacity when set with null', async () => {
             await init({activeOpacity: null, defaultOpacity: 0.2}, undefined, undefined);
-
             expect(await windows[0].getOptions()).toHaveProperty('opacity', 0.2);
         });
     });
@@ -212,7 +193,6 @@ describe('When adding a window to an existing tab group', () => {
     describe('Window has custom targetOpacity', () => {
         it('Applies default 80% opacity when active', async () => {
             await init({targetOpacity: 0.2}, undefined, undefined);
-
             expect(await windows[0].getOptions()).toHaveProperty('opacity', 0.8);
         });
 
@@ -234,7 +214,7 @@ describe('When tearing a tab out into a new group', () => {
      * Creates two tab groups and tears out a tab from the first group into the second with hover, generating a preview window response.
      */
     async function init(config1?: PreviewOptions, config2?: PreviewOptions, config3?: PreviewOptions, config4?: PreviewOptions) {
-        windows = await createWindowsWithConfig(config1, config2, config3, config4);
+        windows = await createWindowsWithConfig('tab', config1, config2, config3, config4);
 
         await Promise.all([config1, config2, config3, config4].map((config, i) => {
             return config && config.defaultOpacity ? windows[i].updateOptions({opacity: config.defaultOpacity}) : undefined;

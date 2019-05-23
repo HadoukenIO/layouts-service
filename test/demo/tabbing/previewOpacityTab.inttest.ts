@@ -26,14 +26,13 @@ afterEach(async () => {
     await teardown();
 });
 
-describe('When two windows are moved within tabbing distance', () => {
+describe('When two windows are about to be tabbed together', () => {
     async function init(config1?: PreviewConfig, config2?: PreviewConfig, activeIndex: number = 1) {
         windows = await createWindowsWithConfig(config1, config2);
 
         const targetIndex: number = (activeIndex + 1) % 2;
         await tabWindowsTogether(windows[targetIndex], windows[activeIndex], false, false);
     }
-
 
     describe('And windows are using the default configuration', () => {
         beforeEach(async () => {

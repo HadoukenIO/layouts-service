@@ -23,10 +23,17 @@ export class NativeWindowService {
     private async _init() {
         const layoutsServiceConfig = this._config.query({level: 'application', uuid: 'layouts-service'});
         const {features: {externalWindows: externalWindowsAllowed}} = layoutsServiceConfig;
-        // TODO: waiting for the definition of Desktop Owner Settings configuration
-        const {nativeDesktopOwnerSettingsAllowed} = await (<any>fin.System).getServiceConfiguration({name: 'layouts'});
+        let externalWindowsAllowedDOS;
 
-        if (!externalWindowsAllowed || !nativeDesktopOwnerSettingsAllowed) {
+        try {
+            // TODO: waiting for the definition of Desktop Owner Settings configuration
+            ({externalWindows: externalWindowsAllowedDOS} = await (<any>fin.System).getServiceConfiguration({name: 'layouts'}));
+        } catch (error) {
+            console.error('External windows are disabled: Desktop Owner Settings are not configured.');
+            return;
+        }
+
+        if (!externalWindowsAllowed || !externalWindowsAllowedDOS) {
             // Native windows support is not allowed via a configuration
             return;
         }

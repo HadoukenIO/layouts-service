@@ -24,7 +24,7 @@ async function createWindowsWithConfig(...configs: (PreviewConfig|undefined)[]):
             // All app uuid's must be unique, due to apparent manifest caching behaviour
             id: `window-${index}:${counter++}`,
             position: {x: 200 + (index * 350), y: 150},
-            config: config ? {preview: {tab: config}} : undefined
+            config: config ? {preview: {tab: config, snap: {activeOpacity: null, targetOpacity: null}}} : undefined
         });
 
         return app.getWindow();

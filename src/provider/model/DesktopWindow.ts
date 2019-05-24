@@ -485,7 +485,7 @@ export class DesktopWindow implements DesktopEntity {
 
     public get isActive(): boolean {
         const state: EntityState = this._currentState;
-        return !state.hidden && state.opacity > 0 && state.state !== 'minimized';
+        return !state.hidden && (state.opacity > 0 || this.applicationState.opacity > 0) && state.state !== 'minimized';
     }
 
     /**

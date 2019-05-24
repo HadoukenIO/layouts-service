@@ -27,7 +27,7 @@ export async function createWindowsWithConfig(type: 'snap'|'tab', ...configs: (P
         const app = await createApp({
             type: 'manifest',
             // All app uuid's must be unique, due to apparent manifest caching behaviour
-            id: `window-${index}:${counter++}`,
+            id: `window-${type}-${index}:${counter++}`,
             position: {x: 200 + (index * 350), y: 150},
             config
         });

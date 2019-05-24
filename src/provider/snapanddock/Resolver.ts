@@ -1,7 +1,7 @@
 import {ConfigStore} from '../main';
 import {DesktopEntity} from '../model/DesktopEntity';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
-import {EntityState} from '../model/DesktopWindow';
+import {EntityState, DesktopWindow} from '../model/DesktopWindow';
 import {eTargetType, TargetBase} from '../WindowHandler';
 
 import {SNAP_DISTANCE} from './Constants';
@@ -169,7 +169,17 @@ export class Resolver {
      * @param identity Handle to the window we are considering for snapping
      * @param state State of the window object we are considering for snapping
      */
-    private isSnappable(window: DesktopEntity, state: EntityState): boolean {
-        return !state.hidden && state.opacity > 0 && state.state === 'normal' && this._config.query(window.scope).features.snap;
+    private isSnappable(entity: DesktopEntity, state: EntityState): boolean {
+        if (!state.hidden && state.state === 'normal' && this._config.query(entity.scope).features.snap) {
+            if (state.opacity > 0) {
+                return true;
+            } else {
+                // Handle edge case where window is fully transparent, but only as a temporary snap preview.
+                const window: DesktopWindow = (entity.tabGroup && entity.tabGroup.activeTab) || entity as DesktopWindow;
+                return window && window.applicationState.opacity > 0;
+            }
+        } else {
+            return false;
+        }
     }
 }

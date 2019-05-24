@@ -55,6 +55,9 @@ body.framed #container, body.tabbed #container {
 #eventList li {
     display: block;
 }
+#eventList pre {
+    margin: 0;
+}
 i.fa-chevron-right, i.fa-bolt {
     font-size: small;
 }

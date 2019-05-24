@@ -1,3 +1,6 @@
+import {PreviewConfig, Scope} from '../../gen/provider/config/layouts-config';
+
+import {ConfigStore} from './main';
 import {DesktopEntity} from './model/DesktopEntity';
 import {DesktopSnapGroup} from './model/DesktopSnapGroup';
 import {Preview, PreviewableTarget} from './Preview';
@@ -10,7 +13,10 @@ export class View {
     private _targetItem: DesktopItem|null;
     private _activeItem: DesktopItem|null;
 
-    constructor() {
+    private _config: ConfigStore;
+
+    constructor(config: ConfigStore) {
+        this._config = config;
         this._preview = new Preview();
         this._targetItem = null;
         this._activeItem = null;
@@ -23,7 +29,8 @@ export class View {
     public update(target: Target|null): void {
         const activeGroup = target && target.activeWindow.snapGroup || null;
 
-        let activeItem: DesktopItem|null = null, targetItem: DesktopItem|null = null;
+        let activeItem: DesktopItem|null = null;
+        let targetItem: DesktopItem|null = null;
 
         if (target && activeGroup) {
             switch (target.type) {
@@ -55,13 +62,13 @@ export class View {
         if (activeItem !== this._activeItem) {
             this.setAlwaysOnTop(this._activeItem, false);
 
-            this.setOpacity(this._activeItem, false);
+            this.setOpacity(this._activeItem, null, true);
 
             const bringActiveToFront = target !== null && !(target.type === eTargetType.TAB && target.tabDragging && activeItem !== targetItem);
 
             this.setAlwaysOnTop(activeItem, bringActiveToFront);
 
-            this.setOpacity(activeItem, activeItem !== targetItem);
+            this.setOpacity(activeItem, activeItem !== targetItem ? target : null, true);
 
             this._activeItem = activeItem;
         } else if ((this._activeItem === this._targetItem) !== (activeItem === targetItem)) {
@@ -70,16 +77,16 @@ export class View {
 
             const bringActiveToFront = target !== null && !(target.type === eTargetType.TAB && target.tabDragging && activeItem !== targetItem);
             this.setAlwaysOnTop(activeItem, bringActiveToFront);
-            this.setOpacity(activeItem, !bringActiveToFront);
+            this.setOpacity(activeItem, !bringActiveToFront ? target : null, true);
         }
 
         if (targetItem !== this._targetItem) {
             // sets opacity on activeItem if previous target was activeItem === targetItem
             if (this._targetItem !== activeItem) {
-                this.setOpacity(this._targetItem, false);
+                this.setOpacity(this._targetItem, null, false);
             }
 
-            this.setOpacity(targetItem, activeItem !== targetItem);
+            this.setOpacity(targetItem, activeItem !== targetItem ? target : null, false);
         }
 
         this._targetItem = targetItem;
@@ -111,23 +118,35 @@ export class View {
         }
     }
 
-    private setOpacity(entity: DesktopItem|null, transparent: boolean): void {
-        if (entity) {
-            if (entity instanceof DesktopSnapGroup) {
-                entity.windows.forEach((window: DesktopEntity) => {
-                    if (transparent) {
-                        window.applyOverride('opacity', 0.8);
-                    } else {
-                        window.resetOverride('opacity');
-                    }
-                });
-            } else {
-                if (transparent) {
-                    (entity.tabGroup || entity).applyOverride('opacity', 0.8);
+    private setOpacity(item: DesktopItem|null, target: Target|null, isActive: boolean): void {
+        if (item) {
+            if (!target || (target.type === eTargetType.SNAP || target.type === eTargetType.TAB)) {
+                // Set window opacity to the level defined in config
+                if (item instanceof DesktopSnapGroup) {
+                    item.windows.forEach((entity: DesktopEntity) => {
+                        this.setEntityOpacity(entity, target, isActive);
+                    });
                 } else {
-                    (entity.tabGroup || entity).resetOverride('opacity');
+                    this.setEntityOpacity(item.tabGroup || item, target, isActive);
                 }
             }
+        }
+    }
+
+    private setEntityOpacity(entity: DesktopEntity, target: Target|null, isActive: boolean): void {
+        if (target) {
+            const scope: Scope = entity.tabGroup ? entity.tabGroup.activeTab.scope : entity.scope;
+            const previewType = eTargetType[target.type].toLowerCase() as 'snap'|'tab';
+            const preview: Required<PreviewConfig> = this._config.query(scope).preview[previewType];
+            const opacity: number|null = isActive ? preview.activeOpacity : preview.targetOpacity;
+
+            if (opacity !== null) {
+                entity.applyOverride('opacity', opacity);
+            } else {
+                entity.resetOverride('opacity');
+            }
+        } else {
+            entity.resetOverride('opacity');
         }
     }
 }

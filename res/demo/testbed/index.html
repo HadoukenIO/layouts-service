@@ -16,8 +16,11 @@
                     <h5 class="card-title">Snap & Dock</h5>
                     <h6 id="dock-status" class="card-subtitle mb-2 text-muted">Window currently undocked</h6>
                     <div class="btn-group">
-                        <button id="undockWindow" class="btn btn-secondary border-dark">Undock Window</button>
-                        <button id="undockGroup" class="btn btn-secondary border-dark">Undock Group</button>
+                        <button id="undockWindow" class="btn btn-secondary border-dark mb-2">Undock Window</button>
+                        <button id="undockGroup" class="btn btn-secondary border-dark mb-2">Undock Group</button>
+                    </div>
+                    <div class="btn-group">
+                        <button id="getDockGroup" class="btn btn-primary border-dark mb-2 d-none d-md-block">Get Group</button>
                     </div>
                 </div>
             </div>
@@ -47,6 +50,9 @@
                     <div class="btn-group">
                         <button id="removeTab" class="btn btn-primary border-dark mb-2">Remove Tab</button>
                         <button id="closeTab" class="btn btn-primary border-dark mb-2">Close Tab</button>
+                    </div>
+                    <div class="btn-group">
+                        <button id="getTabGroup" class="btn btn-primary border-dark mb-2 d-none d-md-block">Get Group</button>
                     </div>
                 </div>
             </div>
@@ -206,7 +212,9 @@
                                 <label for="inputRuntime" class="col-sm-3 col-form-label">Runtime</label>
                                 <div class="col-sm-9">
                                     <select id="inputRuntime" class="form-control-sm">
-                                        <option selected>stable</option>
+                                        <option value="current" selected>stable</option>
+                                        <option value="" disabled>------</option>
+                                        <option>stable</option>
                                         <option>alpha</option>
                                         <option>beta</option>
                                         <option>canary</option>
@@ -281,7 +289,7 @@
                             <div class="card-body pl-2">
                                 <div class="row">
                                     <label for="configUUID" class="col-sm-3 col-form-label pr-0">
-                                        Scope<i class="fa fa-plus-circle fa-question-circle pt-1 text-primary" style="float: right;" data-placement="bottom" data-toggle="tooltip" data-html="true" title="<p>Determines which windows this rule applies to. Use patterns by entering with JS regex literal syntax, use <code>!</code> as a regex flag to invert selection<br />e.g: <code>/popup-.*/i!</code></p><p>Both UUID and Name must be specified.</p>"></i>
+                                        Scope<i class="fa fa-plus-circle fa-question-circle pt-1 text-primary" style="float: right;" data-placement="bottom" data-toggle="tooltip" data-html="true" title="<p>Determines which windows this rule applies to. Use patterns by entering with JS regex literal syntax, use <code>!</code> as a regex flag to invert selection<br />e.g: <code>/popup-.*/i!</code></p><p>Only available for rules - use the <i class='fa fa-plus-circle text-success'></i> button above to add a rule.</p>"></i>
                                     </label>
                                     <div class="col-sm-4 pr-sm-1">
                                         <input id="configUUID" class="form-control-sm" type="text" placeholder="UUID" />
@@ -304,19 +312,32 @@
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <label for="configSnap" class="col-sm-3 col-form-label"><code>snap</code>:</label>
-                                    <div class="col-sm-9">
+                                    <label for="configSnap" class="col-sm-3 col-form-label"><code>features</code>:</label>
+                                    <div class="col-sm-1 pr-0">
+                                        <code>snap</code>:
+                                    </div>
+                                    <div class="col-sm-2 pl-0">
                                         <select id="configSnap" class="form-control-sm">
                                             <option>default</option>
                                             <option>true</option>
                                             <option>false</option>
                                         </select>
                                     </div>
-                                </div>
-                                <div class="row">
-                                    <label for="configDock" class="col-sm-3 col-form-label"><code>dock</code>:</label>
-                                    <div class="col-sm-9">
+                                    <div class="col-sm-1 p-0">
+                                        <code>dock</code>:
+                                    </div>
+                                    <div class="col-sm-2 pl-0">
                                         <select id="configDock" class="form-control-sm">
+                                            <option>default</option>
+                                            <option>true</option>
+                                            <option>false</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-sm-1 p-0">
+                                        <code>tab</code>:
+                                    </div>
+                                    <div class="col-sm-2 pl-0">
+                                        <select id="configTab" class="form-control-sm">
                                             <option>default</option>
                                             <option>true</option>
                                             <option>false</option>
@@ -324,12 +345,102 @@
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <label for="configTab" class="col-sm-3 col-form-label"><code>tab</code>:</label>
-                                    <div class="col-sm-9">
-                                        <select id="configTab" class="form-control-sm">
+                                    <label for="activeOpacitySnap" class="col-sm-3 col-form-label pr-0">
+                                        Preview <code>snap</code>:
+                                        <i class="fa fa-plus-circle fa-question-circle pt-1 text-primary" style="float: right;" data-placement="bottom" data-toggle="tooltip" data-html="true" title="<p>Controls the opacity effects that the service applies to windows when the user is about to perform a snap operation.</p><p>Any <code>active</code> options apply when this window is being moved by the user, and <code>target</code> options apply when the user is moving another window within range of this app's windows.</p>"></i>
+                                    </label>
+                                    <div class="col-sm-2 pr-0">
+                                        <code>activeOpacity</code>:
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <select id="activeOpacitySnap" class="form-control-sm">
                                             <option>default</option>
-                                            <option>true</option>
-                                            <option>false</option>
+                                            <option value="null">none</option>
+                                            <option value="" disabled>----------</option>
+                                            <option value="0">0.0</option>
+                                            <option>0.1</option>
+                                            <option>0.2</option>
+                                            <option>0.3</option>
+                                            <option>0.4</option>
+                                            <option>0.5</option>
+                                            <option>0.6</option>
+                                            <option>0.7</option>
+                                            <option>0.8</option>
+                                            <option>0.9</option>
+                                            <option value="1">1.0</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-sm-1">
+                                    </div>
+                                    <div class="col-sm-2 pr-0">
+                                        <code>targetOpacity</code>:
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <select id="targetOpacitySnap" class="form-control-sm">
+                                            <option>default</option>
+                                            <option value="null">none</option>
+                                            <option value="" disabled>----------</option>
+                                            <option value="0">0.0</option>
+                                            <option>0.1</option>
+                                            <option>0.2</option>
+                                            <option>0.3</option>
+                                            <option>0.4</option>
+                                            <option>0.5</option>
+                                            <option>0.6</option>
+                                            <option>0.7</option>
+                                            <option>0.8</option>
+                                            <option>0.9</option>
+                                            <option value="1">1.0</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <label for="activeOpacityTab" class="col-sm-3 col-form-label pr-0">
+                                        Preview <code>tab</code>:
+                                        <i class="fa fa-plus-circle fa-question-circle pt-1 text-primary" style="float: right;" data-placement="bottom" data-toggle="tooltip" data-html="true" title="<p>Controls the opacity effects that the service applies to windows when the user is about to perform a tab operation.</p><p>Any <code>active</code> options apply when this window is being moved by the user, and <code>target</code> options apply when the user is moving another window within range of this app's windows.</p>"></i>
+                                    </label>
+                                    <div class="col-sm-2 pr-0">
+                                        <code>activeOpacity</code>:
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <select id="activeOpacityTab" class="form-control-sm">
+                                            <option>default</option>
+                                            <option value="null">none</option>
+                                            <option value="" disabled>----------</option>
+                                            <option value="0">0.0</option>
+                                            <option>0.1</option>
+                                            <option>0.2</option>
+                                            <option>0.3</option>
+                                            <option>0.4</option>
+                                            <option>0.5</option>
+                                            <option>0.6</option>
+                                            <option>0.7</option>
+                                            <option>0.8</option>
+                                            <option>0.9</option>
+                                            <option value="1">1.0</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-sm-1">
+                                    </div>
+                                    <div class="col-sm-2 pr-0">
+                                        <code>targetOpacity</code>:
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <select id="targetOpacityTab" class="form-control-sm">
+                                            <option>default</option>
+                                            <option value="null">none</option>
+                                            <option value="" disabled>----------</option>
+                                            <option value="0">0.0</option>
+                                            <option>0.1</option>
+                                            <option>0.2</option>
+                                            <option>0.3</option>
+                                            <option>0.4</option>
+                                            <option>0.5</option>
+                                            <option>0.6</option>
+                                            <option>0.7</option>
+                                            <option>0.8</option>
+                                            <option>0.9</option>
+                                            <option value="1">1.0</option>
                                         </select>
                                     </div>
                                 </div>

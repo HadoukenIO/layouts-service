@@ -64,7 +64,7 @@ Please contact support@openfin.co with any further questions.`;
     config = window.config = new Store(require('../../gen/provider/config/defaults.json'));
     loader = window.loader = new Loader(config, 'layouts', {enabled: false});
     model = window.model = new DesktopModel(config);
-    windowHandler = new WindowHandler(model);
+    windowHandler = new WindowHandler(config);
     snapService = window.snapService = new SnapService(model, config);
     tabService = window.tabService = new TabService(model, config);
     apiHandler = window.apiHandler = new APIHandler(model, config, snapService, tabService);

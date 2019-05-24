@@ -100,8 +100,7 @@ export class TabManager {
     }
 
     /**
-     * Un-sets the active tab
-     * @method unsetActiveTab Removes the active status from the current active Tab.
+     * Removes the active status from the current active Tab.
      */
     public unsetActiveTab(): void {
         if (!this.activeTab) {
@@ -176,15 +175,15 @@ export class TabManager {
     }
 
     /**
-     * Returns the state of whether or not the tab group is maximised.
-     * @returns {boolean} Maximised state
+     * Returns the state of whether or not the tab group is maximized.
+     * @returns {boolean} Maximized state
      */
     public get isMaximized(): boolean {
         return this.maximized;
     }
 
     /**
-     * Sets whether or not the tab group is maximised.
+     * Sets whether or not the tab group is maximized.
      */
     public set isMaximized(max: boolean) {
         this.maximized = max;

@@ -1,6 +1,5 @@
-import {snapService, tabService} from './main';
+import {snapService, tabService, ConfigStore} from './main';
 import {DesktopEntity} from './model/DesktopEntity';
-import {DesktopModel} from './model/DesktopModel';
 import {DesktopSnapGroup} from './model/DesktopSnapGroup';
 import {DesktopWindow, eTransformType, Mask} from './model/DesktopWindow';
 import {SnapTarget} from './snapanddock/Resolver';
@@ -39,12 +38,10 @@ export interface TargetBase {
  * the snap service.
  */
 export class WindowHandler {
-    private model: DesktopModel;
     private view: View;
 
-    constructor(model: DesktopModel) {
-        this.model = model;
-        this.view = new View();
+    constructor(config: ConfigStore) {
+        this.view = new View(config);
 
         DragWindowManager.onDragOver.add(this.onTabDrag, this);
         DragWindowManager.onDragDrop.add(this.onTabDrop, this);

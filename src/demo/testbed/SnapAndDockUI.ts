@@ -1,5 +1,5 @@
 import {snapAndDock} from '../../client/main';
-import {WindowDockedEvent, WindowUndockedEvent} from '../../client/snapanddock';
+import {WindowDockedEvent, WindowUndockedEvent, DockGroup} from '../../client/snapanddock';
 
 import {EventsUI} from './EventsUI';
 import {Elements, Messages} from './View';
@@ -17,6 +17,10 @@ export class SnapAndDockUI {
         elements.undockGroup.addEventListener('click', () => {
             const promise: Promise<void> = snapAndDock.undockGroup();
             log.addApiCall(promise, snapAndDock.undockGroup);
+        });
+        elements.getDockGroup.addEventListener('click', () => {
+            const promise: Promise<DockGroup|null> = snapAndDock.getDockedWindows();
+            log.addApiCall(promise, snapAndDock.getDockedWindows);
         });
 
         this.onDockEvent = this.onDockEvent.bind(this);

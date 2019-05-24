@@ -16,6 +16,7 @@ interface LogItem {
     element: HTMLLIElement;
     captionElement: HTMLSpanElement;
     promise?: Promise<any>;  // tslint:disable-line:no-any
+    result: any;
 }
 
 export class EventsUI {
@@ -74,13 +75,14 @@ export class EventsUI {
         element.appendChild(iconElement);
         element.appendChild(captionElement);
 
-        const item: LogItem = {caption, status, promise, element, captionElement};
+        const item: LogItem = {caption, status, promise, element, captionElement, result: undefined};
         this._list.appendChild(element);
         this._log.push(item);
 
         if (promise) {
             promise.then(
-                () => {
+                (result?: any) => {
+                    item.result = result;
                     this.updateStatus(item, eLogStatus.SUCCESS);
                 },
                 (reason?: Error|string) => {
@@ -112,6 +114,18 @@ export class EventsUI {
 
     private updateStatus(item: LogItem, status: eLogStatus): void {
         item.captionElement.innerText = item.caption;
+        if (item.result !== undefined) {
+            let parsedResult: string;
+            try {
+                parsedResult = JSON.stringify(item.result, null, 4);
+            } catch (e) {
+                parsedResult = `Non-serializable value: ${item.result}`;
+            }
+
+            const pre = document.createElement('pre');
+            pre.innerText = `    ${(parsedResult.replace(/\n/g, '\n    '))}`;
+            item.captionElement.innerHTML += `:${pre.outerHTML}`;
+        }
         item.captionElement.classList.remove(EventsUI.STATUS_CLASSES[item.status]);
         item.captionElement.classList.add(EventsUI.STATUS_CLASSES[status]);
         item.status = status;

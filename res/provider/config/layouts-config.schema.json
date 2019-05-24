@@ -125,19 +125,36 @@
                 }
             ]
         },
+        "preview": {
+            "type": "object",
+            "title": "Preview Config",
+            "description": "Options for customizing visual previews shown for snap and tab actions",
+            "properties": {
+                "activeOpacity": {
+                    "type": ["number", "null"],
+                    "description": "Controls the opacity of each window when it is being dragged. If set to null, the service will not modify the opacity of the window.",
+                    "default": 0.8
+                },
+                "targetOpacity": {
+                    "type": ["number", "null"],
+                    "description": "Controls the opacity of each window when another window is about to be snapped/tabbed to it. If set to null, the service will not modify the opacity of the window.",
+                    "default": 0.8
+                }
+            },
+            "required": [],
+            "additionalProperties": false
+        },
         "tabstrip": {
             "type": "object",
             "description": "Specifies a custom tabstrip to be used whenever two windows are tabbed together. Windows can only be tabbed if their configurations both allow it - they must use the same tabstrip URL, and both have the 'tab' feature enabled.",
             "properties": {
                 "url": {
                     "type": "string",
-                    "title": "Tabstrip URL",
                     "description": "Sets a custom tabstrip URL",
                     "default": ""
                 },
                 "height": {
                     "type": "number",
-                    "title": "Tabstrip Height",
                     "description": "Sets the height of the custom tabstrip, in pixels",
                     "minimum": 0,
                     "default": 60
@@ -176,6 +193,28 @@
                         "snap": true,
                         "dock": true,
                         "tab": true
+                    },
+                    "additionalProperties": false
+                },
+                "preview": {
+                    "description": "Options for customising visual previews shown for snap and tab actions",
+                    "properties": {
+                        "snap": {
+                            "$ref": "#/definitions/preview"
+                        },
+                        "tab": {
+                            "$ref": "#/definitions/preview"
+                        }
+                    },
+                    "default": {
+                        "snap": {
+                            "activeOpacity": 0.8,
+                            "targetOpacity": 0.8
+                        },
+                        "tab": {
+                            "activeOpacity": 0.8,
+                            "targetOpacity": 0.8
+                        }
                     },
                     "additionalProperties": false
                 },

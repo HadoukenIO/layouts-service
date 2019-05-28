@@ -14,11 +14,13 @@ export interface Elements {
     // API buttons
     undockGroup: HTMLButtonElement;
     undockWindow: HTMLButtonElement;
+    getDockGroup: HTMLButtonElement;
     tabToSelf: HTMLButtonElement;
     tabSelfTo: HTMLButtonElement;
     createTabGroup: HTMLButtonElement;
     removeTab: HTMLButtonElement;
     closeTab: HTMLButtonElement;
+    getTabGroup: HTMLButtonElement;
     maximizeTabGroup: HTMLButtonElement;
     minimizeTabGroup: HTMLButtonElement;
     restoreTabGroup: HTMLButtonElement;
@@ -74,6 +76,10 @@ export interface Elements {
     configTab: HTMLSelectElement;
     configTabstripUrl: HTMLInputElement;
     configTabstripHeight: HTMLInputElement;
+    activeOpacitySnap: HTMLSelectElement;
+    targetOpacitySnap: HTMLSelectElement;
+    activeOpacityTab: HTMLSelectElement;
+    targetOpacityTab: HTMLSelectElement;
 
     // Other
     container: HTMLDivElement;
@@ -97,11 +103,13 @@ export class View {
         return {
             undockGroup: document.getElementById('undockGroup') as HTMLButtonElement,
             undockWindow: document.getElementById('undockWindow') as HTMLButtonElement,
+            getDockGroup: document.getElementById('getDockGroup') as HTMLButtonElement,
             tabToSelf: document.getElementById('tabToSelf') as HTMLButtonElement,
             tabSelfTo: document.getElementById('tabSelfTo') as HTMLButtonElement,
             createTabGroup: document.getElementById('createTabGroup') as HTMLButtonElement,
             removeTab: document.getElementById('removeTab') as HTMLButtonElement,
             closeTab: document.getElementById('closeTab') as HTMLButtonElement,
+            getTabGroup: document.getElementById('getTabGroup') as HTMLButtonElement,
             maximizeTabGroup: document.getElementById('maximizeTabGroup') as HTMLButtonElement,
             minimizeTabGroup: document.getElementById('minimizeTabGroup') as HTMLButtonElement,
             restoreTabGroup: document.getElementById('restoreTabGroup') as HTMLButtonElement,
@@ -147,6 +155,10 @@ export class View {
             configTab: document.getElementById('configTab') as HTMLSelectElement,
             configTabstripUrl: document.getElementById('configTabstripUrl') as HTMLInputElement,
             configTabstripHeight: document.getElementById('configTabstripHeight') as HTMLInputElement,
+            activeOpacitySnap: document.getElementById('activeOpacitySnap') as HTMLSelectElement,
+            targetOpacitySnap: document.getElementById('targetOpacitySnap') as HTMLSelectElement,
+            activeOpacityTab: document.getElementById('activeOpacityTab') as HTMLSelectElement,
+            targetOpacityTab: document.getElementById('targetOpacityTab') as HTMLSelectElement,
             container: document.getElementById('container') as HTMLDivElement,
             modal: document.getElementById('modalCreate') as HTMLDivElement,
             eventList: document.getElementById('eventList') as HTMLUListElement

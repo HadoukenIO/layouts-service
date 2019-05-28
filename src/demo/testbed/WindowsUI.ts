@@ -3,7 +3,7 @@ import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/system/appl
 import {ConfigurationObject, Rule, Tabstrip} from '../../../gen/provider/config/layouts-config';
 import {RegEx} from '../../client/main';
 import {ConfigWithRules, ScopedConfig, Scopes} from '../../provider/config/Store';
-import {AppData, createApp, createWindow, Omit, WindowData} from '../spawn';
+import {AppData, createApp, createWindow, WindowData} from '../spawn';
 
 import {Elements} from './View';
 
@@ -17,6 +17,10 @@ interface ConfigData {
     tab: boolean;
     tabstripUrl: string;
     tabstripHeight: number;
+    targetOpacitySnap: number|null;
+    activeOpacitySnap: number|null;
+    activeOpacityTab: number|null;
+    targetOpacityTab: number|null;
 }
 
 type ConfigScopeParam = string|(RegEx&{raw: string});
@@ -57,12 +61,20 @@ export class WindowsUI {
     private _rules: ConfigRule[];
 
     private _selectedRule: ConfigRule|null;
+    private _currentRuntime: string;
 
     constructor(elements: Elements) {
         this._elements = elements;
         this._defaultConfig = {};
         this._selectedRule = null;
         this._rules = [];
+
+        // Find current runtime version
+        this._currentRuntime = 'stable';
+        fin.System.getVersion().then(version => {
+            this._currentRuntime = version;
+            this._elements.inputRuntime.options.item(0)!.innerText = `Use Current (${this._currentRuntime})`;
+        });
 
         // Initialise plugins
         $('[data-toggle="tooltip"]').tooltip();
@@ -73,7 +85,11 @@ export class WindowsUI {
             dock: elements.configDock,
             tab: elements.configTab,
             tabstripHeight: elements.configTabstripHeight,
-            tabstripUrl: elements.configTabstripUrl
+            tabstripUrl: elements.configTabstripUrl,
+            activeOpacitySnap: elements.activeOpacitySnap,
+            targetOpacitySnap: elements.targetOpacitySnap,
+            activeOpacityTab: elements.activeOpacityTab,
+            targetOpacityTab: elements.targetOpacityTab
         };
         this._manifestInputs = {
             id: elements.inputID,
@@ -446,6 +462,19 @@ export class WindowsUI {
                     config.tabstrip = config.tabstrip || {} as Tabstrip;
                     config.tabstrip[param.replace('tabstrip', '').toLowerCase() as keyof Tabstrip] = data[param] as number | string;
                     break;
+                case 'activeOpacitySnap':
+                case 'targetOpacitySnap':
+                case 'activeOpacityTab':
+                case 'targetOpacityTab': {
+                    const previewType = param.slice(13).toLowerCase() as 'snap'|'tab';
+                    const previewProp = param.slice(0, 13) as 'activeOpacity'|'targetOpacity';
+
+                    config.preview = config.preview || {};
+                    config.preview[previewType] = config.preview[previewType] || {};
+                    config.preview[previewType]![previewProp] = data[param] as number;
+
+                    break;
+                }
                 default:
                     console.warn('Unknown param:', param);
             }
@@ -491,6 +520,11 @@ export class WindowsUI {
                     // Convert `${width}x${height}` into Point
                     const dimensions = value.toString().split('x');
                     value = {x: Number.parseInt(dimensions[0], 10), y: Number.parseInt(dimensions[1], 10)};
+                } else if (input === elements.inputRuntime) {
+                    // Convert 'current' into the runtime of the current window
+                    if (value === 'current') {
+                        value = this._currentRuntime;
+                    }
                 } else if (input === elements.inputParent) {
                     // Convert app UUID into Identity
                     value = {uuid: value};
@@ -508,6 +542,8 @@ export class WindowsUI {
                         (data[key] as unknown) = value;
                     } else if (value === 'true' || value === 'false') {
                         (data[key] as unknown) = (value === 'true');
+                    } else if (value === 'null') {
+                        (data[key] as unknown) = null;
                     } else if (typeof value === 'string' && Number.parseFloat(value).toString() === value) {
                         (data[key] as unknown) = Number.parseFloat(value);
                     } else {

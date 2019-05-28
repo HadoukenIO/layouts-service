@@ -1,4 +1,3 @@
-import {numberLiteralTypeAnnotation} from '@babel/types';
 import {WindowEvent} from 'hadouken-js-adapter/out/types/src/api/events/base';
 import {WindowBoundsChange} from 'hadouken-js-adapter/out/types/src/api/events/window';
 import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/system/application';
@@ -76,7 +75,7 @@ export class ZIndexer {
      * NOTE: Implementation will not return any item within the input that does not exist within the ZIndexer util.
      *
      * @param items Array of window or identity objects
-     * @return The top-most of the input items, when sorted by z-index
+     * @returns The top-most of the input items, when sorted by z-index
      */
     public getTopMost<T extends Identifiable>(items: T[]): T|null {
         const ids: string[] = this.getIds(items);

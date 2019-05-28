@@ -100,6 +100,10 @@ export class TabbingUI {
             const promise: Promise<void> = tabbing.closeTabGroup();
             log.addApiCall(promise, tabbing.closeTabGroup);
         });
+        elements.getTabGroup.addEventListener('click', () => {
+            const promise: Promise<WindowIdentity[]|null> = tabbing.getTabs();
+            log.addApiCall(promise, tabbing.getTabs);
+        });
 
         this._tabSelfTo = new Dropdown(elements.tabSelfTo, elements.tabSelfToDropdown);
         this._tabSelfTo.header = 'All Windows';

@@ -17,7 +17,7 @@ export class View {
 
     constructor(config: ConfigStore) {
         this._config = config;
-        this._preview = new Preview();
+        this._preview = new Preview(config);
         this._targetItem = null;
         this._activeItem = null;
     }

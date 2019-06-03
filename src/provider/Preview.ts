@@ -1,12 +1,25 @@
+import {PreviewConfig} from '../../gen/provider/config/layouts-config';
+
 import {SnapTarget} from './snapanddock/Resolver';
 import {Rectangle} from './snapanddock/utils/RectUtils';
 import {TabTarget} from './tabbing/TabService';
-import {eTargetType, Target} from './WindowHandler';
+import {eTargetType} from './WindowHandler';
+import {ConfigStore} from './main';
+import {RequiredRecursive} from './config/ConfigUtil';
 
-const SUCCESS_PREVIEW_BACKGROUND_CSS = '#3D4059';
-const FAILURE_PREVIEW_BACKGROUND_CSS = 'repeating-linear-gradient(45deg, #3D4059, #3D4059 .25em, #C24629 0, #C24629 .5em)';
+export type PreviewableTarget = SnapTarget | TabTarget;
 
-export type PreviewableTarget = SnapTarget|TabTarget;
+interface Overlay {
+    opacity?: number | null;
+    /**
+     * Background CSS
+     */
+    background?: string;
+    /**
+     * Border CSS
+     */
+    border?: string;
+}
 
 /**
  * Visual indicator of the current snap target.
@@ -14,16 +27,17 @@ export type PreviewableTarget = SnapTarget|TabTarget;
  * Will create colored rectangles based on the given group. Rectangle color will be set according to snap validity.
  */
 export class Preview {
-    private _activeWindowPreview: fin.OpenFinWindow|null;
+    private _activeWindowPreview: fin.OpenFinWindow | null;
 
     private _successPreviewWindow: fin.OpenFinWindow;
     private _failurePreviewWindow: fin.OpenFinWindow;
+    private _config: ConfigStore;
 
-    constructor() {
+    constructor(config: ConfigStore) {
         this._activeWindowPreview = null;
-
-        this._successPreviewWindow = this.createWindow('successPreview', SUCCESS_PREVIEW_BACKGROUND_CSS);
-        this._failurePreviewWindow = this.createWindow('failurePreview', FAILURE_PREVIEW_BACKGROUND_CSS);
+        this._config = config;
+        this._successPreviewWindow = this.createWindow('successPreview');
+        this._failurePreviewWindow = this.createWindow('failurePreview');
     }
 
     /**
@@ -31,11 +45,35 @@ export class Preview {
      *
      * The 'isValid' parameter determines the color of the rectangles, indicating if releasing the window will
      * successfully join a snap/tab group
+     * @param target The preview target.
      */
     public show(target: PreviewableTarget): void {
-        const previewWindow = target.valid ? this._successPreviewWindow : this._failurePreviewWindow;
+        let previewWindow: fin.OpenFinWindow;
+        let config: RequiredRecursive<PreviewConfig>;
+        let overlay: Required<Overlay>;
+        const query = this._config.query(target.activeWindow.scope).preview;
+
+        if (target.type === eTargetType.SNAP) {
+            config = query.snap;
+        } else {
+            config = query.tab;
+        }
+
+        if (target.valid) {
+            previewWindow = this._successPreviewWindow;
+            overlay = config.overlayValid;
+        } else {
+            previewWindow = this._failurePreviewWindow;
+            overlay = config.overlayInvalid;
+        }
 
         this.positionPreview(previewWindow, target);
+
+        const nativeWindow = previewWindow.getNativeWindow();
+
+        nativeWindow.document.body.style.background = overlay.background;
+        nativeWindow.document.body.style.border = overlay.border;
+        previewWindow.updateOptions({opacity: overlay.opacity!});
 
         if (previewWindow !== this._activeWindowPreview) {
             if (this._activeWindowPreview !== null) {
@@ -57,7 +95,7 @@ export class Preview {
         }
     }
 
-    private createWindow(name: string, backgroundCssString: string): fin.OpenFinWindow {
+    private createWindow(name: string): fin.OpenFinWindow {
         const defaultHalfSize = {x: 160, y: 160};
         const options: fin.WindowOptions = {
             name,
@@ -78,7 +116,6 @@ export class Preview {
 
         const window = new fin.desktop.Window(options, () => {
             const nativeWindow = window.getNativeWindow();
-            nativeWindow.document.body.style.background = backgroundCssString;
         });
 
         return window;

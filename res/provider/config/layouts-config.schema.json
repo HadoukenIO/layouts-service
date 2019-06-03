@@ -139,6 +139,37 @@
                     "type": ["number", "null"],
                     "description": "Controls the opacity of each window when another window is about to be snapped/tabbed to it. If set to null, the service will not modify the opacity of the window.",
                     "default": 0.8
+                },
+                "overlayValid": {
+                    "$ref": "#/definitions/overlay-preview",
+                    "description": "Configures the preview rectangle that is shown to indicate the action that is about to happen"
+                },
+                "overlayInvalid": {
+                    "$ref": "#/definitions/overlay-preview",
+                    "description": "Configures the preview rectangle that is shown to indicate the current action isn't possible"
+                }
+            },
+            "required": [],
+            "additionalProperties": false
+        },
+        "overlay-preview": {
+            "type": "object",
+            "description": "Options for customizing the colored preview rectangle that is shown for snap and tab actions",
+            "properties": {
+                "opacity": {
+                    "type": ["number", "null"],
+                    "description": "Controls the opacity of the active window - this is the window that is being dragged by the user. If set to null, the service will not modify the opacity of the window.",
+                    "default": 0.8
+                },
+                "background": {
+                    "type": "string",
+                    "description": "Background CSS",
+                    "default": "#3D4059"
+                },
+                "border": {
+                    "type": "string",
+                    "description": "Border CSS",
+                    "default": "repeating-linear-gradient(45deg, #3D4059, #3D4059 .25em, #C24629 0, #C24629 .5em)"
                 }
             },
             "required": [],
@@ -197,7 +228,7 @@
                     "additionalProperties": false
                 },
                 "preview": {
-                    "description": "Options for customising visual previews shown for snap and tab actions",
+                    "description": "Options for customizing visual previews shown for snap and tab actions",
                     "properties": {
                         "snap": {
                             "$ref": "#/definitions/preview"
@@ -209,11 +240,31 @@
                     "default": {
                         "snap": {
                             "activeOpacity": 0.8,
-                            "targetOpacity": 0.8
+                            "targetOpacity": 0.8,
+                            "overlayValid": {
+                                "opacity": 0.8,
+                                "background": "#3D4059",
+                                "border": ""
+                            },
+                            "overlayInvalid": {
+                                "opacity": 0.8,
+                                "background": "repeating-linear-gradient(45deg, #3D4059, #3D4059 .25em, #C24629 0, #C24629 .5em)",
+                                "border": ""
+                            }
                         },
                         "tab": {
                             "activeOpacity": 0.8,
-                            "targetOpacity": 0.8
+                            "targetOpacity": 0.8,
+                            "overlayValid": {
+                                "opacity": 0.8,
+                                "background": "#3D4059",
+                                "border": ""
+                            },
+                            "overlayInvalid": {
+                                "opacity": 0.8,
+                                "background": "repeating-linear-gradient(45deg, #3D4059, #3D4059 .25em, #C24629 0, #C24629 .5em)",
+                                "border": ""
+                            }
                         }
                     },
                     "additionalProperties": false

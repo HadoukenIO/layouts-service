@@ -51,13 +51,19 @@ export class NativeWindowService {
         }
 
         await this._launchNativeWindowAgent(architecture);
+
+        // 64-bit Windows requires both 64 and 32 bit native window agent
+        if (architecture === 'x64') {
+            await this._launchNativeWindowAgent('x32');
+        }
+
         await this._registerFutureExternalWindows();
         await this._registerCurrentExternalWindows();
         await this._registerGlobalHotkeys();
     }
 
     /**
-     * Launches native window agent using via OpenFin API.
+     * Launches native window agent via OpenFin API.
      */
     private async _launchNativeWindowAgent(architecture: string) {
         await (<any>fin.System).launchExternalProcess({

@@ -97,6 +97,10 @@ i.fa-chevron-right, i.fa-bolt {
     position: relative;
 }
 
+#inputConfigEditor .row {
+    padding: 5px 0;
+}
+
 /* When switching to 'xs' width, make title bar more compact */
 
 @media (max-width: 576px) {

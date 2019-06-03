@@ -21,6 +21,18 @@ interface ConfigData {
     activeOpacitySnap: number | null;
     activeOpacityTab: number | null;
     targetOpacityTab: number | null;
+    snap_overlayInvalid_background: string | null;
+    snap_overlayInvalid_border: string | null;
+    snap_overlayInvalid_opacity: string | null;
+    tab_overlayInvalid_background: string | null;
+    tab_overlayInvalid_border: string | null;
+    tab_overlayInvalid_opacity: string | null;
+    snap_overlayValid_background: string | null;
+    snap_overlayValid_border: string | null;
+    snap_overlayValid_opacity: string | null;
+    tab_overlayValid_background: string | null;
+    tab_overlayValid_border: string | null;
+    tab_overlayValid_opacity: string | null;
 }
 
 type ConfigScopeParam = string | (RegEx & {raw: string});
@@ -89,7 +101,19 @@ export class WindowsUI {
             activeOpacitySnap: elements.activeOpacitySnap,
             targetOpacitySnap: elements.targetOpacitySnap,
             activeOpacityTab: elements.activeOpacityTab,
-            targetOpacityTab: elements.targetOpacityTab
+            targetOpacityTab: elements.targetOpacityTab,
+            snap_overlayInvalid_background: elements.snap_overlayInvalid_background,
+            snap_overlayInvalid_border: elements.snap_overlayInvalid_border,
+            snap_overlayInvalid_opacity: elements.snap_overlayInvalid_opacity,
+            tab_overlayInvalid_background: elements.tab_overlayInvalid_background,
+            tab_overlayInvalid_border: elements.tab_overlayInvalid_border,
+            tab_overlayInvalid_opacity: elements.tab_overlayInvalid_opacity,
+            snap_overlayValid_background: elements.snap_overlayValid_background,
+            snap_overlayValid_border: elements.snap_overlayValid_border,
+            snap_overlayValid_opacity: elements.snap_overlayValid_opacity,
+            tab_overlayValid_background: elements.tab_overlayValid_background,
+            tab_overlayValid_border: elements.tab_overlayValid_border,
+            tab_overlayValid_opacity: elements.tab_overlayValid_opacity
         };
         this._manifestInputs = {
             id: elements.inputID,
@@ -483,6 +507,31 @@ export class WindowsUI {
 
                     break;
                 }
+
+                case 'snap_overlayInvalid_background':
+                case 'snap_overlayInvalid_border':
+                case 'snap_overlayInvalid_opacity':
+                case 'tab_overlayInvalid_background':
+                case 'tab_overlayInvalid_border':
+                case 'tab_overlayInvalid_opacity':
+                case 'snap_overlayValid_background':
+                case 'snap_overlayValid_border':
+                case 'snap_overlayValid_opacity':
+                case 'tab_overlayValid_background':
+                case 'tab_overlayValid_border':
+                case 'tab_overlayValid_opacity': {
+                    const parts = param.split('_');
+                    const previewType = parts[0] as 'snap' | 'tab';
+                    const previewProp = parts[1] as 'overlayValid' | 'overlayInvalid';
+                    const overlayProp = parts[2] as 'background' | 'opacity' | 'border';
+
+                    config.preview = config.preview || {};
+                    config.preview[previewType] = config.preview[previewType] || {};
+                    config.preview[previewType]![previewProp] = config.preview[previewType]![previewProp] || {};
+                    config!.preview![previewType]![previewProp]![overlayProp]! = data![param]!;
+                    break;
+                }
+
                 default:
                     console.warn('Unknown param:', param);
             }
@@ -545,7 +594,7 @@ export class WindowsUI {
                 }
 
                 // Parse value
-                if (value !== undefined && value !== 'default') {
+                if (value !== undefined && value !== 'default' && value !== '') {
                     if (typeof value === 'boolean' || typeof value === 'object') {
                         (data[key] as unknown) = value;
                     } else if (value === 'true' || value === 'false') {

@@ -21,16 +21,16 @@
         {
             "alias": "NativeWindowAgent-x32",
             "mandatory": false,
-            "src": "https://cdn.openfin.co/release/native-window/NativeWindowAgent-0.0.3-x32.zip",
+            "src": "https://cdn.openfin.co/release/native-window/NativeWindowAgent-0.0.4-x32.zip",
             "target": "NativeWindowAgent-x32.exe",
-            "version": "0.0.3"
+            "version": "0.0.4"
         },
         {
             "alias": "NativeWindowAgent-x64",
             "mandatory": false,
-            "src": "https://cdn.openfin.co/release/native-window/NativeWindowAgent-0.0.3-x64.zip",
+            "src": "https://cdn.openfin.co/release/native-window/NativeWindowAgent-0.0.4-x64.zip",
             "target": "NativeWindowAgent-x64.exe",
-            "version": "0.0.3"
+            "version": "0.0.4"
         }
     ]
 }

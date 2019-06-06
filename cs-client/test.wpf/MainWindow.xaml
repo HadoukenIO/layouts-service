@@ -10,8 +10,26 @@
         <Grid.RowDefinitions>
             <RowDefinition/>
             <RowDefinition/>
+            <RowDefinition/>
         </Grid.RowDefinitions>
         <Button Grid.Row="0" Click="UndockButton_Click" Margin="10px">Undock Window</Button>
         <Button Grid.Row="1" Click="UndockGroup_Click" Margin="10px">Undock Group</Button>
+        <Button Grid.Row="2" Click="CloneWindow_Click" Margin="10px">Clone Window</Button>
+        <Grid.ContextMenu>
+            <ContextMenu>
+                <MenuItem Header="Save Preset">
+                    <MenuItem Header="Preset 1" Tag="wpf-preset-1" Click="SavePreset_Click" />
+                    <MenuItem Header="Preset 2" Tag="wpf-preset-2" Click="SavePreset_Click" />
+                    <MenuItem Header="Preset 3" Tag="wpf-preset-3" Click="SavePreset_Click" />
+                    <MenuItem Header="Preset 4" Tag="wpf-preset-4" Click="SavePreset_Click" />
+                </MenuItem>
+                <MenuItem Header="Recall Preset">
+                    <MenuItem Header="Preset 1" Tag="wpf-preset-1" Click="RecallPreset_Click" />
+                    <MenuItem Header="Preset 2" Tag="wpf-preset-2" Click="RecallPreset_Click" />
+                    <MenuItem Header="Preset 3" Tag="wpf-preset-3" Click="RecallPreset_Click" />
+                    <MenuItem Header="Preset 4" Tag="wpf-preset-4" Click="RecallPreset_Click" />
+                </MenuItem>
+            </ContextMenu>
+        </Grid.ContextMenu>
     </Grid>
 </Window>

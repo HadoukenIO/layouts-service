@@ -10,22 +10,15 @@ namespace OpenFin.Layouts
     public class WindowLayoutManager
     {
         private const string LayoutsServiceChannelName = "of-layouts-service-v1";
-        private const string LayoutsHostAppUuid = "of-layouts-dotnet-host";
+        internal const string LayoutsHostAppUuid = "of-layouts-dotnet-host";
         private const string LayoutsHelperAppUrl = "about:blank";
 
         private const string LayoutsServiceManifestUrl = "https://cdn.openfin.co/services/openfin/layouts/app.json";
 
         private static Fin.Runtime RuntimeInstance;
-        private static Fin.ChannelClient ChannelClient;
 
-        private string _observedWindowName;
         private Fin.ExternalWindowObserver _observer;
 
-        public WindowLayoutManager(IntPtr handle)
-        {
-            _observedWindowName = Guid.NewGuid().ToString();
-            _observer = new Fin.ExternalWindowObserver(RuntimeInstance, LayoutsHostAppUuid, _observedWindowName, handle);
-        }
 
         public static void Initialize()
         {
@@ -37,7 +30,7 @@ namespace OpenFin.Layouts
             var runtimeOptions = Fin.RuntimeOptions.LoadManifest(manifestUri);
 
             RuntimeInstance = Fin.Runtime.GetRuntimeInstance(runtimeOptions);
-            RuntimeInstance.Connect(() => 
+            RuntimeInstance.Connect(() =>
             {
                 var layoutsService = RuntimeInstance.CreateApplication(runtimeOptions.StartupApplicationOptions);
 
@@ -53,6 +46,22 @@ namespace OpenFin.Layouts
                 });
             });
         }
+
+        public WindowLayoutManager(IntPtr handle)
+        {
+            ObservedWindowName = Guid.NewGuid().ToString();
+            _observer = new Fin.ExternalWindowObserver(RuntimeInstance, LayoutsHostAppUuid, ObservedWindowName, handle);
+
+            Grouping = new WindowGroupingManager(this);
+            Workspace = new WorkspaceManager();
+        }
+
+        internal static Fin.ChannelClient ChannelClient { get; private set; }
+
+        internal string ObservedWindowName { get; private set; }
+
+        public WindowGroupingManager Grouping { get; private set; }
+        public WorkspaceManager Workspace { get; private set; }
 
         public void Register()
         {
@@ -72,23 +81,58 @@ namespace OpenFin.Layouts
                 });
             });
         }
+    }
+
+    public class WindowGroupingManager
+    {
+        WindowLayoutManager _layoutManager;
+
+        public event EventHandler WindowGrouped;
+        public event EventHandler WindowUngrouped;
+
+        internal WindowGroupingManager(WindowLayoutManager layoutManager)
+        {
+            _layoutManager = layoutManager;
+        }
 
         public void Ungroup()
         {
-            ChannelClient.Dispatch<object>("UNDOCK-WINDOW", new
+            WindowLayoutManager.ChannelClient.Dispatch<object>("UNDOCK-WINDOW", new
             {
-                uuid = LayoutsHostAppUuid,
-                name = _observedWindowName
+                uuid = WindowLayoutManager.LayoutsHostAppUuid,
+                name = _layoutManager.ObservedWindowName
             });
         }
-
         public void UngroupAll()
         {
-            ChannelClient.Dispatch<object>("UNDOCK-GROUP", new
+            WindowLayoutManager.ChannelClient.Dispatch<object>("UNDOCK-WINDOW", new
             {
-                uuid = LayoutsHostAppUuid,
-                name = _observedWindowName
+                uuid = WindowLayoutManager.LayoutsHostAppUuid,
+                name = _layoutManager.ObservedWindowName
             });
+        }
+    }
+
+}
+
+namespace OpenFin.Layouts
+{ 
+    using Newtonsoft.Json.Linq;
+    public class WorkspaceManager
+    {
+        public event EventHandler WorkspaceGenerating;
+        public event EventHandler WorkspaceGenerated;
+        public event EventHandler WorkspaceRestoring;
+        public event EventHandler WorkspaceRestored;
+
+        public Task<JObject> GenerateWorkspace()
+        {
+            return WindowLayoutManager.ChannelClient.Dispatch<JObject>("GENERATE-WORKSPACE", new object());
+        }
+
+        public Task Restore(JObject workspace)
+        {
+            return WindowLayoutManager.ChannelClient.Dispatch<JObject>("RESTORE-WORKSPACE", workspace);
         }
     }
 }

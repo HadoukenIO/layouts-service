@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("OpenFin Layouts Client")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("OpenFin, Inc")]
-[assembly: AssemblyProduct("OpenFin Desktop")]
+[assembly: AssemblyProduct("OpenFin Layouts")]
 [assembly: AssemblyCopyright("Copyright ©  2019")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

@@ -22,7 +22,7 @@ export async function teardown(): Promise<void> {
 
     fin.InterApplicationBus.removeAllListeners();
 
-    const msg = await executeJavascriptOnService(function(this: ProviderWindow) {
+    const msg = await executeJavascriptOnService(function (this: ProviderWindow) {
         const m = this.model;
         const lengths = [m.windows.length, Object.keys(m['_windowLookup']).length, m.snapGroups.length, m.tabGroups.length];
 
@@ -62,7 +62,7 @@ async function closeAllWindows(): Promise<void> {
             // Main window persists, but close any child windows
             return name !== uuid;
         } else if (uuid === 'layouts-service') {
-            if (name === uuid || name === 'successPreview' || name === 'failurePreview') {
+            if (name === uuid || name!.startsWith('preview-')) {
                 // Main window and preview windows persist
                 return false;
             } else if (name!.startsWith('TABSET-')) {
@@ -89,10 +89,10 @@ async function closeAllWindows(): Promise<void> {
 }
 
 async function resetProviderState(): Promise<void> {
-    const msg: string|null = await executeJavascriptOnService<{allScopes: Scopes[]}, string|null>(function(
+    const msg: string | null = await executeJavascriptOnService<{allScopes: Scopes[]}, string | null>(function (
         this: ProviderWindow,
         params: {allScopes: Scopes[]}
-    ): string|null {
+    ): string | null {
         const {allScopes} = params;
 
         const SEPARATOR_LIST = ', ';
@@ -108,13 +108,13 @@ async function resetProviderState(): Promise<void> {
             this.model['_windowLookup'] = {};
         }
         if (snapGroups.length > 0) {
-            const groupInfo = snapGroups.map((s, i) => `${i+1}: ${s.id} (${s.entities.map(e => e.id).join(SEPARATOR_LIST)})`).join(SEPARATOR_LINE);
+            const groupInfo = snapGroups.map((s, i) => `${i + 1}: ${s.id} (${s.entities.map(e => e.id).join(SEPARATOR_LIST)})`).join(SEPARATOR_LINE);
 
             msgs.push(`Provider still had ${snapGroups.length} snapGroups registered:${SEPARATOR_LINE}${groupInfo}`);
             this.model['_snapGroups'].length = 0;
         }
         if (tabGroups.length > 0) {
-            const groupInfo = tabGroups.map((t, i) => `${i+1}: ${t.id} (${t.tabs.map(w => w.id).join(SEPARATOR_LIST)})`).join(SEPARATOR_LINE);
+            const groupInfo = tabGroups.map((t, i) => `${i + 1}: ${t.id} (${t.tabs.map(w => w.id).join(SEPARATOR_LIST)})`).join(SEPARATOR_LINE);
 
             msgs.push(`Provider still had ${tabGroups.length} tabGroups registered:${SEPARATOR_LINE}${groupInfo}`);
             this.model['_tabGroups'].length = 0;
@@ -137,7 +137,7 @@ async function resetProviderState(): Promise<void> {
 
             if (rulesWithScope.length !== expectedCount) {
                 const configInfo = rulesWithScope.map(rule => JSON.stringify(rule)).join(SEPARATOR_LINE);
-                msgs.push(`Expected ${expectedCount} rules with scope ${scope}, got:${configInfo ? SEPARATOR_LINE + configInfo: ' NONE'}`);
+                msgs.push(`Expected ${expectedCount} rules with scope ${scope}, got:${configInfo ? SEPARATOR_LINE + configInfo : ' NONE'}`);
 
                 // Can't do a full clean-up without duplicating provider state here,
                 // but removing anything that was defined outside of the service (test windows, etc)
@@ -150,12 +150,12 @@ async function resetProviderState(): Promise<void> {
 
         const nonTestAppLoaderKeys = Object.keys(loaderApps).filter(uuid => uuid !== 'TEST-jest-env');
         if (nonTestAppLoaderKeys.length > 0) {
-            let loaderInfo: string|undefined;
+            let loaderInfo: string | undefined;
 
             try {
                 loaderInfo = JSON.stringify(loaderApps, null, 4).replace(/\n/g, SEPARATOR_LINE);
             } catch (e) {
-                 // eslint-disable-line
+                // eslint-disable-line
             }
 
             if (loaderInfo) {

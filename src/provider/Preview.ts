@@ -1,15 +1,19 @@
-import {PreviewConfig} from '../../gen/provider/config/layouts-config';
+import deepEqual from 'fast-deep-equal';
+
+import {PreviewConfig, Preview as PreviewProps, Scope} from '../../gen/provider/config/layouts-config';
 
 import {SnapTarget} from './snapanddock/Resolver';
 import {Rectangle} from './snapanddock/utils/RectUtils';
 import {TabTarget} from './tabbing/TabService';
 import {eTargetType} from './WindowHandler';
 import {ConfigStore} from './main';
-import {RequiredRecursive} from './config/ConfigUtil';
+import {Mask} from './config/ConfigUtil';
+import {DesktopSnapGroup} from './model/DesktopSnapGroup';
+import {eTransformType} from './model/DesktopWindow';
 
 export type PreviewableTarget = SnapTarget | TabTarget;
 
-interface Overlay {
+export interface Overlay {
     opacity?: number | null;
     /**
      * Background CSS
@@ -21,6 +25,23 @@ interface Overlay {
     border?: string;
 }
 
+export type PreviewType = keyof PreviewProps;
+
+export enum Validity {
+    VALID = 'valid',
+    INVALID = 'invalid'
+}
+
+export type PreviewWindows = {
+    readonly [K in PreviewType]: PreviewValidityWindows;
+}
+
+export type PreviewValidityWindows = {
+    readonly [V in Validity]: fin.OpenFinWindow;
+};
+
+const defaultScope: Scope = {level: 'window', uuid: '', name: ''};
+
 /**
  * Visual indicator of the current snap target.
  *
@@ -28,16 +49,65 @@ interface Overlay {
  */
 export class Preview {
     private _activeWindowPreview: fin.OpenFinWindow | null;
+    private _previewWindows!: PreviewWindows;
 
-    private _successPreviewWindow: fin.OpenFinWindow;
-    private _failurePreviewWindow: fin.OpenFinWindow;
     private _config: ConfigStore;
+    private _lastScope!: Scope;
 
     constructor(config: ConfigStore) {
         this._activeWindowPreview = null;
         this._config = config;
-        this._successPreviewWindow = this.createWindow('successPreview');
-        this._failurePreviewWindow = this.createWindow('failurePreview');
+        const query = this._config.query(defaultScope).preview;
+
+        const previewTypes = Object.keys(query)
+            .filter(key => eTargetType[key.toUpperCase() as eTargetType]) as PreviewType[];
+
+        this._previewWindows = previewTypes.reduce((acc, previewKey) => {
+            return {
+                ...acc,
+                [previewKey]: {
+                    [Validity.VALID]: this.createWindow(`preview-${previewKey}-${Validity.VALID}`),
+                    [Validity.INVALID]: this.createWindow(`preview-${previewKey}-${Validity.INVALID}`)
+                }
+            };
+        }, {}) as PreviewWindows;
+
+        DesktopSnapGroup.onCreated.add(this.onCreated, this);
+    }
+
+    private onCreated(group: DesktopSnapGroup): void {
+        group.onTransform.add(this.onTransform, this);
+    }
+
+    private onTransform(activeGroup: DesktopSnapGroup, type: Mask<eTransformType>): void {
+        const activeWindow = activeGroup.windows[0];
+        const scope: Scope = activeWindow.tabGroup ? activeWindow.tabGroup.activeTab.scope : activeWindow.scope;
+        this.preload(scope);
+    }
+
+    private preload(scope: Scope): void {
+        if (deepEqual(this._lastScope, scope)) {
+            return;
+        }
+        this.loadStyles(scope);
+        this._lastScope = scope;
+    }
+
+    private loadStyles(scope: Scope): void {
+        const query = this._config.query(scope).preview;
+
+        for (const key in query) {
+            const value = query[key as PreviewType];
+            const {valid, invalid} = this._previewWindows[key as PreviewType];
+            this.applyStyles(valid, value.overlayValid);
+            this.applyStyles(invalid, value.overlayInvalid);
+        }
+    }
+
+    private applyStyles(window: fin.OpenFinWindow, style: Required<Overlay>): void {
+        const {document} = window.getNativeWindow();
+        document.body.style.background = style.background;
+        document.body.style.border = style.border;
     }
 
     /**
@@ -48,39 +118,21 @@ export class Preview {
      * @param target The preview target.
      */
     public show(target: PreviewableTarget): void {
-        let previewWindow: fin.OpenFinWindow;
-        let config: RequiredRecursive<PreviewConfig>;
-        let overlay: Required<Overlay>;
-        const query = this._config.query(target.activeWindow.scope).preview;
+        const valid: Validity = target.valid ? Validity.VALID : Validity.INVALID;
+        const previewType = target.type.toLowerCase() as PreviewType;
+        const previewWindow: fin.OpenFinWindow = this._previewWindows[previewType][valid];
+        const scope: Scope = target.activeWindow.tabGroup ? target.activeWindow.tabGroup.activeTab.scope : target.activeWindow.scope;
 
-        if (target.type === eTargetType.SNAP) {
-            config = query.snap;
-        } else {
-            config = query.tab;
-        }
-
-        if (target.valid) {
-            previewWindow = this._successPreviewWindow;
-            overlay = config.overlayValid;
-        } else {
-            previewWindow = this._failurePreviewWindow;
-            overlay = config.overlayInvalid;
-        }
+        const overlayKey = target.valid ? 'overlayValid' : 'overlayInvalid';
+        const query = this._config.query(scope).preview;
+        const opacity = query[previewType][overlayKey].opacity!;
 
         this.positionPreview(previewWindow, target);
 
-        const nativeWindow = previewWindow.getNativeWindow();
-
-        nativeWindow.document.body.style.background = overlay.background;
-        nativeWindow.document.body.style.border = overlay.border;
-        previewWindow.updateOptions({opacity: overlay.opacity!});
+        previewWindow.updateOptions({opacity});
 
         if (previewWindow !== this._activeWindowPreview) {
-            if (this._activeWindowPreview !== null) {
-                this._activeWindowPreview.hide();
-            }
-
-            previewWindow.show();
+            this.hide();
             this._activeWindowPreview = previewWindow;
         }
     }
@@ -89,8 +141,10 @@ export class Preview {
      * Hides the currently visible preview window
      */
     public hide(): void {
+        // Opacity is used to hide the window instead of window.hide()
+        // as it allows the window to be repainted.
         if (this._activeWindowPreview !== null) {
-            this._activeWindowPreview.hide();
+            this._activeWindowPreview.updateOptions({opacity: 0});
             this._activeWindowPreview = null;
         }
     }
@@ -102,20 +156,21 @@ export class Preview {
             url: 'about:blank',
             defaultWidth: defaultHalfSize.x * 2,
             defaultHeight: defaultHalfSize.y * 2,
-            opacity: 0.8,
+            opacity: 0,
             minimizable: false,
             maximizable: false,
-            defaultTop: -1000,
-            defaultLeft: -1000,
+            defaultTop: -10000,
+            defaultLeft: -10000,
             showTaskbarIcon: false,
             frame: false,
             state: 'normal',
-            autoShow: false,
+            autoShow: true,
             alwaysOnTop: true
         };
 
         const window = new fin.desktop.Window(options, () => {
             const nativeWindow = window.getNativeWindow();
+            window.show();
         });
 
         return window;

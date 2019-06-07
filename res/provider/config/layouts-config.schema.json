@@ -126,6 +126,49 @@
             ]
         },
         "preview": {
+            "title": "Preview",
+            "description": "Options for customizing visual previews shown for snap and tab actions",
+            "properties": {
+                "snap": {
+                    "$ref": "#/definitions/preview-config"
+                },
+                "tab": {
+                    "$ref": "#/definitions/preview-config"
+                }
+            },
+            "default": {
+                "snap": {
+                    "activeOpacity": 0.8,
+                    "targetOpacity": 0.8,
+                    "overlayValid": {
+                        "opacity": 0.8,
+                        "background": "#3D4059",
+                        "border": ""
+                    },
+                    "overlayInvalid": {
+                        "opacity": 0.8,
+                        "background": "repeating-linear-gradient(45deg, #3D4059, #3D4059 .25em, #C24629 0, #C24629 .5em)",
+                        "border": ""
+                    }
+                },
+                "tab": {
+                    "activeOpacity": 0.8,
+                    "targetOpacity": 0.8,
+                    "overlayValid": {
+                        "opacity": 0.8,
+                        "background": "#3D4059",
+                        "border": ""
+                    },
+                    "overlayInvalid": {
+                        "opacity": 0.8,
+                        "background": "repeating-linear-gradient(45deg, #3D4059, #3D4059 .25em, #C24629 0, #C24629 .5em)",
+                        "border": ""
+                    }
+                }
+            },
+            "additionalProperties": false
+        },
+        "preview-config": {
             "type": "object",
             "title": "Preview Config",
             "description": "Options for customizing visual previews shown for snap and tab actions",
@@ -157,8 +200,8 @@
             "description": "Options for customizing the colored preview rectangle that is shown for snap and tab actions",
             "properties": {
                 "opacity": {
-                    "type": ["number", "null"],
-                    "description": "Controls the opacity of the active window - this is the window that is being dragged by the user. If set to null, the service will not modify the opacity of the window.",
+                    "type": ["number"],
+                    "description": "The opacity of the preview window. Set to 0 to display no preview window.",
                     "default": 0.8
                 },
                 "background": {
@@ -228,46 +271,7 @@
                     "additionalProperties": false
                 },
                 "preview": {
-                    "description": "Options for customizing visual previews shown for snap and tab actions",
-                    "properties": {
-                        "snap": {
-                            "$ref": "#/definitions/preview"
-                        },
-                        "tab": {
-                            "$ref": "#/definitions/preview"
-                        }
-                    },
-                    "default": {
-                        "snap": {
-                            "activeOpacity": 0.8,
-                            "targetOpacity": 0.8,
-                            "overlayValid": {
-                                "opacity": 0.8,
-                                "background": "#3D4059",
-                                "border": ""
-                            },
-                            "overlayInvalid": {
-                                "opacity": 0.8,
-                                "background": "repeating-linear-gradient(45deg, #3D4059, #3D4059 .25em, #C24629 0, #C24629 .5em)",
-                                "border": ""
-                            }
-                        },
-                        "tab": {
-                            "activeOpacity": 0.8,
-                            "targetOpacity": 0.8,
-                            "overlayValid": {
-                                "opacity": 0.8,
-                                "background": "#3D4059",
-                                "border": ""
-                            },
-                            "overlayInvalid": {
-                                "opacity": 0.8,
-                                "background": "repeating-linear-gradient(45deg, #3D4059, #3D4059 .25em, #C24629 0, #C24629 .5em)",
-                                "border": ""
-                            }
-                        }
-                    },
-                    "additionalProperties": false
+                    "$ref": "#/definitions/preview"
                 },
                 "tabstrip": {
                     "$ref": "#/definitions/tabstrip"

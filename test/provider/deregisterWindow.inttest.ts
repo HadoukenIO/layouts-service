@@ -209,7 +209,7 @@ it('When dragging a de-registered-on-trigger window to a registered window, wind
 
 it('When dragging a registered window to a de-registered window, no snap preview window is shown', async () => {
     // Wrap the pre-spawned preview window
-    const previewWin = await getWindow({name: 'successPreview', uuid: 'layouts-service'});
+    const previewWin = await getWindow({name: 'preview-snap-valid', uuid: 'layouts-service'});
 
     // Spawn two child windows (one of them deregistered)
     win1 = await createChildWindow({
@@ -246,7 +246,7 @@ it('When dragging a registered window to a de-registered window, no snap preview
 
 it('When dragging a de-registered window to a registered window, no snap preview window is shown', async () => {
     // Wrap the pre-spawned preview window
-    const previewWin = await getWindow({name: 'successPreview', uuid: 'layouts-service'});
+    const previewWin = await getWindow({name: 'preview-snap-valid', uuid: 'layouts-service'});
 
     // Spawn two child windows (one of them deregistered)
     win1 = await createChildWindow({

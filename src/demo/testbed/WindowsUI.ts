@@ -21,6 +21,8 @@ interface ConfigData {
     activeOpacitySnap: number | null;
     activeOpacityTab: number | null;
     targetOpacityTab: number | null;
+
+    // _ is used for slicing the string to get the config keys & searchability
     snap_overlayInvalid_background: string | null;
     snap_overlayInvalid_border: string | null;
     snap_overlayInvalid_opacity: string | null;

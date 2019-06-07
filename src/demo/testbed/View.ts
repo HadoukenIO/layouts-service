@@ -80,6 +80,8 @@ export interface Elements {
     targetOpacitySnap: HTMLSelectElement;
     activeOpacityTab: HTMLSelectElement;
     targetOpacityTab: HTMLSelectElement;
+
+    // _ is used for slicing the string to get the config keys & searchability
     snap_overlayInvalid_background: HTMLInputElement;
     snap_overlayInvalid_border: HTMLInputElement;
     snap_overlayInvalid_opacity: HTMLSelectElement;
@@ -175,6 +177,8 @@ export class View {
             container: document.getElementById('container') as HTMLDivElement,
             modal: document.getElementById('modalCreate') as HTMLDivElement,
             eventList: document.getElementById('eventList') as HTMLUListElement,
+
+            // _ is used for slicing the string to get the config keys & searchability
             snap_overlayInvalid_background: document.getElementById('snap_overlayInvalid_background') as HTMLInputElement,
             snap_overlayInvalid_border: document.getElementById('snap_overlayInvalid_border') as HTMLInputElement,
             snap_overlayInvalid_opacity: document.getElementById('snap_overlayInvalid_opacity') as HTMLSelectElement,

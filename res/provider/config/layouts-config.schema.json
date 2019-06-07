@@ -171,7 +171,7 @@
         "preview-config": {
             "type": "object",
             "title": "Preview Config",
-            "description": "Options for customizing visual previews shown for snap and tab actions",
+            "description": "Options for customizing visual preview overlays shown for actions",
             "properties": {
                 "activeOpacity": {
                     "type": ["number", "null"],
@@ -185,11 +185,11 @@
                 },
                 "overlayValid": {
                     "$ref": "#/definitions/overlay-preview",
-                    "description": "Configures the preview rectangle that is shown to indicate the action that is about to happen"
+                    "description": "Configures the preview overlay that is shown to indicate the action that is about to happen"
                 },
                 "overlayInvalid": {
                     "$ref": "#/definitions/overlay-preview",
-                    "description": "Configures the preview rectangle that is shown to indicate the current action isn't possible"
+                    "description": "Configures the preview overlay that is shown to indicate the current action isn't possible"
                 }
             },
             "required": [],
@@ -197,11 +197,11 @@
         },
         "overlay-preview": {
             "type": "object",
-            "description": "Options for customizing the colored preview rectangle that is shown for snap and tab actions",
+            "description": "Options for customizing the preview overlay style shown for actions",
             "properties": {
                 "opacity": {
                     "type": ["number"],
-                    "description": "The opacity of the preview window. Set to 0 to display no preview window.",
+                    "description": "The opacity of the preview overlay. Setting the value to 0 displays no preview",
                     "default": 0.8
                 },
                 "background": {

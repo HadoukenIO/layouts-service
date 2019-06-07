@@ -45,7 +45,8 @@ const defaultScope: Scope = {level: 'window', uuid: '', name: ''};
 /**
  * Visual indicator of the current snap target.
  *
- * Will create colored rectangles based on the given group. Rectangle color will be set according to snap validity.
+ * Will create customizable preview rectangles based on the layout action type (snap|tab).
+ * Rectangle styling will be set according to action validity (valid|invalid).
  */
 export class Preview {
     private _activeWindowPreview: fin.OpenFinWindow | null;

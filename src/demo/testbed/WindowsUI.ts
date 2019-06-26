@@ -17,13 +17,27 @@ interface ConfigData {
     tab: boolean;
     tabstripUrl: string;
     tabstripHeight: number;
-    targetOpacitySnap: number|null;
-    activeOpacitySnap: number|null;
-    activeOpacityTab: number|null;
-    targetOpacityTab: number|null;
+    targetOpacitySnap: number | null;
+    activeOpacitySnap: number | null;
+    activeOpacityTab: number | null;
+    targetOpacityTab: number | null;
+
+    // _ is used for slicing the string to get the config keys & searchability
+    snap_overlayInvalid_background: string | null;
+    snap_overlayInvalid_border: string | null;
+    snap_overlayInvalid_opacity: string | null;
+    tab_overlayInvalid_background: string | null;
+    tab_overlayInvalid_border: string | null;
+    tab_overlayInvalid_opacity: string | null;
+    snap_overlayValid_background: string | null;
+    snap_overlayValid_border: string | null;
+    snap_overlayValid_opacity: string | null;
+    tab_overlayValid_background: string | null;
+    tab_overlayValid_border: string | null;
+    tab_overlayValid_opacity: string | null;
 }
 
-type ConfigScopeParam = string|(RegEx&{raw: string});
+type ConfigScopeParam = string | (RegEx & {raw: string});
 interface ConfigScope {
     level: Scopes;
     uuid: ConfigScopeParam;
@@ -40,7 +54,7 @@ interface ConfigRule {
 
 type Inputs<T> = {
     // Map all keys to a HTML input control - except for 'type', which should be excluded from the type.
-    [K in keyof T]?: HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement;
+    [K in keyof T]?: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 };
 
 export class WindowsUI {
@@ -89,7 +103,19 @@ export class WindowsUI {
             activeOpacitySnap: elements.activeOpacitySnap,
             targetOpacitySnap: elements.targetOpacitySnap,
             activeOpacityTab: elements.activeOpacityTab,
-            targetOpacityTab: elements.targetOpacityTab
+            targetOpacityTab: elements.targetOpacityTab,
+            snap_overlayInvalid_background: elements.snap_overlayInvalid_background,
+            snap_overlayInvalid_border: elements.snap_overlayInvalid_border,
+            snap_overlayInvalid_opacity: elements.snap_overlayInvalid_opacity,
+            tab_overlayInvalid_background: elements.tab_overlayInvalid_background,
+            tab_overlayInvalid_border: elements.tab_overlayInvalid_border,
+            tab_overlayInvalid_opacity: elements.tab_overlayInvalid_opacity,
+            snap_overlayValid_background: elements.snap_overlayValid_background,
+            snap_overlayValid_border: elements.snap_overlayValid_border,
+            snap_overlayValid_opacity: elements.snap_overlayValid_opacity,
+            tab_overlayValid_background: elements.tab_overlayValid_background,
+            tab_overlayValid_border: elements.tab_overlayValid_border,
+            tab_overlayValid_opacity: elements.tab_overlayValid_opacity
         };
         this._manifestInputs = {
             id: elements.inputID,
@@ -157,11 +183,19 @@ export class WindowsUI {
         };
         elements.inputEditConfig.onclick = () => {
             this.selectRule(null);
+            document.getElementById('inputConfigHeader')!.classList.add('d-none');
             elements.inputConfigEditor.classList.remove('d-none');
+            elements.inputProgrammaticTab.classList.add('d-none');
+            elements.inputManifestOptions.classList.replace('d-block', 'd-none');
+            document.getElementById('inputLaunchType')!.classList.remove('card');
         };
         elements.inputSaveConfig.onclick = () => {
             this.updateConfig();
             elements.inputConfigEditor.classList.add('d-none');
+            document.getElementById('inputConfigHeader')!.classList.remove('d-none');
+            elements.inputProgrammaticTab.classList.remove('d-none');
+            elements.inputManifestOptions.classList.replace('d-none', 'd-block');
+            document.getElementById('inputLaunchType')!.classList.add('card');
         };
         elements.inputUseService.onchange = () => {
             const serviceEnabled = (this._elements.inputUseService.value === 'true');
@@ -271,7 +305,7 @@ export class WindowsUI {
             }
 
             // Update config JSON preview
-            const config: ConfigWithRules<ConfigurationObject>|null = this.getConfig();
+            const config: ConfigWithRules<ConfigurationObject> | null = this.getConfig();
             preview.innerText = config ? JSON.stringify(config, null, 4) : 'No Config';
         } else {
             preview.innerText = 'No service declaration, cannot specify config';
@@ -291,7 +325,7 @@ export class WindowsUI {
         }
     }
 
-    private parseConfigParam(param: ConfigScopeParam): string|RegEx {
+    private parseConfigParam(param: ConfigScopeParam): string | RegEx {
         if (typeof param === 'string') {
             return param;
         } else {
@@ -395,7 +429,7 @@ export class WindowsUI {
         this.selectRule(rule);
     }
 
-    private selectRule(selectedRule: ConfigRule|null, savePrevious = true): void {
+    private selectRule(selectedRule: ConfigRule | null, savePrevious = true): void {
         const elements = this._elements;
 
         elements.configEditorApp.classList.toggle('active', !selectedRule);
@@ -404,7 +438,7 @@ export class WindowsUI {
         });
 
         // Update selection (save previous rule, if necessary)
-        const prevSelection: ConfigRule|null = this._selectedRule;
+        const prevSelection: ConfigRule | null = this._selectedRule;
         if (savePrevious && (!prevSelection || this._rules.includes(prevSelection))) {
             this.updateConfig();
         }
@@ -475,6 +509,31 @@ export class WindowsUI {
 
                     break;
                 }
+
+                case 'snap_overlayInvalid_background':
+                case 'snap_overlayInvalid_border':
+                case 'snap_overlayInvalid_opacity':
+                case 'tab_overlayInvalid_background':
+                case 'tab_overlayInvalid_border':
+                case 'tab_overlayInvalid_opacity':
+                case 'snap_overlayValid_background':
+                case 'snap_overlayValid_border':
+                case 'snap_overlayValid_opacity':
+                case 'tab_overlayValid_background':
+                case 'tab_overlayValid_border':
+                case 'tab_overlayValid_opacity': {
+                    const parts = param.split('_');
+                    const previewType = parts[0] as 'snap' | 'tab';
+                    const previewProp = parts[1] as 'overlayValid' | 'overlayInvalid';
+                    const overlayProp = parts[2] as 'background' | 'opacity' | 'border';
+
+                    config.preview = config.preview || {};
+                    config.preview[previewType] = config.preview[previewType] || {};
+                    config.preview[previewType]![previewProp] = config.preview[previewType]![previewProp] || {};
+                    config!.preview![previewType]![previewProp]![overlayProp]! = data![param]!;
+                    break;
+                }
+
                 default:
                     console.warn('Unknown param:', param);
             }
@@ -488,7 +547,7 @@ export class WindowsUI {
         return config;
     }
 
-    private getConfig(): ConfigWithRules<ConfigurationObject>|null {
+    private getConfig(): ConfigWithRules<ConfigurationObject> | null {
         const config: ConfigWithRules<ConfigurationObject> = this.getRuleConfig(this._defaultConfig);
         const rules: ScopedConfig<ConfigurationObject>[] =
             this._rules.map(rule => ({scope: this.parseScope(rule.scope), config: this.getRuleConfig(rule.config)}))
@@ -505,10 +564,10 @@ export class WindowsUI {
         const keys = Object.keys(inputs) as (keyof T)[];
 
         return keys.reduce((data: T, key: keyof T) => {
-            const input: HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement|undefined = inputs[key];
+            const input: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | undefined = inputs[key];
 
             if (input && !input.disabled) {
-                let value: string|boolean|{} = input.type === 'checkbox' ? (input as HTMLInputElement).checked : input.value;
+                let value: string | boolean | {} = input.type === 'checkbox' ? (input as HTMLInputElement).checked : input.value;
 
                 // Special handling of certain elements
                 if (input === elements.inputURL || input === elements.configTabstripUrl) {
@@ -537,7 +596,7 @@ export class WindowsUI {
                 }
 
                 // Parse value
-                if (value !== undefined && value !== 'default') {
+                if (value !== undefined && value !== 'default' && value !== '') {
                     if (typeof value === 'boolean' || typeof value === 'object') {
                         (data[key] as unknown) = value;
                     } else if (value === 'true' || value === 'false') {

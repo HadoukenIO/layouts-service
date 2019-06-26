@@ -12,20 +12,14 @@ import {assertNotGrouped} from './utils/assertions';
 import {createChildApp, createChildWindow} from './utils/createChildWindow';
 import {delay} from './utils/delay';
 import {dragSideToSide} from './utils/dragWindowTo';
+import {getWindowConfig} from './utils/getWindowConfig';
 
 let app: Application;
-
+let x: ProviderWindow;
 // Each test must have a unique app UUID, as otherwise calls to getManifest within the provider can return the manifest of a previous test run.
 let counter = 0;
 function createUuid(): string {
     return `test-app-config-${++counter}`;
-}
-
-async function getWindowConfig(identity: Identity): Promise<ConfigurationObject> {
-    return executeJavascriptOnService(function(this: ProviderWindow, identity: Identity): ConfigurationObject {
-        const scope: Scope = {level: 'window', uuid: identity.uuid, name: identity.name || identity.uuid};
-        return this.config.query(scope);
-    }, identity);
 }
 
 afterEach(teardown);

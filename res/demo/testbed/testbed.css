@@ -8,9 +8,11 @@ body {
     white-space: nowrap;
     text-overflow: ellipsis;
 }
+
 body.framed #title, body.tabbed #title {
     display: none;
 }
+
 body.framed #container, body.tabbed #container {
     padding-top: 16px;
 }
@@ -25,11 +27,12 @@ body.framed #container, body.tabbed #container {
     display: flex;
     flex-direction: column;
 }
+
 .container-fluid.border {
     border: solid white 2px !important;
 }
 
-.container-fluid > div:last-child {
+.container-fluid>div:last-child {
     position: relative;
     flex-grow: 1;
     min-height: 200px;
@@ -52,12 +55,15 @@ body.framed #container, body.tabbed #container {
     right: 20px;
     bottom: 20px;
 }
+
 #eventList li {
     display: block;
 }
+
 #eventList pre {
     margin: 0;
 }
+
 i.fa-chevron-right, i.fa-bolt {
     font-size: small;
 }
@@ -65,19 +71,24 @@ i.fa-chevron-right, i.fa-bolt {
 .modal .form-control-sm {
     width: 100%;
 }
+
 .modal textarea {
     min-height: 150px;
     font-family: monospace;
 }
+
 .modal label {
     max-width: 150px;
 }
+
 .modal input.pattern {
     color: #e83e8c;
 }
+
 .modal.modal-application .modal-application, .modal.modal-window .modal-window {
     display: inherit;
 }
+
 .modal.modal-application .modal-window, .modal.modal-window .modal-application {
     display: none;
 }
@@ -85,16 +96,13 @@ i.fa-chevron-right, i.fa-bolt {
 #inputLaunchType {
     position: relative;
 }
-#inputConfigEditor {
-    position: absolute;
-    left: 0;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    background-color: white;
+
+#inputConfigEditor .row {
+    padding: 5px 0;
 }
 
 /* When switching to 'xs' width, make title bar more compact */
+
 @media (max-width: 576px) {
     #title {
         padding: 2px 12px;
@@ -112,6 +120,7 @@ i.fa-chevron-right, i.fa-bolt {
 }
 
 /* When both width and height are constrained, only show '.small' cards */
+
 @media (max-width: 576px) and (max-height: 400px) {
     .card.themed {
         display: none !important;
@@ -141,11 +150,13 @@ i.fa-chevron-right, i.fa-bolt {
 }
 
 /* When shrinking to very small heights, also hide subtitle text */
+
 @media (max-width: 576px) and (max-height: 175px) {
     .card-subtitle {
         display: none;
     }
 }
+
 @media (max-height: 175px) {
     body.locked .card-subtitle {
         display: none;
@@ -153,20 +164,24 @@ i.fa-chevron-right, i.fa-bolt {
 }
 
 /* Add the 'locked' class to the body tag to "force" small-window mode. Locks window to just the default section */
+
 body.locked .card-deck {
     border-radius: 0 !important;
     margin-left: -16px !important;
     margin-right: -16px !important;
 }
+
 body.locked #title {
     padding: 2px 12px;
     margin: 0 -16px !important;
     border-radius: 0;
 }
+
 body.locked .card {
     display: none !important;
     border-radius: 0 !important;
 }
+
 body.locked .card.small {
     display: block !important;
     position: fixed;
@@ -179,15 +194,18 @@ body.locked .card.small {
     max-width: initial;
     margin: 0;
 }
+
 body.locked .border .card.small {
     left: 2px;
     right: 2px;
     bottom: 2px;
     top: 32px;
 }
+
 body.locked.tabbed .card.small, body.locked.framed .card.small {
     top: 0;
 }
+
 body.locked.tabbed .border .card.small, body.locked.framed .border .card.small {
     top: 2px;
 }

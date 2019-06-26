@@ -1,29 +1,74 @@
+import deepEqual from 'fast-deep-equal';
+
+import {Preview as PreviewProps, Scope, Overlay} from '../../gen/provider/config/layouts-config';
+
 import {SnapTarget} from './snapanddock/Resolver';
 import {Rectangle} from './snapanddock/utils/RectUtils';
 import {TabTarget} from './tabbing/TabService';
-import {eTargetType, Target} from './WindowHandler';
+import {eTargetType} from './WindowHandler';
+import {ConfigStore} from './main';
+import {Mask} from './config/ConfigUtil';
+import {DesktopSnapGroup} from './model/DesktopSnapGroup';
+import {eTransformType} from './model/DesktopWindow';
 
-const SUCCESS_PREVIEW_BACKGROUND_CSS = '#3D4059';
-const FAILURE_PREVIEW_BACKGROUND_CSS = 'repeating-linear-gradient(45deg, #3D4059, #3D4059 .25em, #C24629 0, #C24629 .5em)';
+export type PreviewableTarget = SnapTarget | TabTarget;
 
-export type PreviewableTarget = SnapTarget|TabTarget;
+export type PreviewType = keyof PreviewProps;
 
+export enum OverlayValidKey {
+    VALID = 'overlayValid',
+    INVALID = 'overlayInvalid'
+}
+
+export type PreviewMap<T> = {
+    readonly [K in PreviewType]: ValidRecords<T>;
+}
+
+export type ValidRecords<T> = {
+    [V in OverlayValidKey]: T;
+};
+
+type PreviewWindowData = {previewWindow: fin.OpenFinWindow, opacity: number};
 /**
  * Visual indicator of the current snap target.
  *
- * Will create colored rectangles based on the given group. Rectangle color will be set according to snap validity.
+ * Will create customizable preview rectangles based on the layout action type (snap|tab).
+ * Rectangle styling will be set according to action validity (valid|invalid).
  */
 export class Preview {
-    private _activeWindowPreview: fin.OpenFinWindow|null;
+    private _activeWindowPreview: fin.OpenFinWindow | null;
+    private _previewWindows!: PreviewMap<PreviewWindowData>;
+    private _config: ConfigStore;
+    private _lastScope!: Scope;
 
-    private _successPreviewWindow: fin.OpenFinWindow;
-    private _failurePreviewWindow: fin.OpenFinWindow;
-
-    constructor() {
+    constructor(config: ConfigStore) {
         this._activeWindowPreview = null;
+        this._config = config;
+        this._previewWindows = {
+            tab: {
+                overlayValid: {
+                    previewWindow: this.createWindow(`preview-tab-${OverlayValidKey.VALID}`),
+                    opacity: 0
+                },
+                overlayInvalid: {
+                    previewWindow: this.createWindow(`preview-tab-${OverlayValidKey.INVALID}`),
+                    opacity: 0
+                }
+            },
+            snap: {
+                overlayValid: {
+                    previewWindow: this.createWindow(`preview-snap-${OverlayValidKey.VALID}`),
+                    opacity: 0
+                },
+                overlayInvalid: {
+                    previewWindow: this.createWindow(`preview-snap-${OverlayValidKey.INVALID}`),
+                    opacity: 0
+                }
+            }
+        };
 
-        this._successPreviewWindow = this.createWindow('successPreview', SUCCESS_PREVIEW_BACKGROUND_CSS);
-        this._failurePreviewWindow = this.createWindow('failurePreview', FAILURE_PREVIEW_BACKGROUND_CSS);
+        DesktopSnapGroup.onCreated.add(this.onCreated, this);
+        DesktopSnapGroup.onDestroyed.remove(this.onCreated, this);
     }
 
     /**
@@ -31,18 +76,20 @@ export class Preview {
      *
      * The 'isValid' parameter determines the color of the rectangles, indicating if releasing the window will
      * successfully join a snap/tab group
+     * @param target The preview target.
      */
     public show(target: PreviewableTarget): void {
-        const previewWindow = target.valid ? this._successPreviewWindow : this._failurePreviewWindow;
+        const valid: OverlayValidKey = target.valid ? OverlayValidKey.VALID : OverlayValidKey.INVALID;
+        const previewType = target.type.toLowerCase() as PreviewType;
+        const {previewWindow, opacity} = this._previewWindows[previewType][valid];
 
+        // Incase the window was not transformed and preloading didn't occur
+        this.preload(target.activeWindow.scope);
         this.positionPreview(previewWindow, target);
+        previewWindow.updateOptions({opacity});
 
         if (previewWindow !== this._activeWindowPreview) {
-            if (this._activeWindowPreview !== null) {
-                this._activeWindowPreview.hide();
-            }
-
-            previewWindow.show();
+            this.hide();
             this._activeWindowPreview = previewWindow;
         }
     }
@@ -51,34 +98,80 @@ export class Preview {
      * Hides the currently visible preview window
      */
     public hide(): void {
+        // Opacity is used to hide the window instead of window.hide()
+        // as it allows the window to be repainted.
         if (this._activeWindowPreview !== null) {
-            this._activeWindowPreview.hide();
+            this._activeWindowPreview.updateOptions({opacity: 0});
             this._activeWindowPreview = null;
         }
     }
 
-    private createWindow(name: string, backgroundCssString: string): fin.OpenFinWindow {
+    private onCreated(group: DesktopSnapGroup): void {
+        group.onTransform.add(this.onTransform, this);
+    }
+
+    private onTransform(activeGroup: DesktopSnapGroup, type: Mask<eTransformType>): void {
+        const target = activeGroup.windows[0];
+        const scope: Scope = target.tabGroup ? target.tabGroup.activeTab.scope : target.scope;
+        this.preload(scope);
+    }
+
+    /**
+     * Load the CSS styles onto the preview windows and cache the opacity.
+     * @param scope Window scope to get the overlay styles.
+     */
+    private preload(scope: Scope): void {
+        if (deepEqual(this._lastScope, scope)) {
+            return;
+        }
+        const query = this._config.query(scope).preview;
+
+        for (const key in query) {
+            const previewKey = key as PreviewType;
+            const config = query[previewKey];
+            const {overlayValid, overlayInvalid} = this._previewWindows[previewKey];
+
+            overlayValid.opacity = config.overlayValid.opacity;
+            this.applyStyle(overlayValid.previewWindow, config.overlayValid);
+
+            overlayInvalid.opacity = config.overlayInvalid.opacity;
+            this.applyStyle(overlayInvalid.previewWindow, config.overlayInvalid);
+        }
+        this._lastScope = scope;
+    }
+
+    /**
+     * Apply Overlay style to the given window.
+     * @param window Window to apply style to.
+     * @param style Overlay style.
+     */
+    private applyStyle(window: fin.OpenFinWindow, style: Required<Overlay>) {
+        const {document} = window.getNativeWindow();
+        document.body.style.background = style.background;
+        document.body.style.border = style.border;
+    }
+
+    private createWindow(name: string): fin.OpenFinWindow {
         const defaultHalfSize = {x: 160, y: 160};
         const options: fin.WindowOptions = {
             name,
             url: 'about:blank',
             defaultWidth: defaultHalfSize.x * 2,
             defaultHeight: defaultHalfSize.y * 2,
-            opacity: 0.8,
+            opacity: 0,
             minimizable: false,
             maximizable: false,
-            defaultTop: -1000,
-            defaultLeft: -1000,
+            defaultTop: -10000,
+            defaultLeft: -10000,
             showTaskbarIcon: false,
             frame: false,
             state: 'normal',
-            autoShow: false,
+            autoShow: true,
             alwaysOnTop: true
         };
 
         const window = new fin.desktop.Window(options, () => {
-            const nativeWindow = window.getNativeWindow();
-            nativeWindow.document.body.style.background = backgroundCssString;
+            window.show();
         });
 
         return window;

@@ -62,7 +62,7 @@ async function closeAllWindows(): Promise<void> {
             // Main window persists, but close any child windows
             return name !== uuid;
         } else if (uuid === 'layouts-service') {
-            if (name === uuid || name === 'successPreview' || name === 'failurePreview') {
+            if (name === uuid || name!.startsWith('preview-')) {
                 // Main window and preview windows persist
                 return false;
             } else if (name!.startsWith('TABSET-')) {
@@ -114,7 +114,7 @@ async function resetProviderState(): Promise<void> {
             this.model['_snapGroups'].length = 0;
         }
         if (tabGroups.length > 0) {
-            const groupInfo = tabGroups.map((t, i) => `${i+1}: ${t.id} (${t.tabs.map(w => w.id).join(SEPARATOR_LIST)})`).join(SEPARATOR_LINE);
+            const groupInfo = tabGroups.map((t, i) => `${i + 1}: ${t.id} (${t.tabs.map(w => w.id).join(SEPARATOR_LIST)})`).join(SEPARATOR_LINE);
 
             msgs.push(`Provider still had ${tabGroups.length} tabGroups registered:${SEPARATOR_LINE}${groupInfo}`);
             this.model['_tabGroups'].length = 0;

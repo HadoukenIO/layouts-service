@@ -1,10 +1,9 @@
 import {Application, Fin, Identity} from 'hadouken-js-adapter';
 import * as assert from 'power-assert';
 
-import {ConfigurationObject, Scope} from '../../gen/provider/config/layouts-config';
+import {ConfigurationObject} from '../../gen/provider/config/layouts-config';
 import {ConfigWithRules} from '../../src/provider/config/Store';
 import {fin} from '../demo/utils/fin';
-import {executeJavascriptOnService} from '../demo/utils/serviceUtils';
 import {isWindowRegistered} from '../demo/utils/snapServiceUtils';
 import {teardown} from '../teardown';
 
@@ -15,7 +14,6 @@ import {dragSideToSide} from './utils/dragWindowTo';
 import {getWindowConfig} from './utils/getWindowConfig';
 
 let app: Application;
-let x: ProviderWindow;
 // Each test must have a unique app UUID, as otherwise calls to getManifest within the provider can return the manifest of a previous test run.
 let counter = 0;
 function createUuid(): string {

@@ -1,6 +1,6 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import {PreviewConfig, ConfigurationObject, Preview} from '../../../gen/provider/config/layouts-config';
+import {ConfigurationObject, Preview} from '../../../gen/provider/config/layouts-config';
 import {createApp} from '../../../src/demo/spawn';
 let counter = 0;
 

@@ -37,8 +37,8 @@ type PreviewWindowData = {previewWindow: fin.OpenFinWindow, opacity: number};
  */
 export class Preview {
     private _activeWindowPreview: fin.OpenFinWindow | null;
-    private _previewWindows!: PreviewMap<PreviewWindowData>;
-    private _config: ConfigStore;
+    private readonly _previewWindows!: PreviewMap<PreviewWindowData>;
+    private readonly _config: ConfigStore;
     private _lastScope!: Scope;
 
     constructor(config: ConfigStore) {
@@ -177,7 +177,7 @@ export class Preview {
         return window;
     }
 
-    private positionPreview(previewWindow: fin.OpenFinWindow, target: PreviewableTarget): void{
+    private positionPreview(previewWindow: fin.OpenFinWindow, target: PreviewableTarget): void {
         const previewRect = this.generatePreviewRect(target);
 
         previewWindow.setBounds(

@@ -107,7 +107,7 @@ export async function isPreviewShowing(win: _Window): Promise<boolean> {
  * Convert a CSS string to how Chrome represents it.
  * @param rule
  */
-export async function convertCSS(rule: CSSRule): Promise<string | null> {
+export async function normalizeCSS(rule: CSSRule): Promise<string | null> {
     type CSSRule = [keyof CSSStyleDeclaration, string];
 
     function getString(this: ProviderWindow, declaration: CSSRule): string | null {

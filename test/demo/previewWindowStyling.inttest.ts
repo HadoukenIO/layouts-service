@@ -10,7 +10,7 @@ import {RequiredRecursive} from '../../src/provider/config/ConfigUtil';
 import {tabWindowsTogether} from '../provider/utils/tabWindowsTogether';
 
 import {createWindowsWithConfig} from './utils/createWindowsWithConfig';
-import {getPreviewWindows, getAllPreviewWindowsStyles, PreviewMap, PreviewType, isPreviewShowing, testPreviewMap, OverlayValidKey, compareOverlays, convertCSS} from './utils/previewWindowUtils';
+import {getPreviewWindows, getAllPreviewWindowsStyles, PreviewMap, PreviewType, isPreviewShowing, testPreviewMap, OverlayValidKey, compareOverlays,normalizeCSSS} from './utils/previewWindowUtils';
 import {getTabstrip} from './utils/tabServiceUtils';
 
 let defaultConfig: RequiredRecursive<ConfigurationObject>;
@@ -57,17 +57,17 @@ beforeAll(async () => {
      * For example hex values get converted to rgb.
      * `#333 no-repeat` -> `no-repeat rgb(51, 51, 51)`
      * A window is used to get the converted CSS rule to test against preview windows. */
-    defaultConfig.preview.tab.overlayValid.background = await convertCSS(['background', defaultConfig.preview.tab.overlayValid.background]) || '';
-    defaultConfig.preview.tab.overlayValid.border = await convertCSS(['border', defaultConfig.preview.tab.overlayValid.border]) || '';
+    defaultConfig.preview.tab.overlayValid.background = await normalizeCSS(['background', defaultConfig.preview.tab.overlayValid.background]) || '';
+    defaultConfig.preview.tab.overlayValid.border = await normalizeCSS(['border', defaultConfig.preview.tab.overlayValid.border]) || '';
 
-    defaultConfig.preview.tab.overlayInvalid.background = await convertCSS(['background', defaultConfig.preview.tab.overlayInvalid.background]) || '';
-    defaultConfig.preview.tab.overlayInvalid.border = await convertCSS(['border', defaultConfig.preview.tab.overlayInvalid.border]) || '';
+    defaultConfig.preview.tab.overlayInvalid.background = await normalizeCSS(['background', defaultConfig.preview.tab.overlayInvalid.background]) || '';
+    defaultConfig.preview.tab.overlayInvalid.border = await normalizeCSS(['border', defaultConfig.preview.tab.overlayInvalid.border]) || '';
 
-    defaultConfig.preview.snap.overlayValid.background = await convertCSS(['background', defaultConfig.preview.snap.overlayValid.background]) || '';
-    defaultConfig.preview.snap.overlayValid.border = await convertCSS(['border', defaultConfig.preview.snap.overlayValid.border]) || '';
+    defaultConfig.preview.snap.overlayValid.background = await normalizeCSS(['background', defaultConfig.preview.snap.overlayValid.background]) || '';
+    defaultConfig.preview.snap.overlayValid.border = await normalizeCSS(['border', defaultConfig.preview.snap.overlayValid.border]) || '';
 
-    defaultConfig.preview.snap.overlayInvalid.background = await convertCSS(['background', defaultConfig.preview.snap.overlayInvalid.background]) || '';
-    defaultConfig.preview.snap.overlayInvalid.border = await convertCSS(['border', defaultConfig.preview.snap.overlayInvalid.border]) || '';
+    defaultConfig.preview.snap.overlayInvalid.background = await normalizeCSS(['background', defaultConfig.preview.snap.overlayInvalid.background]) || '';
+    defaultConfig.preview.snap.overlayInvalid.border = await normalizeCSS(['border', defaultConfig.preview.snap.overlayInvalid.border]) || '';
 });
 
 beforeEach(async () => {

@@ -8,15 +8,16 @@ import {dragWindowAndHover} from '../provider/utils/dragWindowAndHover';
 import {getWindowConfig} from '../provider/utils/getWindowConfig';
 import {RequiredRecursive} from '../../src/provider/config/ConfigUtil';
 import {tabWindowsTogether} from '../provider/utils/tabWindowsTogether';
+import {PreviewMap, PreviewType, forEachPreviewMap, Validity} from '../../src/provider/preview/PreviewMap';
 
 import {createWindowsWithConfig} from './utils/createWindowsWithConfig';
-import {getPreviewWindows, getAllPreviewWindowsStyles, PreviewMap, PreviewType, isPreviewShowing, testPreviewMap, OverlayValidKey, compareOverlays,normalizeCSSS} from './utils/previewWindowUtils';
+import {getPreviewWindows, getAllPreviewWindowsStyles, isPreviewShowing, compareOverlays, normalizeCSS} from './utils/previewWindowUtils';
 import {getTabstrip} from './utils/tabServiceUtils';
 
 let defaultConfig: RequiredRecursive<ConfigurationObject>;
 let windows: _Window[] = [];
 let previewWindows: PreviewMap<_Window>;
-let previewWindowsStyles: PreviewMap<Overlay>;
+let previewWindowsStyles: PreviewMap<Promise<Overlay>>;
 
 // Do not use Hex values as they will be converted to rgb and tests will fail.
 const window1Style: RequiredRecursive<Preview> = {
@@ -85,13 +86,13 @@ afterEach(async () => {
 
 describe('When starting up the service', () => {
     it('There should be preview windows created for all possible previews types', async () => {
-        await testPreviewMap(previewWindows, (win: _Window) => {
+        await forEachPreviewMap(previewWindows, (win: _Window) => {
             expect(win).toBeDefined();
         });
     });
 
     it('All preview windows should be hidden', async () => {
-        await testPreviewMap(previewWindows, async (win: _Window) => {
+        await forEachPreviewMap(previewWindows, async (win: _Window) => {
             const isShowing = await isPreviewShowing(win);
             expect(isShowing).toEqual(false);
         });
@@ -103,16 +104,15 @@ describe('When transforming a window', () => {
         windows = await createWindowsWithConfig(...configs);
         const bounds = await windows[1].getBounds();
         await dragWindowAndHover(windows[1], bounds.right! + 300, bounds.top);
-        await delay(100);
     }
 
     beforeEach(async () => {
         await init(window1Style, window2Style);
-        previewWindowsStyles = await getAllPreviewWindowsStyles();
+        previewWindowsStyles = getAllPreviewWindowsStyles();
     });
 
     it('All preview windows should be hidden', async () => {
-        await testPreviewMap(previewWindows, async (win: _Window) => {
+        await forEachPreviewMap(previewWindows, async (win: _Window) => {
             const isShowing = await isPreviewShowing(win);
             expect(isShowing).toEqual(false);
         });
@@ -120,8 +120,8 @@ describe('When transforming a window', () => {
 
     it('All preview windows should preload their styles from the active window config', async () => {
         const expectedStyle = window2Style;
-        await testPreviewMap(previewWindowsStyles, async (style: Overlay, previewType: PreviewType, valid: OverlayValidKey) => {
-            const compare = await compareOverlays(style, expectedStyle[previewType][valid], true);
+        await forEachPreviewMap(previewWindowsStyles, async (style: Promise<Overlay>, previewType: PreviewType, valid: Validity) => {
+            const compare = await compareOverlays(await style, expectedStyle[previewType][valid], true);
             expect(compare).toEqual(true);
         });
     });
@@ -131,8 +131,8 @@ describe('When transforming a window', () => {
         await dragWindowAndHover(activeWindow, 100, 100);
         const expectedStyle = window2Style;
 
-        await testPreviewMap(previewWindowsStyles, async (style: Overlay, previewType: PreviewType, valid: OverlayValidKey) => {
-            const compare = await compareOverlays(style, expectedStyle[previewType][valid], true);
+        await forEachPreviewMap(previewWindowsStyles, async (style: Promise<Overlay>, previewType: PreviewType, valid: Validity) => {
+            const compare = await compareOverlays(await style, expectedStyle[previewType][valid], true);
             expect(compare).toEqual(true);
         });
     });
@@ -154,7 +154,7 @@ describe('When windows are about to be tabbed together', () => {
 
         it('The default valid preview style is shown', async () => {
             const isShowing = await isPreviewShowing(previewWindows.tab.overlayValid);
-            const overlayComparison = await compareOverlays(previewWindowsStyles.tab.overlayValid, defaultConfig.preview.tab.overlayValid);
+            const overlayComparison = await compareOverlays(await previewWindowsStyles.tab.overlayValid, defaultConfig.preview.tab.overlayValid);
             expect(overlayComparison).toBe(true);
             expect(isShowing).toBe(true);
         });
@@ -170,11 +170,11 @@ describe('When windows are about to be tabbed together', () => {
             const activeIndex = 0;
             const expectedStyle = windowStyles[activeIndex].tab.overlayValid;
 
-            await testPreviewMap(previewWindowsStyles, async (style: Overlay, previewType: PreviewType, valid: OverlayValidKey) => {
+            await forEachPreviewMap(previewWindowsStyles, async (style: Promise<Overlay>, previewType: PreviewType, valid: Validity) => {
                 const isShowing = await isPreviewShowing(previewWindows[previewType][valid]);
 
-                if (previewType === 'tab' && valid === OverlayValidKey.VALID) {
-                    const overlayComparison = await compareOverlays(style, expectedStyle);
+                if (previewType === 'tab' && valid === Validity.VALID) {
+                    const overlayComparison = await compareOverlays(await style, expectedStyle);
                     expect(isShowing).toEqual(true);
                     expect(overlayComparison).toEqual(true);
                 } else {
@@ -202,7 +202,8 @@ describe('When snapping two windows together', () => {
 
         it('The default valid preview style is shown', async () => {
             const isShowing = await isPreviewShowing(previewWindows.snap.overlayValid);
-            const overlayComparison = await compareOverlays(previewWindowsStyles.snap.overlayValid, defaultConfig.preview.snap.overlayValid);
+            const style = await previewWindowsStyles.snap.overlayValid;
+            const overlayComparison = await compareOverlays(style, defaultConfig.preview.snap.overlayValid);
             expect(overlayComparison).toBe(true);
             expect(isShowing).toBe(true);
         });
@@ -214,15 +215,16 @@ describe('When snapping two windows together', () => {
             previewWindowsStyles = await getAllPreviewWindowsStyles();
         });
 
-        it('The active window valid snap style is shown', async () => {
+        it.only('The active window valid snap style is shown', async () => {
             const activeIndex = 0;
             const expectedStyle = windowStyles[activeIndex].snap.overlayValid;
 
-            await testPreviewMap(previewWindowsStyles, async (style: Overlay, previewType: PreviewType, valid: OverlayValidKey) => {
+            await forEachPreviewMap(previewWindowsStyles, async (style: Promise<Overlay>, previewType: PreviewType, valid: Validity) => {
                 const isShowing = await isPreviewShowing(previewWindows[previewType][valid]);
-
-                if (previewType === 'snap' && valid === OverlayValidKey.VALID) {
-                    const overlayComparison = await compareOverlays(style, expectedStyle);
+                const {opacity} = await previewWindows[previewType][valid].getOptions();
+                
+                if (previewType === 'snap' && valid === Validity.VALID) {
+                    const overlayComparison = await compareOverlays(await style, expectedStyle);
                     expect(isShowing).toEqual(true);
                     expect(overlayComparison).toEqual(true);
                 } else {
@@ -254,11 +256,11 @@ describe('When tabbing & snapping', () => {
             const activeIndex = 0;
             const expectedStyle = windowStyles[activeIndex].snap.overlayValid;
 
-            await testPreviewMap(previewWindowsStyles, async (style: Overlay, previewType: PreviewType, valid: OverlayValidKey) => {
+            await forEachPreviewMap(previewWindowsStyles, async (style: Promise<Overlay>, previewType: PreviewType, valid: Validity) => {
                 const isShowing = await isPreviewShowing(previewWindows[previewType][valid]);
 
-                if (previewType === 'snap' && valid === OverlayValidKey.VALID) {
-                    const overlayComparison = await compareOverlays(style, expectedStyle);
+                if (previewType === 'snap' && valid === Validity.VALID) {
+                    const overlayComparison = await compareOverlays(await style, expectedStyle);
                     expect(isShowing).toEqual(true);
                     expect(overlayComparison).toEqual(true);
                 } else {

@@ -4,7 +4,8 @@ import * as robot from 'robotjs';
 
 import {fin} from '../demo/utils/fin';
 import {teardown} from '../teardown';
-import {isPreviewShowing, OverlayValidKey} from '../demo/utils/previewWindowUtils';
+import {isPreviewShowing} from '../demo/utils/previewWindowUtils';
+import {PreviewType, Validity} from '../../src/provider/preview/PreviewMap';
 
 import {createChildWindow} from './utils/createChildWindow';
 import {dragWindowAndHover} from './utils/dragWindowAndHover';
@@ -210,7 +211,7 @@ it('When dragging a de-registered-on-trigger window to a registered window, wind
 
 it('When dragging a registered window to a de-registered window, no snap preview window is shown', async () => {
     // Wrap the pre-spawned preview window
-    const previewWin = await getWindow({name: `preview-snap-${OverlayValidKey.VALID}`, uuid: 'layouts-service'});
+    const previewWin = await getWindow({name: `preview-${PreviewType.SNAP}-${Validity.VALID}`, uuid: 'layouts-service'});
 
     // Spawn two child windows (one of them deregistered)
     win1 = await createChildWindow({
@@ -248,7 +249,7 @@ it('When dragging a registered window to a de-registered window, no snap preview
 
 it('When dragging a de-registered window to a registered window, no snap preview window is shown', async () => {
     // Wrap the pre-spawned preview window
-    const previewWin = await getWindow({name: `preview-snap-${OverlayValidKey.VALID}`, uuid: 'layouts-service'});
+    const previewWin = await getWindow({name: `preview-${PreviewType.SNAP}-${Validity.VALID}`, uuid: 'layouts-service'});
 
     // Spawn two child windows (one of them deregistered)
     win1 = await createChildWindow({

@@ -29,7 +29,8 @@ export async function createWindowsWithConfig(type: 'snap'|'tab', ...configs: (P
             // All app uuid's must be unique, due to apparent manifest caching behaviour
             id: `window-${type}-${index}:${counter++}`,
             position: {x: 200 + (index * 350), y: 150},
-            config
+            config,
+            provider: 'testing'
         });
 
         return app.getWindow();

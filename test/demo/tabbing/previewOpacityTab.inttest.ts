@@ -50,7 +50,7 @@ describe('When two windows are about to be tabbed together', () => {
 
     describe('And windows are using the default configuration', () => {
         beforeEach(async () => {
-            await init(0, undefined, undefined);
+            await init(1, undefined, undefined);
         });
 
         it('Windows are reduced to 80% capacity', async () => {

@@ -23,8 +23,6 @@ export type ValidRecords<T> = {
     [V in OverlayValidKey]: T;
 };
 
-const previewTypes: PreviewType[] = ['tab', 'snap'];
-
 type TestMapFunction<T> = (win: T, previewType: PreviewType, valid: OverlayValidKey, ...params: any[]) => void;
 
 export async function testPreviewMap<T>(
@@ -41,15 +39,16 @@ export async function testPreviewMap<T>(
 }
 
 export function getPreviewWindows(): PreviewMap<_Window> {
-    return previewTypes.reduce((acc, previewType) => {
-        return {
-            ...acc,
-            [previewType]: {
-                overlayValid: fin.Window.wrapSync({...SERVICE_IDENTITY, name: `preview-${previewType}-${OverlayValidKey.VALID}`}),
-                overlayInvalid: fin.Window.wrapSync({...SERVICE_IDENTITY, name: `preview-${previewType}-${OverlayValidKey.INVALID}`})
-            }
-        };
-    }, {}) as PreviewMap<_Window>;
+    return {
+        snap: {
+            overlayValid: fin.Window.wrapSync({...SERVICE_IDENTITY, name: `preview-snap-${OverlayValidKey.VALID}`}),
+            overlayInvalid: fin.Window.wrapSync({...SERVICE_IDENTITY, name: `preview-snap-${OverlayValidKey.INVALID}`})
+        },
+        tab: {
+            overlayValid: fin.Window.wrapSync({...SERVICE_IDENTITY, name: `preview-tab-${OverlayValidKey.VALID}`}),
+            overlayInvalid: fin.Window.wrapSync({...SERVICE_IDENTITY, name: `preview-tab-${OverlayValidKey.INVALID}`})
+        }
+    };
 }
 
 export async function getAllPreviewWindowsStyles(): Promise<PreviewMap<Overlay>> {

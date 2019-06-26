@@ -233,7 +233,7 @@ describe('When snapping two windows together', () => {
     });
 });
 
-describe('And windows are using custom configurations', () => {
+describe('When tabbing & snapping', () => {
     async function init(activeIndex: number, ...configs: (Preview | undefined)[]) {
         windows = await createWindowsWithConfig(...configs);
         const targetIndex = (activeIndex + 1) % 2;

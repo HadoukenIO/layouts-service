@@ -94,7 +94,7 @@ export function compareOverlays(a: Overlay, b: Overlay, ignoreOpacity: boolean =
  * Currently opacity is used hide/show windows. `0 > = true`.
  * @param win Window to check visibility.
  */
-export async function isWindowShowing(win: _Window): Promise<boolean> {
+export async function isPreviewShowing(win: _Window): Promise<boolean> {
     const {opacity} = await win.getOptions();
     if (opacity > 0) {
         return true;

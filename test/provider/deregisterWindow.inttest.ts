@@ -4,7 +4,7 @@ import * as robot from 'robotjs';
 
 import {fin} from '../demo/utils/fin';
 import {teardown} from '../teardown';
-import {isWindowShowing, OverlayValidKey} from '../demo/utils/previewWindowUtils';
+import {isPreviewShowing, OverlayValidKey} from '../demo/utils/previewWindowUtils';
 
 import {createChildWindow} from './utils/createChildWindow';
 import {dragWindowAndHover} from './utils/dragWindowAndHover';
@@ -240,7 +240,7 @@ it('When dragging a registered window to a de-registered window, no snap preview
 
     // The preview window should still be hidden.
 
-    assert.strictEqual(await isWindowShowing(previewWin), false);
+    assert.strictEqual(await isPreviewShowing(previewWin), false);
 
     // Drop the window
     robot.mouseToggle('up');
@@ -277,7 +277,7 @@ it('When dragging a de-registered window to a registered window, no snap preview
     await dragWindowAndHover(win2, win1Bounds.right + 2, win1Bounds.top + 5);
 
     // The preview window should still be hidden.
-    assert.strictEqual(await isWindowShowing(previewWin), false);
+    assert.strictEqual(await isPreviewShowing(previewWin), false);
 
     // Drop the window
     robot.mouseToggle('up');

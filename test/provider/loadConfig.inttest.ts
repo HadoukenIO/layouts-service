@@ -1,4 +1,4 @@
-import {Application, Fin, Identity} from 'hadouken-js-adapter';
+import {Application} from 'hadouken-js-adapter';
 import * as assert from 'power-assert';
 
 import {ConfigurationObject} from '../../gen/provider/config/layouts-config';

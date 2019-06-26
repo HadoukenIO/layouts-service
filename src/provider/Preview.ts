@@ -13,18 +13,18 @@ import {eTransformType} from './model/DesktopWindow';
 
 export type PreviewableTarget = SnapTarget | TabTarget;
 
-export type PreviewType = keyof PreviewProps;
+type PreviewType = keyof PreviewProps;
 
-export enum OverlayValidKey {
+enum OverlayValidKey {
     VALID = 'overlayValid',
     INVALID = 'overlayInvalid'
 }
 
-export type PreviewMap<T> = {
+type PreviewMap<T> = {
     readonly [K in PreviewType]: ValidRecords<T>;
 }
 
-export type ValidRecords<T> = {
+type ValidRecords<T> = {
     [V in OverlayValidKey]: T;
 };
 

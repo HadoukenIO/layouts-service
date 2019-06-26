@@ -102,8 +102,6 @@ export async function isPreviewShowing(win: _Window): Promise<boolean> {
     return false;
 }
 
-export const CSS_CONVERTER_IDENTITY = {...SERVICE_IDENTITY, name: 'CSS-CONVERTER'};
-
 type CSSRule = [keyof CSSStyleDeclaration, string];
 
 /**

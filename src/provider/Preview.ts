@@ -145,7 +145,7 @@ export class Preview {
      * @param window Window to apply style to.
      * @param style Overlay style.
      */
-    private applyStyle(window: fin.OpenFinWindow, style: Required<Overlay>) {
+    private applyStyle(window: fin.OpenFinWindow, style: Required<Overlay>): void {
         const {document} = window.getNativeWindow();
         document.body.style.background = style.background;
         document.body.style.border = style.border;
@@ -177,7 +177,7 @@ export class Preview {
         return window;
     }
 
-    private positionPreview(previewWindow: fin.OpenFinWindow, target: PreviewableTarget) {
+    private positionPreview(previewWindow: fin.OpenFinWindow, target: PreviewableTarget): void{
         const previewRect = this.generatePreviewRect(target);
 
         previewWindow.setBounds(

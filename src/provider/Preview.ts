@@ -128,9 +128,7 @@ export class Preview {
             alwaysOnTop: true
         };
 
-        const window = new fin.desktop.Window(options, () => {
-            window.show();
-        });
+        const window = new fin.desktop.Window(options);
 
         return window;
     }

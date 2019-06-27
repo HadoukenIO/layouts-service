@@ -1,6 +1,6 @@
 import deepEqual from 'fast-deep-equal';
 
-import {Scope, Overlay} from '../../gen/provider/config/layouts-config';
+import {Scope} from '../../gen/provider/config/layouts-config';
 
 import {SnapTarget} from './snapanddock/Resolver';
 import {Rectangle} from './snapanddock/utils/RectUtils';
@@ -55,7 +55,7 @@ export class Preview {
         const {previewWindow, opacity} = this._previewWindows[previewType][valid];
 
         // Incase the window was not transformed and preloading didn't occur
-        this.preload(target.activeWindow.scope);
+        this.applyScopeStyles(target.activeWindow.scope);
         this.positionPreview(previewWindow, target);
         previewWindow.updateOptions({opacity});
 
@@ -84,38 +84,29 @@ export class Preview {
     private onTransform(activeGroup: DesktopSnapGroup, type: Mask<eTransformType>): void {
         const target = activeGroup.windows[0];
         const scope: Scope = target.tabGroup ? target.tabGroup.activeTab.scope : target.scope;
-        this.preload(scope);
+        this.applyScopeStyles(scope);
     }
 
     /**
      * Load the CSS styles onto the preview windows and cache the opacity.
      * @param scope Window scope to get the overlay styles.
      */
-    private preload(scope: Scope): void {
+    private applyScopeStyles(scope: Scope): void {
         if (deepEqual(this._lastScope, scope)) {
             return;
         }
         const query = this._config.query(scope).preview;
         forEachPreviewMap(this._previewWindows, (winData: PreviewWindowData, previewKey, validity) =>{
             const {previewWindow} = winData;
+            const {document} = previewWindow.getNativeWindow();
             const overlay = query[previewKey][validity];
 
             this._previewWindows[previewKey][validity].opacity = overlay.opacity;
-            this.applyStyle(previewWindow, overlay);
+            document.body.style.background = overlay.background;
+            document.body.style.border = overlay.border;
         });
 
         this._lastScope = scope;
-    }
-
-    /**
-     * Apply Overlay style to the given window.
-     * @param window Window to apply style to.
-     * @param style Overlay style.
-     */
-    private applyStyle(window: fin.OpenFinWindow, style: Required<Overlay>): void {
-        const {document} = window.getNativeWindow();
-        document.body.style.background = style.background;
-        document.body.style.border = style.border;
     }
 
     private createWindow(name: string): fin.OpenFinWindow {

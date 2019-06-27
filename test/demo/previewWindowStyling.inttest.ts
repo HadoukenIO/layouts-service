@@ -3,7 +3,6 @@ import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {ConfigurationObject, Overlay, Preview} from '../../gen/provider/config/layouts-config';
 import {teardown} from '../teardown';
-import {delay} from '../provider/utils/delay';
 import {dragWindowAndHover} from '../provider/utils/dragWindowAndHover';
 import {getWindowConfig} from '../provider/utils/getWindowConfig';
 import {RequiredRecursive} from '../../src/provider/config/ConfigUtil';
@@ -143,7 +142,6 @@ describe('When windows are about to be tabbed together', () => {
         windows = await createWindowsWithConfig(...configs);
         const targetIndex = (activeIndex + 1) % 2;
         await tabWindowsTogether(windows[targetIndex], windows[activeIndex], false, false);
-        await delay(100);
     }
 
     describe('And a window is using the default configuration', () => {
@@ -191,7 +189,6 @@ describe('When snapping two windows together', () => {
         const targetIndex = (activeIndex + 1) % 2;
         const bounds = await windows[targetIndex].getBounds();
         await dragWindowAndHover(windows[activeIndex], bounds.right! + 15, bounds.top);
-        await delay(100);
     }
 
     describe('And a window is using the default configuration', () => {
@@ -215,14 +212,11 @@ describe('When snapping two windows together', () => {
             previewWindowsStyles = await getAllPreviewWindowsStyles();
         });
 
-        it.only('The active window valid snap style is shown', async () => {
+        it('The active window valid snap style is shown', async () => {
             const activeIndex = 0;
             const expectedStyle = windowStyles[activeIndex].snap.overlayValid;
-
             await forEachPreviewMap(previewWindowsStyles, async (style: Promise<Overlay>, previewType: PreviewType, valid: Validity) => {
                 const isShowing = await isPreviewShowing(previewWindows[previewType][valid]);
-                const {opacity} = await previewWindows[previewType][valid].getOptions();
-                
                 if (previewType === 'snap' && valid === Validity.VALID) {
                     const overlayComparison = await compareOverlays(await style, expectedStyle);
                     expect(isShowing).toEqual(true);
@@ -243,7 +237,6 @@ describe('When tabbing & snapping', () => {
         await tabWindowsTogether(windows[targetIndex], windows[activeIndex], true, true);
         const tabstrip = await getTabstrip(windows[0].identity);
         await dragWindowAndHover(tabstrip, bounds.right! + 15, bounds.top);
-        await delay(50);
     }
 
     beforeEach(async () => {

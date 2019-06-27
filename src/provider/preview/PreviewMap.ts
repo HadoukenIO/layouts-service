@@ -6,21 +6,25 @@ export enum PreviewType {
     SNAP = 'snap'
 }
 
+/**
+ * Overlay valid key
+ */
 export enum Validity {
     VALID = 'overlayValid',
     INVALID = 'overlayInvalid'
 }
 
 const PREVIEW_TYPES: PreviewType[] = Object.keys(PreviewType).map(k => k.toLowerCase()) as PreviewType[];
-const VALIDITY: Validity[] = [Validity.VALID, Validity.INVALID];
 
+/**
+ * Map of each preview type and its valid states.
+ */
 export type PreviewMap<T> = {
-    readonly [K in PreviewType]: ValidRecords<T>;
+    readonly [K in PreviewType]: {
+        [Validity.VALID]: T;
+        [Validity.INVALID]: T;
+    }
 }
-
-type ValidRecords<T> = {
-    [V in Validity]: T;
-};
 
 export type EntryFunction<T> = (entry: T, previewType: PreviewType, validity: Validity, ...args: any[]) => void;
 
@@ -45,10 +49,9 @@ export function createPreviewMap<T>(genFunction: CreateEntryFunction<T>): Previe
  * @param args
  */
 export async function forEachPreviewMap<T, A extends unknown[]>(map: PreviewMap<T>, func: EntryFunction<T>, ...args: A): Promise<void> {
-    await PREVIEW_TYPES.forEach(async previewType => {
-        await VALIDITY.forEach(async validity => {
-            const entry = map[previewType][validity];
-            await func(entry, previewType, validity, ...args);
-        });
-    });
+    for (const key in map){
+        const previewType = key as PreviewType;
+        await func(map[previewType][Validity.VALID], previewType, Validity.VALID, ...args);
+        await func(map[previewType][Validity.INVALID], previewType, Validity.INVALID, ...args);
+    }
 }

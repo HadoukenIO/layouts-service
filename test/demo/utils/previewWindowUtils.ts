@@ -8,7 +8,7 @@ import {createPreviewMap, PreviewMap, PreviewType, Validity} from '../../../src/
 
 import {executeJavascriptOnService} from './serviceUtils';
 
-export function getPreviewWindows (): PreviewMap<_Window>{
+export function getPreviewWindows(): PreviewMap<_Window>{
     return createPreviewMap<_Window>((previewType, validity) => {
         return fin.Window.wrapSync({...SERVICE_IDENTITY, name: `preview-${previewType}-${validity}`});
     });
@@ -21,7 +21,6 @@ export function getAllPreviewWindowsStyles(): PreviewMap<Promise<Overlay>> {
 }
 
 export async function getPreviewWindowStyle(previewKey: PreviewType, valid: Validity): Promise<Overlay> {
-    console.log(`preview-${previewKey}-${valid}`);
     const windowIdentity: Identity = {uuid: SERVICE_IDENTITY.uuid, name: `preview-${previewKey}-${valid}`};
     const {opacity} = await fin.Window.wrapSync(windowIdentity).getOptions();
 
@@ -53,7 +52,6 @@ export function compareOverlays(a: Overlay, b: Overlay, ignoreOpacity: boolean =
  */
 export async function isPreviewShowing(win: _Window): Promise<boolean> {
     const {opacity} = await win.getOptions();
-    console.log(opacity);
     if (opacity > 0) {
         return true;
     }

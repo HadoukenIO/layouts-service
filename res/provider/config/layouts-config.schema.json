@@ -171,7 +171,7 @@
         "preview-config": {
             "type": "object",
             "title": "Preview Config",
-            "description": "Options for customizing visual preview overlays shown for actions",
+            "description": "Options for customizing visual preview shown for actions",
             "properties": {
                 "activeOpacity": {
                     "type": [
@@ -219,7 +219,7 @@
                 "border": {
                     "type": "string",
                     "description": "Border CSS",
-                    "default": "repeating-linear-gradient(45deg, #3D4059, #3D4059 .25em, #C24629 0, #C24629 .5em)"
+                    "default": ""
                 }
             },
             "required": [],

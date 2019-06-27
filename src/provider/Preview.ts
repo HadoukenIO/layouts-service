@@ -1,6 +1,6 @@
 import deepEqual from 'fast-deep-equal';
 
-import {Preview as PreviewProps, Scope, Overlay} from '../../gen/provider/config/layouts-config';
+import {Scope, Overlay} from '../../gen/provider/config/layouts-config';
 
 import {SnapTarget} from './snapanddock/Resolver';
 import {Rectangle} from './snapanddock/utils/RectUtils';
@@ -10,23 +10,10 @@ import {ConfigStore} from './main';
 import {Mask} from './config/ConfigUtil';
 import {DesktopSnapGroup} from './model/DesktopSnapGroup';
 import {eTransformType} from './model/DesktopWindow';
+import {PreviewMap, createPreviewMap, Validity, PreviewType, forEachPreviewMap} from './preview/PreviewMap';
 
 export type PreviewableTarget = SnapTarget | TabTarget;
 
-type PreviewType = keyof PreviewProps;
-
-enum OverlayValidKey {
-    VALID = 'overlayValid',
-    INVALID = 'overlayInvalid'
-}
-
-type PreviewMap<T> = {
-    readonly [K in PreviewType]: ValidRecords<T>;
-}
-
-type ValidRecords<T> = {
-    [V in OverlayValidKey]: T;
-};
 
 type PreviewWindowData = {previewWindow: fin.OpenFinWindow, opacity: number};
 /**
@@ -44,28 +31,12 @@ export class Preview {
     constructor(config: ConfigStore) {
         this._activeWindowPreview = null;
         this._config = config;
-        this._previewWindows = {
-            tab: {
-                overlayValid: {
-                    previewWindow: this.createWindow(`preview-tab-${OverlayValidKey.VALID}`),
-                    opacity: 0
-                },
-                overlayInvalid: {
-                    previewWindow: this.createWindow(`preview-tab-${OverlayValidKey.INVALID}`),
-                    opacity: 0
-                }
-            },
-            snap: {
-                overlayValid: {
-                    previewWindow: this.createWindow(`preview-snap-${OverlayValidKey.VALID}`),
-                    opacity: 0
-                },
-                overlayInvalid: {
-                    previewWindow: this.createWindow(`preview-snap-${OverlayValidKey.INVALID}`),
-                    opacity: 0
-                }
-            }
-        };
+        this._previewWindows = createPreviewMap<PreviewWindowData>((previewType, validity) => {
+            return {
+                previewWindow: this.createWindow(`preview-${previewType}-${validity}`),
+                opacity: 0
+            };
+        });
 
         DesktopSnapGroup.onCreated.add(this.onCreated, this);
         DesktopSnapGroup.onDestroyed.remove(this.onCreated, this);
@@ -79,7 +50,7 @@ export class Preview {
      * @param target The preview target.
      */
     public show(target: PreviewableTarget): void {
-        const valid: OverlayValidKey = target.valid ? OverlayValidKey.VALID : OverlayValidKey.INVALID;
+        const valid: Validity = target.valid ? Validity.VALID : Validity.INVALID;
         const previewType = target.type.toLowerCase() as PreviewType;
         const {previewWindow, opacity} = this._previewWindows[previewType][valid];
 
@@ -125,18 +96,14 @@ export class Preview {
             return;
         }
         const query = this._config.query(scope).preview;
+        forEachPreviewMap(this._previewWindows, (winData: PreviewWindowData, previewKey, validity) =>{
+            const {previewWindow} = winData;
+            const overlay = query[previewKey][validity];
 
-        for (const key in query) {
-            const previewKey = key as PreviewType;
-            const config = query[previewKey];
-            const {overlayValid, overlayInvalid} = this._previewWindows[previewKey];
+            this._previewWindows[previewKey][validity].opacity = overlay.opacity;
+            this.applyStyle(previewWindow, overlay);
+        });
 
-            overlayValid.opacity = config.overlayValid.opacity;
-            this.applyStyle(overlayValid.previewWindow, config.overlayValid);
-
-            overlayInvalid.opacity = config.overlayInvalid.opacity;
-            this.applyStyle(overlayInvalid.previewWindow, config.overlayInvalid);
-        }
         this._lastScope = scope;
     }
 

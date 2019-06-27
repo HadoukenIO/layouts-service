@@ -142,12 +142,12 @@
                     "targetOpacity": 0.8,
                     "overlayValid": {
                         "opacity": 0.8,
-                        "background": "#3D4059",
+                        "background": "rgb(61, 64, 89)",
                         "border": ""
                     },
                     "overlayInvalid": {
                         "opacity": 0.8,
-                        "background": "repeating-linear-gradient(45deg, #3D4059, #3D4059 .25em, #C24629 0, #C24629 .5em)",
+                        "background": "repeating-linear-gradient(45deg, rgb(61, 64, 89), rgb(61, 64, 89) 0.25em, rgb(194, 70, 41) 0px, rgb(194, 70, 41) 0.5em)",
                         "border": ""
                     }
                 },
@@ -156,12 +156,12 @@
                     "targetOpacity": 0.8,
                     "overlayValid": {
                         "opacity": 0.8,
-                        "background": "#3D4059",
+                        "background": "rgb(61, 64, 89)",
                         "border": ""
                     },
                     "overlayInvalid": {
                         "opacity": 0.8,
-                        "background": "repeating-linear-gradient(45deg, #3D4059, #3D4059 .25em, #C24629 0, #C24629 .5em)",
+                        "background": "repeating-linear-gradient(45deg, rgb(61, 64, 89), rgb(61, 64, 89) 0.25em, rgb(194, 70, 41) 0px, rgb(194, 70, 41) 0.5em)",
                         "border": ""
                     }
                 }
@@ -214,7 +214,7 @@
                 "background": {
                     "type": "string",
                     "description": "Background CSS",
-                    "default": "#3D4059"
+                    "default": "rgb(61, 64, 89)"
                 },
                 "border": {
                     "type": "string",

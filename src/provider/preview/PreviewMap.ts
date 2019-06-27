@@ -26,10 +26,12 @@ export type PreviewMap<T> = {
     }
 }
 
-export type EntryFunction<T> = (entry: T, previewType: PreviewType, validity: Validity, ...args: any[]) => void;
+export type EntryFunction<T> = (entry: T, previewType: PreviewType, validity: Validity) => void;
 
-export type CreateEntryFunction<T> = (previewType: PreviewType, validity: Validity, ...args: any[]) => T;
-
+export type CreateEntryFunction<T> = (previewType: PreviewType, validity: Validity) => T;
+/**
+ * Generate a PreviewMap.
+ */
 export function createPreviewMap<T>(genFunction: CreateEntryFunction<T>): PreviewMap<T> {
     return PREVIEW_TYPES.reduce((previousAcc: PreviewMap<T>, previewType: PreviewType) => {
         return {
@@ -44,14 +46,11 @@ export function createPreviewMap<T>(genFunction: CreateEntryFunction<T>): Previe
 
 /**
  * Invoke a function on each entry in the given map.
- * @param map
- * @param func
- * @param args
  */
-export async function forEachPreviewMap<T, A extends unknown[]>(map: PreviewMap<T>, func: EntryFunction<T>, ...args: A): Promise<void> {
+export async function forEachPreviewMap<T>(map: PreviewMap<T>, func: EntryFunction<T>): Promise<void> {
     for (const key in map){
         const previewType = key as PreviewType;
-        await func(map[previewType][Validity.VALID], previewType, Validity.VALID, ...args);
-        await func(map[previewType][Validity.INVALID], previewType, Validity.INVALID, ...args);
+        await func(map[previewType][Validity.VALID], previewType, Validity.VALID);
+        await func(map[previewType][Validity.INVALID], previewType, Validity.INVALID);
     }
 }

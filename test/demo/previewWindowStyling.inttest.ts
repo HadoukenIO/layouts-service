@@ -146,7 +146,7 @@ describe('When windows are about to be tabbed together', () => {
     describe('And a window is using a custom preview style', () => {
         beforeEach(async () => {
             await init(0, window1Style, window2Style, undefined);
-            previewWindowsStyles = await getAllPreviewWindowsStyles();
+            previewWindowsStyles = getAllPreviewWindowsStyles();
         });
 
         it('The active window\'s valid preview is shown', async () => {
@@ -179,7 +179,7 @@ describe('When snapping two windows together', () => {
     describe('And a window is using the default configuration', () => {
         beforeEach(async () => {
             await init(0, undefined, undefined);
-            previewWindowsStyles = await getAllPreviewWindowsStyles();
+            previewWindowsStyles = getAllPreviewWindowsStyles();
         });
 
         it('The default valid preview style is shown', async () => {
@@ -194,7 +194,7 @@ describe('When snapping two windows together', () => {
     describe('And windows are using custom configurations', () => {
         beforeEach(async () => {
             await init(0, window1Style, window2Style);
-            previewWindowsStyles = await getAllPreviewWindowsStyles();
+            previewWindowsStyles = getAllPreviewWindowsStyles();
         });
 
         it('The active window valid snap style is shown', async () => {
@@ -226,7 +226,7 @@ describe('When tabbing & snapping', () => {
 
     beforeEach(async () => {
         await init(0, window1Style, undefined, window2Style);
-        previewWindowsStyles = await getAllPreviewWindowsStyles();
+        previewWindowsStyles = getAllPreviewWindowsStyles();
     });
 
     describe('When a tab group snaps to another window', () => {

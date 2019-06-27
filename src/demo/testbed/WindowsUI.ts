@@ -1,9 +1,10 @@
 import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/system/application';
 
-import {ConfigurationObject, Rule, Tabstrip} from '../../../gen/provider/config/layouts-config';
+import {ConfigurationObject, Rule, Tabstrip, Overlay} from '../../../gen/provider/config/layouts-config';
 import {RegEx} from '../../client/main';
 import {ConfigWithRules, ScopedConfig, Scopes} from '../../provider/config/Store';
 import {AppData, createApp, createWindow, WindowData} from '../spawn';
+import {PreviewType, Validity} from '../../provider/preview/PreviewMap';
 
 import {Elements} from './View';
 
@@ -523,14 +524,14 @@ export class WindowsUI {
                 case 'tab_overlayValid_border':
                 case 'tab_overlayValid_opacity': {
                     const parts = param.split('_');
-                    const previewType = parts[0] as 'snap' | 'tab';
-                    const previewProp = parts[1] as 'overlayValid' | 'overlayInvalid';
-                    const overlayProp = parts[2] as 'background' | 'opacity' | 'border';
+                    const previewType = parts[0] as PreviewType;
+                    const validity = parts[1] as Validity;
+                    const overlayProp = parts[2] as keyof Overlay;
 
                     config.preview = config.preview || {};
                     config.preview[previewType] = config.preview[previewType] || {};
-                    config.preview[previewType]![previewProp] = config.preview[previewType]![previewProp] || {};
-                    config!.preview![previewType]![previewProp]![overlayProp]! = data![param]!;
+                    config.preview[previewType]![validity] = config.preview[previewType]![validity] || {};
+                    config!.preview![previewType]![validity]![overlayProp]! = data![param]!;
                     break;
                 }
 

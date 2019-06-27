@@ -1,7 +1,7 @@
 import robot from 'robotjs';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
-import {PreviewConfig, Preview} from '../../../gen/provider/config/layouts-config';
+import {PreviewConfig} from '../../../gen/provider/config/layouts-config';
 import {teardown} from '../../teardown';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 import {tearoutToOtherTabstrip} from '../utils/tabstripUtils';

@@ -12,8 +12,7 @@ import {DesktopSnapGroup} from './model/DesktopSnapGroup';
 import {eTransformType} from './model/DesktopWindow';
 import {PreviewMap, createPreviewMap, Validity, PreviewType, forEachPreviewMap} from './preview/PreviewMap';
 
-export type PreviewableTarget = SnapTarget | TabTarget;
-
+export type PreviewableTarget = SnapTarget|TabTarget;
 
 type PreviewWindowData = {previewWindow: fin.OpenFinWindow, opacity: number};
 /**
@@ -23,9 +22,10 @@ type PreviewWindowData = {previewWindow: fin.OpenFinWindow, opacity: number};
  * Rectangle styling will be set according to action validity (valid|invalid).
  */
 export class Preview {
-    private _activeWindowPreview: fin.OpenFinWindow | null;
     private readonly _previewWindows!: PreviewMap<PreviewWindowData>;
     private readonly _config: ConfigStore;
+
+    private _activeWindowPreview: fin.OpenFinWindow | null;
     private _lastScope!: Scope;
 
     constructor(config: ConfigStore) {
@@ -39,7 +39,6 @@ export class Preview {
         });
 
         DesktopSnapGroup.onCreated.add(this.onCreated, this);
-        DesktopSnapGroup.onDestroyed.remove(this.onCreated, this);
     }
 
     /**
@@ -96,7 +95,7 @@ export class Preview {
             return;
         }
         const query = this._config.query(scope).preview;
-        forEachPreviewMap(this._previewWindows, (winData: PreviewWindowData, previewKey, validity) =>{
+        forEachPreviewMap(this._previewWindows, (winData: PreviewWindowData, previewKey, validity) => {
             const {previewWindow} = winData;
             const {document} = previewWindow.getNativeWindow();
             const overlay = query[previewKey][validity];
@@ -119,8 +118,8 @@ export class Preview {
             opacity: 0,
             minimizable: false,
             maximizable: false,
-            defaultTop: -10000,
-            defaultLeft: -10000,
+            defaultTop: 0,
+            defaultLeft: 0,
             showTaskbarIcon: false,
             frame: false,
             state: 'normal',
@@ -128,9 +127,7 @@ export class Preview {
             alwaysOnTop: true
         };
 
-        const window = new fin.desktop.Window(options, () => {
-            window.show();
-        });
+        const window = new fin.desktop.Window(options);
 
         return window;
     }

@@ -23,19 +23,19 @@ afterEach(async () => {
     await teardown();
 });
 
-function createPreviewConfigs(...options: (PreviewOptions | undefined)[]): Preview[] {
-    return options.map(option => {
+async function createWindows(...options: (PreviewOptions | undefined)[]): Promise<_Window[]> {
+    const configs = options.map(option => {
         return {
             snap: option,
             tab: {activeOpacity: null, targetOpacity: null}
         };
     });
+    return createWindowsWithConfig(...configs);
 }
 
 describe('When two windows are moved within snapping distance', () => {
     async function init(activeIndex: number = 1, ...options: (PreviewOptions | undefined)[]) {
-        const configs = createPreviewConfigs(...options);
-        windows = await createWindowsWithConfig(...configs);
+        windows = await createWindows(...options);
 
         const targetIndex: number = (activeIndex + 1) % 2;
 
@@ -168,8 +168,7 @@ describe('When two windows are moved within snapping distance', () => {
 
 describe('When a window is moved with snapping distance of a group', () => {
     async function init(...options: (PreviewOptions | undefined)[]) {
-        const configs = createPreviewConfigs(...options);
-        windows = await createWindowsWithConfig(...configs);
+        windows = await createWindows(...options);
 
         // create group of 2 windows
         await dragSideToSide(windows[0], 'right', windows[1], 'left');
@@ -234,8 +233,7 @@ describe('When a window is moved with snapping distance of a group', () => {
 
 describe('When moving a group of windows', () => {
     async function init(...options: (PreviewOptions | undefined)[]) {
-        const configs = createPreviewConfigs(...options);
-        windows = await createWindowsWithConfig(...configs);
+        windows = await createWindows(...options);
 
         // create group of 2 windows
         await dragSideToSide(windows[0], 'right', windows[1], 'left');

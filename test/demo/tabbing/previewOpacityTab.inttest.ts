@@ -24,13 +24,14 @@ afterEach(async () => {
     await teardown();
 });
 
-function createPreviewConfigs(...options: (PreviewOptions | undefined)[]): Preview[] {
-    return options.map(option => {
+async function createWindows(...options: (PreviewOptions | undefined)[]): Promise<_Window[]> {
+    const configs = options.map(option => {
         return {
             tab: option,
             snap: {activeOpacity: null, targetOpacity: null}
         };
     });
+    return createWindowsWithConfig(...configs);
 }
 
 describe('When two windows are about to be tabbed together', () => {
@@ -38,8 +39,7 @@ describe('When two windows are about to be tabbed together', () => {
      * Creates two windows and hovers one over the tab area of the other to generate a preview window response.
      */
     async function init(activeIndex: number = 1, ...options: (PreviewOptions | undefined)[]) {
-        const configs = createPreviewConfigs(...options);
-        windows = await createWindowsWithConfig(...configs);
+        windows = await createWindows(...options);
         const targetIndex: number = (activeIndex + 1) % 2;
         await Promise.all([...options].map((option, i) => {
             return option && option.defaultOpacity ? windows[i].updateOptions({opacity: option.defaultOpacity}) : undefined;
@@ -170,8 +170,7 @@ describe('When adding a window to an existing tab group', () => {
      * Creates a tab group of 2 windows, then moves the third window over the tab area to generate a preview window response.
      */
     async function init(...options: (PreviewOptions | undefined)[]) {
-        const configs = createPreviewConfigs(...options);
-        windows = await createWindowsWithConfig(...configs);
+        windows = await createWindows(...options);
 
         await Promise.all(options.map((option, i) => {
             return option && option.defaultOpacity ? windows[i].updateOptions({opacity: option.defaultOpacity}) : undefined;
@@ -221,8 +220,7 @@ describe('When tearing a tab out into a new group', () => {
      * Creates two tab groups and tears out a tab from the first group into the second with hover, generating a preview window response.
      */
     async function init(...options: (PreviewOptions | undefined)[]) {
-        const configs = createPreviewConfigs(...options);
-        windows = await createWindowsWithConfig(...configs);
+        windows = await createWindows(...options);
 
         await Promise.all(options.map((option, i) => {
             return option && option.defaultOpacity ? windows[i].updateOptions({opacity: option.defaultOpacity}) : undefined;

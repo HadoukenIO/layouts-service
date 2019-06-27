@@ -58,23 +58,3 @@ export async function isPreviewShowing(win: _Window): Promise<boolean> {
 
     return false;
 }
-
-/**
- * Convert a CSS string to how Chrome represents it.
- * @param rule
- */
-export async function normalizeCSS(rule: [keyof CSSStyleDeclaration, string]): Promise<string | null> {
-    function getString(this: ProviderWindow, declaration: [keyof CSSStyleDeclaration, string]): string | null {
-        const win = fin.desktop.Window.getCurrent();
-        const {document} = win.getNativeWindow();
-        const [attr, rule = ''] = declaration;
-        // @ts-ignore read-only keys
-        document.head.style[attr] = rule;
-        const result = document.head.style[attr];
-        // @ts-ignore read-only keys
-        document.head.style[attr] = '';
-        return result;
-    }
-
-    return executeJavascriptOnService(getString, rule);
-}

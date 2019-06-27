@@ -17,27 +17,27 @@ interface ConfigData {
     tab: boolean;
     tabstripUrl: string;
     tabstripHeight: number;
-    targetOpacitySnap: number | null;
-    activeOpacitySnap: number | null;
-    activeOpacityTab: number | null;
-    targetOpacityTab: number | null;
+    targetOpacitySnap: number|null;
+    activeOpacitySnap: number|null;
+    activeOpacityTab: number|null;
+    targetOpacityTab: number|null;
 
     // _ is used for slicing the string to get the config keys & searchability
-    snap_overlayInvalid_background: string | null;
-    snap_overlayInvalid_border: string | null;
-    snap_overlayInvalid_opacity: string | null;
-    tab_overlayInvalid_background: string | null;
-    tab_overlayInvalid_border: string | null;
-    tab_overlayInvalid_opacity: string | null;
-    snap_overlayValid_background: string | null;
-    snap_overlayValid_border: string | null;
-    snap_overlayValid_opacity: string | null;
-    tab_overlayValid_background: string | null;
-    tab_overlayValid_border: string | null;
-    tab_overlayValid_opacity: string | null;
+    snap_overlayInvalid_background: string|null;
+    snap_overlayInvalid_border: string|null;
+    snap_overlayInvalid_opacity: string|null;
+    tab_overlayInvalid_background: string|null;
+    tab_overlayInvalid_border: string|null;
+    tab_overlayInvalid_opacity: string|null;
+    snap_overlayValid_background: string|null;
+    snap_overlayValid_border: string|null;
+    snap_overlayValid_opacity: string|null;
+    tab_overlayValid_background: string|null;
+    tab_overlayValid_border: string|null;
+    tab_overlayValid_opacity: string|null;
 }
 
-type ConfigScopeParam = string | (RegEx & {raw: string});
+type ConfigScopeParam = string|(RegEx&{raw: string});
 interface ConfigScope {
     level: Scopes;
     uuid: ConfigScopeParam;
@@ -54,7 +54,7 @@ interface ConfigRule {
 
 type Inputs<T> = {
     // Map all keys to a HTML input control - except for 'type', which should be excluded from the type.
-    [K in keyof T]?: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+    [K in keyof T]?: HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement;
 };
 
 export class WindowsUI {
@@ -305,7 +305,7 @@ export class WindowsUI {
             }
 
             // Update config JSON preview
-            const config: ConfigWithRules<ConfigurationObject> | null = this.getConfig();
+            const config: ConfigWithRules<ConfigurationObject>|null = this.getConfig();
             preview.innerText = config ? JSON.stringify(config, null, 4) : 'No Config';
         } else {
             preview.innerText = 'No service declaration, cannot specify config';
@@ -325,7 +325,7 @@ export class WindowsUI {
         }
     }
 
-    private parseConfigParam(param: ConfigScopeParam): string | RegEx {
+    private parseConfigParam(param: ConfigScopeParam): string|RegEx {
         if (typeof param === 'string') {
             return param;
         } else {
@@ -429,7 +429,7 @@ export class WindowsUI {
         this.selectRule(rule);
     }
 
-    private selectRule(selectedRule: ConfigRule | null, savePrevious = true): void {
+    private selectRule(selectedRule: ConfigRule|null, savePrevious = true): void {
         const elements = this._elements;
 
         elements.configEditorApp.classList.toggle('active', !selectedRule);
@@ -438,7 +438,7 @@ export class WindowsUI {
         });
 
         // Update selection (save previous rule, if necessary)
-        const prevSelection: ConfigRule | null = this._selectedRule;
+        const prevSelection: ConfigRule|null = this._selectedRule;
         if (savePrevious && (!prevSelection || this._rules.includes(prevSelection))) {
             this.updateConfig();
         }
@@ -547,7 +547,7 @@ export class WindowsUI {
         return config;
     }
 
-    private getConfig(): ConfigWithRules<ConfigurationObject> | null {
+    private getConfig(): ConfigWithRules<ConfigurationObject>|null {
         const config: ConfigWithRules<ConfigurationObject> = this.getRuleConfig(this._defaultConfig);
         const rules: ScopedConfig<ConfigurationObject>[] =
             this._rules.map(rule => ({scope: this.parseScope(rule.scope), config: this.getRuleConfig(rule.config)}))
@@ -564,10 +564,10 @@ export class WindowsUI {
         const keys = Object.keys(inputs) as (keyof T)[];
 
         return keys.reduce((data: T, key: keyof T) => {
-            const input: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | undefined = inputs[key];
+            const input: HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement|undefined = inputs[key];
 
             if (input && !input.disabled) {
-                let value: string | boolean | {} = input.type === 'checkbox' ? (input as HTMLInputElement).checked : input.value;
+                let value: string|boolean|{} = input.type === 'checkbox' ? (input as HTMLInputElement).checked : input.value;
 
                 // Special handling of certain elements
                 if (input === elements.inputURL || input === elements.configTabstripUrl) {

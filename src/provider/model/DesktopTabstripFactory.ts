@@ -1,4 +1,5 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
+import {DipRect} from 'hadouken-js-adapter/out/types/src/api/system/monitor';
 
 import {ConfigurationObject, Scope, Tabstrip} from '../../../gen/provider/config/layouts-config';
 import {ApplicationUIConfig} from '../../client/tabbing';
@@ -17,6 +18,8 @@ const DEFAULT_UI_URL = (() => {
     // Locate the default tabstrip HTML page, relative to the location of the provider
     return providerLocation.replace('provider.html', 'tabbing/tabstrip/tabstrip.html');
 })();
+
+let VIRTUAL_SCREEN: DipRect;
 
 /**
  * Handles creation and pooling of Tab Group Windows
@@ -43,9 +46,9 @@ export class DesktopTabstripFactory {
         this._watch.onAdd.add(this.onTabstripConfigAdded, this);
 
         // Creates 3 default windows in the pool.
-        this.createAndPool(DesktopTabstripFactory.DEFAULT_CONFIG);
-        this.createAndPool(DesktopTabstripFactory.DEFAULT_CONFIG);
-        this.createAndPool(DesktopTabstripFactory.DEFAULT_CONFIG);
+        this.createAndPool(DesktopTabstripFactory.DEFAULT_CONFIG, true);
+        this.createAndPool(DesktopTabstripFactory.DEFAULT_CONFIG, true);
+        this.createAndPool(DesktopTabstripFactory.DEFAULT_CONFIG, true);
     }
 
     /**
@@ -57,7 +60,7 @@ export class DesktopTabstripFactory {
         const pooledWindows = this._windowPool.get(options.url) || [];
         const next = pooledWindows.shift();
         // setTimeout to offset blocking fin window creation
-        // Runtime Ticket RUN-4704
+        // TODO: Runtime Ticket RUN-4704
         setTimeout(() => {
             this.createAndPool(options);
         }, 2000);
@@ -102,18 +105,37 @@ export class DesktopTabstripFactory {
 
     /**
      * Creates and pools windows against a specific ApplicationUI configuration.
-     * @param {ApplicationUIConfig} options The configuration to create the windows against.
+     * @param options The configuration to create the windows against.
+     * @param hide If true the window will be hidden offscreen
      */
-    private createAndPool(options: ApplicationUIConfig) {
+    private createAndPool(options: ApplicationUIConfig, hide: boolean = false) {
         if (!this._windowPool.has(options.url)) {
             this.createWindow(options).then((window) => {
+                if (hide)
+                    this.hideOffScreen(window);
                 this._windowPool.set(options.url, [window]);
             });
         } else if (this._windowPool.has(options.url) && this._windowPool.get(options.url)!.length < 3) {
             this.createWindow(options).then((window) => {
+                if (hide)
+                    this.hideOffScreen(window);
                 this._windowPool.set(options.url, [...this._windowPool.get(options.url)!, window]);
             });
         }
+    }
+
+    /**
+     * Hide a window offscreen so it doesn't flicker on startup.
+     * @param window The window to hide.
+     */
+    private async hideOffScreen(window: _Window){
+        if (!VIRTUAL_SCREEN){
+            const {virtualScreen} = await fin.System.getMonitorInfo();
+            VIRTUAL_SCREEN = virtualScreen;
+        }
+        const {width, height} = await window.getBounds();
+        await window.showAt(VIRTUAL_SCREEN.left - width, VIRTUAL_SCREEN.top - height);
+        await window.hide();
     }
 
     /**

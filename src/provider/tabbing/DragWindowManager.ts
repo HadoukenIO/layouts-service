@@ -97,6 +97,7 @@ export class DragWindowManager {
      * Creates the drag overlay window.
      */
     private async createDragWindow(): Promise<void> {
+        const {virtualScreen} = await fin.System.getMonitorInfo();
         await new Promise(resolve => {
             this._window = new fin.desktop.Window(
                 {
@@ -107,7 +108,7 @@ export class DragWindowManager {
                     defaultLeft: 0,
                     defaultTop: 0,
                     saveWindowState: false,
-                    autoShow: true,
+                    autoShow: false,
                     opacity: 0.01,
                     frame: false,
                     waitForPageLoad: false,
@@ -116,6 +117,7 @@ export class DragWindowManager {
                     smallWindow: true
                 },
                 () => {
+                    this._window.showAt(virtualScreen.left - 100, virtualScreen.top - 100);
                     resolve();
                 }
             );

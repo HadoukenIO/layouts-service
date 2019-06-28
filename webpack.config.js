@@ -1,6 +1,6 @@
 const path = require('path');
-const SchemaToDefaultsPlugin = require('./scripts/plugins/SchemaToDefaultsPlugin');
-const SchemaToTypeScriptPlugin = require('./scripts/plugins/SchemaToTypeScriptPlugin');
+// const SchemaToDefaultsPlugin = require('./scripts/plugins/SchemaToDefaultsPlugin');
+// const SchemaToTypeScriptPlugin = require('./scripts/plugins/SchemaToTypeScriptPlugin');
 
 const outputDir = path.resolve(__dirname, './dist');
 const schemaRoot = path.resolve(__dirname, './res/provider/config');
@@ -8,15 +8,19 @@ const schemaOutput = path.resolve(__dirname, './gen/provider/config');
 const defaultsOutput = path.resolve(__dirname, './gen/provider/config/defaults.json');
 
 /**
+ * Import config generator plugins from openfin-service-config
+ */
+const {SchemaToDefaultsPlugin, SchemaToTypeScriptPlugin} = require('openfin-service-config').plugins;
+
+/**
  * Import the webpack tools from openfin-service-tooling
  */
 const webpackTools = require('openfin-service-tooling').webpackTools;
 
-
 /**
  * Generate TypeScript definition files from the config schema files.
- * 
- * Generated code is placed inside a top-level 'gen' folder, whose structure mirrors that of 
+ *
+ * Generated code is placed inside a top-level 'gen' folder, whose structure mirrors that of
  * the 'src', 'res' and 'test' folders.
  */
 const schemaDefaultsPlugin = new SchemaToDefaultsPlugin({
@@ -26,15 +30,15 @@ const schemaDefaultsPlugin = new SchemaToDefaultsPlugin({
 
 /**
  * Generate TypeScript definition files from the config schema files.
- * 
- * Generated code is placed inside a top-level 'gen' folder, whose structure mirrors that of 
+ *
+ * Generated code is placed inside a top-level 'gen' folder, whose structure mirrors that of
  * the 'src', 'res' and 'test' folders.
  */
 const schemaTypesPlugin = new SchemaToTypeScriptPlugin({
     schemaRoot,
     outputPath: schemaOutput,
     input: [
-        `${schemaRoot}/layouts-config.schema.json`,
+        `${schemaRoot}/layouts-config.schema.json`
     ]
 });
 

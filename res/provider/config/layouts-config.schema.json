@@ -171,7 +171,7 @@
         "preview-config": {
             "type": "object",
             "title": "Preview Config",
-            "description": "Options for customizing visual preview shown for actions",
+            "description": "Options for configuring a preview for an action",
             "properties": {
                 "activeOpacity": {
                     "type": [
@@ -202,7 +202,7 @@
         "overlay-preview": {
             "type": "object",
             "title": "Overlay",
-            "description": "Options for customizing the preview overlay style shown for actions",
+            "description": "Options for styling the preview overlay box.",
             "properties": {
                 "opacity": {
                     "type": [

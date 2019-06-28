@@ -1,19 +1,18 @@
 import {Identity} from 'hadouken-js-adapter';
 import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
+import {Store} from 'openfin-service-config/Store';
+import {Loader} from 'openfin-service-config/Loader';
 
 import {ConfigurationObject} from '../../gen/provider/config/layouts-config';
 import {SERVICE_CHANNEL} from '../client/internal';
 
 import {APIHandler} from './APIHandler';
-import {Loader} from './config/Loader';
-import {Store} from './config/Store';
 import {DesktopModel} from './model/DesktopModel';
 import {DesktopTabGroup} from './model/DesktopTabGroup';
 import {SnapService} from './snapanddock/SnapService';
 import {win10Check} from './snapanddock/utils/platform';
 import {TabService} from './tabbing/TabService';
 import {WindowHandler} from './WindowHandler';
-
 export type ConfigStore = Store<ConfigurationObject>;
 
 export let config: Store<ConfigurationObject>;

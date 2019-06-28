@@ -123,11 +123,15 @@ export class Preview {
             showTaskbarIcon: false,
             frame: false,
             state: 'normal',
-            autoShow: true,
+            saveWindowState: false,
+            autoShow: false,
             alwaysOnTop: true
         };
 
-        const window = new fin.desktop.Window(options);
+        const window = new fin.desktop.Window(options, () =>{
+            // Allows the window to be positioned out of screen bounds when launched.
+            window.showAt(-10000, -10000);
+        });
 
         return window;
     }

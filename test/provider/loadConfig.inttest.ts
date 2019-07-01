@@ -1,8 +1,8 @@
 import {Application, Fin, Identity} from 'hadouken-js-adapter';
 import * as assert from 'power-assert';
+import {ConfigWithRules} from 'openfin-service-config';
 
 import {ConfigurationObject, Scope} from '../../gen/provider/config/layouts-config';
-import {ConfigWithRules} from '../../src/provider/config/Store';
 import {fin} from '../demo/utils/fin';
 import {executeJavascriptOnService} from '../demo/utils/serviceUtils';
 import {isWindowRegistered} from '../demo/utils/snapServiceUtils';

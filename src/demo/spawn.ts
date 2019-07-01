@@ -1,7 +1,7 @@
 import {Application, Identity} from 'hadouken-js-adapter';
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
-import {ConfigWithRules} from 'openfin-service-config/Store';
+import {ConfigWithRules} from 'openfin-service-config';
 
 import {ConfigurationObject} from '../../gen/provider/config/layouts-config';
 import {Point} from '../provider/snapanddock/utils/PointUtils';

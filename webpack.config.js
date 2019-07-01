@@ -1,21 +1,19 @@
 const path = require('path');
-// const SchemaToDefaultsPlugin = require('./scripts/plugins/SchemaToDefaultsPlugin');
-// const SchemaToTypeScriptPlugin = require('./scripts/plugins/SchemaToTypeScriptPlugin');
+
+/**
+ * Import config generator plugins from openfin-service-config
+ */
+const {SchemaToDefaultsPlugin} = require('openfin-service-config/plugins/SchemaToDefaultsPlugin');
+const {SchemaToTypeScriptPlugin} = require('openfin-service-config/plugins/SchemaToTypeScriptPlugin');
+/**
+ * Import the webpack tools from openfin-service-tooling
+ */
+const webpackTools = require('openfin-service-tooling').webpackTools;
 
 const outputDir = path.resolve(__dirname, './dist');
 const schemaRoot = path.resolve(__dirname, './res/provider/config');
 const schemaOutput = path.resolve(__dirname, './gen/provider/config');
 const defaultsOutput = path.resolve(__dirname, './gen/provider/config/defaults.json');
-
-/**
- * Import config generator plugins from openfin-service-config
- */
-const {SchemaToDefaultsPlugin, SchemaToTypeScriptPlugin} = require('openfin-service-config').plugins;
-
-/**
- * Import the webpack tools from openfin-service-tooling
- */
-const webpackTools = require('openfin-service-tooling').webpackTools;
 
 /**
  * Generate TypeScript definition files from the config schema files.

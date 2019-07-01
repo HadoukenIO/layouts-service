@@ -3,9 +3,9 @@ import {WindowEvent} from 'hadouken-js-adapter/out/types/src/api/events/base';
 import {MonitorEvent} from 'hadouken-js-adapter/out/types/src/api/events/system';
 import {MonitorInfo} from 'hadouken-js-adapter/out/types/src/api/system/monitor';
 import {WindowDetail, WindowInfo} from 'hadouken-js-adapter/out/types/src/api/system/window';
-import {ScopedConfig} from 'openfin-service-config/Store';
+import {ScopedConfig} from 'openfin-service-config';
 import {MaskWatch} from 'openfin-service-config/Watch';
-import {ConfigUtil, Masked} from 'openfin-service-config/utils/ConfigUtil';
+import {ConfigUtil, Masked} from 'openfin-service-config/ConfigUtil';
 
 import {ConfigurationObject, RegEx, Rule, Scope, WindowScope} from '../../../gen/provider/config/layouts-config';
 import {ConfigStore} from '../main';

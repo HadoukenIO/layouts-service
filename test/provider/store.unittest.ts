@@ -1,7 +1,8 @@
+import {ScopedConfig, Store} from 'openfin-service-config';
+import {RequiredRecursive} from 'openfin-service-config/ConfigUtil';
+import {MaskWatch, ScopeWatch} from 'openfin-service-config/Watch';
+
 import {Scope} from '../../gen/provider/config/layouts-config';
-import {RequiredRecursive} from '../../src/provider/config/ConfigUtil';
-import {ScopedConfig, Store} from '../../src/provider/config/Store';
-import {MaskWatch, ScopeWatch} from '../../src/provider/config/Watch';
 
 import {addConsoleSpies, ConsoleSpy} from './utils-unit/console';
 

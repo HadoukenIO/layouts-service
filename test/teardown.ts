@@ -1,8 +1,7 @@
 import {Window} from 'hadouken-js-adapter';
 import {WindowInfo, WindowDetail} from 'hadouken-js-adapter/out/types/src/api/system/window';
-
-import {Scopes} from '../src/provider/config/Store';
-import {ScopePrecedence} from '../src/provider/config/ConfigUtil';
+import {Scopes} from 'openfin-service-config';
+import {ScopePrecedence} from 'openfin-service-config/ConfigUtil';
 
 import {executeJavascriptOnService} from './demo/utils/serviceUtils';
 import {delay} from './provider/utils/delay';
@@ -136,12 +135,12 @@ async function resetProviderState(): Promise<void> {
             const expectedCount = expectedRuleCounts.get(scope) || 0;
 
             if (rulesWithScope.length !== expectedCount) {
-                const configInfo = rulesWithScope.map(rule => JSON.stringify(rule)).join(SEPARATOR_LINE);
+                const configInfo = rulesWithScope.map((rule: any) => JSON.stringify(rule)).join(SEPARATOR_LINE);
                 msgs.push(`Expected ${expectedCount} rules with scope ${scope}, got:${configInfo ? SEPARATOR_LINE + configInfo: ' NONE'}`);
 
                 // Can't do a full clean-up without duplicating provider state here,
                 // but removing anything that was defined outside of the service (test windows, etc)
-                rules.set(scope, rulesWithScope.filter(config => config.source.level === 'service'));
+                rules.set(scope, rulesWithScope.filter((config: any) => config.source.level === 'service'));
             }
         });
         if (watches.length !== expectedWatcherCount) {

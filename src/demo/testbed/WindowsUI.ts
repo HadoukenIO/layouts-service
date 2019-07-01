@@ -1,5 +1,5 @@
 import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/system/application';
-import {ConfigWithRules, ScopedConfig, Scopes} from 'openfin-service-config/Store';
+import {ConfigWithRules, ScopedConfig, Scopes} from 'openfin-service-config';
 
 import {ConfigurationObject, Rule, Tabstrip} from '../../../gen/provider/config/layouts-config';
 import {RegEx} from '../../client/main';

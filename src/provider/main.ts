@@ -1,6 +1,6 @@
 import {Identity} from 'hadouken-js-adapter';
 import {ChannelProvider} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/provider';
-import {Store} from 'openfin-service-config/Store';
+import {Store} from 'openfin-service-config';
 import {Loader} from 'openfin-service-config/Loader';
 
 import {ConfigurationObject} from '../../gen/provider/config/layouts-config';

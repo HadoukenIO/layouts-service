@@ -1,5 +1,5 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
-import {ScopedConfig} from 'openfin-service-config/Store';
+import {ScopedConfig} from 'openfin-service-config';
 import {MaskWatch} from 'openfin-service-config/Watch';
 
 import {ConfigurationObject, Scope, Tabstrip} from '../../../gen/provider/config/layouts-config';

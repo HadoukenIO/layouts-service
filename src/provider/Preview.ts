@@ -1,16 +1,16 @@
 import deepEqual from 'fast-deep-equal';
 
-import {Scope} from '../../gen/provider/config/layouts-config';
+import {Scope, Preview as PreviewProps} from '../../gen/provider/config/layouts-config';
 
 import {SnapTarget} from './snapanddock/Resolver';
 import {Rectangle} from './snapanddock/utils/RectUtils';
 import {TabTarget} from './tabbing/TabService';
 import {eTargetType} from './WindowHandler';
 import {ConfigStore} from './main';
-import {Mask} from './config/ConfigUtil';
+import {Mask, RequiredRecursive} from './config/ConfigUtil';
 import {DesktopSnapGroup} from './model/DesktopSnapGroup';
 import {eTransformType} from './model/DesktopWindow';
-import {PreviewMap, createPreviewMap, Validity, PreviewType, forEachPreviewMap} from './preview/PreviewMap';
+import {PreviewMap, createPreviewMap, Validity, PreviewType, forEachPreviewMap} from './PreviewMap';
 
 export type PreviewableTarget = SnapTarget|TabTarget;
 
@@ -94,7 +94,7 @@ export class Preview {
         if (deepEqual(this._lastScope, scope)) {
             return;
         }
-        const query = this._config.query(scope).preview;
+        const query: RequiredRecursive<PreviewProps> = this._config.query(scope).preview;
         forEachPreviewMap(this._previewWindows, (winData: PreviewWindowData, previewKey, validity) => {
             const {previewWindow} = winData;
             const {document} = previewWindow.getNativeWindow();

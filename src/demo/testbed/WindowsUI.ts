@@ -4,7 +4,7 @@ import {ConfigurationObject, Rule, Tabstrip, Overlay} from '../../../gen/provide
 import {RegEx} from '../../client/main';
 import {ConfigWithRules, ScopedConfig, Scopes} from '../../provider/config/Store';
 import {AppData, createApp, createWindow, WindowData} from '../spawn';
-import {PreviewType, Validity} from '../../provider/preview/PreviewMap';
+import {PreviewType, Validity} from '../../provider/PreviewMap';
 
 import {Elements} from './View';
 

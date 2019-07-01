@@ -7,7 +7,7 @@ import {dragWindowAndHover} from '../provider/utils/dragWindowAndHover';
 import {getWindowConfig} from '../provider/utils/getWindowConfig';
 import {RequiredRecursive} from '../../src/provider/config/ConfigUtil';
 import {tabWindowsTogether} from '../provider/utils/tabWindowsTogether';
-import {PreviewMap, PreviewType, forEachPreviewMap, Validity} from '../../src/provider/preview/PreviewMap';
+import {PreviewMap, PreviewType, forEachPreviewMap, Validity} from '../../src/provider/PreviewMap';
 
 import {createWindowsWithConfig} from './utils/createWindowsWithConfig';
 import {getPreviewWindows, getAllPreviewWindowsStyles, isPreviewShowing, compareOverlays} from './utils/previewWindowUtils';

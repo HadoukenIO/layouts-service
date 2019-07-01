@@ -4,7 +4,7 @@ import deepEqual from 'fast-deep-equal';
 
 import {Overlay} from '../../../gen/provider/config/layouts-config';
 import {SERVICE_IDENTITY} from '../../../src/client/internal';
-import {createPreviewMap, PreviewMap, PreviewType, Validity} from '../../../src/provider/preview/PreviewMap';
+import {createPreviewMap, PreviewMap, PreviewType, Validity} from '../../../src/provider/PreviewMap';
 
 import {executeJavascriptOnService} from './serviceUtils';
 

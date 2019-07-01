@@ -19,8 +19,6 @@ const DEFAULT_UI_URL = (() => {
     return providerLocation.replace('provider.html', 'tabbing/tabstrip/tabstrip.html');
 })();
 
-let VIRTUAL_SCREEN: DipRect;
-
 /**
  * Handles creation and pooling of Tab Group Windows
  */
@@ -129,12 +127,9 @@ export class DesktopTabstripFactory {
      * @param window The window to hide.
      */
     private async hideOffScreen(window: _Window){
-        if (!VIRTUAL_SCREEN){
-            const {virtualScreen} = await fin.System.getMonitorInfo();
-            VIRTUAL_SCREEN = virtualScreen;
-        }
+        const {virtualScreen} = await fin.System.getMonitorInfo();
         const {width, height} = await window.getBounds();
-        await window.showAt(VIRTUAL_SCREEN.left - width, VIRTUAL_SCREEN.top - height);
+        await window.showAt(virtualScreen.left - width, virtualScreen.top - height);
         await window.hide();
     }
 

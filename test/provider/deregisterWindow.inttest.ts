@@ -5,7 +5,7 @@ import * as robot from 'robotjs';
 import {fin} from '../demo/utils/fin';
 import {teardown} from '../teardown';
 import {isPreviewShowing} from '../demo/utils/previewWindowUtils';
-import {PreviewType, Validity} from '../../src/provider/preview/PreviewMap';
+import {PreviewType, Validity} from '../../src/provider/PreviewMap';
 
 import {createChildWindow} from './utils/createChildWindow';
 import {dragWindowAndHover} from './utils/dragWindowAndHover';

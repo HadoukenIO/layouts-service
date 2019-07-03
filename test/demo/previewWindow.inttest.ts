@@ -12,7 +12,7 @@ import {getBounds} from '../provider/utils/getBounds';
 import {opposite, Side} from '../provider/utils/SideUtils';
 import {tabWindowsTogether} from '../provider/utils/tabWindowsTogether';
 import {teardown} from '../teardown';
-import {Validity, PreviewType} from '../../src/provider/preview/PreviewMap';
+import {Validity, PreviewType} from '../../src/provider/PreviewMap';
 
 import {fin} from './utils/fin';
 import {getTabstrip} from './utils/tabServiceUtils';

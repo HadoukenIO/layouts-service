@@ -1,3 +1,5 @@
+import {deferredPromise} from '../../utils/async';
+
 /**
  * Util for de-bouncing calls to a function. The function will be wrapped within this object, which bundles the
  * callback with a resettable timer.
@@ -8,9 +10,10 @@
  * The callback function and scope are set at construction, with any function arguments being passed at the time the
  * timeout is (re-)started.
  */
-export class Debounced<C extends Function, S, A extends any[]> {  // tslint:disable-line:no-any
+export class Debounced<C extends Function, S, A extends any[]> {
     private static DEBOUNCE_INTERVAL = 200;
 
+    private _promise!: [Promise<void>, (value?: void) => void, (reason?: any) => void];
     private callback: C;
     private scope: S;
     private args: A|undefined;
@@ -26,6 +29,11 @@ export class Debounced<C extends Function, S, A extends any[]> {  // tslint:disa
         this.onTimeout = this.onTimeout.bind(this);
     }
 
+    public get promise(): Promise<void> {
+        const [promise] = this._promise;
+        return promise;
+    }
+
     /**
      * Schedules a call to the function in at-least DEBOUNCE_INTERVAL milliseconds.
      *
@@ -36,9 +44,11 @@ export class Debounced<C extends Function, S, A extends any[]> {  // tslint:disa
      *
      * @param args Arguments to hit the callback with
      */
-    public call(...args: A): void {
+    public call(...args: A): Promise<void> {
+        this._promise = deferredPromise();
         this.args = args;
         this.schedule();
+        return this._promise[0];
     }
 
     /**
@@ -58,6 +68,8 @@ export class Debounced<C extends Function, S, A extends any[]> {  // tslint:disa
 
         this.handle = -1;
         this.callback.apply(this.scope, args);
+        const [_, resolve] = this._promise;
+        resolve();
     }
 
     private cancel(): void {

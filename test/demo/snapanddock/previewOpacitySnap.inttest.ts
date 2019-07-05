@@ -46,6 +46,7 @@ describe('When two windows are moved within snapping distance', () => {
         const bounds = await windows[targetIndex].getBounds();
 
         await dragWindowAndHover(windows[activeIndex], bounds.right! + 15, bounds.top);
+        await delay(500);
     }
 
     describe('And windows are using the default configuration', () => {

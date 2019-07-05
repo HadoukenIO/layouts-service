@@ -8,11 +8,11 @@ import {getWindowConfig} from '../provider/utils/getWindowConfig';
 import {RequiredRecursive} from '../../src/provider/config/ConfigUtil';
 import {tabWindowsTogether} from '../provider/utils/tabWindowsTogether';
 import {PreviewMap, PreviewType, forEachPreviewMap, Validity} from '../../src/provider/PreviewMap';
+import {delay} from '../provider/utils/delay';
 
 import {createWindowsWithConfig} from './utils/createWindowsWithConfig';
 import {getPreviewWindows, getAllPreviewWindowsStyles, isPreviewShowing, compareOverlays} from './utils/previewWindowUtils';
 import {getTabstrip} from './utils/tabServiceUtils';
-import {delay} from '../provider/utils/delay';
 
 let defaultConfig: RequiredRecursive<ConfigurationObject>;
 let windows: _Window[] = [];

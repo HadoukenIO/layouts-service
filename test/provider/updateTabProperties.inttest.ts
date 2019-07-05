@@ -25,8 +25,9 @@ afterEach(async () => {
     }));
 
     wins = [];
+
+    await teardown();
 });
-afterEach(teardown);
 
 it('When calling updateTabProperties, property changes reflected in service', async () => {
     // Drag wins[0] over wins[1] to make a tabset (in valid drop region)

@@ -34,9 +34,9 @@ afterEach(async () => {
         }
     }
     windows = new Array<Window>();
-});
-afterEach(teardown);
 
+    await teardown();
+});
 
 async function initWindows(num: number, side?: Side) {
     for (let i = 0; i < num; i++) {

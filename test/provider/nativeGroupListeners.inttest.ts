@@ -66,8 +66,9 @@ afterEach(async () => {
     }
     win1 = win2 = {} as Window;
     windows = new Array<Window>();
+
+    await teardown();
 });
-afterEach(teardown);
 
 /* ====== Utils ====== */
 

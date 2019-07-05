@@ -24,8 +24,9 @@ afterEach(async () => {
         }
     }
     windows = new Array<Window>();
+
+    await teardown();
 });
-afterEach(teardown);
 
 async function assertExploded() {
     // Check each window

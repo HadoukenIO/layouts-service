@@ -17,9 +17,9 @@ afterEach(async () => {
     await win1.close();
     await win2.close();
     fin.InterApplicationBus.removeAllListeners();
-});
 
-afterEach(teardown);
+    await teardown();
+});
 
 it('When calling createTabGroupsFromWorkspace, tabgroup is created as expected', async () => {
     // Arrange

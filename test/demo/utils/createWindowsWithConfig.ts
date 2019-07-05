@@ -25,7 +25,7 @@ export async function createWindowsWithConfig(...configs: (Preview | undefined)[
         const app = await createApp({
             type: 'manifest',
             // All app uuid's must be unique, due to apparent manifest caching behaviour
-            id: `window-${index}:${counter++}`,
+            id: `window-${Math.random()}:${index}:${counter++}`,
             position: {x: 200 + (index * 350), y: 150},
             config,
             provider: 'testing'

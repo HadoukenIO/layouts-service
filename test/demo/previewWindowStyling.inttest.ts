@@ -86,7 +86,7 @@ describe('When starting up the service', () => {
 
 describe('When transforming a window', () => {
     async function init(...configs: Preview[]) {
-        windows = await createWindowsWithConfig(...configs);
+        windows = await createWindowsWithConfig('style', ...configs);
         const bounds = await windows[1].getBounds();
         await dragWindowAndHover(windows[1], bounds.right! + 300, bounds.top);
     }
@@ -126,7 +126,7 @@ describe('When transforming a window', () => {
 
 describe('When windows are about to be tabbed together', () => {
     async function init(activeIndex: number, ...configs: (Preview | undefined)[]) {
-        windows = await createWindowsWithConfig(...configs);
+        windows = await createWindowsWithConfig('style', ...configs);
         const targetIndex = (activeIndex + 1) % 2;
         await tabWindowsTogether(windows[targetIndex], windows[activeIndex], false, false);
     }
@@ -174,7 +174,7 @@ describe('When windows are about to be tabbed together', () => {
 
 describe('When snapping two windows together', () => {
     async function init(activeIndex: number, ...configs: (Preview | undefined)[]) {
-        windows = await createWindowsWithConfig(...configs);
+        windows = await createWindowsWithConfig('style', ...configs);
         const targetIndex = (activeIndex + 1) % 2;
         const bounds = await windows[targetIndex].getBounds();
         await dragWindowAndHover(windows[activeIndex], bounds.right! + 15, bounds.top);
@@ -221,7 +221,7 @@ describe('When snapping two windows together', () => {
 
 describe('When tabbing & snapping', () => {
     async function init(activeIndex: number, ...configs: (Preview | undefined)[]) {
-        windows = await createWindowsWithConfig(...configs);
+        windows = await createWindowsWithConfig('style', ...configs);
         const targetIndex = (activeIndex + 1) % 2;
         const bounds = await windows[2].getBounds();
         await tabWindowsTogether(windows[targetIndex], windows[activeIndex], true, true);

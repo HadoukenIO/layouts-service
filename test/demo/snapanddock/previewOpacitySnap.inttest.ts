@@ -31,7 +31,7 @@ async function createWindows(...options: (PreviewOptions | undefined)[]): Promis
             tab: {activeOpacity: null, targetOpacity: null}
         };
     });
-    return createWindowsWithConfig(...configs);
+    return createWindowsWithConfig('snap', ...configs);
 }
 
 describe('When two windows are moved within snapping distance', () => {

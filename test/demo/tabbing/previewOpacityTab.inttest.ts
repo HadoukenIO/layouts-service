@@ -31,7 +31,7 @@ async function createWindows(...options: (PreviewOptions | undefined)[]): Promis
             snap: {activeOpacity: null, targetOpacity: null}
         };
     });
-    return createWindowsWithConfig(...configs);
+    return createWindowsWithConfig('tab', ...configs);
 }
 
 describe('When two windows are about to be tabbed together', () => {

@@ -2,7 +2,7 @@ import {Identity} from 'hadouken-js-adapter';
 
 import {deregister} from '../client/main';
 
-export {createChild, onAppRes} from './normalApp';
+export {createChild} from './normalApp';
 
 const launchDir = location.href.slice(0, location.href.lastIndexOf('/'));
 

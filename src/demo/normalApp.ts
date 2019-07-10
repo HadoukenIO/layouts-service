@@ -4,8 +4,6 @@ import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import * as Layouts from '../client/main';
 import {Workspace} from '../client/workspaces';
 
-import {defaultRestoreHandler} from './defaultRestoreHandlerApp';
-
 export interface Workspace {
     id: string;
     layout: Workspace;
@@ -54,5 +52,5 @@ export async function openChild(name: string, i: number, frame = true, state = '
 Layouts.workspaces.setGenerateHandler(() => {
     return {test: true};
 });
-Layouts.workspaces.setRestoreHandler(defaultRestoreHandler);
+Layouts.workspaces.setRestoreHandler(Layouts.workspaces.defaultRestoreHandler);
 Layouts.workspaces.ready();

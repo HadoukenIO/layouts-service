@@ -497,7 +497,6 @@ export async function ready(): Promise<Workspace> {
     return tryServiceDispatch<undefined, Workspace>(WorkspaceAPI.APPLICATION_READY);
 }
 
-
 export async function defaultRestoreHandler(workspaceApp: WorkspaceApp) {
     const ofApp = await fin.Application.getCurrent();
     const openWindows = await ofApp.getChildWindows();

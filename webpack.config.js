@@ -16,7 +16,10 @@ const schemaOutput = path.resolve(__dirname, './gen/provider/config');
 const defaultsOutput = path.resolve(__dirname, './gen/provider/config/defaults.json');
 
 /**
- * Generate TypeScript definition files from the config schema files.
+ * Webpack plugin to generate a static JSON file that contains the default value of every input schema.
+ *
+ * Any top-level 'rules' object will be stripped-out of the generated JSON, as the 'rules' property has
+ * special significance and isn't a part of the actual service-specific set of config options.
  *
  * Generated code is placed inside a top-level 'gen' folder, whose structure mirrors that of
  * the 'src', 'res' and 'test' folders.
@@ -27,7 +30,7 @@ const schemaDefaultsPlugin = new SchemaToDefaultsPlugin({
 });
 
 /**
- * Generate TypeScript definition files from the config schema files.
+ * Webpack plugin to generate TypeScript definitions from one or more JSON schema files.
  *
  * Generated code is placed inside a top-level 'gen' folder, whose structure mirrors that of
  * the 'src', 'res' and 'test' folders.

@@ -498,8 +498,8 @@ export async function ready(): Promise<Workspace> {
 }
 
 export async function defaultRestoreHandler(workspaceApp: WorkspaceApp) {
-    const ofApp = await fin.Application.getCurrent();
-    const openWindows = await ofApp.getChildWindows();
+    const openWindows = await fin.Application.getCurrentSync().getChildWindows();
+
     // iterate through the child windows of the workspaceApp data
     const opened = workspaceApp.childWindows.map(async (win: WorkspaceWindow): Promise<void> => {
         // check for existence of the window
@@ -517,7 +517,19 @@ export async function defaultRestoreHandler(workspaceApp: WorkspaceApp) {
     return workspaceApp;
 }
 
-async function createChild(workspaceWindow: WorkspaceWindow): Promise<void> {
+export async function createOrPosition(win: WorkspaceWindow) {
+    const openWindows = await fin.Application.getCurrentSync().getChildWindows();
+
+    if (!openWindows.some(w => w.identity.name === win.name)) {
+        // create the OpenFin window based on the data in the workspaceApp
+        return createChild(win);
+    } else {
+        // only position if the window exists
+        return positionWindow(win);
+    }
+}
+
+export async function createChild(workspaceWindow: WorkspaceWindow): Promise<void> {
     const {bounds, frame, isShowing, name, state, url} = workspaceWindow;
     await fin.Window.create({
         url,
@@ -526,17 +538,16 @@ async function createChild(workspaceWindow: WorkspaceWindow): Promise<void> {
         defaultWidth: bounds.width,
         defaultLeft: bounds.left,
         defaultTop: bounds.top,
-        saveWindowState: false,
         frame,
         state,
         name
     });
 }
 
-async function positionWindow(workspaceWindow: WorkspaceWindow): Promise<void> {
+export async function positionWindow(workspaceWindow: WorkspaceWindow): Promise<void> {
     const {bounds, frame, isShowing, state, isTabbed} = workspaceWindow;
     try {
-        const ofWin = await fin.Window.wrap(workspaceWindow);
+        const ofWin = fin.Window.wrapSync(workspaceWindow);
         await ofWin.setBounds(bounds);
 
         if (isTabbed) {

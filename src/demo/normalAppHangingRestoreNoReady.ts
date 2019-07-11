@@ -69,7 +69,7 @@ const positionWindow = async (win: WorkspaceWindow) => {
     try {
         const {isShowing, isTabbed} = win;
 
-        const ofWin = await fin.Window.wrap(win);
+        const ofWin = fin.Window.wrapSync(win);
         await ofWin.setBounds(win.bounds);
 
         if (isTabbed) {

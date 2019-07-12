@@ -2,7 +2,7 @@ import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import * as Layouts from '../client/main';
-import {Workspace, WorkspaceApp, WorkspaceWindow} from '../client/workspaces';
+import {Workspace, defaultRestoreHandler} from '../client/workspaces';
 
 export interface Workspace {
     id: string;
@@ -48,61 +48,11 @@ export async function openChild(name: string, i: number, frame = true, state = '
     }
 }
 
-export async function onAppRes(layoutApp: WorkspaceApp): Promise<WorkspaceApp> {
-    console.log('Apprestore called:', layoutApp);
-    const ofApp = fin.Application.getCurrentSync();
-    const openWindows = await ofApp.getChildWindows();
-    const openAndPosition = layoutApp.childWindows.map(async (win: WorkspaceWindow, index: number) => {
-        if (!openWindows.some((w: _Window) => w.identity.name === win.name)) {
-            await openChild(win.name, index, win.frame, win.state, win.url, win.bounds);
-        } else {
-            await positionWindow(win);
-        }
-    });
-    await Promise.all(openAndPosition);
-    return layoutApp;
-}
-
-// Positions a window when it is restored.
-// Also given to the client to use.
-const positionWindow = async (win: WorkspaceWindow) => {
-    try {
-        const {isShowing, isTabbed} = win;
-
-        const ofWin = fin.Window.wrapSync(win);
-        await ofWin.setBounds(win.bounds);
-
-        if (isTabbed) {
-            await ofWin.show();
-            return;
-        }
-
-        await ofWin.leaveGroup();
-
-        if (!isShowing) {
-            await ofWin.hide();
-            return;
-        }
-
-        if (win.state === 'normal') {
-            // Need to both restore and show because the restore function doesn't emit a `shown` or `show-requested` event
-            await ofWin.restore();
-            await ofWin.show();
-        } else if (win.state === 'minimized') {
-            await ofWin.minimize();
-        } else if (win.state === 'maximized') {
-            await ofWin.maximize();
-        }
-    } catch (e) {
-        console.error('position window error', e);
-    }
-};
-
 // Allow layouts service to save and restore this application
 Layouts.workspaces.setGenerateHandler(() => {
     return {test: true};
 });
-Layouts.workspaces.setRestoreHandler(onAppRes);
+Layouts.workspaces.setRestoreHandler(defaultRestoreHandler);
 // This is meant to test what happens when an application doesn't call its `ready` function.
 // In this case, the application never tells the service that it's ready to accept its workspace payload, so
-// `onAppRes` never gets called. This results in child windows not being restored.
+// the restore handler never gets called. This results in child windows not being restored.

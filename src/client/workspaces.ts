@@ -497,6 +497,18 @@ export async function ready(): Promise<Workspace> {
     return tryServiceDispatch<undefined, Workspace>(WorkspaceAPI.APPLICATION_READY);
 }
 
+/**
+ * A simple restoreHandler that can be passed to `setRestoreHandler` when no custom logic is needed.
+ *
+ * This restore handler will open and position any child windows which are not currently running
+ * and move any open child windows to their expected postions for the restoring workspace.
+ *
+ * ``` ts
+ * import {workspaces} from 'openfin-layouts';
+ *
+ * workspaces.setRestoreHandler(workspaces.defaultRestoreHandler);
+ * ```
+ */
 export async function defaultRestoreHandler(workspaceApp: WorkspaceApp) {
     const openWindows = await fin.Application.getCurrentSync().getChildWindows();
 
@@ -517,6 +529,12 @@ export async function defaultRestoreHandler(workspaceApp: WorkspaceApp) {
     return workspaceApp;
 }
 
+/**
+ * An additional helper function that can be used to create cutom restore handlers.
+ *
+ * Given a WorksapceWindow it will determine whether the window is running and then
+ * call `createChild` or `positionWindow` as appropriate.
+ */
 export async function createOrPosition(win: WorkspaceWindow) {
     const openWindows = await fin.Application.getCurrentSync().getChildWindows();
 
@@ -529,6 +547,12 @@ export async function createOrPosition(win: WorkspaceWindow) {
     }
 }
 
+/**
+ * Given a workspaceWindow object for a non-open window, this will create the window, position it,
+ * and update its visibility, state and frame to fit with the restoring workspace.
+ *
+ * Called by the defaultRestoreHandler for any non-running windows in the workspace
+ */
 export async function createChild(workspaceWindow: WorkspaceWindow): Promise<void> {
     const {bounds, frame, isShowing, name, state, url} = workspaceWindow;
     await fin.Window.create({
@@ -544,6 +568,13 @@ export async function createChild(workspaceWindow: WorkspaceWindow): Promise<voi
     });
 }
 
+/**
+ * Given a workspaceWindow object for a currently open window, this will position and
+ * update the visibility, state and frame of that window to fit with the restoring
+ * workspace.
+ *
+ * Called by the defaultRestoreHandler for any currently running windows in the workspace.
+ */
 export async function positionWindow(workspaceWindow: WorkspaceWindow): Promise<void> {
     const {bounds, frame, isShowing, state, isTabbed} = workspaceWindow;
     try {

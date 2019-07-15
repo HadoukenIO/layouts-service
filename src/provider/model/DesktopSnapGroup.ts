@@ -76,7 +76,7 @@ export class DesktopSnapGroup {
 
     private rootWindow: DesktopWindow|null;
 
-    private _validateGroup: Debounced<() => void, DesktopSnapGroup, []>;
+    private _validateGroup: Debounced<() => Promise<void>, DesktopSnapGroup, []>;
 
     private _resizeConstraintsSuspended: boolean;
 
@@ -176,8 +176,8 @@ export class DesktopSnapGroup {
         }
     }
 
-    public validate(): void {
-        this._validateGroup.call();
+    public validate(): Promise<void> {
+        return this._validateGroup.call();
     }
 
     public isNonTrivial(): boolean {
@@ -217,16 +217,14 @@ export class DesktopSnapGroup {
         }
     }
 
-    private validateGroupInternal(): void {
+    private async validateGroupInternal(): Promise<void> {
         // Ensure 'group' is still a valid, contiguous group.
         const contiguousWindowSets = this.getContiguousEntities(this.entities);
-        if (contiguousWindowSets.length > 1) {                             // Group is disjointed. Need to split.
-            for (const windowsToGroup of contiguousWindowSets.slice(1)) {  // Leave first set as-is. Move others into own groups.
+        if (contiguousWindowSets.length > 1) {                      // Group is disjointed. Need to split.
+            await Promise.all(contiguousWindowSets.slice(1).map(set => {  // Leave first set as-is. Move others into own groups.
                 const newGroup = new DesktopSnapGroup();
-                for (const windowToGroup of windowsToGroup) {
-                    windowToGroup.setSnapGroup(newGroup);
-                }
-            }
+                return Promise.all(set.map(window => window.setSnapGroup(newGroup)));
+            }));
         }
     }
 

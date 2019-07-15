@@ -66,7 +66,7 @@ export class DesktopTabGroup implements DesktopEntity {
 
     private _config: ApplicationUIConfig;
 
-    private _validateGroup: Debounced<() => void, DesktopTabGroup, []>;
+    private _validateGroup: Debounced<() => Promise<void>, DesktopTabGroup, []>;
 
     private _closingOnTabRemoval: boolean;
 
@@ -548,8 +548,8 @@ export class DesktopTabGroup implements DesktopEntity {
         return Promise.all(promises).then(() => {});
     }
 
-    public validate(): void {
-        this._validateGroup.call();
+    public async validate(): Promise<void> {
+        return this._validateGroup.call();
     }
 
     public getSaveDimensions(): TabGroupDimensions {
@@ -802,7 +802,7 @@ export class DesktopTabGroup implements DesktopEntity {
 
     // Will check that all of the tabs and the tabstrip are still in the correct relative positions, and if not
     // moves them so that they are
-    private async validateGroupInternal() {
+    private async validateGroupInternal(): Promise<void> {
         const expectedTabstripPosition = {
             center: {
                 x: this.activeTab.currentState.center.x,

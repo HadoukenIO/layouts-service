@@ -1,14 +1,7 @@
 const path = require('path');
-
-/**
- * Import config generator plugins from openfin-service-config
- */
 const {SchemaToDefaultsPlugin} = require('openfin-service-config/plugins/SchemaToDefaultsPlugin');
 const {SchemaToTypeScriptPlugin} = require('openfin-service-config/plugins/SchemaToTypeScriptPlugin');
-/**
- * Import the webpack tools from openfin-service-tooling
- */
-const webpackTools = require('openfin-service-tooling').webpackTools;
+const {webpackTools} = require('openfin-service-tooling');
 
 const outputDir = path.resolve(__dirname, './dist');
 const schemaRoot = path.resolve(__dirname, './res/provider/config');

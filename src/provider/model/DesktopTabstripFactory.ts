@@ -23,6 +23,8 @@ const DEFAULT_UI_URL = (() => {
  */
 export class DesktopTabstripFactory {
     public static readonly DEFAULT_CONFIG: Tabstrip = {url: DEFAULT_UI_URL, height: 60};
+    private static readonly POOL_MAX_SIZE: number = 3;
+    private static readonly POOL_MIN_SIZE: number = 1;
 
     /**
      * Utility method for converting a Tabstrip|'default' to a Tabstrip
@@ -42,10 +44,10 @@ export class DesktopTabstripFactory {
         this._watch = new MaskWatch(config, {tabstrip: true});
         this._watch.onAdd.add(this.onTabstripConfigAdded, this);
 
-        // Creates 3 default windows in the pool.
-        this.createAndPool(DesktopTabstripFactory.DEFAULT_CONFIG);
-        this.createAndPool(DesktopTabstripFactory.DEFAULT_CONFIG);
-        this.createAndPool(DesktopTabstripFactory.DEFAULT_CONFIG);
+        // Fills the pool with the default tabstrip windows.
+        for (let i = 0; i < DesktopTabstripFactory.POOL_MAX_SIZE; i++){
+            this.createAndPool(DesktopTabstripFactory.DEFAULT_CONFIG);
+        }
     }
 
     /**
@@ -57,10 +59,12 @@ export class DesktopTabstripFactory {
         const pooledWindows = this._windowPool.get(options.url) || [];
         const next = pooledWindows.shift();
         // setTimeout to offset blocking fin window creation
-        // Runtime Ticket RUN-4704
-        setTimeout(() => {
-            this.createAndPool(options);
-        }, 2000);
+        // TODO: Runtime Ticket RUN-4704
+        if (pooledWindows.length < DesktopTabstripFactory.POOL_MIN_SIZE){
+            setTimeout(() => {
+                this.createAndPool(options);
+            }, 1000);
+        }
         return next;
     }
 
@@ -102,18 +106,32 @@ export class DesktopTabstripFactory {
 
     /**
      * Creates and pools windows against a specific ApplicationUI configuration.
-     * @param {ApplicationUIConfig} options The configuration to create the windows against.
+     * @param options The configuration to create the windows against.
      */
-    private createAndPool(options: ApplicationUIConfig) {
+    private createAndPool(options: ApplicationUIConfig): void {
         if (!this._windowPool.has(options.url)) {
+            this._windowPool.set(options.url, []);
+        }
+        if (this._windowPool.get(options.url)!.length < DesktopTabstripFactory.POOL_MAX_SIZE) {
             this.createWindow(options).then((window) => {
-                this._windowPool.set(options.url, [window]);
-            });
-        } else if (this._windowPool.has(options.url) && this._windowPool.get(options.url)!.length < 3) {
-            this.createWindow(options).then((window) => {
-                this._windowPool.set(options.url, [...this._windowPool.get(options.url)!, window]);
+                this.hideOffScreen(window);
+                this._windowPool.get(options.url)!.push(window);
+                window.addListener('closed', () =>{
+                    this.createAndPool(options);
+                });
             });
         }
+    }
+
+    /**
+     * Hide a window offscreen so it doesn't flicker on startup.
+     * @param window The window to hide.
+     */
+    private async hideOffScreen(window: _Window){
+        const {virtualScreen} = await fin.System.getMonitorInfo();
+        const {width, height} = await window.getBounds();
+        await window.showAt(virtualScreen.left - width, virtualScreen.top - height);
+        await window.hide();
     }
 
     /**

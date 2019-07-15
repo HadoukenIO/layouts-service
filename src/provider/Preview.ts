@@ -1,4 +1,5 @@
 import deepEqual from 'fast-deep-equal';
+import {RequiredRecursive, Mask} from 'openfin-service-config/ConfigUtil';
 
 import {Scope, Preview as PreviewProps} from '../../gen/provider/config/layouts-config';
 
@@ -7,7 +8,6 @@ import {Rectangle} from './snapanddock/utils/RectUtils';
 import {TabTarget} from './tabbing/TabService';
 import {eTargetType} from './WindowHandler';
 import {ConfigStore} from './main';
-import {Mask, RequiredRecursive} from './config/ConfigUtil';
 import {DesktopSnapGroup} from './model/DesktopSnapGroup';
 import {eTransformType} from './model/DesktopWindow';
 import {PreviewMap, createPreviewMap, Validity, PreviewType, forEachPreviewMap} from './PreviewMap';

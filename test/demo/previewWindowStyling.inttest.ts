@@ -1,11 +1,11 @@
 import robot from 'robotjs';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
+import {RequiredRecursive} from 'openfin-service-config/ConfigUtil';
 
 import {ConfigurationObject, Overlay, Preview} from '../../gen/provider/config/layouts-config';
 import {teardown} from '../teardown';
 import {dragWindowAndHover} from '../provider/utils/dragWindowAndHover';
 import {getWindowConfig} from '../provider/utils/getWindowConfig';
-import {RequiredRecursive} from '../../src/provider/config/ConfigUtil';
 import {tabWindowsTogether} from '../provider/utils/tabWindowsTogether';
 import {PreviewMap, PreviewType, forEachPreviewMap, Validity} from '../../src/provider/PreviewMap';
 

@@ -13,6 +13,7 @@ import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {SignalSlot} from '../Signal';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
+import {MonitorAssignmentValidator} from '../snapanddock/utils/MonitorAssignmentValidator';
 
 import {DesktopTabGroup} from './DesktopTabGroup';
 import {DesktopWindow, EntityState, WindowIdentity} from './DesktopWindow';
@@ -98,10 +99,13 @@ export class DesktopModel {
             this._displayScaling = evt.deviceScaleFactor !== 1;
 
             // Validate all tabgroups
-            this.tabGroups.map(g => g.validate());
+            await Promise.all(this.tabGroups.map(g => g.validate()));
 
             // Validate all snap groups
-            this.snapGroups.map(g => g.validate());
+            await Promise.all(this.snapGroups.map(g => g.validate()));
+
+            // Validate monitor assignment
+            await new MonitorAssignmentValidator(this).validate();
         });
 
         // Get and store the current monitors

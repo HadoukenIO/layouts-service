@@ -9,9 +9,9 @@ type DesktopEntity = {currentState: Rectangle & {state: WindowState}};
 type DesktopSnapGroup = {entities: {currentState: Rectangle}[]} & Rectangle;
 
 export class MonitorAssignmentCalculator {
-    private _monitorRectangles: Rectangle[];
+    private _monitorRectangles: ReadonlyArray<Rectangle>;
 
-    public constructor(monitorRectangles: Rectangle[]) {
+    public constructor(monitorRectangles: ReadonlyArray<Rectangle>) {
         this._monitorRectangles = monitorRectangles;
     }
 

@@ -1,4 +1,4 @@
-import {deferredPromise} from '../../utils/async';
+import {deferredPromise, DeferredPromise} from '../../utils/async';
 
 /**
  * Util for de-bouncing calls to a function. The function will be wrapped within this object, which bundles the
@@ -13,25 +13,21 @@ import {deferredPromise} from '../../utils/async';
 export class Debounced<C extends Function, S, A extends any[]> {
     private static DEBOUNCE_INTERVAL = 200;
 
-    private _promise!: [Promise<void>, (value?: void) => void, (reason?: any) => void];
-    private callback: C;
-    private scope: S;
-    private args: A|undefined;
+    private _deferredPromise: DeferredPromise<void> | undefined;
+
+    private _callback: C;
+    private _scope: S;
+    private _args: A|undefined;
 
     // Multiple definitions of setTimeout/clearTimeout, and not possible to point TSC at the correct (non-Node) definition
-    private handle: number|NodeJS.Timer;
+    private _handle: number | NodeJS.Timer;
 
     constructor(callback: C, scope: S) {
-        this.callback = callback;
-        this.scope = scope;
+        this._callback = callback;
+        this._scope = scope;
 
-        this.handle = -1;
+        this._handle = -1;
         this.onTimeout = this.onTimeout.bind(this);
-    }
-
-    public get promise(): Promise<void> {
-        const [promise] = this._promise;
-        return promise;
     }
 
     /**
@@ -44,11 +40,15 @@ export class Debounced<C extends Function, S, A extends any[]> {
      *
      * @param args Arguments to hit the callback with
      */
-    public call(...args: A): Promise<void> {
-        this._promise = deferredPromise();
-        this.args = args;
+    public async call(...args: A): Promise<void> {
+        this._args = args;
         this.schedule();
-        return this._promise[0];
+
+        if (!this._deferredPromise) {
+            this._deferredPromise = deferredPromise<void>();
+        }
+
+        return this._deferredPromise[0];
     }
 
     /**
@@ -57,29 +57,29 @@ export class Debounced<C extends Function, S, A extends any[]> {
      * Has no effect if the timer isn't currently active.
      */
     public postpone(): void {
-        if (this.handle >= 0) {
+        if (this._handle >= 0) {
             this.schedule();
         }
     }
 
-    private onTimeout(): void {
-        const args = this.args;
-        delete this.args;
+    private async onTimeout(): Promise<void> {
+        const args = this._args;
+        delete this._args;
 
-        this.handle = -1;
-        this.callback.apply(this.scope, args);
-        const [_, resolve] = this._promise;
-        resolve();
+        this._handle = -1;
+        await this._callback.apply(this._scope, args);
+
+        this._deferredPromise![1]();
     }
 
     private cancel(): void {
-        if (this.handle >= 0) {
-            clearTimeout(this.handle as number);
+        if (this._handle >= 0) {
+            clearTimeout(this._handle as number);
         }
     }
 
     private schedule(): void {
         this.cancel();
-        this.handle = setTimeout(this.onTimeout, Debounced.DEBOUNCE_INTERVAL);
+        this._handle = setTimeout(this.onTimeout, Debounced.DEBOUNCE_INTERVAL);
     }
 }

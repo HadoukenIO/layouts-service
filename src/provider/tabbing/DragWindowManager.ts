@@ -97,17 +97,20 @@ export class DragWindowManager {
      * Creates the drag overlay window.
      */
     private async createDragWindow(): Promise<void> {
+        const {virtualScreen} = await fin.System.getMonitorInfo();
         await new Promise(resolve => {
+            // default size can't be smaller than 60.
+            const size = 100;
             this._window = new fin.desktop.Window(
                 {
                     name: 'TabbingDragWindow',
                     url: 'about:blank',
-                    defaultHeight: 1,
-                    defaultWidth: 1,
+                    defaultHeight: size,
+                    defaultWidth: size,
                     defaultLeft: 0,
                     defaultTop: 0,
                     saveWindowState: false,
-                    autoShow: true,
+                    autoShow: false,
                     opacity: 0.01,
                     frame: false,
                     waitForPageLoad: false,
@@ -116,6 +119,8 @@ export class DragWindowManager {
                     smallWindow: true
                 },
                 () => {
+                    // Show window offscreen so it can render without a flicker
+                    this._window.showAt(virtualScreen.left - size, virtualScreen.top - size);
                     resolve();
                 }
             );

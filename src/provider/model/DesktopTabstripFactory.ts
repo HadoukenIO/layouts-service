@@ -44,10 +44,10 @@ export class DesktopTabstripFactory {
         this._watch = new MaskWatch(config, {tabstrip: true});
         this._watch.onAdd.add(this.onTabstripConfigAdded, this);
 
-        // Creates 3 default windows in the pool.
-        this.createAndPool(DesktopTabstripFactory.DEFAULT_CONFIG);
-        this.createAndPool(DesktopTabstripFactory.DEFAULT_CONFIG);
-        this.createAndPool(DesktopTabstripFactory.DEFAULT_CONFIG);
+        // Fills the pool with the default tabstrip windows.
+        for (let i = 0; i < DesktopTabstripFactory.POOL_MAX_SIZE; i++){
+            this.createAndPool(DesktopTabstripFactory.DEFAULT_CONFIG);
+        }
     }
 
     /**

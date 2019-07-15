@@ -1,6 +1,6 @@
 import {Window} from 'hadouken-js-adapter';
 import {WindowInfo, WindowDetail} from 'hadouken-js-adapter/out/types/src/api/system/window';
-import {Scopes, ConfigWithRules, StoredConfig} from 'openfin-service-config';
+import {Scopes, StoredConfig} from 'openfin-service-config';
 import {ScopePrecedence} from 'openfin-service-config/ConfigUtil';
 
 import {ConfigurationObject} from '../gen/provider/config/layouts-config';

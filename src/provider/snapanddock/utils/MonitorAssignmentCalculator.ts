@@ -2,8 +2,9 @@ import {WindowState} from '../../../client/workspaces';
 
 import {Rectangle, RectUtils} from './RectUtils';
 
-type WindowResult = {entityRectangle: Rectangle, monitorRectangle: Rectangle, fit: boolean};
-type SnapGroupResult = {entityRectangles: Rectangle[], valid: boolean};
+type RectangleResult = Rectangle | 'unchanged';
+type EntityResult = {entityRectangle: RectangleResult, monitorRectangle: Rectangle, fit: boolean};
+type SnapGroupResult = {entityRectangles: RectangleResult[], valid: boolean} | 'unchanged';
 
 type DesktopEntity = {currentState: Rectangle & {state: WindowState}};
 type DesktopSnapGroup = {entities: {currentState: Rectangle}[]} & Rectangle;
@@ -15,12 +16,16 @@ export class MonitorAssignmentCalculator {
         this._monitorRectangles = monitorRectangles;
     }
 
-    public getMovedEntityRectangle(entity: DesktopEntity): Rectangle {
+    public getMovedEntityRectangle(entity: DesktopEntity): RectangleResult {
         return this.getMovedEntityAndMonitorRectangle(entity.currentState, entity.currentState.state === 'maximized').entityRectangle;
     }
 
     public getMovedSnapGroupRectangles(snapGroup: DesktopSnapGroup): SnapGroupResult {
         const groupResult = this.getMovedEntityAndMonitorRectangle(snapGroup, false);
+
+        if (groupResult.entityRectangle === 'unchanged') {
+            return 'unchanged';
+        }
 
         const monitorRectangle = groupResult.monitorRectangle;
         const groupRectangle = groupResult.entityRectangle;
@@ -37,22 +42,24 @@ export class MonitorAssignmentCalculator {
         if (groupResult.fit) {
             return {entityRectangles: entityRectangles, valid: true};
         } else {
-            return {entityRectangles: entityRectangles.map(rectangle => {
-                const rectangleWithinMonitor = this.attemptGetEntityRectangleWithinMonitorRectangle(rectangle, false, monitorRectangle);
+            return {
+                entityRectangles: entityRectangles.map(rectangle => {
+                    const rectangleWithinMonitor = this.attemptGetEntityRectangleWithinMonitorRectangle(rectangle, false, monitorRectangle);
 
-                if (rectangleWithinMonitor) {
-                    return rectangleWithinMonitor;
-                } else {
-                    return this.getEntityRectangleOverMonitor(rectangle, false, monitorRectangle);
-                }
-            }), valid: false};
+                    if (rectangleWithinMonitor) {
+                        return rectangleWithinMonitor === 'unchanged' ? rectangle : rectangleWithinMonitor;
+                    } else {
+                        return this.getEntityRectangleOverMonitor(rectangle, false, monitorRectangle);
+                    }
+                }),
+                valid: false};
         }
     }
 
     /**
      * For a given entity rectangle, returns it's new rectangle, and that of the monitor it is now assigned to
      */
-    private getMovedEntityAndMonitorRectangle(stateEntityRectangle: Rectangle, maximized: boolean): WindowResult {
+    private getMovedEntityAndMonitorRectangle(stateEntityRectangle: Rectangle, maximized: boolean): EntityResult {
         const candidateMonitorRectangles = this.getMonitorRectanglesSortedByDistance(stateEntityRectangle);
 
         // Try to find a monitor this entity will fit in
@@ -81,21 +88,27 @@ export class MonitorAssignmentCalculator {
         entityRectangle: Rectangle,
         maximized: boolean,
         monitorRectangle: Rectangle
-    ): Rectangle | undefined {
-        const resultRectangle = {center: {...entityRectangle.center}, halfSize: {...entityRectangle.halfSize}};
+    ): Rectangle | 'unchanged' | undefined {
+        let resultRectangle: Rectangle | 'unchanged' = 'unchanged';
 
         for (const axis of ['x', 'y'] as ('x' | 'y')[]) {
             const buffer = monitorRectangle.halfSize[axis] - entityRectangle.halfSize[axis];
 
-            const rightBuffer = buffer - (monitorRectangle.center[axis] - entityRectangle.center[axis]);
-            const leftBuffer = buffer + (monitorRectangle.center[axis] - entityRectangle.center[axis]);
+            const highBuffer = buffer - (monitorRectangle.center[axis] - entityRectangle.center[axis]);
+            const lowBuffer = buffer + (monitorRectangle.center[axis] - entityRectangle.center[axis]);
 
             if (buffer < 0 || (maximized && buffer !== 0)) { // In the maximized case, we're looking for an exact fit
                 return undefined;
-            } else if (leftBuffer < 0) {
-                resultRectangle.center[axis] -= leftBuffer;
-            } else if (rightBuffer < 0) {
-                resultRectangle.center[axis] += rightBuffer;
+            } else if (highBuffer < 0 || lowBuffer < 0) {
+                if (resultRectangle === 'unchanged') {
+                    resultRectangle = {center: {...entityRectangle.center}, halfSize: {...entityRectangle.halfSize}};
+                }
+
+                if (lowBuffer < 0) {
+                    resultRectangle.center[axis] -= lowBuffer;
+                } else {
+                    resultRectangle.center[axis] += highBuffer;
+                }
             }
         }
 

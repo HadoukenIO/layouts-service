@@ -8,7 +8,6 @@ import {getWindowConfig} from '../provider/utils/getWindowConfig';
 import {RequiredRecursive} from '../../src/provider/config/ConfigUtil';
 import {tabWindowsTogether} from '../provider/utils/tabWindowsTogether';
 import {PreviewMap, PreviewType, forEachPreviewMap, Validity} from '../../src/provider/PreviewMap';
-import {delay} from '../provider/utils/delay';
 
 import {createWindowsWithConfig} from './utils/createWindowsWithConfig';
 import {getPreviewWindows, getAllPreviewWindowsStyles, isPreviewShowing, compareOverlays} from './utils/previewWindowUtils';
@@ -94,7 +93,6 @@ describe('When transforming a window', () => {
     beforeEach(async () => {
         await init(window1Style, window2Style);
         previewWindowsStyles = getAllPreviewWindowsStyles();
-        await delay(500);
     });
 
     it('All preview windows should be hidden', async () => {
@@ -135,7 +133,6 @@ describe('When windows are about to be tabbed together', () => {
         beforeEach(async () => {
             await init(0, undefined, undefined);
             previewWindowsStyles = await getAllPreviewWindowsStyles();
-            await delay(500);
         });
 
         it('The default valid preview style is shown', async () => {
@@ -150,7 +147,6 @@ describe('When windows are about to be tabbed together', () => {
         beforeEach(async () => {
             await init(0, window1Style, window2Style, undefined);
             previewWindowsStyles = getAllPreviewWindowsStyles();
-            await delay(500);
         });
 
         it('The active window\'s valid preview is shown', async () => {
@@ -184,7 +180,6 @@ describe('When snapping two windows together', () => {
         beforeEach(async () => {
             await init(0, undefined, undefined);
             previewWindowsStyles = getAllPreviewWindowsStyles();
-            await delay(500);
         });
 
         it('The default valid preview style is shown', async () => {
@@ -232,7 +227,6 @@ describe('When tabbing & snapping', () => {
     beforeEach(async () => {
         await init(0, window1Style, undefined, window2Style);
         previewWindowsStyles = getAllPreviewWindowsStyles();
-        await delay(500);
     });
 
     describe('When a tab group snaps to another window', () => {

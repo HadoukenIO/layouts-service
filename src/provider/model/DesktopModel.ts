@@ -101,11 +101,11 @@ export class DesktopModel {
             // Validate all tabgroups
             await Promise.all(this.tabGroups.map(g => g.validate()));
 
-            // Validate all snap groups
-            await Promise.all(this.snapGroups.map(g => g.validate()));
-
             // Validate monitor assignment
             await new MonitorAssignmentValidator(this).validate();
+
+            // Validate all snap groups
+            await Promise.all(this.snapGroups.map(g => g.validate()));
         });
 
         // Get and store the current monitors

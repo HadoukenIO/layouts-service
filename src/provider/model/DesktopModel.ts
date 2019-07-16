@@ -36,6 +36,7 @@ export class DesktopModel {
     private _snapGroups: DesktopSnapGroup[];
     private _windowLookup: {[key: string]: DesktopWindow};
     private _zIndexer: ZIndexer;
+    private _monitorAssignmentValidator: MonitorAssignmentValidator;
     private _mouseTracker: MouseTracker;
     private _monitors: Rectangle[];
     private _displayScaling: boolean;
@@ -46,6 +47,7 @@ export class DesktopModel {
         this._snapGroups = [];
         this._windowLookup = {};
         this._zIndexer = new ZIndexer(this);
+        this._monitorAssignmentValidator = new MonitorAssignmentValidator(this);
         this._mouseTracker = new MouseTracker();
         this._monitors = [];
         this._displayScaling = false;
@@ -101,11 +103,11 @@ export class DesktopModel {
             // Validate all tabgroups
             await Promise.all(this.tabGroups.map(g => g.validate()));
 
-            // Validate monitor assignment
-            await new MonitorAssignmentValidator(this).validate();
-
             // Validate all snap groups
             await Promise.all(this.snapGroups.map(g => g.validate()));
+
+            // Validate monitor assignment
+            await this._monitorAssignmentValidator.validate();
         });
 
         // Get and store the current monitors

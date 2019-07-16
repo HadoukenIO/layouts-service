@@ -3,7 +3,7 @@ import {DesktopEntity} from '../../model/DesktopEntity';
 import {DesktopSnapGroup} from '../../model/DesktopSnapGroup';
 
 import {Rectangle} from './RectUtils';
-import {MonitorAssignmentCalculator} from './MonitorAssignmentCalculator';
+import {MonitorAssignmentCalculator, SnapGroupResult, EntityResult} from './MonitorAssignmentCalculator';
 import {Debounced} from './Debounced';
 
 export class MonitorAssignmentValidator {
@@ -24,51 +24,75 @@ export class MonitorAssignmentValidator {
     public async validateInternal(): Promise<void> {
         const calculator = new MonitorAssignmentCalculator(this._model.monitors);
 
-        const entities = [...this._model.windows, ...this._model.tabGroups].filter(entity => !entity.snapGroup.isNonTrivial());
-        const snapGroups = this._model.snapGroups.filter(snapGroup => snapGroup.isNonTrivial());
+        const snapGroups = this.getSnapGroups();
+        const entities = this.getEntities();
 
-        const entityRectangles = entities.map(entity => calculator.getMovedEntityRectangle(entity));
         const snapGroupResults = snapGroups.map(snapGroup => calculator.getMovedSnapGroupRectangles(snapGroup));
+        const entityResults = entities.map(entity => calculator.getMovedEntityRectangle(entity));
 
-        const moveEntitiesPromise = this.applyEntityResults(entities, entityRectangles);
+        const moveSnapGroupsPromise = this.applySnapGroupResults(snapGroups, snapGroupResults);
+        const moveEntitiesPromise = this.applyEntityResults(entities, entityResults);
 
-        const moveSnapGroupsPromise = Promise.all(snapGroupResults.map(async (snapGroupResult, snapGroupIndex : number) => {
-            if (snapGroupResult === 'unchanged') {
-                return;
-            } else {
-                const snapGroup = snapGroups[snapGroupIndex];
-                await this.applyEntityResults(snapGroup.entities, snapGroupResult.entityRectangles);
-
-                // Remove moved entities *one at a time* from snap group
-                for (let i = 0; i < snapGroup.entities.length; i++) {
-                    const entity = snapGroup.entities[i];
-                    const rectangle = snapGroupResult.entityRectangles[i];
-
-                    if (rectangle !== 'unchanged') {
-                        await entity.setSnapGroup(new DesktopSnapGroup());
-                    }
-                }
-            }
-        }));
-
-        await Promise.all([moveEntitiesPromise, moveSnapGroupsPromise]);
+        await Promise.all([moveSnapGroupsPromise, moveEntitiesPromise]);
     }
 
-    private async applyEntityResults(entities: DesktopEntity[], rectanglesResults: (Rectangle | 'unchanged')[]): Promise<void> {
-        await Promise.all(rectanglesResults.map(async (rectanglesResult: Rectangle | 'unchanged', entityIndex: number) => {
-            if (rectanglesResult === 'unchanged') {
-                return;
-            } else {
-                const entity = entities[entityIndex];
-                const center = entity.currentState.center;
+    private getSnapGroups(): DesktopSnapGroup[] {
+        return this._model.snapGroups.filter(snapGroup => snapGroup.isNonTrivial());
+    }
 
-                const offset = {x: rectanglesResult.center.x - center.x, y: rectanglesResult.center.y - center.y};
+    private getEntities(): DesktopEntity[] {
+        return this._model.snapGroups.filter(snapGroup => !snapGroup.isNonTrivial()).flatMap(snapGroup => snapGroup.entities);
+    }
 
-                await entity.applyOffset(offset, rectanglesResult.halfSize);
-                if (entity.snapGroup.isNonTrivial()) {
-                    entity.setSnapGroup(new DesktopSnapGroup());
-                }
-            }
+    private async applySnapGroupResults(snapGroups: DesktopSnapGroup[], snapGroupResults: SnapGroupResult[]): Promise<void> {
+        await Promise.all(snapGroupResults.map(async (snapGroupResult, snapGroupIndex : number) => {
+            const snapGroup = snapGroups[snapGroupIndex];
+            await this.applySnapGroupResult(snapGroup, snapGroupResult.groupRectangle);
+
+            // TODO: Decide if we want this line. Do we keep snap group integrity? Or pull all windows on screen?
+            await this.applyEntityResults(snapGroup.entities, snapGroupResult.entityResults);
         }));
+    }
+
+    private async applyEntityResults(entities: DesktopEntity[], entityResults: EntityResult[]): Promise<void> {
+        await Promise.all(entityResults.map(async (rectangle: Rectangle, entityIndex: number) => {
+            const entity = entities[entityIndex];
+            return this.applyEntityResult(entity, rectangle);
+        }));
+    }
+
+    private async applySnapGroupResult(snapGroup: DesktopSnapGroup, rectangle: Rectangle): Promise<void> {
+        const center = snapGroup.center;
+
+        const offset = {x: rectangle.center.x - center.x, y: rectangle.center.y - center.y};
+
+        if (offset.x !== 0 || offset.y !== 0) {
+            // await snapGroup.applyOffset(offset);
+        }
+    }
+
+    private async applyEntityResult(entity: DesktopEntity, rectangle: Rectangle): Promise<void> {
+        const center = entity.currentState.center;
+
+        const offset = {x: rectangle.center.x - center.x, y: rectangle.center.y - center.y};
+
+        if (offset.x !== 0 || offset.y !== 0) {
+            if (entity.snapGroup.isNonTrivial()) {
+                await entity.setSnapGroup(new DesktopSnapGroup());
+            }
+
+            const state = entity.currentState.state;
+            if (state !== 'normal') {
+                // entity.restore();
+            }
+
+            await entity.applyOffset(offset, rectangle.halfSize);
+
+            if (state === 'maximized') {
+                // entity.maximize();
+            } else if (state === 'minimized') {
+                // entity.minimize();
+            }
+        }
     }
 }

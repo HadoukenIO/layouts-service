@@ -79,8 +79,10 @@ export class MonitorAssignmentCalculator {
         for (const axis of ['x', 'y'] as ('x' | 'y')[]) {
             const buffer = monitorRectangle.halfSize[axis] - entityRectangle.halfSize[axis];
 
-            const highBuffer = buffer - (monitorRectangle.center[axis] - entityRectangle.center[axis]);
-            const lowBuffer = buffer + (monitorRectangle.center[axis] - entityRectangle.center[axis]);
+            const offset = (entityRectangle.center[axis] - monitorRectangle.center[axis]);
+
+            const highBuffer = buffer - offset;
+            const lowBuffer = buffer + offset;
 
             if (buffer < 0) { // In the maximized case, we're looking for an exact fit
                 return undefined;

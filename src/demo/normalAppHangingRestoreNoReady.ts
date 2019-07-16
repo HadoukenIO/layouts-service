@@ -2,7 +2,7 @@ import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import * as Layouts from '../client/main';
-import {Workspace, defaultRestoreHandler} from '../client/workspaces';
+import {Workspace} from '../client/workspaces';
 
 export interface Workspace {
     id: string;
@@ -52,7 +52,7 @@ export async function openChild(name: string, i: number, frame = true, state = '
 Layouts.workspaces.setGenerateHandler(() => {
     return {test: true};
 });
-Layouts.workspaces.setRestoreHandler(defaultRestoreHandler);
+Layouts.workspaces.setRestoreHandler(Layouts.restoreHelpers.basicRestoreHandler);
 // This is meant to test what happens when an application doesn't call its `ready` function.
 // In this case, the application never tells the service that it's ready to accept its workspace payload, so
 // the restore handler never gets called. This results in child windows not being restored.

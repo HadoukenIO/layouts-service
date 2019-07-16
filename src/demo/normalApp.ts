@@ -52,5 +52,5 @@ export async function openChild(name: string, i: number, frame = true, state = '
 Layouts.workspaces.setGenerateHandler(() => {
     return {test: true};
 });
-Layouts.workspaces.setRestoreHandler(Layouts.workspaces.defaultRestoreHandler);
+Layouts.workspaces.setRestoreHandler(Layouts.restoreHelpers.basicRestoreHandler);
 Layouts.workspaces.ready();

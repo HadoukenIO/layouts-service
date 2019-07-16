@@ -7,8 +7,9 @@ import * as snapAndDock from './snapanddock';
 import * as tabbing from './tabbing';
 import * as tabstrip from './tabstrip';
 import * as workspaces from './workspaces';
+import * as restoreHelpers from './restoreHelpers';
 
-export {snapAndDock, tabbing, tabstrip, workspaces};
+export {snapAndDock, tabbing, tabstrip, workspaces, restoreHelpers};
 
 /**
  * Interface used to identify window instances. Unlike `hadouken-js-adapter` types, the layouts service expects the

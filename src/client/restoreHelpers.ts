@@ -4,7 +4,7 @@ import {WorkspaceWindow, WorkspaceApp} from './workspaces';
  * A simple restoreHandler that can be passed to `setRestoreHandler` when no custom logic is needed.
  *
  * This restore handler will open and position any child windows which are not currently running
- * and move any open child windows to their expected postions for the restoring workspace.
+ * and move any open child windows to their expected positions for the restoring workspace.
  *
  * ``` ts
  * import {workspaces, restoreHelpers} from 'openfin-layouts';
@@ -46,18 +46,21 @@ export async function basicRestoreHandler(workspaceApp: WorkspaceApp) {
 /**
  * An additional helper function that can be used to create custom restore handlers.
  *
- * Given a WorksapceWindow it will determine if the window is open and then
+ * Given a WorkspaceWindow it will determine if the window is open and then
  * call `createChild` or `positionWindow` as appropriate.
+ *
+ * @param workspaceWindow Object containing details of the window identity and how it should
+ * be positioned/created
  */
-export async function createOrPosition(win: WorkspaceWindow) {
+export async function createOrPositionChild(workspaceWindow: WorkspaceWindow) {
     const openWindows = await fin.Application.getCurrentSync().getChildWindows();
 
-    if (!openWindows.some(w => w.identity.name === win.name)) {
+    if (!openWindows.some(w => w.identity.name === workspaceWindow.name)) {
         // create the OpenFin window based on the data in the workspaceApp
-        return createChild(win);
+        return createChild(workspaceWindow);
     } else {
         // only position if the window exists
-        return positionChild(win);
+        return positionChild(workspaceWindow);
     }
 }
 
@@ -66,6 +69,9 @@ export async function createOrPosition(win: WorkspaceWindow) {
  * and update its visibility, state, and frame to fit with the restoring workspace.
  *
  * Called by the defaultRestoreHandler for any non-open windows in the WorkspaceApp.
+ *
+ * @param workspaceWindow Object containing details of the window identity and how it should
+ * be created
  */
 export async function createChild(workspaceWindow: WorkspaceWindow): Promise<void> {
     const {bounds, frame, isShowing, name, state, url} = workspaceWindow;
@@ -88,6 +94,9 @@ export async function createChild(workspaceWindow: WorkspaceWindow): Promise<voi
  * workspace.
  *
  * Called by the defaultRestoreHandler for any currently running windows in the workspace.
+ *
+ * @param workspaceWindow Object containing details of the window identity and how it should
+ * be positioned
  */
 export async function positionChild(workspaceWindow: WorkspaceWindow): Promise<void> {
     const {bounds, frame, isShowing, state, isTabbed} = workspaceWindow;

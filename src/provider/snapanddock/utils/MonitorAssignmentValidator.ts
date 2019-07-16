@@ -49,7 +49,6 @@ export class MonitorAssignmentValidator {
             const snapGroup = snapGroups[snapGroupIndex];
             await this.applySnapGroupResult(snapGroup, snapGroupResult.groupRectangle);
 
-            // TODO: Decide if we want this line. Do we keep snap group integrity? Or pull all windows on screen?
             await this.applyEntityResults(snapGroup.entities, snapGroupResult.entityResults);
         }));
     }
@@ -67,7 +66,7 @@ export class MonitorAssignmentValidator {
         const offset = {x: rectangle.center.x - center.x, y: rectangle.center.y - center.y};
 
         if (offset.x !== 0 || offset.y !== 0) {
-            // await snapGroup.applyOffset(offset);
+            await snapGroup.applyOffset(offset);
         }
     }
 
@@ -81,18 +80,9 @@ export class MonitorAssignmentValidator {
                 await entity.setSnapGroup(new DesktopSnapGroup());
             }
 
-            const state = entity.currentState.state;
-            if (state !== 'normal') {
-                // entity.restore();
-            }
-
+            await entity.applyOverride('state', 'normal');
             await entity.applyOffset(offset, rectangle.halfSize);
-
-            if (state === 'maximized') {
-                // entity.maximize();
-            } else if (state === 'minimized') {
-                // entity.minimize();
-            }
+            await entity.resetOverride('state');
         }
     }
 }

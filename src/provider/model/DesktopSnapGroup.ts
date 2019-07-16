@@ -217,6 +217,10 @@ export class DesktopSnapGroup {
         }
     }
 
+    public applyOffset(offset: Point): void {
+        this.rootWindow!.applyOffset(offset);
+    }
+
     private async validateGroupInternal(): Promise<void> {
         // Ensure 'group' is still a valid, contiguous group.
         const contiguousWindowSets = this.getContiguousEntities(this.entities);

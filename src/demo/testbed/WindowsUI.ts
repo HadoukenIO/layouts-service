@@ -1,9 +1,10 @@
 import {ApplicationInfo} from 'hadouken-js-adapter/out/types/src/api/system/application';
+import {ConfigWithRules, ScopedConfig, Scopes} from 'openfin-service-config';
 
-import {ConfigurationObject, Rule, Tabstrip} from '../../../gen/provider/config/layouts-config';
+import {ConfigurationObject, Rule, Tabstrip, Overlay} from '../../../gen/provider/config/layouts-config';
 import {RegEx} from '../../client/main';
-import {ConfigWithRules, ScopedConfig, Scopes} from '../../provider/config/Store';
 import {AppData, createApp, createWindow, WindowData} from '../spawn';
+import {PreviewType, Validity} from '../../provider/PreviewMap';
 
 import {Elements} from './View';
 
@@ -21,6 +22,20 @@ interface ConfigData {
     activeOpacitySnap: number|null;
     activeOpacityTab: number|null;
     targetOpacityTab: number|null;
+
+    // _ is used for slicing the string to get the config keys & searchability
+    snap_overlayInvalid_background: string|null;
+    snap_overlayInvalid_border: string|null;
+    snap_overlayInvalid_opacity: string|null;
+    tab_overlayInvalid_background: string|null;
+    tab_overlayInvalid_border: string|null;
+    tab_overlayInvalid_opacity: string|null;
+    snap_overlayValid_background: string|null;
+    snap_overlayValid_border: string|null;
+    snap_overlayValid_opacity: string|null;
+    tab_overlayValid_background: string|null;
+    tab_overlayValid_border: string|null;
+    tab_overlayValid_opacity: string|null;
 }
 
 type ConfigScopeParam = string|(RegEx&{raw: string});
@@ -89,7 +104,19 @@ export class WindowsUI {
             activeOpacitySnap: elements.activeOpacitySnap,
             targetOpacitySnap: elements.targetOpacitySnap,
             activeOpacityTab: elements.activeOpacityTab,
-            targetOpacityTab: elements.targetOpacityTab
+            targetOpacityTab: elements.targetOpacityTab,
+            snap_overlayInvalid_background: elements.snap_overlayInvalid_background,
+            snap_overlayInvalid_border: elements.snap_overlayInvalid_border,
+            snap_overlayInvalid_opacity: elements.snap_overlayInvalid_opacity,
+            tab_overlayInvalid_background: elements.tab_overlayInvalid_background,
+            tab_overlayInvalid_border: elements.tab_overlayInvalid_border,
+            tab_overlayInvalid_opacity: elements.tab_overlayInvalid_opacity,
+            snap_overlayValid_background: elements.snap_overlayValid_background,
+            snap_overlayValid_border: elements.snap_overlayValid_border,
+            snap_overlayValid_opacity: elements.snap_overlayValid_opacity,
+            tab_overlayValid_background: elements.tab_overlayValid_background,
+            tab_overlayValid_border: elements.tab_overlayValid_border,
+            tab_overlayValid_opacity: elements.tab_overlayValid_opacity
         };
         this._manifestInputs = {
             id: elements.inputID,
@@ -157,11 +184,19 @@ export class WindowsUI {
         };
         elements.inputEditConfig.onclick = () => {
             this.selectRule(null);
+            document.getElementById('inputConfigHeader')!.classList.add('d-none');
             elements.inputConfigEditor.classList.remove('d-none');
+            elements.inputProgrammaticTab.classList.add('d-none');
+            elements.inputManifestOptions.classList.replace('d-block', 'd-none');
+            document.getElementById('inputLaunchType')!.classList.remove('card');
         };
         elements.inputSaveConfig.onclick = () => {
             this.updateConfig();
             elements.inputConfigEditor.classList.add('d-none');
+            document.getElementById('inputConfigHeader')!.classList.remove('d-none');
+            elements.inputProgrammaticTab.classList.remove('d-none');
+            elements.inputManifestOptions.classList.replace('d-none', 'd-block');
+            document.getElementById('inputLaunchType')!.classList.add('card');
         };
         elements.inputUseService.onchange = () => {
             const serviceEnabled = (this._elements.inputUseService.value === 'true');
@@ -475,6 +510,31 @@ export class WindowsUI {
 
                     break;
                 }
+
+                case 'snap_overlayInvalid_background':
+                case 'snap_overlayInvalid_border':
+                case 'snap_overlayInvalid_opacity':
+                case 'tab_overlayInvalid_background':
+                case 'tab_overlayInvalid_border':
+                case 'tab_overlayInvalid_opacity':
+                case 'snap_overlayValid_background':
+                case 'snap_overlayValid_border':
+                case 'snap_overlayValid_opacity':
+                case 'tab_overlayValid_background':
+                case 'tab_overlayValid_border':
+                case 'tab_overlayValid_opacity': {
+                    const parts = param.split('_');
+                    const previewType = parts[0] as PreviewType;
+                    const validity = parts[1] as Validity;
+                    const overlayProp = parts[2] as keyof Overlay;
+
+                    config.preview = config.preview || {};
+                    config.preview[previewType] = config.preview[previewType] || {};
+                    config.preview[previewType]![validity] = config.preview[previewType]![validity] || {};
+                    config!.preview![previewType]![validity]![overlayProp]! = data![param]!;
+                    break;
+                }
+
                 default:
                     console.warn('Unknown param:', param);
             }
@@ -537,7 +597,7 @@ export class WindowsUI {
                 }
 
                 // Parse value
-                if (value !== undefined && value !== 'default') {
+                if (value !== undefined && value !== 'default' && value !== '') {
                     if (typeof value === 'boolean' || typeof value === 'object') {
                         (data[key] as unknown) = value;
                     } else if (value === 'true' || value === 'false') {

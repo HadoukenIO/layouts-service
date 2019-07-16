@@ -1,6 +1,7 @@
 const path = require('path');
-const SchemaToDefaultsPlugin = require('./scripts/plugins/SchemaToDefaultsPlugin');
-const SchemaToTypeScriptPlugin = require('./scripts/plugins/SchemaToTypeScriptPlugin');
+const {SchemaToDefaultsPlugin} = require('openfin-service-config/plugins/SchemaToDefaultsPlugin');
+const {SchemaToTypeScriptPlugin} = require('openfin-service-config/plugins/SchemaToTypeScriptPlugin');
+const {webpackTools} = require('openfin-service-tooling');
 
 const outputDir = path.resolve(__dirname, './dist');
 const schemaRoot = path.resolve(__dirname, './res/provider/config');
@@ -8,15 +9,12 @@ const schemaOutput = path.resolve(__dirname, './gen/provider/config');
 const defaultsOutput = path.resolve(__dirname, './gen/provider/config/defaults.json');
 
 /**
- * Import the webpack tools from openfin-service-tooling
- */
-const webpackTools = require('openfin-service-tooling').webpackTools;
-
-
-/**
- * Generate TypeScript definition files from the config schema files.
- * 
- * Generated code is placed inside a top-level 'gen' folder, whose structure mirrors that of 
+ * Webpack plugin to generate a static JSON file that contains the default value of every input schema.
+ *
+ * Any top-level 'rules' object will be stripped-out of the generated JSON, as the 'rules' property has
+ * special significance and isn't a part of the actual service-specific set of config options.
+ *
+ * Generated code is placed inside a top-level 'gen' folder, whose structure mirrors that of
  * the 'src', 'res' and 'test' folders.
  */
 const schemaDefaultsPlugin = new SchemaToDefaultsPlugin({
@@ -25,16 +23,16 @@ const schemaDefaultsPlugin = new SchemaToDefaultsPlugin({
 });
 
 /**
- * Generate TypeScript definition files from the config schema files.
- * 
- * Generated code is placed inside a top-level 'gen' folder, whose structure mirrors that of 
+ * Webpack plugin to generate TypeScript definitions from one or more JSON schema files.
+ *
+ * Generated code is placed inside a top-level 'gen' folder, whose structure mirrors that of
  * the 'src', 'res' and 'test' folders.
  */
 const schemaTypesPlugin = new SchemaToTypeScriptPlugin({
     schemaRoot,
     outputPath: schemaOutput,
     input: [
-        `${schemaRoot}/layouts-config.schema.json`,
+        `${schemaRoot}/layouts-config.schema.json`
     ]
 });
 

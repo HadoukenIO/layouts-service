@@ -9,10 +9,10 @@ import {WorkspaceWindow, WorkspaceApp} from './workspaces';
  * ``` ts
  * import {workspaces, restoreHelpers} from 'openfin-layouts';
  *
- * workspaces.setRestoreHandler(restoreHelpers.defaultRestoreHandler);
+ * workspaces.setRestoreHandler(restoreHelpers.standardRestoreHandler);
  * ```
  */
-export async function basicRestoreHandler(workspaceApp: WorkspaceApp) {
+export async function standardRestoreHandler(workspaceApp: WorkspaceApp) {
     const errors: Error[] = [];
 
     const openWindows = await fin.Application.getCurrentSync().getChildWindows();

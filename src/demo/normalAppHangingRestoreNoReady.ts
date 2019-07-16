@@ -52,7 +52,7 @@ export async function openChild(name: string, i: number, frame = true, state = '
 Layouts.workspaces.setGenerateHandler(() => {
     return {test: true};
 });
-Layouts.workspaces.setRestoreHandler(Layouts.restoreHelpers.basicRestoreHandler);
+Layouts.workspaces.setRestoreHandler(Layouts.restoreHelpers.standardRestoreHandler);
 // This is meant to test what happens when an application doesn't call its `ready` function.
 // In this case, the application never tells the service that it's ready to accept its workspace payload, so
 // the restore handler never gets called. This results in child windows not being restored.

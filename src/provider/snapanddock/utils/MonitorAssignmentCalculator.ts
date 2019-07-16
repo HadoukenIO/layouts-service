@@ -73,10 +73,7 @@ export class MonitorAssignmentCalculator {
     /**
      * For a given entity rectangle and monitor rectangle, returns if possible, a new rectangle for the entity that fits entirely within the monitor
      */
-    private attemptGetEntityRectangleWithinMonitorRectangle(
-        entityRectangle: Rectangle,
-        monitorRectangle: Rectangle
-    ): Rectangle | undefined {
+    private attemptGetEntityRectangleWithinMonitorRectangle(entityRectangle: Rectangle, monitorRectangle: Rectangle): Rectangle | undefined {
         const resultRectangle = {center: {...entityRectangle.center}, halfSize: {...entityRectangle.halfSize}};
 
         for (const axis of ['x', 'y'] as ('x' | 'y')[]) {

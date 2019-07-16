@@ -17,35 +17,36 @@ export async function basicRestoreHandler(workspaceApp: WorkspaceApp) {
 
     const openWindows = await fin.Application.getCurrentSync().getChildWindows();
 
-    // iterate through the child windows of the workspaceApp data
+    // Iterate through the child windows of the WorkspaceApp
     const opened = workspaceApp.childWindows.map(async (win: WorkspaceWindow): Promise<void> => {
-        // check for existence of the window
+        // Check if the window already exists
         if (!openWindows.some(w => w.identity.name === win.name)) {
-            // create the OpenFin window based on the data in the workspaceApp
+            // Create the OpenFin window based on the data in the workspaceApp
             return createChild(win).catch((e: Error) => {
                 errors.push(e);
             });
         } else {
-            // only position if the window exists
+            // Only position if the window exists
             return positionChild(win).catch((e: Error) =>{
                 errors.push(e);
             });
         }
     });
 
-    // wait for all windows to open and be positioned before returning
+    // Wait for all windows to open and be positioned before returning
     await Promise.all(opened);
     if (errors.length === 0) {
         return workspaceApp;
     } else {
+        // Consolidate any errors in restoring the children into a single error
         throw new Error('One or more errors encountered when restoring children: ' + errors.map(e => e.message).join(', '));
     }
 }
 
 /**
- * An additional helper function that can be used to create cutom restore handlers.
+ * An additional helper function that can be used to create custom restore handlers.
  *
- * Given a WorksapceWindow it will determine whether the window is running and then
+ * Given a WorksapceWindow it will determine if the window is open and then
  * call `createChild` or `positionWindow` as appropriate.
  */
 export async function createOrPosition(win: WorkspaceWindow) {
@@ -61,10 +62,10 @@ export async function createOrPosition(win: WorkspaceWindow) {
 }
 
 /**
- * Given a workspaceWindow object for a non-open window, this will create the window, position it,
- * and update its visibility, state and frame to fit with the restoring workspace.
+ * Given a WorkspaceWindow for a non-open window, this function will create the window, position it,
+ * and update its visibility, state, and frame to fit with the restoring workspace.
  *
- * Called by the defaultRestoreHandler for any non-running windows in the workspace
+ * Called by the defaultRestoreHandler for any non-open windows in the WorkspaceApp.
  */
 export async function createChild(workspaceWindow: WorkspaceWindow): Promise<void> {
     const {bounds, frame, isShowing, name, state, url} = workspaceWindow;

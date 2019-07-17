@@ -8,7 +8,7 @@ import {teardown} from '../teardown';
 import {createChildWindow} from './utils/createChildWindow';
 import {dragWindowAndHover} from './utils/dragWindowAndHover';
 import {dragWindowTo} from './utils/dragWindowTo';
-import {getBounds} from './utils/getBounds';
+import {getBounds} from './utils/bounds';
 import {getWindow} from './utils/getWindow';
 
 let win1: Window, win2: Window;

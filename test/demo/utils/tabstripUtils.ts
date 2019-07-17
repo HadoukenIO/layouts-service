@@ -5,7 +5,7 @@ import * as robot from 'robotjs';
 import {Point} from '../../../src/provider/snapanddock/utils/PointUtils';
 import {getTabbedWindows} from '../../demo/utils/tabServiceUtils';
 import {delay} from '../../provider/utils/delay';
-import {getBounds, NormalizedBounds} from '../../provider/utils/getBounds';
+import {getBounds, NormalizedBounds} from '../../provider/utils/bounds';
 
 const MAX_TAB_WIDTH = 220;  // From tabstrip CSS
 

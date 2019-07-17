@@ -12,7 +12,7 @@ import {assertAllMaximized, assertAllNormalState, assertNotTabbed, assertPairTab
 import {createChildWindow} from './utils/createChildWindow';
 import {delay} from './utils/delay';
 import {dragWindowTo, dragWindowToOtherWindow} from './utils/dragWindowTo';
-import {getBounds} from './utils/getBounds';
+import {getBounds} from './utils/bounds';
 import {tabWindowsTogether} from './utils/tabWindowsTogether';
 
 /**

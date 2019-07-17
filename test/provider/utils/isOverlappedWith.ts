@@ -1,6 +1,6 @@
 import {Fin, Window} from 'hadouken-js-adapter';
 
-import {getBounds} from './getBounds';
+import {getBounds} from './bounds';
 
 export async function isOverlappedWith(win1: Window, win2: Window) {
     const bounds1 = await getBounds(win1);

@@ -69,7 +69,9 @@ export class Debounced<C extends Function, S, A extends any[]> {
         this._handle = -1;
         await this._callback.apply(this._scope, args);
 
-        this._deferredPromise![1]();
+        const resolve = this._deferredPromise![1];
+        this._deferredPromise = undefined;
+        resolve();
     }
 
     private cancel(): void {

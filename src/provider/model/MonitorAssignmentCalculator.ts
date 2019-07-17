@@ -5,6 +5,7 @@ export type SnapGroupResult = {entityResults: EntityResult[], groupRectangle: Re
 
 type EntityAndMonitorRectangles = {entityRectangle: Rectangle, monitorRectangle: Rectangle}
 
+// Limit ourselves to just the bits of DesktopEntity and SnapGroups we want
 type DesktopEntity = {beforeMaximizeBounds: Rectangle};
 type DesktopSnapGroup = {entities: DesktopEntity[]} & Rectangle;
 

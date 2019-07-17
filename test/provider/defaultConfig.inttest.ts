@@ -1,8 +1,8 @@
 import {Application, Fin} from 'hadouken-js-adapter';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
+import {createApp} from 'openfin-service-tooling/spawn';
 import * as assert from 'power-assert';
 
-import {createApp} from '../../src/demo/spawn';
 import {fin} from '../demo/utils/fin';
 import {isWindowRegistered} from '../demo/utils/snapServiceUtils';
 import {createCloseAndRestoreLayout} from '../demo/utils/workspacesUtils';

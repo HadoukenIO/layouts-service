@@ -1,7 +1,7 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
+import {createApp, AppData} from 'openfin-service-tooling/spawn';
 
 import {ConfigurationObject, Preview} from '../../../gen/provider/config/layouts-config';
-import {createApp} from '../../../src/demo/spawn';
 let counter = 0;
 
 
@@ -23,14 +23,16 @@ export async function createWindowsWithConfig(key: string, ...configs: (Preview 
             };
         }
 
-        const app = await createApp({
+        const appData: AppData<ConfigurationObject> = {
             type: 'manifest',
             // All app uuid's must be unique, due to apparent manifest caching behaviour
             id: `window-${key}-${index}:${counter++}`,
             position: {x: 200 + (index * 350), y: 150},
             config,
             provider: 'testing'
-        });
+        };
+
+        const app = await createApp(appData);
 
         return app.getWindow();
     }));

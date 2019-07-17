@@ -1,9 +1,9 @@
 import {Application} from 'hadouken-js-adapter';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
+import {addSpawnListeners, createWindow} from 'openfin-service-tooling/spawn';
 
 import {workspaces} from '../../client/main';
 import {WorkspaceApp, WorkspaceWindow} from '../../client/workspaces';
-import {addSpawnListeners, createWindow} from '../spawn';
 
 import {EventsUI} from './EventsUI';
 import {RegistrationUI} from './RegistrationUI';

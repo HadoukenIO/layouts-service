@@ -1,10 +1,11 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
+import {createWindow, createApp, AppData, WindowData, addSpawnListeners} from 'openfin-service-tooling/spawn';
 
+import {ConfigurationObject} from '../../gen/provider/config/layouts-config';
 import {register, deregister, snapAndDock, tabbing, tabstrip, workspaces} from '../client/main';
 import {Workspace} from '../client/workspaces';
 
 import * as Storage from './storage';
-import {addSpawnListeners, AppData, createApp, WindowData, createWindow} from './spawn';
 
 export interface SavedWorkspace {
     id: string;
@@ -13,7 +14,7 @@ export interface SavedWorkspace {
 
 const launchDir = location.href.slice(0, location.href.lastIndexOf('/'));
 
-const appTemplates: {[key: string]: AppData} = {
+const appTemplates: {[key: string]: AppData<ConfigurationObject>} = {
     'manifest': {type: 'manifest', id: 'App-1', position: 'center', size: {x: 1024, y: 800}},
     'programmatic': {type: 'programmatic', id: 'App-2', position: 'center', size: {x: 1024, y: 800}},
     'script': {type: 'programmatic', id: 'App-3', position: 'center', url: 'http://localhost:1337/demo/libScriptIncluded.html'},
@@ -180,4 +181,5 @@ fin.desktop.main(() => {
 });
 
 // Expose layouts API and createApp/Window utils on window for debugging/demoing
-Object.assign(window, {layouts: {register, deregister, snapAndDock, tabbing, tabstrip, workspaces}, createApp, createWindow});
+Object.assign(window, {layouts: {register, deregister, snapAndDock, tabbing, tabstrip, workspaces},
+    createApp, createWindow});

@@ -86,17 +86,18 @@ export class MonitorAssignmentValidator {
             // We can't straightforwardly use apply/restoreOverride here due to inconsistencies with how it behaves between Windows and TabGroups
             const oldState = entity instanceof DesktopTabGroup ? entity.state : entity.currentState.state;
             if (oldState !== 'normal') {
-                entity instanceof DesktopTabGroup ? entity.restore() : entity.applyOverride('state', 'normal');
+                entity instanceof DesktopTabGroup ? await entity.restore() : await entity.applyOverride('state', 'normal');
             }
 
             await entity.applyOffset(offset, rectangle.halfSize);
 
             if (oldState !== 'normal') {
-                entity instanceof DesktopTabGroup ?
-                    (oldState === 'maximized' ? entity.maximize() : entity.minimize) :
-                    entity.applyOverride('state', 'normal');
+                if (entity instanceof DesktopTabGroup) {
+                    oldState === 'maximized' ? await entity.maximize() : await entity.minimize();
+                } else {
+                    await entity.applyOverride('state', 'normal');
+                }
             }
-            await entity.resetOverride('state');
         }
     }
 }

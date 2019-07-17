@@ -217,8 +217,8 @@ export class DesktopSnapGroup {
         }
     }
 
-    public applyOffset(offset: Point): void {
-        this.rootWindow!.applyOffset(offset);
+    public async applyOffset(offset: Point): Promise<void> {
+        return this.rootWindow!.applyOffset(offset);
     }
 
     private async validateGroupInternal(): Promise<void> {

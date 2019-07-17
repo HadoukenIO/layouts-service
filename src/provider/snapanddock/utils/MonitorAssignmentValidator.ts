@@ -49,8 +49,8 @@ export class MonitorAssignmentValidator {
     private async applySnapGroupResults(snapGroups: DesktopSnapGroup[], snapGroupResults: SnapGroupResult[]): Promise<void> {
         await Promise.all(snapGroupResults.map(async (snapGroupResult, snapGroupIndex : number) => {
             const snapGroup = snapGroups[snapGroupIndex];
-            await this.applySnapGroupResult(snapGroup, snapGroupResult.groupRectangle);
 
+            await this.applySnapGroupResult(snapGroup, snapGroupResult.groupRectangle);
             await this.applyEntityResults(snapGroup.entities, snapGroupResult.entityResults);
         }));
     }
@@ -73,7 +73,7 @@ export class MonitorAssignmentValidator {
     }
 
     private async applyEntityResult(entity: DesktopEntity, rectangle: Rectangle): Promise<void> {
-        const center = entity.currentState.center;
+        const center = entity.beforeMaximizeBounds.center;
 
         const offset = {x: rectangle.center.x - center.x, y: rectangle.center.y - center.y};
 

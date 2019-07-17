@@ -31,11 +31,7 @@ export class MonitorAssignmentCalculator {
             halfSize: {...entity.beforeMaximizeBounds.halfSize}}));
 
         return {
-            entityResults: entityRectangles.map(rectangle => {
-                const rectangleWithinMonitor = this.attemptGetEntityRectangleWithinMonitorRectangle(rectangle, monitorRectangle);
-
-                return rectangleWithinMonitor ? rectangleWithinMonitor : this.getEntityRectangleOverMonitor(rectangle, monitorRectangle);
-            }),
+            entityResults: entityRectangles.map(rectangle => this.attemptGetEntityRectangleInsideMonitorRectangle(rectangle, monitorRectangle).rectangle),
             groupRectangle
         };
     }
@@ -52,10 +48,10 @@ export class MonitorAssignmentCalculator {
 
         // Try to find a monitor this entity will fit in
         for (const candidateMonitorRectangle of candidateMonitorRectangles) {
-            const resultRectangle = this.attemptGetEntityRectangleWithinMonitorRectangle(stateEntityRectangle, candidateMonitorRectangle);
+            const result = this.attemptGetEntityRectangleInsideMonitorRectangle(stateEntityRectangle, candidateMonitorRectangle);
 
-            if (resultRectangle) {
-                return {entityRectangle: resultRectangle, monitorRectangle: candidateMonitorRectangle};
+            if (result.inside) {
+                return {entityRectangle: result.rectangle, monitorRectangle: candidateMonitorRectangle};
             }
         }
 
@@ -63,7 +59,7 @@ export class MonitorAssignmentCalculator {
         const primaryMonitor = this._monitorRectangles[0];
 
         return {
-            entityRectangle: this.getEntityRectangleOverMonitor(stateEntityRectangle, primaryMonitor),
+            entityRectangle: this.attemptGetEntityRectangleInsideMonitorRectangle(stateEntityRectangle, primaryMonitor).rectangle,
             monitorRectangle: primaryMonitor
         };
     }
@@ -71,14 +67,24 @@ export class MonitorAssignmentCalculator {
     /**
      * For a given entity rectangle and monitor rectangle, returns if possible, a new rectangle for the entity that fits entirely within the monitor
      */
-    private attemptGetEntityRectangleWithinMonitorRectangle(entityRectangle: Rectangle, monitorRectangle: Rectangle): Rectangle | undefined {
+    private attemptGetEntityRectangleInsideMonitorRectangle(entityRectangle: Rectangle, monitorRectangle: Rectangle): {rectangle: Rectangle, inside: boolean} {
         const resultRectangle = {center: {...entityRectangle.center}, halfSize: {...entityRectangle.halfSize}};
+
+        let inside: boolean = true;
 
         for (const axis of ['x', 'y'] as ('x' | 'y')[]) {
             const buffer = monitorRectangle.halfSize[axis] - entityRectangle.halfSize[axis];
 
             if (buffer < 0) {
-                return undefined;
+                // If the window doesn't fit, make a best-effort to display it sensibly
+                inside = false;
+
+                if (axis === 'y') {
+                    // In the y axis case, position window so title bar is at top of monitor
+                    resultRectangle.center[axis] = entityRectangle.halfSize.y + monitorRectangle.center.y - monitorRectangle.halfSize.y;
+                } else {
+                    resultRectangle.center[axis] = monitorRectangle.center[axis];
+                }
             } else {
                 const offset = (entityRectangle.center[axis] - monitorRectangle.center[axis]);
 
@@ -93,19 +99,7 @@ export class MonitorAssignmentCalculator {
             }
         }
 
-        return resultRectangle;
-    }
-
-    /**
-     * For a given entity rectangle and monitor rectangle (the entity assumed to not fit the monitor),
-     * return a new rectangle for the entity that makes a best effort to usefully display it
-     */
-    private getEntityRectangleOverMonitor(entityRectangle: Rectangle, monitorRectangle: Rectangle): Rectangle {
-        // Position the window so it's in the center of the monitor, with the title bar at the top
-        return {
-            center: {x: monitorRectangle.center.x, y: entityRectangle.halfSize.y + monitorRectangle.center.y - monitorRectangle.halfSize.y},
-            halfSize: {...entityRectangle.halfSize}
-        };
+        return {rectangle: resultRectangle, inside};
     }
 
     /**

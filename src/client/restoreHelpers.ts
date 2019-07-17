@@ -68,7 +68,7 @@ export async function createOrPositionChild(workspaceWindow: WorkspaceWindow) {
  * Given a WorkspaceWindow for a non-open window, this function will create the window, position it,
  * and update its visibility, state, and frame to fit with the restoring workspace.
  *
- * Called by the defaultRestoreHandler for any non-open windows in the WorkspaceApp.
+ * Called by the standardRestoreHandler for any non-open windows in the WorkspaceApp.
  *
  * @param workspaceWindow Object containing details of the window identity and how it should
  * be created
@@ -93,7 +93,7 @@ export async function createChild(workspaceWindow: WorkspaceWindow): Promise<voi
  * update the visibility, state and frame of that window to fit with the restoring
  * workspace.
  *
- * Called by the defaultRestoreHandler for any currently running windows in the workspace.
+ * Called by the standardRestoreHandler for any currently running windows in the workspace.
  *
  * @param workspaceWindow Object containing details of the window identity and how it should
  * be positioned

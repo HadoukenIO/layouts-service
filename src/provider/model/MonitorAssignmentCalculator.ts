@@ -1,4 +1,4 @@
-import {Rectangle, RectUtils} from './RectUtils';
+import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 
 export type EntityResult = Rectangle;
 export type SnapGroupResult = {entityResults: EntityResult[], groupRectangle: Rectangle};

@@ -13,8 +13,8 @@ import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {SignalSlot} from '../Signal';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
-import {MonitorAssignmentValidator} from '../snapanddock/utils/MonitorAssignmentValidator';
 
+import {MonitorAssignmentValidator} from './MonitorAssignmentValidator';
 import {DesktopTabGroup} from './DesktopTabGroup';
 import {DesktopWindow, EntityState, WindowIdentity} from './DesktopWindow';
 import {MouseTracker} from './MouseTracker';

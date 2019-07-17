@@ -1,10 +1,11 @@
-import {DesktopModel} from '../../model/DesktopModel';
-import {DesktopEntity} from '../../model/DesktopEntity';
-import {DesktopSnapGroup} from '../../model/DesktopSnapGroup';
+import {Rectangle} from '../snapanddock/utils/RectUtils';
+import {Debounced} from '../snapanddock/utils/Debounced';
 
-import {Rectangle} from './RectUtils';
+import {DesktopModel} from './DesktopModel';
+import {DesktopEntity} from './DesktopEntity';
+import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {MonitorAssignmentCalculator, SnapGroupResult, EntityResult} from './MonitorAssignmentCalculator';
-import {Debounced} from './Debounced';
+import {DesktopTabGroup} from './DesktopTabGroup';
 
 export class MonitorAssignmentValidator {
     private _model: DesktopModel;
@@ -22,6 +23,8 @@ export class MonitorAssignmentValidator {
     }
 
     public async validateInternal(): Promise<void> {
+        console.log('****** validating monitors:', this._model.monitors);
+
         const calculator = new MonitorAssignmentCalculator(this._model.monitors);
 
         const snapGroups = this.getSnapGroups();
@@ -78,12 +81,24 @@ export class MonitorAssignmentValidator {
         const offset = {x: rectangle.center.x - center.x, y: rectangle.center.y - center.y};
 
         if (offset.x !== 0 || offset.y !== 0) {
+            console.log('**** moving entity rectangle:');
+
             if (entity.snapGroup.isNonTrivial()) {
                 await entity.setSnapGroup(new DesktopSnapGroup());
             }
 
-            await entity.applyOverride('state', 'normal');
+            const oldState = entity instanceof DesktopTabGroup ? entity.state : entity.currentState.state;
+            if (oldState !== 'normal') {
+                entity instanceof DesktopTabGroup ? entity.restore() : entity.applyOverride('state', 'normal');
+            }
+
             await entity.applyOffset(offset, rectangle.halfSize);
+
+            if (oldState !== 'normal') {
+                entity instanceof DesktopTabGroup ?
+                    (oldState === 'maximized' ? entity.maximize() : entity.minimize) :
+                    entity.applyOverride('state', 'normal');
+            }
             await entity.resetOverride('state');
         }
     }

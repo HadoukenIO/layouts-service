@@ -23,8 +23,6 @@ export class MonitorAssignmentValidator {
     }
 
     public async validateInternal(): Promise<void> {
-        console.log('****** validating monitors:', this._model.monitors);
-
         const calculator = new MonitorAssignmentCalculator(this._model.monitors);
 
         const snapGroups = this.getSnapGroups();
@@ -81,12 +79,11 @@ export class MonitorAssignmentValidator {
         const offset = {x: rectangle.center.x - center.x, y: rectangle.center.y - center.y};
 
         if (offset.x !== 0 || offset.y !== 0) {
-            console.log('**** moving entity rectangle:');
-
             if (entity.snapGroup.isNonTrivial()) {
                 await entity.setSnapGroup(new DesktopSnapGroup());
             }
 
+            // We can't straightforwardly use apply/restoreOverride here due to inconsistencies with how it behaves between Windows and TabGroups
             const oldState = entity instanceof DesktopTabGroup ? entity.state : entity.currentState.state;
             if (oldState !== 'normal') {
                 entity instanceof DesktopTabGroup ? entity.restore() : entity.applyOverride('state', 'normal');

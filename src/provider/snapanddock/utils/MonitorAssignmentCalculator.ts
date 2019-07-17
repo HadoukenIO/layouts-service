@@ -1,5 +1,3 @@
-import {WindowState} from '../../../client/workspaces';
-
 import {Rectangle, RectUtils} from './RectUtils';
 
 export type EntityResult = Rectangle;
@@ -7,8 +5,8 @@ export type SnapGroupResult = {entityResults: EntityResult[], groupRectangle: Re
 
 type EntityAndMonitorRectangles = {entityRectangle: Rectangle, monitorRectangle: Rectangle}
 
-type DesktopEntity = {currentState: Rectangle & {state: WindowState}};
-type DesktopSnapGroup = {entities: {currentState: Rectangle}[]} & Rectangle;
+type DesktopEntity = {beforeMaximizeBounds: Rectangle};
+type DesktopSnapGroup = {entities: DesktopEntity[]} & Rectangle;
 
 export class MonitorAssignmentCalculator {
     private _monitorRectangles: ReadonlyArray<Rectangle>;
@@ -29,8 +27,8 @@ export class MonitorAssignmentCalculator {
         };
 
         const entityRectangles = snapGroup.entities.map(entity => ({
-            center: {x: entity.currentState.center.x + offset.x, y: entity.currentState.center.y + offset.y},
-            halfSize: {...entity.currentState.halfSize}}));
+            center: {x: entity.beforeMaximizeBounds.center.x + offset.x, y: entity.beforeMaximizeBounds.center.y + offset.y},
+            halfSize: {...entity.beforeMaximizeBounds.halfSize}}));
 
         return {
             entityResults: entityRectangles.map(rectangle => {
@@ -43,7 +41,7 @@ export class MonitorAssignmentCalculator {
     }
 
     public getMovedEntityRectangle(entity: DesktopEntity): EntityResult {
-        return this.getMovedEntityAndMonitorRectangle(entity.currentState).entityRectangle;
+        return this.getMovedEntityAndMonitorRectangle(entity.beforeMaximizeBounds).entityRectangle;
     }
 
     /**
@@ -79,17 +77,17 @@ export class MonitorAssignmentCalculator {
         for (const axis of ['x', 'y'] as ('x' | 'y')[]) {
             const buffer = monitorRectangle.halfSize[axis] - entityRectangle.halfSize[axis];
 
-            const offset = (entityRectangle.center[axis] - monitorRectangle.center[axis]);
-
-            const highBuffer = buffer - offset;
-            const lowBuffer = buffer + offset;
-
-            if (buffer < 0) { // In the maximized case, we're looking for an exact fit
+            if (buffer < 0) {
                 return undefined;
-            } else if (highBuffer < 0 || lowBuffer < 0) {
+            } else {
+                const offset = (entityRectangle.center[axis] - monitorRectangle.center[axis]);
+
+                const highBuffer = buffer - offset;
+                const lowBuffer = buffer + offset;
+
                 if (lowBuffer < 0) {
                     resultRectangle.center[axis] -= lowBuffer;
-                } else {
+                } else if (highBuffer < 0) {
                     resultRectangle.center[axis] += highBuffer;
                 }
             }

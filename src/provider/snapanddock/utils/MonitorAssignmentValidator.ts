@@ -41,7 +41,9 @@ export class MonitorAssignmentValidator {
     }
 
     private getEntities(): DesktopEntity[] {
-        return Array.prototype.concat(...this._model.snapGroups.filter(snapGroup => !snapGroup.isNonTrivial()).map(snapGroup => snapGroup.entities));
+        const trivalEntities = this._model.snapGroups.filter(snapGroup => !snapGroup.isNonTrivial());
+        // Equivalent of trivalEntities.flatMap()
+        return Array.prototype.concat(...trivalEntities.map(snapGroup => snapGroup.entities));
     }
 
     private async applySnapGroupResults(snapGroups: DesktopSnapGroup[], snapGroupResults: SnapGroupResult[]): Promise<void> {

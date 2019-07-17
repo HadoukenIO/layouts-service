@@ -1,6 +1,7 @@
 import {Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
 
 import {Scope} from '../../../gen/provider/config/layouts-config';
+import {Rectangle} from '../snapanddock/utils/RectUtils';
 
 import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {DesktopTabGroup} from './DesktopTabGroup';
@@ -38,6 +39,13 @@ export interface DesktopEntity {
      * possible.
      */
     currentState: EntityState;
+
+    /**
+     * The bounds the entity will fill when restored to the 'normal' state
+     *
+     * When the entity is 'normal', this will be the same match the `center` and `halfSize` fields of `currentState`
+     */
+    beforeMaximizeBounds: Rectangle
 
     /**
      * The tab group to which this entity belongs, or null if the entity is not tabbed.

@@ -115,6 +115,10 @@ export class DesktopTabGroup implements DesktopEntity {
         return this._groupState;
     }
 
+    public get beforeMaximizeBounds(): Rectangle {
+        return this._beforeMaximizeBounds || this.currentState;
+    }
+
     public get snapGroup(): DesktopSnapGroup {
         return this._window.snapGroup;
     }

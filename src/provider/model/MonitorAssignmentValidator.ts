@@ -87,8 +87,11 @@ export class MonitorAssignmentValidator {
             const oldState = entity instanceof DesktopTabGroup ? entity.state : entity.currentState.state;
             if (oldState !== 'normal') {
                 if (entity instanceof DesktopTabGroup) {
-                    await entity.restore();
-                    await entity.sync();
+                    // We may need to restore twice, as first restore may only take us from minimized to maximized
+                    while (entity.state !== 'normal') {
+                        await entity.restore();
+                        await entity.sync();
+                    }
 
                     // Windows may have moved the tabgroup on restore to bring it back on-screen itself, so revalidate
                     await entity.validate();

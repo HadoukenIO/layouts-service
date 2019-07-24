@@ -265,10 +265,11 @@ export class WindowsUI {
             // Create new application
             const isManifest: boolean = this.isManifest;
             const data: AppData = this.getInputs<AppData>(isManifest ? this._manifestInputs : this._programmaticInputs);
-            await createApp({position: 'center', type: isManifest ? 'manifest' : 'programmatic', ...data});
+            await createApp({position: 'center', type: isManifest ? 'manifest' : 'programmatic',
+                url: 'http://localhost:1337/demo/testbed/index.html', ...data});
         } else {
             const data: WindowData = this.getInputs<WindowData>(this._programmaticInputs);
-            await createWindow({position: 'center', ...data});
+            await createWindow({position: 'center', url: 'http://localhost:1337/demo/testbed/index.html', ...data});
         }
 
         this.updateID();

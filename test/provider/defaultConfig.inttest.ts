@@ -1,4 +1,4 @@
-import {Application, Fin} from 'hadouken-js-adapter';
+import {Application} from 'hadouken-js-adapter';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {createApp} from 'openfin-service-tooling/spawn';
 import * as assert from 'power-assert';
@@ -16,6 +16,8 @@ type TestContext = {
 };
 
 let appId = 0;
+
+const DEFAULT_URL = 'http://localhost:1337/demo/testbed/index.html';
 
 const context: TestContext = {
     windows: []
@@ -45,12 +47,13 @@ async function createAppWithChildren(childType: 'manifest'|'programmatic'): Prom
     const parent = await createApp({
         id: `App${appIds[0]}`,
         provider: 'http://localhost:1337/test/provider.json',
+        url: DEFAULT_URL,
         config: {rules: [{scope: {level: 'application', uuid: {expression: `App(${appIds[1]}|${appIds[2]})`}}, config: {features: {dock: false}}}]}
     });
     const childApps = [
         // Spawn two new programmatic apps, and grab their main windows
-        await createApp({id: `App${appIds[1]}`, type: 'programmatic', parent: parent.identity}),
-        await createApp({id: `App${appIds[2]}`, type: 'programmatic', parent: parent.identity})
+        await createApp({id: `App${appIds[1]}`, type: 'programmatic', parent: parent.identity, url: DEFAULT_URL}),
+        await createApp({id: `App${appIds[2]}`, type: 'programmatic', parent: parent.identity, url: DEFAULT_URL})
     ];
 
     return {parent, childApps, childWindows: await Promise.all(childApps.map(app => app.getWindow()))};
@@ -74,7 +77,6 @@ it('An application that doesn\'t declare the service is de-registered', async ()
 
 it('Programmatically creating a child app extends config lifespan', async () => {
     const {parent, childApps, childWindows} = await createAppWithChildren('programmatic');
-
     // Check docking is disabled
     await dragSideToSide(childWindows[0], 'left', childWindows[1], 'right', {x: 10, y: 50});
     await assertNotGrouped(childWindows[0]);

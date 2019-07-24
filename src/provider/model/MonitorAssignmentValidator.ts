@@ -1,5 +1,6 @@
 import {Rectangle} from '../snapanddock/utils/RectUtils';
 import {Debounced} from '../snapanddock/utils/Debounced';
+import {Point} from '../snapanddock/utils/PointUtils';
 
 import {DesktopModel} from './DesktopModel';
 import {DesktopEntity} from './DesktopEntity';
@@ -74,9 +75,7 @@ export class MonitorAssignmentValidator {
     }
 
     private async applyEntityResult(entity: DesktopEntity, rectangle: Rectangle): Promise<void> {
-        const center = entity.beforeMaximizeBounds.center;
-
-        const offset = {x: rectangle.center.x - center.x, y: rectangle.center.y - center.y};
+        const offset = this.calculateOffset(entity, rectangle);
 
         if (offset.x !== 0 || offset.y !== 0) {
             if (entity.snapGroup.isNonTrivial()) {
@@ -86,18 +85,32 @@ export class MonitorAssignmentValidator {
             // We can't straightforwardly use apply/restoreOverride here due to inconsistencies with how it behaves between Windows and TabGroups
             const oldState = entity instanceof DesktopTabGroup ? entity.state : entity.currentState.state;
             if (oldState !== 'normal') {
-                entity instanceof DesktopTabGroup ? await entity.restore() : await entity.applyOverride('state', 'normal');
+                if (entity instanceof DesktopTabGroup) {
+                    await entity.restore();
+                    await entity.sync();
+
+                    // Validation will not have been applied to minimized tabs, so do it here
+                    await entity.validate();
+                } else {
+                    await entity.applyOverride('state', 'normal');
+                }
             }
 
-            await entity.applyOffset(offset, rectangle.halfSize);
+            // Windows may have moved the window on restore, so recalculate the offset
+            await entity.applyOffset(this.calculateOffset(entity, rectangle), rectangle.halfSize);
 
             if (oldState !== 'normal') {
                 if (entity instanceof DesktopTabGroup) {
-                    oldState === 'maximized' ? await entity.maximize() : await entity.minimize();
+                    await oldState === 'maximized' ? entity.maximize() : entity.minimize();
                 } else {
                     await entity.applyOverride('state', 'normal');
                 }
             }
         }
+    }
+
+    private calculateOffset(entity: DesktopEntity, rectangle: Rectangle): Point<number> {
+        const center = entity.beforeMaximizeBounds.center;
+        return {x: rectangle.center.x - center.x, y: rectangle.center.y - center.y};
     }
 }

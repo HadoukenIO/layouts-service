@@ -126,19 +126,100 @@
             ]
         },
         "preview": {
-            "type": "object",
-            "title": "Preview Config",
+            "title": "Preview",
             "description": "Options for customizing visual previews shown for snap and tab actions",
             "properties": {
+                "snap": {
+                    "$ref": "#/definitions/preview-config"
+                },
+                "tab": {
+                    "$ref": "#/definitions/preview-config"
+                }
+            },
+            "default": {
+                "snap": {
+                    "activeOpacity": 0.8,
+                    "targetOpacity": 0.8,
+                    "overlayValid": {
+                        "opacity": 0.8,
+                        "background": "rgb(61, 64, 89)",
+                        "border": ""
+                    },
+                    "overlayInvalid": {
+                        "opacity": 0.8,
+                        "background": "repeating-linear-gradient(45deg, rgb(61, 64, 89), rgb(61, 64, 89) 0.25em, rgb(194, 70, 41) 0px, rgb(194, 70, 41) 0.5em)",
+                        "border": ""
+                    }
+                },
+                "tab": {
+                    "activeOpacity": 0.8,
+                    "targetOpacity": 0.8,
+                    "overlayValid": {
+                        "opacity": 0.8,
+                        "background": "rgb(61, 64, 89)",
+                        "border": ""
+                    },
+                    "overlayInvalid": {
+                        "opacity": 0.8,
+                        "background": "repeating-linear-gradient(45deg, rgb(61, 64, 89), rgb(61, 64, 89) 0.25em, rgb(194, 70, 41) 0px, rgb(194, 70, 41) 0.5em)",
+                        "border": ""
+                    }
+                }
+            },
+            "additionalProperties": false
+        },
+        "preview-config": {
+            "type": "object",
+            "title": "Preview Config",
+            "description": "Options for configuring a preview for an action",
+            "properties": {
                 "activeOpacity": {
-                    "type": ["number", "null"],
+                    "type": [
+                        "number",
+                        "null"
+                    ],
                     "description": "Controls the opacity of each window when it is being dragged. If set to null, the service will not modify the opacity of the window.",
                     "default": 0.8
                 },
                 "targetOpacity": {
-                    "type": ["number", "null"],
+                    "type": [
+                        "number",
+                        "null"
+                    ],
                     "description": "Controls the opacity of each window when another window is about to be snapped/tabbed to it. If set to null, the service will not modify the opacity of the window.",
                     "default": 0.8
+                },
+                "overlayValid": {
+                    "$ref": "#/definitions/overlay-preview"
+                },
+                "overlayInvalid": {
+                    "$ref": "#/definitions/overlay-preview"
+                }
+            },
+            "required": [],
+            "additionalProperties": false
+        },
+        "overlay-preview": {
+            "type": "object",
+            "title": "Overlay",
+            "description": "Options for styling the preview overlay box.",
+            "properties": {
+                "opacity": {
+                    "type": [
+                        "number"
+                    ],
+                    "description": "The opacity of the preview overlay. Setting the value to 0 displays no preview",
+                    "default": 0.8
+                },
+                "background": {
+                    "type": "string",
+                    "description": "Background CSS",
+                    "default": "rgb(61, 64, 89)"
+                },
+                "border": {
+                    "type": "string",
+                    "description": "Border CSS",
+                    "default": ""
                 }
             },
             "required": [],
@@ -160,7 +241,10 @@
                     "default": 60
                 }
             },
-            "required": ["url", "height"],
+            "required": [
+                "url",
+                "height"
+            ],
             "additionalProperties": false
         },
         "configuration-object": {
@@ -197,26 +281,7 @@
                     "additionalProperties": false
                 },
                 "preview": {
-                    "description": "Options for customising visual previews shown for snap and tab actions",
-                    "properties": {
-                        "snap": {
-                            "$ref": "#/definitions/preview"
-                        },
-                        "tab": {
-                            "$ref": "#/definitions/preview"
-                        }
-                    },
-                    "default": {
-                        "snap": {
-                            "activeOpacity": 0.8,
-                            "targetOpacity": 0.8
-                        },
-                        "tab": {
-                            "activeOpacity": 0.8,
-                            "targetOpacity": 0.8
-                        }
-                    },
-                    "additionalProperties": false
+                    "$ref": "#/definitions/preview"
                 },
                 "tabstrip": {
                     "$ref": "#/definitions/tabstrip"

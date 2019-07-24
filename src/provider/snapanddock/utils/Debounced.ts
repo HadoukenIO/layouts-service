@@ -14,6 +14,7 @@ export class Debounced<C extends Function, S, A extends any[]> {
     private static DEBOUNCE_INTERVAL = 200;
 
     private _deferredPromise: DeferredPromise<void> | undefined;
+    private _result: any;
 
     private _callback: C;
     private _scope: S;
@@ -69,11 +70,23 @@ export class Debounced<C extends Function, S, A extends any[]> {
         const resolve = this._deferredPromise![1];
         this._deferredPromise = undefined;
 
-        await this._callback.apply(this._scope, args);
+        if (this._result !== undefined) {
+            await this._result;
+        }
+
+        if (this._result !== undefined) {
+            return;
+        }
+
+        this._result =  this._callback.apply(this._scope, args);
+        await this._result;
+
+        this._result = undefined;
+
         resolve();
     }
 
-    private schedule(): void {
+    private async schedule(): Promise<void> {
         if (this._handle !== undefined) {
             clearTimeout(this._handle as number);
         }

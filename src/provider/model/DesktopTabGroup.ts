@@ -1,4 +1,5 @@
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
+import {Signal} from 'openfin-service-signal';
 
 import {Scope} from '../../../gen/provider/config/layouts-config';
 import {LayoutsEvent} from '../../client/connection';
@@ -6,7 +7,6 @@ import {ApplicationUIConfig, TabActivatedEvent, TabAddedEvent, TabRemovedEvent} 
 import {TabGroupMaximizedEvent, TabGroupMinimizedEvent, TabGroupRestoredEvent} from '../../client/tabstrip';
 import {TabGroupDimensions, WindowState} from '../../client/workspaces';
 import {tabService} from '../main';
-import {Signal1} from '../Signal';
 import {Debounced} from '../snapanddock/utils/Debounced';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
@@ -21,8 +21,8 @@ import {DesktopWindow, EntityState, eTransformType, Mask, ResizeConstraint, Wind
  * Handles functionality for the TabSet
  */
 export class DesktopTabGroup implements DesktopEntity {
-    public static readonly onCreated: Signal1<DesktopTabGroup> = new Signal1();
-    public static readonly onDestroyed: Signal1<DesktopTabGroup> = new Signal1();
+    public static readonly onCreated = new Signal<[DesktopTabGroup]>()
+    public static readonly onDestroyed = new Signal<[DesktopTabGroup]>();
 
     /**
      * Need to lazily-initialise the window pool, due to DesktopTabstripFactory's dependency on the config store.

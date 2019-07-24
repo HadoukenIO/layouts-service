@@ -20,13 +20,12 @@ export class Debounced<C extends Function, S, A extends any[]> {
     private _args: A|undefined;
 
     // Multiple definitions of setTimeout/clearTimeout, and not possible to point TSC at the correct (non-Node) definition
-    private _handle: number | NodeJS.Timer;
+    private _handle: number | NodeJS.Timer | undefined;
 
     constructor(callback: C, scope: S) {
         this._callback = callback;
         this._scope = scope;
 
-        this._handle = -1;
         this.onTimeout = this.onTimeout.bind(this);
     }
 
@@ -42,11 +41,11 @@ export class Debounced<C extends Function, S, A extends any[]> {
      */
     public async call(...args: A): Promise<void> {
         this._args = args;
-        this.schedule();
-
         if (!this._deferredPromise) {
             this._deferredPromise = deferredPromise<void>();
         }
+
+        this.schedule();
 
         return this._deferredPromise[0];
     }
@@ -57,7 +56,7 @@ export class Debounced<C extends Function, S, A extends any[]> {
      * Has no effect if the timer isn't currently active.
      */
     public postpone(): void {
-        if (this._handle >= 0) {
+        if (this._handle !== undefined) {
             this.schedule();
         }
     }
@@ -66,22 +65,19 @@ export class Debounced<C extends Function, S, A extends any[]> {
         const args = this._args;
         delete this._args;
 
-        this._handle = -1;
-        await this._callback.apply(this._scope, args);
-
+        this._handle = undefined;
         const resolve = this._deferredPromise![1];
         this._deferredPromise = undefined;
+
+        await this._callback.apply(this._scope, args);
         resolve();
     }
 
-    private cancel(): void {
-        if (this._handle >= 0) {
+    private schedule(): void {
+        if (this._handle !== undefined) {
             clearTimeout(this._handle as number);
         }
-    }
 
-    private schedule(): void {
-        this.cancel();
         this._handle = setTimeout(this.onTimeout, Debounced.DEBOUNCE_INTERVAL);
     }
 }

@@ -595,6 +595,10 @@ export class DesktopTabGroup implements DesktopEntity {
         }
     }
 
+    public async sync(): Promise<void> {
+        await Promise.all([this._window.sync(), ...this._tabs.map(tab => tab.sync())]);
+    }
+
     private updateBounds(): void {
         const activeTab = this.activeTab;
         if (!activeTab) {

@@ -12,24 +12,27 @@ export interface SavedWorkspace {
     layout: Workspace;
 }
 
+const DEFAULT_URL = 'http://localhost:1337/demo/testbed/index.html';
 const launchDir = location.href.slice(0, location.href.lastIndexOf('/'));
 
 const appTemplates: {[key: string]: AppData<ConfigurationObject>} = {
-    'manifest': {type: 'manifest', id: 'App-1', position: 'center', size: {x: 1024, y: 800}},
-    'programmatic': {type: 'programmatic', id: 'App-2', position: 'center', size: {x: 1024, y: 800}},
+    'manifest': {type: 'manifest', id: 'App-1', position: 'center', size: {x: 1024, y: 800}, url: DEFAULT_URL},
+    'programmatic': {type: 'programmatic', id: 'App-2', position: 'center', size: {x: 1024, y: 800}, url: DEFAULT_URL},
     'script': {type: 'programmatic', id: 'App-3', position: 'center', url: 'http://localhost:1337/demo/libScriptIncluded.html'},
-    'random-manifest': {type: 'manifest', position: 'center', size: {x: 1024, y: 800}},
-    'random-programmatic': {type: 'programmatic', position: 'center', size: {x: 1024, y: 800}},
-    'deregistered': {position: 'center', config: {enabled: false}},
-    'tab-default': {position: 'center', size: {x: 400, y: 300}, queryArgs: {section: 'tabbing'}},
+    'random-manifest': {type: 'manifest', position: 'center', size: {x: 1024, y: 800}, url: DEFAULT_URL},
+    'random-programmatic': {type: 'programmatic', position: 'center', size: {x: 1024, y: 800}, url: DEFAULT_URL},
+    'deregistered': {position: 'center', config: {enabled: false}, url: DEFAULT_URL},
+    'tab-default': {position: 'center', size: {x: 400, y: 300}, queryArgs: {section: 'tabbing'}, url: DEFAULT_URL},
     'tab-custom1': {
         position: 'center',
+        url: DEFAULT_URL,
         size: {x: 400, y: 300},
         queryArgs: {section: 'tabbing'},
         config: {tabstrip: {url: 'http://localhost:1337/demo/tabstrips/custom1.html', height: 60}}
     },
     'tab-custom2': {
         position: 'center',
+        url: DEFAULT_URL,
         size: {x: 400, y: 300},
         queryArgs: {section: 'tabbing'},
         config: {tabstrip: {url: 'http://localhost:1337/demo/tabstrips/custom2.html', height: 60}}

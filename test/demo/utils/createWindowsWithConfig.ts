@@ -29,7 +29,9 @@ export async function createWindowsWithConfig(key: string, ...configs: (Preview 
             id: `window-${key}-${index}:${counter++}`,
             position: {x: 200 + (index * 350), y: 150},
             config,
-            provider: 'testing'
+            provider: 'testing',
+            frame: false,
+            url: 'http://localhost:1337/demo/testbed/index.html'
         };
 
         const app = await createApp(appData);

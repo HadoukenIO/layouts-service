@@ -74,6 +74,8 @@ export class Debounced<C extends Function, S, A extends any[]> {
             await this._result;
         }
 
+        // If a debounced call takes many times the DEBOUNCE_INTERVAL to resolve, we may be one of many onTimeout calls that were waiting on this._result
+        // Only let the first one through
         if (this._result !== undefined) {
             return;
         }

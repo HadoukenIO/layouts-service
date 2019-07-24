@@ -98,4 +98,10 @@ export interface DesktopEntity {
      * @param halfSize Optional new (half)size of the entity
      */
     applyOffset(offset: Point, halfSize?: Point): Promise<void>;
+
+    /**
+     * Returns a promise that will resolve when all pending actions for the entity have completed. Roughly, this will mean that our model
+     * for this entity is in sync with the runtime model
+     */
+    sync(): Promise<void>
 }

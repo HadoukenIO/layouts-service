@@ -315,33 +315,26 @@ export class DesktopTabGroup implements DesktopEntity {
      */
     public async restore(): Promise<void> {
         if (this.state === 'minimized') {
-            const result = this.window.applyProperties({state: 'normal'});
-
-            const event: TabGroupRestoredEvent = {identity: this.window.identity, type: 'tab-group-restored'};
-            this.window.sendEvent(event);
-
-            return result;
-        } else {
-            if (this._isMaximized) {
-                if (this.activeTab.currentState.state === 'minimized') {
-                    await Promise.all(this._tabs.map(tab => tab.applyProperties({state: 'normal'})));
-                } else if (this._beforeMaximizeTabBounds) {
-                    this._isMaximized = false;
-
-                    const bounds: Rectangle = this._beforeMaximizeTabBounds;
-                    await this._window.applyProperties({
-                        center: {x: bounds.center.x, y: bounds.center.y - bounds.halfSize.y - (this._config.height / 2)},
-                        halfSize: {x: bounds.halfSize.x, y: this._config.height / 2}
-                    });
-                    await this.activeTab.applyProperties(bounds);
-                }
-            } else {
+            await this.window.applyProperties({state: 'normal'});
+        } else if (this.state === 'maximized') {
+            if (this.activeTab.currentState.state === 'minimized') {
                 await Promise.all(this._tabs.map(tab => tab.applyProperties({state: 'normal'})));
-            }
+            } else if (this._beforeMaximizeTabBounds) {
+                this._isMaximized = false;
 
-            const event: TabGroupRestoredEvent = {identity: this.window.identity, type: 'tab-group-restored'};
-            this.window.sendEvent(event);
+                const bounds: Rectangle = this._beforeMaximizeTabBounds;
+                await this._window.applyProperties({
+                    center: {x: bounds.center.x, y: bounds.center.y - bounds.halfSize.y - (this._config.height / 2)},
+                    halfSize: {x: bounds.halfSize.x, y: this._config.height / 2}
+                });
+                await this.activeTab.applyProperties(bounds);
+            }
+        } else {
+            await Promise.all(this._tabs.map(tab => tab.applyProperties({state: 'normal'})));
         }
+
+        const event: TabGroupRestoredEvent = {identity: this.window.identity, type: 'tab-group-restored'};
+        this.window.sendEvent(event);
     }
 
     /**

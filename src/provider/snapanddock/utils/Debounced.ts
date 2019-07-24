@@ -78,7 +78,7 @@ export class Debounced<C extends Function, S, A extends any[]> {
             return;
         }
 
-        this._result =  this._callback.apply(this._scope, args);
+        this._result = this._callback.apply(this._scope, args);
         await this._result;
 
         this._result = undefined;

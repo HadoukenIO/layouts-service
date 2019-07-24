@@ -7,6 +7,7 @@ import {DesktopEntity} from './DesktopEntity';
 import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {MonitorAssignmentCalculator, SnapGroupResult, EntityResult} from './MonitorAssignmentCalculator';
 import {DesktopTabGroup} from './DesktopTabGroup';
+import {DesktopWindow} from './DesktopWindow';
 
 export class MonitorAssignmentValidator {
     private _model: DesktopModel;
@@ -89,21 +90,22 @@ export class MonitorAssignmentValidator {
                     await entity.restore();
                     await entity.sync();
 
-                    // Validation will not have been applied to minimized tabs, so do it here
+                    // Windows may have moved the tabgroup on restore to bring it back on-screen itself, so revalidate
                     await entity.validate();
-                } else {
-                    await entity.applyOverride('state', 'normal');
+                } else if (entity instanceof DesktopWindow) {
+                    await entity.applyProperties({'state': 'normal'});
+                    await entity.sync();
                 }
             }
 
-            // Windows may have moved the window on restore, so recalculate the offset
+            // Windows may have moved the entity on restore to bring it back on-screen itself, so recalculate the offset
             await entity.applyOffset(this.calculateOffset(entity, rectangle), rectangle.halfSize);
 
             if (oldState !== 'normal') {
                 if (entity instanceof DesktopTabGroup) {
                     await oldState === 'maximized' ? entity.maximize() : entity.minimize();
-                } else {
-                    await entity.applyOverride('state', 'normal');
+                } else if (entity instanceof DesktopWindow) {
+                    await oldState === 'maximized' ? entity.applyProperties({'state': 'maximized'}) : entity.applyProperties({'state': 'minimized'});
                 }
             }
         }

@@ -838,10 +838,24 @@ export class DesktopTabGroup implements DesktopEntity {
             halfSize: {x: this.activeTab.currentState.halfSize.x, y: this._config.height / 2}
         };
 
-        if (!RectUtils.isEqual(expectedTabstripPosition, this._window.currentState)) {
+        const expectedTabPosition = {
+            center: this.activeTab.currentState.center,
+            halfSize: this.activeTab.currentState.halfSize
+        };
+
+        const repositionTabstrip = !RectUtils.isEqual(expectedTabstripPosition, this._window.currentState);
+        const tabsToReposition = this._tabs.filter(tab => !RectUtils.isEqual(tab.currentState, expectedTabPosition));
+
+        if (repositionTabstrip || tabsToReposition.length > 0) {
             console.log('TabGroup disjointed. Moving tabstrip back to group.', this.id);
-            await DesktopWindow.transaction([this._window], async (wins: DesktopWindow[]) => {
-                await wins[0].applyProperties(expectedTabstripPosition);
+            await DesktopWindow.transaction([this._window, ... this._tabs], async () => {
+                if (repositionTabstrip) {
+                    await this._window.applyProperties(expectedTabstripPosition);
+                }
+
+                for (const tab of tabsToReposition) {
+                    await tab.applyProperties(expectedTabPosition);
+                }
             });
         }
     }

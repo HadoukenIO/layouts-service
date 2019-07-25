@@ -3,20 +3,19 @@ import {MonitorAssignmentCalculator} from '../../src/provider/model/MonitorAssig
 const leftMonitor = {
     center: {x: -1500, y: 500},
     halfSize: {x: 500, y: 500}
-}
+};
 
 const rightMonitor = {
     center: {x: 1500, y: 500},
     halfSize: {x: 500, y: 500}
-}
+};
 
 describe('When removing a central monitor', () => {
-    
-    let calculator = new MonitorAssignmentCalculator([
+    const calculator = new MonitorAssignmentCalculator([
         leftMonitor,
         rightMonitor
     ]);
-    
+
     it('A window to the left of center is moved to the left monitor', () => {
         const result = calculator.getMovedEntityRectangle({beforeMaximizeBounds: {
             center: {
@@ -47,8 +46,8 @@ describe('When removing a central monitor', () => {
 });
 
 describe('When removing a big monitor', () => {
-    let calculator = new MonitorAssignmentCalculator([
-        leftMonitor,
+    const calculator = new MonitorAssignmentCalculator([
+        leftMonitor
     ]);
 
     it('A big window is moved over the smaller monitor as expected', () => {

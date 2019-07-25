@@ -85,13 +85,16 @@ export class MonitorAssignmentValidator {
 
             const oldState = entity instanceof DesktopTabGroup ? entity.state : entity.currentState.state;
 
-            // Things get weird with tabs if we mess with them while minimized, so restore
-            if (oldState === 'minimized' && entity instanceof DesktopTabGroup) {
+            // Things get weird with tabs if we mess with them while minimized, and we'll want to re-maximize maximized windows
+            // to the correct screen, so always restore
+            if (oldState !== 'normal') {
                 await entity.restore();
                 await entity.sync();
 
                 // Windows may have moved the tabgroup on restore to bring it back on-screen itself, so revalidate
-                await entity.validate();
+                if (entity instanceof DesktopTabGroup) {
+                    await entity.validate();
+                }
             }
 
             // Windows may have moved the entity on restore to bring it back on-screen itself, so recalculate the offset

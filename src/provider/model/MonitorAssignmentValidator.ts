@@ -83,33 +83,23 @@ export class MonitorAssignmentValidator {
                 await entity.setSnapGroup(new DesktopSnapGroup());
             }
 
-            // We can't straightforwardly use apply/restoreOverride here due to inconsistencies with how it behaves between Windows and TabGroups
             const oldState = entity instanceof DesktopTabGroup ? entity.state : entity.currentState.state;
-            if (oldState !== 'normal') {
-                if (entity instanceof DesktopTabGroup) {
-                    // We may need to restore twice, as first restore may only take us from minimized to maximized
-                    while (entity.state !== 'normal') {
-                        await entity.restore();
-                        await entity.sync();
-                    }
 
-                    // Windows may have moved the tabgroup on restore to bring it back on-screen itself, so revalidate
-                    await entity.validate();
-                } else if (entity instanceof DesktopWindow) {
-                    await entity.applyProperties({'state': 'normal'});
-                    await entity.sync();
-                }
+            // Things get weird with tabs if we mess with them while minimized, so restore
+            if (oldState === 'minimized' && entity instanceof DesktopTabGroup) {
+                await entity.restore();
+                await entity.sync();
+
+                // Windows may have moved the tabgroup on restore to bring it back on-screen itself, so revalidate
+                await entity.validate();
             }
 
             // Windows may have moved the entity on restore to bring it back on-screen itself, so recalculate the offset
             await entity.applyOffset(this.calculateOffset(entity, rectangle), rectangle.halfSize);
 
+            // Maximized windows may become normal when using applyOffet, so always restore original state
             if (oldState !== 'normal') {
-                if (entity instanceof DesktopTabGroup) {
-                    await oldState === 'maximized' ? entity.maximize() : entity.minimize();
-                } else if (entity instanceof DesktopWindow) {
-                    await oldState === 'maximized' ? entity.applyProperties({'state': 'maximized'}) : entity.applyProperties({'state': 'minimized'});
-                }
+                await oldState === 'maximized' ? entity.maximize() : entity.minimize();
             }
         }
     }

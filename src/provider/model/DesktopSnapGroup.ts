@@ -15,8 +15,8 @@ import {DesktopWindow, EntityState, eTransformType, Mask, ResizeConstraint} from
 export class DesktopSnapGroup {
     private static _nextId = 1;
 
-    public static readonly onCreated = new Signal<[DesktopSnapGroup]>();
-    public static readonly onDestroyed = new Signal<[DesktopSnapGroup]>();
+    public static readonly onCreated: Signal<[DesktopSnapGroup]> = new Signal();
+    public static readonly onDestroyed: Signal<[DesktopSnapGroup]> = new Signal();
 
     /**
      * A window property has been changed that may snap the window out of any group that it it's currently in.
@@ -25,14 +25,14 @@ export class DesktopSnapGroup {
      *
      * Arguments: (group: DesktopSnapGroup, modifiedWindow: DesktopWindow)
      */
-    public readonly onModified = new Signal<[DesktopSnapGroup, DesktopWindow]>();
+    public readonly onModified: Signal<[DesktopSnapGroup, DesktopWindow]> = new Signal();
 
     /**
      * Window is being moved/resized, need to check for any snap targets.
      *
      * Arguments: (group: DesktopSnapGroup, type: Mask<eTransformType>)
      */
-    public readonly onTransform = new Signal<[DesktopSnapGroup, Mask<eTransformType>]>();
+    public readonly onTransform: Signal<[DesktopSnapGroup, Mask<eTransformType>]> = new Signal();
 
     /**
      * The move/resize operation (that was signalled through onTransform) has been completed.
@@ -41,7 +41,7 @@ export class DesktopSnapGroup {
      *
      * Arguments: (group: DesktopSnapGroup, type: Mask<eTransformType>)
      */
-    public readonly onCommit = new Signal<[DesktopSnapGroup, Mask<eTransformType>]>();
+    public readonly onCommit: Signal<[DesktopSnapGroup, Mask<eTransformType>]> = new Signal();
 
     /**
      * A window has been added to this group.
@@ -50,7 +50,7 @@ export class DesktopSnapGroup {
      *
      * Arguments: (group: DesktopSnapGroup, window: DesktopWindow)
      */
-    public readonly onWindowAdded = new Signal<[DesktopSnapGroup, DesktopWindow]>();
+    public readonly onWindowAdded: Signal<[DesktopSnapGroup, DesktopWindow]> = new Signal();
 
     /**
      * A window has been removed from this group.
@@ -59,7 +59,7 @@ export class DesktopSnapGroup {
      *
      * Arguments: (group: DesktopSnapGroup, window: DesktopWindow)
      */
-    public readonly onWindowRemoved = new Signal<[DesktopSnapGroup, DesktopWindow]>();
+    public readonly onWindowRemoved: Signal<[DesktopSnapGroup, DesktopWindow]> = new Signal();
 
 
     /**

@@ -122,8 +122,8 @@ const MINIMUM_RESIZE_CHANGE = 2;
 const MINIMUM_MOVE_CHANGE = 2;
 
 export class DesktopWindow implements DesktopEntity {
-    public static readonly onCreated = new Signal<[DesktopWindow]>();
-    public static readonly onDestroyed = new Signal<[DesktopWindow]>();
+    public static readonly onCreated: Signal<[DesktopWindow]> = new Signal();
+    public static readonly onDestroyed: Signal<[DesktopWindow]> = new Signal();
 
     /**
      * Tracks which windows are currently being manipulated as part of a transaction.
@@ -272,14 +272,14 @@ export class DesktopWindow implements DesktopEntity {
      *
      * Arguments: (window: DesktopWindow)
      */
-    public readonly onModified = new Signal<[DesktopWindow]>();
+    public readonly onModified: Signal<[DesktopWindow]> = new Signal();
 
     /**
      * Window is being moved/resized, need to check for any snap targets.
      *
      * Arguments: (window: DesktopWindow, type: Mask<eTransformType>)
      */
-    public readonly onTransform = new Signal<[DesktopWindow, Mask<eTransformType>]>();
+    public readonly onTransform: Signal<[DesktopWindow, Mask<eTransformType>]> = new Signal();
 
     /**
      * The move/resize operation (that was signalled through onTransform) has been completed.
@@ -288,14 +288,14 @@ export class DesktopWindow implements DesktopEntity {
      *
      * Arguments: (window: DesktopWindow, type: Mask<eTransformType>)
      */
-    public readonly onCommit = new Signal<[DesktopWindow, Mask<eTransformType>]>();
+    public readonly onCommit: Signal<[DesktopWindow, Mask<eTransformType>]> = new Signal();
 
     /**
      * The tabGroup of the window has changed (including being set to null).
      *
      * Arguments: (window: DesktopWindow)
      */
-    public readonly onTabGroupChanged = new Signal<[DesktopWindow]>();
+    public readonly onTabGroupChanged: Signal<[DesktopWindow]> = new Signal();
 
     /**
      * Window is being removed from the service. Use this signal for any clean-up that is required, such as removing
@@ -306,7 +306,7 @@ export class DesktopWindow implements DesktopEntity {
      *
      * Arguments: (window: DesktopWindow)
      */
-    public readonly onTeardown = new Signal<[DesktopWindow], Promise<void>, Promise<void>>(Aggregators.AWAIT_VOID);
+    public readonly onTeardown: Signal<[DesktopWindow], Promise<void>, Promise<void>> = new Signal(Aggregators.AWAIT_VOID);
 
 
     private _model: DesktopModel;

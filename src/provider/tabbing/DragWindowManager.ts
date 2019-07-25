@@ -16,14 +16,14 @@ export class DragWindowManager {
      *
      * Arguments: (window: DesktopWindow, position: Point)
      */
-    public static readonly onDragOver = new Signal<[DesktopWindow, Point]>();
+    public static readonly onDragOver: Signal<[DesktopWindow, Point]> = new Signal();
 
     /**
      * Fires when a tab has been dropped on the drag window, indicating an end to the drag/drop operation.
      *
      * Arguments: (window: DesktopWindow);
      */
-    public static readonly onDragDrop = new Signal<[DesktopWindow]>();
+    public static readonly onDragDrop: Signal<[DesktopWindow]> = new Signal();
 
     /**
      * The drag overlay window

@@ -21,8 +21,8 @@ import {DesktopWindow, EntityState, eTransformType, Mask, ResizeConstraint, Wind
  * Handles functionality for the TabSet
  */
 export class DesktopTabGroup implements DesktopEntity {
-    public static readonly onCreated = new Signal<[DesktopTabGroup]>()
-    public static readonly onDestroyed = new Signal<[DesktopTabGroup]>();
+    public static readonly onCreated: Signal<[DesktopTabGroup]> = new Signal()
+    public static readonly onDestroyed: Signal<[DesktopTabGroup]> = new Signal();
 
     /**
      * Need to lazily-initialise the window pool, due to DesktopTabstripFactory's dependency on the config store.

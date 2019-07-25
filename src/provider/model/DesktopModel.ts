@@ -6,11 +6,11 @@ import {WindowDetail, WindowInfo} from 'hadouken-js-adapter/out/types/src/api/sy
 import {ScopedConfig} from 'openfin-service-config';
 import {MaskWatch} from 'openfin-service-config/Watch';
 import {ConfigUtil, Masked} from 'openfin-service-config/ConfigUtil';
+import {SignalSlot} from 'openfin-service-signal';
 
 import {ConfigurationObject, RegEx, Rule, Scope, WindowScope} from '../../../gen/provider/config/layouts-config';
 import {ConfigStore} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
-import {SignalSlot} from '../Signal';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 

@@ -225,6 +225,16 @@ const options: MonitorAssignmentValidatorTestOptions[] = [
     }
 ];
 
+let initialMonitors: Rectangle[] = []
+
+beforeAll(async () => {
+    initialMonitors = await getMonitors();
+});
+
+afterEach(async() => {
+    await setMonitors(initialMonitors);
+})
+
 afterAll(teardown);
 
 itParameterized<MonitorAssignmentValidatorTestOptions>(
@@ -249,10 +259,11 @@ async function setupWindows(context: WindowContext, testOptions: MonitorAssignme
 }
 
 async function applyMonitorChange(): Promise<void> {
-    await executeJavascriptOnService(async function (this: ProviderWindow, monitor: Rectangle): Promise<void> {
-        this.model['_monitors'] = [monitor];
+    await setMonitors([smallMonitor]);
+
+    await executeJavascriptOnService(async function (this: ProviderWindow): Promise<void> {
         await this.model['_monitorAssignmentValidator'].validate();
-    }, smallMonitor);
+    });
 }
 
 async function checkWindows(context: WindowContext, testOptions: MonitorAssignmentValidatorTestOptions): Promise<void> {
@@ -327,5 +338,17 @@ async function setupSnapAndTabGroups(context: WindowContext, testOptions: Monito
             }
         }
     });
+}
+
+async function getMonitors(): Promise<Rectangle[]> {
+    return executeJavascriptOnService(async function (this: ProviderWindow): Promise<Rectangle[]> {
+        return this.model['_monitors'];
+    });
+}
+
+async function setMonitors(monitors: Rectangle[]): Promise<void> {
+    await executeJavascriptOnService(async function (this: ProviderWindow, monitors: Rectangle[]): Promise<void> {
+        this.model['_monitors'] = monitors;
+    }, monitors);
 }
 

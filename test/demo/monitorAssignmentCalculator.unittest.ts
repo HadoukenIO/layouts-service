@@ -10,10 +10,22 @@ const rightMonitor = {
     halfSize: {x: 500, y: 500}
 };
 
+const topMonitor = {
+    center: {x: 0, y: -1000},
+    halfSize: {x: 500, y: 500}
+};
+
+const bottomMonitor = {
+    center: {x: 0, y: 2000},
+    halfSize: {x: 500, y: 500}
+};
+
 describe('When removing a central monitor', () => {
     const calculator = new MonitorAssignmentCalculator([
         leftMonitor,
-        rightMonitor
+        rightMonitor,
+        topMonitor,
+        bottomMonitor
     ]);
 
     it('A window to the left of center is moved to the left monitor', () => {
@@ -40,6 +52,31 @@ describe('When removing a central monitor', () => {
 
         expect(result).toEqual({
             center: {x: 1100, y: 500},
+            halfSize: {x: 100, y: 100}
+        });
+    });
+
+    it('A window to the top of middle is moved to the bottom monitor', () => {
+        const result = calculator.getMovedEntityRectangle({normalBounds: {
+            center: {x: 0, y: 499},
+            halfSize: {x: 100, y: 100}
+        }});
+
+        expect(result).toEqual({
+            center: {x: 0, y: -600},
+            halfSize: {x: 100, y: 100}
+        });
+    });
+
+
+    it('A window to the bottom of middle is moved to the bottom monitor', () => {
+        const result = calculator.getMovedEntityRectangle({normalBounds: {
+            center: {x: 0, y: 501},
+            halfSize: {x: 100, y: 100}
+        }});
+
+        expect(result).toEqual({
+            center: {x: 0, y: 1600},
             halfSize: {x: 100, y: 100}
         });
     });

@@ -38,15 +38,20 @@ export class Debounced<C extends Function, S, A extends any[]> {
      * In the event of multiple calls to this function with different arguments, the most recent arguments will be
      * used for the "actual" function call.
      *
+     * In the event the call is async and already in progress, we wait for it to complete before scheduling a new call.
+     *
      * @param args Arguments to hit the callback with
      */
     public async call(...args: A): Promise<void> {
+        const entryTime = Date.now();
+        await this._result;
+
         this._args = args;
         if (!this._deferredPromise) {
             this._deferredPromise = deferredPromise<void>();
         }
 
-        this.schedule();
+        this.schedule(Date.now() - entryTime);
 
         return this._deferredPromise[0];
     }
@@ -70,16 +75,6 @@ export class Debounced<C extends Function, S, A extends any[]> {
         const resolve = this._deferredPromise![1];
         this._deferredPromise = undefined;
 
-        if (this._result !== undefined) {
-            await this._result;
-        }
-
-        // If a debounced call takes many times the DEBOUNCE_INTERVAL to resolve, we may be one of many onTimeout calls that were waiting on this._result
-        // Only let the first one through
-        if (this._result !== undefined) {
-            return;
-        }
-
         this._result = this._callback.apply(this._scope, args);
         await this._result;
 
@@ -88,11 +83,11 @@ export class Debounced<C extends Function, S, A extends any[]> {
         resolve();
     }
 
-    private async schedule(): Promise<void> {
+    private async schedule(elapsed: number = 0): Promise<void> {
         if (this._handle !== undefined) {
             clearTimeout(this._handle as number);
         }
 
-        this._handle = setTimeout(this.onTimeout, Debounced.DEBOUNCE_INTERVAL);
+        this._handle = setTimeout(this.onTimeout, Math.max(0, Debounced.DEBOUNCE_INTERVAL - elapsed));
     }
 }

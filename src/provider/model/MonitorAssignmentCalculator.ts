@@ -6,7 +6,7 @@ export type SnapGroupResult = {entityResults: EntityResult[], groupRectangle: Re
 type EntityAndMonitorRectangles = {entityRectangle: Rectangle, monitorRectangle: Rectangle}
 
 // Limit ourselves to just the bits of DesktopEntity and SnapGroups we want
-type DesktopEntity = {beforeMaximizeBounds: Rectangle};
+type DesktopEntity = {normalBounds: Rectangle};
 type DesktopSnapGroup = {entities: DesktopEntity[]} & Rectangle;
 
 export class MonitorAssignmentCalculator {
@@ -28,8 +28,8 @@ export class MonitorAssignmentCalculator {
         };
 
         const entityRectangles = snapGroup.entities.map(entity => ({
-            center: {x: entity.beforeMaximizeBounds.center.x + offset.x, y: entity.beforeMaximizeBounds.center.y + offset.y},
-            halfSize: {...entity.beforeMaximizeBounds.halfSize}}));
+            center: {x: entity.normalBounds.center.x + offset.x, y: entity.normalBounds.center.y + offset.y},
+            halfSize: {...entity.normalBounds.halfSize}}));
 
         return {
             entityResults: entityRectangles.map(rectangle => this.attemptGetEntityRectangleInsideMonitorRectangle(rectangle, monitorRectangle).rectangle),
@@ -38,7 +38,7 @@ export class MonitorAssignmentCalculator {
     }
 
     public getMovedEntityRectangle(entity: DesktopEntity): EntityResult {
-        return this.getMovedEntityAndMonitorRectangle(entity.beforeMaximizeBounds).entityRectangle;
+        return this.getMovedEntityAndMonitorRectangle(entity.normalBounds).entityRectangle;
     }
 
     /**

@@ -62,7 +62,7 @@ export class DesktopTabGroup implements DesktopEntity {
     private _activeTab: DesktopWindow|null;
 
     private _isMaximized: boolean;
-    private _beforeMaximizeTabBounds: Rectangle|undefined;
+    private _normalTabBounds: Rectangle|undefined;
 
     private _config: ApplicationUIConfig;
 
@@ -115,14 +115,14 @@ export class DesktopTabGroup implements DesktopEntity {
         return this._groupState;
     }
 
-    public get beforeMaximizeBounds(): Rectangle {
-        if (this._isMaximized && this._beforeMaximizeTabBounds) {
+    public get normalBounds(): Rectangle {
+        if (this._isMaximized && this._normalTabBounds) {
             // We need to convert from tab bounds to overall group bounds
             const tabstripHalfHeight: number = this._config.height / 2;
 
             return {
-                center: {x: this._beforeMaximizeTabBounds.center.x, y: this._beforeMaximizeTabBounds.center.y - tabstripHalfHeight},
-                halfSize: {x: this._beforeMaximizeTabBounds.halfSize.x, y: this._beforeMaximizeTabBounds.halfSize.y + tabstripHalfHeight}
+                center: {x: this._normalTabBounds.center.x, y: this._normalTabBounds.center.y - tabstripHalfHeight},
+                halfSize: {x: this._normalTabBounds.halfSize.x, y: this._normalTabBounds.halfSize.y + tabstripHalfHeight}
             };
         } else {
             return this.currentState;
@@ -209,11 +209,11 @@ export class DesktopTabGroup implements DesktopEntity {
 
         // Emulating DesktopWindow behaviour, restore the window in the maximized case
         if (this._isMaximized) {
-            if (this._beforeMaximizeTabBounds) {
+            if (this._normalTabBounds) {
                 // The given halfSize is for the group, but we store the halfSize for a tab, so we do the below conversion
-                this._beforeMaximizeTabBounds = {
-                    center: {x: this._beforeMaximizeTabBounds.center.x + offset.x, y: this._beforeMaximizeTabBounds.center.y + offset.y},
-                    halfSize: halfSize ? {x: halfSize.x, y: halfSize.y - tabstripHalfHeight} : this._beforeMaximizeTabBounds.halfSize
+                this._normalTabBounds = {
+                    center: {x: this._normalTabBounds.center.x + offset.x, y: this._normalTabBounds.center.y + offset.y},
+                    halfSize: halfSize ? {x: halfSize.x, y: halfSize.y - tabstripHalfHeight} : this._normalTabBounds.halfSize
                 };
             }
 
@@ -285,7 +285,7 @@ export class DesktopTabGroup implements DesktopEntity {
 
             const {center, halfSize} = this._activeTab && this._activeTab.currentState || this._tabs[0].currentState;
 
-            this._beforeMaximizeTabBounds = {center: {...center}, halfSize: {...halfSize}};
+            this._normalTabBounds = {center: {...center}, halfSize: {...halfSize}};
 
             const currentMonitor = this._model.getMonitorByRect(this._groupState) || this._model.monitors[0];
 
@@ -319,10 +319,10 @@ export class DesktopTabGroup implements DesktopEntity {
         } else if (this.state === 'maximized') {
             if (this.activeTab.currentState.state === 'minimized') {
                 await Promise.all(this._tabs.map(tab => tab.applyProperties({state: 'normal'})));
-            } else if (this._beforeMaximizeTabBounds) {
+            } else if (this._normalTabBounds) {
                 this._isMaximized = false;
 
-                const bounds: Rectangle = this._beforeMaximizeTabBounds;
+                const bounds: Rectangle = this._normalTabBounds;
                 await this._window.applyProperties({
                     center: {x: bounds.center.x, y: bounds.center.y - bounds.halfSize.y - (this._config.height / 2)},
                     halfSize: {x: bounds.halfSize.x, y: this._config.height / 2}
@@ -370,14 +370,14 @@ export class DesktopTabGroup implements DesktopEntity {
         const activeTab: DesktopWindow = (activeTabId && this._model.getWindow(activeTabId)) || firstTab;
 
         // If we're forming this tabgroup from a maximized tab, we'll want to maximize this tabgroup, and inherit the tab window's restore bounds
-        let beforeMaximizeTabBounds: Rectangle|undefined;
+        let normalTabBounds: Rectangle|undefined;
         if (this.tabs.length === 0 && firstTab.currentState.state === 'maximized') {
-            const tabBounds = firstTab.beforeMaximizeBounds;
+            const tabBounds = firstTab.normalBounds;
 
             const center = {x: tabBounds.center.x, y: tabBounds.center.y + (this._config.height / 2)};
             const halfSize = {x: tabBounds.halfSize.x, y: tabBounds.halfSize.y - this._config.height / 2};
 
-            beforeMaximizeTabBounds = {center, halfSize};
+            normalTabBounds = {center, halfSize};
         }
 
         await DesktopWindow.transaction(allWindows, async () => {
@@ -391,9 +391,9 @@ export class DesktopTabGroup implements DesktopEntity {
 
         await this.switchTab(activeTab);
 
-        if (beforeMaximizeTabBounds) {
+        if (normalTabBounds) {
             await this.maximize().then(() => {
-                this._beforeMaximizeTabBounds = beforeMaximizeTabBounds;
+                this._normalTabBounds = normalTabBounds;
             }, () => {});
         }
     }
@@ -573,8 +573,8 @@ export class DesktopTabGroup implements DesktopEntity {
     }
 
     public getSaveDimensions(): TabGroupDimensions {
-        if (this._isMaximized && this._beforeMaximizeTabBounds) {
-            const bounds: Rectangle = this._beforeMaximizeTabBounds;
+        if (this._isMaximized && this._normalTabBounds) {
+            const bounds: Rectangle = this._normalTabBounds;
 
             return {
                 x: bounds.center.x - bounds.halfSize.x,

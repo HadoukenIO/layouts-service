@@ -108,7 +108,7 @@ export class MonitorAssignmentValidator {
     }
 
     private calculateOffset(entity: DesktopEntity, rectangle: Rectangle): Point<number> {
-        const center = entity.beforeMaximizeBounds.center;
+        const center = entity.normalBounds.center;
         return {x: rectangle.center.x - center.x, y: rectangle.center.y - center.y};
     }
 }

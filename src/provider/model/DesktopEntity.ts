@@ -45,7 +45,7 @@ export interface DesktopEntity {
      *
      * When the entity is 'normal', this will be the same match the `center` and `halfSize` fields of `currentState`
      */
-    beforeMaximizeBounds: Rectangle
+    normalBounds: Rectangle
 
     /**
      * The tab group to which this entity belongs, or null if the entity is not tabbed.

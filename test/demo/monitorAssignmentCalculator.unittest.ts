@@ -17,7 +17,7 @@ describe('When removing a central monitor', () => {
     ]);
 
     it('A window to the left of center is moved to the left monitor', () => {
-        const result = calculator.getMovedEntityRectangle({beforeMaximizeBounds: {
+        const result = calculator.getMovedEntityRectangle({normalBounds: {
             center: {
                 x: -1, y: 500
             },
@@ -33,7 +33,7 @@ describe('When removing a central monitor', () => {
     });
 
     it('A window to the right of center is moved to the right monitor', () => {
-        const result = calculator.getMovedEntityRectangle({beforeMaximizeBounds: {
+        const result = calculator.getMovedEntityRectangle({normalBounds: {
             center: {x: 1, y: 500},
             halfSize: {x: 100, y: 100}
         }});
@@ -51,7 +51,7 @@ describe('When removing a big monitor', () => {
     ]);
 
     it('A big window is moved over the smaller monitor as expected', () => {
-        const result = calculator.getMovedEntityRectangle({beforeMaximizeBounds: {
+        const result = calculator.getMovedEntityRectangle({normalBounds: {
             center: {x: 0, y: 500},
             halfSize: {x: 1500, y: 1500}
         }});

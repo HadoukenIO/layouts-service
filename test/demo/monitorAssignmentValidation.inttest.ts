@@ -225,7 +225,7 @@ const options: MonitorAssignmentValidatorTestOptions[] = [
     }
 ];
 
-let initialMonitors: Rectangle[] = []
+let initialMonitors: Rectangle[] = [];
 
 beforeAll(async () => {
     initialMonitors = await getMonitors();
@@ -233,7 +233,7 @@ beforeAll(async () => {
 
 afterEach(async() => {
     await setMonitors(initialMonitors);
-})
+});
 
 afterAll(teardown);
 

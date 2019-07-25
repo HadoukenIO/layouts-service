@@ -207,7 +207,7 @@ export class DesktopTabGroup implements DesktopEntity {
     public async applyOffset(offset: Point, halfSize?: Point): Promise<void> {
         const tabstripHalfHeight: number = this._config.height / 2;
 
-        // Emulating DesktopWindow behaviour, don't actually move the window in the maximized case
+        // Emulating DesktopWindow behaviour, restore the window in the maximized case
         if (this._isMaximized) {
             if (this._beforeMaximizeTabBounds) {
                 // The given halfSize is for the group, but we store the halfSize for a tab, so we do the below conversion
@@ -217,7 +217,7 @@ export class DesktopTabGroup implements DesktopEntity {
                 };
             }
 
-            return;
+            return this.restore();
         }
 
         const activeTabHalfSize: Point|undefined = halfSize && {x: halfSize.x, y: halfSize.y - tabstripHalfHeight};

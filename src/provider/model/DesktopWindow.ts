@@ -693,6 +693,19 @@ export class DesktopWindow implements DesktopEntity {
         }
     }
 
+    public async maximize(): Promise<void> {
+        return this.applyProperties({state: 'maximized'});
+    }
+
+    public async minimize(): Promise<void> {
+        return this.applyProperties({state: 'minimized'});
+    }
+
+    public async restore(): Promise<void> {
+        // Note that the actual end state following this may be 'maximized'
+        return this.applyProperties({state: 'normal'});
+    }
+
     protected async addPendingActions(tag: string, actions: Promise<void>|Promise<void>[]): Promise<void> {
         if (actions instanceof Array) {
             this._pendingActions.push.apply(this._pendingActions, actions);

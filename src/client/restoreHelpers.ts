@@ -6,8 +6,8 @@ import {WorkspaceWindow, WorkspaceApp} from './workspaces';
 /**
  * A simple restore handler that can be passed to {@link setRestoreHandler} when no custom logic is needed.
  *
- * This restore handler will open and position any child windows which are not currently running
- * and move any open child windows to their expected positions for the restoring workspace.
+ * This restore handler will open any child windows which are not currently running,
+ * and move new and existing child windows to their expected positions for the workspace being restored.
  *
  * ``` ts
  * import {workspaces, restoreHelpers} from 'openfin-layouts';
@@ -15,7 +15,8 @@ import {WorkspaceWindow, WorkspaceApp} from './workspaces';
  * workspaces.setRestoreHandler(restoreHelpers.standardRestoreHandler);
  * ```
  *
- * @param workspaceApp Will contain details of the running app's child windows and their expected post-restore state.
+ * @param workspaceApp Describes the running app's child windows and their expected post-restore state.
+ * See {@link WorkspaceApp} and {@link setRestoreHandler} for more information on what this will contain.
  */
 export async function standardRestoreHandler(workspaceApp: WorkspaceApp) {
     const errors: Error[] = [];

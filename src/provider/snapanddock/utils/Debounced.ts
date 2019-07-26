@@ -18,7 +18,7 @@ export class Debounced<C extends Function, S, A extends any[]> {
 
     private _callback: C;
     private _scope: S;
-    private _args: A|undefined;
+    private _args: A | undefined;
 
     private _handle: number | undefined;
 

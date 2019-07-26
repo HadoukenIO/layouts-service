@@ -1,4 +1,4 @@
-import {deferredPromise, DeferredPromise} from '../../utils/async';
+import {DeferredPromise} from '../../utils/DeferredPromise';
 
 /**
  * Util for de-bouncing calls to a function. The function will be wrapped within this object, which bundles the
@@ -47,12 +47,12 @@ export class Debounced<C extends Function, S, A extends any[]> {
 
         this._args = args;
         if (!this._deferredPromise) {
-            this._deferredPromise = deferredPromise<void>();
+            this._deferredPromise = new DeferredPromise();
         }
 
         this.schedule(Date.now() - entryTime);
 
-        return this._deferredPromise[0];
+        return this._deferredPromise.promise;
     }
 
     /**
@@ -71,7 +71,7 @@ export class Debounced<C extends Function, S, A extends any[]> {
         delete this._args;
 
         this._handle = undefined;
-        const resolve = this._deferredPromise![1];
+        const resolve = this._deferredPromise!.resolve;
         this._deferredPromise = undefined;
 
         this._result = this._callback.apply(this._scope, args);

@@ -87,15 +87,11 @@ export class MonitorAssignmentCalculator {
                     resultRectangle.center[axis] = monitorRectangle.center[axis];
                 }
             } else {
-                const offset = (entityRectangle.center[axis] - monitorRectangle.center[axis]);
+                const offset = entityRectangle.center[axis] - monitorRectangle.center[axis];
 
-                const highBuffer = buffer - offset;
-                const lowBuffer = buffer + offset;
-
-                if (lowBuffer < 0) {
-                    resultRectangle.center[axis] -= lowBuffer;
-                } else if (highBuffer < 0) {
-                    resultRectangle.center[axis] += highBuffer;
+                if (Math.abs(offset) > buffer) {
+                    // Window is at least partially off-screen. Move inward to so fully within the monitor, touching its edge
+                    resultRectangle.center[axis] = monitorRectangle.center[axis] + (buffer * Math.sign(offset));
                 }
             }
         }

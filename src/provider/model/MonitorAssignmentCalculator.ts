@@ -32,7 +32,7 @@ export class MonitorAssignmentCalculator {
             halfSize: {...entity.normalBounds.halfSize}}));
 
         return {
-            entityResults: entityRectangles.map(rectangle => this.attemptGetEntityRectangleInsideMonitorRectangle(rectangle, monitorRectangle).rectangle),
+            entityResults: entityRectangles.map(rectangle => this.getEntityRectangleForMonitor(rectangle, monitorRectangle).rectangle),
             groupRectangle
         };
     }
@@ -49,7 +49,7 @@ export class MonitorAssignmentCalculator {
 
         // Try to find a monitor this entity will fit in
         for (const candidateMonitorRectangle of candidateMonitorRectangles) {
-            const result = this.attemptGetEntityRectangleInsideMonitorRectangle(stateEntityRectangle, candidateMonitorRectangle);
+            const result = this.getEntityRectangleForMonitor(stateEntityRectangle, candidateMonitorRectangle);
 
             if (result.inside) {
                 return {entityRectangle: result.rectangle, monitorRectangle: candidateMonitorRectangle};
@@ -60,7 +60,7 @@ export class MonitorAssignmentCalculator {
         const primaryMonitor = this._monitorRectangles[0];
 
         return {
-            entityRectangle: this.attemptGetEntityRectangleInsideMonitorRectangle(stateEntityRectangle, primaryMonitor).rectangle,
+            entityRectangle: this.getEntityRectangleForMonitor(stateEntityRectangle, primaryMonitor).rectangle,
             monitorRectangle: primaryMonitor
         };
     }
@@ -68,7 +68,7 @@ export class MonitorAssignmentCalculator {
     /**
      * For a given entity rectangle and monitor rectangle, returns if possible, a new rectangle for the entity that fits entirely within the monitor
      */
-    private attemptGetEntityRectangleInsideMonitorRectangle(entityRectangle: Rectangle, monitorRectangle: Rectangle): {rectangle: Rectangle, inside: boolean} {
+    private getEntityRectangleForMonitor(entityRectangle: Rectangle, monitorRectangle: Rectangle): {rectangle: Rectangle, inside: boolean} {
         const resultRectangle = {center: {...entityRectangle.center}, halfSize: {...entityRectangle.halfSize}};
 
         let inside: boolean = true;

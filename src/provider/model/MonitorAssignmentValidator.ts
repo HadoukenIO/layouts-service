@@ -43,7 +43,7 @@ export class MonitorAssignmentValidator {
     }
 
     private getEntities(): DesktopEntity[] {
-        const trivalSnapGroup = this._model.snapGroups.filter(snapGroup => snapGroup.isNonTrivial());
+        const trivalSnapGroup = this._model.snapGroups.filter(snapGroup => !snapGroup.isNonTrivial());
 
         // Trivial snap groups should contain exactly one entity
         return trivalSnapGroup.map(trivalSnapGroup => trivalSnapGroup.entities[0]);

@@ -14,6 +14,8 @@ import {WorkspaceWindow, WorkspaceApp} from './workspaces';
  *
  * workspaces.setRestoreHandler(restoreHelpers.standardRestoreHandler);
  * ```
+ *
+ * @param workspaceApp Will contain details of the running app's child windows and their expected post-restore state.
  */
 export async function standardRestoreHandler(workspaceApp: WorkspaceApp) {
     const errors: Error[] = [];
@@ -75,7 +77,7 @@ export async function createOrPositionChild(workspaceWindow: WorkspaceWindow) {
  *
  * @param workspaceWindow Object containing details of the window identity and how it should
  * be created.
- * 
+ *
  * @throws `Error`: If there is an existing child window with the same name.
  */
 export async function createChild(workspaceWindow: WorkspaceWindow): Promise<void> {

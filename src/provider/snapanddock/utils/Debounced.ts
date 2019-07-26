@@ -20,8 +20,7 @@ export class Debounced<C extends Function, S, A extends any[]> {
     private _scope: S;
     private _args: A|undefined;
 
-    // Multiple definitions of setTimeout/clearTimeout, and not possible to point TSC at the correct (non-Node) definition
-    private _handle: number | NodeJS.Timer | undefined;
+    private _handle: number | undefined;
 
     constructor(callback: C, scope: S) {
         this._callback = callback;
@@ -85,9 +84,9 @@ export class Debounced<C extends Function, S, A extends any[]> {
 
     private async schedule(elapsed: number = 0): Promise<void> {
         if (this._handle !== undefined) {
-            clearTimeout(this._handle as number);
+            window.clearTimeout(this._handle);
         }
 
-        this._handle = setTimeout(this.onTimeout, Math.max(0, Debounced.DEBOUNCE_INTERVAL - elapsed));
+        this._handle = window.setTimeout(this.onTimeout, Math.max(0, Debounced.DEBOUNCE_INTERVAL - elapsed));
     }
 }

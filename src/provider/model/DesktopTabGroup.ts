@@ -112,6 +112,8 @@ export class DesktopTabGroup implements DesktopEntity {
 
     public get currentState(): EntityState {
         this.updateBounds();
+        this._groupState.state = this.state;
+
         return this._groupState;
     }
 

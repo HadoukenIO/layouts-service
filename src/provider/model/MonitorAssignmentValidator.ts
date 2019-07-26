@@ -1,6 +1,7 @@
 import {Rectangle} from '../snapanddock/utils/RectUtils';
 import {Debounced} from '../snapanddock/utils/Debounced';
 import {Point} from '../snapanddock/utils/PointUtils';
+import {WindowState} from '../../client/workspaces';
 
 import {DesktopModel} from './DesktopModel';
 import {DesktopEntity} from './DesktopEntity';
@@ -85,7 +86,8 @@ export class MonitorAssignmentValidator {
                 await entity.setSnapGroup(new DesktopSnapGroup());
             }
 
-            const oldState = entity instanceof DesktopTabGroup ? entity.state : entity.currentState.state;
+            const oldState = entity.currentState.state;
+            let restoredState: WindowState | undefined;
 
             // Things get weird with tabs if we mess with them while minimized, and we'll want to re-maximize maximized windows
             // to the correct screen, so always restore
@@ -97,12 +99,20 @@ export class MonitorAssignmentValidator {
                 if (entity instanceof DesktopTabGroup) {
                     await entity.validate();
                 }
+
+                restoredState = entity.currentState.state;
             }
 
-            // Windows may have moved the entity on restore to bring it back on-screen itself, so recalculate the offset
+            // Windows may have moved the entity on restore to bring it back on-screen itself, so recalculate the offset. Note this
+            // will restore a maximized window
             await entity.applyOffset(this.calculateOffset(entity, rectangle), rectangle.halfSize);
 
-            // Maximized windows may become normal when using applyOffet, so always restore original state
+            // If the window was maximized even after being restored, it was a minimized, maximized window, so maximize before
+            // we re-minimize
+            if (restoredState === 'maximized') {
+                await entity.maximize();
+            }
+
             if (oldState !== 'normal') {
                 await oldState === 'maximized' ? entity.maximize() : entity.minimize();
             }

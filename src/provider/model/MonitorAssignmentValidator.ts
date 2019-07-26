@@ -7,7 +7,6 @@ import {DesktopEntity} from './DesktopEntity';
 import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {MonitorAssignmentCalculator, SnapGroupResult, EntityResult} from './MonitorAssignmentCalculator';
 import {DesktopTabGroup} from './DesktopTabGroup';
-import {DesktopWindow} from './DesktopWindow';
 
 export class MonitorAssignmentValidator {
     private _model: DesktopModel;
@@ -55,6 +54,8 @@ export class MonitorAssignmentValidator {
             const snapGroup = snapGroups[snapGroupIndex];
 
             await this.applySnapGroupResult(snapGroup, snapGroupResult.groupRectangle);
+
+            // Apply results to each entity in snapgroup, as we may want to move it independently from group
             await this.applyEntityResults(snapGroup.entities, snapGroupResult.entityResults);
         }));
     }

@@ -209,13 +209,17 @@ export class DesktopTabGroup implements DesktopEntity {
 
         // Emulating DesktopWindow behaviour, restore the window in the maximized case
         if (this._isMaximized) {
-            if (this._normalTabBounds) {
-                // The given halfSize is for the group, but we store the halfSize for a tab, so we do the below conversion
-                this._normalTabBounds = {
-                    center: {x: this._normalTabBounds.center.x + offset.x, y: this._normalTabBounds.center.y + offset.y},
-                    halfSize: halfSize ? {x: halfSize.x, y: halfSize.y - tabstripHalfHeight} : this._normalTabBounds.halfSize
-                };
-            }
+            const oldNormalBounds = this.normalBounds;
+            const newNormalBounds = {
+                center: {x: oldNormalBounds.center.x + offset.x, y: oldNormalBounds.center.y + offset.y},
+                halfSize: halfSize ? halfSize: oldNormalBounds.halfSize
+            };
+
+            // Convert from overall group bounds to tab bounds
+            this._normalTabBounds = {
+                center: {x: newNormalBounds.center.x, y: newNormalBounds.center.y + tabstripHalfHeight},
+                halfSize: {x: newNormalBounds.halfSize.x, y: newNormalBounds.halfSize.y - tabstripHalfHeight}
+            };
 
             return this.restore();
         }

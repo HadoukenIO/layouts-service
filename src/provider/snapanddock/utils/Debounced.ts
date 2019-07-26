@@ -14,7 +14,7 @@ export class Debounced<C extends Function, S, A extends any[]> {
     private static DEBOUNCE_INTERVAL = 200;
 
     private _deferredPromise: DeferredPromise<void> | undefined;
-    private _result: any;
+    private _callbackResult: any;
 
     private _callback: C;
     private _scope: S;
@@ -43,13 +43,17 @@ export class Debounced<C extends Function, S, A extends any[]> {
      */
     public async call(...args: A): Promise<void> {
         const entryTime = Date.now();
-        await this._result;
+
+        // If our callback is still running, we do want to retrigger it, but we want to wait for the previous invocations to finish
+        await this._callbackResult;
 
         this._args = args;
         if (!this._deferredPromise) {
             this._deferredPromise = new DeferredPromise();
         }
 
+        // Since we want a consistent wait between this method being called, and our _callback being called, adjust for time
+        // we may have spent waiting for the previous invocation of _callback to finish
         this.schedule(Date.now() - entryTime);
 
         return this._deferredPromise.promise;
@@ -74,10 +78,10 @@ export class Debounced<C extends Function, S, A extends any[]> {
         const resolve = this._deferredPromise!.resolve;
         this._deferredPromise = undefined;
 
-        this._result = this._callback.apply(this._scope, args);
-        await this._result;
+        this._callbackResult = this._callback.apply(this._scope, args);
+        await this._callbackResult;
 
-        this._result = undefined;
+        this._callbackResult = undefined;
 
         resolve();
     }

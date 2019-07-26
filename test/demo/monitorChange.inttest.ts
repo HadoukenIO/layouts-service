@@ -312,10 +312,10 @@ async function setupWindowPositions(context: WindowContext, testOptions: Monitor
 
 async function setupSnapAndTabGroups(context: WindowContext, testOptions: MonitorAssignmentValidatorTestOptions) {
     await promiseForEach(testOptions.initialGrouping.snap, async (snapGroup) => {
-        const window = context.windows[0];
+        const [rootWindow, ...windows] = context.windows;
 
-        for (let i = 1; i < context.windows.length; i++) {
-            await context.windows[i].joinGroup(window);
+        for (const window of windows) {
+            await window.joinGroup(rootWindow);
         }
     });
 

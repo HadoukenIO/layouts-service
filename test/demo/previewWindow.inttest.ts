@@ -38,7 +38,7 @@ itParameterized(
         const {windows} = context;
         const {side} = testOptions;
 
-        const previewWin: _Window = await fin.Window.wrap({name: `preview-${PreviewType.SNAP}-${Validity.VALID}`, uuid: 'layouts-service'});
+        const previewWin: _Window = fin.Window.wrapSync({name: `preview-${PreviewType.SNAP}-${Validity.VALID}`, uuid: 'layouts-service'});
         const windowBounds = await Promise.all([getBounds(windows[0]), getBounds(windows[1])]);
 
         await dragSideToSide(windows[1], opposite(side), windows[0], side, {x: 5, y: 5}, false);
@@ -73,7 +73,7 @@ itParameterized(
         const {dimension, direction} = testOptions;
         const {windows} = context;
 
-        const previewWin: _Window = await fin.Window.wrap({name: `preview-${PreviewType.SNAP}-${Validity.VALID}`, uuid: 'layouts-service'});
+        const previewWin: _Window = fin.Window.wrapSync({name: `preview-${PreviewType.SNAP}-${Validity.VALID}`, uuid: 'layouts-service'});
         const windowBounds = await Promise.all([getBounds(windows[0]), getBounds(windows[1])]);
 
         await windows[1].resizeBy(
@@ -104,7 +104,7 @@ itParameterized(
         const {windowCount} = testOptions;
         const {windows} = context;
 
-        const previewWin: _Window = await fin.Window.wrap({name: `preview-${PreviewType.TAB}-${Validity.VALID}`, uuid: 'layouts-service'});
+        const previewWin: _Window = fin.Window.wrapSync({name: `preview-${PreviewType.TAB}-${Validity.VALID}`, uuid: 'layouts-service'});
         const windowBounds = await Promise.all([getBounds(windows[0]), getBounds(windows[1])]);
 
         if (windowCount > 2) {
@@ -133,7 +133,7 @@ itParameterized(
         const {windowCount} = testOptions;
         const {windows} = context;
 
-        const previewWin: _Window = await fin.Window.wrap({name: `preview-${PreviewType.TAB}-${Validity.VALID}`, uuid: 'layouts-service'});
+        const previewWin: _Window = fin.Window.wrapSync({name: `preview-${PreviewType.TAB}-${Validity.VALID}`, uuid: 'layouts-service'});
 
         await windows[0].moveTo(40, 40);
         if (windowCount > 3) await windows[3].moveTo(60, 60);

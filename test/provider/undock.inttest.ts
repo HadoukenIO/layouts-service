@@ -9,7 +9,7 @@ import {teardown} from '../teardown';
 import {assertNotGrouped} from './utils/assertions';
 import {createChildWindow} from './utils/createChildWindow';
 import {Corner, dragSideToSide, dragWindowToOtherWindow} from './utils/dragWindowTo';
-import {getBounds} from './utils/getBounds';
+import {getBounds} from './utils/bounds';
 import {getDistanceBetween} from './utils/getDistanceBetween';
 import {isAdjacentTo} from './utils/isAdjacentTo';
 import {opposite, perpendicular, Side} from './utils/SideUtils';

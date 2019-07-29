@@ -5,7 +5,7 @@ import {teardown} from '../teardown';
 
 import {createChildWindow} from './utils/createChildWindow';
 import {delay} from './utils/delay';
-import {getBounds} from './utils/getBounds';
+import {getBounds} from './utils/bounds';
 
 let wins: Window[] = [];
 

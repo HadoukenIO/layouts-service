@@ -515,7 +515,7 @@ export class DesktopWindow implements DesktopEntity {
         return this._currentState;
     }
 
-    public get beforeMaximizeBounds(): Rectangle {
+    public get normalBounds(): Rectangle {
         return {center: this._currentState.center, halfSize: this._currentState.halfSize};
     }
 
@@ -691,6 +691,19 @@ export class DesktopWindow implements DesktopEntity {
         if (this.isReady && apiHandler.isClientConnection(this.identity)) {
             return apiHandler.sendToClient(this._identity, EVENT_CHANNEL_TOPIC, event);
         }
+    }
+
+    public async maximize(): Promise<void> {
+        return this.applyProperties({state: 'maximized'});
+    }
+
+    public async minimize(): Promise<void> {
+        return this.applyProperties({state: 'minimized'});
+    }
+
+    public async restore(): Promise<void> {
+        // Note that the actual end state following this may be 'maximized'
+        return this.applyProperties({state: 'normal'});
     }
 
     protected async addPendingActions(tag: string, actions: Promise<void>|Promise<void>[]): Promise<void> {

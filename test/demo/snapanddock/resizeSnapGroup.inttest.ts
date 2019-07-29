@@ -2,7 +2,7 @@ import robot from 'robotjs';
 
 import {assertAdjacent, assertGrouped, assertSquare} from '../../provider/utils/assertions';
 import {delay} from '../../provider/utils/delay';
-import {getBounds, NormalizedBounds} from '../../provider/utils/getBounds';
+import {getBounds, NormalizedBounds} from '../../provider/utils/bounds';
 import {teardown} from '../../teardown';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
 import {itParameterized} from '../utils/parameterizedTestUtils';

@@ -38,6 +38,26 @@ export async function getBounds(identityOrWindow: Win): Promise<NormalizedBounds
     );
 }
 
+export async function setBounds(identityOrWindow: Win, bounds: Bounds): Promise<void> {
+    const win = await getWindow(identityOrWindow);
+    if (!isWin10) {
+        return win.setBounds(bounds);
+    }
+    const options = await win.getOptions();
+    if (!options.frame) {
+        return win.setBounds(bounds);
+    }
+
+    return win.setBounds({
+        left: bounds.left - 7,
+        top: bounds.top,
+        right: bounds.right ? bounds.right + 7 : undefined,
+        bottom: bounds.bottom ? bounds.bottom + 7 : undefined,
+        width: bounds.width + 14,
+        height: bounds.height + 7
+    });
+}
+
 export async function getTabsetBounds(tabOrTabstrip: _Window): Promise<NormalizedBounds> {
     const tabGroupID = await getTabGroupID(tabOrTabstrip.identity);
     if (tabGroupID) {

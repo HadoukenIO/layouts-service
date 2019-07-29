@@ -14,6 +14,7 @@ import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 
+import {MonitorAssignmentValidator} from './MonitorAssignmentValidator';
 import {DesktopTabGroup} from './DesktopTabGroup';
 import {DesktopWindow, EntityState, WindowIdentity} from './DesktopWindow';
 import {MouseTracker} from './MouseTracker';
@@ -35,6 +36,7 @@ export class DesktopModel {
     private _snapGroups: DesktopSnapGroup[];
     private _windowLookup: {[key: string]: DesktopWindow};
     private _zIndexer: ZIndexer;
+    private _monitorAssignmentValidator: MonitorAssignmentValidator;
     private _mouseTracker: MouseTracker;
     private _monitors: Rectangle[];
     private _displayScaling: boolean;
@@ -45,6 +47,7 @@ export class DesktopModel {
         this._snapGroups = [];
         this._windowLookup = {};
         this._zIndexer = new ZIndexer(this);
+        this._monitorAssignmentValidator = new MonitorAssignmentValidator(this);
         this._mouseTracker = new MouseTracker();
         this._monitors = [];
         this._displayScaling = false;
@@ -98,10 +101,13 @@ export class DesktopModel {
             this._displayScaling = evt.deviceScaleFactor !== 1;
 
             // Validate all tabgroups
-            this.tabGroups.map(g => g.validate());
+            await Promise.all(this.tabGroups.map(g => g.validate()));
 
             // Validate all snap groups
-            this.snapGroups.map(g => g.validate());
+            await Promise.all(this.snapGroups.map(g => g.validate()));
+
+            // Validate monitor assignment
+            await this._monitorAssignmentValidator.validate();
         });
 
         // Get and store the current monitors

@@ -1,3 +1,5 @@
+import {DeferredPromise} from '../../utils/DeferredPromise';
+
 /**
  * Util for de-bouncing calls to a function. The function will be wrapped within this object, which bundles the
  * callback with a resettable timer.
@@ -8,21 +10,22 @@
  * The callback function and scope are set at construction, with any function arguments being passed at the time the
  * timeout is (re-)started.
  */
-export class Debounced<C extends Function, S, A extends any[]> {  // tslint:disable-line:no-any
+export class Debounced<C extends Function, S, A extends any[]> {
     private static DEBOUNCE_INTERVAL = 200;
 
-    private callback: C;
-    private scope: S;
-    private args: A|undefined;
+    private _deferredPromise: DeferredPromise<void> | undefined;
+    private _callbackResult: any;
 
-    // Multiple definitions of setTimeout/clearTimeout, and not possible to point TSC at the correct (non-Node) definition
-    private handle: number|NodeJS.Timer;
+    private _callback: C;
+    private _scope: S;
+    private _args: A | undefined;
+
+    private _handle: number | undefined;
 
     constructor(callback: C, scope: S) {
-        this.callback = callback;
-        this.scope = scope;
+        this._callback = callback;
+        this._scope = scope;
 
-        this.handle = -1;
         this.onTimeout = this.onTimeout.bind(this);
     }
 
@@ -34,11 +37,26 @@ export class Debounced<C extends Function, S, A extends any[]> {  // tslint:disa
      * In the event of multiple calls to this function with different arguments, the most recent arguments will be
      * used for the "actual" function call.
      *
+     * In the event the call is async and already in progress, we wait for it to complete before scheduling a new call.
+     *
      * @param args Arguments to hit the callback with
      */
-    public call(...args: A): void {
-        this.args = args;
-        this.schedule();
+    public async call(...args: A): Promise<void> {
+        const entryTime = Date.now();
+
+        // If our callback is still running, we do want to retrigger it, but we want to wait for the previous invocations to finish
+        await this._callbackResult;
+
+        this._args = args;
+        if (!this._deferredPromise) {
+            this._deferredPromise = new DeferredPromise();
+        }
+
+        // Since we want a consistent wait between this method being called, and our _callback being called, adjust for time
+        // we may have spent waiting for the previous invocation of _callback to finish
+        this.schedule(Date.now() - entryTime);
+
+        return this._deferredPromise.promise;
     }
 
     /**
@@ -47,27 +65,32 @@ export class Debounced<C extends Function, S, A extends any[]> {  // tslint:disa
      * Has no effect if the timer isn't currently active.
      */
     public postpone(): void {
-        if (this.handle >= 0) {
+        if (this._handle !== undefined) {
             this.schedule();
         }
     }
 
-    private onTimeout(): void {
-        const args = this.args;
-        delete this.args;
+    private async onTimeout(): Promise<void> {
+        const args = this._args;
+        delete this._args;
 
-        this.handle = -1;
-        this.callback.apply(this.scope, args);
+        this._handle = undefined;
+        const resolve = this._deferredPromise!.resolve;
+        this._deferredPromise = undefined;
+
+        this._callbackResult = this._callback.apply(this._scope, args);
+        await this._callbackResult;
+
+        this._callbackResult = undefined;
+
+        resolve();
     }
 
-    private cancel(): void {
-        if (this.handle >= 0) {
-            clearTimeout(this.handle as number);
+    private async schedule(elapsed: number = 0): Promise<void> {
+        if (this._handle !== undefined) {
+            window.clearTimeout(this._handle);
         }
-    }
 
-    private schedule(): void {
-        this.cancel();
-        this.handle = setTimeout(this.onTimeout, Debounced.DEBOUNCE_INTERVAL);
+        this._handle = window.setTimeout(this.onTimeout, Math.max(0, Debounced.DEBOUNCE_INTERVAL - elapsed));
     }
 }

@@ -8,7 +8,7 @@ import {assertAdjacent} from '../provider/utils/assertions';
 import {delay} from '../provider/utils/delay';
 import {dragWindowAndHover} from '../provider/utils/dragWindowAndHover';
 import {dragSideToSide} from '../provider/utils/dragWindowTo';
-import {getBounds} from '../provider/utils/getBounds';
+import {getBounds} from '../provider/utils/bounds';
 import {opposite, Side} from '../provider/utils/SideUtils';
 import {tabWindowsTogether} from '../provider/utils/tabWindowsTogether';
 import {teardown} from '../teardown';

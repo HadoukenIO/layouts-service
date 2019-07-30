@@ -2,7 +2,7 @@ import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import * as Layouts from '../client/main';
-import {Workspace, WorkspaceApp, WorkspaceWindow} from '../client/workspaces';
+import {Workspace, WorkspaceApp} from '../client/workspaces';
 
 export interface Workspace {
     id: string;
@@ -64,41 +64,6 @@ export async function onAppRes(layoutApp: WorkspaceApp): Promise<WorkspaceApp> {
     // layoutApp.childWindows = [];
     return layoutApp;
 }
-
-// Positions a window when it is restored.
-// Also given to the client to use.
-const positionWindow = async (win: WorkspaceWindow) => {
-    try {
-        const {isShowing, isTabbed} = win;
-
-        const ofWin = await fin.Window.wrap(win);
-        await ofWin.setBounds(win.bounds);
-
-        if (isTabbed) {
-            await ofWin.show();
-            return;
-        }
-
-        await ofWin.leaveGroup();
-
-        if (!isShowing) {
-            await ofWin.hide();
-            return;
-        }
-
-        if (win.state === 'normal') {
-            // Need to both restore and show because the restore function doesn't emit a `shown` or `show-requested` event
-            await ofWin.restore();
-            await ofWin.show();
-        } else if (win.state === 'minimized') {
-            await ofWin.minimize();
-        } else if (win.state === 'maximized') {
-            await ofWin.maximize();
-        }
-    } catch (e) {
-        console.error('position window error', e);
-    }
-};
 
 // Allow layouts service to save and restore this application
 Layouts.workspaces.setGenerateHandler(() => {

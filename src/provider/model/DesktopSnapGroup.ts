@@ -1,5 +1,6 @@
+import {Signal} from 'openfin-service-signal';
+
 import {WindowDockedEvent, WindowUndockedEvent} from '../../client/snapanddock';
-import {Signal1, Signal2} from '../Signal';
 import {MIN_OVERLAP, ADJACENCY_FUZZ_DISTANCE} from '../snapanddock/Constants';
 import {CalculatedProperty} from '../snapanddock/utils/CalculatedProperty';
 import {Debounced} from '../snapanddock/utils/Debounced';
@@ -14,8 +15,8 @@ import {DesktopWindow, EntityState, eTransformType, Mask, ResizeConstraint} from
 export class DesktopSnapGroup {
     private static _nextId = 1;
 
-    public static readonly onCreated: Signal1<DesktopSnapGroup> = new Signal1();
-    public static readonly onDestroyed: Signal1<DesktopSnapGroup> = new Signal1();
+    public static readonly onCreated: Signal<[DesktopSnapGroup]> = new Signal();
+    public static readonly onDestroyed: Signal<[DesktopSnapGroup]> = new Signal();
 
     /**
      * A window property has been changed that may snap the window out of any group that it it's currently in.
@@ -24,14 +25,14 @@ export class DesktopSnapGroup {
      *
      * Arguments: (group: DesktopSnapGroup, modifiedWindow: DesktopWindow)
      */
-    public readonly onModified: Signal2<DesktopSnapGroup, DesktopWindow> = new Signal2();
+    public readonly onModified: Signal<[DesktopSnapGroup, DesktopWindow]> = new Signal();
 
     /**
      * Window is being moved/resized, need to check for any snap targets.
      *
      * Arguments: (group: DesktopSnapGroup, type: Mask<eTransformType>)
      */
-    public readonly onTransform: Signal2<DesktopSnapGroup, Mask<eTransformType>> = new Signal2();
+    public readonly onTransform: Signal<[DesktopSnapGroup, Mask<eTransformType>]> = new Signal();
 
     /**
      * The move/resize operation (that was signalled through onTransform) has been completed.
@@ -40,7 +41,7 @@ export class DesktopSnapGroup {
      *
      * Arguments: (group: DesktopSnapGroup, type: Mask<eTransformType>)
      */
-    public readonly onCommit: Signal2<DesktopSnapGroup, Mask<eTransformType>> = new Signal2();
+    public readonly onCommit: Signal<[DesktopSnapGroup, Mask<eTransformType>]> = new Signal();
 
     /**
      * A window has been added to this group.
@@ -49,7 +50,7 @@ export class DesktopSnapGroup {
      *
      * Arguments: (group: DesktopSnapGroup, window: DesktopWindow)
      */
-    public readonly onWindowAdded: Signal2<DesktopSnapGroup, DesktopWindow> = new Signal2();
+    public readonly onWindowAdded: Signal<[DesktopSnapGroup, DesktopWindow]> = new Signal();
 
     /**
      * A window has been removed from this group.
@@ -58,7 +59,7 @@ export class DesktopSnapGroup {
      *
      * Arguments: (group: DesktopSnapGroup, window: DesktopWindow)
      */
-    public readonly onWindowRemoved: Signal2<DesktopSnapGroup, DesktopWindow> = new Signal2();
+    public readonly onWindowRemoved: Signal<[DesktopSnapGroup, DesktopWindow]> = new Signal();
 
 
     /**
@@ -76,7 +77,7 @@ export class DesktopSnapGroup {
 
     private rootWindow: DesktopWindow|null;
 
-    private _validateGroup: Debounced<() => void, DesktopSnapGroup, []>;
+    private _validateGroup: Debounced<() => Promise<void>, DesktopSnapGroup, []>;
 
     private _resizeConstraintsSuspended: boolean;
 
@@ -176,8 +177,8 @@ export class DesktopSnapGroup {
         }
     }
 
-    public validate(): void {
-        this._validateGroup.call();
+    public validate(): Promise<void> {
+        return this._validateGroup.call();
     }
 
     public isNonTrivial(): boolean {
@@ -217,16 +218,18 @@ export class DesktopSnapGroup {
         }
     }
 
-    private validateGroupInternal(): void {
+    public async applyOffset(offset: Point): Promise<void> {
+        return this.rootWindow!.applyOffset(offset);
+    }
+
+    private async validateGroupInternal(): Promise<void> {
         // Ensure 'group' is still a valid, contiguous group.
         const contiguousWindowSets = this.getContiguousEntities(this.entities);
-        if (contiguousWindowSets.length > 1) {                             // Group is disjointed. Need to split.
-            for (const windowsToGroup of contiguousWindowSets.slice(1)) {  // Leave first set as-is. Move others into own groups.
+        if (contiguousWindowSets.length > 1) {                      // Group is disjointed. Need to split.
+            await Promise.all(contiguousWindowSets.slice(1).map(set => {  // Leave first set as-is. Move others into own groups.
                 const newGroup = new DesktopSnapGroup();
-                for (const windowToGroup of windowsToGroup) {
-                    windowToGroup.setSnapGroup(newGroup);
-                }
-            }
+                return Promise.all(set.map(window => window.setSnapGroup(newGroup)));
+            }));
         }
     }
 

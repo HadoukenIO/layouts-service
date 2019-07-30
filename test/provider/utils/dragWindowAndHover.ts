@@ -1,7 +1,7 @@
 import * as robot from 'robotjs';
 
 import {delay} from './delay';
-import {getBounds} from './getBounds';
+import {getBounds} from './bounds';
 import {getWindow, Win} from './getWindow';
 const xOffset = 30;
 const yOffset = 10;

@@ -1,7 +1,6 @@
 import {Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
 
 import {Scope} from '../../../gen/provider/config/layouts-config';
-import {Rectangle} from '../snapanddock/utils/RectUtils';
 
 import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {DesktopTabGroup} from './DesktopTabGroup';
@@ -39,13 +38,6 @@ export interface DesktopEntity {
      * possible.
      */
     currentState: EntityState;
-
-    /**
-     * The bounds the entity will fill when restored to the 'normal' state
-     *
-     * When the entity is 'normal', this will be the same match the `center` and `halfSize` fields of `currentState`
-     */
-    normalBounds: Rectangle
 
     /**
      * The tab group to which this entity belongs, or null if the entity is not tabbed.
@@ -98,25 +90,4 @@ export interface DesktopEntity {
      * @param halfSize Optional new (half)size of the entity
      */
     applyOffset(offset: Point, halfSize?: Point): Promise<void>;
-
-    /**
-     * Minimizes the entity
-     */
-    minimize(): Promise<void>;
-
-    /**
-     * Maximizes the entity
-     */
-    maximize(): Promise<void>;
-
-    /**
-     * Restores the entity. Following this, the window may be maximized or normal
-     */
-    restore(): Promise<void>;
-
-    /**
-     * Returns a promise that will resolve when all pending actions for the entity have completed. Roughly, this will mean that our model
-     * for this entity is in sync with the runtime model
-     */
-    sync(): Promise<void>
 }

@@ -81,21 +81,6 @@ export interface Elements {
     activeOpacityTab: HTMLSelectElement;
     targetOpacityTab: HTMLSelectElement;
 
-    // _ is used for slicing the string to get the config keys & searchability
-    snap_overlayInvalid_background: HTMLInputElement;
-    snap_overlayInvalid_border: HTMLInputElement;
-    snap_overlayInvalid_opacity: HTMLSelectElement;
-    tab_overlayInvalid_background: HTMLInputElement;
-    tab_overlayInvalid_border: HTMLInputElement;
-    tab_overlayInvalid_opacity: HTMLSelectElement;
-    snap_overlayValid_background: HTMLInputElement;
-    snap_overlayValid_border: HTMLInputElement;
-    snap_overlayValid_opacity: HTMLSelectElement;
-    tab_overlayValid_background: HTMLInputElement;
-    tab_overlayValid_border: HTMLInputElement;
-    tab_overlayValid_opacity: HTMLSelectElement;
-
-
     // Other
     container: HTMLDivElement;
     modal: HTMLDivElement;
@@ -176,23 +161,7 @@ export class View {
             targetOpacityTab: document.getElementById('targetOpacityTab') as HTMLSelectElement,
             container: document.getElementById('container') as HTMLDivElement,
             modal: document.getElementById('modalCreate') as HTMLDivElement,
-            eventList: document.getElementById('eventList') as HTMLUListElement,
-
-            // _ is used for slicing the string to get the config keys & searchability
-            snap_overlayInvalid_background: document.getElementById('snap_overlayInvalid_background') as HTMLInputElement,
-            snap_overlayInvalid_border: document.getElementById('snap_overlayInvalid_border') as HTMLInputElement,
-            snap_overlayInvalid_opacity: document.getElementById('snap_overlayInvalid_opacity') as HTMLSelectElement,
-            tab_overlayInvalid_background: document.getElementById('tab_overlayInvalid_background') as HTMLInputElement,
-            tab_overlayInvalid_border: document.getElementById('tab_overlayInvalid_border') as HTMLInputElement,
-            tab_overlayInvalid_opacity: document.getElementById('tab_overlayInvalid_opacity') as HTMLSelectElement,
-
-            snap_overlayValid_background: document.getElementById('snap_overlayValid_background') as HTMLInputElement,
-            snap_overlayValid_border: document.getElementById('snap_overlayValid_border') as HTMLInputElement,
-            snap_overlayValid_opacity: document.getElementById('snap_overlayValid_opacity') as HTMLSelectElement,
-            tab_overlayValid_background: document.getElementById('tab_overlayValid_background') as HTMLInputElement,
-            tab_overlayValid_border: document.getElementById('tab_overlayValid_border') as HTMLInputElement,
-            tab_overlayValid_opacity: document.getElementById('tab_overlayValid_opacity') as HTMLSelectElement
-
+            eventList: document.getElementById('eventList') as HTMLUListElement
         };
     }
 

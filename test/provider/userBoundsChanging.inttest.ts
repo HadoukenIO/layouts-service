@@ -5,7 +5,7 @@ import {teardown} from '../teardown';
 
 import {createChildWindow} from './utils/createChildWindow';
 import {delay} from './utils/delay';
-import {getBounds} from './utils/bounds';
+import {getBounds} from './utils/getBounds';
 
 let wins: Window[] = [];
 
@@ -45,9 +45,8 @@ afterEach(async () => {
     }));
 
     wins = [];
-
-    await teardown();
 });
+afterEach(teardown);
 
 it('When animating window movement, windows should not snap', async () => {
     const win2Bounds = await getBounds(wins[1]);

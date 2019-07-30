@@ -1,7 +1,6 @@
 import deepEqual from 'fast-deep-equal';
 import {Identity, Window} from 'hadouken-js-adapter';
 import {WindowInfo} from 'hadouken-js-adapter/out/types/src/api/window/window';
-import {Aggregators, Signal} from 'openfin-service-signal';
 
 import {WindowScope} from '../../../gen/provider/config/layouts-config';
 import {LayoutsEvent} from '../../client/connection';
@@ -9,6 +8,7 @@ import {SERVICE_IDENTITY} from '../../client/internal';
 import {WindowState} from '../../client/workspaces';
 import {EVENT_CHANNEL_TOPIC} from '../APIMessages';
 import {apiHandler} from '../main';
+import {Aggregators, Signal1, Signal2} from '../Signal';
 import {Debounced} from '../snapanddock/utils/Debounced';
 import {isWin10} from '../snapanddock/utils/platform';
 import {Point} from '../snapanddock/utils/PointUtils';
@@ -122,8 +122,8 @@ const MINIMUM_RESIZE_CHANGE = 2;
 const MINIMUM_MOVE_CHANGE = 2;
 
 export class DesktopWindow implements DesktopEntity {
-    public static readonly onCreated: Signal<[DesktopWindow]> = new Signal();
-    public static readonly onDestroyed: Signal<[DesktopWindow]> = new Signal();
+    public static readonly onCreated: Signal1<DesktopWindow> = new Signal1();
+    public static readonly onDestroyed: Signal1<DesktopWindow> = new Signal1();
 
     /**
      * Tracks which windows are currently being manipulated as part of a transaction.
@@ -253,11 +253,11 @@ export class DesktopWindow implements DesktopEntity {
         }
     }
 
-    private static isWindow(window: Window | fin.WindowOptions): window is Window {
+    private static isWindow(window: Window|fin.WindowOptions): window is Window {
         return window.hasOwnProperty('identity');
     }
 
-    private static getIdentity(window: Window | fin.WindowOptions): WindowIdentity {
+    private static getIdentity(window: Window|fin.WindowOptions): WindowIdentity {
         if (this.isWindow(window)) {
             return window.identity as WindowIdentity;
         } else {
@@ -272,14 +272,14 @@ export class DesktopWindow implements DesktopEntity {
      *
      * Arguments: (window: DesktopWindow)
      */
-    public readonly onModified: Signal<[DesktopWindow]> = new Signal();
+    public readonly onModified: Signal1<DesktopWindow> = new Signal1();
 
     /**
      * Window is being moved/resized, need to check for any snap targets.
      *
      * Arguments: (window: DesktopWindow, type: Mask<eTransformType>)
      */
-    public readonly onTransform: Signal<[DesktopWindow, Mask<eTransformType>]> = new Signal();
+    public readonly onTransform: Signal2<DesktopWindow, Mask<eTransformType>> = new Signal2();
 
     /**
      * The move/resize operation (that was signalled through onTransform) has been completed.
@@ -288,14 +288,14 @@ export class DesktopWindow implements DesktopEntity {
      *
      * Arguments: (window: DesktopWindow, type: Mask<eTransformType>)
      */
-    public readonly onCommit: Signal<[DesktopWindow, Mask<eTransformType>]> = new Signal();
+    public readonly onCommit: Signal2<DesktopWindow, Mask<eTransformType>> = new Signal2();
 
     /**
      * The tabGroup of the window has changed (including being set to null).
      *
      * Arguments: (window: DesktopWindow)
      */
-    public readonly onTabGroupChanged: Signal<[DesktopWindow]> = new Signal();
+    public readonly onTabGroupChanged: Signal1<DesktopWindow> = new Signal1();
 
     /**
      * Window is being removed from the service. Use this signal for any clean-up that is required, such as removing
@@ -306,7 +306,7 @@ export class DesktopWindow implements DesktopEntity {
      *
      * Arguments: (window: DesktopWindow)
      */
-    public readonly onTeardown: Signal<[DesktopWindow], Promise<void>, Promise<void>> = new Signal(Aggregators.AWAIT_VOID);
+    public readonly onTeardown: Signal1<DesktopWindow, Promise<void>, Promise<void>> = new Signal1(Aggregators.AWAIT_VOID);
 
 
     private _model: DesktopModel;
@@ -515,7 +515,7 @@ export class DesktopWindow implements DesktopEntity {
         return this._currentState;
     }
 
-    public get normalBounds(): Rectangle {
+    public get beforeMaximizeBounds(): Rectangle {
         return {center: this._currentState.center, halfSize: this._currentState.halfSize};
     }
 
@@ -691,19 +691,6 @@ export class DesktopWindow implements DesktopEntity {
         if (this.isReady && apiHandler.isClientConnection(this.identity)) {
             return apiHandler.sendToClient(this._identity, EVENT_CHANNEL_TOPIC, event);
         }
-    }
-
-    public async maximize(): Promise<void> {
-        return this.applyProperties({state: 'maximized'});
-    }
-
-    public async minimize(): Promise<void> {
-        return this.applyProperties({state: 'minimized'});
-    }
-
-    public async restore(): Promise<void> {
-        // Note that the actual end state following this may be 'maximized'
-        return this.applyProperties({state: 'normal'});
     }
 
     protected async addPendingActions(tag: string, actions: Promise<void>|Promise<void>[]): Promise<void> {

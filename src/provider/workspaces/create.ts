@@ -91,7 +91,7 @@ export async function getCurrentWorkspace(): Promise<Workspace> {
     const layoutApps: (WorkspaceApp|null)[] = await promiseMap<WindowInfo_System, WorkspaceApp|null>(apps, async (windowInfo: WindowInfo_System) => {
         try {
             const {uuid} = windowInfo;
-            const ofApp = fin.Application.wrapSync({uuid});
+            const ofApp = await fin.Application.wrap({uuid});
 
             // If not running, or is service, or is deregistered, not part of layout
             const isRunning = await ofApp.isRunning();

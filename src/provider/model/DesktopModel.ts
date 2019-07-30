@@ -3,18 +3,17 @@ import {WindowEvent} from 'hadouken-js-adapter/out/types/src/api/events/base';
 import {MonitorEvent} from 'hadouken-js-adapter/out/types/src/api/events/system';
 import {MonitorInfo} from 'hadouken-js-adapter/out/types/src/api/system/monitor';
 import {WindowDetail, WindowInfo} from 'hadouken-js-adapter/out/types/src/api/system/window';
-import {ScopedConfig} from 'openfin-service-config';
-import {MaskWatch} from 'openfin-service-config/Watch';
-import {ConfigUtil, Masked} from 'openfin-service-config/ConfigUtil';
-import {SignalSlot} from 'openfin-service-signal';
 
 import {ConfigurationObject, RegEx, Rule, Scope, WindowScope} from '../../../gen/provider/config/layouts-config';
+import {ConfigUtil, Masked} from '../config/ConfigUtil';
+import {ScopedConfig} from '../config/Store';
+import {MaskWatch} from '../config/Watch';
 import {ConfigStore} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
+import {SignalSlot} from '../Signal';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 
-import {MonitorAssignmentValidator} from './MonitorAssignmentValidator';
 import {DesktopTabGroup} from './DesktopTabGroup';
 import {DesktopWindow, EntityState, WindowIdentity} from './DesktopWindow';
 import {MouseTracker} from './MouseTracker';
@@ -36,7 +35,6 @@ export class DesktopModel {
     private _snapGroups: DesktopSnapGroup[];
     private _windowLookup: {[key: string]: DesktopWindow};
     private _zIndexer: ZIndexer;
-    private _monitorAssignmentValidator: MonitorAssignmentValidator;
     private _mouseTracker: MouseTracker;
     private _monitors: Rectangle[];
     private _displayScaling: boolean;
@@ -47,7 +45,6 @@ export class DesktopModel {
         this._snapGroups = [];
         this._windowLookup = {};
         this._zIndexer = new ZIndexer(this);
-        this._monitorAssignmentValidator = new MonitorAssignmentValidator(this);
         this._mouseTracker = new MouseTracker();
         this._monitors = [];
         this._displayScaling = false;
@@ -101,13 +98,10 @@ export class DesktopModel {
             this._displayScaling = evt.deviceScaleFactor !== 1;
 
             // Validate all tabgroups
-            await Promise.all(this.tabGroups.map(g => g.validate()));
+            this.tabGroups.map(g => g.validate());
 
             // Validate all snap groups
-            await Promise.all(this.snapGroups.map(g => g.validate()));
-
-            // Validate monitor assignment
-            await this._monitorAssignmentValidator.validate();
+            this.snapGroups.map(g => g.validate());
         });
 
         // Get and store the current monitors

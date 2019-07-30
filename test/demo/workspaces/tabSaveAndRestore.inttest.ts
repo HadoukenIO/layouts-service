@@ -36,10 +36,8 @@ appNumbers.forEach(appNumber => {
     });
 });
 
-afterEach(async () => {
-    await closeAllPreviews();
-    await teardown();
-});
+afterEach(closeAllPreviews);
+afterEach(teardown);
 
 itParameterized<CreateAppData>(
     'When calling generate and restore, tabgroups are restored as expected',

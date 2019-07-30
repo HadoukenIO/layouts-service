@@ -1,9 +1,8 @@
 import {Window} from 'hadouken-js-adapter';
 import {WindowInfo, WindowDetail} from 'hadouken-js-adapter/out/types/src/api/system/window';
-import {Scopes, StoredConfig} from 'openfin-service-config';
-import {ScopePrecedence} from 'openfin-service-config/ConfigUtil';
 
-import {ConfigurationObject} from '../gen/provider/config/layouts-config';
+import {Scopes} from '../src/provider/config/Store';
+import {ScopePrecedence} from '../src/provider/config/ConfigUtil';
 
 import {executeJavascriptOnService} from './demo/utils/serviceUtils';
 import {delay} from './provider/utils/delay';
@@ -63,7 +62,7 @@ async function closeAllWindows(): Promise<void> {
             // Main window persists, but close any child windows
             return name !== uuid;
         } else if (uuid === 'layouts-service') {
-            if (name === uuid || name!.startsWith('preview-')) {
+            if (name === uuid || name === 'successPreview' || name === 'failurePreview') {
                 // Main window and preview windows persist
                 return false;
             } else if (name!.startsWith('TABSET-')) {
@@ -115,14 +114,14 @@ async function resetProviderState(): Promise<void> {
             this.model['_snapGroups'].length = 0;
         }
         if (tabGroups.length > 0) {
-            const groupInfo = tabGroups.map((t, i) => `${i + 1}: ${t.id} (${t.tabs.map(w => w.id).join(SEPARATOR_LIST)})`).join(SEPARATOR_LINE);
+            const groupInfo = tabGroups.map((t, i) => `${i+1}: ${t.id} (${t.tabs.map(w => w.id).join(SEPARATOR_LIST)})`).join(SEPARATOR_LINE);
 
             msgs.push(`Provider still had ${tabGroups.length} tabGroups registered:${SEPARATOR_LINE}${groupInfo}`);
             this.model['_tabGroups'].length = 0;
         }
 
         // Check config state
-        const rules: Map<Scopes, StoredConfig<ConfigurationObject>[]> = this.config['_items'];
+        const rules = this.config['_items'];
         const watches = this.config['_watches'];
         const loaderApps = this.loader['_appState'];
         const loaderWindows = this.loader['_windowsWithConfig'];
@@ -137,12 +136,12 @@ async function resetProviderState(): Promise<void> {
             const expectedCount = expectedRuleCounts.get(scope) || 0;
 
             if (rulesWithScope.length !== expectedCount) {
-                const configInfo = rulesWithScope.map((rule) => JSON.stringify(rule)).join(SEPARATOR_LINE);
+                const configInfo = rulesWithScope.map(rule => JSON.stringify(rule)).join(SEPARATOR_LINE);
                 msgs.push(`Expected ${expectedCount} rules with scope ${scope}, got:${configInfo ? SEPARATOR_LINE + configInfo: ' NONE'}`);
 
                 // Can't do a full clean-up without duplicating provider state here,
                 // but removing anything that was defined outside of the service (test windows, etc)
-                rules.set(scope, rulesWithScope.filter((config) => config.source.level === 'service'));
+                rules.set(scope, rulesWithScope.filter(config => config.source.level === 'service'));
             }
         });
         if (watches.length !== expectedWatcherCount) {

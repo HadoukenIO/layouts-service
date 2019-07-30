@@ -1,6 +1,6 @@
 import {assertGrouped, assertNotGrouped, assertNotGroupedTogether, assertNotMoved, assertPairTabbed} from '../../provider/utils/assertions';
 import {dragSideToSide} from '../../provider/utils/dragWindowTo';
-import {getBounds} from '../../provider/utils/bounds';
+import {getBounds} from '../../provider/utils/getBounds';
 import {teardown} from '../../teardown';
 import {CreateWindowData, createWindowTest} from '../utils/createWindowTest';
 import {itParameterized} from '../utils/parameterizedTestUtils';

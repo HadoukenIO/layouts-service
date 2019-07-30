@@ -4,13 +4,11 @@ import * as robot from 'robotjs';
 
 import {fin} from '../demo/utils/fin';
 import {teardown} from '../teardown';
-import {isPreviewShowing} from '../demo/utils/previewWindowUtils';
-import {PreviewType, Validity} from '../../src/provider/PreviewMap';
 
 import {createChildWindow} from './utils/createChildWindow';
 import {dragWindowAndHover} from './utils/dragWindowAndHover';
 import {dragWindowTo} from './utils/dragWindowTo';
-import {getBounds} from './utils/bounds';
+import {getBounds} from './utils/getBounds';
 import {getWindow} from './utils/getWindow';
 
 let win1: Window, win2: Window;
@@ -211,7 +209,7 @@ it('When dragging a de-registered-on-trigger window to a registered window, wind
 
 it('When dragging a registered window to a de-registered window, no snap preview window is shown', async () => {
     // Wrap the pre-spawned preview window
-    const previewWin = await getWindow({name: `preview-${PreviewType.SNAP}-${Validity.VALID}`, uuid: 'layouts-service'});
+    const previewWin = await getWindow({name: 'successPreview', uuid: 'layouts-service'});
 
     // Spawn two child windows (one of them deregistered)
     win1 = await createChildWindow({
@@ -240,8 +238,7 @@ it('When dragging a registered window to a de-registered window, no snap preview
     await dragWindowAndHover(win2, win1Bounds.right + 2, win1Bounds.top + 5);
 
     // The preview window should still be hidden.
-
-    assert.strictEqual(await isPreviewShowing(previewWin), false);
+    assert.strictEqual(await previewWin.isShowing(), false);
 
     // Drop the window
     robot.mouseToggle('up');
@@ -249,7 +246,7 @@ it('When dragging a registered window to a de-registered window, no snap preview
 
 it('When dragging a de-registered window to a registered window, no snap preview window is shown', async () => {
     // Wrap the pre-spawned preview window
-    const previewWin = await getWindow({name: `preview-${PreviewType.SNAP}-${Validity.VALID}`, uuid: 'layouts-service'});
+    const previewWin = await getWindow({name: 'successPreview', uuid: 'layouts-service'});
 
     // Spawn two child windows (one of them deregistered)
     win1 = await createChildWindow({
@@ -278,7 +275,7 @@ it('When dragging a de-registered window to a registered window, no snap preview
     await dragWindowAndHover(win2, win1Bounds.right + 2, win1Bounds.top + 5);
 
     // The preview window should still be hidden.
-    assert.strictEqual(await isPreviewShowing(previewWin), false);
+    assert.strictEqual(await previewWin.isShowing(), false);
 
     // Drop the window
     robot.mouseToggle('up');

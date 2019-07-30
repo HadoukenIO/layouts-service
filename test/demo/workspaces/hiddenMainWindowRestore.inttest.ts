@@ -25,10 +25,9 @@ numberOfApps.forEach(appNumber => {
     });
 });
 
-afterEach(async () => {
-    await closeAllPreviews();
-    await teardown();
-});
+afterEach(closeAllPreviews);
+afterEach(teardown);
+
 itParameterized<CreateAppData>(
     'When calling generate and restore, hidden windows remain hidden',
     (testOptions: CreateAppData): string => `${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - ${

@@ -2,7 +2,7 @@ import {Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
 import * as robot from 'robotjs';
 
 import {dragWindowAndHover} from './dragWindowAndHover';
-import {getBounds} from './bounds';
+import {getBounds} from './getBounds';
 import {Win} from './getWindow';
 import {Side} from './SideUtils';
 

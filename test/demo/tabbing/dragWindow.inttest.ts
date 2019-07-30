@@ -11,7 +11,6 @@ import {fin} from '../utils/fin';
 import {getTabstrip} from '../utils/tabServiceUtils';
 import {tearoutToPoint} from '../utils/tabstripUtils';
 
-
 afterEach(teardown);
 
 itParameterized(

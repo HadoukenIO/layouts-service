@@ -48,7 +48,6 @@ it('When calling createTabGroupsFromWorkspace, tabgroup is created as expected',
     // Get the service window in order to be able to find the tabgroup window
     const serviceApplication: Application = await fin.Application.wrap({uuid: 'layouts-service', name: 'layouts-service'});
 
-
     // Act
     function scriptToExecute(this: ProviderWindow, tabGroups: TabGroup[]): Promise<string> {
         return this.tabService.createTabGroupsFromWorkspace(tabGroups).then((addedGroups: DesktopTabGroup[]) => {
@@ -79,7 +78,6 @@ it('When calling createTabGroupsFromWorkspace, tabgroup is created as expected',
     assert.strictEqual(win2Bounds.width, win1Bounds.width);
     assert.strictEqual(win2Bounds.top, (tabGroups[0].groupInfo.dimensions.y + (tabGroups[0].groupInfo.config as ApplicationUIConfig).height));
     assert.strictEqual(win2Bounds.left, tabGroups[0].groupInfo.dimensions.x);
-
 
     // TabGroup existence check
     assert.strictEqual(tabGroupBounds.bottom, win2Bounds.top);

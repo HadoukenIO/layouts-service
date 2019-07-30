@@ -26,7 +26,6 @@ export class MouseTracker {
         DragWindowManager.onDragDrop.add(this.onTabDrop, this);
     }
 
-
     private onDesktopWindowCreated(window: DesktopWindow) {
         window.onTransform.add(this.start, this);
     }
@@ -96,7 +95,6 @@ export class MouseTracker {
     public getPosition(): Point|null {
         if (this._window && this._mouseOffset) {
             const currentWindowState: EntityState = this._window.currentState;
-
 
             return {
                 x: this._mouseOffset.x + (currentWindowState.center.x - currentWindowState.halfSize.x),

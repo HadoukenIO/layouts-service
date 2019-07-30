@@ -12,7 +12,6 @@ export class Sides {
     public static readonly bottom: Side = 'bottom';
 }
 
-
 export function opposite(side: Side): Side {
     switch (side) {
         case 'top':

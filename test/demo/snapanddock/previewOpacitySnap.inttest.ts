@@ -161,7 +161,6 @@ describe('When two windows are moved within snapping distance', () => {
     });
 });
 
-
 describe('When a window is moved with snapping distance of a group', () => {
     async function init(...options: (PreviewOptions | undefined)[]) {
         windows = await createWindows(...options);

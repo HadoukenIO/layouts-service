@@ -18,7 +18,6 @@ import {fin} from './utils/fin';
 import {getTabstrip} from './utils/tabServiceUtils';
 import {tearoutToOtherTabstrip, tearoutToPoint} from './utils/tabstripUtils';
 
-
 afterEach(teardown);
 
 interface PreviewTestOptions extends CreateWindowData {
@@ -51,8 +50,6 @@ itParameterized(
         assert.strictEqual(windowBounds[1].height, previewBounds.height);
     }, {defaultCentered: true, defaultWidth: 250, defaultHeight: 150})
 );
-
-
 
 interface PreviewResizeTestOptions extends CreateWindowData {
     direction: ['smaller' | 'bigger', 'smaller' | 'bigger'];

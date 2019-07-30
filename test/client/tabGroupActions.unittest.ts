@@ -2,7 +2,6 @@
 
 import {ChannelClient} from 'hadouken-js-adapter/out/types/src/api/interappbus/channel/client';
 
-
 import {getServicePromise} from '../../src/client/connection';
 import {TabAPI} from '../../src/client/internal';
 import {tabbing} from '../../src/client/main';

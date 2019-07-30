@@ -8,7 +8,6 @@ import {TabProperties} from '../../src/client/tabbing';
 
 import {stub} from './utils/FinMock';
 
-
 stub();
 
 let channel: ChannelClient;

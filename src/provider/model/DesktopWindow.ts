@@ -308,7 +308,6 @@ export class DesktopWindow implements DesktopEntity {
      */
     public readonly onTeardown: Signal1<DesktopWindow, Promise<void>, Promise<void>> = new Signal1(Aggregators.AWAIT_VOID);
 
-
     private _model: DesktopModel;
     private _identity: WindowIdentity;
     private _scope: WindowScope;
@@ -843,7 +842,7 @@ export class DesktopWindow implements DesktopEntity {
         }
 
         // Update application state and modifications in comparison to application state
-        if (origin === ActionOrigin.APPLICATION){
+        if (origin === ActionOrigin.APPLICATION) {
             // Find changes from the application that weren't already known to the service
             forEachProperty(delta, (property) => {
                 if (this.isModified(property, delta, this._currentState)) {

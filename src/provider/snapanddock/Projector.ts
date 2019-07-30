@@ -99,7 +99,6 @@ export class Projector {
                 // Clip each range to each of its neighbours
                 this.clipProjections();
 
-
                 // Snap active window to each active border
                 validDirections.forEach((border: BorderProjection) => {
                     const opposite: BorderProjection = borders[(border.direction + 2) % 4];

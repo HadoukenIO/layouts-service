@@ -92,7 +92,6 @@ export class DragWindowManager {
         this._window.hide();
     }
 
-
     /**
      * Creates the drag overlay window.
      */

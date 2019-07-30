@@ -93,7 +93,6 @@ export async function getTabbedWindows(identity: Identity): Promise<Identity[]> 
     return executeJavascriptOnService<WindowIdentity, Identity[]>(remoteFunc, identity as WindowIdentity);
 }
 
-
 export async function getActiveTab(identity: Identity): Promise<Identity> {
     function remoteFunc(this: ProviderWindow, identity: WindowIdentity): Identity {
         const desktopWindow = this.model.getWindow(identity);

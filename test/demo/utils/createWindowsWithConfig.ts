@@ -4,7 +4,6 @@ import {createApp, AppData} from 'openfin-service-tooling/spawn';
 import {ConfigurationObject, Preview} from '../../../gen/provider/config/layouts-config';
 let counter = 0;
 
-
 /**
  * Creates a set of windows, one per argument.
  *

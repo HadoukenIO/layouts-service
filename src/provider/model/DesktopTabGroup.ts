@@ -224,7 +224,7 @@ export class DesktopTabGroup implements DesktopEntity {
              * With display scaling enabled, we can't depend on the tabstrip having the appropriate resize constraints, due to a race
              * condition with our mitigations for display scaling issues in DesktopSnapGroup. We particularly run into this race condition
              * when snapping a tabgroup to another window. In this case we want applyOffsetInternal to move each window individually,
-             * rather than relying on grouping and resize constraints to make everything work as expected. 
+             * rather than relying on grouping and resize constraints to make everything work as expected.
              */
             await this.applyOffsetInternal(offset, halfSize, this._model.displayScaling);
         }
@@ -608,14 +608,30 @@ export class DesktopTabGroup implements DesktopEntity {
     }
 
     private async applyBoundsInternal(bounds: Rectangle): Promise<void> {
-        const currentState = this.currentState;
+        const tabstripHalfHeight: number = this._config.height / 2;
 
-        const offset = {
-            x: (bounds.center.x - currentState.center.x) + (bounds.halfSize.x - currentState.halfSize.x),
-            y: (bounds.center.y - currentState.center.y) + (bounds.halfSize.y - currentState.halfSize.y)
+        const tabstripBounds = {
+            center: {x: bounds.center.x, y: (bounds.center.y - bounds.halfSize.y) + tabstripHalfHeight},
+            halfSize: {x: bounds.halfSize.x, y: tabstripHalfHeight}
+        };
+
+        const tabBounds = {
+            center: {x: bounds.center.x, y: bounds.center.y + tabstripHalfHeight},
+            halfSize: {x: bounds.halfSize.x, y: bounds.halfSize.y - tabstripHalfHeight}
+        };
+
+        if (this.state === 'minimized') {
+            return DesktopWindow.transaction([this._window, ...this.tabs], async (windows) => {
+                await this._window.applyProperties(tabstripBounds);
+
+                for (const tab of this.tabs) {
+                    await tab.applyProperties(tabBounds);
+                }
+            });
+        } else {
+            await this._window.applyProperties(tabstripBounds);
+            await this.activeTab.applyProperties(tabBounds);
         }
-
-        this.applyOffsetInternal(offset, bounds.halfSize, false);
     }
 
     private async applyOffsetInternal(offset: Point, halfSize: Point<number> | undefined, forceTransaction: boolean): Promise<void> {

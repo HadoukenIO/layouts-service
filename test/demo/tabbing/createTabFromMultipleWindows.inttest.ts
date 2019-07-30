@@ -4,7 +4,7 @@ import * as assert from 'power-assert';
 import {ApplicationUIConfig} from '../../../src/client/tabbing';
 import {TabGroup} from '../../../src/client/workspaces';
 import {DesktopTabGroup} from '../../../src/provider/model/DesktopTabGroup';
-import {getBounds, NormalizedBounds} from '../../provider/utils/getBounds';
+import {getBounds, NormalizedBounds} from '../../provider/utils/bounds';
 import {teardown} from '../../teardown';
 import {fin} from '../utils/fin';
 import {executeJavascriptOnService} from '../utils/serviceUtils';
@@ -17,9 +17,9 @@ afterEach(async () => {
     await win1.close();
     await win2.close();
     fin.InterApplicationBus.removeAllListeners();
-});
 
-afterEach(teardown);
+    await teardown();
+});
 
 it('When calling createTabGroupsFromWorkspace, tabgroup is created as expected', async () => {
     // Arrange

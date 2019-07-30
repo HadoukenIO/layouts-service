@@ -1,10 +1,10 @@
 import {DipRect, MonitorInfo} from 'hadouken-js-adapter/out/types/src/api/system/monitor';
 import {Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
+import {Signal} from 'openfin-service-signal';
 
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopWindow} from '../model/DesktopWindow';
-import {Signal1, Signal2} from '../Signal';
 
 /**
  * Handles the Drag Window which appears when API drag and drop is initialized.
@@ -16,14 +16,14 @@ export class DragWindowManager {
      *
      * Arguments: (window: DesktopWindow, position: Point)
      */
-    public static readonly onDragOver: Signal2<DesktopWindow, Point> = new Signal2();
+    public static readonly onDragOver: Signal<[DesktopWindow, Point]> = new Signal();
 
     /**
      * Fires when a tab has been dropped on the drag window, indicating an end to the drag/drop operation.
      *
      * Arguments: (window: DesktopWindow);
      */
-    public static readonly onDragDrop: Signal1<DesktopWindow> = new Signal1();
+    public static readonly onDragDrop: Signal<[DesktopWindow]> = new Signal();
 
     /**
      * The drag overlay window
@@ -97,17 +97,20 @@ export class DragWindowManager {
      * Creates the drag overlay window.
      */
     private async createDragWindow(): Promise<void> {
+        const {virtualScreen} = await fin.System.getMonitorInfo();
         await new Promise(resolve => {
+            // default size can't be smaller than 60.
+            const size = 100;
             this._window = new fin.desktop.Window(
                 {
                     name: 'TabbingDragWindow',
                     url: 'about:blank',
-                    defaultHeight: 1,
-                    defaultWidth: 1,
+                    defaultHeight: size,
+                    defaultWidth: size,
                     defaultLeft: 0,
                     defaultTop: 0,
                     saveWindowState: false,
-                    autoShow: true,
+                    autoShow: false,
                     opacity: 0.01,
                     frame: false,
                     waitForPageLoad: false,
@@ -116,6 +119,8 @@ export class DragWindowManager {
                     smallWindow: true
                 },
                 () => {
+                    // Show window offscreen so it can render without a flicker
+                    this._window.showAt(virtualScreen.left - size, virtualScreen.top - size);
                     resolve();
                 }
             );

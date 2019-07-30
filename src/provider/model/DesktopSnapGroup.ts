@@ -219,7 +219,13 @@ export class DesktopSnapGroup {
     }
 
     public async applyOffset(offset: Point): Promise<void> {
-        return this.rootWindow!.applyOffset(offset);
+        if (this.rootWindow!.currentState.state === 'minimized') {
+            return DesktopWindow.transaction(this.windows, async (windows) => {
+                await Promise.all(windows.map(window => window.applyOffset(offset)));
+            });
+        } else {
+            return this.rootWindow!.applyOffset(offset);
+        }
     }
 
     private async validateGroupInternal(): Promise<void> {
@@ -451,10 +457,9 @@ export class DesktopSnapGroup {
         let windows: DesktopWindow[] = this._windows;
         let numWindows: number = windows.length;
 
-        if (windows.length > 1) {
+        if (numWindows > 1) {
             windows = windows.filter((window: DesktopWindow) => {
-                const state = window.currentState;
-                return !state.hidden && state.state === 'normal';
+                return !window.currentState.hidden;
             });
             numWindows = windows.length;
         }

@@ -8,7 +8,7 @@ import {assertGrouped, assertMoved, assertNotGrouped, assertNotMoved} from './ut
 import {createChildWindow} from './utils/createChildWindow';
 import {delay} from './utils/delay';
 import {dragSideToSide} from './utils/dragWindowTo';
-import {getBounds} from './utils/bounds';
+import {getBounds} from './utils/getBounds';
 
 // Valid ways of grouping two windows (used to parameterize large number of
 // similar tests)
@@ -66,9 +66,8 @@ afterEach(async () => {
     }
     win1 = win2 = {} as Window;
     windows = new Array<Window>();
-
-    await teardown();
 });
+afterEach(teardown);
 
 /* ====== Utils ====== */
 

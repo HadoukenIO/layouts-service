@@ -225,7 +225,7 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
     try {
         const {uuid} = app;
         console.log('Restoring App:', app);
-        const ofApp = fin.Application.wrapSync({uuid});
+        const ofApp = await fin.Application.wrap({uuid});
         const isRunning = await ofApp.isRunning();
         if (isRunning) {
             const appConnected = apiHandler.channel.connections.some((conn: Identity) => conn.uuid === uuid && conn.name === uuid);

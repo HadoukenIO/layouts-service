@@ -1,4 +1,0 @@
-{
-    "setupFilesAfterEnv": ["<rootDir>/test/provider/utils/setup.ts"],
-    "testEnvironment": "<rootDir>/test/demo/utils/integrationTestEnv.js"
-}

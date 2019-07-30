@@ -37,10 +37,8 @@ appNumbers.forEach(appNumber => {
     });
 });
 
-afterEach(async () => {
-    await closeAllPreviews();
-    await teardown();
-});
+afterEach(closeAllPreviews);
+afterEach(teardown);
 
 itParameterized<CreateAppData>(
     'When calling generate and restore, snapgroups are restored as expected',

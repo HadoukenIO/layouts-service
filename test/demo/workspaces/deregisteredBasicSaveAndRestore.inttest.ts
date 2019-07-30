@@ -29,10 +29,8 @@ numberOfApps.forEach(appNumber => {
     });
 });
 
-afterEach(async () => {
-    await closeAllPreviews();
-    await teardown();
-});
+afterEach(closeAllPreviews);
+afterEach(teardown);
 
 itParameterized<CreateAppData>(
     'When calling generate and restore, de-registered windows are not restored',

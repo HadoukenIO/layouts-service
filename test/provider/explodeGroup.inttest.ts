@@ -5,7 +5,7 @@ import {WindowIdentity} from '../../src/client/main';
 import {explodeGroup} from '../demo/utils/snapServiceUtils';
 import {teardown} from '../teardown';
 
-import {getBounds} from './utils/bounds';
+import {getBounds} from './utils/getBounds';
 import {isInGroup} from './utils/isInGroup';
 import {isOverlappedWith} from './utils/isOverlappedWith';
 import {defaultArrangements, WindowInitializer} from './utils/WindowInitializer';
@@ -24,9 +24,8 @@ afterEach(async () => {
         }
     }
     windows = new Array<Window>();
-
-    await teardown();
 });
+afterEach(teardown);
 
 async function assertExploded() {
     // Check each window

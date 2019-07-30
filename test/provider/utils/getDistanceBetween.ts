@@ -1,4 +1,4 @@
-import {getBounds} from './bounds';
+import {getBounds} from './getBounds';
 import {Win} from './getWindow';
 import {Side} from './SideUtils';
 

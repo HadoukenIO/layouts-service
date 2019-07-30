@@ -9,7 +9,7 @@ import {teardown} from '../teardown';
 import {assertGrouped, assertNotGrouped} from './utils/assertions';
 import {createChildWindow} from './utils/createChildWindow';
 import {dragSideToSide, dragWindowTo} from './utils/dragWindowTo';
-import {getBounds, NormalizedBounds} from './utils/bounds';
+import {getBounds, NormalizedBounds} from './utils/getBounds';
 
 let windows: Window[] = new Array<Window>(2);
 

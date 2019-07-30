@@ -3,7 +3,7 @@ import * as assert from 'power-assert';
 
 import {assertNotTabbed, assertPairTabbed} from '../../provider/utils/assertions';
 import {dragWindowTo} from '../../provider/utils/dragWindowTo';
-import {getBounds, getTabsetBounds, NormalizedBounds} from '../../provider/utils/getBounds';
+import {getBounds, getTabsetBounds, NormalizedBounds} from '../../provider/utils/bounds';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 import {teardown} from '../../teardown';
 import {CreateWindowData, createWindowTest, WindowContext} from '../utils/createWindowTest';

@@ -4,7 +4,7 @@ import * as assert from 'power-assert';
 import {assertAdjacent, assertAllContiguous, assertGrouped, assertPairTabbed} from '../../provider/utils/assertions';
 import {delay} from '../../provider/utils/delay';
 import {dragSideToSide} from '../../provider/utils/dragWindowTo';
-import {getBounds, getTabsetBounds} from '../../provider/utils/getBounds';
+import {getBounds, getTabsetBounds} from '../../provider/utils/bounds';
 import * as SideUtils from '../../provider/utils/SideUtils';
 import {Side} from '../../provider/utils/SideUtils';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';

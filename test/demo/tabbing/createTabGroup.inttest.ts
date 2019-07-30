@@ -3,7 +3,7 @@ import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {promiseForEach, promiseMap} from '../../../src/provider/snapanddock/utils/async';
 import {assertAllContiguous, assertCompleteGroup, assertCompleteTabGroup, assertNoOverlap, assertNotMoved} from '../../provider/utils/assertions';
 import {dragSideToSide} from '../../provider/utils/dragWindowTo';
-import {getEntityBounds, NormalizedBounds} from '../../provider/utils/getBounds';
+import {getEntityBounds, NormalizedBounds} from '../../provider/utils/bounds';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 import {teardown} from '../../teardown';
 import {CreateWindowData, createWindowTest, WindowContext} from '../utils/createWindowTest';

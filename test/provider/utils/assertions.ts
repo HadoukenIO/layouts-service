@@ -7,7 +7,7 @@ import {getTopmostWindow} from '../../demo/utils/modelUtils';
 import {getGroupedWindows, getSnapGroupID} from '../../demo/utils/snapServiceUtils';
 import {getActiveTab, getId, getTabbedWindows, getTabGroupID, getTabGroupIdentity, getTabstrip} from '../../demo/utils/tabServiceUtils';
 
-import {getBounds, NormalizedBounds} from './getBounds';
+import {getBounds, NormalizedBounds} from './bounds';
 import {Win} from './getWindow';
 import {isAdjacentTo} from './isAdjacentTo';
 import {getContiguousWindows} from './isContiguousGroup';

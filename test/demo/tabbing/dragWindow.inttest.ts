@@ -4,7 +4,7 @@ import robot from 'robotjs';
 
 import {CreateWindowData, createWindowTest} from '../../demo/utils/createWindowTest';
 import {itParameterized} from '../../demo/utils/parameterizedTestUtils';
-import {getBounds} from '../../provider/utils/getBounds';
+import {getBounds} from '../../provider/utils/bounds';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 import {teardown} from '../../teardown';
 import {fin} from '../utils/fin';

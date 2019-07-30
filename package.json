@@ -36,6 +36,7 @@
     "json-schema-to-typescript": "^6.1.0",
     "mkdirp": "^0.5.1",
     "openfin-service-config": "^1.0.1",
+    "openfin-service-signal": "^1.0.0",
     "openfin-service-tooling": "1.0.12-alpha.50",
     "power-assert": "^1.6.1",
     "pre-commit": "^1.2.2",

@@ -8,7 +8,6 @@ import _FrameModule from 'hadouken-js-adapter/out/types/src/api/frame/frame';
 import GlobalHotkey from 'hadouken-js-adapter/out/types/src/api/global-hotkey';
 import ApplicationModule from 'hadouken-js-adapter/out/types/src/api/application/application';
 
-
 // Augments the globally declared fin object to include V2 types
 declare global {
     namespace fin {

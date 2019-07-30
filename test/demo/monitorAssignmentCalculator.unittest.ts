@@ -68,7 +68,6 @@ describe('When removing a central monitor', () => {
         });
     });
 
-
     it('A window to the bottom of middle is moved to the bottom monitor', () => {
         const result = calculator.getMovedEntityRectangle({normalBounds: {
             center: {x: 0, y: 501},

@@ -459,7 +459,6 @@ export class TabService {
         }
     }
 
-
     /**
      * Returns the tabstrip configuration for the given window. This is a thin wrapper around the config store.
      *

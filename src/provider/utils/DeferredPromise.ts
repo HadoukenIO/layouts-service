@@ -1,4 +1,4 @@
-export class DeferredPromise<T = void>{
+export class DeferredPromise<T = void> {
     private readonly _promise: Promise<T>;
     private _resolve!: (value?: T) => void;
     private _reject!: (reason?: any) => void;

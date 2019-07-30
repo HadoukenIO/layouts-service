@@ -139,7 +139,6 @@ export class TabManager {
         });
     }
 
-
     /**
      * Gets the Tab index from the array.
      * @param {WindowIdentity} tabID An object containing the uuid, name for the external application/window.

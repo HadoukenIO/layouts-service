@@ -5,7 +5,6 @@ import {Point} from '../../../src/provider/snapanddock/utils/PointUtils';
 
 import {executeJavascriptOnService} from './serviceUtils';
 
-
 export async function refreshWindowState(identity: Identity): Promise<void> {
     function remoteFunc(this: ProviderWindow, identity: WindowIdentity): Promise<void> {
         const desktopWindow = this.model.getWindow(identity);

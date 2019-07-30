@@ -134,7 +134,6 @@ export class Tab {
         }
     }
 
-
     /**
      * Handles all click events from this Tab DOM.
      * @param {MouseEvent} e MouseEvent

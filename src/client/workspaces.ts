@@ -11,7 +11,6 @@ import {WorkspaceAPI} from './internal';
 import {WindowIdentity} from './main';
 import {ApplicationUIConfig} from './tabbing';
 
-
 /**
  * Defines a saved workspace, containing the state of any applications that were open at the time the workspace was
  * generated.
@@ -399,7 +398,6 @@ export async function setRestoreHandler(listener: (workspaceApp: WorkspaceApp) =
     const channel: ChannelClient = await getServicePromise();
     return channel.register(WorkspaceAPI.RESTORE_HANDLER, listener);
 }
-
 
 /**
  * Generates a JSON Workspace object that contains the state of the current desktop.

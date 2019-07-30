@@ -195,8 +195,6 @@ export interface ApplicationUIConfig {
     height: number;
 }
 
-
-
 export function addEventListener(eventType: 'tab-added', listener: (event: TabAddedEvent) => void): void;
 export function addEventListener(eventType: 'tab-removed', listener: (event: TabRemovedEvent) => void): void;
 export function addEventListener(eventType: 'tab-activated', listener: (event: TabActivatedEvent) => void): void;

@@ -45,7 +45,7 @@ export class DesktopTabstripFactory {
         this._watch.onAdd.add(this.onTabstripConfigAdded, this);
 
         // Fills the pool with the default tabstrip windows.
-        for (let i = 0; i < DesktopTabstripFactory.POOL_MAX_SIZE; i++){
+        for (let i = 0; i < DesktopTabstripFactory.POOL_MAX_SIZE; i++) {
             this.createAndPool(DesktopTabstripFactory.DEFAULT_CONFIG);
         }
     }
@@ -60,7 +60,7 @@ export class DesktopTabstripFactory {
         const next = pooledWindows.shift();
         // setTimeout to offset blocking fin window creation
         // TODO: Runtime Ticket RUN-4704
-        if (pooledWindows.length < DesktopTabstripFactory.POOL_MIN_SIZE){
+        if (pooledWindows.length < DesktopTabstripFactory.POOL_MIN_SIZE) {
             setTimeout(() => {
                 this.createAndPool(options);
             }, 1000);
@@ -127,7 +127,7 @@ export class DesktopTabstripFactory {
      * Hide a window offscreen so it doesn't flicker on startup.
      * @param window The window to hide.
      */
-    private async hideOffScreen(window: _Window){
+    private async hideOffScreen(window: _Window) {
         const {virtualScreen} = await fin.System.getMonitorInfo();
         const {width, height} = await window.getBounds();
         await window.showAt(virtualScreen.left - width, virtualScreen.top - height);

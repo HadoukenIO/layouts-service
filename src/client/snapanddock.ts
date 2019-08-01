@@ -76,7 +76,6 @@ export interface WindowUndockedEvent {
  */
 export type SnapAndDockEvent = WindowDockedEvent|WindowUndockedEvent;
 
-
 export function addEventListener(eventType: 'window-docked', listener: (event: WindowDockedEvent) => void): void;
 export function addEventListener(eventType: 'window-undocked', listener: (event: WindowUndockedEvent) => void): void;
 export function addEventListener<K extends SnapAndDockEvent>(eventType: K['type'], listener: (event: K) => void): void {

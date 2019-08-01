@@ -207,7 +207,6 @@ itParameterized(
     }, {defaultHeight: WINDOW_SIZE, defaultWidth: WINDOW_SIZE})
 );
 
-
 // With tabsets
 itParameterized(
     'When a tabbed window is dragged adjacent to a similarly sized tabbed window, the windows form a snapgroup, and the window is resized as expected',

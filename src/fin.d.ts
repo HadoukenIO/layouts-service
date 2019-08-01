@@ -545,7 +545,6 @@ declare namespace fin {
         onShow?(callback: (successObj: SuccessObj) => void): void;
     }
 
-
     interface OpenFinService {
         register: () => Promise<OpenFinServiceProvider>;
         connect: (connectionObj: {uuid: string, name: string, payload?: any}) => Promise<OpenFinServiceClient>;
@@ -565,7 +564,6 @@ declare namespace fin {
     interface OpenFinIdentity {
         uuid: string;
     }
-
 
     /**
      * System
@@ -1388,7 +1386,6 @@ declare namespace fin {
         'window-minimized': OpenFinWindowEventMap['minimized'];
         'window-navigation-rejected': OpenFinWindowEventMap['navigation-rejected'];
     }
-
 
     interface SystemBaseEvent {
         topic: string;

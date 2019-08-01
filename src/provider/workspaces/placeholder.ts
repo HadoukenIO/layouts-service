@@ -59,7 +59,6 @@ export const createNormalPlaceholder = async (win: WorkspaceWindow) => {
     return placeholderWindow;
 };
 
-
 // Creates a placeholder for a tabbed window.
 // When the window that is supposed to be tabbed comes up, swaps the placeholder tab with the real window tab and closes the placeholder.
 export const createTabPlaceholder = async (win: WorkspaceWindow) => {

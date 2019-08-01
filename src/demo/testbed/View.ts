@@ -95,7 +95,6 @@ export interface Elements {
     tab_overlayValid_border: HTMLInputElement;
     tab_overlayValid_opacity: HTMLSelectElement;
 
-
     // Other
     container: HTMLDivElement;
     modal: HTMLDivElement;

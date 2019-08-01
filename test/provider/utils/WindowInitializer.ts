@@ -31,7 +31,6 @@ export type WindowPosition = {
     defaultLeft: number
 };
 
-
 /**
  * Helper class to instantiate and optionally arrange openfin windows to be
  * used by tests.

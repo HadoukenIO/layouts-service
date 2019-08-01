@@ -13,7 +13,6 @@ import {Identity} from 'hadouken-js-adapter';
 import {IdentityRule, RegEx, WindowIdentity} from './main';
 import {ApplicationUIConfig, TabProperties} from './tabbing';
 
-
 /**
  * Cached window identity (@see getId)
  */
@@ -31,7 +30,6 @@ export const SERVICE_IDENTITY: WindowIdentity = {
  * Name of the IAB channel use to communicate between client and provider
  */
 export const SERVICE_CHANNEL = 'of-layouts-service-v1';
-
 
 /**
  * Returns the identity of the window that is calling these functions
@@ -92,7 +90,6 @@ function isRegex(a: any): a is RegEx {
         (a.invert === undefined || typeof a.invert === 'boolean');
 }
 
-
 export enum TabAPI {
     CREATETABGROUP = 'CREATETABGROUP',
     SETTABSTRIP = 'SETTABSTRIP',
@@ -131,7 +128,6 @@ export enum RegisterAPI {
 }
 
 export type APITopic = TabAPI|WorkspaceAPI|SnapAndDockAPI|RegisterAPI;
-
 
 export interface SetTabstripPayload {
     config: ApplicationUIConfig;

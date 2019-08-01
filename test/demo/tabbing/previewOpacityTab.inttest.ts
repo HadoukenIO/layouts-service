@@ -214,7 +214,6 @@ describe('When adding a window to an existing tab group', () => {
     });
 });
 
-
 describe('When tearing a tab out into a new group', () => {
     /**
      * Creates two tab groups and tears out a tab from the first group into the second with hover, generating a preview window response.

@@ -1,12 +1,11 @@
 import {Signal} from 'openfin-service-signal';
 
 import {WindowDockedEvent, WindowUndockedEvent} from '../../client/snapanddock';
-import {MIN_OVERLAP, ADJACENCY_FUZZ_DISTANCE} from '../snapanddock/Constants';
 import {CalculatedProperty} from '../snapanddock/utils/CalculatedProperty';
 import {Debounced} from '../snapanddock/utils/Debounced';
 import {Point, PointUtils} from '../snapanddock/utils/PointUtils';
 import {Rectangle} from '../snapanddock/utils/RectUtils';
-import {RectUtils} from '../snapanddock/utils/RectUtils';
+import {getContiguousEntities} from '../utils/groups';
 
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopTabGroup} from './DesktopTabGroup';
@@ -230,82 +229,12 @@ export class DesktopSnapGroup {
 
     private async validateGroupInternal(): Promise<void> {
         // Ensure 'group' is still a valid, contiguous group.
-        const contiguousWindowSets = this.getContiguousEntities(this.entities);
+        const contiguousWindowSets = getContiguousEntities(this.entities);
         if (contiguousWindowSets.length > 1) {                      // Group is disjointed. Need to split.
             await Promise.all(contiguousWindowSets.slice(1).map(set => {  // Leave first set as-is. Move others into own groups.
                 const newGroup = new DesktopSnapGroup();
                 return Promise.all(set.map(window => window.setSnapGroup(newGroup)));
             }));
-        }
-    }
-
-    private getContiguousEntities(entities: DesktopEntity[]): DesktopEntity[][] {
-        const adjacencyList: DesktopEntity[][] = new Array<DesktopEntity[]>(entities.length);
-
-        // Build adjacency list
-        for (let i = 0; i < entities.length; i++) {
-            adjacencyList[i] = [];
-            for (let j = 0; j < entities.length; j++) {
-                if (i !== j && isAdjacent(entities[i], entities[j])) {
-                    adjacencyList[i].push(entities[j]);
-                }
-            }
-        }
-
-        // Find all contiguous sets
-        const contiguousSets: DesktopEntity[][] = [];
-        const unvisited: DesktopEntity[] = entities.slice();
-
-        while (unvisited.length > 0) {
-            const visited: DesktopEntity[] = [];
-            depthFirstSearch(unvisited[0], visited);
-            contiguousSets.push(visited);
-        }
-
-        return contiguousSets;
-
-        function depthFirstSearch(startEntity: DesktopEntity, visited: DesktopEntity[]) {
-            const startIndex = entities.indexOf(startEntity);
-            if (visited.includes(startEntity) || isOverlapping(startEntity, visited)) {
-                return;
-            }
-            visited.push(startEntity);
-            unvisited.splice(unvisited.indexOf(startEntity), 1);
-            for (let i = 0; i < adjacencyList[startIndex].length; i++) {
-                depthFirstSearch(adjacencyList[startIndex][i], visited);
-            }
-        }
-
-        /**
-         * Are the two DesktopEntitys adjacent? True if they are both visible and within the fuzz distance, false otherwise.
-         * @param entity1 one DesktopEntity
-         * @param entity2 the other DesktopEntity
-         * @returns true if they are adjacent
-         */
-        function isAdjacent(entity1: DesktopEntity, entity2: DesktopEntity): boolean {
-            const distance = RectUtils.distance(entity1.currentState, entity2.currentState);
-            if (entity1.currentState.hidden || entity2.currentState.hidden) {
-                // If a window is not visible it cannot be adjacent to anything. This also allows us
-                // to avoid the questionable position tracking for hidden entities.
-                return false;
-            } else if (distance.border(ADJACENCY_FUZZ_DISTANCE) && Math.abs(distance.maxAbs) > MIN_OVERLAP) {
-                // The overlap check ensures that only valid snap configurations are counted.
-                // We make it a small number to account for sub-pixel distances on > 100% scale monitors
-                return true;
-            }
-            return false;
-        }
-
-        function isOverlapping(testEntity: DesktopEntity, groupEntities: DesktopEntity[]): boolean {
-            for (const groupWindow of groupEntities) {
-                const distance = RectUtils.distance(testEntity.currentState, groupWindow.currentState);
-
-                if (distance.within(-ADJACENCY_FUZZ_DISTANCE)) {
-                    return true;
-                }
-            }
-
-            return false;
         }
     }
 

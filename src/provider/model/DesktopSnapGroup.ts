@@ -266,7 +266,7 @@ export class DesktopSnapGroup {
 
         function depthFirstSearch(startWindow: DesktopEntity, visited: DesktopEntity[]) {
             const startIndex = entities.indexOf(startWindow);
-            if (visited.includes(startWindow)) {
+            if (visited.includes(startWindow) || isOverlapping(startWindow, visited)) {
                 return;
             }
             visited.push(startWindow);
@@ -298,6 +298,18 @@ export class DesktopSnapGroup {
                 // We make it a small number to account for sub-pixel distances on > 100% scale monitors
                 return true;
             }
+            return false;
+        }
+
+        function isOverlapping(testWindow: DesktopEntity, groupWindows: DesktopEntity[]): boolean {
+            for (const groupWindow of groupWindows) {
+                const distance = RectUtils.distance(testWindow.currentState, groupWindow.currentState);
+
+                if (distance.within(-ADJACENCY_FUZZ_DISTANCE)) {
+                    return true;
+                }
+            }
+
             return false;
         }
     }

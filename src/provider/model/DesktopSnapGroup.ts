@@ -264,34 +264,29 @@ export class DesktopSnapGroup {
 
         return contiguousSets;
 
-        function depthFirstSearch(startWindow: DesktopEntity, visited: DesktopEntity[]) {
-            const startIndex = entities.indexOf(startWindow);
-            if (visited.includes(startWindow) || isOverlapping(startWindow, visited)) {
+        function depthFirstSearch(startEntity: DesktopEntity, visited: DesktopEntity[]) {
+            const startIndex = entities.indexOf(startEntity);
+            if (visited.includes(startEntity) || isOverlapping(startEntity, visited)) {
                 return;
             }
-            visited.push(startWindow);
-            unvisited.splice(unvisited.indexOf(startWindow), 1);
+            visited.push(startEntity);
+            unvisited.splice(unvisited.indexOf(startEntity), 1);
             for (let i = 0; i < adjacencyList[startIndex].length; i++) {
                 depthFirstSearch(adjacencyList[startIndex][i], visited);
             }
         }
 
         /**
-         * Are the two DesktopEntitys adjacent? True if they are windows in the same tab group, false
-         * if they are not both visible, true if they are both visible and within the fuzz distance.
-         * @param win1 one DesktopEntity
-         * @param win2 the other DesktopEntity
+         * Are the two DesktopEntitys adjacent? True if they are both visible and within the fuzz distance, false otherwise.
+         * @param entity1 one DesktopEntity
+         * @param entity2 the other DesktopEntity
          * @returns true if they are adjacent
          */
-        function isAdjacent(win1: DesktopEntity, win2: DesktopEntity) {
-            const distance = RectUtils.distance(win1.currentState, win2.currentState);
-            if (win1.tabGroup && win1.tabGroup === win2.tabGroup) {
-                // Special handling for tab groups. When validating, all windows in a tabgroup are
-                // assumed to be adjacent to avoid weirdness with hidden windows.
-                return true;
-            } else if (win1.currentState.hidden || win2.currentState.hidden) {
+        function isAdjacent(entity1: DesktopEntity, entity2: DesktopEntity): boolean {
+            const distance = RectUtils.distance(entity1.currentState, entity2.currentState);
+            if (entity1.currentState.hidden || entity2.currentState.hidden) {
                 // If a window is not visible it cannot be adjacent to anything. This also allows us
-                // to avoid the questionable position tracking for hidden windows.
+                // to avoid the questionable position tracking for hidden entities.
                 return false;
             } else if (distance.border(ADJACENCY_FUZZ_DISTANCE) && Math.abs(distance.maxAbs) > MIN_OVERLAP) {
                 // The overlap check ensures that only valid snap configurations are counted.
@@ -301,9 +296,9 @@ export class DesktopSnapGroup {
             return false;
         }
 
-        function isOverlapping(testWindow: DesktopEntity, groupWindows: DesktopEntity[]): boolean {
-            for (const groupWindow of groupWindows) {
-                const distance = RectUtils.distance(testWindow.currentState, groupWindow.currentState);
+        function isOverlapping(testEntity: DesktopEntity, groupEntities: DesktopEntity[]): boolean {
+            for (const groupWindow of groupEntities) {
+                const distance = RectUtils.distance(testEntity.currentState, groupWindow.currentState);
 
                 if (distance.within(-ADJACENCY_FUZZ_DISTANCE)) {
                     return true;

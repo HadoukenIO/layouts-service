@@ -451,9 +451,7 @@ async function disbandSnapGroup(window: _Window): Promise<void> {
     for (const tabstrip of tabstrips) {
         const tabstripWindow = fin.Window.wrapSync(tabstrip);
         await tabstripWindow.leaveGroup();
-        for (const tab of await getTabbedWindows(tabstrip)) {
-            await fin.Window.wrapSync(tab).joinGroup(tabstripWindow);
-        }
+        await Promise.all((await getTabbedWindows(tabstrip)).map(tab => fin.Window.wrapSync(tab).joinGroup(tabstripWindow)));
     }
 }
 

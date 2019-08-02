@@ -34,8 +34,8 @@ export class MonitorAssignmentValidator {
         const snapGroupResults = snapGroups.map(snapGroup => calculator.getMovedSnapGroupRectangles(snapGroup));
         const entityResults = entities.map(entity => calculator.getMovedEntityRectangle(entity));
 
-        const moveSnapGroupsPromise = this.applySnapGroupResults(snapGroups, snapGroupResults);
-        const moveEntitiesPromise = this.applyEntityResults(entities, entityResults);
+        const moveSnapGroupsPromise = this.applySnapGroupResults(snapGroupResults);
+        const moveEntitiesPromise = this.applyEntityResults(entityResults);
 
         await Promise.all([moveSnapGroupsPromise, moveEntitiesPromise]);
     }
@@ -51,21 +51,18 @@ export class MonitorAssignmentValidator {
         return trivalSnapGroup.map(trivalSnapGroup => trivalSnapGroup.entities[0]);
     }
 
-    private async applySnapGroupResults(snapGroups: DesktopSnapGroup[], snapGroupResults: SnapGroupResult[]): Promise<void> {
-        await Promise.all(snapGroupResults.map(async (snapGroupResult, snapGroupIndex : number) => {
-            const snapGroup = snapGroups[snapGroupIndex];
-
-            await this.applySnapGroupResult(snapGroup, snapGroupResult.groupRectangle);
+    private async applySnapGroupResults(snapGroupResults: SnapGroupResult<DesktopEntity, DesktopSnapGroup>[]): Promise<void> {
+        await Promise.all(snapGroupResults.map(async (snapGroupResult) => {
+            await this.applySnapGroupResult(snapGroupResult.target, snapGroupResult.groupRectangle);
 
             // Apply results to each entity in snapgroup, as we may want to move it independently from group
-            await this.applyEntityResults(snapGroup.entities, snapGroupResult.entityResults);
+            await this.applyEntityResults(snapGroupResult.entityResults);
         }));
     }
 
-    private async applyEntityResults(entities: DesktopEntity[], entityResults: EntityResult[]): Promise<void> {
-        await Promise.all(entityResults.map(async (rectangle: Rectangle, entityIndex: number) => {
-            const entity = entities[entityIndex];
-            return this.applyEntityResult(entity, rectangle);
+    private async applyEntityResults(entityResults: EntityResult<DesktopEntity>[]): Promise<void> {
+        await Promise.all(entityResults.map(async (result: EntityResult<DesktopEntity>) => {
+            return this.applyEntityResult(result.target, result.rectangle);
         }));
     }
 

@@ -10,7 +10,6 @@ import {MonitorAssignmentCalculator, SnapGroupResult, EntityResult} from './Moni
 import {DesktopTabGroup} from './DesktopTabGroup';
 import {DesktopWindow} from './DesktopWindow';
 
-
 export class MonitorAssignmentValidator {
     private _model: DesktopModel;
 

@@ -126,7 +126,7 @@ function normalize(indexGroups: number[][]): number[][] {
 
     resultIndexGroups = resultIndexGroups.map(indexGroup => indexGroup.slice().sort());
     resultIndexGroups.sort((indexGroup1, indexGroup2) => {
-        if (indexGroup1.length === 0 && indexGroup2.length === 0){
+        if (indexGroup1.length === 0 && indexGroup2.length === 0) {
             return 0;
         } else if (indexGroup1.length === 0) {
             return -1;

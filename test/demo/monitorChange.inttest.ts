@@ -16,7 +16,6 @@ import {getTabGroupID, getTabGroupIdentity, getTabbedWindows, getTabstrip} from 
 import {getGroupedWindows} from './utils/snapServiceUtils';
 
 // 'minimized-maximized' refers to a window that has been maximized then minimized
-// Note that we depend on this specific string containing both 'minimized' and 'maximized' as substrings
 type ExtendedWindowState = WindowState | 'minimized-maximized';
 
 interface MonitorAssignmentValidatorTestOptions extends CreateWindowData {
@@ -456,24 +455,23 @@ async function disbandSnapGroup(window: _Window): Promise<void> {
 }
 
 async function checkTabGroup(tabs: _Window[], expectedState: ExtendedWindowState, expectedNormalBounds: Bounds) {
-    const expectedPreRestoreState = expectedState.startsWith('minimized') ? 'minimized' : 'normal';
-    const expectedPreRestoreBounds = expectedState.endsWith('maximized') ? smallMonitorBounds : expectedNormalBounds;
+    const expectedStates: WindowState[] = [
+        (expectedState === 'minimized-maximized' || expectedState === 'minimized') ? 'minimized' : 'normal',
+        'normal',
+        'normal'
+    ];
 
-    const expectedPostRestoreState = 'normal';
-    const expectedPostRestoreBounds = (expectedState === 'minimized-maximized') ? smallMonitorBounds : expectedNormalBounds;
+    const expectedBounds = [
+        (expectedState === 'minimized-maximized' || expectedState === 'maximized') ? smallMonitorBounds : expectedNormalBounds,
+        (expectedState === 'minimized-maximized') ? smallMonitorBounds : expectedNormalBounds,
+        expectedNormalBounds
+    ];
 
-    const expectedPostSecondRestoreState = 'normal';
-    const expectedPostSecondRestoreBounds = expectedNormalBounds;
-
-    await checkTabGroupStateAndBounds(tabs, expectedPreRestoreState, expectedPreRestoreBounds);
-
-    // Check the tab group state after each restore. Note that in the 'minimized-maximized', it will take two `restoreTabGroup` calls
-    // for the state to 'stabilize'
-    await tabbing.restoreTabGroup(tabs[0].identity);
-    await checkTabGroupStateAndBounds(tabs, expectedPostRestoreState, expectedPostRestoreBounds);
-
-    await tabbing.restoreTabGroup(tabs[0].identity);
-    await checkTabGroupStateAndBounds(tabs, expectedPostSecondRestoreState, expectedPostSecondRestoreBounds);
+    // Check tab group progresses through expected states on successive restore calls
+    for (let i = 0; i < 3; i++) {
+        await checkTabGroupStateAndBounds(tabs, expectedStates[i], expectedBounds[i]);
+        await tabbing.restoreTabGroup(tabs[0].identity);
+    }
 }
 
 async function checkTabGroupStateAndBounds(tabs: _Window[], expectedState: WindowState, expectedBounds: Bounds): Promise<void> {

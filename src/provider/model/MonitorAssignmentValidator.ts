@@ -92,33 +92,39 @@ export class MonitorAssignmentValidator {
             }
 
             if (entity instanceof DesktopTabGroup) {
-                if (entity.isMaximized) {
-                    await entity.remaximize(rectangle);
-                } else {
-                    await entity.applyOffset(offset, rectangle.halfSize);
-                }
+                await this.applyTabGroupResult(entity, rectangle, offset);
             } else if (entity instanceof DesktopWindow) {
-                let restoredState: WindowState | undefined;
-
-                if (startState !== 'normal') {
-                    // We can't tell if we have a 'minimized, maximized' window without actually restoring
-                    await entity.restore();
-
-                    restoredState = entity.currentState.state;
-                }
-
-                // Note that Windows may have moved the window when restoring, so recalculate the offset. Also note this will restore a maximized window
-                await entity.applyOffset(this.calculateOffset(entity, rectangle), rectangle.halfSize);
-
-                // If we had a 'minimized, maximized' window, we restore that here
-                if (restoredState === 'maximized') {
-                    await entity.maximize();
-                }
-
-                if (startState !== 'normal') {
-                    await startState === 'maximized' ? entity.maximize() : entity.minimize();
-                }
+                await this.applyWindowResult(entity, startState, rectangle);
             }
+        }
+    }
+
+    private async applyTabGroupResult(tabGroup: DesktopTabGroup, rectangle: Rectangle, offset: Point<number>) {
+        if (tabGroup.isMaximized) {
+            await tabGroup.resetMaximizedAndNormalBounds(rectangle);
+        } else {
+            await tabGroup.applyOffset(offset, rectangle.halfSize);
+        }
+    }
+
+    private async applyWindowResult(window: DesktopWindow, startState: WindowState, rectangle: Rectangle) {
+        let restoredState: WindowState | undefined;
+        if (startState !== 'normal') {
+            // We can't tell if we have a 'minimized, maximized' window without actually restoring
+            await window.restore();
+            restoredState = window.currentState.state;
+        }
+
+        // Note that Windows may have moved the window when restoring, so recalculate the offset. Also note this will restore a maximized window
+        await window.applyOffset(this.calculateOffset(window, rectangle), rectangle.halfSize);
+
+        // If we had a 'minimized, maximized' window, we restore that here
+        if (restoredState === 'maximized') {
+            await window.maximize();
+        }
+
+        if (startState !== 'normal') {
+            await startState === 'maximized' ? window.maximize() : window.minimize();
         }
     }
 

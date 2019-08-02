@@ -305,7 +305,7 @@ export class DesktopTabGroup implements DesktopEntity {
         return this._isMaximized;
     }
 
-    public async remaximize(bounds: Rectangle): Promise<void> {
+    public async resetMaximizedAndNormalBounds(bounds: Rectangle): Promise<void> {
         if (!this._isMaximized) {
             throw new Error('Attempting to remaximize DesktopTabGroup with _isMaximized set to false');
         }

@@ -48,7 +48,7 @@ export function createPreviewMap<T>(genFunction: CreateEntryFunction<T>): Previe
  * Invoke a function on each entry in the given map.
  */
 export async function forEachPreviewMap<T>(map: PreviewMap<T>, func: EntryFunction<T>): Promise<void> {
-    for (const key in map){
+    for (const key in map) {
         const previewType = key as PreviewType;
         await func(map[previewType][Validity.VALID], previewType, Validity.VALID);
         await func(map[previewType][Validity.INVALID], previewType, Validity.INVALID);

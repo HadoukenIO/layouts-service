@@ -11,7 +11,6 @@ import {WindowIdentity} from './main';
  * Functions required to implement a tabstrip
  */
 
-
 /**
  * Fired when a tab group is restored back to normal state from being maximized or minimized.  See {@link addEventListener}.
  *
@@ -90,7 +89,6 @@ export interface TabGroupMaximizedEvent {
  * @hidden
  */
 export type TabstripEvent = TabGroupRestoredEvent|TabGroupMinimizedEvent|TabGroupMaximizedEvent;
-
 
 export function addEventListener(eventType: 'tab-group-restored', listener: (event: TabGroupRestoredEvent) => void): void;
 export function addEventListener(eventType: 'tab-group-minimized', listener: (event: TabGroupMinimizedEvent) => void): void;

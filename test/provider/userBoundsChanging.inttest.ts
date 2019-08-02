@@ -68,7 +68,6 @@ it('When animating window movement, windows should not snap', async () => {
     assert.notStrictEqual(bounds1.bottom, bounds2.top);
 });
 
-
 it('When animating window movement, window should not tab', async () => {
     const win2bounds = await getBounds(wins[1]);
 
@@ -95,7 +94,6 @@ it('When programmatically moving window, window should not snap', async () => {
     assert.notStrictEqual(bounds1.left, bounds2.left);
     assert.notStrictEqual(bounds1.bottom, bounds2.top);
 });
-
 
 it('When programmatically moving window, window should not tab', async () => {
     const win2bounds = await getBounds(wins[1]);

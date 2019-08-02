@@ -4,7 +4,6 @@ import {ConfigurationObject, Preview} from '../../../gen/provider/config/layouts
 import {createApp} from '../../../src/demo/spawn';
 let counter = 0;
 
-
 /**
  * Creates a set of windows, one per argument.
  *

@@ -24,7 +24,6 @@ export function createAppTest<T extends CreateAppData>(testFunc: ContextTestMacr
         // Create all apps
         const testAppData: TestAppData[] = await appInitializer.initApps(data.apps);
 
-
         // Delay slightly to allow windows to initialize
         await delay(300);
 

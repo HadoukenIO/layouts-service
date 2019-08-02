@@ -60,7 +60,6 @@ export class DesktopSnapGroup {
      */
     public readonly onWindowRemoved: Signal<[DesktopSnapGroup, DesktopWindow]> = new Signal();
 
-
     /**
      * This stores the bounds of the overall snap group. This is stored in "local" co-ordinates, relative to
      * `rootWindow.center`. This ensures that we only need to re-calculate these bounds whenever windows are added,

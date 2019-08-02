@@ -14,7 +14,6 @@ import {TabService} from './tabbing/TabService';
 import {generateWorkspace} from './workspaces/create';
 import {appReadyForRestore, restoreWorkspace} from './workspaces/restore';
 
-
 /**
  * Manages all communication with the client. Stateless class that listens for incoming messages, and handles sending of messages to connected client(s).
  *

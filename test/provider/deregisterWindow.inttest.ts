@@ -46,7 +46,6 @@ it('When dragging a registered window to a de-registered window, windows do not 
 
     const win2Bounds = await getBounds(win2);
 
-
     await dragWindowTo(win1, win2Bounds.left + 50, win2Bounds.bottom + 2);
     await dragWindowTo(win2, 500, 500);
 

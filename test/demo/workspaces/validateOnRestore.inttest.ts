@@ -41,7 +41,6 @@ itParameterized(
         const layoutsClient = await layoutsClientPromise;
         const {windowCount, arrangement, remainingGroups, deregisteredIndex} = testOptions;
 
-
         const deregisteredApp = await fin.Application.create({
             uuid: 'deregistered-test-app',
             url: 'http://localhost:1337/test/saveRestoreTestingApp.html?deregistered=true',

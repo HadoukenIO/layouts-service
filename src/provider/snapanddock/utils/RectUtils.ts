@@ -131,7 +131,7 @@ export class RectUtils {
             left: centerX - halfSizeX,
             right: centerX + halfSizeX,
             width: halfSizeX * 2,
-            height: rectangle.center.y * 2
+            height: halfSizeY * 2
         };
     }
 

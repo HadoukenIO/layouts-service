@@ -12,7 +12,7 @@ import {assertCompleteGroup, assertCompleteTabGroup} from '../provider/utils/ass
 import {executeJavascriptOnService} from './utils/serviceUtils';
 import {CreateWindowData, createWindowTest, WindowContext} from './utils/createWindowTest';
 import {itParameterized} from './utils/parameterizedTestUtils';
-import {getTabGroupID, getTabGroupIdentity, getTabbedWindows, getTabstrip, getId} from './utils/tabServiceUtils';
+import {getTabGroupIdentity, getTabbedWindows, getTabstrip, getId} from './utils/tabServiceUtils';
 import {getGroupedWindows} from './utils/snapServiceUtils';
 
 // 'minimized-maximized' refers to a window that has been maximized then minimized
@@ -334,6 +334,18 @@ async function checkWindows(context: WindowContext, testOptions: MonitorAssignme
         }
     }
 
+    // Assert non-tabbed window bounds and states are as expected
+    for (let i = 0; i < testOptions.windowCount; i++) {
+        if (!testOptions.initialGrouping.tab.some(group => group.includes(i))) {
+            const window = context.windows[i];
+
+            const expectedState = testOptions.initialPositions[i].state;
+            const expectedBounds = testOptions.expectedBounds[i];
+
+            await checkWindow(expectedState, window, expectedBounds);
+        }
+    }
+
     // Assert tab groups, including bounds and states, are as expected
     for (const tabGroup of testOptions.initialGrouping.tab) {
         if (tabGroup.length > 1) {
@@ -344,28 +356,7 @@ async function checkWindows(context: WindowContext, testOptions: MonitorAssignme
             const expectedState = testOptions.initialPositions[rootWindowIndex].state;
             const expectedNormalBounds = testOptions.expectedBounds[rootWindowIndex];
 
-            await assertCompleteTabGroup(...windows);
             await checkTabGroup(windows, expectedState, expectedNormalBounds);
-        }
-    }
-
-    // Assert non-tabbed window bounds and states are as expected
-    for (let i = 0; i < context.windows.length; i++) {
-        const window = context.windows[i];
-
-        if (!await getTabGroupID(window.identity)) {
-            const expectedState = testOptions.initialPositions[i].state;
-
-            if (expectedState === 'minimized-maximized') {
-                expect(await window.getState()).toEqual('minimized');
-                await window.restore();
-                expect(await window.getState()).toEqual('maximized');
-            } else {
-                expect(await window.getState()).toEqual(expectedState);
-            }
-
-            const expectedBounds = testOptions.expectedBounds[i];
-            expect(await getEntityBounds(window)).toMatchObject(expectedBounds);
         }
     }
 }
@@ -455,7 +446,20 @@ async function disbandSnapGroup(window: _Window): Promise<void> {
     }
 }
 
-async function checkTabGroup(tabs: _Window[], expectedState: ExtendedWindowState, expectedNormalBounds: Bounds) {
+async function checkWindow(expectedState: string, window: _Window, expectedBounds: Bounds): Promise<void> {
+    if (expectedState === 'minimized-maximized') {
+        expect(await window.getState()).toEqual('minimized');
+        await window.restore();
+        expect(await window.getState()).toEqual('maximized');
+    } else {
+        expect(await window.getState()).toEqual(expectedState);
+    }
+    expect(await getEntityBounds(window)).toMatchObject(expectedBounds);
+}
+
+async function checkTabGroup(tabs: _Window[], expectedState: ExtendedWindowState, expectedNormalBounds: Bounds): Promise<void> {
+    await assertCompleteTabGroup(...tabs);
+
     const expectedStates: WindowState[] = [
         (expectedState === 'minimized-maximized' || expectedState === 'minimized') ? 'minimized' : 'normal',
         'normal',

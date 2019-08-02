@@ -342,7 +342,7 @@ async function checkWindows(context: WindowContext, testOptions: MonitorAssignme
             const expectedState = testOptions.initialPositions[i].state;
             const expectedBounds = testOptions.expectedBounds[i];
 
-            await checkWindow(expectedState, window, expectedBounds);
+            await checkWindow(window, expectedState, expectedBounds);
         }
     }
 
@@ -446,7 +446,7 @@ async function disbandSnapGroup(window: _Window): Promise<void> {
     }
 }
 
-async function checkWindow(expectedState: string, window: _Window, expectedBounds: Bounds): Promise<void> {
+async function checkWindow(window: _Window, expectedState: string, expectedBounds: Bounds): Promise<void> {
     if (expectedState === 'minimized-maximized') {
         expect(await window.getState()).toEqual('minimized');
         await window.restore();

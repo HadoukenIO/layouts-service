@@ -3,7 +3,7 @@ import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {teardown} from '../teardown';
 import {WindowState} from '../../src/client/workspaces';
-import {Rectangle} from '../../src/provider/snapanddock/utils/RectUtils';
+import {Rectangle, RectUtils} from '../../src/provider/snapanddock/utils/RectUtils';
 import {setBounds, getEntityBounds} from '../provider/utils/bounds';
 import {promiseForEach} from '../../src/provider/snapanddock/utils/async';
 import {tabbing} from '../../src/client/main';
@@ -29,12 +29,7 @@ interface MonitorAssignmentValidatorTestOptions extends CreateWindowData {
 }
 
 const smallMonitor = {center: {x: 300, y: 300}, halfSize: {x: 250, y: 250}};
-const smallMonitorBounds = {
-    left: smallMonitor.center.x - smallMonitor.halfSize.x,
-    top: smallMonitor.center.y - smallMonitor.halfSize.y,
-    width: smallMonitor.halfSize.x * 2,
-    height: smallMonitor.halfSize.y * 2
-};
+const smallMonitorBounds = RectUtils.convertFromCenterHalfSize(smallMonitor);
 
 const options: MonitorAssignmentValidatorTestOptions[] = [
     {

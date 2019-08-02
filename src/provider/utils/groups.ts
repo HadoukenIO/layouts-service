@@ -3,22 +3,43 @@ import {MIN_OVERLAP, ADJACENCY_FUZZ_DISTANCE} from '../snapanddock/Constants';
 
 type DesktopEntity<T> = {currentState: Rectangle & {hidden: boolean}} & T;
 
-export function getContiguousEntities<T = {}>(entities: DesktopEntity<T>[]): DesktopEntity<T>[][] {
-    const adjacencyList: DesktopEntity<T>[][] = new Array<DesktopEntity<T>[]>(entities.length);
+export function getContiguousEntities<T = {}>(entities: DesktopEntity<T>[]): T[][] {
+    const contiguousSets: DesktopEntity<T>[][] = [];
+
+    const disjointEntities: DesktopEntity<T>[] = [];
+    // Extract any overlapping entities
+    for (let i = 0; i < entities.length; i++) {
+        const testEntity = entities[i];
+        let overlapping = false;
+
+        for (let j = 0; j < entities.length; j++) {
+            if (j !== i && areOverlapping(testEntity, entities[j])) {
+                overlapping = true;
+                break;
+            }
+        }
+
+        if (!overlapping) {
+            disjointEntities.push(testEntity);
+        } else {
+            contiguousSets.push([testEntity]);
+        }
+    }
+
+    const adjacencyList: DesktopEntity<T>[][] = new Array<DesktopEntity<T>[]>(disjointEntities.length);
 
     // Build adjacency list
-    for (let i = 0; i < entities.length; i++) {
+    for (let i = 0; i < disjointEntities.length; i++) {
         adjacencyList[i] = [];
-        for (let j = 0; j < entities.length; j++) {
-            if (i !== j && isAdjacent(entities[i], entities[j])) {
-                adjacencyList[i].push(entities[j]);
+        for (let j = 0; j < disjointEntities.length; j++) {
+            if (j !== i && isAdjacent(disjointEntities[i], disjointEntities[j])) {
+                adjacencyList[i].push(disjointEntities[j]);
             }
         }
     }
 
     // Find all contiguous sets
-    const contiguousSets: DesktopEntity<T>[][] = [];
-    const unvisited: DesktopEntity<T>[] = entities.slice();
+    const unvisited: DesktopEntity<T>[] = disjointEntities.slice();
 
     while (unvisited.length > 0) {
         const visited: DesktopEntity<T>[] = [];
@@ -29,8 +50,8 @@ export function getContiguousEntities<T = {}>(entities: DesktopEntity<T>[]): Des
     return contiguousSets;
 
     function depthFirstSearch(startEntity: DesktopEntity<T>, visited: DesktopEntity<T>[]) {
-        const startIndex = entities.indexOf(startEntity);
-        if (visited.includes(startEntity) || isOverlapping(startEntity, visited)) {
+        const startIndex = disjointEntities.indexOf(startEntity);
+        if (visited.includes(startEntity)) {
             return;
         }
         visited.push(startEntity);
@@ -61,13 +82,11 @@ function isAdjacent<T>(entity1: DesktopEntity<T>, entity2: DesktopEntity<T>): bo
     return false;
 }
 
-function isOverlapping(testEntity: DesktopEntity<T>, groupEntities: DesktopEntity<T>[]): boolean {
-    for (const groupWindow of groupEntities) {
-        const distance = RectUtils.distance(testEntity.currentState, groupWindow.currentState);
+function areOverlapping<T>(entity1: DesktopEntity<T>, entitiy2: DesktopEntity<T>): boolean {
+    const distance = RectUtils.distance(entity1.currentState, entitiy2.currentState);
 
-        if (distance.within(-ADJACENCY_FUZZ_DISTANCE)) {
-            return true;
-        }
+    if (distance.within(-ADJACENCY_FUZZ_DISTANCE)) {
+        return true;
     }
 
     return false;

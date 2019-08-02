@@ -5,14 +5,14 @@ import {teardown} from '../teardown';
 import {WindowState} from '../../src/client/workspaces';
 import {Rectangle, RectUtils} from '../../src/provider/snapanddock/utils/RectUtils';
 import {setBounds, getEntityBounds} from '../provider/utils/bounds';
-import {promiseForEach} from '../../src/provider/snapanddock/utils/async';
-import {tabbing} from '../../src/client/main';
+import {promiseForEach, promiseFilter} from '../../src/provider/snapanddock/utils/async';
+import {tabbing, WindowIdentity} from '../../src/client/main';
 import {assertCompleteGroup, assertCompleteTabGroup} from '../provider/utils/assertions';
 
 import {executeJavascriptOnService} from './utils/serviceUtils';
 import {CreateWindowData, createWindowTest, WindowContext} from './utils/createWindowTest';
 import {itParameterized} from './utils/parameterizedTestUtils';
-import {getTabGroupID, getTabGroupIdentity, getTabbedWindows, getTabstrip} from './utils/tabServiceUtils';
+import {getTabGroupID, getTabGroupIdentity, getTabbedWindows, getTabstrip, getId} from './utils/tabServiceUtils';
 import {getGroupedWindows} from './utils/snapServiceUtils';
 
 // 'minimized-maximized' refers to a window that has been maximized then minimized
@@ -438,18 +438,21 @@ async function setMonitors(monitors: Rectangle[]): Promise<void> {
 async function disbandSnapGroup(window: _Window): Promise<void> {
     const groupWindows = await getGroupedWindows(window.identity);
 
-    for (const groupWindow of groupWindows) {
-        const tabstrip = await getTabGroupIdentity(groupWindow);
-        if (tabstrip) {
-            const tabs = await getTabbedWindows(tabstrip);
+    // Place non-tabbed windows in own group
+    const nonTabbedWindows = await promiseFilter(groupWindows, async window => (await getTabGroupIdentity(window)) === null);
+    await Promise.all(nonTabbedWindows.map(window => fin.Window.wrapSync(window).leaveGroup()));
 
-            const tabstripWindow = fin.Window.wrapSync(tabstrip);
-            await tabstripWindow.leaveGroup();
-            for (const window of tabs) {
-                await fin.Window.wrapSync(window).joinGroup(tabstripWindow);
-            }
-        } else {
-            await fin.Window.wrapSync(groupWindow).leaveGroup();
+    // Place each tabgroup in own group
+    const tabstrips = await promiseFilter(groupWindows, async window => {
+        const tabstripIdentity = await getTabGroupIdentity(window);
+        return (tabstripIdentity !== null) && getId(tabstripIdentity) === getId(window as WindowIdentity);
+    });
+
+    for (const tabstrip of tabstrips) {
+        const tabstripWindow = fin.Window.wrapSync(tabstrip);
+        await tabstripWindow.leaveGroup();
+        for (const tab of await getTabbedWindows(tabstrip)) {
+            await fin.Window.wrapSync(tab).joinGroup(tabstripWindow);
         }
     }
 }

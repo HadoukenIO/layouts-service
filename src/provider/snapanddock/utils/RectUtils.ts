@@ -126,10 +126,10 @@ export class RectUtils {
         const halfSizeY = rectangle.halfSize.y;
 
         return {
-            left: centerX - halfSizeX,
-            right: centerX + halfSizeX,
             top: centerY - halfSizeY,
             bottom: centerY + halfSizeY,
+            left: centerX - halfSizeX,
+            right: centerX + halfSizeX,
             width: halfSizeX * 2,
             height: rectangle.center.y * 2
         };

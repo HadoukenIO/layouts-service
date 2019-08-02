@@ -893,7 +893,6 @@ export class DesktopTabGroup implements DesktopEntity {
         };
     }
 
-
     private calculateGroupBoundsFromTabBounds(tabBounds: Rectangle): Rectangle {
         const tabstripHalfHeight = this.config.height / 2;
 

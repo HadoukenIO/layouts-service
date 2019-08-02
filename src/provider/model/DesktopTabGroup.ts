@@ -226,7 +226,8 @@ export class DesktopTabGroup implements DesktopEntity {
              * when snapping a tabgroup to another window. In this case we want applyOffsetInternal to move each window individually,
              * rather than relying on grouping and resize constraints to make everything work as expected.
              */
-            await this.applyOffsetInternal(offset, halfSize, this._model.displayScaling);
+            const forceApplyIndependently = this._model.displayScaling;
+            await this.applyOffsetInternal(offset, halfSize, forceApplyIndependently);
         }
     }
 
@@ -339,12 +340,7 @@ export class DesktopTabGroup implements DesktopEntity {
         // If we're forming this tabgroup from a maximized tab, we'll want to maximize this tabgroup, and inherit the tab window's restore bounds
         let normalTabBounds: Rectangle|undefined;
         if (this.tabs.length === 0 && firstTab.currentState.state === 'maximized') {
-            const tabBounds = firstTab.normalBounds;
-
-            const center = {x: tabBounds.center.x, y: tabBounds.center.y + (this._config.height / 2)};
-            const halfSize = {x: tabBounds.halfSize.x, y: tabBounds.halfSize.y - this._config.height / 2};
-
-            normalTabBounds = {center, halfSize};
+            normalTabBounds = this.calculateTabBoundsFromGroupBounds(firstTab.normalBounds);
         }
 
         await DesktopWindow.transaction(allWindows, async () => {
@@ -442,13 +438,9 @@ export class DesktopTabGroup implements DesktopEntity {
                     // Eject tab without modifying window bounds and reset resizeConstraints to their original value
                     promises.push(tab.applyProperties({hidden: false, frame, resizeConstraints}));
                 } else {
-                    const tabStripHalfSize: Point = this._window.currentState.halfSize;
-                    const state: EntityState = tab.currentState;
-                    const center: Point = {x: state.center.x, y: state.center.y - tabStripHalfSize.y};
-                    const halfSize: Point = {x: state.halfSize.x, y: state.halfSize.y + tabStripHalfSize.y};
-
+                    const defaultBounds = this.calculateGroupBoundsFromTabBounds(tab.currentState);
                     // Eject tab, apply default bounds, and reset resizeConstraint to their original value
-                    promises.push(tab.applyProperties({hidden: false, frame, resizeConstraints, center, halfSize}));
+                    promises.push(tab.applyProperties({hidden: false, frame, resizeConstraints, ...defaultBounds}));
                 }
             }
 
@@ -615,13 +607,11 @@ export class DesktopTabGroup implements DesktopEntity {
             halfSize: {x: bounds.halfSize.x, y: tabstripHalfHeight}
         };
 
-        const tabBounds = {
-            center: {x: bounds.center.x, y: bounds.center.y + tabstripHalfHeight},
-            halfSize: {x: bounds.halfSize.x, y: bounds.halfSize.y - tabstripHalfHeight}
-        };
+        const tabBounds = this.calculateTabBoundsFromGroupBounds(bounds);
 
         if (this.state === 'minimized') {
-            return DesktopWindow.transaction([this._window, ...this.tabs], async (windows) => {
+            return DesktopWindow.transaction([this._window, ...this.tabs], async () => {
+                // Windows don't move as a group when minimized, so in this case move all windows independently
                 await this._window.applyProperties(tabstripBounds);
 
                 for (const tab of this.tabs) {
@@ -634,14 +624,14 @@ export class DesktopTabGroup implements DesktopEntity {
         }
     }
 
-    private async applyOffsetInternal(offset: Point, halfSize: Point<number> | undefined, forceTransaction: boolean): Promise<void> {
+    private async applyOffsetInternal(offset: Point, halfSize: Point<number> | undefined, forceApplyIndependently: boolean): Promise<void> {
         const tabstripHalfHeight: number = this._config.height / 2;
         const activeTabHalfSize: Point|undefined = halfSize && {x: halfSize.x, y: halfSize.y - tabstripHalfHeight};
 
-        // We can't depend on window group behaviour when windows are minimized, so in this case always move windows independently
-        if (this.state === 'minimized' || forceTransaction) {
+        if (forceApplyIndependently || this.state === 'minimized') {
+            // Windows don't move as a group when minimized, so in this case move all windows independently
             const tabstripHalfSize: Point|undefined = halfSize && {x: halfSize.x, y: tabstripHalfHeight};
-            return DesktopWindow.transaction([this._window, ...this.tabs], async (windows) => {
+            return DesktopWindow.transaction([this._window, ...this.tabs], async () => {
                 await this._window.applyOffset(offset, tabstripHalfSize);
 
                 for (const tab of this.tabs) {
@@ -693,9 +683,8 @@ export class DesktopTabGroup implements DesktopEntity {
             });
 
             // Reduce size of app window by size of tabstrip
-            const center: Point = {x: tabState.center.x, y: tabState.center.y + (this._config.height / 2)};
-            const halfSize: Point = {x: tabState.halfSize.x, y: tabState.halfSize.y - (this._config.height / 2)};
-            await tab.applyProperties({center, halfSize, frame: false});
+            const tabBounds = this.calculateTabBoundsFromGroupBounds(tabState);
+            await tab.applyProperties({...tabBounds, frame: false});
         } else {
             // Delay to allow other async operations to jump ahead in the queue. Specifically, any pending boundsChanging events
             // should be processed before continuing.

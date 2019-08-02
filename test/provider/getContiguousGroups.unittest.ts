@@ -108,8 +108,6 @@ const testParams: TestParam[] = [
     ]
 ];
 
-
-
 it.each(testParams)('%s', async (titleParam: string, rectangles: Rectangle[], groups: number[][]) => {
     const entities = rectangles.map(rectangle => ({currentState: {...rectangle, hidden: false}}));
 

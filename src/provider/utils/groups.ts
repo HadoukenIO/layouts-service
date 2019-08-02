@@ -5,9 +5,9 @@ type DesktopEntity<T> = {currentState: Rectangle & {hidden: boolean}} & T;
 
 export function getContiguousEntities<T = {}>(entities: DesktopEntity<T>[]): T[][] {
     const contiguousSets: DesktopEntity<T>[][] = [];
-
     const disjointEntities: DesktopEntity<T>[] = [];
-    // Extract any overlapping entities
+
+    // Extract any overlapping entities into trivial groups
     for (let i = 0; i < entities.length; i++) {
         const testEntity = entities[i];
         let overlapping = false;

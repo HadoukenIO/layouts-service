@@ -5,7 +5,6 @@ import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 import {WindowIdentity} from '../../client/main';
 import {DesktopTabstripFactory} from '../model/DesktopTabstripFactory';
 import {MonitorAssignmentCalculator, EntityResult, SnapGroupResult} from '../model/MonitorAssignmentCalculator';
-import {model} from '../main';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {MonitorAssignmentValidator} from '../model/MonitorAssignmentValidator';
 
@@ -16,21 +15,19 @@ type TabGroupPartialEntity = {type: 'tabGroup', tabGroup: TabGroup, windows: Wor
 type Entity = (WindowPartialEntity | TabGroupPartialEntity) & {normalBounds: Rectangle};
 type SnapGroup = Rectangle & {entities: Entity[]};
 
-export function retargetForMonitors(workspace: Workspace): {workspace: Workspace, monitors: ReadonlyArray<Rectangle>} {
+export function retargetForMonitors(workspace: Workspace, monitors: ReadonlyArray<Rectangle>): void {
     const workspaceMonitors = [workspace.monitorInfo.primaryMonitor, ...workspace.monitorInfo.nonPrimaryMonitors];
 
     const oldMonitors = workspaceMonitors.map(monitor => RectUtils.convertToCenterHalfSize(monitor.availableRect));
-    const newMonitors = model.monitors;
 
-    if (MonitorAssignmentValidator.haveMonitorsBeenDetached(oldMonitors, model.monitors)) {
-        new WorkspaceMonitorRetargeter(workspace).retarget();
+    if (MonitorAssignmentValidator.haveMonitorsBeenDetached(oldMonitors, monitors)) {
+        new WorkspaceMonitorRetargeter(workspace, monitors).retarget();
     }
-
-    return {workspace, monitors: newMonitors};
 }
 
 class WorkspaceMonitorRetargeter {
     private readonly workspace: Workspace;
+    private readonly monitors: ReadonlyArray<Rectangle>;
 
     private readonly windowsById: Map<String, WorkspaceWindow>;
     private readonly entities: Entity[];
@@ -38,8 +35,9 @@ class WorkspaceMonitorRetargeter {
 
     private readonly detachedEntities: Entity[];
 
-    public constructor(workspace: Workspace) {
+    public constructor(workspace: Workspace, monitors: ReadonlyArray<Rectangle>) {
         this.workspace = workspace;
+        this.monitors = monitors;
 
         this.windowsById = new Map<string, WorkspaceWindow>();
         this.entities = [];
@@ -139,7 +137,7 @@ class WorkspaceMonitorRetargeter {
     }
 
     public retarget(): void {
-        const calculator = new MonitorAssignmentCalculator(model.monitors);
+        const calculator = new MonitorAssignmentCalculator(this.monitors);
 
         // Calculate the new desired positions of our workspace entities
         const snapGroupResults = this.snapGroups.map(snapGroup => calculator.getMovedSnapGroupRectangles<Entity, SnapGroup>(snapGroup));

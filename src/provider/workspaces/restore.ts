@@ -60,7 +60,11 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
     // Prevent the user from restoring a layout in the middle of a restoration.
     startExclusivityTimeout();
 
-    const {workspace, monitors} = retargetForMonitors(payload);
+    const workspace = payload;
+    const monitors = model.monitors;
+
+    retargetForMonitors(workspace, monitors);
+
     const startupApps: Promise<WorkspaceApp>[] = [];
 
     await createWorkspacePlaceholders(workspace);

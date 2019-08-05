@@ -213,6 +213,13 @@ export class DesktopModel {
     }
 
     /**
+     * Validates that all our entities fit within the current monitor arrangement and moves them if they do not
+     */
+    public async validateMonitorAssignment(): Promise<void> {
+        return this._monitorAssignmentValidator.validate();
+    }
+
+    /**
      * Re-registers the target window with the service, "white-listing" the window for use with the service for the
      * lifecycle of whichever window requested that the target be registered.
      *

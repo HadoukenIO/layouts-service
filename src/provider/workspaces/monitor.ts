@@ -16,18 +16,20 @@ type TabGroupPartialEntity = {type: 'tabGroup', tabGroup: TabGroup, windows: Wor
 type Entity = (WindowPartialEntity | TabGroupPartialEntity) & {normalBounds: Rectangle};
 type SnapGroup = Rectangle & {entities: Entity[]};
 
-export function retargetForMonitors(workspace: Workspace): Workspace {
+export function retargetForMonitors(workspace: Workspace): {workspace: Workspace, monitors: ReadonlyArray<Rectangle>} {
     const workspaceMonitors = [workspace.monitorInfo.primaryMonitor, ...workspace.monitorInfo.nonPrimaryMonitors];
+
     const oldMonitors = workspaceMonitors.map(monitor => RectUtils.convertToCenterHalfSize(monitor.availableRect));
+    const newMonitors = model.monitors;
 
     if (MonitorAssignmentValidator.haveMonitorsBeenDetached(oldMonitors, model.monitors)) {
-        new MonitorRetargeter(workspace).retarget();
+        new WorkspaceMonitorRetargeter(workspace).retarget();
     }
 
-    return workspace;
+    return {workspace, monitors: newMonitors};
 }
 
-class MonitorRetargeter {
+class WorkspaceMonitorRetargeter {
     private readonly workspace: Workspace;
 
     private readonly windowsById: Map<String, WorkspaceWindow>;
@@ -120,10 +122,10 @@ class MonitorRetargeter {
         for (const group of groups) {
             let targetEntities: Entity[];
 
-            if (group.length === 1) {
-                targetEntities = this.entities;
-            } else {
+            if (group.length !== 1) {
                 targetEntities = [];
+            } else {
+                targetEntities = this.entities;
             }
 
             for (const entity of group.values()) {

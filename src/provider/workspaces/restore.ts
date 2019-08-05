@@ -9,6 +9,7 @@ import {apiHandler, model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {promiseFilter, promiseForEach, promiseMap} from '../snapanddock/utils/async';
+import {MonitorAssignmentValidator} from '../model/MonitorAssignmentValidator';
 
 import {regroupWorkspace} from './group';
 import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, cleanupPlaceholderObjects, closeCorrespondingPlaceholder, createNormalPlaceholder, createTabbedPlaceholderAndRecord, getId, getWindowsWithManuallyClosedPlaceholders, inWindowObject, positionWindow, TabbedPlaceholders, waitUntilAllPlaceholdersClosed, WindowObject} from './placeholder';
@@ -59,7 +60,7 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
     // Prevent the user from restoring a layout in the middle of a restoration.
     startExclusivityTimeout();
 
-    const workspace = retargetForMonitors(payload);
+    const {workspace, monitors} = retargetForMonitors(payload);
     const startupApps: Promise<WorkspaceApp>[] = [];
 
     await createWorkspacePlaceholders(workspace);
@@ -96,10 +97,14 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
         group.validate();
     }
 
-    const event: WorkspaceRestoredEvent = {type: 'workspace-restored', workspace};
-    apiHandler.sendToAll(EVENT_CHANNEL_TOPIC, event);
+    if (MonitorAssignmentValidator.haveMonitorsBeenDetached(monitors, model.monitors)) {
+        await model.validateMonitorAssignment();
+    }
 
     restorationCleanup();
+
+    const event: WorkspaceRestoredEvent = {type: 'workspace-restored', workspace};
+    apiHandler.sendToAll(EVENT_CHANNEL_TOPIC, event);
 
     console.log('Restore completed: ', workspace);
 
@@ -255,11 +260,13 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
                 // If app created by manifest
                 const {manifestUrl} = app;
                 console.log('App has manifestUrl:', app);
+                await new Promise(res => setTimeout(res, 10000));
                 ofAppNotRunning = await fin.Application.createFromManifest(manifestUrl);
             } else {
                 // If application created programmatically
                 if (canRestoreProgrammatically(app)) {
                     console.warn('App created programmatically, app may not restart again:', app);
+                    await new Promise(res => setTimeout(res, 10000));
                     ofAppNotRunning = await fin.Application.create(app.initialOptions);
                 } else {
                     console.error('Unable to restart programmatically launched app:', app);

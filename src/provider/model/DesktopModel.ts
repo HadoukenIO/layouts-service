@@ -214,6 +214,9 @@ export class DesktopModel {
 
     /**
      * Validates that all our entities fit within the current monitor arrangement and moves them if they do not
+     *
+     * It should not normally be necessary to call this, since DesktopModel does this itself when a monitors change, but if you have a long-running
+     * process that may be creating windows against stale monitor data (such as restoring a Workspace), you may wish to call this
      */
     public async validateMonitorAssignment(): Promise<void> {
         return this._monitorAssignmentValidator.validate();

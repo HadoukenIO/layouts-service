@@ -13,7 +13,7 @@ import {promiseFilter, promiseForEach, promiseMap} from '../snapanddock/utils/as
 import {regroupWorkspace} from './group';
 import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, cleanupPlaceholderObjects, closeCorrespondingPlaceholder, createNormalPlaceholder, createTabbedPlaceholderAndRecord, getId, getWindowsWithManuallyClosedPlaceholders, inWindowObject, positionWindow, TabbedPlaceholders, waitUntilAllPlaceholdersClosed, WindowObject} from './placeholder';
 import {canRestoreProgrammatically, consolidateAppResponses, linkAppsToOriginalParentUuid, validatePayload} from './utils';
-import {retargetForMonitor} from './monitor';
+import {retargetForMonitors} from './monitor';
 
 // Duration in milliseconds that the entire Workspace restore may take, before we allow another restore to start
 const GLOBAL_EXCLUSIVITY_TIMEOUT = 120000;
@@ -59,7 +59,7 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
     // Prevent the user from restoring a layout in the middle of a restoration.
     startExclusivityTimeout();
 
-    const workspace = retargetForMonitor(payload);
+    const workspace = retargetForMonitors(payload);
     const startupApps: Promise<WorkspaceApp>[] = [];
 
     await createWorkspacePlaceholders(workspace);

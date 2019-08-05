@@ -16,7 +16,7 @@ type TabGroupPartialEntity = {type: 'tabGroup', tabGroup: TabGroup, windows: Wor
 type Entity = (WindowPartialEntity | TabGroupPartialEntity) & {normalBounds: Rectangle};
 type SnapGroup = Rectangle & {entities: Entity[]};
 
-export function retargetForMonitor(workspace: Workspace): Workspace {
+export function retargetForMonitors(workspace: Workspace): Workspace {
     const workspaceMonitors = [workspace.monitorInfo.primaryMonitor, ...workspace.monitorInfo.nonPrimaryMonitors];
     const oldMonitors = workspaceMonitors.map(monitor => RectUtils.convertToCenterHalfSize(monitor.availableRect));
 
@@ -139,9 +139,11 @@ class MonitorRetargeter {
     public retarget(): void {
         const calculator = new MonitorAssignmentCalculator(model.monitors);
 
+        // Calculate the new desired positions of our workspace entities
         const snapGroupResults = this.snapGroups.map(snapGroup => calculator.getMovedSnapGroupRectangles<Entity, SnapGroup>(snapGroup));
-        const entityResults = this.entities.map(entity => calculator.getMovedEntityRectangle(entity));
+        const entityResults = this.entities.map(entity => calculator.getMovedEntityRectangle<Entity>(entity));
 
+        // Mutate the workspace to fit the new monitor arrangement
         this.applySnapGroupResults(snapGroupResults);
         this.applyEntityResults(entityResults);
 
@@ -199,6 +201,7 @@ class MonitorRetargeter {
 
     private applyEntityResult(entity: Entity, rectangle: Rectangle, grouped: boolean): void {
         if (entity.type === 'window') {
+            // Move the window to its new position
             const oldBounds = entity.window.bounds;
             const newBounds = this.getWindowBoundsFromRectangle(rectangle);
 
@@ -208,6 +211,7 @@ class MonitorRetargeter {
                 this.detachedEntities.push(entity);
             }
         } else {
+            // Move the tabGroup and all its tabs to the new position
             const groupInfo = entity.tabGroup.groupInfo;
 
             groupInfo.dimensions = this.getTabGroupDimensionsFromRectangle(groupInfo, rectangle);
@@ -227,11 +231,13 @@ class MonitorRetargeter {
 
     private applyEntityOffset(entity: Entity, offset: Point<number>): void {
         if (entity.type === 'window') {
+            // Offset the window
             entity.window.bounds.left += offset.x;
             entity.window.bounds.right += offset.x;
             entity.window.bounds.top += offset.y;
             entity.window.bounds.bottom += offset.y;
         } else {
+            // Offset the tabGroup and all its tabs
             entity.tabGroup.groupInfo.dimensions.x += offset.x;
             entity.tabGroup.groupInfo.dimensions.y += offset.y;
 

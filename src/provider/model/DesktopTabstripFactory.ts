@@ -5,6 +5,7 @@ import {MaskWatch} from 'openfin-service-config/Watch';
 import {ConfigurationObject, Scope, Tabstrip} from '../../../gen/provider/config/layouts-config';
 import {ApplicationUIConfig} from '../../client/tabbing';
 import {config} from '../main';
+import {DEFAULT_TABSTRIP_HEIGHT} from '../utils/constants';
 
 const DEFAULT_UI_URL = (() => {
     let providerLocation = window.location.href;
@@ -22,7 +23,7 @@ const DEFAULT_UI_URL = (() => {
  * Handles creation and pooling of Tab Group Windows
  */
 export class DesktopTabstripFactory {
-    public static readonly DEFAULT_CONFIG: Tabstrip = {url: DEFAULT_UI_URL, height: 60};
+    public static readonly DEFAULT_CONFIG: Tabstrip = {url: DEFAULT_UI_URL, height: DEFAULT_TABSTRIP_HEIGHT};
     private static readonly POOL_MAX_SIZE: number = 3;
     private static readonly POOL_MIN_SIZE: number = 1;
 

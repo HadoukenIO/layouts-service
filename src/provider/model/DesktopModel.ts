@@ -13,10 +13,12 @@ import {ConfigStore} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
+import {haveMonitorsBeenDetached} from '../utils/monitor';
+import {WindowIdentity, getId} from '../utils/identity';
 
 import {MonitorAssignmentValidator} from './MonitorAssignmentValidator';
 import {DesktopTabGroup} from './DesktopTabGroup';
-import {DesktopWindow, EntityState, WindowIdentity} from './DesktopWindow';
+import {DesktopWindow, EntityState} from './DesktopWindow';
 import {MouseTracker} from './MouseTracker';
 import {ZIndexer} from './ZIndexer';
 
@@ -109,7 +111,7 @@ export class DesktopModel {
             await Promise.all(this.snapGroups.map(g => g.validate()));
 
             // Validate monitor assignment
-            if (MonitorAssignmentValidator.haveMonitorsBeenDetached(oldMonitors, this._monitors)) {
+            if (haveMonitorsBeenDetached(oldMonitors, this._monitors)) {
                 await this._monitorAssignmentValidator.validate();
             }
         });
@@ -137,10 +139,6 @@ export class DesktopModel {
         return this._snapGroups;
     }
 
-    public getId(identity: WindowIdentity): string {
-        return `${identity.uuid}/${identity.name}`;
-    }
-
     public get monitors(): ReadonlyArray<Rectangle> {
         return this._monitors;
     }
@@ -157,13 +155,13 @@ export class DesktopModel {
      * @param identity Window identifier - either a UUID/name object, or a stringified identity as created by @see getId
      */
     public getWindow(identity: WindowIdentity|string): DesktopWindow|null {
-        const id = typeof identity === 'string' ? identity : this.getId(identity);
+        const id = typeof identity === 'string' ? identity : getId(identity);
         return this._windows.find(window => window.id === id) || null;
     }
 
     public getWindowAt(x: number, y: number, exclude?: WindowIdentity): DesktopWindow|null {
         const point: Point = {x, y};
-        const excludeId: string|undefined = exclude && this.getId(exclude);
+        const excludeId: string|undefined = exclude && getId(exclude);
 
         const modelWindowsAtPoint: DesktopWindow[] = this._windows.filter((window: DesktopWindow) => {
             const state: EntityState = window.currentState;
@@ -184,7 +182,7 @@ export class DesktopModel {
         const topMostModelWindow: DesktopWindow|null = this._zIndexer.getTopMost(modelWindowsAtPointToInclude);
         const topMostWindow: WindowIdentity|null = this._zIndexer.getWindowAt(x, y, modelWindowsAtPointToExclude);
 
-        if (!topMostModelWindow || !topMostWindow || topMostModelWindow.id === this.getId(topMostWindow!)) {
+        if (!topMostModelWindow || !topMostWindow || topMostModelWindow.id === getId(topMostWindow!)) {
             // There is no deregistered window over the top-most model window, safe to return
             return topMostModelWindow;
         } else {
@@ -271,7 +269,7 @@ export class DesktopModel {
         let slot: SignalSlot|null = null;
         const windowPromise: Promise<DesktopWindow> = new Promise((resolve, reject) => {
             const window: DesktopWindow|null = this.getWindow(identity);
-            const id = this.getId(identity);
+            const id = getId(identity);
 
             if (window) {
                 resolve(window);
@@ -333,7 +331,7 @@ export class DesktopModel {
                 return null;
             } else {
                 // Create new window object. Will get registered implicitly, due to signal within DesktopWindow constructor.
-                console.log('Registered window: ' + this.getId(identity));
+                console.log('Registered window: ' + getId(identity));
                 return new DesktopWindow(this, window, state);
             }
         });

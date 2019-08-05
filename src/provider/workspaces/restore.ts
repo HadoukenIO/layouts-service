@@ -10,11 +10,13 @@ import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {promiseFilter, promiseForEach, promiseMap} from '../snapanddock/utils/async';
 import {MonitorAssignmentValidator} from '../model/MonitorAssignmentValidator';
+import {haveMonitorsBeenDetached} from '../utils/monitor';
+import {getId} from '../utils/identity';
 
 import {regroupWorkspace} from './group';
-import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, cleanupPlaceholderObjects, closeCorrespondingPlaceholder, createNormalPlaceholder, createTabbedPlaceholderAndRecord, getId, getWindowsWithManuallyClosedPlaceholders, inWindowObject, positionWindow, TabbedPlaceholders, waitUntilAllPlaceholdersClosed, WindowObject} from './placeholder';
+import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, cleanupPlaceholderObjects, closeCorrespondingPlaceholder, createNormalPlaceholder, createTabbedPlaceholderAndRecord, getWindowsWithManuallyClosedPlaceholders, inWindowObject, positionWindow, TabbedPlaceholders, waitUntilAllPlaceholdersClosed, WindowObject} from './placeholder';
 import {canRestoreProgrammatically, consolidateAppResponses, linkAppsToOriginalParentUuid, validatePayload} from './utils';
-import {retargetForMonitors} from './monitor';
+import {retargetWorkspaceForMonitors} from './monitor';
 
 // Duration in milliseconds that the entire Workspace restore may take, before we allow another restore to start
 const GLOBAL_EXCLUSIVITY_TIMEOUT = 120000;
@@ -63,7 +65,7 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
     const workspace = payload;
     const monitors = model.monitors;
 
-    retargetForMonitors(workspace, monitors);
+    retargetWorkspaceForMonitors(workspace, monitors);
 
     const startupApps: Promise<WorkspaceApp>[] = [];
 
@@ -101,7 +103,7 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
         group.validate();
     }
 
-    if (MonitorAssignmentValidator.haveMonitorsBeenDetached(monitors, model.monitors)) {
+    if (haveMonitorsBeenDetached(monitors, model.monitors)) {
         await model.validateMonitorAssignment();
     }
 

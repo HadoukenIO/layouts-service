@@ -3,24 +3,23 @@ import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
 import {Workspace, WorkspaceWindow, TabGroup, TabGroupInfo, TabGroupDimensions} from '../../client/workspaces';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 import {WindowIdentity} from '../../client/main';
-import {DesktopTabstripFactory} from '../model/DesktopTabstripFactory';
 import {MonitorAssignmentCalculator, EntityResult, SnapGroupResult} from '../model/MonitorAssignmentCalculator';
 import {Point} from '../snapanddock/utils/PointUtils';
-import {MonitorAssignmentValidator} from '../model/MonitorAssignmentValidator';
-
-import {getId} from './placeholder';
+import {haveMonitorsBeenDetached} from '../utils/monitor';
+import {DEFAULT_TABSTRIP_HEIGHT} from '../utils/constants';
+import {getId} from '../utils/identity';
 
 type WindowPartialEntity = {type: 'window', window: WorkspaceWindow};
 type TabGroupPartialEntity = {type: 'tabGroup', tabGroup: TabGroup, windows: WorkspaceWindow[], activeTab: WorkspaceWindow};
 type Entity = (WindowPartialEntity | TabGroupPartialEntity) & {normalBounds: Rectangle};
 type SnapGroup = Rectangle & {entities: Entity[]};
 
-export function retargetForMonitors(workspace: Workspace, monitors: ReadonlyArray<Rectangle>): void {
+export function retargetWorkspaceForMonitors(workspace: Workspace, monitors: ReadonlyArray<Rectangle>): void {
     const workspaceMonitors = [workspace.monitorInfo.primaryMonitor, ...workspace.monitorInfo.nonPrimaryMonitors];
 
     const oldMonitors = workspaceMonitors.map(monitor => RectUtils.convertToCenterHalfSize(monitor.availableRect));
 
-    if (MonitorAssignmentValidator.haveMonitorsBeenDetached(oldMonitors, monitors)) {
+    if (haveMonitorsBeenDetached(oldMonitors, monitors)) {
         new WorkspaceMonitorRetargeter(workspace, monitors).retarget();
     }
 }
@@ -259,7 +258,7 @@ class WorkspaceMonitorRetargeter {
 
     private getRectangleFromTabGroup(tabGroup: TabGroup): Rectangle {
         const tabstripConfig = tabGroup.groupInfo.config;
-        const tabstripHeight = tabstripConfig === 'default' ? DesktopTabstripFactory.DEFAULT_CONFIG.height : tabstripConfig.height;
+        const tabstripHeight = tabstripConfig === 'default' ? DEFAULT_TABSTRIP_HEIGHT : tabstripConfig.height;
 
         const height = tabGroup.groupInfo.dimensions.appHeight + tabstripHeight;
         const dimensions = tabGroup.groupInfo.dimensions;
@@ -300,7 +299,7 @@ class WorkspaceMonitorRetargeter {
 
     private getTabGroupDimensionsFromRectangle(groupInfo: TabGroupInfo, rectangle: Rectangle): TabGroupDimensions {
         const tabstripConfig = groupInfo.config;
-        const tabstripHeight = tabstripConfig === 'default' ? DesktopTabstripFactory.DEFAULT_CONFIG.height : tabstripConfig.height;
+        const tabstripHeight = tabstripConfig === 'default' ? DEFAULT_TABSTRIP_HEIGHT : tabstripConfig.height;
 
         return {
             x: rectangle.center.x - rectangle.halfSize.x,
@@ -312,7 +311,7 @@ class WorkspaceMonitorRetargeter {
 
     private getTabWindowBoundsFromRectangle(groupInfo: TabGroupInfo, rectangle: Rectangle): Required<Bounds> {
         const tabstripConfig = groupInfo.config;
-        const tabstripHeight = tabstripConfig === 'default' ? DesktopTabstripFactory.DEFAULT_CONFIG.height : tabstripConfig.height;
+        const tabstripHeight = tabstripConfig === 'default' ? DEFAULT_TABSTRIP_HEIGHT : tabstripConfig.height;
 
         const groupBounds = this.getWindowBoundsFromRectangle(rectangle);
 

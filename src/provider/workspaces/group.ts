@@ -2,8 +2,8 @@ import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 
 import {WorkspaceApp, WorkspaceWindow} from '../../client/workspaces';
 import {model} from '../main';
-import {WindowIdentity} from '../model/DesktopWindow';
 import {promiseMap} from '../snapanddock/utils/async';
+import {WindowIdentity} from '../utils/identity';
 
 export const getGroup = (identity: Identity): Promise<Identity[]> => {
     const {uuid, name} = identity;

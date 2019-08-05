@@ -15,10 +15,6 @@ export class MonitorAssignmentValidator {
 
     private _validate: Debounced<() => Promise<void>, MonitorAssignmentValidator, []>;
 
-    public static haveMonitorsBeenDetached(oldMonitors: ReadonlyArray<Rectangle>, newMonitors: ReadonlyArray<Rectangle>): boolean {
-        return !oldMonitors.every(oldMonitor => newMonitors.some(newMonitor => RectUtils.isEqual(oldMonitor, newMonitor)));
-    }
-
     public constructor(model: DesktopModel) {
         this._model = model;
 

@@ -5,15 +5,15 @@ import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 import {WorkspaceAPI} from '../../client/internal';
 import {TabGroup, Workspace, WorkspaceApp, WorkspaceRestoredEvent} from '../../client/workspaces';
 import {EVENT_CHANNEL_TOPIC} from '../APIMessages';
-import {apiHandler, loader, model, tabService} from '../main';
+import {apiHandler, model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
-import {DesktopWindow, WindowIdentity} from '../model/DesktopWindow';
 import {promiseFilter, promiseForEach, promiseMap} from '../snapanddock/utils/async';
 
 import {regroupWorkspace} from './group';
 import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, cleanupPlaceholderObjects, closeCorrespondingPlaceholder, createNormalPlaceholder, createTabbedPlaceholderAndRecord, getId, getWindowsWithManuallyClosedPlaceholders, inWindowObject, positionWindow, TabbedPlaceholders, waitUntilAllPlaceholdersClosed, WindowObject} from './placeholder';
 import {canRestoreProgrammatically, consolidateAppResponses, linkAppsToOriginalParentUuid, validatePayload} from './utils';
+import {retargetForMonitor} from './monitor';
 
 // Duration in milliseconds that the entire Workspace restore may take, before we allow another restore to start
 const GLOBAL_EXCLUSIVITY_TIMEOUT = 120000;
@@ -59,7 +59,7 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
     // Prevent the user from restoring a layout in the middle of a restoration.
     startExclusivityTimeout();
 
-    const workspace = payload;
+    const workspace = retargetForMonitor(payload);
     const startupApps: Promise<WorkspaceApp>[] = [];
 
     await createWorkspacePlaceholders(workspace);

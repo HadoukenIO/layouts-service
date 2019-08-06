@@ -319,7 +319,7 @@ async function applyMonitorChange(): Promise<void> {
     await setMonitors([smallMonitor]);
 
     await executeJavascriptOnService(async function (this: ProviderWindow): Promise<void> {
-        await this.model['_monitorAssignmentValidator'].validate();
+        await this.model.validateMonitorAssignment();
     });
 }
 

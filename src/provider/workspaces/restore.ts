@@ -265,13 +265,11 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
                 // If app created by manifest
                 const {manifestUrl} = app;
                 console.log('App has manifestUrl:', app);
-                await new Promise(res => setTimeout(res, 10000));
                 ofAppNotRunning = await fin.Application.createFromManifest(manifestUrl);
             } else {
                 // If application created programmatically
                 if (canRestoreProgrammatically(app)) {
                     console.warn('App created programmatically, app may not restart again:', app);
-                    await new Promise(res => setTimeout(res, 10000));
                     ofAppNotRunning = await fin.Application.create(app.initialOptions);
                 } else {
                     console.error('Unable to restart programmatically launched app:', app);

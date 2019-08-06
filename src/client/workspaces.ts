@@ -162,7 +162,7 @@ export interface WorkspaceWindow extends WindowIdentity {
      *
      * These groupings will be restored once all windows in the workspace have been re-created.
      */
-    windowGroup: Identity[];
+    windowGroup: WindowIdentity[];
 
     /**
      * Indicates if the window is part of a tab group.

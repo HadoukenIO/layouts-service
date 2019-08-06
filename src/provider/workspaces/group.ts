@@ -5,7 +5,7 @@ import {model} from '../main';
 import {promiseMap} from '../snapanddock/utils/async';
 import {WindowIdentity} from '../utils/identity';
 
-export const getGroup = (identity: Identity): Promise<Identity[]> => {
+export const getGroup = (identity: Identity): Promise<WindowIdentity[]> => {
     const {uuid, name} = identity;
     const ofWin = fin.desktop.Window.wrap(uuid, name!);
     // v2api getGroup broken

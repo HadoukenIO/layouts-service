@@ -9,7 +9,6 @@ import {apiHandler, model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {promiseFilter, promiseForEach, promiseMap} from '../snapanddock/utils/async';
-import {MonitorAssignmentValidator} from '../model/MonitorAssignmentValidator';
 import {haveMonitorsBeenDetached} from '../utils/monitor';
 import {getId} from '../utils/identity';
 

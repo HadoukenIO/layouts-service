@@ -287,14 +287,7 @@ class WorkspaceMonitorRetargeter {
     }
 
     private getWindowBoundsFromRectangle(rectangle: Rectangle): Required<Bounds> {
-        return {
-            left: rectangle.center.x - rectangle.halfSize.x,
-            right: rectangle.center.x + rectangle.halfSize.x,
-            top: rectangle.center.y - rectangle.halfSize.y,
-            bottom: rectangle.center.y + rectangle.halfSize.y,
-            width: rectangle.halfSize.x * 2,
-            height: rectangle.halfSize.y * 2
-        };
+        return RectUtils.convertFromCenterHalfSize(rectangle);
     }
 
     private getTabGroupDimensionsFromRectangle(groupInfo: TabGroupInfo, rectangle: Rectangle): TabGroupDimensions {

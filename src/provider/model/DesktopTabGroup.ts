@@ -182,6 +182,13 @@ export class DesktopTabGroup implements DesktopEntity {
         return this._window.currentState.state === 'minimized' ? 'minimized' : this._isMaximized ? 'maximized' : 'normal';
     }
 
+    /**
+     * Returns if the tabgroup is maximized, including if it is a maximized tabgroup that has been minimized
+     */
+    public get isMaximized(): boolean {
+        return this._isMaximized;
+    }
+
     public applyOverride<K extends keyof EntityState>(property: K, value: EntityState[K]): Promise<void> {
         return this.updateWindows(window => window.applyOverride(property, value));
     }
@@ -300,10 +307,6 @@ export class DesktopTabGroup implements DesktopEntity {
 
         const event: TabGroupMinimizedEvent = {identity: this.window.identity, type: 'tab-group-minimized'};
         this.window.sendEvent(event);
-    }
-
-    public get isMaximized(): boolean {
-        return this._isMaximized;
     }
 
     public async resetMaximizedAndNormalBounds(bounds: Rectangle): Promise<void> {

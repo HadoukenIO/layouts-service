@@ -613,11 +613,14 @@ export class DesktopTabGroup implements DesktopEntity {
         const tabBounds = this.calculateTabBoundsFromGroupBounds(bounds);
 
         if (this.state === 'minimized') {
-            // Windows don't move as a group when minimized, so in this case move all windows independently
-            await this._window.applyProperties(tabstripBounds);
-            for (const tab of this.tabs) {
-                await tab.applyProperties(tabBounds);
-            }
+            return DesktopWindow.transaction([this._window, ...this.tabs], async () => {
+                // Windows don't move as a group when minimized, so in this case move all windows independently
+                await this._window.applyProperties(tabstripBounds);
+
+                for (const tab of this.tabs) {
+                    await tab.applyProperties(tabBounds);
+                }
+            });
         } else {
             await this._window.applyProperties(tabstripBounds);
             await this.activeTab.applyProperties(tabBounds);
@@ -631,14 +634,13 @@ export class DesktopTabGroup implements DesktopEntity {
         if (forceApplyIndependently || this.state === 'minimized') {
             // Windows don't move as a group when minimized, so in this case move all windows independently
             const tabstripHalfSize: Point|undefined = halfSize && {x: halfSize.x, y: tabstripHalfHeight};
-            const offsetWindows = async () => {
+            return DesktopWindow.transaction([this._window, ...this.tabs], async () => {
                 await this._window.applyOffset(offset, tabstripHalfSize);
 
                 for (const tab of this.tabs) {
                     await tab.applyOffset(offset, activeTabHalfSize);
                 }
-            };
-            return this.state === 'minimized' ? offsetWindows() : DesktopWindow.transaction([this._window, ...this.tabs], offsetWindows);
+            });
         } else {
             return this.activeTab.applyOffset(offset, activeTabHalfSize);
         }

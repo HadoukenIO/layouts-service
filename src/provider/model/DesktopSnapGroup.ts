@@ -218,7 +218,7 @@ export class DesktopSnapGroup {
 
     public async applyOffset(offset: Point): Promise<void> {
         if (this.rootWindow!.currentState.state === 'minimized') {
-            // Windows don't move as a group when minimized, so in this case move all windows independently
+            // Windows can't be relied on to move as a group when minimized, so in this case move all windows independently
             return DesktopWindow.transaction(this.windows, async (windows) => {
                 await Promise.all(windows.map(window => window.applyOffset(offset)));
             });

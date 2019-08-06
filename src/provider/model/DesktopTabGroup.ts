@@ -862,16 +862,20 @@ export class DesktopTabGroup implements DesktopEntity {
 
         if (repositionTabstrip) {
             console.log('TabGroup disjointed. Moving tabstrip back to group.', this.id);
-            await DesktopWindow.transaction([this._window, ...tabsToReposition], async () => {
-                await this._window.applyProperties(expectedTabstripPosition);
-            });
+            const moveTabstrip = async () => this._window.applyProperties(expectedTabstripPosition);
+
+            // Windows don't move as a group when minimized, so no need to use transaction in this case
+            await this.state === 'minimized' ? moveTabstrip() : await DesktopWindow.transaction([this._window], moveTabstrip);
         }
 
         if (tabsToReposition.length > 0) {
             console.log('TabGroup disjointed. Moving tabs back to group', this.id);
-            await DesktopWindow.transaction(tabsToReposition, async () => {
+            const moveTabs = async () => {
                 await Promise.all(tabsToReposition.map(tab => tab.applyProperties(expectedTabPosition)));
-            });
+            };
+
+            // Windows don't move as a group when minimized, so no need to use transaction in this case
+            await this.state === 'minimized' ? moveTabs() : await DesktopWindow.transaction(tabsToReposition, moveTabs);
         }
     }
 

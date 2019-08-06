@@ -25,37 +25,37 @@ export function retargetWorkspaceForMonitors(workspace: Workspace, monitors: Rea
 }
 
 class WorkspaceMonitorRetargeter {
-    private readonly workspace: Workspace;
-    private readonly monitors: ReadonlyArray<Rectangle>;
+    private readonly _workspace: Workspace;
+    private readonly _monitors: ReadonlyArray<Rectangle>;
 
-    private readonly windowsById: Map<String, WorkspaceWindow>;
-    private readonly entities: Entity[];
-    private readonly snapGroups: SnapGroup[];
+    private readonly _windowsById: Map<String, WorkspaceWindow>;
+    private readonly _entities: Entity[];
+    private readonly _snapGroups: SnapGroup[];
 
-    private readonly detachedEntities: Entity[];
+    private readonly _detachedEntities: Entity[];
 
     public constructor(workspace: Workspace, monitors: ReadonlyArray<Rectangle>) {
-        this.workspace = workspace;
-        this.monitors = monitors;
+        this._workspace = workspace;
+        this._monitors = monitors;
 
-        this.windowsById = new Map<string, WorkspaceWindow>();
-        this.entities = [];
-        this.snapGroups = [];
+        this._windowsById = new Map<string, WorkspaceWindow>();
+        this._entities = [];
+        this._snapGroups = [];
 
-        this.detachedEntities = [];
+        this._detachedEntities = [];
 
         // Create windows lookup
-        for (const app of this.workspace.apps) {
-            this.windowsById.set(getId(app.mainWindow), app.mainWindow);
+        for (const app of this._workspace.apps) {
+            this._windowsById.set(getId(app.mainWindow), app.mainWindow);
 
             for (const childWindow of app.childWindows) {
-                this.windowsById.set(getId(childWindow), childWindow);
+                this._windowsById.set(getId(childWindow), childWindow);
             }
         }
 
         // Create tab groups lookup
         const tabGroupsById = new Map<string, TabGroup>();
-        for (const tabGroup of this.workspace.tabGroups) {
+        for (const tabGroup of this._workspace.tabGroups) {
             for (const tab of tabGroup.tabs) {
                 tabGroupsById.set(getId(tab), tabGroup);
             }
@@ -63,7 +63,7 @@ class WorkspaceMonitorRetargeter {
 
         // Create entities lookup, with window identity, or active tab identity as key
         const entitiesById = new Map<string, Entity>();
-        for (const window of this.windowsById.values()) {
+        for (const window of this._windowsById.values()) {
             const windowId = getId(window);
 
             const tabGroup = tabGroupsById.get(windowId);
@@ -74,7 +74,7 @@ class WorkspaceMonitorRetargeter {
                         type: 'tabGroup', tabGroup,
                         normalBounds: this.getRectangleFromTabGroup(tabGroup),
                         activeTab: window,
-                        windows: tabGroup.tabs.map(tab => this.windowsById.get(getId(tab))!)
+                        windows: tabGroup.tabs.map(tab => this._windowsById.get(getId(tab))!)
                     };
 
                     entitiesById.set(windowId, tabGroupEntity);
@@ -122,7 +122,7 @@ class WorkspaceMonitorRetargeter {
             if (group.length !== 1) {
                 targetEntities = [];
             } else {
-                targetEntities = this.entities;
+                targetEntities = this._entities;
             }
 
             for (const entity of group.values()) {
@@ -130,17 +130,17 @@ class WorkspaceMonitorRetargeter {
             }
 
             if (group.length !== 1) {
-                this.snapGroups.push({entities: targetEntities, ...this.getRectangleFromEntities(targetEntities)});
+                this._snapGroups.push({entities: targetEntities, ...this.getRectangleFromEntities(targetEntities)});
             }
         }
     }
 
     public retarget(): void {
-        const calculator = new MonitorAssignmentCalculator(this.monitors);
+        const calculator = new MonitorAssignmentCalculator(this._monitors);
 
         // Calculate the new desired positions of our workspace entities
-        const snapGroupResults = this.snapGroups.map(snapGroup => calculator.getMovedSnapGroupRectangles<Entity, SnapGroup>(snapGroup));
-        const entityResults = this.entities.map(entity => calculator.getMovedEntityRectangle<Entity>(entity));
+        const snapGroupResults = this._snapGroups.map(snapGroup => calculator.getMovedSnapGroupRectangles<Entity, SnapGroup>(snapGroup));
+        const entityResults = this._entities.map(entity => calculator.getMovedEntityRectangle<Entity>(entity));
 
         // Mutate the workspace to fit the new monitor arrangement
         this.applySnapGroupResults(snapGroupResults);
@@ -166,7 +166,7 @@ class WorkspaceMonitorRetargeter {
     }
 
     private ungroupDetachedEntities(): void {
-        for (const entity of this.detachedEntities) {
+        for (const entity of this._detachedEntities) {
             let remainingWindowIdentities: WindowIdentity[];
 
             if (entity.type === 'window') {
@@ -185,7 +185,7 @@ class WorkspaceMonitorRetargeter {
 
             for (const remainingWindowIdentity of remainingWindowIdentities) {
                 const remainingWindowId = getId(remainingWindowIdentity);
-                this.windowsById.get(remainingWindowId)!.windowGroup = remainingWindowIdentities.filter(identity => getId(identity) !== remainingWindowId);
+                this._windowsById.get(remainingWindowId)!.windowGroup = remainingWindowIdentities.filter(identity => getId(identity) !== remainingWindowId);
             }
         }
     }
@@ -207,7 +207,7 @@ class WorkspaceMonitorRetargeter {
             entity.window.bounds = newBounds;
 
             if (grouped && !this.areBoundsEqual(oldBounds, newBounds)) {
-                this.detachedEntities.push(entity);
+                this._detachedEntities.push(entity);
             }
         } else {
             // Move the tabGroup and all its tabs to the new position
@@ -223,7 +223,7 @@ class WorkspaceMonitorRetargeter {
             }
 
             if (grouped && !this.areBoundsEqual(oldBounds, newBounds)) {
-                this.detachedEntities.push(entity);
+                this._detachedEntities.push(entity);
             }
         }
     }

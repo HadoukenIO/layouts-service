@@ -10,7 +10,7 @@ type DesktopEntity<T> = {normalBounds: Rectangle} & T;
 type DesktopSnapGroup<T, U> = {entities: DesktopEntity<T>[]} & Rectangle & U;
 
 export class MonitorAssignmentCalculator {
-    private _monitorRectangles: ReadonlyArray<Rectangle>;
+    private readonly _monitorRectangles: ReadonlyArray<Rectangle>;
 
     public constructor(monitorRectangles: ReadonlyArray<Rectangle>) {
         this._monitorRectangles = monitorRectangles;

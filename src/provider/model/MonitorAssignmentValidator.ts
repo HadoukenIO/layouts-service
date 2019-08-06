@@ -11,9 +11,9 @@ import {DesktopTabGroup} from './DesktopTabGroup';
 import {DesktopWindow} from './DesktopWindow';
 
 export class MonitorAssignmentValidator {
-    private _model: DesktopModel;
+    private readonly _model: DesktopModel;
 
-    private _validate: Debounced<() => Promise<void>, MonitorAssignmentValidator, []>;
+    private readonly _validate: Debounced<() => Promise<void>, MonitorAssignmentValidator, []>;
 
     public constructor(model: DesktopModel) {
         this._model = model;

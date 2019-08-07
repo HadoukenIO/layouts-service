@@ -1,6 +1,7 @@
 import {Workspace, WorkspaceApp, WorkspaceWindow} from '../../src/client/workspaces';
 import {retargetWorkspaceForMonitors} from '../../src/provider/workspaces/monitor';
-import {WindowIdentity, getId} from '../../src/provider/utils/identity';
+import {getId} from '../../src/provider/utils/identity';
+import {WindowIdentity} from '../../src/client/main';
 
 const workspaceWindowTemplate: WorkspaceWindow = {
     uuid: '',

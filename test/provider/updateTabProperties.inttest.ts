@@ -1,11 +1,10 @@
-import {Fin} from 'hadouken-js-adapter';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import * as assert from 'power-assert';
 
-import {WindowIdentity} from '../../src/provider/model/DesktopWindow';
 import {executeJavascriptOnService} from '../demo/utils/serviceUtils';
 import {updateTabProperties} from '../demo/utils/tabServiceUtils';
 import {teardown} from '../teardown';
+import {WindowIdentity} from '../../src/client/main';
 
 import {tabWindowsTogether} from './utils/tabWindowsTogether';
 import {WindowInitializer} from './utils/WindowInitializer';
@@ -39,7 +38,7 @@ it('When calling updateTabProperties, property changes reflected in service', as
     await updateTabProperties(wins[0].identity, newProps);
 
     function remoteFunc(this: ProviderWindow, identity: WindowIdentity) {
-        const tabWindow = this.model.getWindow(identity as WindowIdentity);
+        const tabWindow = this.model.getWindow(identity);
 
         // @ts-ignore Accessing private variables in the name of testing.
         return tabService.getTabProperties(tabWindow);  // eslint-disable-line

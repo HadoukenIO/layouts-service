@@ -6,7 +6,7 @@ type DesktopEntity<T> = {currentState: Rectangle & {hidden: boolean}} & T;
 /**
  * Takes a list of entities and returns the groups these entities form, based on their size and position. Each array of entities
  * returned will form a valid group (no entities overlap, and all entities are transitively adjacent). Broadly tries to minimize
- * the number of arrays returned, and if possible will return a single array containing all input entities
+ * the number of arrays returned, and if possible will return a single array containing all input entities.
  */
 export function getContiguousEntities<T = {}>(entities: DesktopEntity<T>[]): T[][] {
     const contiguousSets: DesktopEntity<T>[][] = [];

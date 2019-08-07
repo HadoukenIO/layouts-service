@@ -1,7 +1,7 @@
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 import {Debounced} from '../snapanddock/utils/Debounced';
 import {Point} from '../snapanddock/utils/PointUtils';
-import {WindowState} from '../../client/workspaces';
+import {WindowState, TabGroup} from '../../client/workspaces';
 
 import {DesktopModel} from './DesktopModel';
 import {DesktopEntity} from './DesktopEntity';
@@ -96,13 +96,8 @@ export class MonitorAssignmentValidator {
             } else if (entity instanceof DesktopWindow) {
                 await this.applyWindowResult(entity, startState, rectangle);
             }
-        } else {
-            /*
-             * This fixes an issue where a minimized tabgroup, otherwise unaffected by monitor changes, will have its non-active tabs
-             * detach from the tabstrip. This doesn't get caught by tabgroup validation as it seems the the tabs change position without
-             * any event being dispatched from the runtime. This line forces all windows to be where we expect them to be.
-             */
-            await entity.applyOffset({x: 0, y: 0});
+        } else if (entity instanceof DesktopTabGroup) {
+            await this.applyTabGroupFix(entity);
         }
     }
 
@@ -132,6 +127,19 @@ export class MonitorAssignmentValidator {
 
         if (startState !== 'normal') {
             await startState === 'maximized' ? window.maximize() : window.minimize();
+        }
+    }
+
+    private async applyTabGroupFix(tabGroup: DesktopTabGroup): Promise<void> {
+        /*
+         * This fixes a bug we encounter if we have a minimized tabgroup that is otherwise unaffected by monitor changes, where
+         * inactive tabs will move away from the tabstrip without the model being aware. This forces all tabs to be where we
+         * expect them to be.
+         */
+        if (tabGroup.currentState.state === 'minimized') {
+            return DesktopWindow.transaction(tabGroup.tabs, async () => {
+                await Promise.all(tabGroup.tabs.map(tab => tab.applyOffset({x: 0, y: 0})));
+            });
         }
     }
 

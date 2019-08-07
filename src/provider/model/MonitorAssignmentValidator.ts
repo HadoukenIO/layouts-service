@@ -96,6 +96,13 @@ export class MonitorAssignmentValidator {
             } else if (entity instanceof DesktopWindow) {
                 await this.applyWindowResult(entity, startState, rectangle);
             }
+        } else {
+            /*
+             * This fixes an issue where a minimized tabgroup, otherwise unaffected by monitor changes, will have its non-active tabs
+             * detach from the tabstrip. This doesn't get caught by tabgroup validation as it seems the the tabs change position without
+             * any event being dispatched from the runtime. This line forces all windows to be where we expect them to be.
+             */
+            await entity.applyOffset({x: 0, y: 0});
         }
     }
 

@@ -183,6 +183,13 @@ export class DesktopTabGroup implements DesktopEntity {
         return this._window.currentState.state === 'minimized' ? 'minimized' : this._isMaximized ? 'maximized' : 'normal';
     }
 
+    /**
+     * Returns if the tabgroup is maximized, including if it is a maximized tabgroup that has been minimized
+     */
+    public get isMaximized(): boolean {
+        return this._isMaximized;
+    }
+
     public applyOverride<K extends keyof EntityState>(property: K, value: EntityState[K]): Promise<void> {
         return this.updateWindows(window => window.applyOverride(property, value));
     }
@@ -301,10 +308,6 @@ export class DesktopTabGroup implements DesktopEntity {
 
         const event: TabGroupMinimizedEvent = {identity: this.window.identity, type: 'tab-group-minimized'};
         this.window.sendEvent(event);
-    }
-
-    public get isMaximized(): boolean {
-        return this._isMaximized;
     }
 
     public async resetMaximizedAndNormalBounds(bounds: Rectangle): Promise<void> {
@@ -612,7 +615,7 @@ export class DesktopTabGroup implements DesktopEntity {
 
         if (this.state === 'minimized') {
             return DesktopWindow.transaction([this._window, ...this.tabs], async () => {
-                // Windows don't move as a group when minimized, so in this case move all windows independently
+                // Windows can't be relied on to move as a group when minimized, so in this case move all windows independently
                 await this._window.applyProperties(tabstripBounds);
 
                 for (const tab of this.tabs) {
@@ -630,7 +633,7 @@ export class DesktopTabGroup implements DesktopEntity {
         const activeTabHalfSize: Point|undefined = halfSize && {x: halfSize.x, y: halfSize.y - tabstripHalfHeight};
 
         if (forceApplyIndependently || this.state === 'minimized') {
-            // Windows don't move as a group when minimized, so in this case move all windows independently
+            // Windows can't be relied on to move as a group when minimized, so in this case move all windows independently
             const tabstripHalfSize: Point|undefined = halfSize && {x: halfSize.x, y: tabstripHalfHeight};
             return DesktopWindow.transaction([this._window, ...this.tabs], async () => {
                 await this._window.applyOffset(offset, tabstripHalfSize);
@@ -862,7 +865,7 @@ export class DesktopTabGroup implements DesktopEntity {
 
         if (repositionTabstrip) {
             console.log('TabGroup disjointed. Moving tabstrip back to group.', this.id);
-            await DesktopWindow.transaction([this._window, ...tabsToReposition], async () => {
+            await DesktopWindow.transaction([this._window], async () => {
                 await this._window.applyProperties(expectedTabstripPosition);
             });
         }

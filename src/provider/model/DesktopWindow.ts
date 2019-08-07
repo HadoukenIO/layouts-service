@@ -106,7 +106,7 @@ enum LifecycleStage {
 type OpenFinWindowEvent = keyof fin.OpenFinWindowEventMap;
 
 interface Transaction {
-    windows: DesktopWindow[];
+    windows: ReadonlyArray<DesktopWindow>;
     remove: Debounced<() => void, typeof DesktopWindow, []>;
 }
 
@@ -218,7 +218,7 @@ export class DesktopWindow implements DesktopEntity {
      * @param windows The windows involved in the transaction
      * @param transform Promisified transformation function. Will be applied after all the windows have been detached from their previous window groups.
      */
-    public static async transaction(windows: DesktopWindow[], transform: (windows: DesktopWindow[]) => Promise<void>): Promise<void> {
+    public static async transaction(windows: ReadonlyArray<DesktopWindow>, transform: (windows: ReadonlyArray<DesktopWindow>) => Promise<void>): Promise<void> {
         // Create a transaction object and add it to the active transactions list.
         // The 'remove' property looks a bit strange but effectively lets the object remove itself
         // from the list when prompted.

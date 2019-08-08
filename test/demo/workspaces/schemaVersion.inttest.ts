@@ -6,6 +6,7 @@ import {assertDoesNotReject, assertRejects} from '../../provider/utils/assertion
 import {teardown} from '../../teardown';
 import {itParameterized} from '../utils/parameterizedTestUtils';
 import {sendServiceMessage} from '../utils/serviceUtils';
+import {getMockWorkspace} from '../../mocks';
 
 interface SchemaVersionTestOptions {
     versionString: string|undefined;
@@ -26,9 +27,9 @@ itParameterized(
         {versionString: undefined, shouldError: true}
     ],
     async (testOptions: SchemaVersionTestOptions) => {
-        const layoutToRestore = {...layoutBase, schemaVersion: testOptions.versionString};
+        const workspaceToRestore = {...getMockWorkspace(), schemaVersion: testOptions.versionString};
 
-        const restorePromise = sendServiceMessage<Workspace, Workspace>(WorkspaceAPI.RESTORE_LAYOUT, layoutToRestore as Workspace);
+        const restorePromise = sendServiceMessage<Workspace, Workspace>(WorkspaceAPI.RESTORE_LAYOUT, workspaceToRestore as Workspace);
         if (testOptions.shouldError) {
             await assertRejects(restorePromise);
         } else {
@@ -36,11 +37,3 @@ itParameterized(
         }
     }
 );
-
-const layoutBase: Workspace = {
-    'apps': [],
-    'monitorInfo': {} as MonitorInfo,
-    'schemaVersion': '',
-    'tabGroups': [],
-    'type': 'workspace'
-};

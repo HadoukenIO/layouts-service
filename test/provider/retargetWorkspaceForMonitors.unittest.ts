@@ -1,131 +1,8 @@
-import {Workspace, WorkspaceApp, WorkspaceWindow} from '../../src/client/workspaces';
+import {Workspace} from '../../src/client/workspaces';
 import {retargetWorkspaceForMonitors} from '../../src/provider/workspaces/monitor';
 import {getId} from '../../src/provider/utils/identity';
 import {WindowIdentity} from '../../src/client/main';
-
-const workspaceWindowTemplate: WorkspaceWindow = {
-    uuid: '',
-    name: '',
-    url: '',
-    isShowing: true,
-    state: 'normal',
-    frame: false,
-    bounds: {
-        left: 0,
-        right: 0,
-        top: 0,
-        bottom: 0,
-        width: 0,
-        height: 0
-    },
-    windowGroup: [],
-    isTabbed: false
-};
-
-const workspaceAppTemplate: WorkspaceApp = {
-    uuid: '',
-    mainWindow: {...workspaceWindowTemplate},
-    childWindows: []
-};
-
-const workspaceTemplate: Workspace = {
-    type: 'workspace',
-    schemaVersion: '',
-    monitorInfo: {
-        deviceScaleFactor: 1,
-        dpi: {x: 1, y: 1},
-        nonPrimaryMonitors: [],
-        primaryMonitor: {
-            available: {
-                dipRect: {
-                    left: 0,
-                    right: 0,
-                    top: 0,
-                    bottom: 0
-                },
-                scaledRect: {
-                    left: 0,
-                    right: 0,
-                    top: 0,
-                    bottom: 0
-                }
-            },
-            availableRect: {
-                left: 0,
-                right: 0,
-                top: 0,
-                bottom: 0
-            },
-            deviceId: '',
-            displayDeviceActive: true,
-            deviceScaleFactor: 1,
-            monitorRect: {
-                left: 0,
-                right: 0,
-                top: 0,
-                bottom: 0
-            },
-            name: 0,
-            dpi: {x: 1, y: 1},
-            monitor: {
-                dipRect: {
-                    left: 0,
-                    right: 0,
-                    top: 0,
-                    bottom: 0
-                },
-                scaledRect: {
-                    left: 0,
-                    right: 0,
-                    top: 0,
-                    bottom: 0
-                }
-            }
-        },
-        reason: '',
-        taskBar: {
-            edge: '',
-            rect: {
-                left: 0,
-                right: 0,
-                top: 0,
-                bottom: 0
-            },
-            dipRect: {
-                left: 0,
-                right: 0,
-                top: 0,
-                bottom: 0
-            },
-            scaledRect: {
-                left: 0,
-                right: 0,
-                top: 0,
-                bottom: 0
-            }
-        },
-        virtualScreen: {
-            left: 0,
-            right: 0,
-            top: 0,
-            bottom: 0,
-            dipRect: {
-                left: 0,
-                right: 0,
-                top: 0,
-                bottom: 0
-            },
-            scaledRect: {
-                left: 0,
-                right: 0,
-                top: 0,
-                bottom: 0
-            }
-        }
-    },
-    apps: [],
-    tabGroups: []
-};
+import {getMockWorkspace, getMockWorkspaceApp, getMockWorkspaceWindow} from '../mocks';
 
 const smallMonitor = {
     center: {x: 250, y: 250},
@@ -143,11 +20,11 @@ const rightMonitor = {
 };
 
 const singleWindowInputWorkspace: Workspace = {
-    ...workspaceTemplate,
+    ...getMockWorkspace(),
     apps: [{
-        ...workspaceAppTemplate,
+        ...getMockWorkspaceApp(),
         mainWindow: {
-            ...workspaceWindowTemplate,
+            ...getMockWorkspaceWindow(),
             uuid: 'app-1',
             name: 'main-window',
             bounds: {
@@ -163,11 +40,11 @@ const singleWindowInputWorkspace: Workspace = {
 };
 
 const singleWindowExpectedWorkspace: Workspace = {
-    ...workspaceTemplate,
+    ...getMockWorkspace(),
     apps: [{
-        ...workspaceAppTemplate,
+        ...getMockWorkspaceApp(),
         mainWindow: {
-            ...workspaceWindowTemplate,
+            ...getMockWorkspaceWindow(),
             uuid: 'app-1',
             name: 'main-window',
             bounds: {
@@ -183,11 +60,11 @@ const singleWindowExpectedWorkspace: Workspace = {
 };
 
 const tabbedWindowInputWorkspace: Workspace = {
-    ...workspaceTemplate,
+    ...getMockWorkspace(),
     apps: [{
-        ...workspaceAppTemplate,
+        ...getMockWorkspaceApp(),
         mainWindow: {
-            ...workspaceWindowTemplate,
+            ...getMockWorkspaceWindow(),
             uuid: 'app-1',
             name: 'main-window',
             bounds: {
@@ -204,7 +81,7 @@ const tabbedWindowInputWorkspace: Workspace = {
         },
         childWindows: [
             {
-                ...workspaceWindowTemplate,
+                ...getMockWorkspaceWindow(),
                 uuid: 'app-1',
                 name: 'child-window-1',
                 bounds: {
@@ -243,11 +120,11 @@ const tabbedWindowInputWorkspace: Workspace = {
 };
 
 const tabbedWindowExpectedWorkspace: Workspace = {
-    ...workspaceTemplate,
+    ...getMockWorkspace(),
     apps: [{
-        ...workspaceAppTemplate,
+        ...getMockWorkspaceApp(),
         mainWindow: {
-            ...workspaceWindowTemplate,
+            ...getMockWorkspaceWindow(),
             uuid: 'app-1',
             name: 'main-window',
             bounds: {
@@ -264,7 +141,7 @@ const tabbedWindowExpectedWorkspace: Workspace = {
         },
         childWindows: [
             {
-                ...workspaceWindowTemplate,
+                ...getMockWorkspaceWindow(),
                 uuid: 'app-1',
                 name: 'child-window-1',
                 bounds: {
@@ -303,12 +180,12 @@ const tabbedWindowExpectedWorkspace: Workspace = {
 };
 
 const twoGroupsInputWorkspace: Workspace = {
-    ...workspaceTemplate,
+    ...getMockWorkspace(),
     apps: [
         {
-            ...workspaceAppTemplate,
+            ...getMockWorkspaceApp(),
             mainWindow: {
-                ...workspaceWindowTemplate,
+                ...getMockWorkspaceWindow(),
                 uuid: 'app-1',
                 name: 'main-window',
                 bounds: {
@@ -325,7 +202,7 @@ const twoGroupsInputWorkspace: Workspace = {
             },
             childWindows: [
                 {
-                    ...workspaceWindowTemplate,
+                    ...getMockWorkspaceWindow(),
                     uuid: 'app-1',
                     name: 'child-window-1',
                     bounds: {
@@ -342,7 +219,7 @@ const twoGroupsInputWorkspace: Workspace = {
                     ]
                 },
                 {
-                    ...workspaceWindowTemplate,
+                    ...getMockWorkspaceWindow(),
                     uuid: 'app-1',
                     name: 'child-window-2',
                     bounds: {
@@ -361,9 +238,9 @@ const twoGroupsInputWorkspace: Workspace = {
             ]
         },
         {
-            ...workspaceAppTemplate,
+            ...getMockWorkspaceApp(),
             mainWindow: {
-                ...workspaceWindowTemplate,
+                ...getMockWorkspaceWindow(),
                 uuid: 'app-2',
                 name: 'main-window',
                 bounds: {
@@ -381,7 +258,7 @@ const twoGroupsInputWorkspace: Workspace = {
             },
             childWindows: [
                 {
-                    ...workspaceWindowTemplate,
+                    ...getMockWorkspaceWindow(),
                     uuid: 'app-2',
                     name: 'child-window-1',
                     bounds: {
@@ -424,12 +301,12 @@ const twoGroupsInputWorkspace: Workspace = {
 };
 
 const twoGroupsExpectedWorkspace: Workspace = {
-    ...workspaceTemplate,
+    ...getMockWorkspace(),
     apps: [
         {
-            ...workspaceAppTemplate,
+            ...getMockWorkspaceApp(),
             mainWindow: {
-                ...workspaceWindowTemplate,
+                ...getMockWorkspaceWindow(),
                 uuid: 'app-1',
                 name: 'main-window',
                 bounds: {
@@ -446,7 +323,7 @@ const twoGroupsExpectedWorkspace: Workspace = {
             },
             childWindows: [
                 {
-                    ...workspaceWindowTemplate,
+                    ...getMockWorkspaceWindow(),
                     uuid: 'app-1',
                     name: 'child-window-1',
                     bounds: {
@@ -463,7 +340,7 @@ const twoGroupsExpectedWorkspace: Workspace = {
                     ]
                 },
                 {
-                    ...workspaceWindowTemplate,
+                    ...getMockWorkspaceWindow(),
                     uuid: 'app-1',
                     name: 'child-window-2',
                     bounds: {
@@ -482,9 +359,9 @@ const twoGroupsExpectedWorkspace: Workspace = {
             ]
         },
         {
-            ...workspaceAppTemplate,
+            ...getMockWorkspaceApp(),
             mainWindow: {
-                ...workspaceWindowTemplate,
+                ...getMockWorkspaceWindow(),
                 uuid: 'app-2',
                 name: 'main-window',
                 bounds: {
@@ -502,7 +379,7 @@ const twoGroupsExpectedWorkspace: Workspace = {
             },
             childWindows: [
                 {
-                    ...workspaceWindowTemplate,
+                    ...getMockWorkspaceWindow(),
                     uuid: 'app-2',
                     name: 'child-window-1',
                     bounds: {
@@ -545,12 +422,12 @@ const twoGroupsExpectedWorkspace: Workspace = {
 };
 
 const largeGroupInputWorkspace: Workspace = {
-    ...workspaceTemplate,
+    ...getMockWorkspace(),
     apps: [
         {
-            ...workspaceAppTemplate,
+            ...getMockWorkspaceApp(),
             mainWindow: {
-                ...workspaceWindowTemplate,
+                ...getMockWorkspaceWindow(),
                 uuid: 'app-1',
                 name: 'corner-window',
                 bounds: {
@@ -568,7 +445,7 @@ const largeGroupInputWorkspace: Workspace = {
             },
             childWindows: [
                 {
-                    ...workspaceWindowTemplate,
+                    ...getMockWorkspaceWindow(),
                     uuid: 'app-1',
                     name: 'top-window',
                     bounds: {
@@ -585,7 +462,7 @@ const largeGroupInputWorkspace: Workspace = {
                     ]
                 },
                 {
-                    ...workspaceWindowTemplate,
+                    ...getMockWorkspaceWindow(),
                     uuid: 'app-1',
                     name: 'right-window',
                     bounds: {
@@ -607,12 +484,12 @@ const largeGroupInputWorkspace: Workspace = {
 };
 
 const largeGroupExpectedWorkspace: Workspace = {
-    ...workspaceTemplate,
+    ...getMockWorkspace(),
     apps: [
         {
-            ...workspaceAppTemplate,
+            ...getMockWorkspaceApp(),
             mainWindow: {
-                ...workspaceWindowTemplate,
+                ...getMockWorkspaceWindow(),
                 uuid: 'app-1',
                 name: 'corner-window',
                 bounds: {
@@ -626,7 +503,7 @@ const largeGroupExpectedWorkspace: Workspace = {
             },
             childWindows: [
                 {
-                    ...workspaceWindowTemplate,
+                    ...getMockWorkspaceWindow(),
                     uuid: 'app-1',
                     name: 'top-window',
                     bounds: {
@@ -639,7 +516,7 @@ const largeGroupExpectedWorkspace: Workspace = {
                     }
                 },
                 {
-                    ...workspaceWindowTemplate,
+                    ...getMockWorkspaceWindow(),
                     uuid: 'app-1',
                     name: 'right-window',
                     bounds: {
@@ -657,11 +534,11 @@ const largeGroupExpectedWorkspace: Workspace = {
 };
 
 const windowStillOnScreenInputWorkspace: Workspace = {
-    ...workspaceTemplate,
+    ...getMockWorkspace(),
     apps: [{
-        ...workspaceAppTemplate,
+        ...getMockWorkspaceApp(),
         mainWindow: {
-            ...workspaceWindowTemplate,
+            ...getMockWorkspaceWindow(),
             uuid: 'app-1',
             name: 'main-window',
             bounds: {
@@ -677,11 +554,11 @@ const windowStillOnScreenInputWorkspace: Workspace = {
 };
 
 const windowStillOnScreenExpectedWorkspace: Workspace = {
-    ...workspaceTemplate,
+    ...getMockWorkspace(),
     apps: [{
-        ...workspaceAppTemplate,
+        ...getMockWorkspaceApp(),
         mainWindow: {
-            ...workspaceWindowTemplate,
+            ...getMockWorkspaceWindow(),
             uuid: 'app-1',
             name: 'main-window',
             bounds: {
@@ -697,11 +574,11 @@ const windowStillOnScreenExpectedWorkspace: Workspace = {
 };
 
 const leftAndRightWindowsInputWorkspace: Workspace = {
-    ...workspaceTemplate,
+    ...getMockWorkspace(),
     apps: [{
-        ...workspaceAppTemplate,
+        ...getMockWorkspaceApp(),
         mainWindow: {
-            ...workspaceWindowTemplate,
+            ...getMockWorkspaceWindow(),
             uuid: 'left-app',
             name: 'main-window',
             bounds: {
@@ -715,9 +592,9 @@ const leftAndRightWindowsInputWorkspace: Workspace = {
         }
     },
     {
-        ...workspaceAppTemplate,
+        ...getMockWorkspaceApp(),
         mainWindow: {
-            ...workspaceWindowTemplate,
+            ...getMockWorkspaceWindow(),
             uuid: 'right-app',
             name: 'main-window',
             bounds: {
@@ -733,11 +610,11 @@ const leftAndRightWindowsInputWorkspace: Workspace = {
 };
 
 const leftAndRightWindowsExpectedWorkspace: Workspace = {
-    ...workspaceTemplate,
+    ...getMockWorkspace(),
     apps: [{
-        ...workspaceAppTemplate,
+        ...getMockWorkspaceApp(),
         mainWindow: {
-            ...workspaceWindowTemplate,
+            ...getMockWorkspaceWindow(),
             uuid: 'left-app',
             name: 'main-window',
             bounds: {
@@ -751,9 +628,9 @@ const leftAndRightWindowsExpectedWorkspace: Workspace = {
         }
     },
     {
-        ...workspaceAppTemplate,
+        ...getMockWorkspaceApp(),
         mainWindow: {
-            ...workspaceWindowTemplate,
+            ...getMockWorkspaceWindow(),
             uuid: 'right-app',
             name: 'main-window',
             bounds: {

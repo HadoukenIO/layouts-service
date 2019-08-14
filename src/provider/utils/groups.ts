@@ -31,17 +31,10 @@ export function getContiguousEntities<T = {}>(entities: DesktopEntity<T>[]): T[]
         }
     }
 
-    const adjacencyList: DesktopEntity<T>[][] = new Array<DesktopEntity<T>[]>(disjointEntities.length);
-
     // Build adjacency list
-    for (let i = 0; i < disjointEntities.length; i++) {
-        adjacencyList[i] = [];
-        for (let j = 0; j < disjointEntities.length; j++) {
-            if (j !== i && isAdjacent(disjointEntities[i], disjointEntities[j])) {
-                adjacencyList[i].push(disjointEntities[j]);
-            }
-        }
-    }
+    const adjacencyList: DesktopEntity<T>[][] = disjointEntities.map((entity1) => {
+        return disjointEntities.filter(entity2 => (entity1 !== entity2) && isAdjacent(entity1, entity2));
+    });
 
     // Find all contiguous sets
     const unvisited: DesktopEntity<T>[] = disjointEntities.slice();

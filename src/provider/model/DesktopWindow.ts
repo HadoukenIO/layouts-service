@@ -110,7 +110,7 @@ enum LifecycleStage {
 type OpenFinWindowEvent = keyof fin.OpenFinWindowEventMap;
 
 interface Transaction {
-    windows: DesktopWindow[];
+    windows: ReadonlyArray<DesktopWindow>;
     remove: Debounced<() => void, typeof DesktopWindow, []>;
 }
 
@@ -222,7 +222,7 @@ export class DesktopWindow implements DesktopEntity {
      * @param windows The windows involved in the transaction
      * @param transform Promisified transformation function. Will be applied after all the windows have been detached from their previous window groups.
      */
-    public static async transaction(windows: DesktopWindow[], transform: (windows: DesktopWindow[]) => Promise<void>): Promise<void> {
+    public static async transaction(windows: ReadonlyArray<DesktopWindow>, transform: (windows: ReadonlyArray<DesktopWindow>) => Promise<void>): Promise<void> {
         // Create a transaction object and add it to the active transactions list.
         // The 'remove' property looks a bit strange but effectively lets the object remove itself
         // from the list when prompted.
@@ -693,16 +693,16 @@ export class DesktopWindow implements DesktopEntity {
     }
 
     public async maximize(): Promise<void> {
-        return this.applyProperties({state: 'maximized'});
+        return this.updateState({state: 'maximized'}, ActionOrigin.SERVICE);
     }
 
     public async minimize(): Promise<void> {
-        return this.applyProperties({state: 'minimized'});
+        return this.updateState({state: 'minimized'}, ActionOrigin.SERVICE);
     }
 
     public async restore(): Promise<void> {
         // Note that the actual end state following this may be 'maximized'
-        return this.applyProperties({state: 'normal'});
+        return this.updateState({state: 'normal'}, ActionOrigin.SERVICE);
     }
 
     protected async addPendingActions(tag: string, actions: Promise<void>|Promise<void>[]): Promise<void> {

@@ -97,7 +97,7 @@ export class DesktopModel {
 
         // Validate everything on monitor change, as groups may become disjointed
         fin.System.addListener('monitor-info-changed', async (evt: MonitorEvent<'system', 'monitor-info-changed'>) => {
-            this._monitors = [evt.primaryMonitor, ...evt.nonPrimaryMonitors].map(mon => RectUtils.convertToCenterHalfSize(mon.monitorRect));
+            this._monitors = [evt.primaryMonitor, ...evt.nonPrimaryMonitors].map(mon => RectUtils.convertToCenterHalfSize(mon.availableRect));
             this._displayScaling = evt.deviceScaleFactor !== 1;
 
             // Validate all tabgroups

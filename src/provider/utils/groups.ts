@@ -13,58 +13,25 @@ export function getContiguousEntities<T = {}>(entities: DesktopEntity<T>[]): T[]
     const disjointEntities: DesktopEntity<T>[] = [];
 
     // Extract any overlapping entities into trivial groups
-    for (let i = 0; i < entities.length; i++) {
-        const testEntity = entities[i];
-        let overlapping = false;
-
-        for (let j = 0; j < entities.length; j++) {
-            if (j !== i && areOverlapping(testEntity, entities[j])) {
-                overlapping = true;
-                break;
-            }
-        }
-
-        if (!overlapping) {
-            disjointEntities.push(testEntity);
+    for (const entity of entities) {
+        if (entities.some(testEntity => testEntity !== entity && areOverlapping(entity, testEntity))) {
+            contiguousSets.push([entity]);
         } else {
-            contiguousSets.push([testEntity]);
+            disjointEntities.push(entity);
         }
     }
 
-    const adjacencyList: DesktopEntity<T>[][] = new Array<DesktopEntity<T>[]>(disjointEntities.length);
-
-    // Build adjacency list
-    for (let i = 0; i < disjointEntities.length; i++) {
-        adjacencyList[i] = [];
-        for (let j = 0; j < disjointEntities.length; j++) {
-            if (j !== i && isAdjacent(disjointEntities[i], disjointEntities[j])) {
-                adjacencyList[i].push(disjointEntities[j]);
-            }
-        }
-    }
+    // Build adjacency matrix
+    const adjacencyMatrix: DesktopEntity<T>[][] = disjointEntities.map((entity1) => {
+        return disjointEntities.filter((entity2) => (entity2 !== entity1) && isAdjacent(entity1, entity2));
+    });
 
     // Find all contiguous sets
-    const unvisited: DesktopEntity<T>[] = disjointEntities.slice();
-
-    while (unvisited.length > 0) {
-        const visited: DesktopEntity<T>[] = [];
-        depthFirstSearch(unvisited[0], visited);
-        contiguousSets.push(visited);
+    while (disjointEntities.length > 0) {
+        contiguousSets.push(extractFirstAdjacentSet(disjointEntities, adjacencyMatrix));
     }
 
     return contiguousSets;
-
-    function depthFirstSearch(startEntity: DesktopEntity<T>, visited: DesktopEntity<T>[]) {
-        const startIndex = disjointEntities.indexOf(startEntity);
-        if (visited.includes(startEntity)) {
-            return;
-        }
-        visited.push(startEntity);
-        unvisited.splice(unvisited.indexOf(startEntity), 1);
-        for (let i = 0; i < adjacencyList[startIndex].length; i++) {
-            depthFirstSearch(adjacencyList[startIndex][i], visited);
-        }
-    }
 }
 
 /**
@@ -95,4 +62,31 @@ function areOverlapping<T>(entity1: DesktopEntity<T>, entitiy2: DesktopEntity<T>
     }
 
     return false;
+}
+
+function extractFirstAdjacentSet<T>(disjointEntities: DesktopEntity<T>[], adjacencyMatrix: DesktopEntity<T>[][]): DesktopEntity<T>[] {
+    const accumulator: DesktopEntity<T>[] = [];
+
+    recursiveDepthFirstSearch(disjointEntities[0]);
+
+    return accumulator;
+
+    function recursiveDepthFirstSearch(entity: DesktopEntity<T>): void {
+        const index = disjointEntities.indexOf(entity);
+
+        if (index === -1) {
+            return;
+        } else {
+            const adjacencyList = adjacencyMatrix[index];
+
+            disjointEntities.splice(index, 1);
+            adjacencyMatrix.splice(index, 1);
+
+            accumulator.push(entity);
+
+            for (const adjacentEntity of adjacencyList) {
+                recursiveDepthFirstSearch(adjacentEntity);
+            }
+        }
+    }
 }

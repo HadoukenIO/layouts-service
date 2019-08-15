@@ -21,9 +21,9 @@ export function getContiguousEntities<T = {}>(entities: DesktopEntity<T>[]): T[]
         }
     }
 
-    // Build adjacency list
-    const adjacencyList: DesktopEntity<T>[][] = disjointEntities.map((entity1) => {
-        return disjointEntities.filter(entity2 => (entity1 !== entity2) && isAdjacent(entity1, entity2));
+    // Build adjacency matrix
+    const adjacencyMatrix: DesktopEntity<T>[][] = disjointEntities.map((entity1) => {
+        return disjointEntities.filter((entity2) => (entity2 !== entity1) && isAdjacent(entity1, entity2));
     });
 
     // Find all contiguous sets

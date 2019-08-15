@@ -13,21 +13,11 @@ export function getContiguousEntities<T = {}>(entities: DesktopEntity<T>[]): T[]
     const disjointEntities: DesktopEntity<T>[] = [];
 
     // Extract any overlapping entities into trivial groups
-    for (let i = 0; i < entities.length; i++) {
-        const testEntity = entities[i];
-        let overlapping = false;
-
-        for (let j = 0; j < entities.length; j++) {
-            if (j !== i && areOverlapping(testEntity, entities[j])) {
-                overlapping = true;
-                break;
-            }
-        }
-
-        if (!overlapping) {
-            disjointEntities.push(testEntity);
+    for (const entity of entities) {
+        if (entities.some(testEntity => testEntity !== entity && areOverlapping(entity, testEntity))) {
+            contiguousSets.push([entity]);
         } else {
-            contiguousSets.push([testEntity]);
+            disjointEntities.push(entity);
         }
     }
 

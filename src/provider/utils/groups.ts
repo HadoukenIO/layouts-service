@@ -27,27 +27,11 @@ export function getContiguousEntities<T = {}>(entities: DesktopEntity<T>[]): T[]
     });
 
     // Find all contiguous sets
-    const unvisited: DesktopEntity<T>[] = disjointEntities.slice();
-
-    while (unvisited.length > 0) {
-        const visited: DesktopEntity<T>[] = [];
-        depthFirstSearch(unvisited[0], visited);
-        contiguousSets.push(visited);
+    while (disjointEntities.length > 0) {
+        contiguousSets.push(extractFirstAdjacentSet(disjointEntities, adjacencyMatrix));
     }
 
     return contiguousSets;
-
-    function depthFirstSearch(startEntity: DesktopEntity<T>, visited: DesktopEntity<T>[]) {
-        const startIndex = disjointEntities.indexOf(startEntity);
-        if (visited.includes(startEntity)) {
-            return;
-        }
-        visited.push(startEntity);
-        unvisited.splice(unvisited.indexOf(startEntity), 1);
-        for (let i = 0; i < adjacencyList[startIndex].length; i++) {
-            depthFirstSearch(adjacencyList[startIndex][i], visited);
-        }
-    }
 }
 
 /**
@@ -78,4 +62,31 @@ function areOverlapping<T>(entity1: DesktopEntity<T>, entitiy2: DesktopEntity<T>
     }
 
     return false;
+}
+
+function extractFirstAdjacentSet<T>(disjointEntities: DesktopEntity<T>[], adjacencyMatrix: DesktopEntity<T>[][]): DesktopEntity<T>[] {
+    const accumulator: DesktopEntity<T>[] = [];
+
+    recursiveDepthFirstSearch(disjointEntities[0]);
+
+    return accumulator;
+
+    function recursiveDepthFirstSearch(entity: DesktopEntity<T>): void {
+        const index = disjointEntities.indexOf(entity);
+
+        if (index === -1) {
+            return;
+        } else {
+            const adjacencyList = adjacencyMatrix[index];
+
+            disjointEntities.splice(index, 1);
+            adjacencyMatrix.splice(index, 1);
+
+            accumulator.push(entity);
+
+            for (const adjacentEntity of adjacencyList) {
+                recursiveDepthFirstSearch(adjacentEntity);
+            }
+        }
+    }
 }

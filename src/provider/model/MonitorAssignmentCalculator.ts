@@ -1,13 +1,15 @@
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
+import {DesktopEntity as ModelDesktopEntity} from '../model/DesktopEntity';
+import {DesktopSnapGroup as ModelDesktopSnapGroup} from '../model/DesktopSnapGroup';
 
-export type EntityResult<T> = {rectangle: Rectangle, target: T};
-export type SnapGroupResult<T, U> = {entityResults: EntityResult<T>[], groupRectangle: Rectangle, target: U};
+export type EntityResult<T = ModelDesktopEntity> = {rectangle: Rectangle, target: T};
+export type SnapGroupResult<T = ModelDesktopEntity, U = ModelDesktopSnapGroup> = {entityResults: EntityResult<T>[], groupRectangle: Rectangle, target: U};
 
 type EntityAndMonitorRectangles = {entityRectangle: Rectangle, monitorRectangle: Rectangle}
 
 // Limit ourselves to just the bits of DesktopEntity and SnapGroups we want
-type DesktopEntity<T> = {normalBounds: Rectangle} & T;
-type DesktopSnapGroup<T, U> = {entities: DesktopEntity<T>[]} & Rectangle & U;
+type DesktopEntity<T = ModelDesktopEntity> = {normalBounds: Rectangle} & T;
+type DesktopSnapGroup<T = ModelDesktopEntity, U = ModelDesktopSnapGroup> = {entities: DesktopEntity<T>[]} & Rectangle & U;
 
 export class MonitorAssignmentCalculator {
     private readonly _monitorRectangles: ReadonlyArray<Rectangle>;

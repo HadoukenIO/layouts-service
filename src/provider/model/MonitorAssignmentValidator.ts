@@ -51,7 +51,7 @@ export class MonitorAssignmentValidator {
         return trivalSnapGroup.map(trivalSnapGroup => trivalSnapGroup.entities[0]);
     }
 
-    private async applySnapGroupResults(snapGroupResults: SnapGroupResult<DesktopEntity, DesktopSnapGroup>[]): Promise<void> {
+    private async applySnapGroupResults(snapGroupResults: SnapGroupResult[]): Promise<void> {
         await Promise.all(snapGroupResults.map(async (snapGroupResult) => {
             await this.applySnapGroupResult(snapGroupResult.target, snapGroupResult.groupRectangle);
 
@@ -60,8 +60,8 @@ export class MonitorAssignmentValidator {
         }));
     }
 
-    private async applyEntityResults(entityResults: EntityResult<DesktopEntity>[]): Promise<void> {
-        await Promise.all(entityResults.map(async (result: EntityResult<DesktopEntity>) => {
+    private async applyEntityResults(entityResults: EntityResult[]): Promise<void> {
+        await Promise.all(entityResults.map(async (result: EntityResult) => {
             return this.applyEntityResult(result.target, result.rectangle);
         }));
     }

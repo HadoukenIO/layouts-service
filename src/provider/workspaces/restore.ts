@@ -9,7 +9,6 @@ import {apiHandler, model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {promiseFilter, promiseForEach, promiseMap} from '../snapanddock/utils/async';
-import {haveMonitorsBeenDetached} from '../utils/monitor';
 import {getId} from '../model/Identity';
 
 import {regroupWorkspace} from './group';
@@ -62,9 +61,9 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
     startExclusivityTimeout();
 
     const workspace = payload;
-    const monitors = model.monitors;
+    const monitors = model.monitors.slice();
 
-    WorkspaceMonitorRetargeter.retargetWorkspaceForMonitors(workspace, monitors);
+    WorkspaceMonitorRetargeter.retargetWorkspaceForMonitors(workspace, model);
 
     const startupApps: Promise<WorkspaceApp>[] = [];
 
@@ -102,7 +101,7 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
         group.validate();
     }
 
-    if (haveMonitorsBeenDetached(monitors, model.monitors)) {
+    if (!model.hasAllMonitors(monitors)) {
         await model.validateMonitorAssignment();
     }
 

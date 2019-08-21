@@ -3,6 +3,12 @@ import {WorkspaceMonitorRetargeter} from '../../src/provider/workspaces/Workspac
 import {getId} from '../../src/provider/model/Identity';
 import {WindowIdentity} from '../../src/client/main';
 import {getMockWorkspace, getMockWorkspaceApp, getMockWorkspaceWindow} from '../mocks';
+import {Rectangle} from '../../src/provider/snapanddock/utils/RectUtils';
+
+type DesktopModel = {
+    hasAllMonitors: (monitors: Rectangle[]) => boolean,
+    monitors: ReadonlyArray<Rectangle>
+};
 
 const smallMonitor = {
     center: {x: 250, y: 250},
@@ -661,7 +667,7 @@ const twoMonitorTestParams: TestParam[] = [
 
 describe('When restoring a workspace created on a large monitor on a small monitor', () => {
     it.each(smallMonitorTestParams)('%s', (titleParam: string, inputWorkspace: Workspace, expectedWorkspace: Workspace): void => {
-        WorkspaceMonitorRetargeter.retargetWorkspaceForMonitors(inputWorkspace, [smallMonitor]);
+        WorkspaceMonitorRetargeter.retargetWorkspaceForMonitors(inputWorkspace, createModelWithMonitors([smallMonitor]));
 
         normalize(inputWorkspace);
         normalize(expectedWorkspace);
@@ -672,7 +678,7 @@ describe('When restoring a workspace created on a large monitor on a small monit
 
 describe('When restoring a workspace created on a single central monitor on a left and a right monitor', () => {
     it.each(twoMonitorTestParams)('%s', (titleParam: string, inputWorkspace: Workspace, expectedWorkspace: Workspace): void => {
-        WorkspaceMonitorRetargeter.retargetWorkspaceForMonitors(inputWorkspace, [leftMonitor, rightMonitor]);
+        WorkspaceMonitorRetargeter.retargetWorkspaceForMonitors(inputWorkspace, createModelWithMonitors([leftMonitor, rightMonitor]));
 
         normalize(inputWorkspace);
         normalize(expectedWorkspace);
@@ -704,4 +710,11 @@ function compareIdentities(identity1: WindowIdentity, identity2: WindowIdentity)
     const id2 = getId(identity2);
 
     return id1.localeCompare(id2, 'en');
+}
+
+function createModelWithMonitors(monitors: Rectangle[]): DesktopModel {
+    return {
+        monitors,
+        hasAllMonitors: (monitors: Rectangle[]) => false
+    };
 }

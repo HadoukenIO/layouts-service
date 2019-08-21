@@ -5,9 +5,13 @@ import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 import {WindowIdentity} from '../../client/main';
 import {MonitorAssignmentCalculator, EntityResult, SnapGroupResult} from '../model/MonitorAssignmentCalculator';
 import {Point} from '../snapanddock/utils/PointUtils';
-import {haveMonitorsBeenDetached} from '../utils/monitor';
 import {DEFAULT_TABSTRIP_HEIGHT} from '../utils/constants';
 import {getId} from '../model/Identity';
+
+type DesktopModel = {
+    hasAllMonitors: (monitors: Rectangle[]) => boolean,
+    monitors: ReadonlyArray<Rectangle>
+};
 
 type WindowPartialEntity = {type: 'window', window: WorkspaceWindow};
 type TabGroupPartialEntity = {type: 'tabGroup', tabGroup: TabGroup, windows: WorkspaceWindow[], activeTab: WorkspaceWindow};
@@ -24,13 +28,13 @@ export class WorkspaceMonitorRetargeter {
 
     private readonly _detachedEntities: Entity[];
 
-    public static retargetWorkspaceForMonitors(workspace: Workspace, monitors: ReadonlyArray<Rectangle>): void {
+    public static retargetWorkspaceForMonitors(workspace: Workspace, model: DesktopModel): void {
         const workspaceMonitors = [workspace.monitorInfo.primaryMonitor, ...workspace.monitorInfo.nonPrimaryMonitors];
 
         const oldMonitors = workspaceMonitors.map(monitor => RectUtils.convertToCenterHalfSize(monitor.availableRect));
 
-        if (haveMonitorsBeenDetached(oldMonitors, monitors)) {
-            new WorkspaceMonitorRetargeter(workspace, monitors).retarget();
+        if (!model.hasAllMonitors(oldMonitors)) {
+            new WorkspaceMonitorRetargeter(workspace, model.monitors).retarget();
         }
     }
 

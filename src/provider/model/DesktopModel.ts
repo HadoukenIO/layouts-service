@@ -13,7 +13,6 @@ import {ConfigStore} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
-import {haveMonitorsBeenDetached} from '../utils/monitor';
 
 import {WindowIdentity, getId} from './Identity';
 import {MonitorAssignmentValidator} from './MonitorAssignmentValidator';
@@ -111,7 +110,7 @@ export class DesktopModel {
             await Promise.all(this.snapGroups.map(g => g.validate()));
 
             // Validate monitor assignment
-            if (haveMonitorsBeenDetached(oldMonitors, this._monitors)) {
+            if (!this.hasAllMonitors(oldMonitors)) {
                 await this._monitorAssignmentValidator.validate();
             }
         });
@@ -218,6 +217,10 @@ export class DesktopModel {
      */
     public async validateMonitorAssignment(): Promise<void> {
         return this._monitorAssignmentValidator.validate();
+    }
+
+    public hasAllMonitors(testMonitors: ReadonlyArray<Rectangle>): boolean {
+        return !testMonitors.every(testMonitor => this.monitors.some(monitor => RectUtils.isEqual(testMonitor, monitor)));
     }
 
     /**

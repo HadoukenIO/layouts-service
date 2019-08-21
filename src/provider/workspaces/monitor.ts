@@ -104,8 +104,8 @@ class WorkspaceMonitorRetargeter {
             groupedEntities.push(entity);
 
             groupedEntities.sort((entity1, entity2) => {
-                const id1 = entity1.type === 'window' ? getId(entity1.window) : getId(entity1.activeTab);
-                const id2 = entity2.type === 'window' ? getId(entity2.window) : getId(entity2.activeTab);
+                const id1 = getId(entity1.type === 'window' ? entity1.window : entity1.activeTab);
+                const id2 = getId(entity2.type === 'window' ? entity2.window : entity2.activeTab);
 
                 return id1.localeCompare(id2, 'en');
             });

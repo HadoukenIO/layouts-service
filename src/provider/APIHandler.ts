@@ -13,7 +13,7 @@ import {SnapService} from './snapanddock/SnapService';
 import {TabService} from './tabbing/TabService';
 import {generateWorkspace} from './workspaces/create';
 import {appReadyForRestore, restoreWorkspace} from './workspaces/restore';
-import {WindowIdentity} from './utils/identity';
+import {WindowIdentity} from './model/Identity';
 
 /**
  * Manages all communication with the client. Stateless class that listens for incoming messages, and handles sending of messages to connected client(s).

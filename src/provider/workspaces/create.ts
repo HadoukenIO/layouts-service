@@ -10,7 +10,7 @@ import {CustomData, TabGroup, WindowState, Workspace, WorkspaceApp, WorkspaceGen
 import {EVENT_CHANNEL_TOPIC} from '../APIMessages';
 import {apiHandler, loader, model, tabService} from '../main';
 import {promiseMap} from '../snapanddock/utils/async';
-import {WindowIdentity} from '../utils/identity';
+import {WindowIdentity} from '../model/Identity';
 
 import {getGroup} from './group';
 import {addToWindowObject, adjustSizeOfFormerlyTabbedWindows, inWindowObject, WindowObject} from './placeholder';

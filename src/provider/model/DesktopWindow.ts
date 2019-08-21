@@ -14,8 +14,8 @@ import {isWin10} from '../snapanddock/utils/platform';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle} from '../snapanddock/utils/RectUtils';
 import {forEachProperty} from '../utils/iteration';
-import {WindowIdentity} from '../utils/identity';
 
+import {WindowIdentity} from './Identity';
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
 import {DesktopSnapGroup} from './DesktopSnapGroup';

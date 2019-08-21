@@ -10,8 +10,8 @@ import {tabService} from '../main';
 import {Debounced} from '../snapanddock/utils/Debounced';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
-import {WindowIdentity, getId} from '../utils/identity';
 
+import {WindowIdentity, getId} from './Identity';
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
 import {DesktopSnapGroup} from './DesktopSnapGroup';

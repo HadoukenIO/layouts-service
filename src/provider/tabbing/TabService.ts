@@ -15,7 +15,7 @@ import {promiseForEach} from '../snapanddock/utils/async';
 import {Point, PointUtils} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 import {eTargetType, TargetBase} from '../WindowHandler';
-import {WindowIdentity} from '../utils/identity';
+import {WindowIdentity} from '../model/Identity';
 
 import {DragWindowManager} from './DragWindowManager';
 

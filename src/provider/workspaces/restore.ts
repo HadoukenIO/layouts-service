@@ -10,7 +10,7 @@ import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {promiseFilter, promiseForEach, promiseMap} from '../snapanddock/utils/async';
 import {haveMonitorsBeenDetached} from '../utils/monitor';
-import {getId} from '../utils/identity';
+import {getId} from '../model/Identity';
 
 import {regroupWorkspace} from './group';
 import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, cleanupPlaceholderObjects, closeCorrespondingPlaceholder, createNormalPlaceholder, createTabbedPlaceholderAndRecord, getWindowsWithManuallyClosedPlaceholders, inWindowObject, positionWindow, TabbedPlaceholders, waitUntilAllPlaceholdersClosed, WindowObject} from './placeholder';

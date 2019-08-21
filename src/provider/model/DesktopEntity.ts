@@ -2,8 +2,8 @@ import {Point} from 'hadouken-js-adapter/out/types/src/api/system/point';
 
 import {Scope} from '../../../gen/provider/config/layouts-config';
 import {Rectangle} from '../snapanddock/utils/RectUtils';
-import {WindowIdentity} from '../utils/identity';
 
+import {WindowIdentity} from './Identity';
 import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {DesktopTabGroup} from './DesktopTabGroup';
 import {EntityState} from './DesktopWindow';

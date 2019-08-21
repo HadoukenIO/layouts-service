@@ -14,8 +14,8 @@ import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 import {haveMonitorsBeenDetached} from '../utils/monitor';
-import {WindowIdentity, getId} from '../utils/identity';
 
+import {WindowIdentity, getId} from './Identity';
 import {MonitorAssignmentValidator} from './MonitorAssignmentValidator';
 import {DesktopTabGroup} from './DesktopTabGroup';
 import {DesktopWindow, EntityState} from './DesktopWindow';

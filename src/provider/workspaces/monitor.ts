@@ -7,7 +7,7 @@ import {MonitorAssignmentCalculator, EntityResult, SnapGroupResult} from '../mod
 import {Point} from '../snapanddock/utils/PointUtils';
 import {haveMonitorsBeenDetached} from '../utils/monitor';
 import {DEFAULT_TABSTRIP_HEIGHT} from '../utils/constants';
-import {getId} from '../utils/identity';
+import {getId} from '../model/Identity';
 
 type WindowPartialEntity = {type: 'window', window: WorkspaceWindow};
 type TabGroupPartialEntity = {type: 'tabGroup', tabGroup: TabGroup, windows: WorkspaceWindow[], activeTab: WorkspaceWindow};

@@ -6,8 +6,8 @@ import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
 import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {SERVICE_IDENTITY} from '../../client/internal';
-import {WindowIdentity, getId} from '../utils/identity';
 
+import {WindowIdentity, getId} from './Identity';
 import {DesktopModel} from './DesktopModel';
 import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {DesktopWindow} from './DesktopWindow';

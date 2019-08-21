@@ -1,6 +1,6 @@
 import {Workspace} from '../../src/client/workspaces';
 import {retargetWorkspaceForMonitors} from '../../src/provider/workspaces/monitor';
-import {getId} from '../../src/provider/utils/identity';
+import {getId} from '../../src/provider/model/Identity';
 import {WindowIdentity} from '../../src/client/main';
 import {getMockWorkspace, getMockWorkspaceApp, getMockWorkspaceWindow} from '../mocks';
 

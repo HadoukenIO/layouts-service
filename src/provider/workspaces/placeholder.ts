@@ -5,7 +5,7 @@ import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {WorkspaceApp, WorkspaceWindow} from '../../client/workspaces';
 import {model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
-import {WindowIdentity, getId} from '../utils/identity';
+import {WindowIdentity, getId} from '../model/Identity';
 import {isWin10} from '../snapanddock/utils/platform';
 
 const DEFAULT_PLACEHOLDER_URL = (() => {

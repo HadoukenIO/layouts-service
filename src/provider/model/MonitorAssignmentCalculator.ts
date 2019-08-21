@@ -1,6 +1,7 @@
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
-import {DesktopEntity as ModelDesktopEntity} from '../model/DesktopEntity';
-import {DesktopSnapGroup as ModelDesktopSnapGroup} from '../model/DesktopSnapGroup';
+
+import {DesktopEntity as ModelDesktopEntity} from './DesktopEntity';
+import {DesktopSnapGroup as ModelDesktopSnapGroup} from './DesktopSnapGroup';
 
 export type EntityResult<T = ModelDesktopEntity> = {rectangle: Rectangle, target: T};
 export type SnapGroupResult<T = ModelDesktopEntity, U = ModelDesktopSnapGroup> = {entityResults: EntityResult<T>[], groupRectangle: Rectangle, target: U};

@@ -86,7 +86,7 @@ export class WorkspaceMonitorRetargeter {
             } else {
                 const windowEntity: Entity = {
                     type: 'window', window,
-                    normalBounds: this.getRectangleFromWindow(window)
+                    normalBounds: RectUtils.convertToCenterHalfSize(window.bounds)
                 };
 
                 entitiesById.set(windowId, windowEntity);
@@ -251,13 +251,6 @@ export class WorkspaceMonitorRetargeter {
                 window.bounds.bottom += offset.y;
             }
         }
-    }
-
-    private getRectangleFromWindow(window: WorkspaceWindow): Rectangle {
-        return {
-            center: {x: window.bounds.left + window.bounds.width / 2, y: window.bounds.top + window.bounds.height / 2},
-            halfSize: {x: window.bounds.width / 2, y: window.bounds.height / 2}
-        };
     }
 
     private getRectangleFromTabGroup(tabGroup: TabGroup): Rectangle {

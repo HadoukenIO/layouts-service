@@ -1,5 +1,5 @@
 import {Workspace} from '../../src/client/workspaces';
-import {retargetWorkspaceForMonitors} from '../../src/provider/workspaces/monitor';
+import {WorkspaceMonitorRetargeter} from '../../src/provider/workspaces/WorkspaceMonitorRetargeter';
 import {getId} from '../../src/provider/model/Identity';
 import {WindowIdentity} from '../../src/client/main';
 import {getMockWorkspace, getMockWorkspaceApp, getMockWorkspaceWindow} from '../mocks';
@@ -661,7 +661,7 @@ const twoMonitorTestParams: TestParam[] = [
 
 describe('When restoring a workspace created on a large monitor on a small monitor', () => {
     it.each(smallMonitorTestParams)('%s', (titleParam: string, inputWorkspace: Workspace, expectedWorkspace: Workspace): void => {
-        retargetWorkspaceForMonitors(inputWorkspace, [smallMonitor]);
+        WorkspaceMonitorRetargeter.retargetWorkspaceForMonitors(inputWorkspace, [smallMonitor]);
 
         normalize(inputWorkspace);
         normalize(expectedWorkspace);
@@ -672,7 +672,7 @@ describe('When restoring a workspace created on a large monitor on a small monit
 
 describe('When restoring a workspace created on a single central monitor on a left and a right monitor', () => {
     it.each(twoMonitorTestParams)('%s', (titleParam: string, inputWorkspace: Workspace, expectedWorkspace: Workspace): void => {
-        retargetWorkspaceForMonitors(inputWorkspace, [leftMonitor, rightMonitor]);
+        WorkspaceMonitorRetargeter.retargetWorkspaceForMonitors(inputWorkspace, [leftMonitor, rightMonitor]);
 
         normalize(inputWorkspace);
         normalize(expectedWorkspace);

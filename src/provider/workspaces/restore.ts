@@ -15,7 +15,7 @@ import {getId} from '../model/Identity';
 import {regroupWorkspace} from './group';
 import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, cleanupPlaceholderObjects, closeCorrespondingPlaceholder, createNormalPlaceholder, createTabbedPlaceholderAndRecord, getWindowsWithManuallyClosedPlaceholders, inWindowObject, positionWindow, TabbedPlaceholders, waitUntilAllPlaceholdersClosed, WindowObject} from './placeholder';
 import {canRestoreProgrammatically, consolidateAppResponses, linkAppsToOriginalParentUuid, validatePayload} from './utils';
-import {retargetWorkspaceForMonitors} from './monitor';
+import {WorkspaceMonitorRetargeter} from './WorkspaceMonitorRetargeter';
 
 // Duration in milliseconds that the entire Workspace restore may take, before we allow another restore to start
 const GLOBAL_EXCLUSIVITY_TIMEOUT = 120000;
@@ -64,7 +64,7 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
     const workspace = payload;
     const monitors = model.monitors;
 
-    retargetWorkspaceForMonitors(workspace, monitors);
+    WorkspaceMonitorRetargeter.retargetWorkspaceForMonitors(workspace, monitors);
 
     const startupApps: Promise<WorkspaceApp>[] = [];
 

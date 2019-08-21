@@ -14,17 +14,7 @@ type TabGroupPartialEntity = {type: 'tabGroup', tabGroup: TabGroup, windows: Wor
 type Entity = (WindowPartialEntity | TabGroupPartialEntity) & {normalBounds: Rectangle};
 type SnapGroup = Rectangle & {entities: Entity[]};
 
-export function retargetWorkspaceForMonitors(workspace: Workspace, monitors: ReadonlyArray<Rectangle>): void {
-    const workspaceMonitors = [workspace.monitorInfo.primaryMonitor, ...workspace.monitorInfo.nonPrimaryMonitors];
-
-    const oldMonitors = workspaceMonitors.map(monitor => RectUtils.convertToCenterHalfSize(monitor.availableRect));
-
-    if (haveMonitorsBeenDetached(oldMonitors, monitors)) {
-        new WorkspaceMonitorRetargeter(workspace, monitors).retarget();
-    }
-}
-
-class WorkspaceMonitorRetargeter {
+export class WorkspaceMonitorRetargeter {
     private readonly _workspace: Workspace;
     private readonly _monitors: ReadonlyArray<Rectangle>;
 
@@ -34,7 +24,17 @@ class WorkspaceMonitorRetargeter {
 
     private readonly _detachedEntities: Entity[];
 
-    public constructor(workspace: Workspace, monitors: ReadonlyArray<Rectangle>) {
+    public static retargetWorkspaceForMonitors(workspace: Workspace, monitors: ReadonlyArray<Rectangle>): void {
+        const workspaceMonitors = [workspace.monitorInfo.primaryMonitor, ...workspace.monitorInfo.nonPrimaryMonitors];
+
+        const oldMonitors = workspaceMonitors.map(monitor => RectUtils.convertToCenterHalfSize(monitor.availableRect));
+
+        if (haveMonitorsBeenDetached(oldMonitors, monitors)) {
+            new WorkspaceMonitorRetargeter(workspace, monitors).retarget();
+        }
+    }
+
+    private constructor(workspace: Workspace, monitors: ReadonlyArray<Rectangle>) {
         this._workspace = workspace;
         this._monitors = monitors;
 
@@ -135,7 +135,7 @@ class WorkspaceMonitorRetargeter {
         }
     }
 
-    public retarget(): void {
+    private retarget(): void {
         const calculator = new MonitorAssignmentCalculator(this._monitors);
 
         // Calculate the new desired positions of our workspace entities

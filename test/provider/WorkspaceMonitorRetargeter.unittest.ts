@@ -2,7 +2,7 @@ import {Workspace} from '../../src/client/workspaces';
 import {WorkspaceMonitorRetargeter} from '../../src/provider/workspaces/WorkspaceMonitorRetargeter';
 import {getId} from '../../src/provider/model/Identity';
 import {WindowIdentity} from '../../src/client/main';
-import {getMockWorkspace, getMockWorkspaceApp, getMockWorkspaceWindow} from '../mocks';
+import {getMockWorkspace, getMockWorkspaceApp, getMockWorkspaceWindow, createWorkspaceBounds} from '../mocks';
 import {Rectangle} from '../../src/provider/snapanddock/utils/RectUtils';
 
 type DesktopModel = {
@@ -33,14 +33,7 @@ const singleWindowInputWorkspace: Workspace = {
             ...getMockWorkspaceWindow(),
             uuid: 'app-1',
             name: 'main-window',
-            bounds: {
-                left: 750,
-                right: 1000,
-                top: 100,
-                bottom: 350,
-                width: 250,
-                height: 250
-            }
+            bounds: createWorkspaceBounds({left: 750, right: 1000, top: 100, bottom: 350})
         }
     }]
 };
@@ -53,14 +46,7 @@ const singleWindowExpectedWorkspace: Workspace = {
             ...getMockWorkspaceWindow(),
             uuid: 'app-1',
             name: 'main-window',
-            bounds: {
-                left: 250,
-                right: 500,
-                top: 100,
-                bottom: 350,
-                width: 250,
-                height: 250
-            }
+            bounds: createWorkspaceBounds({left: 250, right: 500, top: 100, bottom: 350})
         }
     }]
 };
@@ -73,14 +59,7 @@ const tabbedWindowInputWorkspace: Workspace = {
             ...getMockWorkspaceWindow(),
             uuid: 'app-1',
             name: 'main-window',
-            bounds: {
-                left: 100,
-                right: 400,
-                top: 500,
-                bottom: 800,
-                width: 300,
-                height: 300
-            },
+            bounds: createWorkspaceBounds({left: 100, right: 400, top: 500, bottom: 800}),
             windowGroup: [
                 {uuid: 'app-1', name: 'child-window-1'}
             ]
@@ -90,14 +69,7 @@ const tabbedWindowInputWorkspace: Workspace = {
                 ...getMockWorkspaceWindow(),
                 uuid: 'app-1',
                 name: 'child-window-1',
-                bounds: {
-                    left: 100,
-                    right: 400,
-                    top: 500,
-                    bottom: 800,
-                    width: 300,
-                    height: 300
-                },
+                bounds: createWorkspaceBounds({left: 100, right: 400, top: 500, bottom: 800}),
                 windowGroup: [
                     {uuid: 'app-1', name: 'main-window'}
                 ]
@@ -133,14 +105,7 @@ const tabbedWindowExpectedWorkspace: Workspace = {
             ...getMockWorkspaceWindow(),
             uuid: 'app-1',
             name: 'main-window',
-            bounds: {
-                left: 100,
-                right: 400,
-                top: 200,
-                bottom: 500,
-                width: 300,
-                height: 300
-            },
+            bounds: createWorkspaceBounds({left: 100, right: 400, top: 200, bottom: 500}),
             windowGroup: [
                 {uuid: 'app-1', name: 'child-window-1'}
             ]
@@ -150,14 +115,7 @@ const tabbedWindowExpectedWorkspace: Workspace = {
                 ...getMockWorkspaceWindow(),
                 uuid: 'app-1',
                 name: 'child-window-1',
-                bounds: {
-                    left: 100,
-                    right: 400,
-                    top: 200,
-                    bottom: 500,
-                    width: 300,
-                    height: 300
-                },
+                bounds: createWorkspaceBounds({left: 100, right: 400, top: 200, bottom: 500}),
                 windowGroup: [
                     {uuid: 'app-1', name: 'main-window'}
                 ]
@@ -194,14 +152,7 @@ const twoGroupsInputWorkspace: Workspace = {
                 ...getMockWorkspaceWindow(),
                 uuid: 'app-1',
                 name: 'main-window',
-                bounds: {
-                    left: -100,
-                    right: 200,
-                    top: 300,
-                    bottom: 400,
-                    width: 300,
-                    height: 100
-                },
+                bounds: createWorkspaceBounds({left: -100, right: 200, top: 300, bottom: 400}),
                 windowGroup: [
                     {uuid: 'app-2', name: 'child-window-1'}
                 ]
@@ -211,14 +162,7 @@ const twoGroupsInputWorkspace: Workspace = {
                     ...getMockWorkspaceWindow(),
                     uuid: 'app-1',
                     name: 'child-window-1',
-                    bounds: {
-                        left: 400,
-                        right: 600,
-                        top: -100,
-                        bottom: 100,
-                        width: 200,
-                        height: 200
-                    },
+                    bounds: createWorkspaceBounds({left: 400, right: 600, top: -100, bottom: 100}),
                     windowGroup: [
                         {uuid: 'app-1', name: 'child-window-2'},
                         {uuid: 'app-2', name: 'main-window'}
@@ -228,14 +172,7 @@ const twoGroupsInputWorkspace: Workspace = {
                     ...getMockWorkspaceWindow(),
                     uuid: 'app-1',
                     name: 'child-window-2',
-                    bounds: {
-                        left: 400,
-                        right: 600,
-                        top: -100,
-                        bottom: 100,
-                        width: 200,
-                        height: 200
-                    },
+                    bounds: createWorkspaceBounds({left: 400, right: 600, top: -100, bottom: 100}),
                     windowGroup: [
                         {uuid: 'app-1', name: 'child-window-1'},
                         {uuid: 'app-2', name: 'main-window'}
@@ -249,14 +186,7 @@ const twoGroupsInputWorkspace: Workspace = {
                 ...getMockWorkspaceWindow(),
                 uuid: 'app-2',
                 name: 'main-window',
-                bounds: {
-                    left: 400,
-                    right: 650,
-                    top: 100,
-                    bottom: 200,
-                    width: 250,
-                    height: 100
-                },
+                bounds: createWorkspaceBounds({left: 400, right: 650, top: 100, bottom: 200}),
                 windowGroup: [
                     {uuid: 'app-1', name: 'child-window-1'},
                     {uuid: 'app-1', name: 'child-window-2'}
@@ -267,14 +197,7 @@ const twoGroupsInputWorkspace: Workspace = {
                     ...getMockWorkspaceWindow(),
                     uuid: 'app-2',
                     name: 'child-window-1',
-                    bounds: {
-                        left: -200,
-                        right: 200,
-                        top: 400,
-                        bottom: 550,
-                        width: 400,
-                        height: 150
-                    },
+                    bounds: createWorkspaceBounds({left: -200, right: 200, top: 400, bottom: 550}),
                     windowGroup: [
                         {uuid: 'app-1', name: 'main-window'}
                     ]
@@ -315,14 +238,7 @@ const twoGroupsExpectedWorkspace: Workspace = {
                 ...getMockWorkspaceWindow(),
                 uuid: 'app-1',
                 name: 'main-window',
-                bounds: {
-                    left: 100,
-                    right: 400,
-                    top: 250,
-                    bottom: 350,
-                    width: 300,
-                    height: 100
-                },
+                bounds: createWorkspaceBounds({left: 100, right: 400, top: 250, bottom: 350}),
                 windowGroup: [
                     {uuid: 'app-2', name: 'child-window-1'}
                 ]
@@ -332,14 +248,7 @@ const twoGroupsExpectedWorkspace: Workspace = {
                     ...getMockWorkspaceWindow(),
                     uuid: 'app-1',
                     name: 'child-window-1',
-                    bounds: {
-                        left: 250,
-                        right: 450,
-                        top: 100,
-                        bottom: 300,
-                        width: 200,
-                        height: 200
-                    },
+                    bounds: createWorkspaceBounds({left: 250, right: 450, top: 100, bottom: 300}),
                     windowGroup: [
                         {uuid: 'app-1', name: 'child-window-2'},
                         {uuid: 'app-2', name: 'main-window'}
@@ -349,14 +258,7 @@ const twoGroupsExpectedWorkspace: Workspace = {
                     ...getMockWorkspaceWindow(),
                     uuid: 'app-1',
                     name: 'child-window-2',
-                    bounds: {
-                        left: 250,
-                        right: 450,
-                        top: 100,
-                        bottom: 300,
-                        width: 200,
-                        height: 200
-                    },
+                    bounds: createWorkspaceBounds({left: 250, right: 450, top: 100, bottom: 300}),
                     windowGroup: [
                         {uuid: 'app-1', name: 'child-window-1'},
                         {uuid: 'app-2', name: 'main-window'}
@@ -370,14 +272,7 @@ const twoGroupsExpectedWorkspace: Workspace = {
                 ...getMockWorkspaceWindow(),
                 uuid: 'app-2',
                 name: 'main-window',
-                bounds: {
-                    left: 250,
-                    right: 500,
-                    top: 300,
-                    bottom: 400,
-                    width: 250,
-                    height: 100
-                },
+                bounds: createWorkspaceBounds({left: 250, right: 500, top: 300, bottom: 400}),
                 windowGroup: [
                     {uuid: 'app-1', name: 'child-window-1'},
                     {uuid: 'app-1', name: 'child-window-2'}
@@ -388,14 +283,7 @@ const twoGroupsExpectedWorkspace: Workspace = {
                     ...getMockWorkspaceWindow(),
                     uuid: 'app-2',
                     name: 'child-window-1',
-                    bounds: {
-                        left: 0,
-                        right: 400,
-                        top: 350,
-                        bottom: 500,
-                        width: 400,
-                        height: 150
-                    },
+                    bounds: createWorkspaceBounds({left: 0, right: 400, top: 350, bottom: 500}),
                     windowGroup: [
                         {uuid: 'app-1', name: 'main-window'}
                     ]
@@ -436,14 +324,8 @@ const largeGroupInputWorkspace: Workspace = {
                 ...getMockWorkspaceWindow(),
                 uuid: 'app-1',
                 name: 'corner-window',
-                bounds: {
-                    left: 0,
-                    right: 300,
-                    top: 0,
-                    bottom: 200,
-                    width: 300,
-                    height: 200
-                },
+                bounds: createWorkspaceBounds({left: 0, right: 300, top: 0, bottom: 200
+                }),
                 windowGroup: [
                     {uuid: 'app-1', name: 'top-window'},
                     {uuid: 'app-1', name: 'right-window'}
@@ -454,14 +336,7 @@ const largeGroupInputWorkspace: Workspace = {
                     ...getMockWorkspaceWindow(),
                     uuid: 'app-1',
                     name: 'top-window',
-                    bounds: {
-                        left: 0,
-                        right: 300,
-                        top: -600,
-                        bottom: 0,
-                        width: 300,
-                        height: 600
-                    },
+                    bounds: createWorkspaceBounds({left: 0, right: 300, top: -600, bottom: 0}),
                     windowGroup: [
                         {uuid: 'app-1', name: 'corner-window'},
                         {uuid: 'app-1', name: 'right-window'}
@@ -471,14 +346,7 @@ const largeGroupInputWorkspace: Workspace = {
                     ...getMockWorkspaceWindow(),
                     uuid: 'app-1',
                     name: 'right-window',
-                    bounds: {
-                        left: 300,
-                        right: 700,
-                        top: 0,
-                        bottom: 200,
-                        width: 400,
-                        height: 200
-                    },
+                    bounds: createWorkspaceBounds({left: 300, right: 700, top: 0, bottom: 200}),
                     windowGroup: [
                         {uuid: 'app-1', name: 'corner-window'},
                         {uuid: 'app-1', name: 'top-window'}
@@ -498,41 +366,20 @@ const largeGroupExpectedWorkspace: Workspace = {
                 ...getMockWorkspaceWindow(),
                 uuid: 'app-1',
                 name: 'corner-window',
-                bounds: {
-                    left: 0,
-                    right: 300,
-                    top: 300,
-                    bottom: 500,
-                    width: 300,
-                    height: 200
-                }
+                bounds: createWorkspaceBounds({left: 0, right: 300, top: 300, bottom: 500})
             },
             childWindows: [
                 {
                     ...getMockWorkspaceWindow(),
                     uuid: 'app-1',
                     name: 'top-window',
-                    bounds: {
-                        left: 0,
-                        right: 300,
-                        top: 0,
-                        bottom: 600,
-                        width: 300,
-                        height: 600
-                    }
+                    bounds: createWorkspaceBounds({left: 0, right: 300, top: 0, bottom: 600})
                 },
                 {
                     ...getMockWorkspaceWindow(),
                     uuid: 'app-1',
                     name: 'right-window',
-                    bounds: {
-                        left: 100,
-                        right: 500,
-                        top: 300,
-                        bottom: 500,
-                        width: 400,
-                        height: 200
-                    }
+                    bounds: createWorkspaceBounds({left: 100, right: 500, top: 300, bottom: 500})
                 }
             ]
         }
@@ -547,14 +394,7 @@ const windowStillOnScreenInputWorkspace: Workspace = {
             ...getMockWorkspaceWindow(),
             uuid: 'app-1',
             name: 'main-window',
-            bounds: {
-                left: 50,
-                right: 250,
-                top: 200,
-                bottom: 400,
-                width: 200,
-                height: 200
-            }
+            bounds: createWorkspaceBounds({left: 50, right: 250, top: 200, bottom: 400})
         }
     }]
 };
@@ -567,14 +407,7 @@ const windowStillOnScreenExpectedWorkspace: Workspace = {
             ...getMockWorkspaceWindow(),
             uuid: 'app-1',
             name: 'main-window',
-            bounds: {
-                left: 50,
-                right: 250,
-                top: 200,
-                bottom: 400,
-                width: 200,
-                height: 200
-            }
+            bounds: createWorkspaceBounds({left: 50, right: 250, top: 200, bottom: 400})
         }
     }]
 };
@@ -587,14 +420,7 @@ const leftAndRightWindowsInputWorkspace: Workspace = {
             ...getMockWorkspaceWindow(),
             uuid: 'left-app',
             name: 'main-window',
-            bounds: {
-                left: 0,
-                right: 400,
-                top: 0,
-                bottom: 200,
-                width: 400,
-                height: 200
-            }
+            bounds: createWorkspaceBounds({left: 0, right: 400, top: 0, bottom: 200})
         }
     },
     {
@@ -603,14 +429,7 @@ const leftAndRightWindowsInputWorkspace: Workspace = {
             ...getMockWorkspaceWindow(),
             uuid: 'right-app',
             name: 'main-window',
-            bounds: {
-                left: 200,
-                right: 500,
-                top: 300,
-                bottom: 500,
-                width: 300,
-                height: 200
-            }
+            bounds: createWorkspaceBounds({left: 200, right: 500, top: 300, bottom: 500})
         }
     }]
 };
@@ -623,14 +442,7 @@ const leftAndRightWindowsExpectedWorkspace: Workspace = {
             ...getMockWorkspaceWindow(),
             uuid: 'left-app',
             name: 'main-window',
-            bounds: {
-                left: -150,
-                right: 250,
-                top: 0,
-                bottom: 200,
-                width: 400,
-                height: 200
-            }
+            bounds: createWorkspaceBounds({left: -150, right: 250, top: 0, bottom: 200})
         }
     },
     {
@@ -639,14 +451,7 @@ const leftAndRightWindowsExpectedWorkspace: Workspace = {
             ...getMockWorkspaceWindow(),
             uuid: 'right-app',
             name: 'main-window',
-            bounds: {
-                left: 250,
-                right: 550,
-                top: 300,
-                bottom: 500,
-                width: 300,
-                height: 200
-            }
+            bounds: createWorkspaceBounds({left: 250, right: 550, top: 300, bottom: 500})
         }
     }]
 };

@@ -1,3 +1,5 @@
+import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
+
 import {WorkspaceWindow, WorkspaceApp, Workspace} from '../src/client/workspaces';
 
 export function getMockWorkspaceWindow(): WorkspaceWindow {
@@ -127,5 +129,13 @@ export function getMockWorkspace(): Workspace {
         },
         apps: [],
         tabGroups: []
+    };
+}
+
+export function createWorkspaceBounds(bounds: {left: number, right: number, top: number, bottom: number}): Required<Bounds> {
+    return {
+        ...bounds,
+        width: bounds.right - bounds.left,
+        height: bounds.bottom - bounds.top
     };
 }

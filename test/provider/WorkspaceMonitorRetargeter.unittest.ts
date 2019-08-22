@@ -80,12 +80,7 @@ const tabbedWindowInputWorkspace: Workspace = {
         {
             groupInfo: {
                 active: {uuid: 'app-1', name: 'child-window-1'},
-                dimensions: {
-                    x: 100,
-                    y: 440,
-                    appHeight: 300,
-                    width: 300
-                },
+                dimensions: {x: 100, y: 440, appHeight: 300, width: 300},
                 config: 'default',
                 state: 'normal'
             },
@@ -126,12 +121,7 @@ const tabbedWindowExpectedWorkspace: Workspace = {
         {
             groupInfo: {
                 active: {uuid: 'app-1', name: 'child-window-1'},
-                dimensions: {
-                    x: 100,
-                    y: 140,
-                    appHeight: 300,
-                    width: 300
-                },
+                dimensions: {x: 100, y: 140, appHeight: 300, width: 300},
                 config: 'default',
                 state: 'normal'
             },
@@ -209,16 +199,9 @@ const twoGroupsInputWorkspace: Workspace = {
         {
             groupInfo: {
                 active: {uuid: 'app-1', name: 'child-window-2'},
-                config: {
-                    url: '',
-                    height: 100
-                },
+                config: {url: '', height: 100},
                 state: 'normal',
-                dimensions: {
-                    x: 400,
-                    y: -200,
-                    width: 200,
-                    appHeight: 200
+                dimensions: {x: 400, y: -200, width: 200, appHeight: 200
                 }
             },
             tabs: [
@@ -295,17 +278,9 @@ const twoGroupsExpectedWorkspace: Workspace = {
         {
             groupInfo: {
                 active: {uuid: 'app-1', name: 'child-window-2'},
-                config: {
-                    url: '',
-                    height: 100
-                },
+                config: {url: '', height: 100},
                 state: 'normal',
-                dimensions: {
-                    x: 250,
-                    y: 0,
-                    width: 200,
-                    appHeight: 200
-                }
+                dimensions: {x: 250, y: 0, width: 200, appHeight: 200}
             },
             tabs: [
                 {uuid: 'app-1', name: 'child-window-1'},

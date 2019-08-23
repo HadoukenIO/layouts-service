@@ -99,7 +99,7 @@ export class WorkspaceMonitorRetargeter {
             const groupedEntities: Entity[] = [];
 
             for (const groupedEntityIdentity of entity.type === 'window' ? entity.window.windowGroup : entity.activeTab.windowGroup) {
-                const groupedEntity = entitiesById.get(getId(groupedEntityIdentity));
+                const groupedEntity = entitiesById.get(getId(groupedEntityIdentity as WindowIdentity));
 
                 if (groupedEntity) {
                     groupedEntities.push(groupedEntity);
@@ -174,10 +174,10 @@ export class WorkspaceMonitorRetargeter {
             let remainingWindowIdentities: WindowIdentity[];
 
             if (entity.type === 'window') {
-                remainingWindowIdentities = entity.window.windowGroup;
+                remainingWindowIdentities = entity.window.windowGroup as WindowIdentity[];
                 entity.window.windowGroup = [];
             } else {
-                remainingWindowIdentities = entity.activeTab.windowGroup.filter(identity => {
+                remainingWindowIdentities = (entity.activeTab.windowGroup as WindowIdentity[]).filter(identity => {
                     const id = getId(identity);
                     return !entity.windows.some(tab => getId(tab) === id);
                 }) as WindowIdentity[];

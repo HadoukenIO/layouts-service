@@ -19,7 +19,7 @@ import {canRestoreProgrammatically, parseVersionString, wasCreatedFromManifest} 
 
 // This value should be updated any time changes are made to the Workspace schema.
 // Major version indicates breaking changes.
-export const LAYOUTS_SCHEMA_VERSION = '1.0.1';
+export const LAYOUTS_SCHEMA_VERSION = '1.0.0';
 export const SCHEMA_MAJOR_VERSION = parseVersionString(LAYOUTS_SCHEMA_VERSION).major;
 
 /**

@@ -471,11 +471,11 @@ function normalize(workspace: Workspace): void {
     workspace.apps.sort((app1, app2) => app1.uuid.localeCompare(app2.uuid, 'en'));
 
     for (const app of workspace.apps) {
-        app.mainWindow.windowGroup.sort(compareIdentities);
+        (app.mainWindow.windowGroup as WindowIdentity[]).sort(compareIdentities);
 
         app.childWindows.sort(compareIdentities);
         for (const childWindow of app.childWindows) {
-            childWindow.windowGroup.sort(compareIdentities);
+            (childWindow.windowGroup as WindowIdentity[]).sort(compareIdentities);
         }
     }
 

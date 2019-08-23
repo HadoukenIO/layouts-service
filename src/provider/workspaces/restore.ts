@@ -61,10 +61,14 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
 
     const workspace = payload;
     const startupApps: Promise<WorkspaceApp>[] = [];
+    const manifestApps: WorkspaceApp[] = [];
 
     await createWorkspacePlaceholders(workspace);
 
-    const apps: WorkspaceApp[] = await promiseMap(workspace.apps, app => restoreApp(app, startupApps));
+    const apps: WorkspaceApp[] = await promiseMap(workspace.apps, app => restoreApp(app, startupApps, manifestApps));
+
+    //@ts-ignore
+    fin.Application.startManyManifests(manifestApps);
 
     // Wait for all apps to start-up
     const startupResponses: WorkspaceApp[] = await Promise.all(startupApps);
@@ -219,7 +223,7 @@ const createWorkspacePlaceholders = async(workspace: Workspace): Promise<void> =
     await tabService.createTabGroupsFromWorkspace(tabGroupsCopy);
 };
 
-const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]): Promise<WorkspaceApp> => {
+const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[], manifestApps: WorkspaceApp[]): Promise<WorkspaceApp> => {
     // Get rid of childWindows for default response (anything else?)
     const defaultResponse = {...app, childWindows: []};
     try {
@@ -241,7 +245,6 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
                 return defaultResponse;
             }
         } else {
-            let ofAppNotRunning: Application|undefined;
             console.log('App is not running:', app);
 
             // App is not running - setup communication to fire once app is started
@@ -255,25 +258,16 @@ const restoreApp = async(app: WorkspaceApp, startupApps: Promise<WorkspaceApp>[]
                 // If app created by manifest
                 const {manifestUrl} = app;
                 console.log('App has manifestUrl:', app);
-                ofAppNotRunning = await fin.Application.createFromManifest(manifestUrl);
+                manifestApps.push(app);
             } else {
                 // If application created programmatically
                 if (canRestoreProgrammatically(app)) {
                     console.warn('App created programmatically, app may not restart again:', app);
-                    ofAppNotRunning = await fin.Application.create(app.initialOptions);
+                    const createdApp = await fin.Application.create(app.initialOptions);
+                    await createdApp.run();
                 } else {
                     console.error('Unable to restart programmatically launched app:', app);
                 }
-            }
-
-            if (ofAppNotRunning) {
-                // Application.run() can hang with createFromManifest calls, so we set a timeout to
-                // continue restoration even if run() hangs.
-                // We throw an exception to continue restoration, so take a look at the functions in our
-                // catch to see how we handle it.
-                await attemptToRunCreatedApp(ofAppNotRunning);
-                await model.expect({uuid, name: uuid});
-                await positionWindow(app.mainWindow, true);
             }
             // SHOULD WE RETURN DEFAULT RESPONSE HERE?!?
             return defaultResponse;

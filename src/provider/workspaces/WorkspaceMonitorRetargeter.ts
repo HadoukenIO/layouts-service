@@ -129,7 +129,7 @@ export class WorkspaceMonitorRetargeter {
                 targetEntities = this._entities;
             }
 
-            for (const entity of group.values()) {
+            for (const entity of group) {
                 targetEntities.push(entity);
             }
 

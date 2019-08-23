@@ -98,7 +98,7 @@ export class DesktopModel {
 
         // Validate everything on monitor change, as groups may become disjointed
         fin.System.addListener('monitor-info-changed', async (evt: MonitorEvent<'system', 'monitor-info-changed'>) => {
-            const oldMonitors = this._monitors;
+            const oldMonitors: Rectangle[] = this._monitors;
 
             this._monitors = [evt.primaryMonitor, ...evt.nonPrimaryMonitors].map(mon => RectUtils.convertToCenterHalfSize(mon.availableRect));
             this._displayScaling = evt.deviceScaleFactor !== 1;
@@ -154,7 +154,7 @@ export class DesktopModel {
      * @param identity Window identifier - either a UUID/name object, or a stringified identity as created by @see getId
      */
     public getWindow(identity: WindowIdentity|string): DesktopWindow|null {
-        const id = typeof identity === 'string' ? identity : getId(identity);
+        const id: string = typeof identity === 'string' ? identity : getId(identity);
         return this._windows.find(window => window.id === id) || null;
     }
 
@@ -199,12 +199,12 @@ export class DesktopModel {
      */
     public getMonitorByRect(rect: Rectangle): Rectangle {
         // As a useful heuristic, if the center of the given rect is inside a monitor rect, that monitor will be the most overlapped.
-        const monitorWithCenter = this._monitors.find(mon => RectUtils.isPointInRect(mon.center, mon.halfSize, rect.center));
+        const monitorWithCenter: Rectangle | undefined = this._monitors.find(mon => RectUtils.isPointInRect(mon.center, mon.halfSize, rect.center));
         if (monitorWithCenter) {
             return RectUtils.clone(monitorWithCenter);
         }
         // Finds the monitor which has the largest overlapping area with the given rect
-        const mostOverlappedMonitor =
+        const mostOverlappedMonitor: Rectangle =
             this._monitors.reduce((prev, current) => RectUtils.overlappingArea(prev, rect) > RectUtils.overlappingArea(current, rect) ? prev : current);
         return RectUtils.clone(mostOverlappedMonitor);
     }
@@ -272,7 +272,7 @@ export class DesktopModel {
         let slot: SignalSlot|null = null;
         const windowPromise: Promise<DesktopWindow> = new Promise((resolve, reject) => {
             const window: DesktopWindow|null = this.getWindow(identity);
-            const id = getId(identity);
+            const id: string = getId(identity);
 
             if (window) {
                 resolve(window);

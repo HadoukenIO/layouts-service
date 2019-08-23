@@ -2,11 +2,11 @@ import {Identity, Window} from 'hadouken-js-adapter';
 import * as assert from 'power-assert';
 import * as robot from 'robotjs';
 
-import {WindowIdentity} from '../../src/provider/model/DesktopWindow';
 import {executeJavascriptOnService} from '../demo/utils/serviceUtils';
 import {getTabstrip} from '../demo/utils/tabServiceUtils';
 import {tearoutTab} from '../demo/utils/tabstripUtils';
 import {teardown} from '../teardown';
+import {WindowIdentity} from '../../src/client/main';
 
 import {assertAllMaximized, assertAllNormalState, assertNotTabbed, assertPairTabbed} from './utils/assertions';
 import {createChildWindow} from './utils/createChildWindow';

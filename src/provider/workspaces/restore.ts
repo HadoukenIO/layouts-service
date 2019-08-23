@@ -5,15 +5,16 @@ import {Identity} from 'hadouken-js-adapter/out/types/src/identity';
 import {WorkspaceAPI} from '../../client/internal';
 import {TabGroup, Workspace, WorkspaceApp, WorkspaceRestoredEvent} from '../../client/workspaces';
 import {EVENT_CHANNEL_TOPIC} from '../APIMessages';
-import {apiHandler, loader, model, tabService} from '../main';
+import {apiHandler, model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
-import {DesktopWindow, WindowIdentity} from '../model/DesktopWindow';
 import {promiseFilter, promiseForEach, promiseMap} from '../snapanddock/utils/async';
+import {getId} from '../model/Identity';
 
 import {regroupWorkspace} from './group';
-import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, cleanupPlaceholderObjects, closeCorrespondingPlaceholder, createNormalPlaceholder, createTabbedPlaceholderAndRecord, getId, getWindowsWithManuallyClosedPlaceholders, inWindowObject, positionWindow, TabbedPlaceholders, waitUntilAllPlaceholdersClosed, WindowObject} from './placeholder';
+import {addToWindowObject, childWindowPlaceholderCheck, childWindowPlaceholderCheckRunningApp, cleanupPlaceholderObjects, closeCorrespondingPlaceholder, createNormalPlaceholder, createTabbedPlaceholderAndRecord, getWindowsWithManuallyClosedPlaceholders, inWindowObject, positionWindow, TabbedPlaceholders, waitUntilAllPlaceholdersClosed, WindowObject} from './placeholder';
 import {canRestoreProgrammatically, consolidateAppResponses, linkAppsToOriginalParentUuid, validatePayload} from './utils';
+import {WorkspaceMonitorRetargeter} from './WorkspaceMonitorRetargeter';
 
 // Duration in milliseconds that the entire Workspace restore may take, before we allow another restore to start
 const GLOBAL_EXCLUSIVITY_TIMEOUT = 120000;
@@ -60,6 +61,10 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
     startExclusivityTimeout();
 
     const workspace = payload;
+    const monitors = model.monitors.slice();
+
+    WorkspaceMonitorRetargeter.retargetWorkspaceForMonitors(workspace, model);
+
     const startupApps: Promise<WorkspaceApp>[] = [];
 
     await createWorkspacePlaceholders(workspace);
@@ -96,10 +101,14 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
         group.validate();
     }
 
-    const event: WorkspaceRestoredEvent = {type: 'workspace-restored', workspace};
-    apiHandler.sendToAll(EVENT_CHANNEL_TOPIC, event);
+    if (!model.hasAllMonitors(monitors)) {
+        await model.validateMonitorAssignment();
+    }
 
     restorationCleanup();
+
+    const event: WorkspaceRestoredEvent = {type: 'workspace-restored', workspace};
+    apiHandler.sendToAll(EVENT_CHANNEL_TOPIC, event);
 
     console.log('Restore completed: ', workspace);
 

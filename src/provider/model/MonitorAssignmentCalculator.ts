@@ -1,22 +1,25 @@
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 
-export type EntityResult = Rectangle;
-export type SnapGroupResult = {entityResults: EntityResult[], groupRectangle: Rectangle};
+import {DesktopEntity as ModelDesktopEntity} from './DesktopEntity';
+import {DesktopSnapGroup as ModelDesktopSnapGroup} from './DesktopSnapGroup';
+
+export type EntityResult<T = ModelDesktopEntity> = {rectangle: Rectangle, target: T};
+export type SnapGroupResult<T = ModelDesktopEntity, U = ModelDesktopSnapGroup> = {entityResults: EntityResult<T>[], groupRectangle: Rectangle, target: U};
 
 type EntityAndMonitorRectangles = {entityRectangle: Rectangle, monitorRectangle: Rectangle}
 
 // Limit ourselves to just the bits of DesktopEntity and SnapGroups we want
-type DesktopEntity = {normalBounds: Rectangle};
-type DesktopSnapGroup = {entities: DesktopEntity[]} & Rectangle;
+type DesktopEntity<T = ModelDesktopEntity> = {normalBounds: Rectangle} & T;
+type DesktopSnapGroup<T = ModelDesktopEntity, U = ModelDesktopSnapGroup> = {entities: DesktopEntity<T>[]} & Rectangle & U;
 
 export class MonitorAssignmentCalculator {
-    private _monitorRectangles: ReadonlyArray<Rectangle>;
+    private readonly _monitorRectangles: ReadonlyArray<Rectangle>;
 
     public constructor(monitorRectangles: ReadonlyArray<Rectangle>) {
         this._monitorRectangles = monitorRectangles;
     }
 
-    public getMovedSnapGroupRectangles(snapGroup: DesktopSnapGroup): SnapGroupResult {
+    public getMovedSnapGroupRectangles<T, U>(snapGroup: DesktopSnapGroup<T, U>): SnapGroupResult<T, U> {
         const groupResult = this.getMovedEntityAndMonitorRectangle(snapGroup);
 
         const monitorRectangle = groupResult.monitorRectangle;
@@ -32,13 +35,17 @@ export class MonitorAssignmentCalculator {
             halfSize: {...entity.normalBounds.halfSize}}));
 
         return {
-            entityResults: entityRectangles.map(rectangle => this.getEntityRectangleForMonitor(rectangle, monitorRectangle).rectangle),
-            groupRectangle
+            entityResults: entityRectangles.map((rectangle, index) => ({
+                rectangle: this.getEntityRectangleForMonitor(rectangle, monitorRectangle).rectangle,
+                target: snapGroup.entities[index]
+            })),
+            groupRectangle,
+            target: snapGroup
         };
     }
 
-    public getMovedEntityRectangle(entity: DesktopEntity): EntityResult {
-        return this.getMovedEntityAndMonitorRectangle(entity.normalBounds).entityRectangle;
+    public getMovedEntityRectangle<T>(entity: DesktopEntity<T>): EntityResult<T> {
+        return {rectangle: this.getMovedEntityAndMonitorRectangle(entity.normalBounds).entityRectangle, target: entity};
     }
 
     /**

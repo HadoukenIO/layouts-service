@@ -1,7 +1,7 @@
 import {Identity} from 'hadouken-js-adapter';
 
-import {WindowIdentity} from '../../../src/provider/model/DesktopWindow';
 import {Point} from '../../../src/provider/snapanddock/utils/PointUtils';
+import {WindowIdentity} from '../../../src/client/main';
 
 import {executeJavascriptOnService} from './serviceUtils';
 

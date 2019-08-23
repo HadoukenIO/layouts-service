@@ -11,11 +11,12 @@ import {Debounced} from '../snapanddock/utils/Debounced';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 
+import {WindowIdentity, getId} from './Identity';
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
 import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {DesktopTabstripFactory} from './DesktopTabstripFactory';
-import {DesktopWindow, EntityState, eTransformType, Mask, ResizeConstraint, WindowIdentity} from './DesktopWindow';
+import {DesktopWindow, EntityState, eTransformType, Mask, ResizeConstraint} from './DesktopWindow';
 
 /**
  * Handles functionality for the TabSet
@@ -390,7 +391,7 @@ export class DesktopTabGroup implements DesktopEntity {
         const newlyOrdered: DesktopWindow[] = orderReference
             .map((ref: WindowIdentity) => {
                 // Look-up each given identity within list of tabs
-                const refId = this._model.getId(ref);
+                const refId = getId(ref);
                 return this._tabs.find((tab: DesktopWindow) => {
                     return tab.id === refId;
                 });

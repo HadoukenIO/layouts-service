@@ -8,11 +8,12 @@ import {ErrorType, getErrorMessage, MessageMap} from './APIMessages';
 import {ConfigStore} from './main';
 import {DesktopModel} from './model/DesktopModel';
 import {DesktopTabGroup} from './model/DesktopTabGroup';
-import {DesktopWindow, WindowIdentity} from './model/DesktopWindow';
+import {DesktopWindow} from './model/DesktopWindow';
 import {SnapService} from './snapanddock/SnapService';
 import {TabService} from './tabbing/TabService';
 import {generateWorkspace} from './workspaces/create';
 import {appReadyForRestore, restoreWorkspace} from './workspaces/restore';
+import {WindowIdentity} from './model/Identity';
 
 /**
  * Manages all communication with the client. Stateless class that listens for incoming messages, and handles sending of messages to connected client(s).

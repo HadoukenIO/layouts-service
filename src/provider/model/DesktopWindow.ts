@@ -1,5 +1,5 @@
 import deepEqual from 'fast-deep-equal';
-import {Identity, Window} from 'hadouken-js-adapter';
+import {Window} from 'hadouken-js-adapter';
 import {WindowInfo} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {Aggregators, Signal} from 'openfin-service-signal';
 
@@ -15,6 +15,7 @@ import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle} from '../snapanddock/utils/RectUtils';
 import {forEachProperty} from '../utils/iteration';
 
+import {WindowIdentity} from './Identity';
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
 import {DesktopSnapGroup} from './DesktopSnapGroup';
@@ -47,11 +48,6 @@ export interface ResizeConstraint {
     resizableMax: boolean;
     minSize: number;
     maxSize: number;
-}
-
-export interface WindowIdentity extends Identity {
-    uuid: string;
-    name: string;
 }
 
 /**

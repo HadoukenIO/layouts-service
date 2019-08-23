@@ -2,8 +2,9 @@ import {ConfigStore} from '../main';
 import {DesktopEntity} from '../model/DesktopEntity';
 import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
-import {DesktopWindow, WindowIdentity} from '../model/DesktopWindow';
+import {DesktopWindow} from '../model/DesktopWindow';
 import {Target} from '../WindowHandler';
+import {WindowIdentity} from '../model/Identity';
 
 import {EXPLODE_MOVE_SCALE, UNDOCK_MOVE_DISTANCE} from './Constants';
 import {Resolver, SnapTarget} from './Resolver';

@@ -14,9 +14,10 @@ import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 
+import {WindowIdentity, getId} from './Identity';
 import {MonitorAssignmentValidator} from './MonitorAssignmentValidator';
 import {DesktopTabGroup} from './DesktopTabGroup';
-import {DesktopWindow, EntityState, WindowIdentity} from './DesktopWindow';
+import {DesktopWindow, EntityState} from './DesktopWindow';
 import {MouseTracker} from './MouseTracker';
 import {ZIndexer} from './ZIndexer';
 
@@ -97,6 +98,8 @@ export class DesktopModel {
 
         // Validate everything on monitor change, as groups may become disjointed
         fin.System.addListener('monitor-info-changed', async (evt: MonitorEvent<'system', 'monitor-info-changed'>) => {
+            const oldMonitors: Rectangle[] = this._monitors;
+
             this._monitors = [evt.primaryMonitor, ...evt.nonPrimaryMonitors].map(mon => RectUtils.convertToCenterHalfSize(mon.availableRect));
             this._displayScaling = evt.deviceScaleFactor !== 1;
 
@@ -107,7 +110,9 @@ export class DesktopModel {
             await Promise.all(this.snapGroups.map(g => g.validate()));
 
             // Validate monitor assignment
-            await this._monitorAssignmentValidator.validate();
+            if (!this.hasAllMonitors(oldMonitors)) {
+                await this._monitorAssignmentValidator.validate();
+            }
         });
 
         // Get and store the current monitors
@@ -133,10 +138,6 @@ export class DesktopModel {
         return this._snapGroups;
     }
 
-    public getId(identity: WindowIdentity): string {
-        return `${identity.uuid}/${identity.name}`;
-    }
-
     public get monitors(): ReadonlyArray<Rectangle> {
         return this._monitors;
     }
@@ -153,13 +154,13 @@ export class DesktopModel {
      * @param identity Window identifier - either a UUID/name object, or a stringified identity as created by @see getId
      */
     public getWindow(identity: WindowIdentity|string): DesktopWindow|null {
-        const id = typeof identity === 'string' ? identity : this.getId(identity);
+        const id: string = typeof identity === 'string' ? identity : getId(identity);
         return this._windows.find(window => window.id === id) || null;
     }
 
     public getWindowAt(x: number, y: number, exclude?: WindowIdentity): DesktopWindow|null {
         const point: Point = {x, y};
-        const excludeId: string|undefined = exclude && this.getId(exclude);
+        const excludeId: string|undefined = exclude && getId(exclude);
 
         const modelWindowsAtPoint: DesktopWindow[] = this._windows.filter((window: DesktopWindow) => {
             const state: EntityState = window.currentState;
@@ -180,7 +181,7 @@ export class DesktopModel {
         const topMostModelWindow: DesktopWindow|null = this._zIndexer.getTopMost(modelWindowsAtPointToInclude);
         const topMostWindow: WindowIdentity|null = this._zIndexer.getWindowAt(x, y, modelWindowsAtPointToExclude);
 
-        if (!topMostModelWindow || !topMostWindow || topMostModelWindow.id === this.getId(topMostWindow!)) {
+        if (!topMostModelWindow || !topMostWindow || topMostModelWindow.id === getId(topMostWindow!)) {
             // There is no deregistered window over the top-most model window, safe to return
             return topMostModelWindow;
         } else {
@@ -198,14 +199,28 @@ export class DesktopModel {
      */
     public getMonitorByRect(rect: Rectangle): Rectangle {
         // As a useful heuristic, if the center of the given rect is inside a monitor rect, that monitor will be the most overlapped.
-        const monitorWithCenter = this._monitors.find(mon => RectUtils.isPointInRect(mon.center, mon.halfSize, rect.center));
+        const monitorWithCenter: Rectangle | undefined = this._monitors.find(mon => RectUtils.isPointInRect(mon.center, mon.halfSize, rect.center));
         if (monitorWithCenter) {
             return RectUtils.clone(monitorWithCenter);
         }
         // Finds the monitor which has the largest overlapping area with the given rect
-        const mostOverlappedMonitor =
+        const mostOverlappedMonitor: Rectangle =
             this._monitors.reduce((prev, current) => RectUtils.overlappingArea(prev, rect) > RectUtils.overlappingArea(current, rect) ? prev : current);
         return RectUtils.clone(mostOverlappedMonitor);
+    }
+
+    /**
+     * Validates that all our entities fit within the current monitor arrangement and moves them if they do not
+     *
+     * It should not normally be necessary to call this, since DesktopModel does this itself when monitors change, but if you have a long-running
+     * process that may be creating windows against stale monitor data (such as restoring a Workspace), you may wish to call this
+     */
+    public async validateMonitorAssignment(): Promise<void> {
+        return this._monitorAssignmentValidator.validate();
+    }
+
+    public hasAllMonitors(testMonitors: ReadonlyArray<Rectangle>): boolean {
+        return testMonitors.every(testMonitor => this.monitors.some(monitor => RectUtils.isEqual(testMonitor, monitor)));
     }
 
     /**
@@ -257,7 +272,7 @@ export class DesktopModel {
         let slot: SignalSlot|null = null;
         const windowPromise: Promise<DesktopWindow> = new Promise((resolve, reject) => {
             const window: DesktopWindow|null = this.getWindow(identity);
-            const id = this.getId(identity);
+            const id: string = getId(identity);
 
             if (window) {
                 resolve(window);
@@ -319,7 +334,7 @@ export class DesktopModel {
                 return null;
             } else {
                 // Create new window object. Will get registered implicitly, due to signal within DesktopWindow constructor.
-                console.log('Registered window: ' + this.getId(identity));
+                console.log('Registered window: ' + getId(identity));
                 return new DesktopWindow(this, window, state);
             }
         });

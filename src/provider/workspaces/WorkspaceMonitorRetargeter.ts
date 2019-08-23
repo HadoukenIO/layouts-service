@@ -19,37 +19,58 @@ type Entity = (WindowPartialEntity | TabGroupPartialEntity) & {normalBounds: Rec
 type SnapGroup = Rectangle & {entities: Entity[]};
 
 export class WorkspaceMonitorRetargeter {
-    private readonly _workspace: Workspace;
-    private readonly _monitors: ReadonlyArray<Rectangle>;
-
     private readonly _windowsById: Map<String, WorkspaceWindow>;
     private readonly _entities: Entity[];
     private readonly _snapGroups: SnapGroup[];
 
     private readonly _detachedEntities: Entity[];
 
+    /**
+     * Takes a workspace, and if any monitors have been removed since its creation, adjusts contained windows to fit within the new monitor
+     * set. The workspace provded will mutated
+     *
+     * @param workspace The workspace to retarget to the current monitors
+     * @param model The DesktopModel we will query for monitors
+     */
     public static retargetWorkspaceForMonitors(workspace: Workspace, model: DesktopModel): void {
         const workspaceMonitors = [workspace.monitorInfo.primaryMonitor, ...workspace.monitorInfo.nonPrimaryMonitors];
 
         const oldMonitors = workspaceMonitors.map(monitor => RectUtils.convertToCenterHalfSize(monitor.availableRect));
 
         if (!model.hasAllMonitors(oldMonitors)) {
-            new WorkspaceMonitorRetargeter(workspace, model.monitors).retarget();
+            new WorkspaceMonitorRetargeter(workspace).retarget(model.monitors);
         }
     }
 
-    private constructor(workspace: Workspace, monitors: ReadonlyArray<Rectangle>) {
-        this._workspace = workspace;
-        this._monitors = monitors;
-
+    public constructor(workspace: Workspace) {
         this._windowsById = new Map<string, WorkspaceWindow>();
         this._entities = [];
         this._snapGroups = [];
 
         this._detachedEntities = [];
 
+        this.preprocessWorkspace(workspace);
+    }
+
+    // Modifies the workspace given in the constructor to fit the monitors passed in here
+    public retarget(monitors: ReadonlyArray<Rectangle>): void {
+        const calculator = new MonitorAssignmentCalculator(monitors);
+
+        // Calculate the new desired positions of our workspace entities
+        const snapGroupResults = this._snapGroups.map(snapGroup => calculator.getMovedSnapGroupRectangles<Entity, SnapGroup>(snapGroup));
+        const entityResults = this._entities.map(entity => calculator.getMovedEntityRectangle<Entity>(entity));
+
+        // Mutate the workspace to fit the new monitor arrangement
+        this.applySnapGroupResults(snapGroupResults);
+        this.applyEntityResults(entityResults);
+
+        this.ungroupDetachedEntities();
+    }
+
+    // Populates this class with the contents of this workspace, in a format more amenable for use with `MonitorAssignmentCalculator`
+    private preprocessWorkspace(workspace: Workspace): void {
         // Create windows lookup
-        for (const app of this._workspace.apps) {
+        for (const app of workspace.apps) {
             this._windowsById.set(getId(app.mainWindow), app.mainWindow);
 
             for (const childWindow of app.childWindows) {
@@ -59,7 +80,7 @@ export class WorkspaceMonitorRetargeter {
 
         // Create tab groups lookup
         const tabGroupsById = new Map<string, TabGroup>();
-        for (const tabGroup of this._workspace.tabGroups) {
+        for (const tabGroup of workspace.tabGroups) {
             for (const tab of tabGroup.tabs) {
                 tabGroupsById.set(getId(tab), tabGroup);
             }
@@ -137,20 +158,6 @@ export class WorkspaceMonitorRetargeter {
                 this._snapGroups.push({entities: targetEntities, ...this.getRectangleFromEntities(targetEntities)});
             }
         }
-    }
-
-    private retarget(): void {
-        const calculator = new MonitorAssignmentCalculator(this._monitors);
-
-        // Calculate the new desired positions of our workspace entities
-        const snapGroupResults = this._snapGroups.map(snapGroup => calculator.getMovedSnapGroupRectangles<Entity, SnapGroup>(snapGroup));
-        const entityResults = this._entities.map(entity => calculator.getMovedEntityRectangle<Entity>(entity));
-
-        // Mutate the workspace to fit the new monitor arrangement
-        this.applySnapGroupResults(snapGroupResults);
-        this.applyEntityResults(entityResults);
-
-        this.ungroupDetachedEntities();
     }
 
     private applySnapGroupResults(snapGroupResults: SnapGroupResult<Entity, SnapGroup>[]): void {

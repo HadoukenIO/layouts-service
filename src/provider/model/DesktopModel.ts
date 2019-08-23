@@ -220,7 +220,8 @@ export class DesktopModel {
     }
 
     public hasAllMonitors(testMonitors: ReadonlyArray<Rectangle>): boolean {
-        return testMonitors.every(testMonitor => this.monitors.some(monitor => RectUtils.isEqual(testMonitor, monitor)));
+        return false;
+        // return testMonitors.every(testMonitor => this.monitors.some(monitor => RectUtils.isEqual(testMonitor, monitor)));
     }
 
     /**

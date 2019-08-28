@@ -8,7 +8,7 @@ import {createPreviewMap, PreviewMap, PreviewType, Validity} from '../../../src/
 
 import {executeJavascriptOnService} from './serviceUtils';
 
-export function getPreviewWindows(): PreviewMap<_Window>{
+export function getPreviewWindows(): PreviewMap<_Window> {
     return createPreviewMap<_Window>((previewType, validity) => {
         return fin.Window.wrapSync({...SERVICE_IDENTITY, name: `preview-${previewType}-${validity}`});
     });

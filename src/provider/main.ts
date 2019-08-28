@@ -76,6 +76,5 @@ Please contact support@openfin.co with any further questions.`;
     await apiHandler.registerListeners();
 }
 
-
 // Register the offline-mode service worker.
 navigator.serviceWorker.register('./sw.js', {scope: './'});

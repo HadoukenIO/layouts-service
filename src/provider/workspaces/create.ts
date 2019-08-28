@@ -9,8 +9,8 @@ import {WorkspaceAPI} from '../../client/internal';
 import {CustomData, TabGroup, WindowState, Workspace, WorkspaceApp, WorkspaceGeneratedEvent, WorkspaceWindow} from '../../client/workspaces';
 import {EVENT_CHANNEL_TOPIC} from '../APIMessages';
 import {apiHandler, loader, model, tabService} from '../main';
-import {WindowIdentity} from '../model/DesktopWindow';
 import {promiseMap} from '../snapanddock/utils/async';
+import {WindowIdentity} from '../model/Identity';
 
 import {getGroup} from './group';
 import {addToWindowObject, adjustSizeOfFormerlyTabbedWindows, inWindowObject, WindowObject} from './placeholder';
@@ -198,7 +198,7 @@ async function getWorkspaceWindow(ofWin: Window, windowDetail: WindowDetail, tab
     const info = await ofWin.getInfo();
 
     const windowGroup = await getGroup(ofWin.identity);
-    const filteredWindowGroup: Identity[] = [];
+    const filteredWindowGroup: WindowIdentity[] = [];
     windowGroup.forEach((windowIdentity) => {
         // Filter window group by checking to see if the window itself or its parent are deregistered. If either of them are, don't include in window group.
         const parentIsRegistered = !!model.getWindow({uuid: windowIdentity.uuid, name: windowIdentity.uuid});

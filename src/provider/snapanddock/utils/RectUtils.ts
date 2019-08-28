@@ -1,4 +1,5 @@
 import {Rect} from 'hadouken-js-adapter/out/types/src/api/system/monitor';
+import Bounds from 'hadouken-js-adapter/out/types/src/api/window/bounds';
 
 import {Point, PointUtils} from './PointUtils';
 
@@ -111,6 +112,26 @@ export class RectUtils {
         return {
             center: {x: (rect.right + rect.left) / 2, y: (rect.bottom + rect.top) / 2},
             halfSize: {x: (rect.right - rect.left) / 2, y: (rect.bottom - rect.top) / 2}
+        };
+    }
+
+    /**
+     * Converts a rectangle from the {center, halfSize} format used in the model, to the {top, bottom, left, right} used in the
+     * core, with additional width and height fields
+     */
+    public static convertFromCenterHalfSize(rectangle: Rectangle): Rect & Bounds {
+        const centerX = rectangle.center.x;
+        const centerY = rectangle.center.y;
+        const halfSizeX = rectangle.halfSize.x;
+        const halfSizeY = rectangle.halfSize.y;
+
+        return {
+            top: centerY - halfSizeY,
+            bottom: centerY + halfSizeY,
+            left: centerX - halfSizeX,
+            right: centerX + halfSizeX,
+            width: halfSizeX * 2,
+            height: halfSizeY * 2
         };
     }
 

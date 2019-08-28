@@ -47,7 +47,6 @@ itParameterized<TwoWindowTestOptions>(
     })
 );
 
-
 itParameterized<CreateWindowData>(
     'When four windows are dragged adjacent to each other, windows form a snapgroup as expected',
     (testOptions: CreateWindowData): string => `${testOptions.windowCount} windows - ${testOptions.frame}}`,

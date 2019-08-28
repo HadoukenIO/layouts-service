@@ -38,7 +38,7 @@ describe('When removing a central monitor', () => {
             }
         }});
 
-        expect(result).toEqual({
+        expect(result.rectangle).toEqual({
             center: {x: -1100, y: 500},
             halfSize: {x: 100, y: 100}
         });
@@ -50,7 +50,7 @@ describe('When removing a central monitor', () => {
             halfSize: {x: 100, y: 100}
         }});
 
-        expect(result).toEqual({
+        expect(result.rectangle).toEqual({
             center: {x: 1100, y: 500},
             halfSize: {x: 100, y: 100}
         });
@@ -62,12 +62,11 @@ describe('When removing a central monitor', () => {
             halfSize: {x: 100, y: 100}
         }});
 
-        expect(result).toEqual({
+        expect(result.rectangle).toEqual({
             center: {x: 0, y: -600},
             halfSize: {x: 100, y: 100}
         });
     });
-
 
     it('A window to the bottom of middle is moved to the bottom monitor', () => {
         const result = calculator.getMovedEntityRectangle({normalBounds: {
@@ -75,7 +74,7 @@ describe('When removing a central monitor', () => {
             halfSize: {x: 100, y: 100}
         }});
 
-        expect(result).toEqual({
+        expect(result.rectangle).toEqual({
             center: {x: 0, y: 1600},
             halfSize: {x: 100, y: 100}
         });
@@ -93,7 +92,7 @@ describe('When removing a big monitor', () => {
             halfSize: {x: 1500, y: 1500}
         }});
 
-        expect(result).toEqual({
+        expect(result.rectangle).toEqual({
             center: {x: -1500, y: 1500},
             halfSize: {x: 1500, y: 1500}
         });

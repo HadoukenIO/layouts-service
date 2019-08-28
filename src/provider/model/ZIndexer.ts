@@ -7,9 +7,10 @@ import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 
 import {SERVICE_IDENTITY} from '../../client/internal';
 
+import {WindowIdentity, getId} from './Identity';
 import {DesktopModel} from './DesktopModel';
 import {DesktopSnapGroup} from './DesktopSnapGroup';
-import {DesktopWindow, WindowIdentity} from './DesktopWindow';
+import {DesktopWindow} from './DesktopWindow';
 
 export interface ZIndex {
     eventNum: number;
@@ -127,7 +128,7 @@ export class ZIndexer {
      * @param timestamp The new timestamp for the stack entry. Will use the current time if not specified
      */
     private update(identity: WindowIdentity, eventNum: number, active?: boolean, bounds?: Rect) {
-        const id: string = this._model.getId(identity);
+        const id: string = getId(identity);
         const entry: ZIndex|undefined = this._stack.find(i => i.id === id);
 
         if (entry) {
@@ -164,7 +165,7 @@ export class ZIndexer {
 
         if (modelGroup && modelGroup.length > 1) {
             // Also modify any windows within the group
-            const id: string = this._model.getId(identity);
+            const id: string = getId(identity);
 
             modelGroup.windows.forEach(window => {
                 const windowBounds = window.id === id ? bounds : undefined;
@@ -254,9 +255,9 @@ export class ZIndexer {
     private getIds(items: Identifiable[]): string[] {
         return items.map((item: Identifiable) => {
             if (this.hasIdentity(item)) {
-                return this._model.getId(item.identity);
+                return getId(item.identity);
             } else {
-                return this._model.getId(item);
+                return getId(item);
             }
         });
     }

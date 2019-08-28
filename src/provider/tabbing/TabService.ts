@@ -10,11 +10,12 @@ import {DesktopModel} from '../model/DesktopModel';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
 import {DesktopTabGroup} from '../model/DesktopTabGroup';
 import {DesktopTabstripFactory} from '../model/DesktopTabstripFactory';
-import {DesktopWindow, EntityState, WindowIdentity} from '../model/DesktopWindow';
+import {DesktopWindow, EntityState} from '../model/DesktopWindow';
 import {promiseForEach} from '../snapanddock/utils/async';
 import {Point, PointUtils} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 import {eTargetType, TargetBase} from '../WindowHandler';
+import {WindowIdentity} from '../model/Identity';
 
 import {DragWindowManager} from './DragWindowManager';
 
@@ -458,7 +459,6 @@ export class TabService {
             tab.tabGroup.window.sendEvent(event);
         }
     }
-
 
     /**
      * Returns the tabstrip configuration for the given window. This is a thin wrapper around the config store.

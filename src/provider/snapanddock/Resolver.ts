@@ -9,7 +9,6 @@ import {Projector} from './Projector';
 import {Point, PointUtils} from './utils/PointUtils';
 import {Rectangle, RectUtils} from './utils/RectUtils';
 
-
 /**
  * A Point instance that is used to only specify a direction in each axis, rather than a physical offset/distance.
  *
@@ -51,7 +50,6 @@ export interface SnapTarget extends TargetBase {
      * Will be null if we don't want the window to resize as part of the snap.
      */
     halfSize: Point|null;
-
 
     /**
      * The group that has been selected as the target candidate.

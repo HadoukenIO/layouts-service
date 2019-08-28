@@ -5,7 +5,7 @@ import {_Window} from 'hadouken-js-adapter/out/types/src/api/window/window';
 import {WorkspaceApp, WorkspaceWindow} from '../../client/workspaces';
 import {model, tabService} from '../main';
 import {DesktopSnapGroup} from '../model/DesktopSnapGroup';
-import {WindowIdentity} from '../model/DesktopWindow';
+import {WindowIdentity, getId} from '../model/Identity';
 import {isWin10} from '../snapanddock/utils/platform';
 
 const DEFAULT_PLACEHOLDER_URL = (() => {
@@ -58,7 +58,6 @@ export const createNormalPlaceholder = async (win: WorkspaceWindow) => {
     await actualWindow.addListener('show-requested', updateOptionsAndShow);
     return placeholderWindow;
 };
-
 
 // Creates a placeholder for a tabbed window.
 // When the window that is supposed to be tabbed comes up, swaps the placeholder tab with the real window tab and closes the placeholder.
@@ -285,15 +284,6 @@ export function adjustSizeOfFormerlyTabbedWindows(layoutWindow: WorkspaceWindow,
             }
         }
     }
-}
-
-/**
- * Converts an identity into a string ID. Mirrors {@link DesktopModel.getId}.
- *
- * @param identity Any entity identity
- */
-export function getId(identity: WindowIdentity): string {
-    return `${identity.uuid}/${identity.name}`;
 }
 
 // TODO: Make placeholder windows close-able

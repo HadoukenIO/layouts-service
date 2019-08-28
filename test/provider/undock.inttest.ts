@@ -102,7 +102,6 @@ function twoWindowTest(side: Side) {
     });
 }
 
-
 function fourWindowTest(corner: Corner) {
     // Map from corner to window index
     const cornerToWindowMap = {

@@ -11,11 +11,12 @@ import {Debounced} from '../snapanddock/utils/Debounced';
 import {Point} from '../snapanddock/utils/PointUtils';
 import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 
+import {WindowIdentity, getId} from './Identity';
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopModel} from './DesktopModel';
 import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {DesktopTabstripFactory} from './DesktopTabstripFactory';
-import {DesktopWindow, EntityState, eTransformType, Mask, ResizeConstraint, WindowIdentity} from './DesktopWindow';
+import {DesktopWindow, EntityState, eTransformType, Mask, ResizeConstraint} from './DesktopWindow';
 
 /**
  * Handles functionality for the TabSet
@@ -119,13 +120,7 @@ export class DesktopTabGroup implements DesktopEntity {
 
     public get normalBounds(): Rectangle {
         if (this._isMaximized && this._normalTabBounds) {
-            // We need to convert from tab bounds to overall group bounds
-            const tabstripHalfHeight: number = this._config.height / 2;
-
-            return {
-                center: {x: this._normalTabBounds.center.x, y: this._normalTabBounds.center.y - tabstripHalfHeight},
-                halfSize: {x: this._normalTabBounds.halfSize.x, y: this._normalTabBounds.halfSize.y + tabstripHalfHeight}
-            };
+            return this.calculateGroupBoundsFromTabBounds(this._normalTabBounds);
         } else {
             return this.currentState;
         }
@@ -188,6 +183,13 @@ export class DesktopTabGroup implements DesktopEntity {
         return this._window.currentState.state === 'minimized' ? 'minimized' : this._isMaximized ? 'maximized' : 'normal';
     }
 
+    /**
+     * Returns if the tabgroup is maximized, including if it is a maximized tabgroup that has been minimized
+     */
+    public get isMaximized(): boolean {
+        return this._isMaximized;
+    }
+
     public applyOverride<K extends keyof EntityState>(property: K, value: EntityState[K]): Promise<void> {
         return this.updateWindows(window => window.applyOverride(property, value));
     }
@@ -207,8 +209,6 @@ export class DesktopTabGroup implements DesktopEntity {
     }
 
     public async applyOffset(offset: Point, halfSize?: Point): Promise<void> {
-        const tabstripHalfHeight: number = this._config.height / 2;
-
         // Emulating DesktopWindow behaviour, restore the window in the maximized case
         if (this._isMaximized) {
             const oldNormalBounds = this.normalBounds;
@@ -218,45 +218,24 @@ export class DesktopTabGroup implements DesktopEntity {
             };
 
             // Convert from overall group bounds to tab bounds
-            this._normalTabBounds = {
-                center: {x: newNormalBounds.center.x, y: newNormalBounds.center.y + tabstripHalfHeight},
-                halfSize: {x: newNormalBounds.halfSize.x, y: newNormalBounds.halfSize.y - tabstripHalfHeight}
-            };
+            this._normalTabBounds = this.calculateTabBoundsFromGroupBounds(newNormalBounds);
 
-            return this.restore();
-        }
+            await this.applyNormalBounds();
+            await this.sync();
 
-        const activeTabHalfSize: Point|undefined = halfSize && {x: halfSize.x, y: halfSize.y - tabstripHalfHeight};
-
-        if (this._model.displayScaling) {
-            const tabstripHalfSize: Point|undefined = halfSize && {x: halfSize.x, y: tabstripHalfHeight};
-
+            if (this.state !== 'minimized') {
+                const event: TabGroupRestoredEvent = {identity: this.window.identity, type: 'tab-group-restored'};
+                this.window.sendEvent(event);
+            }
+        } else {
             /**
-             * We can't depend on the tabstrip having the appropriate resize constraints at this point, due to a race condition with our
-             * mitigations for display scaling issues in DesktopSnapGroup, so we manually move both the active tab, and the tabstrip itself,
-             * rather than taking the earlier approach of just moving the active tab and relying on grouping and resize constraints to make
-             * everything work as expected. We particularly run into this race condition when snapping a tabgroup to another window
+             * With display scaling enabled, we can't depend on the tabstrip having the appropriate resize constraints, due to a race
+             * condition with our mitigations for display scaling issues in DesktopSnapGroup. We particularly run into this race condition
+             * when snapping a tabgroup to another window. In this case we want applyOffsetInternal to move each window individually,
+             * rather than relying on grouping and resize constraints to make everything work as expected.
              */
-            return DesktopWindow.transaction([this._window, ...this.tabs], async (windows) => {
-                await this._window.applyOffset(offset, tabstripHalfSize);
-
-                for (const tab of this.tabs) {
-                    await tab.applyOffset(offset, activeTabHalfSize);
-                }
-            });
-        } else {
-            return this.activeTab.applyOffset(offset, activeTabHalfSize);
-        }
-    }
-
-    /**
-     * Toggles the window to a maximized state.  If the window is maximized we will restore it, if not we will maximize it.
-     */
-    public async toggleMaximize(): Promise<void|void[]> {
-        if (this._isMaximized) {
-            return this.restore();
-        } else {
-            return this.maximize();
+            const forceApplyIndependently = this._model.displayScaling;
+            await this.applyOffsetInternal(offset, halfSize, forceApplyIndependently);
         }
     }
 
@@ -290,26 +269,9 @@ export class DesktopTabGroup implements DesktopEntity {
             }
 
             const {center, halfSize} = this._activeTab && this._activeTab.currentState || this._tabs[0].currentState;
-
             this._normalTabBounds = {center: {...center}, halfSize: {...halfSize}};
 
-            const currentMonitor = this._model.getMonitorByRect(this._groupState) || this._model.monitors[0];
-
-            await this._window.applyProperties({
-                center: {
-                    x: currentMonitor.center.x,
-                    y: this._config.height / 2
-                },
-                halfSize: {
-                    x: currentMonitor.halfSize.x,
-                    y: this._config.height / 2
-                }});
-            await this.activeTab.applyProperties({
-                center: {x: currentMonitor.center.x, y: currentMonitor.center.y + this._config.height / 2},
-                halfSize: {x: currentMonitor.halfSize.x, y: currentMonitor.halfSize.y - this._config.height / 2}
-            });
-
-            this._isMaximized = true;
+            await this.applyMaximizedBounds();
 
             const event: TabGroupMaximizedEvent = {identity: this.window.identity, type: 'tab-group-maximized'};
             this.window.sendEvent(event);
@@ -322,21 +284,14 @@ export class DesktopTabGroup implements DesktopEntity {
     public async restore(): Promise<void> {
         if (this.state === 'minimized') {
             await this.window.applyProperties({state: 'normal'});
-        } else if (this.state === 'maximized') {
-            if (this.activeTab.currentState.state === 'minimized') {
-                await Promise.all(this._tabs.map(tab => tab.applyProperties({state: 'normal'})));
-            } else if (this._normalTabBounds) {
-                this._isMaximized = false;
-
-                const bounds: Rectangle = this._normalTabBounds;
-                await this._window.applyProperties({
-                    center: {x: bounds.center.x, y: bounds.center.y - bounds.halfSize.y - (this._config.height / 2)},
-                    halfSize: {x: bounds.halfSize.x, y: this._config.height / 2}
-                });
-                await this.activeTab.applyProperties(bounds);
+            if (this._isMaximized && this.currentState.maximizable) {
+                await this.applyMaximizedBounds();
             }
-        } else {
-            await Promise.all(this._tabs.map(tab => tab.applyProperties({state: 'normal'})));
+            await this.sync();
+        } else if (this.state === 'maximized') {
+            if (this._normalTabBounds) {
+                await this.applyNormalBounds();
+            }
         }
 
         const event: TabGroupRestoredEvent = {identity: this.window.identity, type: 'tab-group-restored'};
@@ -353,6 +308,17 @@ export class DesktopTabGroup implements DesktopEntity {
 
         const event: TabGroupMinimizedEvent = {identity: this.window.identity, type: 'tab-group-minimized'};
         this.window.sendEvent(event);
+    }
+
+    public async resetMaximizedAndNormalBounds(bounds: Rectangle): Promise<void> {
+        if (!this._isMaximized) {
+            throw new Error('Attempting to remaximize DesktopTabGroup with _isMaximized set to false');
+        }
+
+        this._normalTabBounds = this.calculateTabBoundsFromGroupBounds(bounds);
+
+        await this.applyMaximizedBounds();
+        await this.sync();
     }
 
     /**
@@ -378,12 +344,7 @@ export class DesktopTabGroup implements DesktopEntity {
         // If we're forming this tabgroup from a maximized tab, we'll want to maximize this tabgroup, and inherit the tab window's restore bounds
         let normalTabBounds: Rectangle|undefined;
         if (this.tabs.length === 0 && firstTab.currentState.state === 'maximized') {
-            const tabBounds = firstTab.normalBounds;
-
-            const center = {x: tabBounds.center.x, y: tabBounds.center.y + (this._config.height / 2)};
-            const halfSize = {x: tabBounds.halfSize.x, y: tabBounds.halfSize.y - this._config.height / 2};
-
-            normalTabBounds = {center, halfSize};
+            normalTabBounds = this.calculateTabBoundsFromGroupBounds(firstTab.normalBounds);
         }
 
         await DesktopWindow.transaction(allWindows, async () => {
@@ -430,7 +391,7 @@ export class DesktopTabGroup implements DesktopEntity {
         const newlyOrdered: DesktopWindow[] = orderReference
             .map((ref: WindowIdentity) => {
                 // Look-up each given identity within list of tabs
-                const refId = this._model.getId(ref);
+                const refId = getId(ref);
                 return this._tabs.find((tab: DesktopWindow) => {
                     return tab.id === refId;
                 });
@@ -481,13 +442,9 @@ export class DesktopTabGroup implements DesktopEntity {
                     // Eject tab without modifying window bounds and reset resizeConstraints to their original value
                     promises.push(tab.applyProperties({hidden: false, frame, resizeConstraints}));
                 } else {
-                    const tabStripHalfSize: Point = this._window.currentState.halfSize;
-                    const state: EntityState = tab.currentState;
-                    const center: Point = {x: state.center.x, y: state.center.y - tabStripHalfSize.y};
-                    const halfSize: Point = {x: state.halfSize.x, y: state.halfSize.y + tabStripHalfSize.y};
-
+                    const defaultBounds = this.calculateGroupBoundsFromTabBounds(tab.currentState);
                     // Eject tab, apply default bounds, and reset resizeConstraint to their original value
-                    promises.push(tab.applyProperties({hidden: false, frame, resizeConstraints, center, halfSize}));
+                    promises.push(tab.applyProperties({hidden: false, frame, resizeConstraints, ...defaultBounds}));
                 }
             }
 
@@ -632,6 +589,64 @@ export class DesktopTabGroup implements DesktopEntity {
         return Promise.all(promises).then(() => {});
     }
 
+    private async applyNormalBounds(): Promise<void> {
+        const normalGroupBounds: Rectangle = this.calculateGroupBoundsFromTabBounds(this._normalTabBounds!);
+
+        await this.applyBoundsInternal(normalGroupBounds);
+        this._isMaximized = false;
+    }
+
+    private async applyMaximizedBounds(): Promise<void> {
+        const currentMonitor = this._model.getMonitorByRect(this._groupState) || this._model.monitors[0];
+
+        await this.applyBoundsInternal(currentMonitor);
+        this._isMaximized = true;
+    }
+
+    private async applyBoundsInternal(bounds: Rectangle): Promise<void> {
+        const tabstripHalfHeight: number = this._config.height / 2;
+
+        const tabstripBounds = {
+            center: {x: bounds.center.x, y: (bounds.center.y - bounds.halfSize.y) + tabstripHalfHeight},
+            halfSize: {x: bounds.halfSize.x, y: tabstripHalfHeight}
+        };
+
+        const tabBounds = this.calculateTabBoundsFromGroupBounds(bounds);
+
+        if (this.state === 'minimized') {
+            return DesktopWindow.transaction([this._window, ...this.tabs], async () => {
+                // Windows can't be relied on to move as a group when minimized, so in this case move all windows independently
+                await this._window.applyProperties(tabstripBounds);
+
+                for (const tab of this.tabs) {
+                    await tab.applyProperties(tabBounds);
+                }
+            });
+        } else {
+            await this._window.applyProperties(tabstripBounds);
+            await this.activeTab.applyProperties(tabBounds);
+        }
+    }
+
+    private async applyOffsetInternal(offset: Point, halfSize: Point<number> | undefined, forceApplyIndependently: boolean): Promise<void> {
+        const tabstripHalfHeight: number = this._config.height / 2;
+        const activeTabHalfSize: Point|undefined = halfSize && {x: halfSize.x, y: halfSize.y - tabstripHalfHeight};
+
+        if (forceApplyIndependently || this.state === 'minimized') {
+            // Windows can't be relied on to move as a group when minimized, so in this case move all windows independently
+            const tabstripHalfSize: Point|undefined = halfSize && {x: halfSize.x, y: tabstripHalfHeight};
+            return DesktopWindow.transaction([this._window, ...this.tabs], async () => {
+                await this._window.applyOffset(offset, tabstripHalfSize);
+
+                for (const tab of this.tabs) {
+                    await tab.applyOffset(offset, activeTabHalfSize);
+                }
+            });
+        } else {
+            return this.activeTab.applyOffset(offset, activeTabHalfSize);
+        }
+    }
+
     private async addTabInternal(tab: DesktopWindow, setActive: boolean, index: number = this._tabs.length): Promise<void> {
         let remove: Promise<void>|null = null;
         const existingGroup: DesktopTabGroup|null = tab.tabGroup;
@@ -672,9 +687,8 @@ export class DesktopTabGroup implements DesktopEntity {
             });
 
             // Reduce size of app window by size of tabstrip
-            const center: Point = {x: tabState.center.x, y: tabState.center.y + (this._config.height / 2)};
-            const halfSize: Point = {x: tabState.halfSize.x, y: tabState.halfSize.y - (this._config.height / 2)};
-            await tab.applyProperties({center, halfSize, frame: false});
+            const tabBounds = this.calculateTabBoundsFromGroupBounds(tabState);
+            await tab.applyProperties({...tabBounds, frame: false});
         } else {
             // Delay to allow other async operations to jump ahead in the queue. Specifically, any pending boundsChanging events
             // should be processed before continuing.
@@ -849,17 +863,36 @@ export class DesktopTabGroup implements DesktopEntity {
         const repositionTabstrip = !RectUtils.isEqual(expectedTabstripPosition, this._window.currentState);
         const tabsToReposition = this._tabs.filter(tab => !RectUtils.isEqual(tab.currentState, expectedTabPosition));
 
-        if (repositionTabstrip || tabsToReposition.length > 0) {
+        if (repositionTabstrip) {
             console.log('TabGroup disjointed. Moving tabstrip back to group.', this.id);
-            await DesktopWindow.transaction([this._window, ... this._tabs], async () => {
-                if (repositionTabstrip) {
-                    await this._window.applyProperties(expectedTabstripPosition);
-                }
-
-                for (const tab of tabsToReposition) {
-                    await tab.applyProperties(expectedTabPosition);
-                }
+            await DesktopWindow.transaction([this._window], async () => {
+                await this._window.applyProperties(expectedTabstripPosition);
             });
         }
+
+        if (tabsToReposition.length > 0) {
+            console.log('TabGroup disjointed. Moving tabs back to group', this.id);
+            await DesktopWindow.transaction(tabsToReposition, async () => {
+                await Promise.all(tabsToReposition.map(tab => tab.applyProperties(expectedTabPosition)));
+            });
+        }
+    }
+
+    private calculateTabBoundsFromGroupBounds(groupBounds: Rectangle): Rectangle {
+        const tabstripHalfHeight = this.config.height / 2;
+
+        return {
+            center: {x: groupBounds.center.x, y: groupBounds.center.y + tabstripHalfHeight},
+            halfSize: {x: groupBounds.halfSize.x, y: groupBounds.halfSize.y - tabstripHalfHeight}
+        };
+    }
+
+    private calculateGroupBoundsFromTabBounds(tabBounds: Rectangle): Rectangle {
+        const tabstripHalfHeight = this.config.height / 2;
+
+        return {
+            center: {x: tabBounds.center.x, y: tabBounds.center.y - tabstripHalfHeight},
+            halfSize: {x: tabBounds.halfSize.x, y: tabBounds.halfSize.y + tabstripHalfHeight}
+        };
     }
 }

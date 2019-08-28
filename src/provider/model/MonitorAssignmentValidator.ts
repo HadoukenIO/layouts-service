@@ -1,18 +1,19 @@
-import {Rectangle} from '../snapanddock/utils/RectUtils';
+import {Rectangle, RectUtils} from '../snapanddock/utils/RectUtils';
 import {Debounced} from '../snapanddock/utils/Debounced';
 import {Point} from '../snapanddock/utils/PointUtils';
-import {WindowState} from '../../client/workspaces';
+import {WindowState, TabGroup} from '../../client/workspaces';
 
 import {DesktopModel} from './DesktopModel';
 import {DesktopEntity} from './DesktopEntity';
 import {DesktopSnapGroup} from './DesktopSnapGroup';
 import {MonitorAssignmentCalculator, SnapGroupResult, EntityResult} from './MonitorAssignmentCalculator';
 import {DesktopTabGroup} from './DesktopTabGroup';
+import {DesktopWindow} from './DesktopWindow';
 
 export class MonitorAssignmentValidator {
-    private _model: DesktopModel;
+    private readonly _model: DesktopModel;
 
-    private _validate: Debounced<() => Promise<void>, MonitorAssignmentValidator, []>;
+    private readonly _validate: Debounced<() => Promise<void>, MonitorAssignmentValidator, []>;
 
     public constructor(model: DesktopModel) {
         this._model = model;
@@ -33,8 +34,8 @@ export class MonitorAssignmentValidator {
         const snapGroupResults = snapGroups.map(snapGroup => calculator.getMovedSnapGroupRectangles(snapGroup));
         const entityResults = entities.map(entity => calculator.getMovedEntityRectangle(entity));
 
-        const moveSnapGroupsPromise = this.applySnapGroupResults(snapGroups, snapGroupResults);
-        const moveEntitiesPromise = this.applyEntityResults(entities, entityResults);
+        const moveSnapGroupsPromise = this.applySnapGroupResults(snapGroupResults);
+        const moveEntitiesPromise = this.applyEntityResults(entityResults);
 
         await Promise.all([moveSnapGroupsPromise, moveEntitiesPromise]);
     }
@@ -50,21 +51,18 @@ export class MonitorAssignmentValidator {
         return trivalSnapGroup.map(trivalSnapGroup => trivalSnapGroup.entities[0]);
     }
 
-    private async applySnapGroupResults(snapGroups: DesktopSnapGroup[], snapGroupResults: SnapGroupResult[]): Promise<void> {
-        await Promise.all(snapGroupResults.map(async (snapGroupResult, snapGroupIndex : number) => {
-            const snapGroup = snapGroups[snapGroupIndex];
-
-            await this.applySnapGroupResult(snapGroup, snapGroupResult.groupRectangle);
+    private async applySnapGroupResults(snapGroupResults: SnapGroupResult[]): Promise<void> {
+        await Promise.all(snapGroupResults.map(async (snapGroupResult) => {
+            await this.applySnapGroupResult(snapGroupResult.target, snapGroupResult.groupRectangle);
 
             // Apply results to each entity in snapgroup, as we may want to move it independently from group
-            await this.applyEntityResults(snapGroup.entities, snapGroupResult.entityResults);
+            await this.applyEntityResults(snapGroupResult.entityResults);
         }));
     }
 
-    private async applyEntityResults(entities: DesktopEntity[], entityResults: EntityResult[]): Promise<void> {
-        await Promise.all(entityResults.map(async (rectangle: Rectangle, entityIndex: number) => {
-            const entity = entities[entityIndex];
-            return this.applyEntityResult(entity, rectangle);
+    private async applyEntityResults(entityResults: EntityResult[]): Promise<void> {
+        await Promise.all(entityResults.map(async (result: EntityResult) => {
+            return this.applyEntityResult(result.target, result.rectangle);
         }));
     }
 
@@ -80,47 +78,74 @@ export class MonitorAssignmentValidator {
 
     private async applyEntityResult(entity: DesktopEntity, rectangle: Rectangle): Promise<void> {
         const offset = this.calculateOffset(entity, rectangle);
+        const startState = entity.currentState.state;
 
-        if (offset.x !== 0 || offset.y !== 0) {
+        const maximizedBounds: Rectangle | undefined =
+            startState === 'maximized' || (entity instanceof DesktopTabGroup && entity.isMaximized) ? entity.currentState : undefined;
+
+        if (offset.x !== 0 || offset.y !== 0 || (maximizedBounds && !this.fillsScreen(maximizedBounds))) {
             if (entity.snapGroup.isNonTrivial()) {
                 await entity.setSnapGroup(new DesktopSnapGroup());
             }
 
-            const oldState = entity.currentState.state;
-            let restoredState: WindowState | undefined;
-
-            // Things get weird with tabs if we mess with them while minimized, and we'll want to re-maximize maximized windows
-            // to the correct screen, so always restore
-            if (oldState !== 'normal') {
-                await entity.restore();
-                await entity.sync();
-
-                // Windows may have moved the tabgroup on restore to bring it back on-screen itself, so revalidate
-                if (entity instanceof DesktopTabGroup) {
-                    await entity.validate();
-                }
-
-                restoredState = entity.currentState.state;
+            if (entity instanceof DesktopTabGroup) {
+                await this.applyTabGroupResult(entity, rectangle, offset);
+            } else if (entity instanceof DesktopWindow) {
+                await this.applyWindowResult(entity, startState, rectangle);
             }
+        } else if (entity instanceof DesktopTabGroup) {
+            await this.applyTabGroupFix(entity);
+        }
+    }
 
-            // Windows may have moved the entity on restore to bring it back on-screen itself, so recalculate the offset. Note this
-            // will restore a maximized window
-            await entity.applyOffset(this.calculateOffset(entity, rectangle), rectangle.halfSize);
+    private async applyTabGroupResult(tabGroup: DesktopTabGroup, rectangle: Rectangle, offset: Point<number>) {
+        if (tabGroup.isMaximized) {
+            await tabGroup.resetMaximizedAndNormalBounds(rectangle);
+        } else {
+            await tabGroup.applyOffset(offset, rectangle.halfSize);
+        }
+    }
 
-            // If the window was maximized even after being restored, it was a minimized, maximized window, so maximize before
-            // we re-minimize
-            if (restoredState === 'maximized') {
-                await entity.maximize();
-            }
+    private async applyWindowResult(window: DesktopWindow, startState: WindowState, rectangle: Rectangle) {
+        let restoredState: WindowState | undefined;
+        if (startState !== 'normal') {
+            // We can't tell if we have a 'minimized, maximized' window without actually restoring
+            await window.restore();
+            restoredState = window.currentState.state;
+        }
 
-            if (oldState !== 'normal') {
-                await oldState === 'maximized' ? entity.maximize() : entity.minimize();
-            }
+        // Note that Windows may have moved the window when restoring, so recalculate the offset. Also note this will restore a maximized window
+        await window.applyOffset(this.calculateOffset(window, rectangle), rectangle.halfSize);
+
+        // If we had a 'minimized, maximized' window, we restore that here
+        if (restoredState === 'maximized') {
+            await window.maximize();
+        }
+
+        if (startState !== 'normal') {
+            await startState === 'maximized' ? window.maximize() : window.minimize();
+        }
+    }
+
+    private async applyTabGroupFix(tabGroup: DesktopTabGroup): Promise<void> {
+        /*
+         * This fixes a bug we encounter if we have a minimized tabgroup that is otherwise unaffected by monitor changes, where
+         * inactive tabs will move away from the tabstrip without the model being aware. This forces all tabs to be where we
+         * expect them to be.
+         */
+        if (tabGroup.currentState.state === 'minimized') {
+            return DesktopWindow.transaction(tabGroup.tabs, async () => {
+                await Promise.all(tabGroup.tabs.map(tab => tab.applyOffset({x: 0, y: 0})));
+            });
         }
     }
 
     private calculateOffset(entity: DesktopEntity, rectangle: Rectangle): Point<number> {
         const center = entity.normalBounds.center;
         return {x: rectangle.center.x - center.x, y: rectangle.center.y - center.y};
+    }
+
+    private fillsScreen(rectangle: Rectangle): boolean {
+        return this._model.monitors.some(monitor => RectUtils.isEqual(monitor, rectangle));
     }
 }

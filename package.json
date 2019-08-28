@@ -1,6 +1,6 @@
 {
   "name": "openfin-layouts",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Client library for the OpenFin Layouts service",
   "types": "dist/client/main.d.ts",
   "main": "dist/client/main-bundle.js",
@@ -37,7 +37,7 @@
     "mkdirp": "^0.5.1",
     "openfin-service-config": "^1.0.1",
     "openfin-service-signal": "^1.0.0",
-    "openfin-service-tooling": "1.0.11",
+    "openfin-service-tooling": "1.0.12",
     "power-assert": "^1.6.1",
     "pre-commit": "^1.2.2",
     "robotjs": "^0.5.1",

@@ -3,7 +3,7 @@
 
 ## Overview
 
-OpenFin Layouts delivers window management and layout user experience across the desktop for OpenFin-based applications.
+The OpenFin Layouts Service delivers window management and layout user experience across the desktop for OpenFin-based applications.
 
 This project consist of 3 parts:
 1. The Layouts Provider, managing the state of windows, tabs and layouts
@@ -12,7 +12,7 @@ This project consist of 3 parts:
 
 ### Dependencies
 - OpenFin version for applications using Layouts = 9.61.38.41
-- OpenFin version used in the Layouts service = 9.61.38.41
+- OpenFin version used in the Layouts Service = 9.61.38.41
 - RVM >= 4.7
 
 ### Features
@@ -42,7 +42,7 @@ This project consist of 3 parts:
 
 ## Getting Started
 
-Integrating the Layouts service within an application is done in two steps - adding the service to the application manifest, and importing the API:
+Integrating the Layouts Service within an application is done in two steps - adding the service to the application manifest, and importing the API:
 
 ### Manifest declaration
 To ensure the service is running, you must declare it in your application config.

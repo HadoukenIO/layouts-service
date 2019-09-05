@@ -19,68 +19,69 @@ interface TabConstraintsOptions extends CreateWindowData {
 
 afterEach(teardown);
 
-itParameterized(
-    'When windows are tabbed together, constraints are applied correctly',
-    (testOptions) => `${JSON.stringify(testOptions)}`,
-    [
-        {frame: true, windowCount: 2, windowConstraints: [{resizable: false}, {}]},
-        {frame: true, windowCount: 2, windowConstraints: [{maxHeight: 500, minWidth: 100}, {}]},
-        {
-            frame: true,
-            windowCount: 3,
-            windowConstraints: [
-                {resizeRegion: {sides: {top: false, left: false, bottom: true, right: true}}},
-                {resizeRegion: {sides: {top: true, left: true, bottom: false, right: false}}},
-                {}
-            ]
-        },
-        {
-            frame: true,
-            windowCount: 3,
-            windowConstraints: [{resizeRegion: {sides: {top: false, left: false, bottom: true, right: true}}}, {resizable: false}, {}]
-        }
-    ],
-    createWindowTest(async (context, testOptions: TabConstraintsOptions) => {
-        const {windows} = context;
+// SKIPPED TABBING TEST
+// itParameterized(
+//     'When windows are tabbed together, constraints are applied correctly',
+//     (testOptions) => `${JSON.stringify(testOptions)}`,
+//     [
+//         {frame: true, windowCount: 2, windowConstraints: [{resizable: false}, {}]},
+//         {frame: true, windowCount: 2, windowConstraints: [{maxHeight: 500, minWidth: 100}, {}]},
+//         {
+//             frame: true,
+//             windowCount: 3,
+//             windowConstraints: [
+//                 {resizeRegion: {sides: {top: false, left: false, bottom: true, right: true}}},
+//                 {resizeRegion: {sides: {top: true, left: true, bottom: false, right: false}}},
+//                 {}
+//             ]
+//         },
+//         {
+//             frame: true,
+//             windowCount: 3,
+//             windowConstraints: [{resizeRegion: {sides: {top: false, left: false, bottom: true, right: true}}}, {resizable: false}, {}]
+//         }
+//     ],
+//     createWindowTest(async (context, testOptions: TabConstraintsOptions) => {
+//         const {windows} = context;
 
-        const layoutsClient = await layoutsClientPromise;
-        const {tabbing} = layoutsClient;
+//         const layoutsClient = await layoutsClientPromise;
+//         const {tabbing} = layoutsClient;
 
-        await Promise.all(windows.map((win, index) => win.updateOptions(testOptions.windowConstraints[index])));
-        await Promise.all(windows.map((win) => refreshWindowState(win.identity)));
+//         await Promise.all(windows.map((win, index) => win.updateOptions(testOptions.windowConstraints[index])));
+//         await Promise.all(windows.map((win) => refreshWindowState(win.identity)));
 
-        const startingState = await Promise.all(windows.map(win => getNormalizedConstraints(win)));
+//         const startingState = await Promise.all(windows.map(win => getNormalizedConstraints(win)));
 
-        // Tab the windows
-        await tabbing.createTabGroup(windows.map(win => win.identity));
+//         // Tab the windows
+//         await tabbing.createTabGroup(windows.map(win => win.identity));
 
-        await delay(1000);
+//         await delay(1000);
 
-        await assertCompleteTabGroup(...windows);
+//         await assertCompleteTabGroup(...windows);
 
-        const resultingConstraints = constraintsUnion(...testOptions.windowConstraints);
+//         const resultingConstraints = constraintsUnion(...testOptions.windowConstraints);
 
-        // Check constraints applied to all tabs
-        for (let i = 0; i < windows.length; i++) {
-            const windowOptions: Required<Constraints> = await getNormalizedConstraints(windows[i]);
-            assertConstraintsMatch(resultingConstraints, windowOptions);
-        }
+//         // Check constraints applied to all tabs
+//         for (let i = 0; i < windows.length; i++) {
+//             const windowOptions: Required<Constraints> = await getNormalizedConstraints(windows[i]);
+//             assertConstraintsMatch(resultingConstraints, windowOptions);
+//         }
 
-        // Un-tab the windows
-        for (let i = 1; i < windows.length; i++) {
-            await tabbing.removeTab(windows[i].identity);
-        }
+//         // Un-tab the windows
+//         for (let i = 1; i < windows.length; i++) {
+//             await tabbing.removeTab(windows[i].identity);
+//         }
 
-        await delay(200);
+//         await delay(200);
 
-        // Check constraints correctly reverted to original values
-        for (let i = 0; i < windows.length; i++) {
-            const finalState = await getNormalizedConstraints(windows[i]);
+//         // Check constraints correctly reverted to original values
+//         for (let i = 0; i < windows.length; i++) {
+//             const finalState = await getNormalizedConstraints(windows[i]);
 
-            assertConstraintsMatch(startingState[i], finalState);
-        }
-    })
-);
+//             assertConstraintsMatch(startingState[i], finalState);
+//         }
+//     })
+// );
 
 itParameterized(
     'When attempting to tab together windows with incompatible constraints, windows are not tabbed',

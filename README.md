@@ -47,7 +47,7 @@ Integrating the Layouts Service within an application is done by declaring the s
 ### Manifest Declaration
 To ensure the service is running, you must declare it in your application config.
 
-```
+```json
 "services":
 [
    {"name":"layouts"}
@@ -55,7 +55,7 @@ To ensure the service is running, you must declare it in your application config
 ```
 Optionally you can add a URL for specifying a custom location or a specific version:
 
-```
+```json
 "services":
 [
    {
@@ -71,11 +71,11 @@ npm install openfin-layouts
 ```
 
 The client library is also available as a resource which can be included via `<script>` tag:
-```
+```html
 <script src="https://cdn.openfin.co/services/openfin/layouts/<VERSION>/openfin-layouts.js"></script>
 ```
 This will expose the global variable `layouts` with the API methods documented in the link below.  Example:
-```
+```js
 layouts.snapAndDock.undockWindow();
 ```
 

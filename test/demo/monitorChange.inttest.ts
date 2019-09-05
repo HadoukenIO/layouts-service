@@ -244,7 +244,7 @@ const options: MonitorAssignmentValidatorTestOptions[] = [
         ],
         frame: false,
         windowCount: 3
-    },
+    }
     // Strange things happen if we call `tabbing.minimizeTabGroup()` on offscreen tabs, so we make sure these are within our original monitor
     // {
     //     description: 'A minimized tabbed window, with restore bounds partially outside the monitor, is moved as expected',

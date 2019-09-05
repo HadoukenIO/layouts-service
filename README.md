@@ -103,7 +103,7 @@ Once dependencies are installed, start the "built-in" sample application with `n
 The startup script has optional arguments which can be used to tweak the behavior of the build and the test server. Use `npm start -- -h` for details on the available parameters and their effects.
 
 ### Build Process
-The service consists of several different components unified into a single project. The `package.json` defines the combined dependencies of all components. Anything required for the pre-built client to work within an application is included in the `"dependencies"` section, and the remaining dependencies - used to build the client, and to both build & run the provider and demo application - are included under `"devDependencies"`.
+The service consists of several different components unified into a single project. The `package.json` defines the combined dependencies of all components. Any modules required for the pre-built client to work within an application are included in the `"dependencies"` section, and the remaining dependencies - used to build the client, and to both build & run the provider and demo application - are included under `"devDependencies"`.
 
 Similarly, there is a single `webpack.config.js` script that will build the above components.
 

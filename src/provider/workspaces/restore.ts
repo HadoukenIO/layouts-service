@@ -420,18 +420,6 @@ const instructClientAppToRestoreItself = async(workspaceApp: WorkspaceApp): Prom
     }
 };
 
-const attemptToRunCreatedApp = async (ofAppNotRunning: Application) => {
-    let timeout;
-    const timeoutPromise = new Promise<void>((resolve, reject) => timeout = window.setTimeout(() => {
-        reject(new Error(`Run was called on Application ${ofAppNotRunning.identity.uuid}, but it seems to be hanging. Continuing restoration.`));
-    }, CLIENT_APP_RUN_TIMEOUT));
-    const runCall = ofAppNotRunning.run();
-
-    await Promise.race([timeoutPromise, runCall]);
-
-    clearTimeout(timeout);
-};
-
 // If an app creation fails during the beginning of the restore process, add it to appsToDeleteFromWorkspace so it can get cleaned up in the processAppResponse
 // function. Then, resolve its pending setClientAppToRestoreWhenReady promise and remove it from appsToRestoreWhenReady.
 const deleteAppFromRestoreWhenReadyMap = (app: WorkspaceApp) => {

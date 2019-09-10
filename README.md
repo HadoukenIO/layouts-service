@@ -50,20 +50,21 @@ To ensure the service is running, you must declare it in your application config
 ```json
 "services":
 [
-   {"name":"layouts"}
+   {"name": "layouts"}
 ]
 ```
-Optionally you can add a URL for specifying a custom location or a specific version:
+During development, you can add a URL for specifying a custom location or a specific version:
 
 ```json
 "services":
 [
    {
-       "name":"layouts",
+       "name": "layouts",
        "manifestUrl": "https://custom-location/<version>/app.json"
    }
 ]
 ```
+Refer to the [Desktop Services documentation](https://developers.openfin.co/docs/desktop-services) for details on managing service location/version within production environments.
 
 ### Import the Client API
 ```bash

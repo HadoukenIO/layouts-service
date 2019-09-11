@@ -828,6 +828,8 @@ export class DesktopWindow implements DesktopEntity {
     private unsnap(): Promise<void> {
         // TODO: Wrap with 'addPendingActions'?..
         if (this.isReady) {
+            console.log('in unsnap');
+            debugger;
             return this._window.leaveGroup();
         } else {
             return Promise.resolve();
@@ -1154,21 +1156,21 @@ export class DesktopWindow implements DesktopEntity {
 
         // Temporary extra validation to workaround runtime issues with windows right-click move
         // TODO: Removed once runtime has better handling of this edge case (RUN-5074?)
-        let disabled = false;
-        const disabledListener = () => {
-            disabled = true;
-        };
-        this._window.once('disabled-frame-bounds-changing', disabledListener);
-        this._window.once('bounds-changed', () => {
-            if (!disabled && this._snapGroup.length > 1) {
-                if (this._tabGroup) {
-                    this._tabGroup.validate();
-                } else {
-                    this._snapGroup.validate();
-                }
-            }
-            this._window.removeListener('disabled-frame-bounds-changing', disabledListener);
-        });
+        // let disabled = false;
+        // const disabledListener = () => {
+        //     disabled = true;
+        // };
+        // this._window.once('bounds-changing', disabledListener);
+        // this._window.once('bounds-changed', () => {
+        //     if (!disabled && this._snapGroup.length > 1) {
+        //         if (this._tabGroup) {
+        //             this._tabGroup.validate();
+        //         } else {
+        //             this._snapGroup.validate();
+        //         }
+        //     }
+        //     this._window.removeListener('bounds-changing', disabledListener);
+        // });
     }
 
     private handleClosing(): void {

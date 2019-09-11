@@ -141,7 +141,7 @@ export class DesktopTabstripFactory {
      */
     private async createWindow(options: ApplicationUIConfig): Promise<_Window> {
         const tabStrip = await fin.Window.create(this.generateTabStripOptions(options));
-        await tabStrip.disableFrame();
+        // await tabStrip.disableFrame();
         return tabStrip;
     }
 }

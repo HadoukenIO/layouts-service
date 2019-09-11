@@ -34,31 +34,31 @@ declare const window: Window&{
 
 fin.desktop.main(main);
 
-const supportedScaleFactors = [1, 1.5, 2];
+// const supportedScaleFactors = [1, 1.5, 2];
 
 export async function main() {
-    const monitorInfo = await fin.System.getMonitorInfo();
+//     const monitorInfo = await fin.System.getMonitorInfo();
 
-    // Disable the service if display scaling is not a supported scale factor
-    if (!supportedScaleFactors.some(scaleFactor => scaleFactor === monitorInfo.deviceScaleFactor)) {
-        console.error('Desktop has non-standard display scaling. Notifying user and disabling all layouts functionality.');
+//     // Disable the service if display scaling is not a supported scale factor
+//     if (!supportedScaleFactors.some(scaleFactor => scaleFactor === monitorInfo.deviceScaleFactor)) {
+//         console.error('Desktop has non-standard display scaling. Notifying user and disabling all layouts functionality.');
 
-        const errorMessage = `\
-OpenFin Layouts will only work with monitors that are set to a scaling ratio of 100%, 150% or 200%. \
-This can be changed in monitor or display settings.
-\n\n\
-Please contact support@openfin.co with any further questions.`;
+//         const errorMessage = `\
+// OpenFin Layouts will only work with monitors that are set to a scaling ratio of 100%, 150% or 200%. \
+// This can be changed in monitor or display settings.
+// \n\n\
+// Please contact support@openfin.co with any further questions.`;
 
-        const providerChannel: ChannelProvider = await fin.InterApplicationBus.Channel.create(SERVICE_CHANNEL);
-        providerChannel.onConnection((app: Identity) => {
-            providerChannel.dispatch(app, 'WARN', errorMessage);
-        });
-        providerChannel.setDefaultAction(() => {
-            throw Error(errorMessage);
-        });
+//         const providerChannel: ChannelProvider = await fin.InterApplicationBus.Channel.create(SERVICE_CHANNEL);
+//         providerChannel.onConnection((app: Identity) => {
+//             providerChannel.dispatch(app, 'WARN', errorMessage);
+//         });
+//         providerChannel.setDefaultAction(() => {
+//             throw Error(errorMessage);
+//         });
 
-        return;  // NOTE: Service will still be running, but will not function.
-    }
+//         return;  // NOTE: Service will still be running, but will not function.
+//     }
 
     config = window.config = new Store(require('../../gen/provider/config/defaults.json'));
     loader = window.loader = new Loader(config, 'layouts', {enabled: false});

@@ -14,7 +14,7 @@
     },
     "runtime": {
         "arguments": "--v=1 --enable-crash-reporting --security-realm=APP_1 --enable-mesh",
-        "version": "9.61.38.41"
+        "version": "13.76.43.32"
     },
     "services": [{"name": "layouts", "manifestUrl": "http://localhost:1337/provider/app.json"}]
 }

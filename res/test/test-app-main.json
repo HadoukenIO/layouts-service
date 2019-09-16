@@ -3,7 +3,7 @@
     "licenseKey": "64605fac-add3-48a0-8710-64b38e96a2dd",
     "runtime": {
         "arguments": "--v=1 --enable-crash-reporting",
-        "version": "13.76.44.17"
+        "version": "13.76.44.20"
     },
     "services":[{"name": "layouts", "manifestUrl": "http://localhost:1337/test/provider.json"}],
     "startup_app": {

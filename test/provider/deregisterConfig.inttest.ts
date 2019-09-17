@@ -105,44 +105,44 @@ it('When a tabbed window is de-registered, it is removed from its tab group', as
     assert.strictEqual(groups[1].length, 0);
 });
 
-it('When a tabbed window is de-registered, it is removed from its snapped tab group', async () => {
-    const {windows} = context;
-    for (let i = 0; i < 4; i++) {
-        windows.push(await createChildWindow({
-            ...DEFAULT_OPTIONS,
-            name: `testWindow${i + 1}`,
-            defaultLeft: (i % 2) * 320,
-            defaultTop: Math.floor(i / 2) * 220
-        }));
-    }
+// it('When a tabbed window is de-registered, it is removed from its snapped tab group', async () => {
+//     const {windows} = context;
+//     for (let i = 0; i < 4; i++) {
+//         windows.push(await createChildWindow({
+//             ...DEFAULT_OPTIONS,
+//             name: `testWindow${i + 1}`,
+//             defaultLeft: (i % 2) * 320,
+//             defaultTop: Math.floor(i / 2) * 220
+//         }));
+//     }
 
-    // Setup tab/snap groups.
-    // Windows are frameless, so can snap by windows rather than by tabstrips
-    await tabWindowsTogether(windows[0], windows[1]);
-    await tabWindowsTogether(windows[2], windows[3]);
-    await dragSideToSide(windows[0], 'left', windows[2], 'right');
-    const bounds = await windows[0].getBounds();
-    await dragWindowTo(windows[0], bounds.left + 100, bounds.top + 100);
+//     // Setup tab/snap groups.
+//     // Windows are frameless, so can snap by windows rather than by tabstrips
+//     await tabWindowsTogether(windows[0], windows[1]);
+//     await tabWindowsTogether(windows[2], windows[3]);
+//     await dragSideToSide(windows[0], 'left', windows[2], 'right');
+//     const bounds = await windows[0].getBounds();
+//     await dragWindowTo(windows[0], bounds.left + 100, bounds.top + 100);
 
-    // Ensure windows are in position
-    await assertPairTabbed(windows[0], windows[1]);
-    await assertPairTabbed(windows[2], windows[3]);
-    await assertGrouped(...windows);
+//     // Ensure windows are in position
+//     await assertPairTabbed(windows[0], windows[1]);
+//     await assertPairTabbed(windows[2], windows[3]);
+//     await assertGrouped(...windows);
 
-    // De-register first window
-    await addRuleToProvider({level: 'window', uuid: 'testApp', name: 'testWindow1'}, {enabled: false});
+//     // De-register first window
+//     await addRuleToProvider({level: 'window', uuid: 'testApp', name: 'testWindow1'}, {enabled: false});
 
-    // Allow for config to be applied and window de-registered
-    await delay(500);
+//     // Allow for config to be applied and window de-registered
+//     await delay(500);
 
-    // Ensure first window is de-registered
-    assert.strictEqual(await isWindowRegistered(windows[0].identity), false);
-    for (let i = 1; i < 4; i++) {
-        assert.strictEqual(await isWindowRegistered(windows[i].identity), true);
-    }
+//     // Ensure first window is de-registered
+//     assert.strictEqual(await isWindowRegistered(windows[0].identity), false);
+//     for (let i = 1; i < 4; i++) {
+//         assert.strictEqual(await isWindowRegistered(windows[i].identity), true);
+//     }
 
-    // Ensure first window is de-tabbed whilst others remain grouped
-    const groups = await Promise.all(windows.map(w => w.getGroup()));
-    const groupSizes = groups.map(g => g.length);
-    assert.deepEqual(groupSizes, [0, 4, 4, 4]);  // 4 Windows in group - 3 tabs and the one remaining tabstrip
-});
+//     // Ensure first window is de-tabbed whilst others remain grouped
+//     const groups = await Promise.all(windows.map(w => w.getGroup()));
+//     const groupSizes = groups.map(g => g.length);
+//     assert.deepEqual(groupSizes, [0, 4, 4, 4]);  // 4 Windows in group - 3 tabs and the one remaining tabstrip
+// });

@@ -22,7 +22,11 @@
     },
   "runtime": {
     "arguments": "--v=1 --enable-crash-reporting",
+<<<<<<< HEAD
     "version": "13.76.44.20"
+=======
+    "version": "13.76.43.32"
+>>>>>>> 1d548828517a91362bf839bc4f11b1a76395990f
   },
     "shortcut": {}
 }

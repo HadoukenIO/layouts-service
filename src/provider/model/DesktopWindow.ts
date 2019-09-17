@@ -828,7 +828,6 @@ export class DesktopWindow implements DesktopEntity {
     private unsnap(): Promise<void> {
         // TODO: Wrap with 'addPendingActions'?..
         if (this.isReady) {
-            debugger;
             return this._window.leaveGroup();
         } else {
             return Promise.resolve();

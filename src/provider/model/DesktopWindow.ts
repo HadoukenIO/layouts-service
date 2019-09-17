@@ -174,11 +174,7 @@ export class DesktopWindow implements DesktopEntity {
                     // define a title. We would like to instead use the window name, to align with what is seen in the
                     // un-tabbed window frame.
 
-<<<<<<< HEAD
                     // Current stable (13.76.44.20) behaviour is to return 'host+pathname+search+hash'. There is also a
-=======
-                    // Current stable (13.76.43.32) behaviour is to return 'host+pathname+search+hash'. There is also a
->>>>>>> 1d548828517a91362bf839bc4f11b1a76395990f
                     // story (RUN-3457) to change this to 'host+pathname'. We will check for both of these strings, and
                     // revert to the window name if the title matches either
                     const parsedUrl = new URL(url);

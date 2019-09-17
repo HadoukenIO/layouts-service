@@ -12,11 +12,7 @@ This project consist of 3 parts:
 
 ### Dependencies
 - OpenFin version for applications using the Layouts Service = 9.61.38.41
-<<<<<<< HEAD
 - OpenFin version used by the Layouts Provider = 13.76.44.20
-=======
-- OpenFin version used by the Layouts Provider = 13.76.43.32
->>>>>>> 1d548828517a91362bf839bc4f11b1a76395990f
 - RVM >= 4.7
 
 ### Features

@@ -41,42 +41,42 @@ itParameterized(
 );
 
 // With tabsets
-itParameterized(
-    'When minimizing and restoring grouped, tabbed, windows, the group is minimized and restored as expected',
-    (testOptions: MinimizeTestOptions) => `${testOptions.windowCount} windows - restoring ${testOptions.restoreIndex === 0 ? 'minimized' : 'grouped'} window`,
-    [{frame: true, windowCount: 4, restoreIndex: 0}, {frame: true, windowCount: 4, restoreIndex: 1}, {frame: true, windowCount: 6, restoreIndex: 1}],
-    createWindowTest(async (context, testOptions: MinimizeTestOptions) => {
-        const layoutsClient = await layoutsClientPromise;
+// itParameterized(
+//     'When minimizing and restoring grouped, tabbed, windows, the group is minimized and restored as expected',
+// (testOptions: MinimizeTestOptions) => `${testOptions.windowCount} windows - restoring ${testOptions.restoreIndex === 0 ? 'minimized' : 'grouped'} window`,
+//     [{frame: true, windowCount: 4, restoreIndex: 0}, {frame: true, windowCount: 4, restoreIndex: 1}, {frame: true, windowCount: 6, restoreIndex: 1}],
+//     createWindowTest(async (context, testOptions: MinimizeTestOptions) => {
+//         const layoutsClient = await layoutsClientPromise;
 
-        const {windows, windowInitializer} = context;
-        const {restoreIndex, windowCount} = testOptions;
+//         const {windows, windowInitializer} = context;
+//         const {restoreIndex, windowCount} = testOptions;
 
-        const tabStrips: _Window[] = [];
-        for (let i = 0; i < windowCount; i += 2) {
-            await tabWindowsTogether(windows[i], windows[i + 1]);
+//         const tabStrips: _Window[] = [];
+//         for (let i = 0; i < windowCount; i += 2) {
+//             await tabWindowsTogether(windows[i], windows[i + 1]);
 
-            await delay(100);
+//             await delay(100);
 
-            await assertPairTabbed(windows[i], windows[i + 1]);
+//             await assertPairTabbed(windows[i], windows[i + 1]);
 
-            tabStrips.push(await getTabstrip(windows[i].identity));
-        }
+//             tabStrips.push(await getTabstrip(windows[i].identity));
+//         }
 
-        await windowInitializer.arrangeWindows(tabStrips, windowCount === 4 ? 'horizontal' : 'line');
-        await assertGrouped(...windows, ...tabStrips);
+//         await windowInitializer.arrangeWindows(tabStrips, windowCount === 4 ? 'horizontal' : 'line');
+//         await assertGrouped(...windows, ...tabStrips);
 
-        await layoutsClient.tabbing.minimizeTabGroup(tabStrips[0].identity);
-        await delay(500);
+//         await layoutsClient.tabbing.minimizeTabGroup(tabStrips[0].identity);
+//         await delay(500);
 
-        await assertAllMinimizedOrHidden([...windows, ...tabStrips]);
+//         await assertAllMinimizedOrHidden([...windows, ...tabStrips]);
 
-        await tabStrips[restoreIndex].restore();
-        await delay(500);
+//         await tabStrips[restoreIndex].restore();
+//         await delay(500);
 
-        await assertAllNormalState([...windows, ...tabStrips]);
-        for (let i = 0; i < windowCount; i += 2) {
-            await assertPairTabbed(windows[i], windows[i + 1]);
-        }
-        await assertGrouped(...windows, ...tabStrips);
-    })
-);
+//         await assertAllNormalState([...windows, ...tabStrips]);
+//         for (let i = 0; i < windowCount; i += 2) {
+//             await assertPairTabbed(windows[i], windows[i + 1]);
+//         }
+//         await assertGrouped(...windows, ...tabStrips);
+//     })
+// );

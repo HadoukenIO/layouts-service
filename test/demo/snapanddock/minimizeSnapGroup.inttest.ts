@@ -43,7 +43,7 @@ itParameterized(
 // With tabsets
 // itParameterized(
 //     'When minimizing and restoring grouped, tabbed, windows, the group is minimized and restored as expected',
-//     (testOptions: MinimizeTestOptions) => `${testOptions.windowCount} windows - restoring ${testOptions.restoreIndex === 0 ? 'minimized' : 'grouped'} window`,
+// (testOptions: MinimizeTestOptions) => `${testOptions.windowCount} windows - restoring ${testOptions.restoreIndex === 0 ? 'minimized' : 'grouped'} window`,
 //     [{frame: true, windowCount: 4, restoreIndex: 0}, {frame: true, windowCount: 4, restoreIndex: 1}, {frame: true, windowCount: 6, restoreIndex: 1}],
 //     createWindowTest(async (context, testOptions: MinimizeTestOptions) => {
 //         const layoutsClient = await layoutsClientPromise;

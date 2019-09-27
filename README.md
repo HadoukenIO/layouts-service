@@ -6,8 +6,8 @@
 The OpenFin Layouts Service delivers window management and layout user experience across the desktop for OpenFin-based applications.
 
 This project consist of 3 parts:
-1. The Layouts Provider, managing the state of windows, tabs and layouts
-2. The Layouts Client, exposing APIs for applications to control snap & dock, tabbing, and save & restore
+1. The Layouts Provider, managing the state of windows and layouts
+2. The Layouts Client, exposing APIs for applications to control snap & dock and save & restore
 3. The Layouts Demo App, demonstrating the different features of OpenFin Layouts
 
 ### Dependencies
@@ -27,7 +27,7 @@ This project consist of 3 parts:
    - The service has APIs for generating and restoring workspaces
    - The provided demo showcases how a layout manager application could use the APIs to manage workspaces
 - APIs
-   - APIs available to undock, ungroup, tab/un-tab, save/restore workspaces, and opt-out of service functionality
+   - APIs available to undock, ungroup, save/restore workspaces, and opt-out of service functionality
 - Hosting
    - The latest production version OpenFin Layouts will by default be served from OpenFin's CDN
    - For testing/development purposes, customers can specify an absolute version/location of the service by providing the full URL in the services section of the app manifest (see 'Manifest declaration' below)

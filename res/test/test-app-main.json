@@ -24,10 +24,6 @@
                     "activeOpacity": 0.8,
                     "targetOpacity": 0.8
                 }
-            },
-            "tabstrip": {
-                "url": "",
-                "height": 60
             }
         }
     ],

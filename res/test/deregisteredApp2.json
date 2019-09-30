@@ -5,32 +5,7 @@
         "arguments": "--v=1 --enable-crash-reporting",
         "version": "13.76.44.21"
     },
-    "services": [
-        {
-            "name": "layouts",
-            "manifestUrl": "http://localhost:1337/test/provider.json",
-            "enabled": true,
-            "features": {
-                "snap": true,
-                "dock": true,
-                "tab": true
-            },
-            "preview": {
-                "snap": {
-                    "activeOpacity": 0.8,
-                    "targetOpacity": 0.8
-                },
-                "tab": {
-                    "activeOpacity": 0.8,
-                    "targetOpacity": 0.8
-                }
-            },
-            "tabstrip": {
-                "url": "",
-                "height": 60
-            }
-        }
-    ],
+    "services":[{"name": "layouts", "manifestUrl": "http://localhost:1337/test/provider.json"}],
     "startup_app": {
         "name": "deregisteredApp2",
         "uuid": "deregisteredApp2",

@@ -9,25 +9,34 @@
         {
             "name": "layouts",
             "manifestUrl": "http://localhost:1337/test/provider.json",
-            "enabled": true,
-            "features": {
-                "snap": true,
-                "dock": true,
-                "tab": true
-            },
-            "preview": {
-                "snap": {
-                    "activeOpacity": 0.8,
-                    "targetOpacity": 0.8
-                },
-                "tab": {
-                    "activeOpacity": 0.8,
-                    "targetOpacity": 0.8
-                }
-            },
-            "tabstrip": {
-                "url": "",
-                "height": 60
+            "config": {
+                "rules": [
+                    {
+                        "scope": {
+                            "level": "application",
+                            "uuid": "registeredApp2",
+                            "name": "registeredApp2"
+                        },
+                        "config": {
+                            "enabled": true,
+                            "features": {
+                                "snap": true,
+                                "dock": true,
+                                "tab": true
+                            },
+                            "preview": {
+                                "snap": {
+                                    "activeOpacity": 0.8,
+                                    "targetOpacity": 0.8
+                                },
+                                "tab": {
+                                    "activeOpacity": 0.8,
+                                    "targetOpacity": 0.8
+                                }
+                            }
+                        }
+                    }
+                ]
             }
         }
     ],

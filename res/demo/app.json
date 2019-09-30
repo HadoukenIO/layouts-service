@@ -15,16 +15,41 @@
         "arguments": "--v=1 --enable-crash-reporting --inspect=9222 --enable-aggressive-domstorage-flushing",
         "version": "13.76.44.21"
     },
-    "services": [{
-        "name": "layouts",
-        "manifestUrl": "http://localhost:1337/provider/app.json",
-        "config": {
-            "rules": [{
-                "scope": {"level": "window", "uuid": "Layouts-Manager", "name": "Layouts-Manager"},
-                "config": {"enabled": false}
-            }]
+    "services": [
+        {
+            "name": "layouts",
+            "manifestUrl": "http://localhost:1337/provider/app.json",
+            "config": {
+                "rules": [
+                    {
+                        "scope": {
+                            "level": "application",
+                            "uuid": "Layouts-Manager",
+                            "name": "Layouts-Manager"
+                        },
+                        "config": {
+                            "enabled": true,
+                            "features": {
+                                "snap": true,
+                                "dock": true,
+                                "tab": true
+                            },
+                            "preview": {
+                                "snap": {
+                                    "activeOpacity": 0.8,
+                                    "targetOpacity": 0.8
+                                },
+                                "tab": {
+                                    "activeOpacity": 0.8,
+                                    "targetOpacity": 0.8
+                                }
+                            }
+                        }
+                    }
+                ]
+            }
         }
-    }],
+    ],
     "shortcut": {
         "company": "OpenFin",
         "description": "Layouts-Manager",

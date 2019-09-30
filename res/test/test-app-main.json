@@ -5,7 +5,15 @@
         "arguments": "--v=1 --enable-crash-reporting",
         "version": "13.76.44.21"
     },
-    "services":[{"name": "layouts", "manifestUrl": "http://localhost:1337/test/provider.json"}],
+    "services": [
+        {
+            "name": "layouts",
+            "manifestUrl": "http://localhost:1337/test/provider.json",
+            "features": {
+                "tab": true
+            }
+        }
+    ],
     "startup_app": {
         "name": "testApp",
         "uuid": "testApp",

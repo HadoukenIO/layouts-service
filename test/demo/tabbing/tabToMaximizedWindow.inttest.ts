@@ -15,6 +15,7 @@ import {getTabGroupIdentity, getTabGroupState} from '../utils/tabServiceUtils';
 interface TabToMaximizedWindowTestOptions extends CreateWindowData {
     windowCount: 2;
     tabTo: 'maximized'|'restored';
+    skip?: boolean;
 }
 
 afterEach(teardown);
@@ -22,12 +23,12 @@ afterEach(teardown);
 itParameterized(
     'When dragging a window on-top another window, windows become tabbed',
     (testOptions) => `frame: ${testOptions.frame}, tabTo: ${testOptions.tabTo}`,
-    [
+    ([
         {frame: true, windowCount: 2, tabTo: 'restored'},
         {frame: true, windowCount: 2, tabTo: 'maximized'},
         {frame: false, windowCount: 2, tabTo: 'restored'},
         {frame: false, windowCount: 2, tabTo: 'maximized'}
-    ],
+    ].map(x=>({...x, skip: true})) as TabToMaximizedWindowTestOptions[]),
     createWindowTest(async (context, testOptions: TabToMaximizedWindowTestOptions) => {
         const {windows} = context;
 
@@ -97,7 +98,7 @@ itParameterized(
     [
         {frame: true, windowCount: 3},
         {frame: false, windowCount: 3}
-    ],
+    ].map(x=>({...x, skip: true})),
     createWindowTest(async context => {
         const {windows} = context;
 

@@ -134,7 +134,7 @@ itParameterized<CreateTabGroupFromTabsOptions>(
             tabsToTakeFromSourceTabGroup: 1,
             tabsToTakeFromTargetTabGroup: 1
         })
-    ],
+    ].map(x => ({...x, skip: true})),
     createWindowTest(async (context, testOptions: CreateTabGroupFromTabsOptions) => {
         const {windows} = context;
 

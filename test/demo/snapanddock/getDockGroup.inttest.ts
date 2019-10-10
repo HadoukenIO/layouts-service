@@ -3,7 +3,7 @@ import {dragSideToSide} from '../../provider/utils/dragWindowTo';
 import {layoutsClientPromise} from '../utils/serviceUtils';
 import {tabWindowsTogether} from '../../provider/utils/tabWindowsTogether';
 
-describe('When calling getDockGroup, the data returned accurately represents the group state of the target window', () => {
+describe.skip('When calling getDockGroup, the data returned accurately represents the group state of the target window', () => {
     it('Two single undocked windows', async () => createWindowTest(async context => {
         const {windows} = context;
         const layouts = await layoutsClientPromise;

@@ -96,7 +96,7 @@ itParameterized(
     [
         {frame: true, windowCount: 2},
         {frame: true, windowCount: 3}
-    ],
+    ].map(x => ({...x, skip: true})),
     createWindowTest(async (context, testOptions: CreateWindowData) => {
         const {windowCount} = testOptions;
         const {windows} = context;

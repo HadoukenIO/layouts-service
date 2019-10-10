@@ -164,7 +164,9 @@ async function tabSnapAndMove(side: Side, windows: _Window[]): Promise<[_Window,
 itParameterized<SnapTabInstanceData&CreateWindowData>(
     'When two tabbed windows share a snapgroup, can drag a tab to form a tabgroup in a different snapgroup',
     (testOptions) => `Side: ${testOptions.side}`,
-    [{side: Sides.right}, {side: Sides.bottom}].map(instance => ({...instance, frame: true, windowCount: 5})),
+    [{side: Sides.right}, {side: Sides.bottom}]
+        .map(instance => ({...instance, frame: true, windowCount: 5}))
+        .map(x => ({...x, skip: true})),
     createWindowTest(async (context, testOptions: SnapTabInstanceData&CreateWindowData) => {
         const {windows} = context;
         const {side} = testOptions;

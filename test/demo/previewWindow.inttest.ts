@@ -125,7 +125,7 @@ itParameterized(
 itParameterized(
     'When dragging a tab from one window to another, preview window appears correct size and position',
     (testOptions: CreateWindowData): string => `Preview tab drag ${testOptions.windowCount > 3 ? 'tabbed' : 'single'} window`,
-    [{frame: true, windowCount: 3}, {frame: true, windowCount: 4}],
+    [{frame: true, windowCount: 3}, {frame: true, windowCount: 4}].map(x => ({...x, skip: true})),
     createWindowTest(async (context, testOptions: CreateWindowData) => {
         const {windowCount} = testOptions;
         const {windows} = context;

@@ -67,7 +67,7 @@ export const restoreWorkspace = async(payload: Workspace): Promise<Workspace> =>
 
     const apps: WorkspaceApp[] = await promiseMap(workspace.apps, app => restoreApp(app, startupApps, manifestApps));
 
-    //@ts-ignore
+    // @ts-ignore
     fin.Application.startManyManifests(manifestApps);
 
     // Wait for all apps to start-up

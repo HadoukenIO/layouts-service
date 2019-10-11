@@ -6,16 +6,16 @@
 The OpenFin Layouts Service delivers window management and layout user experience across the desktop for OpenFin-based applications.
 
 This project consist of 3 parts:
-1. The Layouts Provider, managing the state of windows, tabs and layouts
-2. The Layouts Client, exposing APIs for applications to control snap & dock, tabbing, and save & restore
+1. The Layouts Provider, managing the state of windows and layouts
+2. The Layouts Client, exposing APIs for applications to control snap & dock and save & restore
 3. The Layouts Demo App, demonstrating the different features of OpenFin Layouts
 
 ### Dependencies
-- OpenFin version for applications using the Layouts Service = 13.76.44.20
-- OpenFin version used by the Layouts Provider = 13.76.44.20
+- OpenFin version for applications using the Layouts Service = 13.76.44.21
+- OpenFin version used by the Layouts Provider = 13.76.44.21
 - RVM >= 4.7
 
-### Features
+### Default Features
 - Snap & Dock 
    - Windows snap to all sides of other window or group of windows
    - Windows snapping to another window of similar size will resize to match the target window
@@ -23,23 +23,26 @@ This project consist of 3 parts:
    - Resize windows in group
    - Windows can be undocked by pressing `CTRL+SHIFT+U` or `CMD+SHIFT+U` when the window has focus
    - Windows and groups can also be undocked using the client API
+- Save & Restore
+   - The service has APIs for generating and restoring workspaces
+   - The provided demo showcases how a layout manager application could use the APIs to manage workspaces
+- APIs
+   - APIs available to undock, ungroup, save/restore workspaces, and opt-out of service functionality
+- Hosting
+   - The latest production version OpenFin Layouts will by default be served from OpenFin's CDN
+   - For testing/development purposes, customers can specify an absolute version/location of the service by providing the full URL in the services section of the app manifest (see 'Manifest declaration' below)
+   - To self-host versions of the service, each release is also deployed to the CDN as a zip file, available at `https://cdn.openfin.co/services/openfin/layouts/<version>/layouts-service.zip`
+
+### Depricated Features
 - Tabbing
+   - **Note:** This is not officially supported. Tabbing will only work when all tabbed windows are in the same runtime version as the layouts service provider and the monitor scaling is set to 100%. For documentation regarding opting into this feature please see the docs [here](https://developers.openfin.co/docs/layouts-api#section-custom-window-and-tab-opacity)
    - Dropping a window on-top of another window will tab the windows together
    - Dropping a window on-top of an existing tab group will add it to that group
    - Tabs can be reordered and renamed
    - Minimize/maximize/restore/close on the tabstrip affects the whole tab group (tabstrip and tabbed windows)
    - Application developers can provide their own tabstrip - simply by hosting a templated html file
    - The service comes with a Chrome-like default tabstrip that will be used if no custom tabstrip is defined
-- Save & Restore
-   - The service has APIs for generating and restoring workspaces
-   - The provided demo showcases how a layout manager application could use the APIs to manage workspaces
-- APIs
-   - APIs available to undock, ungroup, tab/un-tab, save/restore workspaces, and opt-out of service functionality
-- Hosting
-   - The latest production version OpenFin Layouts will by default be served from OpenFin's CDN
-   - For testing/development purposes, customers can specify an absolute version/location of the service by providing the full URL in the services section of the app manifest (see 'Manifest declaration' below)
-   - To self-host versions of the service, each release is also deployed to the CDN as a zip file, available at `https://cdn.openfin.co/services/openfin/layouts/<version>/layouts-service.zip`
-
+   
 ## Getting Started
 
 Integrating the Layouts Service within an application is done by declaring the service in the application manifest, and importing the Client API.

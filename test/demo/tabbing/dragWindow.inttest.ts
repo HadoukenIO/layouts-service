@@ -16,7 +16,7 @@ afterEach(teardown);
 itParameterized(
     'When a tab is torn-out, TabbingDragWindow fills the screen',
     (testOptions: CreateWindowData): string => `windowCount: ${testOptions.windowCount}, frame:${testOptions.frame}`,
-    [{frame: true, windowCount: 2}],
+    [{frame: true, windowCount: 2, skip: true}],
     createWindowTest(async (context, testOptions: CreateWindowData) => {
         const {windows} = context;
 

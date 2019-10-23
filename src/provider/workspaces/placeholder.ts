@@ -303,7 +303,8 @@ const createPlaceholderWindow = async (win: WorkspaceWindow) => {
         saveWindowState: false,
         opacity: 0.6,
         frame: false,
-        backgroundColor: '#D3D3D3'
+        backgroundColor: '#D3D3D3',
+        showTaskbarIcon: false
     });
 
     if (placeholderWindow) {

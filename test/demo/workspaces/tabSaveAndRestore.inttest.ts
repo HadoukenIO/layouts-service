@@ -45,7 +45,7 @@ itParameterized<CreateAppData>(
     'When calling generate and restore, tabgroups are restored as expected',
     (testOptions: CreateAppData): string => `Tab SaveAndRestore - ${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'} - ${
         testOptions.apps.length} App(s) - ${testOptions.apps[0].childWindows.length} Child(ren) Each`,
-    tabTestOptionsArray,
+    tabTestOptionsArray.map(x => ({...x, skip: true})),
     createAppTest(async (context, applicationData: CreateAppData) => {
         await createCloseAndRestoreLayout(context);
 

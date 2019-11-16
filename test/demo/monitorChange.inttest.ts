@@ -44,70 +44,70 @@ let options: MonitorAssignmentValidatorTestOptions[] = [
         frame: false,
         windowCount: 1
     },
-    {
-        description: 'A window off the bottom right of the monitor is moved as expected',
-        initialPositions: [
-            {state: 'normal', bounds: {top: 400, left: 300, height: 250, width: 250}}
-        ],
-        initialGrouping: {snap: [], tab: []},
-        expectedGrouping: {snap: []},
-        expectedBounds: [
-            {top: 300, left: 300, height: 250, width: 250}
-        ],
-        frame: false,
-        windowCount: 1
-    },
-    {
-        description: 'Two windows off each side of the monitor are moved as expected',
-        initialPositions: [
-            {state: 'normal', bounds: {top: 100, left: 20, height: 250, width: 250}},
-            {state: 'normal', bounds: {top: 120, left: 600, height: 250, width: 250}}
-        ],
-        initialGrouping: {snap: [], tab: []},
-        expectedGrouping: {snap: []},
-        expectedBounds: [
-            {top: 100, left: 50, height: 250, width: 250},
-            {top: 120, left: 300, height: 250, width: 250}
-        ],
-        frame: false,
-        windowCount: 2
-    },
-    {
-        description: 'A vertical snap group with windows off the top of the monitor is moved as expected',
-        initialPositions: [
-            {state: 'normal', bounds: {top: -100, left: 100, height: 100, width: 100}},
-            {state: 'normal', bounds: {top: 0, left: 100, height: 100, width: 100}},
-            {state: 'normal', bounds: {top: 100, left: 100, height: 100, width: 100}}
-        ],
-        initialGrouping: {snap: [[0, 1, 2]], tab: []},
-        expectedGrouping: {snap: [[0, 1, 2]]},
-        expectedBounds: [
-            {top: 50, left: 100, height: 100, width: 100},
-            {top: 150, left: 100, height: 100, width: 100},
-            {top: 250, left: 100, height: 100, width: 100}
-        ],
-        frame: false,
-        windowCount: 3
-    },
-    {
-        description: 'A horizontal snap group too wide to fit within the monitor is split and moved as expected',
-        initialPositions: [
-            {state: 'normal', bounds: {top: 100, left: -1000, height: 100, width: 200}},
-            {state: 'normal', bounds: {top: 100, left: -800, height: 100, width: 200}},
-            {state: 'normal', bounds: {top: 100, left: -600, height: 100, width: 200}},
-            {state: 'normal', bounds: {top: 100, left: -400, height: 100, width: 200}}
-        ],
-        initialGrouping: {snap: [[0, 1, 2, 3]], tab: []},
-        expectedGrouping: {snap: [[0], [1, 2], [3]]},
-        expectedBounds: [
-            {top: 100, left: 50, height: 100, width: 200},
-            {top: 100, left: 100, height: 100, width: 200},
-            {top: 100, left: 300, height: 100, width: 200},
-            {top: 100, left: 350, height: 100, width: 200}
-        ],
-        frame: false,
-        windowCount: 4
-    },
+    // {
+    //     description: 'A window off the bottom right of the monitor is moved as expected',
+    //     initialPositions: [
+    //         {state: 'normal', bounds: {top: 400, left: 300, height: 250, width: 250}}
+    //     ],
+    //     initialGrouping: {snap: [], tab: []},
+    //     expectedGrouping: {snap: []},
+    //     expectedBounds: [
+    //         {top: 300, left: 300, height: 250, width: 250}
+    //     ],
+    //     frame: false,
+    //     windowCount: 1
+    // },
+    // {
+    //     description: 'Two windows off each side of the monitor are moved as expected',
+    //     initialPositions: [
+    //         {state: 'normal', bounds: {top: 100, left: 20, height: 250, width: 250}},
+    //         {state: 'normal', bounds: {top: 120, left: 600, height: 250, width: 250}}
+    //     ],
+    //     initialGrouping: {snap: [], tab: []},
+    //     expectedGrouping: {snap: []},
+    //     expectedBounds: [
+    //         {top: 100, left: 50, height: 250, width: 250},
+    //         {top: 120, left: 300, height: 250, width: 250}
+    //     ],
+    //     frame: false,
+    //     windowCount: 2
+    // },
+    // {
+    //     description: 'A vertical snap group with windows off the top of the monitor is moved as expected',
+    //     initialPositions: [
+    //         {state: 'normal', bounds: {top: -100, left: 100, height: 100, width: 100}},
+    //         {state: 'normal', bounds: {top: 0, left: 100, height: 100, width: 100}},
+    //         {state: 'normal', bounds: {top: 100, left: 100, height: 100, width: 100}}
+    //     ],
+    //     initialGrouping: {snap: [[0, 1, 2]], tab: []},
+    //     expectedGrouping: {snap: [[0, 1, 2]]},
+    //     expectedBounds: [
+    //         {top: 50, left: 100, height: 100, width: 100},
+    //         {top: 150, left: 100, height: 100, width: 100},
+    //         {top: 250, left: 100, height: 100, width: 100}
+    //     ],
+    //     frame: false,
+    //     windowCount: 3
+    // },
+    // {
+    //     description: 'A horizontal snap group too wide to fit within the monitor is split and moved as expected',
+    //     initialPositions: [
+    //         {state: 'normal', bounds: {top: 100, left: -1000, height: 100, width: 200}},
+    //         {state: 'normal', bounds: {top: 100, left: -800, height: 100, width: 200}},
+    //         {state: 'normal', bounds: {top: 100, left: -600, height: 100, width: 200}},
+    //         {state: 'normal', bounds: {top: 100, left: -400, height: 100, width: 200}}
+    //     ],
+    //     initialGrouping: {snap: [[0, 1, 2, 3]], tab: []},
+    //     expectedGrouping: {snap: [[0], [1, 2], [3]]},
+    //     expectedBounds: [
+    //         {top: 100, left: 50, height: 100, width: 200},
+    //         {top: 100, left: 100, height: 100, width: 200},
+    //         {top: 100, left: 300, height: 100, width: 200},
+    //         {top: 100, left: 350, height: 100, width: 200}
+    //     ],
+    //     frame: false,
+    //     windowCount: 4
+    // },
     // {
     //     description: 'A minimized snap group with windows outside the monitor is moved as expected',
     //     initialPositions: [
@@ -176,7 +176,8 @@ let options: MonitorAssignmentValidatorTestOptions[] = [
         ],
         frame: false,
         windowCount: 1
-    },
+    }
+    // ,
     // {
     //     description: 'A \'minimized maximized\' window, with restore bounds partially outside the monitor, is moved as expected',
     //     initialPositions: [
@@ -194,57 +195,57 @@ let options: MonitorAssignmentValidatorTestOptions[] = [
     //     frame: false,
     //     windowCount: 1
     // },
-    {
-        description: 'A tabbed window off the bottom of the monitor is moved as expected',
-        initialPositions: [
-            {state: 'normal', bounds: {top: 400, left: 100, width: 350, height: 300}},
-            {state: 'normal', bounds: {top: 400, left: 100, width: 350, height: 300}},
-            {state: 'normal', bounds: {top: 400, left: 100, width: 350, height: 300}}
-        ],
-        initialGrouping: {snap: [], tab: [[0, 1, 2]]},
-        expectedGrouping: {snap: []},
-        expectedBounds: [
-            {top: 250, left: 100, width: 350, height: 300},
-            {top: 250, left: 100, width: 350, height: 300},
-            {top: 250, left: 100, width: 350, height: 300}
-        ],
-        frame: false,
-        windowCount: 3
-    },
-    {
-        description: 'A tabbed window off the top of the monitor is moved as expected',
-        initialPositions: [
-            {state: 'normal', bounds: {top: -150, left: 200, width: 300, height: 300}},
-            {state: 'normal', bounds: {top: -150, left: 200, width: 300, height: 300}},
-            {state: 'normal', bounds: {top: -150, left: 200, width: 300, height: 300}}
-        ],
-        initialGrouping: {snap: [], tab: [[0, 1, 2]]},
-        expectedGrouping: {snap: []},
-        expectedBounds: [
-            {top: 50, left: 200, width: 300, height: 300},
-            {top: 50, left: 200, width: 300, height: 300},
-            {top: 50, left: 200, width: 300, height: 300}
-        ],
-        frame: false,
-        windowCount: 3
-    },
-    {
-        description: 'A maximized tabbed window, with restore bounds partially outside the monitor, is moved as expected',
-        initialPositions: [
-            {state: 'maximized', bounds: {top: -100, left: 400, width: 300, height: 300}},
-            {state: 'normal', bounds: {top: 100, left: 100, width: 200, height: 200}},
-            {state: 'normal', bounds: {top: 100, left: 100, width: 200, height: 200}}
-        ],
-        initialGrouping: {snap: [], tab: [[0, 1, 2]]},
-        expectedGrouping: {snap: []},
-        expectedBounds: [
-            {top: 50, left: 250, width: 300, height: 300},
-            {top: 50, left: 250, width: 300, height: 300},
-            {top: 50, left: 250, width: 300, height: 300}
-        ],
-        frame: false,
-        windowCount: 3
-    }
+    // {
+    //     description: 'A tabbed window off the bottom of the monitor is moved as expected',
+    //     initialPositions: [
+    //         {state: 'normal', bounds: {top: 400, left: 100, width: 350, height: 300}},
+    //         {state: 'normal', bounds: {top: 400, left: 100, width: 350, height: 300}},
+    //         {state: 'normal', bounds: {top: 400, left: 100, width: 350, height: 300}}
+    //     ],
+    //     initialGrouping: {snap: [], tab: [[0, 1, 2]]},
+    //     expectedGrouping: {snap: []},
+    //     expectedBounds: [
+    //         {top: 250, left: 100, width: 350, height: 300},
+    //         {top: 250, left: 100, width: 350, height: 300},
+    //         {top: 250, left: 100, width: 350, height: 300}
+    //     ],
+    //     frame: false,
+    //     windowCount: 3
+    // },
+    // {
+    //     description: 'A tabbed window off the top of the monitor is moved as expected',
+    //     initialPositions: [
+    //         {state: 'normal', bounds: {top: -150, left: 200, width: 300, height: 300}},
+    //         {state: 'normal', bounds: {top: -150, left: 200, width: 300, height: 300}},
+    //         {state: 'normal', bounds: {top: -150, left: 200, width: 300, height: 300}}
+    //     ],
+    //     initialGrouping: {snap: [], tab: [[0, 1, 2]]},
+    //     expectedGrouping: {snap: []},
+    //     expectedBounds: [
+    //         {top: 50, left: 200, width: 300, height: 300},
+    //         {top: 50, left: 200, width: 300, height: 300},
+    //         {top: 50, left: 200, width: 300, height: 300}
+    //     ],
+    //     frame: false,
+    //     windowCount: 3
+    // },
+    // {
+    //     description: 'A maximized tabbed window, with restore bounds partially outside the monitor, is moved as expected',
+    //     initialPositions: [
+    //         {state: 'maximized', bounds: {top: -100, left: 400, width: 300, height: 300}},
+    //         {state: 'normal', bounds: {top: 100, left: 100, width: 200, height: 200}},
+    //         {state: 'normal', bounds: {top: 100, left: 100, width: 200, height: 200}}
+    //     ],
+    //     initialGrouping: {snap: [], tab: [[0, 1, 2]]},
+    //     expectedGrouping: {snap: []},
+    //     expectedBounds: [
+    //         {top: 50, left: 250, width: 300, height: 300},
+    //         {top: 50, left: 250, width: 300, height: 300},
+    //         {top: 50, left: 250, width: 300, height: 300}
+    //     ],
+    //     frame: false,
+    //     windowCount: 3
+    // }
     // Strange things happen if we call `tabbing.minimizeTabGroup()` on offscreen tabs, so we make sure these are within our original monitor
     // {
     //     description: 'A minimized tabbed window, with restore bounds partially outside the monitor, is moved as expected',

@@ -34,18 +34,18 @@ pipeline {
                     }
                 }
 
-                stage('Integration Tests') {
-                    agent { label 'win10-dservices' }
-                    steps {
-                        bat "npm install"
-                        bat "npm run test:int -- --noColor -x \"--no-cache --verbose\""
-                    }
-                    post {
-                        always {
-                            junit "dist/test/results-int.xml"
-                        }
-                    }
-                }
+                // stage('Integration Tests') {
+                //     agent { label 'win10-dservices' }
+                //     steps {
+                //         bat "npm install"
+                //         bat "npm run test:int -- --noColor -x \"--no-cache --verbose\""
+                //     }
+                //     post {
+                //         always {
+                //             junit "dist/test/results-int.xml"
+                //         }
+                //     }
+                // }
             }
         }
 

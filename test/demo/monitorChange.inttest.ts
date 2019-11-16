@@ -30,7 +30,7 @@ interface MonitorAssignmentValidatorTestOptions extends CreateWindowData {
 const smallMonitor = {center: {x: 300, y: 300}, halfSize: {x: 250, y: 250}};
 const smallMonitorBounds = RectUtils.convertFromCenterHalfSize(smallMonitor);
 
-const options: MonitorAssignmentValidatorTestOptions[] = [
+let options: MonitorAssignmentValidatorTestOptions[] = [
     {
         description: 'A window off the top left of the monitor is moved as expected',
         initialPositions: [
@@ -282,6 +282,8 @@ const options: MonitorAssignmentValidatorTestOptions[] = [
     // }
 ];
 
+options = [];
+
 let initialMonitors: Rectangle[] = [];
 
 beforeAll(async () => {
@@ -294,21 +296,21 @@ afterEach(async() => {
 
 afterAll(teardown);
 
-// itParameterized<MonitorAssignmentValidatorTestOptions>(
-//     'When validating monitor assignment, windows are moved as expected',
-//     (testOptions: MonitorAssignmentValidatorTestOptions): string => `${testOptions.description}`,
-//     options,
-//     createWindowTest(async (context: WindowContext, testOptions: MonitorAssignmentValidatorTestOptions) => {
-//         // Setup windows
-//         await setupWindows(context, testOptions);
+itParameterized<MonitorAssignmentValidatorTestOptions>(
+    'When validating monitor assignment, windows are moved as expected',
+    (testOptions: MonitorAssignmentValidatorTestOptions): string => `${testOptions.description}`,
+    options,
+    createWindowTest(async (context: WindowContext, testOptions: MonitorAssignmentValidatorTestOptions) => {
+        // Setup windows
+        await setupWindows(context, testOptions);
 
-//         // Apply monitor size and run validation
-//         await applyMonitorChange();
+        // Apply monitor size and run validation
+        await applyMonitorChange();
 
-//         // Check end windows state matched expectations
-//         await checkWindows(context, testOptions);
-//     })
-// );
+        // Check end windows state matched expectations
+        await checkWindows(context, testOptions);
+    })
+);
 
 async function setupWindows(context: WindowContext, testOptions: MonitorAssignmentValidatorTestOptions): Promise<void> {
     await setupWindowPositions(context, testOptions);

@@ -35,16 +35,18 @@ pipeline {
                 }
 
                 stage('Integration Tests') {
-                    agent { label 'win10-dservices' }
+                    agent { label 'linux-slave' }
+                    // agent { label 'win10-dservices' }
                     steps {
-                        bat "npm install"
-                        bat "npm run test:int -- --noColor -x \"--no-cache --verbose\""
+                        sh "npm install --ignore-scripts"
+                        // bat "npm install"
+                        // bat "npm run test:int -- --noColor -x \"--no-cache --verbose\""
                     }
-                    post {
-                        always {
-                            junit "dist/test/results-int.xml"
-                        }
-                    }
+                    // post {
+                    //     always {
+                    //         junit "dist/test/results-int.xml"
+                    //     }
+                    // }
                 }
             }
         }

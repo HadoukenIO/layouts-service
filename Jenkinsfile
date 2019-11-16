@@ -38,7 +38,8 @@ pipeline {
                     agent { label 'linux-slave' }
                     // agent { label 'win10-dservices' }
                     steps {
-                        bat "npm install"
+                        sh "npm install --ignore-scripts"
+                        // bat "npm install"
                         // bat "npm run test:int -- --noColor -x \"--no-cache --verbose\""
                     }
                     // post {

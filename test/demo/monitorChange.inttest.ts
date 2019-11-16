@@ -30,7 +30,7 @@ interface MonitorAssignmentValidatorTestOptions extends CreateWindowData {
 const smallMonitor = {center: {x: 300, y: 300}, halfSize: {x: 250, y: 250}};
 const smallMonitorBounds = RectUtils.convertFromCenterHalfSize(smallMonitor);
 
-let options: MonitorAssignmentValidatorTestOptions[] = [
+const options: MonitorAssignmentValidatorTestOptions[] = [
     {
         description: 'A window off the top left of the monitor is moved as expected',
         initialPositions: [
@@ -282,8 +282,6 @@ let options: MonitorAssignmentValidatorTestOptions[] = [
     //     windowCount: 3
     // }
 ];
-
-options = [];
 
 let initialMonitors: Rectangle[] = [];
 

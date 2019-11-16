@@ -122,7 +122,7 @@ describe('When transforming a window', () => {
     });
 });
 
-describe('When windows are about to be tabbed together', () => {
+describe.skip('When windows are about to be tabbed together', () => {
     async function init(activeIndex: number, ...configs: (Preview | undefined)[]) {
         windows = await createWindowsWithConfig('style', ...configs);
         const targetIndex = (activeIndex + 1) % 2;
@@ -214,7 +214,7 @@ describe('When snapping two windows together', () => {
     });
 });
 
-describe('When tabbing & snapping', () => {
+describe.skip('When tabbing & snapping', () => {
     async function init(activeIndex: number, ...configs: (Preview | undefined)[]) {
         windows = await createWindowsWithConfig('style', ...configs);
         const targetIndex = (activeIndex + 1) % 2;

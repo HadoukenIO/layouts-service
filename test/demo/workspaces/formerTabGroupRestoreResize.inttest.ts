@@ -29,7 +29,10 @@ afterEach(async () => {
 itParameterized<CreateAppData>(
     'When calling generate and restore, tabgroups of registered and de-registered windows are restored as expected',
     (testOptions: CreateAppData): string => `${testOptions.apps[0].createType === 'manifest' ? 'Manifest' : 'Programmatic'}`,
-    [{apps: combinedProgrammaticApps, tabWindowGrouping: windowGrouping}, {apps: combinedManifestApps, tabWindowGrouping: windowGrouping}],
+    [
+        {apps: combinedProgrammaticApps, tabWindowGrouping: windowGrouping},
+        {apps: combinedManifestApps, tabWindowGrouping: windowGrouping}
+    ].map(x => ({...x, skip: true})),
     createAppTest(async (context, applicationData: CreateAppData) => {
         if (applicationData.tabWindowGrouping) {
             const grouping = applicationData.tabWindowGrouping[1];

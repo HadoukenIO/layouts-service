@@ -1,3 +1,5 @@
+# This project is no longer maintained.
+**For the latest work on layout functionality please see the [Platform Api](https://developers.openfin.co/docs/platform-api)**
 # OpenFin Layouts
 
 

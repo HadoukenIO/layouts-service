@@ -148,4 +148,4 @@ https://openfin.co/licensing/
 ## Support
 
 This is an open source project and all are encouraged to contribute.
-Please enter an issue in the repository for any questions or problems. Alternatively, please contact us at support@openfin.co. 
+Please enter an issue in the repository for any questions or problems. Alternatively, please contact us at support@openfin.co.

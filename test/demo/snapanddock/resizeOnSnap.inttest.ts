@@ -216,13 +216,13 @@ itParameterized(
 
         return `${testOptions.side} - ${resizeDirectionString}`;
     },
-    [
+    ([
         // No constraints. Normal resizing behaviour expected
         {frame: true, windowCount: 4, resizeDirection: 'big-to-small', side: 'right'},
         {frame: true, windowCount: 4, resizeDirection: 'big-to-small', side: 'bottom'},
         {frame: true, windowCount: 4, resizeDirection: 'small-to-big', side: 'right'},
         {frame: true, windowCount: 4, resizeDirection: 'small-to-big', side: 'bottom'}
-    ],
+    ].map(x => ({...x, skip: true})) as ResizeOnSnapOptions[]),
     createWindowTest(async (context, testOptions: ResizeOnSnapOptions) => {
         const {windows} = context;
         const {resizeDirection, side} = testOptions;

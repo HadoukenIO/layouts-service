@@ -84,7 +84,7 @@ afterEach(async () => {
     await teardown();
 });
 
-it('When dragging a window on-top a window, a tabgroup is created', async () => {
+it.skip('When dragging a window on-top a window, a tabgroup is created', async () => {
     // Drag wins[0] over wins[1] to make a tabset (in valid drop region)
     await tabWindowsTogether(wins[0], wins[1]);
 
@@ -92,7 +92,7 @@ it('When dragging a window on-top a window, a tabgroup is created', async () => 
     await assertPairTabbed(wins[0], wins[1]);
 });
 
-it('When dragging a window on-top a window, window title is displayed in the tabstrip', async () => {
+it.skip('When dragging a window on-top a window, window title is displayed in the tabstrip', async () => {
     await tabWindowsTogether(wins[0], wins[1]);
     await assertPairTabbed(wins[0], wins[1]);
 
@@ -105,7 +105,7 @@ it('When dragging a window on-top a window, window title is displayed in the tab
     assert.strictEqual(tabTitles[1], 'tab-window-2');
 });
 
-it('When dragging a window over a window\'s invalid region, a tabgroup is not created', async () => {
+it.skip('When dragging a window over a window\'s invalid region, a tabgroup is not created', async () => {
     // Fail creating group using invalid drop region
     await dragWindowToOtherWindow(wins[0], 'top-left', wins[1], 'top-left', {x: 20, y: 100});
 
@@ -113,7 +113,7 @@ it('When dragging a window over a window\'s invalid region, a tabgroup is not cr
     await assertNotTabbed(wins[0]);
 });
 
-it('When dragging a window on-top a tabgroup, a three tab tabgroup is created', async () => {
+it.skip('When dragging a window on-top a tabgroup, a three tab tabgroup is created', async () => {
     const win3 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
@@ -136,7 +136,7 @@ it('When dragging a window on-top a tabgroup, a three tab tabgroup is created', 
     await assertPairTabbed(wins[0], win3);
 });
 
-it('When dragging a window over a tabgroups\'s invalid region, a tabgroup is not created', async () => {
+it.skip('When dragging a window over a tabgroups\'s invalid region, a tabgroup is not created', async () => {
     // Tab 2 Windows Together
     await tabWindowsTogether(wins[1], wins[0]);
 
@@ -161,7 +161,7 @@ it('When dragging a window over a tabgroups\'s invalid region, a tabgroup is not
     await assertNotTabbed(win3);
 });
 
-it('When tearing out a tab, two singleton windows are created', async () => {
+it.skip('When tearing out a tab, two singleton windows are created', async () => {
     // Drag wins[0] over wins[1] to make a tabset
     await tabWindowsTogether(wins[0], wins[1]);
 
@@ -183,7 +183,7 @@ it('When tearing out a tab, two singleton windows are created', async () => {
     await assertNotTabbed(wins[1]);
 });
 
-it('When a torn-out tab is dragged into a singleton window, a tabgroup is created', async () => {
+it.skip('When a torn-out tab is dragged into a singleton window, a tabgroup is created', async () => {
     // Tab 2 Windows Together
     await tabWindowsTogether(wins[1], wins[0]);
 
@@ -217,7 +217,7 @@ it('When a torn-out tab is dragged into a singleton window, a tabgroup is create
     await delay(1000);
 });
 
-it('When a torn-out tab is dragged into a singleton window\'s invalid region, a tabgroup is not created', async () => {
+it.skip('When a torn-out tab is dragged into a singleton window\'s invalid region, a tabgroup is not created', async () => {
     // Tab 2 Windows Together
     await tabWindowsTogether(wins[1], wins[0]);
 
@@ -249,7 +249,7 @@ it('When a torn-out tab is dragged into a singleton window\'s invalid region, a 
     await Promise.all([assertNotTabbed(wins[0]), assertNotTabbed(wins[1]), assertNotTabbed(win3)]);
 });
 
-it('When a torn-out tab is dragged into a tabgroup, the tab is added to the tabgroup', async () => {
+it.skip('When a torn-out tab is dragged into a tabgroup, the tab is added to the tabgroup', async () => {
     // Tab 2 Windows Together
     await tabWindowsTogether(wins[1], wins[0]);
 
@@ -293,7 +293,7 @@ it('When a torn-out tab is dragged into a tabgroup, the tab is added to the tabg
     await Promise.all([assertNotTabbed(wins[0]), assertPairTabbed(wins[1], win3)]);
 });
 
-it('When a torn-out tab is dragged into a tabgroup\'s invalid region, the tab is not added to the tabgroup', async () => {
+it.skip('When a torn-out tab is dragged into a tabgroup\'s invalid region, the tab is not added to the tabgroup', async () => {
     // Tab 2 Windows Together
     await tabWindowsTogether(wins[1], wins[0]);
 
@@ -337,7 +337,7 @@ it('When a torn-out tab is dragged into a tabgroup\'s invalid region, the tab is
     await Promise.all([assertNotTabbed(wins[0]), assertNotTabbed(wins[1])]);
 });
 
-it('When a tab is closed in two-tab tabgroup, the tabgroup is destroyed', async () => {
+it.skip('When a tab is closed in two-tab tabgroup, the tabgroup is destroyed', async () => {
     // Create tab group
     await tabWindowsTogether(wins[1], wins[0]);
     await assertPairTabbed(wins[0], wins[1]);
@@ -350,7 +350,7 @@ it('When a tab is closed in two-tab tabgroup, the tabgroup is destroyed', async 
     await assertNotTabbed(wins[1]);
 });
 
-it('When a tab is torn-out from a two-tab tabgroup, the tabgroup is destroyed', async () => {
+it.skip('When a tab is torn-out from a two-tab tabgroup, the tabgroup is destroyed', async () => {
     // Create tab group
     await tabWindowsTogether(wins[1], wins[0]);
     await assertPairTabbed(wins[0], wins[1]);
@@ -367,7 +367,7 @@ it('When a tab is torn-out from a two-tab tabgroup, the tabgroup is destroyed', 
     await Promise.all([assertNotTabbed(wins[1]), assertNotTabbed(wins[0])]);
 });
 
-it('When a tab is closed in three-tab tabgroup, the tabgroup is retained', async () => {
+it.skip('When a tab is closed in three-tab tabgroup, the tabgroup is retained', async () => {
     const win3 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
@@ -393,7 +393,7 @@ it('When a tab is closed in three-tab tabgroup, the tabgroup is retained', async
     await assertPairTabbed(wins[0], wins[1]);
 });
 
-it('When a tab is torn-out from a three-tab tabgroup, the tabgroup is retained', async () => {
+it.skip('When a tab is torn-out from a three-tab tabgroup, the tabgroup is retained', async () => {
     const win3 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
@@ -425,7 +425,7 @@ it('When a tab is torn-out from a three-tab tabgroup, the tabgroup is retained',
     await Promise.all([assertPairTabbed(win3, wins[0]), assertNotTabbed(wins[1])]);
 });
 
-it('When a tab is torn-out then re-tabbed, a tabgroup is created', async () => {
+it.skip('When a tab is torn-out then re-tabbed, a tabgroup is created', async () => {
     // Drag wins[0] over wins[1] to make a tabset
     await tabWindowsTogether(wins[0], wins[1]);
 
@@ -454,7 +454,7 @@ it('When a tab is torn-out then re-tabbed, a tabgroup is created', async () => {
     await assertPairTabbed(wins[1], wins[0]);
 });
 
-it('When a tab is closed in two-tab tabgroup, then a window is dragged over the remaining window, a tabgroup is created', async () => {
+it.skip('When a tab is closed in two-tab tabgroup, then a window is dragged over the remaining window, a tabgroup is created', async () => {
     const win3 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
@@ -488,7 +488,7 @@ it('When a tab is closed in two-tab tabgroup, then a window is dragged over the 
     await delay(1000);
 });
 
-it('When a tab is torn-out then dragged over a tabgroup, the tabgroup is retained', async () => {
+it.skip('When a tab is torn-out then dragged over a tabgroup, the tabgroup is retained', async () => {
     // Create tab group
     await tabWindowsTogether(wins[1], wins[0]);
     await assertPairTabbed(wins[0], wins[1]);
@@ -508,7 +508,7 @@ it('When a tab is torn-out then dragged over a tabgroup, the tabgroup is retaine
     await delay(1000);
 });
 
-it('When a window is dragged into a tabgroup then torn-out, the window is maximizable if-and-only-if not in tabgroup', async () => {
+it.skip('When a window is dragged into a tabgroup then torn-out, the window is maximizable if-and-only-if not in tabgroup', async () => {
     // Check that we can maximize windows
     await wins[0].maximize();
     await wins[1].maximize();
@@ -535,7 +535,7 @@ it('When a window is dragged into a tabgroup then torn-out, the window is maximi
     await assertAllMaximized(wins);
 });
 
-it('When a window is dragged on-top a window obscured by a registered, the window is not tabbed', async () => {
+it.skip('When a window is dragged on-top a window obscured by a registered, the window is not tabbed', async () => {
     const win3 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,
@@ -554,7 +554,7 @@ it('When a window is dragged on-top a window obscured by a registered, the windo
     await Promise.all(wins.map(win => assertNotTabbed(win)));
 });
 
-it('When a window is dragged on-top a window obscured by a de-registered window, window is not tabbed', async () => {
+it.skip('When a window is dragged on-top a window obscured by a de-registered window, window is not tabbed', async () => {
     const win3 = await createChildWindow({
         autoShow: true,
         saveWindowState: false,

@@ -174,7 +174,7 @@ export class DesktopWindow implements DesktopEntity {
                     // define a title. We would like to instead use the window name, to align with what is seen in the
                     // un-tabbed window frame.
 
-                    // Current stable (13.76.43.32) behaviour is to return 'host+pathname+search+hash'. There is also a
+                    // Current stable (15.80.49.30) behaviour is to return 'host+pathname+search+hash'. There is also a
                     // story (RUN-3457) to change this to 'host+pathname'. We will check for both of these strings, and
                     // revert to the window name if the title matches either
                     const parsedUrl = new URL(url);
@@ -1154,21 +1154,21 @@ export class DesktopWindow implements DesktopEntity {
 
         // Temporary extra validation to workaround runtime issues with windows right-click move
         // TODO: Removed once runtime has better handling of this edge case (RUN-5074?)
-        let disabled = false;
-        const disabledListener = () => {
-            disabled = true;
-        };
-        this._window.once('disabled-frame-bounds-changing', disabledListener);
-        this._window.once('bounds-changed', () => {
-            if (!disabled && this._snapGroup.length > 1) {
-                if (this._tabGroup) {
-                    this._tabGroup.validate();
-                } else {
-                    this._snapGroup.validate();
-                }
-            }
-            this._window.removeListener('disabled-frame-bounds-changing', disabledListener);
-        });
+        // let disabled = false;
+        // const disabledListener = () => {
+        //     disabled = true;
+        // };
+        // this._window.once('bounds-changing', disabledListener);
+        // this._window.once('bounds-changed', () => {
+        //     if (!disabled && this._snapGroup.length > 1) {
+        //         if (this._tabGroup) {
+        //             this._tabGroup.validate();
+        //         } else {
+        //             this._snapGroup.validate();
+        //         }
+        //     }
+        //     this._window.removeListener('bounds-changing', disabledListener);
+        // });
     }
 
     private handleClosing(): void {

@@ -3,9 +3,43 @@
     "licenseKey": "64605fac-add3-48a0-8710-64b38e96a2dd",
     "runtime": {
         "arguments": "--v=1 --enable-crash-reporting",
-        "version": "13.76.43.32"
+        "version": "15.80.49.30"
     },
-    "services":[{"name": "layouts", "manifestUrl": "http://localhost:1337/test/provider.json"}],
+    "services": [
+        {
+            "name": "layouts",
+            "manifestUrl": "http://localhost:1337/test/provider.json",
+            "config": {
+                "rules": [
+                    {
+                        "scope": {
+                            "level": "application",
+                            "uuid": "registeredApp1",
+                            "name": "registeredApp1"
+                        },
+                        "config": {
+                            "enabled": true,
+                            "features": {
+                                "snap": true,
+                                "dock": true,
+                                "tab": true
+                            },
+                            "preview": {
+                                "snap": {
+                                    "activeOpacity": 0.8,
+                                    "targetOpacity": 0.8
+                                },
+                                "tab": {
+                                    "activeOpacity": 0.8,
+                                    "targetOpacity": 0.8
+                                }
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ],
     "startup_app": {
         "name": "registeredApp1",
         "uuid": "registeredApp1",

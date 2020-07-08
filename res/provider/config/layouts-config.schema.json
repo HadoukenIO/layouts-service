@@ -276,7 +276,7 @@
                     "default": {
                         "snap": true,
                         "dock": true,
-                        "tab": true
+                        "tab": false
                     },
                     "additionalProperties": false
                 },

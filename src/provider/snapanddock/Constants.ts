@@ -20,7 +20,7 @@ export const MIN_OVERLAP = 50;
 /**
  * To calculate window adjacency, we use a tiny fuzz distance to deal with sub-pixel window drift
  */
-export const ADJACENCY_FUZZ_DISTANCE = 2;
+export const ADJACENCY_FUZZ_DISTANCE = 5;
 
 /**
  * Defines the distance windows will be moved when undocked.

@@ -92,7 +92,7 @@ itParameterized(
         {frame: true, windowCount: 2, windowConstraints: [{maxHeight: 300, minWidth: 200}, {}], shouldTab: true},
         // Checks edge case where the target is large enough when un-tabbed but would not be once resized for tabbing
         {frame: true, windowCount: 2, windowConstraints: [{}, {minHeight: 200}], shouldTab: false}
-    ],
+    ].map(x=>({...x, skip: true})),
     createWindowTest(async (context, testOptions: TabConstraintsOptions&{shouldTab: boolean}) => {
         const {windows} = context;
 
@@ -136,7 +136,7 @@ itParameterized(
         {frame: true, windowCount: 2, windowConstraints: [{}, {}]},
         {frame: true, windowCount: 2, windowConstraints: [{}, {maxHeight: 500}]},
         {frame: true, windowCount: 2, windowConstraints: [{}, {maxWidth: 500}]}
-    ],
+    ].map(x=>({...x, skip: true})),
     createWindowTest(async (context, testOptions: TabConstraintsOptions) => {
         const {windows} = context;
         const {tabbing} = await layoutsClientPromise;

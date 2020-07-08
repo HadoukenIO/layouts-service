@@ -14,7 +14,7 @@
     "check": "svc-tools check",
     "clean": "rimraf gen dist",
     "docs": "npm run docs:api && npm run docs:config",
-    "docs:api": "svc-tools docs",
+    "docs:api": "typedoc --name 'OpenFin Layouts' --theme ./typedoc-template --out ./dist/docs/api --tsconfig ./src/client/tsconfig.json --readme none --excludeNotExported --excludePrivate --excludeProtected --hideGenerator",
     "docs:config": "bootprint json-schema ./res/provider/config/layouts-config.schema.json ./dist/docs/config",
     "fix": "svc-tools fix",
     "generate": "svc-tools plugins generate",
